@@ -17,6 +17,11 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.mockito.Mockito.*;
 
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisFuture;
+import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
+import io.lettuce.core.sentinel.api.sync.RedisSentinelCommands;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -29,11 +34,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder;
 import org.springframework.data.redis.connection.RedisServer;
-
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisFuture;
-import com.lambdaworks.redis.sentinel.api.StatefulRedisSentinelConnection;
-import com.lambdaworks.redis.sentinel.api.sync.RedisSentinelCommands;
 
 /**
  * @author Christoph Strobl
@@ -86,7 +86,7 @@ public class LettuceSentinelConnectionUnitTests {
 	@Test // DATAREDIS-348
 	public void mastersShouldReadMastersCorrectly() {
 
-		when(sentinelCommandsMock.masters()).thenReturn(Collections.<Map<String, String>>emptyList());
+		when(sentinelCommandsMock.masters()).thenReturn(Collections.<Map<String, String>> emptyList());
 		connection.masters();
 		verify(sentinelCommandsMock, times(1)).masters();
 	}
@@ -94,7 +94,7 @@ public class LettuceSentinelConnectionUnitTests {
 	@Test // DATAREDIS-348
 	public void shouldReadSlavesCorrectly() {
 
-		when(sentinelCommandsMock.slaves(MASTER_ID)).thenReturn(Collections.<Map<String, String>>emptyList());
+		when(sentinelCommandsMock.slaves(MASTER_ID)).thenReturn(Collections.<Map<String, String>> emptyList());
 		connection.slaves(MASTER_ID);
 		verify(sentinelCommandsMock, times(1)).slaves(eq(MASTER_ID));
 	}
@@ -102,7 +102,7 @@ public class LettuceSentinelConnectionUnitTests {
 	@Test // DATAREDIS-348
 	public void shouldReadSlavesCorrectlyWhenGivenNamedNode() {
 
-		when(sentinelCommandsMock.slaves(MASTER_ID)).thenReturn(Collections.<Map<String, String>>emptyList());
+		when(sentinelCommandsMock.slaves(MASTER_ID)).thenReturn(Collections.<Map<String, String>> emptyList());
 		connection.slaves(new RedisNodeBuilder().withName(MASTER_ID).build());
 		verify(sentinelCommandsMock, times(1)).slaves(eq(MASTER_ID));
 	}

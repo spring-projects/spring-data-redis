@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.sync.RedisPubSubCommands;
+
 import java.util.Collection;
 
 import org.junit.Before;
@@ -25,9 +28,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisInvalidSubscriptionException;
-
-import com.lambdaworks.redis.pubsub.StatefulRedisPubSubConnection;
-import com.lambdaworks.redis.pubsub.api.sync.RedisPubSubCommands;
 
 /**
  * Unit test of {@link LettuceSubscription}

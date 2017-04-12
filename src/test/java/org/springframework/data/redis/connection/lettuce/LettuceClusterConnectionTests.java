@@ -26,6 +26,11 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.Distanc
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
+import io.lettuce.core.RedisURI.Builder;
+import io.lettuce.core.api.sync.RedisHLLCommands;
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
+
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
@@ -69,11 +74,6 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.test.annotation.IfProfileValue;
-
-import com.lambdaworks.redis.RedisURI.Builder;
-import com.lambdaworks.redis.api.sync.RedisHLLCommands;
-import com.lambdaworks.redis.cluster.RedisClusterClient;
-import com.lambdaworks.redis.cluster.api.sync.RedisAdvancedClusterCommands;
 
 /**
  * @author Christoph Strobl

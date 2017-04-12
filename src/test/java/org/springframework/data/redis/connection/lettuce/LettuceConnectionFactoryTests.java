@@ -20,7 +20,10 @@ import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 
-import com.lambdaworks.redis.api.reactive.BaseRedisReactiveCommands;
+import io.lettuce.core.RedisException;
+import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.api.reactive.BaseRedisReactiveCommands;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -33,10 +36,6 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
-import org.springframework.data.repository.util.QueryExecutionConverters;
-
-import com.lambdaworks.redis.RedisException;
-import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 
 /**
  * Integration test of {@link LettuceConnectionFactory}
@@ -330,8 +329,6 @@ public class LettuceConnectionFactoryTests {
 
 		ConnectionFactoryTracker.add(factory);
 
-		assertThat(factory.getReactiveConnection()
-				.execute(BaseRedisReactiveCommands::ping)
-				.blockFirst(), is("PONG"));
+		assertThat(factory.getReactiveConnection().execute(BaseRedisReactiveCommands::ping).blockFirst(), is("PONG"));
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,11 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisURI;
-import com.lambdaworks.redis.api.StatefulRedisConnection;
-import com.lambdaworks.redis.api.async.RedisAsyncCommands;
-import com.lambdaworks.redis.codec.RedisCodec;
-import com.lambdaworks.redis.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
 /**
  * Extension of {@link RedisClient} that calls auth on all new connections using the supplied credentials
@@ -43,7 +42,7 @@ public class AuthenticatingRedisClient extends RedisClient {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.lambdaworks.redis.RedisClient#connect(com.lambdaworks.redis.codec.RedisCodec)
+	 * @see io.lettuce.core.RedisClient#connect(io.lettuce.core.codec.RedisCodec)
 	 */
 	@Override
 	public <K, V> StatefulRedisConnection<K, V> connect(RedisCodec<K, V> codec) {
@@ -52,7 +51,7 @@ public class AuthenticatingRedisClient extends RedisClient {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.lambdaworks.redis.RedisClient#connectPubSub(com.lambdaworks.redis.codec.RedisCodec)
+	 * @see io.lettuce.core.RedisClient#connectPubSub(io.lettuce.core.codec.RedisCodec)
 	 */
 	@Override
 	public <K, V> StatefulRedisPubSubConnection<K, V> connectPubSub(RedisCodec<K, V> codec) {

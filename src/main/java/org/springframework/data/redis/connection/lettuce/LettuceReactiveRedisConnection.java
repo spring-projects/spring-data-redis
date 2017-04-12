@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,33 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.AbstractRedisClient;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
+import io.lettuce.core.codec.RedisCodec;
+import reactor.core.publisher.Flux;
+
 import java.nio.ByteBuffer;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.ReactiveGeoCommands;
+import org.springframework.data.redis.connection.ReactiveHashCommands;
+import org.springframework.data.redis.connection.ReactiveHyperLogLogCommands;
+import org.springframework.data.redis.connection.ReactiveKeyCommands;
+import org.springframework.data.redis.connection.ReactiveListCommands;
+import org.springframework.data.redis.connection.ReactiveNumberCommands;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveSetCommands;
+import org.springframework.data.redis.connection.ReactiveStringCommands;
+import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.util.Assert;
-
-import com.lambdaworks.redis.AbstractRedisClient;
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.api.StatefulConnection;
-import com.lambdaworks.redis.api.StatefulRedisConnection;
-import com.lambdaworks.redis.cluster.RedisClusterClient;
-import com.lambdaworks.redis.cluster.api.StatefulRedisClusterConnection;
-import com.lambdaworks.redis.cluster.api.reactive.RedisClusterReactiveCommands;
-import com.lambdaworks.redis.codec.RedisCodec;
-
-import reactor.core.publisher.Flux;
 
 /**
  * @author Christoph Strobl

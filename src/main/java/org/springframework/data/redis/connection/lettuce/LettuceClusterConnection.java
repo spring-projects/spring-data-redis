@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 package org.springframework.data.redis.connection.lettuce;
+
+import io.lettuce.core.KeyValue;
+import io.lettuce.core.RedisException;
+import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.SlotHash;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import io.lettuce.core.cluster.models.partitions.Partitions;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.codec.RedisCodec;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,17 +66,6 @@ import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-
-import com.lambdaworks.redis.KeyValue;
-import com.lambdaworks.redis.RedisException;
-import com.lambdaworks.redis.api.StatefulConnection;
-import com.lambdaworks.redis.cluster.RedisClusterClient;
-import com.lambdaworks.redis.cluster.SlotHash;
-import com.lambdaworks.redis.cluster.api.StatefulRedisClusterConnection;
-import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
-import com.lambdaworks.redis.cluster.models.partitions.Partitions;
-import com.lambdaworks.redis.codec.ByteArrayCodec;
-import com.lambdaworks.redis.codec.RedisCodec;
 
 /**
  * @author Christoph Strobl

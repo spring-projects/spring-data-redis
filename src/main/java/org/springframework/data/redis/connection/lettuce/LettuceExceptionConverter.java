@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,13 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.RedisCommandExecutionException;
+import io.lettuce.core.RedisCommandInterruptedException;
+import io.lettuce.core.RedisCommandTimeoutException;
+import io.lettuce.core.RedisConnectionException;
+import io.lettuce.core.RedisException;
+import io.netty.channel.ChannelException;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -23,14 +30,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
-
-import com.lambdaworks.redis.RedisCommandExecutionException;
-import com.lambdaworks.redis.RedisCommandInterruptedException;
-import com.lambdaworks.redis.RedisCommandTimeoutException;
-import com.lambdaworks.redis.RedisConnectionException;
-import com.lambdaworks.redis.RedisException;
-
-import io.netty.channel.ChannelException;
 
 /**
  * Converts Lettuce Exceptions to {@link DataAccessException}s

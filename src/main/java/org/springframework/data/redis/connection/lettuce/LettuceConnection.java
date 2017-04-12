@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,70 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static com.lambdaworks.redis.protocol.CommandType.*;
+import static io.lettuce.core.protocol.CommandType.*;
+
+import io.lettuce.core.AbstractRedisClient;
+import io.lettuce.core.GeoArgs;
+import io.lettuce.core.GeoCoordinates;
+import io.lettuce.core.GeoWithin;
+import io.lettuce.core.KeyScanCursor;
+import io.lettuce.core.LettuceFutures;
+import io.lettuce.core.MapScanCursor;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisException;
+import io.lettuce.core.RedisFuture;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScoredValue;
+import io.lettuce.core.ScoredValueScanCursor;
+import io.lettuce.core.SortArgs;
+import io.lettuce.core.TransactionResult;
+import io.lettuce.core.ValueScanCursor;
+import io.lettuce.core.ZStoreArgs;
+import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.api.async.RedisHLLAsyncCommands;
+import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.api.sync.RedisHLLCommands;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
+import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.output.BooleanOutput;
+import io.lettuce.core.output.ByteArrayOutput;
+import io.lettuce.core.output.CommandOutput;
+import io.lettuce.core.output.DateOutput;
+import io.lettuce.core.output.DoubleOutput;
+import io.lettuce.core.output.IntegerOutput;
+import io.lettuce.core.output.KeyListOutput;
+import io.lettuce.core.output.KeyValueOutput;
+import io.lettuce.core.output.MapOutput;
+import io.lettuce.core.output.MultiOutput;
+import io.lettuce.core.output.StatusOutput;
+import io.lettuce.core.output.ValueListOutput;
+import io.lettuce.core.output.ValueOutput;
+import io.lettuce.core.output.ValueSetOutput;
+import io.lettuce.core.protocol.Command;
+import io.lettuce.core.protocol.CommandArgs;
+import io.lettuce.core.protocol.CommandType;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
 
 import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +97,17 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.AbstractRedisConnection;
+import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.FutureResult;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisPipelineException;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
+import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
+import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.SortParameters;
+import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
@@ -53,25 +122,6 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
-
-import com.lambdaworks.redis.*;
-import com.lambdaworks.redis.api.StatefulConnection;
-import com.lambdaworks.redis.api.StatefulRedisConnection;
-import com.lambdaworks.redis.api.async.RedisAsyncCommands;
-import com.lambdaworks.redis.api.async.RedisHLLAsyncCommands;
-import com.lambdaworks.redis.api.sync.RedisCommands;
-import com.lambdaworks.redis.api.sync.RedisHLLCommands;
-import com.lambdaworks.redis.cluster.api.StatefulRedisClusterConnection;
-import com.lambdaworks.redis.cluster.api.async.RedisClusterAsyncCommands;
-import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
-import com.lambdaworks.redis.codec.ByteArrayCodec;
-import com.lambdaworks.redis.codec.RedisCodec;
-import com.lambdaworks.redis.output.*;
-import com.lambdaworks.redis.protocol.Command;
-import com.lambdaworks.redis.protocol.CommandArgs;
-import com.lambdaworks.redis.protocol.CommandType;
-import com.lambdaworks.redis.pubsub.StatefulRedisPubSubConnection;
-import com.lambdaworks.redis.sentinel.api.StatefulRedisSentinelConnection;
 
 /**
  * {@code RedisConnection} implementation on top of <a href="https://github.com/mp911de/lettuce">Lettuce</a> Redis
@@ -115,13 +165,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private boolean convertPipelineAndTxResults = true;
 
 	@SuppressWarnings("rawtypes")
-	private class LettuceResult extends FutureResult<com.lambdaworks.redis.protocol.RedisCommand<?, ?, ?>> {
+	private class LettuceResult extends FutureResult<io.lettuce.core.protocol.RedisCommand<?, ?, ?>> {
 		public <T> LettuceResult(Future<T> resultHolder, Converter<T, ?> converter) {
-			super((com.lambdaworks.redis.protocol.RedisCommand) resultHolder, converter);
+			super((io.lettuce.core.protocol.RedisCommand) resultHolder, converter);
 		}
 
 		public LettuceResult(Future resultHolder) {
-			super((com.lambdaworks.redis.protocol.RedisCommand) resultHolder);
+			super((io.lettuce.core.protocol.RedisCommand) resultHolder);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -414,7 +464,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		if (isPipelined) {
 			isPipelined = false;
-			List<com.lambdaworks.redis.protocol.RedisCommand<?, ?, ?>> futures = new ArrayList<com.lambdaworks.redis.protocol.RedisCommand<?, ?, ?>>();
+			List<io.lettuce.core.protocol.RedisCommand<?, ?, ?>> futures = new ArrayList<io.lettuce.core.protocol.RedisCommand<?, ?, ?>>();
 			for (LettuceResult result : ppline) {
 				futures.add(result.getResultHolder());
 			}
@@ -3666,7 +3716,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 					throw new UnsupportedOperationException("'SCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				com.lambdaworks.redis.ScanCursor scanCursor = getScanCursor(cursorId);
+				io.lettuce.core.ScanCursor scanCursor = getScanCursor(cursorId);
 				ScanArgs scanArgs = getScanArgs(options);
 
 				KeyScanCursor<byte[]> keyScanCursor = getConnection().scan(scanCursor, scanArgs);
@@ -3711,7 +3761,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 					throw new UnsupportedOperationException("'HSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				com.lambdaworks.redis.ScanCursor scanCursor = getScanCursor(cursorId);
+				io.lettuce.core.ScanCursor scanCursor = getScanCursor(cursorId);
 				ScanArgs scanArgs = getScanArgs(options);
 
 				MapScanCursor<byte[], byte[]> mapScanCursor = getConnection().hscan(key, scanCursor, scanArgs);
@@ -3755,7 +3805,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 					throw new UnsupportedOperationException("'SSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				com.lambdaworks.redis.ScanCursor scanCursor = getScanCursor(cursorId);
+				io.lettuce.core.ScanCursor scanCursor = getScanCursor(cursorId);
 				ScanArgs scanArgs = getScanArgs(options);
 
 				ValueScanCursor<byte[]> valueScanCursor = getConnection().sscan(key, scanCursor, scanArgs);
@@ -3799,7 +3849,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 					throw new UnsupportedOperationException("'ZSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				com.lambdaworks.redis.ScanCursor scanCursor = getScanCursor(cursorId);
+				io.lettuce.core.ScanCursor scanCursor = getScanCursor(cursorId);
 				ScanArgs scanArgs = getScanArgs(options);
 
 				ScoredValueScanCursor<byte[]> scoredValueScanCursor = getConnection().zscan(key, scanCursor, scanArgs);
@@ -4004,8 +4054,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return new byte[0][0];
 	}
 
-	private com.lambdaworks.redis.ScanCursor getScanCursor(long cursorId) {
-		return com.lambdaworks.redis.ScanCursor.of(Long.toString(cursorId));
+	private io.lettuce.core.ScanCursor getScanCursor(long cursorId) {
+		return io.lettuce.core.ScanCursor.of(Long.toString(cursorId));
 	}
 
 	private ScanArgs getScanArgs(ScanOptions options) {

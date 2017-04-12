@@ -15,19 +15,18 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.api.reactive.RedisReactiveCommands;
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
+import reactor.core.publisher.Flux;
+
 import java.nio.ByteBuffer;
 
 import org.springframework.data.redis.connection.ReactiveRedisClusterConnection;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import com.lambdaworks.redis.api.reactive.RedisReactiveCommands;
-import com.lambdaworks.redis.cluster.RedisClusterClient;
-import com.lambdaworks.redis.cluster.api.StatefulRedisClusterConnection;
-import com.lambdaworks.redis.cluster.api.reactive.RedisClusterReactiveCommands;
-
-import reactor.core.publisher.Flux;
 
 /**
  * @author Christoph Strobl

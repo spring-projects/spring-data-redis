@@ -23,6 +23,13 @@ import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.test.util.MockitoUtils.*;
 
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
+import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import io.lettuce.core.cluster.models.partitions.Partitions;
+import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,13 +44,6 @@ import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.ClusterNodeResourceProvider;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterNode;
-
-import com.lambdaworks.redis.RedisURI;
-import com.lambdaworks.redis.cluster.RedisClusterClient;
-import com.lambdaworks.redis.cluster.api.async.RedisClusterAsyncCommands;
-import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
-import com.lambdaworks.redis.cluster.models.partitions.Partitions;
-import com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
 /**
  * @author Christoph Strobl
@@ -75,19 +75,19 @@ public class LettuceClusterConnectionUnitTests {
 
 		Partitions partitions = new Partitions();
 
-		com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode partition1 = new com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode();
+		io.lettuce.core.cluster.models.partitions.RedisClusterNode partition1 = new io.lettuce.core.cluster.models.partitions.RedisClusterNode();
 		partition1.setNodeId(CLUSTER_NODE_1.getId());
 		partition1.setConnected(true);
 		partition1.setFlags(Collections.singleton(NodeFlag.MASTER));
 		partition1.setUri(RedisURI.create("redis://" + CLUSTER_HOST + ":" + MASTER_NODE_1_PORT));
 
-		com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode partition2 = new com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode();
+		io.lettuce.core.cluster.models.partitions.RedisClusterNode partition2 = new io.lettuce.core.cluster.models.partitions.RedisClusterNode();
 		partition2.setNodeId(CLUSTER_NODE_2.getId());
 		partition2.setConnected(true);
 		partition2.setFlags(Collections.singleton(NodeFlag.MASTER));
 		partition2.setUri(RedisURI.create("redis://" + CLUSTER_HOST + ":" + MASTER_NODE_2_PORT));
 
-		com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode partition3 = new com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode();
+		io.lettuce.core.cluster.models.partitions.RedisClusterNode partition3 = new io.lettuce.core.cluster.models.partitions.RedisClusterNode();
 		partition3.setNodeId(CLUSTER_NODE_3.getId());
 		partition3.setConnected(true);
 		partition3.setFlags(Collections.singleton(NodeFlag.MASTER));
@@ -184,9 +184,9 @@ public class LettuceClusterConnectionUnitTests {
 	@Test // DATAREDIS-315
 	public void keysShouldBeRunOnAllClusterNodes() {
 
-		when(clusterConnection1Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]>emptyList());
-		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]>emptyList());
-		when(clusterConnection3Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]>emptyList());
+		when(clusterConnection1Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
+		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
+		when(clusterConnection3Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
 
 		byte[] pattern = LettuceConverters.toBytes("*");
 
@@ -200,7 +200,7 @@ public class LettuceClusterConnectionUnitTests {
 	@Test // DATAREDIS-315
 	public void keysShouldOnlyBeRunOnDedicatedNodeWhenPinned() {
 
-		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]>emptyList());
+		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
 
 		byte[] pattern = LettuceConverters.toBytes("*");
 

@@ -21,7 +21,7 @@
 		<beanutils>1.9.2</beanutils>
 		<xstream>1.4.8</xstream>
 		<pool>2.2</pool>
-		<lettuce>5.0.0.Beta1</lettuce>
+		<lettuce>5.0.0.BUILD-SNAPSHOT</lettuce>
 		<jedis>2.9.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
 	</properties>
@@ -78,8 +78,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>biz.paluch.redis</groupId>
-			<artifactId>lettuce</artifactId>
+			<groupId>io.lettuce</groupId>
+			<artifactId>lettuce-core</artifactId>
 			<version>${lettuce}</version>
 			<optional>true</optional>
 		</dependency>
@@ -252,6 +252,13 @@
 		<repository>
 			<id>spring-libs-snapshot</id>
 			<url>https://repo.spring.io/libs-snapshot</url>
+		</repository>
+		<repository>
+			<id>oss-sonatype-snapsho</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
 		</repository>
 	</repositories>
 
