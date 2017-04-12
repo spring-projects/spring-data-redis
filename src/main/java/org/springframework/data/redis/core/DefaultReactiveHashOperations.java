@@ -74,7 +74,7 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 		return createMono(connection -> Flux.fromArray(hashKeys) //
 				.map(o -> (HK) o).map(this::rawHashKey) //
 				.collectList() //
-				.then(hks -> connection.hDel(rawKey(key), hks)));
+				.flatMap(hks -> connection.hDel(rawKey(key), hks)));
 	}
 
 	/* (non-Javadoc)
@@ -116,7 +116,7 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 		return createMono(connection -> Flux.fromIterable(hashKeys) //
 				.map(this::rawHashKey) //
 				.collectList() //
-				.then(hks -> connection.hMGet(rawKey(key), hks)).map(this::deserializeHashValues));
+				.flatMap(hks -> connection.hMGet(rawKey(key), hks)).map(this::deserializeHashValues));
 	}
 
 	/* (non-Javadoc)
@@ -156,7 +156,7 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 		Assert.notNull(key, "Key must not be null!");
 
 		return createMono(connection -> connection.hKeys(rawKey(key)) //
-				.flatMap(Flux::fromIterable) //
+				.flatMapMany(Flux::fromIterable) //
 				.map(this::readHashKey) //
 				.collectList());
 	}
@@ -221,7 +221,7 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 		Assert.notNull(key, "Key must not be null!");
 
 		return createMono(connection -> connection.hVals(rawKey(key)) //
-				.flatMap(Flux::fromIterable) //
+				.flatMapMany(Flux::fromIterable) //
 				.map(this::readHashValue) //
 				.collectList());
 	}

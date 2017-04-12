@@ -224,7 +224,7 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 				return super.sMove(Mono.just(command));
 			}
 
-			Flux<Boolean> result = cmd.exists(command.getKey())
+			Mono<Boolean> result = cmd.exists(command.getKey())
 					.flatMap(nrKeys -> nrKeys == 0 ? Mono.empty() : cmd.sismember(command.getKey(), command.getValue()))
 					.flatMap(exists -> {
 

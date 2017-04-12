@@ -78,7 +78,7 @@ public class LettuceReactiveClusterListCommands extends LettuceReactiveListComma
 				return super.rPopLPush(Mono.just(command));
 			}
 
-			Flux<ByteBuffer> result = cmd.rpop(command.getKey())
+			Mono<ByteBuffer> result = cmd.rpop(command.getKey())
 					.flatMap(value -> cmd.lpush(command.getDestination(), value).map(x -> value));
 
 			return result.map(value -> new ByteBufferResponse<>(command, value));
