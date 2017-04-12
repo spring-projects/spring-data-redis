@@ -240,7 +240,7 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 		Assert.notNull(within, "Circle must not be null!");
 
 		return createMono(connection -> connection.geoRadius(rawKey(key), within) //
-				.flatMap(Flux::fromIterable) //
+				.flatMapMany(Flux::fromIterable) //
 				.map(location -> new GeoLocation<>(readValue(location.getName()), location.getPoint())) //
 				.collectList());
 	}
@@ -256,7 +256,7 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 		Assert.notNull(args, "GeoRadiusCommandArgs must not be null!");
 
 		return createMono(connection -> connection.geoRadius(rawKey(key), within, args) //
-				.flatMap(Flux::fromIterable) //
+				.flatMapMany(Flux::fromIterable) //
 				.map(geoResult -> new GeoResult<>(
 						new GeoLocation<>(readValue(geoResult.getContent().getName()), geoResult.getContent().getPoint()),
 						geoResult.getDistance())) //
@@ -274,7 +274,7 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 		Assert.notNull(member, "Member must not be null!");
 
 		return createMono(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), new Distance(radius)) //
-				.flatMap(Flux::fromIterable) //
+				.flatMapMany(Flux::fromIterable) //
 				.map(geoLocation -> new GeoLocation<>(readValue(geoLocation.getName()), geoLocation.getPoint())) //
 				.collectList());
 	}
@@ -290,7 +290,7 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 		Assert.notNull(distance, "Distance must not be null!");
 
 		return createMono(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), distance) //
-				.flatMap(Flux::fromIterable) //
+				.flatMapMany(Flux::fromIterable) //
 				.map(geoLocation -> new GeoLocation<>(readValue(geoLocation.getName()), geoLocation.getPoint())) //
 				.collectList());
 	}
@@ -308,7 +308,7 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 		Assert.notNull(args, "GeoRadiusCommandArgs must not be null!");
 
 		return createMono(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), distance, args) //
-				.flatMap(Flux::fromIterable) //
+				.flatMapMany(Flux::fromIterable) //
 				.map(geoResult -> new GeoResult<>(
 						new GeoLocation<>(readValue(geoResult.getContent().getName()), geoResult.getContent().getPoint()),
 						geoResult.getDistance())) //

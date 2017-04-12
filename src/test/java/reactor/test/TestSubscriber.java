@@ -37,8 +37,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import reactor.core.Fuseable;
-import reactor.core.Receiver;
-import reactor.core.Trackable;
 import reactor.core.publisher.Operators;
 
 /**
@@ -95,7 +93,7 @@ import reactor.core.publisher.Operators;
  * @author Stephane Maldini
  * @author Brian Clozel
  */
-public class TestSubscriber<T> implements Subscriber<T>, Subscription, Trackable, Receiver {
+public class TestSubscriber<T> implements Subscriber<T>, Subscription {
 
 	/**
 	 * Default timeout for waiting next values to be received
@@ -839,17 +837,14 @@ public class TestSubscriber<T> implements Subscriber<T>, Subscription, Trackable
 		}
 	}
 
-	@Override
 	public final boolean isCancelled() {
 		return s == Operators.cancelledSubscription();
 	}
 
-	@Override
 	public final boolean isStarted() {
 		return s != null;
 	}
 
-	@Override
 	public final boolean isTerminated() {
 		return isCancelled();
 	}
@@ -953,7 +948,6 @@ public class TestSubscriber<T> implements Subscriber<T>, Subscription, Trackable
 		}
 	}
 
-	@Override
 	public final long requestedFromDownstream() {
 		return requested;
 	}
@@ -969,7 +963,6 @@ public class TestSubscriber<T> implements Subscriber<T>, Subscription, Trackable
 		return this;
 	}
 
-	@Override
 	public Subscription upstream() {
 		return s;
 	}

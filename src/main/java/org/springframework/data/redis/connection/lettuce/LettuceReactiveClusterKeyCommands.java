@@ -88,7 +88,7 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 				return super.rename(Mono.just(command));
 			}
 
-			Flux<Boolean> result = cmd.dump(command.getKey())
+			Mono<Boolean> result = cmd.dump(command.getKey())
 					.otherwiseIfEmpty(Mono.error(new RedisSystemException("Cannot rename key that does not exist",
 							new RedisException("ERR no such key."))))
 					.flatMap(value -> cmd.restore(command.getNewName(), 0, value).flatMap(res -> cmd.del(command.getKey())))
@@ -114,7 +114,7 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 				return super.renameNX(Mono.just(command));
 			}
 
-			Flux<Boolean> result = cmd.exists(command.getNewName()).flatMap(exists -> {
+			Mono<Boolean> result = cmd.exists(command.getNewName()).flatMap(exists -> {
 
 				if (exists == 1) {
 					return Mono.just(Boolean.FALSE);
