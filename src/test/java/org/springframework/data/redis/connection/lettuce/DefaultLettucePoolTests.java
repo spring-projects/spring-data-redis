@@ -19,6 +19,10 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
+import io.lettuce.core.RedisException;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
+
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
@@ -29,10 +33,6 @@ import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.PoolException;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-
-import com.lambdaworks.redis.RedisException;
-import com.lambdaworks.redis.RedisURI;
-import com.lambdaworks.redis.api.StatefulRedisConnection;
 
 /**
  * Unit test of {@link DefaultLettucePool}

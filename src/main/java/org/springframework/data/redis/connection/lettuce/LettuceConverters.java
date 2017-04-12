@@ -15,8 +15,34 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.GeoArgs;
+import io.lettuce.core.GeoCoordinates;
+import io.lettuce.core.GeoWithin;
+import io.lettuce.core.KeyValue;
+import io.lettuce.core.Limit;
+import io.lettuce.core.Range;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.ScoredValue;
+import io.lettuce.core.ScriptOutputType;
+import io.lettuce.core.SetArgs;
+import io.lettuce.core.SortArgs;
+import io.lettuce.core.TransactionResult;
+import io.lettuce.core.cluster.models.partitions.Partitions;
+import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
+import io.lettuce.core.protocol.LettuceCharsets;
+
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -60,11 +86,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import com.lambdaworks.redis.*;
-import com.lambdaworks.redis.cluster.models.partitions.Partitions;
-import com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode.NodeFlag;
-import com.lambdaworks.redis.protocol.LettuceCharsets;
-
 /**
  * Lettuce type converters
  * 
@@ -92,7 +113,7 @@ abstract public class LettuceConverters extends Converters {
 	private static final Converter<List<byte[]>, List<Tuple>> BYTES_LIST_TO_TUPLE_LIST_CONVERTER;
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_LIST_OF_CLIENT_INFO = new StringToRedisClientInfoConverter();
 	private static final Converter<Partitions, List<RedisClusterNode>> PARTITIONS_TO_CLUSTER_NODES;
-	private static Converter<com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode, RedisClusterNode> CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER;
+	private static Converter<io.lettuce.core.cluster.models.partitions.RedisClusterNode, RedisClusterNode> CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER;
 	private static final Converter<List<byte[]>, Long> BYTES_LIST_TO_TIME_CONVERTER;
 	private static final Converter<GeoCoordinates, Point> GEO_COORDINATE_TO_POINT_CONVERTER;
 	private static final ListConverter<GeoCoordinates, Point> GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER;
@@ -237,7 +258,7 @@ abstract public class LettuceConverters extends Converters {
 					return Collections.emptyList();
 				}
 				List<RedisClusterNode> nodes = new ArrayList<RedisClusterNode>();
-				for (com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode node : source.getPartitions()) {
+				for (io.lettuce.core.cluster.models.partitions.RedisClusterNode node : source.getPartitions()) {
 					nodes.add(CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER.convert(node));
 				}
 
@@ -246,10 +267,10 @@ abstract public class LettuceConverters extends Converters {
 
 		};
 
-		CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER = new Converter<com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode, RedisClusterNode>() {
+		CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER = new Converter<io.lettuce.core.cluster.models.partitions.RedisClusterNode, RedisClusterNode>() {
 
 			@Override
-			public RedisClusterNode convert(com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode source) {
+			public RedisClusterNode convert(io.lettuce.core.cluster.models.partitions.RedisClusterNode source) {
 
 				Set<Flag> flags = parseFlags(source.getFlags());
 
@@ -314,10 +335,11 @@ abstract public class LettuceConverters extends Converters {
 			}
 		};
 
-		GEO_COORDINATE_TO_POINT_CONVERTER = new Converter<com.lambdaworks.redis.GeoCoordinates, Point>() {
+		GEO_COORDINATE_TO_POINT_CONVERTER = new Converter<io.lettuce.core.GeoCoordinates, Point>() {
 			@Override
-			public Point convert(com.lambdaworks.redis.GeoCoordinates geoCoordinate) {
-				return geoCoordinate != null ? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue()) : null;
+			public Point convert(io.lettuce.core.GeoCoordinates geoCoordinate) {
+				return geoCoordinate != null ? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue())
+						: null;
 			}
 		};
 		GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER = new ListConverter<GeoCoordinates, Point>(
@@ -547,13 +569,14 @@ abstract public class LettuceConverters extends Converters {
 	}
 
 	/**
-	 * Convert a {@link org.springframework.data.redis.connection.RedisZSetCommands.Limit} to a lettuce {@link com.lambdaworks.redis.Limit}.
+	 * Convert a {@link org.springframework.data.redis.connection.RedisZSetCommands.Limit} to a lettuce
+	 * {@link io.lettuce.core.Limit}.
 	 *
 	 * @param limit
-	 * @return a lettuce {@link com.lambdaworks.redis.Limit}.
+	 * @return a lettuce {@link io.lettuce.core.Limit}.
 	 * @since 2.0
 	 */
-	public static com.lambdaworks.redis.Limit toLimit(RedisZSetCommands.Limit limit){
+	public static io.lettuce.core.Limit toLimit(RedisZSetCommands.Limit limit) {
 		return Limit.create(limit.getOffset(), limit.getCount());
 	}
 
@@ -565,7 +588,7 @@ abstract public class LettuceConverters extends Converters {
 	 * @since 2.0
 	 */
 	public static <T> Range<T> toRange(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
-			return Range.from(lowerBoundaryOf(range), upperBoundaryOf(range));
+		return Range.from(lowerBoundaryOf(range), upperBoundaryOf(range));
 	}
 
 	/**
@@ -581,12 +604,14 @@ abstract public class LettuceConverters extends Converters {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> Range.Boundary<T> lowerBoundaryOf(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+	private static <T> Range.Boundary<T> lowerBoundaryOf(
+			org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
 		return (Range.Boundary<T>) rangeToBoundaryArgumentConverter(false).convert(range);
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> Range.Boundary<T> upperBoundaryOf(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+	private static <T> Range.Boundary<T> upperBoundaryOf(
+			org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
 		return (Range.Boundary<T>) rangeToBoundaryArgumentConverter(true).convert(range);
 	}
 
@@ -752,8 +777,7 @@ abstract public class LettuceConverters extends Converters {
 	 * @return
 	 * @since 1.7
 	 */
-	public static RedisClusterNode toRedisClusterNode(
-			com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode source) {
+	public static RedisClusterNode toRedisClusterNode(io.lettuce.core.cluster.models.partitions.RedisClusterNode source) {
 		return CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER.convert(source);
 	}
 
@@ -867,7 +891,7 @@ abstract public class LettuceConverters extends Converters {
 			public GeoResults<GeoLocation<byte[]>> convert(Set<byte[]> source) {
 
 				if (CollectionUtils.isEmpty(source)) {
-					return new GeoResults<GeoLocation<byte[]>>(Collections.<GeoResult<GeoLocation<byte[]>>>emptyList());
+					return new GeoResults<GeoLocation<byte[]>>(Collections.<GeoResult<GeoLocation<byte[]>>> emptyList());
 				}
 
 				List<GeoResult<GeoLocation<byte[]>>> results = new ArrayList<GeoResult<GeoLocation<byte[]>>>(source.size());
@@ -896,7 +920,7 @@ abstract public class LettuceConverters extends Converters {
 	 * @return
 	 * @since 1.8
 	 */
-	public static ListConverter<com.lambdaworks.redis.GeoCoordinates, Point> geoCoordinatesToPointConverter() {
+	public static ListConverter<io.lettuce.core.GeoCoordinates, Point> geoCoordinatesToPointConverter() {
 		return GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,12 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI.Builder;
+import io.lettuce.core.resource.ClientResources;
+import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
+import io.lettuce.core.sentinel.api.sync.RedisSentinelCommands;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -25,12 +31,6 @@ import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.util.Assert;
-
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisURI.Builder;
-import com.lambdaworks.redis.resource.ClientResources;
-import com.lambdaworks.redis.sentinel.api.StatefulRedisSentinelConnection;
-import com.lambdaworks.redis.sentinel.api.sync.RedisSentinelCommands;
 
 /**
  * @author Christoph Strobl

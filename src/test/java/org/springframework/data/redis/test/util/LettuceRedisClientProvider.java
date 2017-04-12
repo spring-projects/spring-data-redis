@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package org.springframework.data.redis.test.util;
 
-import org.junit.rules.ExternalResource;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
 
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisURI;
+import org.junit.rules.ExternalResource;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 
 /**
@@ -32,7 +32,7 @@ public class LettuceRedisClientProvider extends ExternalResource {
 	RedisClient client;
 
 	@Override
-	protected void before()  {
+	protected void before() {
 
 		try {
 			super.before();
@@ -40,7 +40,8 @@ public class LettuceRedisClientProvider extends ExternalResource {
 			throwable.printStackTrace();
 		}
 
-		client = RedisClient.create(LettuceTestClientResources.getSharedClientResources(), RedisURI.builder().withHost(host).withPort(port).build());
+		client = RedisClient.create(LettuceTestClientResources.getSharedClientResources(),
+				RedisURI.builder().withHost(host).withPort(port).build());
 	}
 
 	@Override
@@ -50,7 +51,7 @@ public class LettuceRedisClientProvider extends ExternalResource {
 	}
 
 	public RedisClient getClient() {
-		if(client == null) {
+		if (client == null) {
 			before();
 		}
 		return client;
@@ -58,7 +59,7 @@ public class LettuceRedisClientProvider extends ExternalResource {
 
 	public void destroy() {
 
-		if(client != null) {
+		if (client != null) {
 			after();
 		}
 	}

@@ -15,6 +15,13 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.Range;
+import io.lettuce.core.Range.Boundary;
+import io.lettuce.core.ScoredValue;
+import io.lettuce.core.ZAddArgs;
+import io.lettuce.core.ZStoreArgs;
+import io.lettuce.core.codec.StringCodec;
+import io.lettuce.core.protocol.LettuceCharsets;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -36,14 +43,6 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-
-import com.lambdaworks.redis.Range;
-import com.lambdaworks.redis.Range.Boundary;
-import com.lambdaworks.redis.ScoredValue;
-import com.lambdaworks.redis.ZAddArgs;
-import com.lambdaworks.redis.ZStoreArgs;
-import com.lambdaworks.redis.codec.StringCodec;
-import com.lambdaworks.redis.protocol.LettuceCharsets;
 
 /**
  * @author Christoph Strobl

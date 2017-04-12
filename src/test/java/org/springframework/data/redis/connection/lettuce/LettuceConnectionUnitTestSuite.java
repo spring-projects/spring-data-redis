@@ -17,6 +17,12 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.mockito.Mockito.*;
 
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.codec.RedisCodec;
+
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Before;
@@ -28,12 +34,6 @@ import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTestSuite.LettuceConnectionUnitTests;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTestSuite.LettucePipelineConnectionUnitTests;
-
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.api.StatefulRedisConnection;
-import com.lambdaworks.redis.api.async.RedisAsyncCommands;
-import com.lambdaworks.redis.api.sync.RedisCommands;
-import com.lambdaworks.redis.codec.RedisCodec;
 
 /**
  * @author Christoph Strobl

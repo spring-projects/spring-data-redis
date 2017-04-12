@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.api.reactive.RedisKeyReactiveCommands;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -31,8 +32,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyComm
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
-
-import com.lambdaworks.redis.api.reactive.RedisKeyReactiveCommands;
 
 /**
  * @author Christoph Strobl

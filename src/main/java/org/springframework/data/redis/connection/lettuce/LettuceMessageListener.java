@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.pubsub.RedisPubSubListener;
+
 import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.util.Assert;
-
-import com.lambdaworks.redis.pubsub.RedisPubSubListener;
 
 /**
  * MessageListener wrapper around Lettuce {@link RedisPubSubListener}.

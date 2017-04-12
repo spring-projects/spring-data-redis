@@ -23,6 +23,11 @@ import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceTestClientResources.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
+import io.lettuce.core.AbstractRedisClient;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.cluster.RedisClusterClient;
+
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
@@ -32,11 +37,6 @@ import org.junit.Test;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-
-import com.lambdaworks.redis.AbstractRedisClient;
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisURI;
-import com.lambdaworks.redis.cluster.RedisClusterClient;
 
 /**
  * @author Christoph Strobl

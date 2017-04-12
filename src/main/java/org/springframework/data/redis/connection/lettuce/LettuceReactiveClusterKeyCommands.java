@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.RedisException;
+import io.lettuce.core.api.reactive.RedisKeyReactiveCommands;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -29,9 +30,6 @@ import org.springframework.data.redis.connection.ReactiveClusterKeyCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.util.Assert;
-
-import com.lambdaworks.redis.RedisException;
-import com.lambdaworks.redis.api.reactive.RedisKeyReactiveCommands;
 
 /**
  * @author Christoph Strobl

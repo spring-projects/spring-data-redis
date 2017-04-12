@@ -21,6 +21,8 @@ import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 
+import io.lettuce.core.api.async.RedisAsyncCommands;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -48,8 +50,6 @@ import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.data.redis.test.util.RequiresRedisSentinel;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
-
-import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 
 /**
  * Integration test of {@link LettuceConnection}

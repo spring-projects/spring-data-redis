@@ -15,6 +15,14 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.AbstractRedisClient;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisException;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.resource.ClientResources;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -29,18 +37,19 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.ClusterCommandExecutor;
+import org.springframework.data.redis.connection.Pool;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-
-import com.lambdaworks.redis.AbstractRedisClient;
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisException;
-import com.lambdaworks.redis.RedisURI;
-import com.lambdaworks.redis.api.StatefulRedisConnection;
-import com.lambdaworks.redis.cluster.RedisClusterClient;
-import com.lambdaworks.redis.resource.ClientResources;
 
 /**
  * Connection factory creating <a href="http://github.com/mp911de/lettuce">Lettuce</a>-based connections.
@@ -211,11 +220,11 @@ public class LettuceConnectionFactory
 	 */
 	@Override
 	public LettuceReactiveRedisClusterConnection getReactiveClusterConnection() {
-		if(!isClusterAware()) {
+		if (!isClusterAware()) {
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
 		}
 
-		return new LettuceReactiveRedisClusterConnection((RedisClusterClient)client);
+		return new LettuceReactiveRedisClusterConnection((RedisClusterClient) client);
 	}
 
 	public void initConnection() {

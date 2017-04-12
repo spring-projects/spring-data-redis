@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,13 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.hamcrest.core.Is.*;
 import static org.junit.Assume.*;
 
+import io.lettuce.core.AbstractRedisClient;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
+import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -29,13 +36,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.data.redis.test.util.LettuceRedisClientProvider;
 import org.springframework.data.redis.test.util.LettuceRedisClusterClientProvider;
-
-import com.lambdaworks.redis.AbstractRedisClient;
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.api.sync.RedisCommands;
-import com.lambdaworks.redis.cluster.RedisClusterClient;
-import com.lambdaworks.redis.cluster.api.sync.RedisAdvancedClusterCommands;
-import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
 
 /**
  * @author Christoph Strobl

@@ -18,14 +18,14 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.hamcrest.core.Is.*;
 import static org.junit.Assume.*;
 
+import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
+import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.springframework.data.redis.test.util.LettuceRedisClusterClientProvider;
-
-import com.lambdaworks.redis.api.sync.RedisCommands;
-import com.lambdaworks.redis.cluster.api.sync.RedisAdvancedClusterCommands;
-import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
 
 /**
  * @author Christoph Strobl
