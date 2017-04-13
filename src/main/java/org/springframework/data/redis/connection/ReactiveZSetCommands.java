@@ -657,8 +657,7 @@ public interface ReactiveZSetCommands {
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRange(Mono.just(ZRangeCommand.valuesWithin(range).from(key))) //
-				.next() //
-				.flatMapMany(CommandResponse::getOutput).map(tuple -> ByteBuffer.wrap(tuple.getValue()));
+				.flatMap(CommandResponse::getOutput).map(tuple -> ByteBuffer.wrap(tuple.getValue()));
 	}
 
 	/**
@@ -673,8 +672,8 @@ public interface ReactiveZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return zRange(Mono.just(ZRangeCommand.valuesWithin(range).withScores().from(key))).next()
-				.flatMapMany(CommandResponse::getOutput);
+		return zRange(Mono.just(ZRangeCommand.valuesWithin(range).withScores().from(key)))
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -689,8 +688,8 @@ public interface ReactiveZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return zRange(Mono.just(ZRangeCommand.reverseValuesWithin(range).from(key))).next()
-				.flatMapMany(CommandResponse::getOutput).map(tuple -> ByteBuffer.wrap(tuple.getValue()));
+		return zRange(Mono.just(ZRangeCommand.reverseValuesWithin(range).from(key))).flatMap(CommandResponse::getOutput)
+				.map(tuple -> ByteBuffer.wrap(tuple.getValue()));
 	}
 
 	/**
@@ -705,8 +704,8 @@ public interface ReactiveZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return zRange(Mono.just(ZRangeCommand.reverseValuesWithin(range).withScores().from(key))).next()
-				.flatMapMany(CommandResponse::getOutput);
+		return zRange(Mono.just(ZRangeCommand.reverseValuesWithin(range).withScores().from(key)))
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -848,8 +847,7 @@ public interface ReactiveZSetCommands {
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.scoresWithin(range).from(key))) //
-				.next() //
-				.flatMapMany(CommandResponse::getOutput) //
+				.flatMap(CommandResponse::getOutput) //
 				.map(tuple -> ByteBuffer.wrap(tuple.getValue()));
 	}
 
@@ -868,8 +866,7 @@ public interface ReactiveZSetCommands {
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.scoresWithin(range).from(key).limitTo(limit))) //
-				.next() //
-				.flatMapMany(CommandResponse::getOutput) //
+				.flatMap(CommandResponse::getOutput) //
 				.map(tuple -> ByteBuffer.wrap(tuple.getValue()));
 	}
 
@@ -886,8 +883,8 @@ public interface ReactiveZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return zRangeByScore(Mono.just(ZRangeByScoreCommand.scoresWithin(range).withScores().from(key))).next()
-				.flatMapMany(CommandResponse::getOutput);
+		return zRangeByScore(Mono.just(ZRangeByScoreCommand.scoresWithin(range).withScores().from(key)))
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -905,7 +902,7 @@ public interface ReactiveZSetCommands {
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.scoresWithin(range).withScores().from(key).limitTo(limit)))
-				.next().flatMapMany(CommandResponse::getOutput);
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -921,8 +918,7 @@ public interface ReactiveZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).from(key))) //
-				.next() //
-				.flatMapMany(CommandResponse::getOutput) //
+				.flatMap(CommandResponse::getOutput) //
 				.map(tuple -> ByteBuffer.wrap(tuple.getValue()));
 	}
 
@@ -941,8 +937,7 @@ public interface ReactiveZSetCommands {
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).from(key).limitTo(limit))) //
-				.next() //
-				.flatMapMany(CommandResponse::getOutput) //
+				.flatMap(CommandResponse::getOutput) //
 				.map(tuple -> ByteBuffer.wrap(tuple.getValue()));
 	}
 
@@ -959,8 +954,8 @@ public interface ReactiveZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return zRangeByScore(Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).withScores().from(key))).next()
-				.flatMapMany(CommandResponse::getOutput);
+		return zRangeByScore(Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).withScores().from(key)))
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -978,8 +973,8 @@ public interface ReactiveZSetCommands {
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByScore(
-				Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).withScores().from(key).limitTo(limit))).next()
-						.flatMapMany(CommandResponse::getOutput);
+				Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).withScores().from(key).limitTo(limit)))
+						.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1736,8 +1731,8 @@ public interface ReactiveZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return zRangeByLex(Mono.just(ZRangeByLexCommand.stringsWithin(range).from(key).limitTo(limit))).next()
-				.flatMapMany(CommandResponse::getOutput);
+		return zRangeByLex(Mono.just(ZRangeByLexCommand.stringsWithin(range).from(key).limitTo(limit)))
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1767,8 +1762,8 @@ public interface ReactiveZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return zRangeByLex(Mono.just(ZRangeByLexCommand.reverseStringsWithin(range).from(key).limitTo(limit))).next()
-				.flatMapMany(CommandResponse::getOutput);
+		return zRangeByLex(Mono.just(ZRangeByLexCommand.reverseStringsWithin(range).from(key).limitTo(limit)))
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
