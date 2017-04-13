@@ -876,8 +876,8 @@ public interface ReactiveGeoCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(circle, "Circle must not be null!");
 
-		return geoRadius(Mono.just(GeoRadiusCommand.within(circle).withArgs(geoRadiusArgs).forKey(key))).next()
-				.flatMapMany(CommandResponse::getOutput);
+		return geoRadius(Mono.just(GeoRadiusCommand.within(circle).withArgs(geoRadiusArgs).forKey(key)))
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1203,8 +1203,8 @@ public interface ReactiveGeoCommands {
 		Assert.notNull(distance, "Distance must not be null!");
 
 		return geoRadiusByMember(
-				Mono.just(GeoRadiusByMemberCommand.within(distance).from(member).forKey(key).withArgs(geoRadiusArgs))).next()
-						.flatMapMany(CommandResponse::getOutput);
+				Mono.just(GeoRadiusByMemberCommand.within(distance).from(member).forKey(key).withArgs(geoRadiusArgs)))
+						.flatMap(CommandResponse::getOutput);
 	}
 
 	/**

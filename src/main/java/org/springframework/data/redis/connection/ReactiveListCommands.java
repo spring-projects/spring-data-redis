@@ -272,8 +272,7 @@ public interface ReactiveListCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return lRange(Mono.just(RangeCommand.key(key).fromIndex(start).toIndex(end))).next()
-				.flatMapMany(CommandResponse::getOutput);
+		return lRange(Mono.just(RangeCommand.key(key).fromIndex(start).toIndex(end))).flatMap(CommandResponse::getOutput);
 	}
 
 	/**

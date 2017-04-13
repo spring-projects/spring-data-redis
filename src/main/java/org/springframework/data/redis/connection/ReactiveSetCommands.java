@@ -528,7 +528,7 @@ public interface ReactiveSetCommands {
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return sInter(Mono.just(SInterCommand.keys(keys))).next().flatMapMany(CommandResponse::getOutput);
+		return sInter(Mono.just(SInterCommand.keys(keys))).flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -672,7 +672,7 @@ public interface ReactiveSetCommands {
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return sUnion(Mono.just(SUnionCommand.keys(keys))).next().flatMapMany(CommandResponse::getOutput);
+		return sUnion(Mono.just(SUnionCommand.keys(keys))).flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -816,7 +816,7 @@ public interface ReactiveSetCommands {
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return sDiff(Mono.just(SDiffCommand.keys(keys))).next().flatMapMany(CommandResponse::getOutput);
+		return sDiff(Mono.just(SDiffCommand.keys(keys))).flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -917,7 +917,7 @@ public interface ReactiveSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return sMembers(Mono.just(new KeyCommand(key))).next().flatMapMany(CommandResponse::getOutput);
+		return sMembers(Mono.just(new KeyCommand(key))).flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1009,8 +1009,7 @@ public interface ReactiveSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(count, "Count must not be null!");
 
-		return sRandMember(Mono.just(SRandMembersCommand.valueCount(count).from(key))).next()
-				.flatMapMany(CommandResponse::getOutput);
+		return sRandMember(Mono.just(SRandMembersCommand.valueCount(count).from(key))).flatMap(CommandResponse::getOutput);
 	}
 
 	/**

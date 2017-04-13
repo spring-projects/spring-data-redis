@@ -520,7 +520,7 @@ public interface ReactiveHashCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return hKeys(Mono.just(new KeyCommand(key))).next().flatMapMany(CommandResponse::getOutput);
+		return hKeys(Mono.just(new KeyCommand(key))).flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -543,7 +543,7 @@ public interface ReactiveHashCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return hVals(Mono.just(new KeyCommand(key))).next().flatMapMany(CommandResponse::getOutput);
+		return hVals(Mono.just(new KeyCommand(key))).flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -566,7 +566,7 @@ public interface ReactiveHashCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return hGetAll(Mono.just(new KeyCommand(key))).next().flatMapMany(CommandResponse::getOutput);
+		return hGetAll(Mono.just(new KeyCommand(key))).flatMap(CommandResponse::getOutput);
 	}
 
 	/**
