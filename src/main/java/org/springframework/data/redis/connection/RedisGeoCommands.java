@@ -60,7 +60,13 @@ public interface RedisGeoCommands {
 	 * @return Number of elements added.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	Long geoAdd(byte[] key, GeoLocation<byte[]> location);
+	default Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(location, "Location must not be null!");
+
+		return geoAdd(key, location.getPoint(), location.getName());
+	}
 
 	/**
 	 * Add {@link Map} of member / {@link Point} pairs to {@literal key}.
@@ -156,7 +162,9 @@ public interface RedisGeoCommands {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius);
+	default GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
+		return geoRadiusByMember(key, member, new Distance(radius, DistanceUnit.METERS));
+	}
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -201,7 +209,7 @@ public interface RedisGeoCommands {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	public class GeoRadiusCommandArgs implements Cloneable {
+	class GeoRadiusCommandArgs implements Cloneable {
 
 		Set<Flag> flags = new LinkedHashSet<Flag>(2, 1);
 		Long limit;
@@ -332,7 +340,7 @@ public interface RedisGeoCommands {
 	 */
 	@Data
 	@RequiredArgsConstructor
-	public static class GeoLocation<T> {
+	class GeoLocation<T> {
 
 		private final T name;
 		private final Point point;
@@ -344,7 +352,7 @@ public interface RedisGeoCommands {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	public static enum DistanceUnit implements Metric {
+	enum DistanceUnit implements Metric {
 
 		METERS(6378137, "m"), KILOMETERS(6378.137, "km"), MILES(3963.191, "mi"), FEET(20925646.325, "ft");
 

@@ -22,7 +22,7 @@ package org.springframework.data.redis.connection;
  * @author Mark Paluch
  * @since 1.5
  */
-public interface HyperLogLogCommands {
+public interface RedisHyperLogLogCommands {
 
 	/**
 	 * Adds given {@literal values} to the HyperLogLog stored at given {@literal key}.

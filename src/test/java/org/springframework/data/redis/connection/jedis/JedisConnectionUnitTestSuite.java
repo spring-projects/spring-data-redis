@@ -171,7 +171,7 @@ public class JedisConnectionUnitTestSuite {
 			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).scan(anyString(),
 					any(ScanParams.class));
 
-			connection.scan();
+			connection.scan(ScanOptions.NONE);
 
 			verify(jedisSpy, never()).quit();
 		}
@@ -182,7 +182,7 @@ public class JedisConnectionUnitTestSuite {
 			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).scan(anyString(),
 					any(ScanParams.class));
 
-			Cursor<byte[]> cursor = connection.scan();
+			Cursor<byte[]> cursor = connection.scan(ScanOptions.NONE);
 			cursor.close();
 
 			verify(jedisSpy, times(1)).quit();
