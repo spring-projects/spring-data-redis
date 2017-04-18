@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import io.lettuce.core.KeyValue;
 import io.lettuce.core.RedisException;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.cluster.RedisClusterClient;
@@ -27,17 +26,13 @@ import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Set;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -51,18 +46,20 @@ import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKey
 import org.springframework.data.redis.connection.ClusterCommandExecutor.NodeResult;
 import org.springframework.data.redis.connection.ClusterInfo;
 import org.springframework.data.redis.connection.ClusterNodeResourceProvider;
-import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.ClusterTopology;
 import org.springframework.data.redis.connection.ClusterTopologyProvider;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
-import org.springframework.data.redis.connection.SortParameters;
+import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.redis.connection.RedisHashCommands;
+import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
+import org.springframework.data.redis.connection.RedisKeyCommands;
+import org.springframework.data.redis.connection.RedisListCommands;
+import org.springframework.data.redis.connection.RedisSetCommands;
+import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.convert.Converters;
-import org.springframework.data.redis.connection.util.ByteArraySet;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.RedisClientInfo;
-import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -119,39 +116,48 @@ public class LettuceClusterConnection extends LettuceConnection
 		clusterCommandExecutor = executor;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#scan(long, org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
-	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
-		throw new InvalidDataAccessApiUsageException("Scan is not supported accros multiple nodes within a cluster.");
+	public RedisGeoCommands geoCommands() {
+		return new LettuceClusterGeoCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#keys(byte[])
-	 */
 	@Override
-	public Set<byte[]> keys(final byte[] pattern) {
+	public RedisHashCommands hashCommands() {
+		return new LettuceClusterHashCommands(this);
+	}
 
-		Assert.notNull(pattern, "Pattern must not be null!");
+	@Override
+	public RedisHyperLogLogCommands hyperLogLogCommands() {
+		return new LettuceClusterHyperLogLogCommands(this);
+	}
 
-		Collection<List<byte[]>> keysPerNode = clusterCommandExecutor
-				.executeCommandOnAllNodes(new LettuceClusterCommandCallback<List<byte[]>>() {
+	@Override
+	public RedisKeyCommands keyCommands() {
+		return doGetClusterKeyCommands();
+	}
 
-					@Override
-					public List<byte[]> doInCluster(RedisClusterCommands<byte[], byte[]> connection) {
-						return connection.keys(pattern);
-					}
-				}).resultsAsList();
+	private LettuceClusterKeyCommands doGetClusterKeyCommands() {
+		return new LettuceClusterKeyCommands(this);
+	}
 
-		Set<byte[]> keys = new HashSet<byte[]>();
+	@Override
+	public RedisListCommands listCommands() {
+		return new LettuceClusterListCommands(this);
+	}
 
-		for (List<byte[]> keySet : keysPerNode) {
-			keys.addAll(keySet);
-		}
-		return keys;
+	@Override
+	public RedisStringCommands stringCommands() {
+		return new LettuceClusterStringCommands(this);
+	}
+
+	@Override
+	public RedisSetCommands setCommands() {
+		return new LettuceClusterSetCommands(this);
+	}
+
+	@Override
+	public RedisZSetCommands zSetCommands() {
+		return new LettuceClusterZSetCommands(this);
 	}
 
 	/*
@@ -278,28 +284,6 @@ public class LettuceClusterConnection extends LettuceConnection
 						return client.info(section);
 					}
 				}, node).getValue());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#move(byte[], int)
-	 */
-	@Override
-	public Boolean move(byte[] key, int dbIndex) {
-		throw new UnsupportedOperationException("MOVE not supported in CLUSTER mode!");
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#del(byte[][])
-	 */
-	@Override
-	public Long del(byte[]... keys) {
-
-		Assert.noNullElements(keys, "Keys must not be null or contain null key!");
-
-		// Routing for mget is handled by lettuce.
-		return super.del(keys);
 	}
 
 	/*
@@ -722,102 +706,11 @@ public class LettuceClusterConnection extends LettuceConnection
 	 */
 	@Override
 	public Set<byte[]> keys(RedisClusterNode node, final byte[] pattern) {
-
-		return LettuceConverters.toBytesSet(
-				clusterCommandExecutor.executeCommandOnSingleNode(new LettuceClusterCommandCallback<List<byte[]>>() {
-
-					@Override
-					public List<byte[]> doInCluster(RedisClusterCommands<byte[], byte[]> client) {
-						return client.keys(pattern);
-					}
-				}, node).getValue());
+		return doGetClusterKeyCommands().keys(node, pattern);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#randomKey(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
-	@Override
 	public byte[] randomKey(RedisClusterNode node) {
-
-		return clusterCommandExecutor.executeCommandOnSingleNode(new LettuceClusterCommandCallback<byte[]>() {
-
-			@Override
-			public byte[] doInCluster(RedisClusterCommands<byte[], byte[]> client) {
-				return client.randomkey();
-			}
-		}, node).getValue();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#randomKey()
-	 */
-	@Override
-	public byte[] randomKey() {
-
-		List<RedisClusterNode> nodes = clusterGetNodes();
-		Set<RedisClusterNode> inspectedNodes = new HashSet<RedisClusterNode>(nodes.size());
-
-		do {
-
-			RedisClusterNode node = nodes.get(new Random().nextInt(nodes.size()));
-
-			while (inspectedNodes.contains(node)) {
-				node = nodes.get(new Random().nextInt(nodes.size()));
-			}
-			inspectedNodes.add(node);
-			byte[] key = randomKey(node);
-
-			if (key != null && key.length > 0) {
-				return key;
-			}
-		} while (nodes.size() != inspectedNodes.size());
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#rename(byte[], byte[])
-	 */
-	@Override
-	public void rename(byte[] oldName, byte[] newName) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(oldName, newName)) {
-			super.rename(oldName, newName);
-			return;
-		}
-
-		byte[] value = dump(oldName);
-
-		if (value != null && value.length > 0) {
-
-			restore(newName, 0, value);
-			del(oldName);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#renameNX(byte[], byte[])
-	 */
-	@Override
-	public Boolean renameNX(byte[] oldName, byte[] newName) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(oldName, newName)) {
-			return super.renameNX(oldName, newName);
-		}
-
-		byte[] value = dump(oldName);
-
-		if (value != null && value.length > 0 && !exists(newName)) {
-
-			restore(newName, 0, value);
-			del(oldName);
-			return Boolean.TRUE;
-		}
-		return Boolean.FALSE;
+		return doGetClusterKeyCommands().randomKey(node);
 	}
 
 	/*
@@ -839,176 +732,6 @@ public class LettuceClusterConnection extends LettuceConnection
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sort(byte[], org.springframework.data.redis.connection.SortParameters, byte[])
-	 */
-	@Override
-	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(key, storeKey)) {
-			return super.sort(key, params, storeKey);
-		}
-
-		List<byte[]> sorted = sort(key, params);
-		if (!CollectionUtils.isEmpty(sorted)) {
-
-			byte[][] arr = new byte[sorted.size()][];
-			switch (type(key)) {
-
-				case SET:
-					sAdd(storeKey, sorted.toArray(arr));
-					return 1L;
-				case LIST:
-					lPush(storeKey, sorted.toArray(arr));
-					return 1L;
-				default:
-					throw new IllegalArgumentException("sort and store is only supported for SET and LIST");
-			}
-		}
-		return 0L;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#mGet(byte[][])
-	 */
-	@Override
-	public List<byte[]> mGet(byte[]... keys) {
-
-		Assert.notNull(keys, "Keys must not be null!");
-
-		// Routing for mget is handled by lettuce.
-		return super.mGet(keys);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#mSet(java.util.Map)
-	 */
-	@Override
-	public void mSet(Map<byte[], byte[]> tuples) {
-
-		Assert.notNull(tuples, "Tuples must not be null!");
-
-		// Routing for mset is handled by lettuce.
-		super.mSet(tuples);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#mSetNX(java.util.Map)
-	 */
-	@Override
-	public Boolean mSetNX(Map<byte[], byte[]> tuples) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(tuples.keySet().toArray(new byte[tuples.keySet().size()][]))) {
-			return super.mSetNX(tuples);
-		}
-
-		boolean result = true;
-		for (Map.Entry<byte[], byte[]> entry : tuples.entrySet()) {
-			if (!setNX(entry.getKey(), entry.getValue()) && result) {
-				result = false;
-			}
-		}
-		return result;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#bLPop(int, byte[][])
-	 */
-	@Override
-	public List<byte[]> bLPop(final int timeout, byte[]... keys) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
-			return super.bLPop(timeout, keys);
-		}
-
-		List<KeyValue<byte[], byte[]>> resultList = this.clusterCommandExecutor
-				.executeMuliKeyCommand(new LettuceMultiKeyClusterCommandCallback<KeyValue<byte[], byte[]>>() {
-
-					@Override
-					public KeyValue<byte[], byte[]> doInCluster(RedisClusterCommands<byte[], byte[]> client, byte[] key) {
-						return client.blpop(timeout, key);
-					}
-				}, Arrays.asList(keys)).resultsAsList();
-
-		for (KeyValue<byte[], byte[]> kv : resultList) {
-			if (kv != null) {
-				return LettuceConverters.toBytesList(kv);
-			}
-		}
-
-		return Collections.emptyList();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#bRPop(int, byte[][])
-	 */
-	@Override
-	public List<byte[]> bRPop(final int timeout, byte[]... keys) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
-			return super.bRPop(timeout, keys);
-		}
-
-		List<KeyValue<byte[], byte[]>> resultList = this.clusterCommandExecutor
-				.executeMuliKeyCommand(new LettuceMultiKeyClusterCommandCallback<KeyValue<byte[], byte[]>>() {
-
-					@Override
-					public KeyValue<byte[], byte[]> doInCluster(RedisClusterCommands<byte[], byte[]> client, byte[] key) {
-						return client.brpop(timeout, key);
-					}
-				}, Arrays.asList(keys)).resultsAsList();
-
-		for (KeyValue<byte[], byte[]> kv : resultList) {
-			if (kv != null) {
-				return LettuceConverters.toBytesList(kv);
-			}
-		}
-
-		return Collections.emptyList();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#rPopLPush(byte[], byte[])
-	 */
-	@Override
-	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, dstKey)) {
-			return super.rPopLPush(srcKey, dstKey);
-		}
-
-		byte[] val = rPop(srcKey);
-		lPush(dstKey, val);
-		return val;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#bRPopLPush(int, byte[], byte[])
-	 */
-	@Override
-	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, dstKey)) {
-			return super.bRPopLPush(timeout, srcKey, dstKey);
-		}
-
-		List<byte[]> val = bRPop(timeout, srcKey);
-		if (!CollectionUtils.isEmpty(val)) {
-			lPush(dstKey, val.get(1));
-			return val.get(1);
-		}
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#select(int)
 	 */
 	@Override
@@ -1017,194 +740,6 @@ public class LettuceClusterConnection extends LettuceConnection
 		if (dbIndex != 0) {
 			throw new InvalidDataAccessApiUsageException("Cannot SELECT non zero index in cluster mode.");
 		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sMove(byte[], byte[], byte[])
-	 */
-	@Override
-	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, destKey)) {
-			return super.sMove(srcKey, destKey, value);
-		}
-
-		if (exists(srcKey)) {
-			if (sRem(srcKey, value) > 0 && !sIsMember(destKey, value)) {
-				return LettuceConverters.toBoolean(sAdd(destKey, value));
-			}
-		}
-		return Boolean.FALSE;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sInter(byte[][])
-	 */
-	@Override
-	public Set<byte[]> sInter(byte[]... keys) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
-			return super.sInter(keys);
-		}
-
-		Collection<Set<byte[]>> nodeResult = this.clusterCommandExecutor
-				.executeMuliKeyCommand(new LettuceMultiKeyClusterCommandCallback<Set<byte[]>>() {
-
-					@Override
-					public Set<byte[]> doInCluster(RedisClusterCommands<byte[], byte[]> client, byte[] key) {
-						return client.smembers(key);
-					}
-				}, Arrays.asList(keys)).resultsAsList();
-
-		ByteArraySet result = null;
-		for (Set<byte[]> entry : nodeResult) {
-
-			ByteArraySet tmp = new ByteArraySet(entry);
-			if (result == null) {
-				result = tmp;
-			} else {
-				result.retainAll(tmp);
-				if (result.isEmpty()) {
-					break;
-				}
-			}
-		}
-
-		if (result.isEmpty()) {
-			return Collections.emptySet();
-		}
-
-		return result.asRawSet();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sInterStore(byte[], byte[][])
-	 */
-	@Override
-	public Long sInterStore(byte[] destKey, byte[]... keys) {
-
-		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
-			return super.sInterStore(destKey, keys);
-		}
-
-		Set<byte[]> result = sInter(keys);
-		if (result.isEmpty()) {
-			return 0L;
-		}
-		return sAdd(destKey, result.toArray(new byte[result.size()][]));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sUnion(byte[][])
-	 */
-	@Override
-	public Set<byte[]> sUnion(byte[]... keys) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
-			return super.sUnion(keys);
-		}
-
-		Collection<Set<byte[]>> nodeResult = this.clusterCommandExecutor
-				.executeMuliKeyCommand(new LettuceMultiKeyClusterCommandCallback<Set<byte[]>>() {
-
-					@Override
-					public Set<byte[]> doInCluster(RedisClusterCommands<byte[], byte[]> client, byte[] key) {
-						return client.smembers(key);
-					}
-				}, Arrays.asList(keys)).resultsAsList();
-
-		ByteArraySet result = new ByteArraySet();
-		for (Set<byte[]> entry : nodeResult) {
-			result.addAll(entry);
-		}
-
-		if (result.isEmpty()) {
-			return Collections.emptySet();
-		}
-
-		return result.asRawSet();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sUnionStore(byte[], byte[][])
-	 */
-	@Override
-	public Long sUnionStore(byte[] destKey, byte[]... keys) {
-
-		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
-			return super.sUnionStore(destKey, keys);
-		}
-
-		Set<byte[]> result = sUnion(keys);
-		if (result.isEmpty()) {
-			return 0L;
-		}
-		return sAdd(destKey, result.toArray(new byte[result.size()][]));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sDiff(byte[][])
-	 */
-	@Override
-	public Set<byte[]> sDiff(byte[]... keys) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
-			return super.sDiff(keys);
-		}
-
-		byte[] source = keys[0];
-		byte[][] others = Arrays.copyOfRange(keys, 1, keys.length - 1);
-
-		ByteArraySet values = new ByteArraySet(sMembers(source));
-		Collection<Set<byte[]>> nodeResult = clusterCommandExecutor
-				.executeMuliKeyCommand(new LettuceMultiKeyClusterCommandCallback<Set<byte[]>>() {
-
-					@Override
-					public Set<byte[]> doInCluster(RedisClusterCommands<byte[], byte[]> client, byte[] key) {
-						return client.smembers(key);
-					}
-				}, Arrays.asList(others)).resultsAsList();
-
-		if (values.isEmpty()) {
-			return Collections.emptySet();
-		}
-
-		for (Set<byte[]> toSubstract : nodeResult) {
-			values.removeAll(toSubstract);
-		}
-
-		return values.asRawSet();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sDiffStore(byte[], byte[][])
-	 */
-	@Override
-	public Long sDiffStore(byte[] destKey, byte[]... keys) {
-
-		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
-			return super.sDiffStore(destKey, keys);
-		}
-
-		Set<byte[]> diff = sDiff(keys);
-		if (diff.isEmpty()) {
-			return 0L;
-		}
-
-		return sAdd(destKey, diff.toArray(new byte[diff.size()][]));
 	}
 
 	/*
@@ -1225,46 +760,6 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public List<RedisClusterNode> clusterGetNodes() {
 		return LettuceConverters.partitionsToClusterNodes(clusterClient.getPartitions());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#pfCount(byte[][])
-	 */
-	@Override
-	public Long pfCount(byte[]... keys) {
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
-
-			try {
-				return super.pfCount(keys);
-			} catch (Exception ex) {
-				throw convertLettuceAccessException(ex);
-			}
-
-		}
-		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfcount in cluster mode.");
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#pfMerge(byte[], byte[][])
-	 */
-	@Override
-	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
-
-		byte[][] allKeys = ByteUtils.mergeArrays(destinationKey, sourceKeys);
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
-			try {
-				super.pfMerge(destinationKey, sourceKeys);
-				return;
-			} catch (Exception ex) {
-				throw convertLettuceAccessException(ex);
-			}
-
-		}
-		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfmerge in cluster mode.");
 	}
 
 	/*
@@ -1511,6 +1006,10 @@ public class LettuceClusterConnection extends LettuceConnection
 		}
 
 		return result;
+	}
+
+	public ClusterCommandExecutor getClusterCommandExecutor() {
+		return clusterCommandExecutor;
 	}
 
 	/**

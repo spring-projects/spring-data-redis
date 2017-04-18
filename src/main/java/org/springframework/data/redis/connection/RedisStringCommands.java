@@ -29,7 +29,7 @@ import org.springframework.data.redis.core.types.Expiration;
  */
 public interface RedisStringCommands {
 
-	public enum BitOperation {
+	enum BitOperation {
 		AND, OR, XOR, NOT;
 	}
 
@@ -278,7 +278,7 @@ public interface RedisStringCommands {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	public static enum SetOption {
+	enum SetOption {
 
 		/**
 		 * Do not set any additional command argument.

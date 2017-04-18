@@ -27,7 +27,7 @@ import org.springframework.data.redis.RedisSystemException;
  * @author Christoph Strobl
  * @since 1.4
  */
-public abstract class AbstractRedisConnection implements RedisConnection {
+public abstract class AbstractRedisConnection implements DefaultedRedisConnection {
 
 	private RedisSentinelConfiguration sentinelConfiguration;
 	private ConcurrentHashMap<RedisNode, RedisSentinelConnection> connectionCache = new ConcurrentHashMap<RedisNode, RedisSentinelConnection>();

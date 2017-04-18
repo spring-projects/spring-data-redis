@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,87 @@ import org.springframework.dao.DataAccessException;
  * The methods follow as much as possible the Redis names and conventions.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public interface RedisConnection extends RedisCommands {
+
+	/**
+	 * Get {@link RedisGeoCommands}.
+	 *
+	 * @return never {@literal null}.
+	 */
+	default RedisGeoCommands geoCommands() {
+		return this;
+	}
+
+	/**
+	 * Get {@link RedisHashCommands}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 */
+	default RedisHashCommands hashCommands() {
+		return this;
+	}
+
+	/**
+	 * Get {@link RedisHyperLogLogCommands}.
+	 *
+	 * @return never {@literal null}.
+	 */
+	default RedisHyperLogLogCommands hyperLogLogCommands() {
+		return this;
+	}
+
+	/**
+	 * Get {@link RedisKeyCommands}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 */
+	default RedisKeyCommands keyCommands() {
+		return this;
+	}
+
+	/**
+	 * Get {@link RedisListCommands}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 */
+	default RedisListCommands listCommands() {
+		return this;
+	}
+
+	/**
+	 * Get {@link RedisSetCommands}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 */
+	default RedisSetCommands setCommands() {
+		return this;
+	}
+
+	/**
+	 * Get {@link RedisStringCommands}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 */
+	default RedisStringCommands stringCommands() {
+		return this;
+	}
+
+	/**
+	 * Get {@link RedisZSetCommands}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 */
+	default RedisZSetCommands zSetCommands() {
+		return this;
+	}
 
 	/**
 	 * Closes (or quits) the connection.

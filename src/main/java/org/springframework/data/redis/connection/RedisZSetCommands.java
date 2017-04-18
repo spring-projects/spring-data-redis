@@ -35,14 +35,14 @@ public interface RedisZSetCommands {
 	/**
 	 * Sort aggregation operations.
 	 */
-	public enum Aggregate {
+	enum Aggregate {
 		SUM, MIN, MAX;
 	}
 
 	/**
 	 * ZSet tuple.
 	 */
-	public interface Tuple extends Comparable<Double> {
+	interface Tuple extends Comparable<Double> {
 
 		byte[] getValue();
 
@@ -55,7 +55,7 @@ public interface RedisZSetCommands {
 	 * @author Christoph Strobl
 	 * @since 1.6
 	 */
-	public class Range {
+	class Range {
 
 		Boundary min;
 		Boundary max;
@@ -177,7 +177,7 @@ public interface RedisZSetCommands {
 	 * @author Christoph Strobl
 	 * @since 1.6
 	 */
-	public class Limit {
+	class Limit {
 
 		int offset;
 		int count;
@@ -298,7 +298,9 @@ public interface RedisZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	Set<byte[]> zRangeByScore(byte[] key, double min, double max);
+	default Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
+		return zRangeByScore(key, new Range().gte(min).lte(max));
+	}
 
 	/**
 	 * Get set of {@link Tuple}s where score is between {@code Range#min} and {@code Range#max} from sorted set.
@@ -309,7 +311,9 @@ public interface RedisZSetCommands {
 	 * @since 1.6
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range);
+	default Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range) {
+		return zRangeByScoreWithScores(key, range, null);
+	}
 
 	/**
 	 * Get set of {@link Tuple}s where score is between {@code min} and {@code max} from sorted set.
@@ -320,7 +324,9 @@ public interface RedisZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max);
+	default Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
+		return zRangeByScoreWithScores(key, new Range().gte(min).lte(max));
+	}
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} where score is between {@code min} and {@code max} from
@@ -334,7 +340,10 @@ public interface RedisZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count);
+	default Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
+		return zRangeByScore(key, new Range().gte(min).lte(max),
+				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
+	}
 
 	/**
 	 * Get set of {@link Tuple}s in range from {@code start} to {@code end} where score is between {@code min} and
@@ -348,7 +357,10 @@ public interface RedisZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count);
+	default Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
+		return zRangeByScoreWithScores(key, new Range().gte(min).lte(max),
+				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
+	}
 
 	/**
 	 * Get set of {@link Tuple}s in range from {@code Limit#offset} to {@code Limit#offset + Limit#count} where score is
@@ -394,7 +406,9 @@ public interface RedisZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
-	Set<byte[]> zRevRangeByScore(byte[] key, double min, double max);
+	default Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
+		return zRevRangeByScore(key, new Range().gte(min).lte(max));
+	}
 
 	/**
 	 * Get elements where score is between {@code Range#min} and {@code Range#max} from sorted set ordered from high to
@@ -406,7 +420,9 @@ public interface RedisZSetCommands {
 	 * @since 1.6
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	Set<byte[]> zRevRangeByScore(byte[] key, Range range);
+	default Set<byte[]> zRevRangeByScore(byte[] key, Range range) {
+		return zRevRangeByScore(key, range, null);
+	}
 
 	/**
 	 * Get set of {@link Tuple} where score is between {@code min} and {@code max} from sorted set ordered from high to
@@ -418,7 +434,9 @@ public interface RedisZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max);
+	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
+		return zRevRangeByScoreWithScores(key, new Range().gte(min).lte(max), null);
+	}
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} where score is between {@code min} and {@code max} from
@@ -432,7 +450,11 @@ public interface RedisZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count);
+	default Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
+
+		return zRevRangeByScore(key, new Range().gte(min).lte(max),
+				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
+	}
 
 	/**
 	 * Get elements in range from {@code Limit#offset} to {@code Limit#offset + Limit#count} where score is between
@@ -459,7 +481,11 @@ public interface RedisZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count);
+	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
+
+		return zRevRangeByScoreWithScores(key, new Range().gte(min).lte(max),
+				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
+	}
 
 	/**
 	 * Get set of {@link Tuple} where score is between {@code Range#min} and {@code Range#max} from sorted set ordered
@@ -471,7 +497,9 @@ public interface RedisZSetCommands {
 	 * @since 1.6
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range);
+	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range) {
+		return zRevRangeByScoreWithScores(key, range, null);
+	}
 
 	/**
 	 * Get set of {@link Tuple} in range from {@code Limit#offset} to {@code Limit#count} where score is between
@@ -495,7 +523,9 @@ public interface RedisZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zcount">Redis Documentation: ZCOUNT</a>
 	 */
-	Long zCount(byte[] key, double min, double max);
+	default Long zCount(byte[] key, double min, double max) {
+		return zCount(key, new Range().gte(min).lte(max));
+	}
 
 	/**
 	 * Count number of elements within sorted set with scores between {@code Range#min} and {@code Range#max}.
@@ -547,7 +577,9 @@ public interface RedisZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
 	 */
-	Long zRemRangeByScore(byte[] key, double min, double max);
+	default Long zRemRangeByScore(byte[] key, double min, double max) {
+		return zRemRangeByScore(key, new Range().gte(min).lte(max));
+	}
 
 	/**
 	 * Remove elements with scores between {@code Range#min} and {@code Range#max} from sorted set with {@code key}.
@@ -625,7 +657,9 @@ public interface RedisZSetCommands {
 	 * @since 1.5
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	Set<byte[]> zRangeByScore(byte[] key, String min, String max);
+	default Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+		return zRangeByScore(key, new Range().gte(min).lte(max));
+	}
 
 	/**
 	 * Get elements where score is between {@code Range#min} and {@code Range#max} from sorted set.
@@ -636,7 +670,9 @@ public interface RedisZSetCommands {
 	 * @since 1.6
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	Set<byte[]> zRangeByScore(byte[] key, Range range);
+	default Set<byte[]> zRangeByScore(byte[] key, Range range) {
+		return zRangeByScore(key, range, null);
+	}
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} where score is between {@code min} and {@code max} from
@@ -674,7 +710,9 @@ public interface RedisZSetCommands {
 	 * @since 1.6
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	Set<byte[]> zRangeByLex(byte[] key);
+	default Set<byte[]> zRangeByLex(byte[] key) {
+		return zRangeByLex(key, Range.unbounded());
+	}
 
 	/**
 	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in lexicographical ordering.
@@ -685,7 +723,9 @@ public interface RedisZSetCommands {
 	 * @since 1.6
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	Set<byte[]> zRangeByLex(byte[] key, Range range);
+	default Set<byte[]> zRangeByLex(byte[] key, Range range) {
+		return zRangeByLex(key, range, null);
+	}
 
 	/**
 	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in lexicographical ordering. Result is

@@ -1502,7 +1502,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 * @since 1.5
 	 * @see <a href="http://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
-	 * @see HyperLogLogCommands#pfAdd(byte[], byte[]...)
+	 * @see RedisHyperLogLogCommands#pfAdd(byte[], byte[]...)
 	 */
 	Long pfAdd(String key, String... values);
 
@@ -1512,7 +1512,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param keys must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
-	 * @see HyperLogLogCommands#pfCount(byte[]...)
+	 * @see RedisHyperLogLogCommands#pfCount(byte[]...)
 	 */
 	Long pfCount(String... keys);
 
@@ -1522,7 +1522,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param destinationKey must not be {@literal null}.
 	 * @param sourceKeys must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/pfmerge">Redis Documentation: PFMERGE</a>
-	 * @see HyperLogLogCommands#pfMerge(byte[], byte[]...)
+	 * @see RedisHyperLogLogCommands#pfMerge(byte[], byte[]...)
 	 */
 	void pfMerge(String destinationKey, String... sourceKeys);
 
