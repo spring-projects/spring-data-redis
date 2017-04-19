@@ -110,7 +110,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 	}
 
 	@Test(expected = RedisSystemException.class) // DATAREDIS-525
-	public void renameShouldThrowErrorWhenKeyDoesNotExit() {
+	public void renameShouldThrowErrorWhenKeyDoesNotExist() {
 		assertThat(connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER).block(), is(true));
 	}
 

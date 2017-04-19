@@ -125,7 +125,7 @@ public class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisC
 			return Flux.error(e);
 		}
 
-		return Flux.defer(() -> callback.doWithCommands(getCommands(node))).onErrorResumeWith(translateExeception());
+		return Flux.defer(() -> callback.doWithCommands(getCommands(node))).onErrorMap(translateException());
 	}
 
 	/* (non-Javadoc)

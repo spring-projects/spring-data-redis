@@ -105,7 +105,7 @@ public class LettuceReactiveHashCommands implements ReactiveHashCommands {
 			if (command.getFields().size() == 1) {
 				ByteBuffer key = command.getFields().iterator().next();
 				result = cmd.hget(command.getKey(), key.duplicate()).map(value -> KeyValue.fromNullable(key, value))
-						.map(Collections::singletonList).otherwiseReturn(Collections.emptyList());
+						.map(Collections::singletonList).onErrorReturn(Collections.emptyList());
 			} else {
 				result = cmd.hmget(command.getKey(), command.getFields().stream().toArray(ByteBuffer[]::new)).collectList();
 			}

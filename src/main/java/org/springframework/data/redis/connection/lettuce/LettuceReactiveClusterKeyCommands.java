@@ -87,7 +87,7 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 			}
 
 			Mono<Boolean> result = cmd.dump(command.getKey())
-					.otherwiseIfEmpty(Mono.error(new RedisSystemException("Cannot rename key that does not exist",
+					.switchIfEmpty(Mono.error(new RedisSystemException("Cannot rename key that does not exist",
 							new RedisException("ERR no such key."))))
 					.flatMap(value -> cmd.restore(command.getNewName(), 0, value).flatMap(res -> cmd.del(command.getKey())))
 					.map(LettuceConverters.longToBooleanConverter()::convert);
@@ -119,7 +119,7 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 				}
 
 				return cmd.dump(command.getKey())
-						.otherwiseIfEmpty(Mono.error(new RedisSystemException("Cannot rename key that does not exist",
+						.switchIfEmpty(Mono.error(new RedisSystemException("Cannot rename key that does not exist",
 								new RedisException("ERR no such key."))))
 						.flatMap(value -> cmd.restore(command.getNewName(), 0, value).flatMap(res -> cmd.del(command.getKey())))
 						.map(LettuceConverters.longToBooleanConverter()::convert);

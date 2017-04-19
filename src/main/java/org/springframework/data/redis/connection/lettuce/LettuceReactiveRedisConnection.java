@@ -31,20 +31,12 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.data.redis.connection.ReactiveGeoCommands;
-import org.springframework.data.redis.connection.ReactiveHashCommands;
-import org.springframework.data.redis.connection.ReactiveHyperLogLogCommands;
-import org.springframework.data.redis.connection.ReactiveKeyCommands;
-import org.springframework.data.redis.connection.ReactiveListCommands;
-import org.springframework.data.redis.connection.ReactiveNumberCommands;
-import org.springframework.data.redis.connection.ReactiveRedisConnection;
-import org.springframework.data.redis.connection.ReactiveSetCommands;
-import org.springframework.data.redis.connection.ReactiveStringCommands;
-import org.springframework.data.redis.connection.ReactiveZSetCommands;
+import org.springframework.data.redis.connection.*;
 import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
@@ -145,7 +137,7 @@ public class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	 * @return
 	 */
 	public <T> Flux<T> execute(LettuceReactiveCallback<T> callback) {
-		return Flux.defer(() -> callback.doWithCommands(getCommands())).onErrorResumeWith(translateExeception());
+		return Flux.defer(() -> callback.doWithCommands(getCommands())).onErrorMap(translateException());
 	}
 
 	/* (non-Javadoc)
@@ -171,20 +163,18 @@ public class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		throw new RuntimeException("o.O unknown connection type " + connection);
 	}
 
-	<T> Function<Throwable, Publisher<? extends T>> translateExeception() {
+	<T> Function<Throwable, Throwable> translateException() {
 
 		return throwable -> {
 
 			if (throwable instanceof RuntimeException) {
 
-				DataAccessException convertedException = null;
-				if (throwable instanceof RuntimeException) {
-					convertedException = LettuceConverters.exceptionConverter().convert((RuntimeException) throwable);
-				}
-				return Flux.error(convertedException != null ? convertedException : throwable);
+				DataAccessException convertedException = LettuceConverters.exceptionConverter()
+						.convert((RuntimeException) throwable);
+				return convertedException != null ? convertedException : throwable;
 			}
 
-			return Flux.error(throwable);
+			return throwable;
 		};
 	}
 
