@@ -6,6 +6,12 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.8.2.RELEASE (2017-04-19)
+---------------------------------------------
+* DATAREDIS-618 - RedisServer.getNumberOtherSentinels() should read num-other-sentinels property.
+* DATAREDIS-607 - Release 1.8.2 (Ingalls SR2).
+
+
 Changes in version 2.0.0.M2 (2017-04-04)
 ----------------------------------------
 * DATAREDIS-618 - RedisServer.getNumberOtherSentinels() should read num-other-sentinels property.
