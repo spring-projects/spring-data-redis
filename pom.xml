@@ -17,6 +17,8 @@
 
 	<properties>
 		<dist.key>DATAREDIS</dist.key>
+		<spring.shell>1.2.0.RELEASE</spring.shell>
+		<springdata.geode>1.0.0.INCUBATING-RELEASE</springdata.geode>
 		<springdata.keyvalue>1.2.4.BUILD-SNAPSHOT</springdata.keyvalue>
 		<jta>1.1</jta>
 		<beanutils>1.9.2</beanutils>
@@ -50,6 +52,19 @@
 	<dependencies>
 
 		<!-- Spring -->
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-geode</artifactId>
+			<version>${springdata.geode}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.shell</groupId>
+			<artifactId>spring-shell</artifactId>
+			<version>${spring.shell}</version>
+			<optional>true</optional>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.data</groupId>
