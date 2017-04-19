@@ -49,7 +49,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
  * Base for testing Redis repository support in different configurations.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
@@ -154,7 +154,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		repo.save(Arrays.asList(eddard, robb, sansa, arya, bran, rickon));
 
-		Page<Person> page1 = repo.findPersonByLastname("stark", new PageRequest(0, 5));
+		Page<Person> page1 = repo.findPersonByLastname("stark", PageRequest.of(0, 5));
 
 		assertThat(page1.getNumberOfElements(), is(5));
 		assertThat(page1.getTotalElements(), is(6L));
@@ -201,7 +201,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		repo.save(Arrays.asList(eddard, robb, jon));
 
-		Page<Person> firstPage = repo.findAll(new PageRequest(0, 2));
+		Page<Person> firstPage = repo.findAll(PageRequest.of(0, 2));
 		assertThat(firstPage.getContent(), hasSize(2));
 		assertThat(repo.findAll(firstPage.nextPageable()).getContent(), hasSize(1));
 	}
@@ -215,7 +215,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		repo.save(Arrays.asList(eddard, robb, jon));
 
-		Page<Person> firstPage = repo.findBy(new PageRequest(0, 2));
+		Page<Person> firstPage = repo.findBy(PageRequest.of(0, 2));
 		assertThat(firstPage.getContent(), hasSize(2));
 		assertThat(firstPage.getTotalElements(), is(equalTo(3L)));
 		assertThat(repo.findBy(firstPage.nextPageable()).getContent(), hasSize(1));
@@ -230,7 +230,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		repo.save(Arrays.asList(eddard, robb, jon));
 
-		Page<Person> firstPage = repo.findAll(new PageRequest(100, 2));
+		Page<Person> firstPage = repo.findAll(PageRequest.of(100, 2));
 		assertThat(firstPage.getContent(), hasSize(0));
 	}
 
@@ -243,13 +243,13 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		repo.save(Arrays.asList(eddard, robb, sansa));
 
-		Page<Person> page1 = repo.findPersonByLastname("stark", new PageRequest(1, 3));
+		Page<Person> page1 = repo.findPersonByLastname("stark", PageRequest.of(1, 3));
 
 		assertThat(page1.getNumberOfElements(), is(0));
 		assertThat(page1.getContent(), hasSize(0));
 		assertThat(page1.getTotalElements(), is(3L));
 
-		Page<Person> page2 = repo.findPersonByLastname("stark", new PageRequest(2, 3));
+		Page<Person> page2 = repo.findPersonByLastname("stark", PageRequest.of(2, 3));
 
 		assertThat(page2.getNumberOfElements(), is(0));
 		assertThat(page2.getContent(), hasSize(0));
@@ -376,7 +376,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 	/**
 	 * Custom Redis {@link IndexConfiguration} forcing index of {@link Person#lastname}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 */
 	static class MyIndexConfiguration extends IndexConfiguration {
@@ -389,7 +389,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 	/**
 	 * Custom Redis {@link IndexConfiguration} forcing index of {@link Person#lastname}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 */
 	static class MyKeyspaceConfiguration extends KeyspaceConfiguration {
