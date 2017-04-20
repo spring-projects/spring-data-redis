@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * Redis specific {@link QueryEngine} implementation.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.7
@@ -60,7 +60,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 	/**
 	 * Creates new {@link RedisQueryEngine}.
-	 * 
+	 *
 	 * @param criteriaAccessor
 	 * @param sortAccessor
 	 * @see QueryEngine#QueryEngine(CriteriaAccessor, SortAccessor)
@@ -219,7 +219,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 		@Override
 		public RedisOperationChain resolve(KeyValueQuery<?> query) {
-			return (RedisOperationChain) query.getCritieria();
+			return (RedisOperationChain) query.getCriteria();
 		}
 	}
 }
