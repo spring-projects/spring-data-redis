@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,9 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * Redis specific query creator.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisOperationChain>, RedisOperationChain> {
@@ -97,12 +98,12 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 
 		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<RedisOperationChain>(criteria);
 
-		if (query.getCritieria() != null && !CollectionUtils.isEmpty(query.getCritieria().getSismember())
-				&& !CollectionUtils.isEmpty(query.getCritieria().getOrSismember()))
-			if (query.getCritieria().getSismember().size() == 1 && query.getCritieria().getOrSismember().size() == 1) {
+		if (query.getCriteria() != null && !CollectionUtils.isEmpty(query.getCriteria().getSismember())
+				&& !CollectionUtils.isEmpty(query.getCriteria().getOrSismember()))
+			if (query.getCriteria().getSismember().size() == 1 && query.getCriteria().getOrSismember().size() == 1) {
 
-				query.getCritieria().getOrSismember().add(query.getCritieria().getSismember().iterator().next());
-				query.getCritieria().getSismember().clear();
+				query.getCriteria().getOrSismember().add(query.getCriteria().getSismember().iterator().next());
+				query.getCriteria().getSismember().clear();
 			}
 
 		if (sort != null) {
