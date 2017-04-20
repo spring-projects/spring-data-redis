@@ -45,6 +45,7 @@ import org.springframework.data.repository.query.parser.PartTree;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class RedisQueryCreatorUnitTests {
 
@@ -60,8 +61,8 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getSismember(), hasSize(1));
-		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("firstname", "eddard")));
+		assertThat(query.getCriteria().getSismember(), hasSize(1));
+		assertThat(query.getCriteria().getSismember(), hasItem(new PathAndValue("firstname", "eddard")));
 	}
 
 	@Test // DATAREDIS-425
@@ -73,9 +74,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getSismember(), hasSize(2));
-		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("firstname", "eddard")));
-		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("age", 43)));
+		assertThat(query.getCriteria().getSismember(), hasSize(2));
+		assertThat(query.getCriteria().getSismember(), hasItem(new PathAndValue("firstname", "eddard")));
+		assertThat(query.getCriteria().getSismember(), hasItem(new PathAndValue("age", 43)));
 	}
 
 	@Test // DATAREDIS-425
@@ -87,9 +88,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getOrSismember(), hasSize(2));
-		assertThat(query.getCritieria().getOrSismember(), hasItem(new PathAndValue("age", 43)));
-		assertThat(query.getCritieria().getOrSismember(), hasItem(new PathAndValue("firstname", "eddard")));
+		assertThat(query.getCriteria().getOrSismember(), hasSize(2));
+		assertThat(query.getCriteria().getOrSismember(), hasItem(new PathAndValue("age", 43)));
+		assertThat(query.getCriteria().getOrSismember(), hasItem(new PathAndValue("firstname", "eddard")));
 	}
 
 	@Test // DATAREDIS-533
@@ -101,9 +102,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getNear(), is(notNullValue()));
-		assertThat(query.getCritieria().getNear().getPoint(), is(new Point(1, 2)));
-		assertThat(query.getCritieria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
+		assertThat(query.getCriteria().getNear(), is(notNullValue()));
+		assertThat(query.getCriteria().getNear().getPoint(), is(new Point(1, 2)));
+		assertThat(query.getCriteria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
 	}
 
 	@Test // DATAREDIS-533
@@ -115,9 +116,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getNear(), is(notNullValue()));
-		assertThat(query.getCritieria().getNear().getPoint(), is(new Point(1, 2)));
-		assertThat(query.getCritieria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
+		assertThat(query.getCriteria().getNear(), is(notNullValue()));
+		assertThat(query.getCriteria().getNear().getPoint(), is(new Point(1, 2)));
+		assertThat(query.getCriteria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
 	}
 
 	@Test // DATAREDIS-533
@@ -129,9 +130,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getNear(), is(notNullValue()));
-		assertThat(query.getCritieria().getNear().getPoint(), is(new Point(1, 2)));
-		assertThat(query.getCritieria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
+		assertThat(query.getCriteria().getNear(), is(notNullValue()));
+		assertThat(query.getCriteria().getNear().getPoint(), is(new Point(1, 2)));
+		assertThat(query.getCriteria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
 	}
 
 	@Test // DATAREDIS-533
