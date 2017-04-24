@@ -39,6 +39,7 @@ import org.springframework.data.redis.core.TimeToLiveAccessor;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
+import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
@@ -51,12 +52,14 @@ import org.springframework.util.StringUtils;
 
 /**
  * Redis specific {@link MappingContext}.
- * 
+ *
  * @author Christoph Strobl
  * @author Oliver Gierke
  * @since 1.7
  */
 public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentEntity<?>, RedisPersistentProperty> {
+
+	private static final SimpleTypeHolder SIMPLE_TYPE_HOLDER = new RedisCustomConversions().getSimpleTypeHolder();
 
 	private final MappingConfiguration mappingConfiguration;
 	private final TimeToLiveAccessor timeToLiveAccessor;
@@ -72,7 +75,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 	/**
 	 * Creates new {@link RedisMappingContext}.
-	 * 
+	 *
 	 * @param mappingConfiguration can be {@literal null}.
 	 */
 	public RedisMappingContext(MappingConfiguration mappingConfiguration) {
@@ -83,11 +86,12 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 		setFallbackKeySpaceResolver(new ConfigAwareKeySpaceResolver(this.mappingConfiguration.getKeyspaceConfiguration()));
 		this.timeToLiveAccessor = new ConfigAwareTimeToLiveAccessor(this.mappingConfiguration.getKeyspaceConfiguration(),
 				this);
+		this.setSimpleTypeHolder(SIMPLE_TYPE_HOLDER);
 	}
 
 	/**
 	 * Configures the {@link KeySpaceResolver} to be used if not explicit key space is annotated to the domain type.
-	 * 
+	 *
 	 * @param fallbackKeySpaceResolver can be {@literal null}.
 	 */
 	public void setFallbackKeySpaceResolver(KeySpaceResolver fallbackKeySpaceResolver) {
@@ -107,7 +111,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 	/**
 	 * Get the {@link MappingConfiguration} used.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public MappingConfiguration getMappingConfiguration() {
@@ -116,7 +120,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 	/**
 	 * {@link KeySpaceResolver} implementation considering {@link KeySpace} and {@link KeyspaceConfiguration}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
@@ -151,7 +155,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 	/**
 	 * {@link KeySpaceResolver} implementation considering {@link KeySpace}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
@@ -173,7 +177,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 	/**
 	 * {@link TimeToLiveAccessor} implementation considering {@link KeyspaceConfiguration}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
@@ -187,7 +191,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 		/**
 		 * Creates new {@link ConfigAwareTimeToLiveAccessor}
-		 * 
+		 *
 		 * @param keyspaceConfig must not be {@literal null}.
 		 * @param mappingContext must not be {@literal null}.
 		 */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ import org.springframework.data.keyvalue.repository.config.KeyValueRepositoryCon
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisKeyValueTemplate;
-import org.springframework.data.redis.core.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
+import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
  * {@link RepositoryConfigurationExtension} for Redis.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryConfigurationExtension {
@@ -92,7 +93,7 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 		registerIfNotAlreadyRegistered(mappingContextDefinition, registry, MAPPING_CONTEXT_BEAN_NAME, configurationSource);
 
 		// register coustom conversions
-		RootBeanDefinition customConversions = new RootBeanDefinition(CustomConversions.class);
+		RootBeanDefinition customConversions = new RootBeanDefinition(RedisCustomConversions.class);
 		registerIfNotAlreadyRegistered(customConversions, registry, REDIS_CUSTOM_CONVERSIONS_BEAN_NAME,
 				configurationSource);
 

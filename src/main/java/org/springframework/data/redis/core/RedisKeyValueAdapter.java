@@ -28,8 +28,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -42,7 +40,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.core.AbstractKeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
-import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -55,6 +52,7 @@ import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.convert.PathIndexResolver;
 import org.springframework.data.redis.core.convert.RedisConverter;
+import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolverImpl;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
@@ -66,7 +64,6 @@ import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Redis specific {@link KeyValueAdapter} implementation. Uses binary codec to read/write data from/to Redis. Objects
@@ -117,7 +114,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/**
 	 * Creates new {@link RedisKeyValueAdapter} with default {@link RedisMappingContext} and default
-	 * {@link CustomConversions}.
+	 * {@link RedisCustomConversions}.
 	 *
 	 * @param redisOps must not be {@literal null}.
 	 */
@@ -126,13 +123,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	}
 
 	/**
-	 * Creates new {@link RedisKeyValueAdapter} with default {@link CustomConversions}.
+	 * Creates new {@link RedisKeyValueAdapter} with default {@link RedisCustomConversions}.
 	 *
 	 * @param redisOps must not be {@literal null}.
 	 * @param mappingContext must not be {@literal null}.
 	 */
 	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisMappingContext mappingContext) {
-		this(redisOps, mappingContext, new CustomConversions());
+		this(redisOps, mappingContext, new RedisCustomConversions());
 	}
 
 	/**
@@ -141,9 +138,25 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @param redisOps must not be {@literal null}.
 	 * @param mappingContext must not be {@literal null}.
 	 * @param customConversions can be {@literal null}.
+	 * @deprecated since 2.0, use
+	 *             {@link #RedisKeyValueAdapter(RedisOperations, RedisMappingContext, org.springframework.data.convert.CustomConversions)}.
 	 */
+	@Deprecated
 	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisMappingContext mappingContext,
 			CustomConversions customConversions) {
+		this(redisOps, mappingContext, (org.springframework.data.convert.CustomConversions) customConversions);
+	}
+
+	/**
+	 * Creates new {@link RedisKeyValueAdapter}.
+	 *
+	 * @param redisOps must not be {@literal null}.
+	 * @param mappingContext must not be {@literal null}.
+	 * @param customConversions can be {@literal null}.
+	 * @since 2.0
+	 */
+	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisMappingContext mappingContext,
+			org.springframework.data.convert.CustomConversions customConversions) {
 
 		super(new RedisQueryEngine());
 
@@ -152,7 +165,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext,
 				new PathIndexResolver(mappingContext), new ReferenceResolverImpl(redisOps));
-		mappingConverter.setCustomConversions(customConversions == null ? new CustomConversions() : customConversions);
+		mappingConverter.setCustomConversions(customConversions == null ? new RedisCustomConversions() : customConversions);
 		mappingConverter.afterPropertiesSet();
 
 		this.converter = mappingConverter;
@@ -374,7 +387,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		offset = Math.max(0, offset);
 		if (offset >= 0 && rows > 0) {
-			keys = keys.subList((int)offset, Math.min((int)offset + rows, keys.size()));
+			keys = keys.subList((int) offset, Math.min((int) offset + rows, keys.size()));
 		}
 
 		for (byte[] key : keys) {
@@ -428,7 +441,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	public void update(final PartialUpdate<?> update) {
 
-		final RedisPersistentEntity<?> entity = this.converter.getMappingContext().getPersistentEntity(update.getTarget()).get();
+		final RedisPersistentEntity<?> entity = this.converter.getMappingContext().getPersistentEntity(update.getTarget())
+				.get();
 
 		final String keyspace = entity.getKeySpace();
 		final Object id = update.getId();
@@ -622,10 +636,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		if (entity.hasExplictTimeToLiveProperty()) {
 
 			Optional<RedisPersistentProperty> ttlProperty = entity.getExplicitTimeToLiveProperty();
-			if(!ttlProperty.isPresent()) {
+			if (!ttlProperty.isPresent()) {
 				return target;
 			}
-
 
 			final Optional<TimeToLive> ttl = ttlProperty.get().findAnnotation(TimeToLive.class);
 

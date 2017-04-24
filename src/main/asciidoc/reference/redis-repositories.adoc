@@ -158,7 +158,7 @@ of Complex Type
 addresses.[work].city  = "...
 |===
 
-Mapping behavior can be customized by registering the according `Converter` in `CustomConversions`. Those converters can take care of converting from/to a single `byte[]` as well as `Map<String,byte[]>` whereas the first one is suitable for eg. converting one complex type to eg. a binary JSON representation that still uses the default mappings hash structure. The second option offers full control over the resulting hash. Writing objects to a Redis hash will delete the content from the hash and re-create the whole hash, so not mapped data will be lost.
+Mapping behavior can be customized by registering the according `Converter` in `RedisCustomConversions`. Those converters can take care of converting from/to a single `byte[]` as well as `Map<String,byte[]>` whereas the first one is suitable for eg. converting one complex type to eg. a binary JSON representation that still uses the default mappings hash structure. The second option offers full control over the resulting hash. Writing objects to a Redis hash will delete the content from the hash and re-create the whole hash, so not mapped data will be lost.
 
 .Sample byte[] Converters
 ====

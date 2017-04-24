@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.springframework.data.redis.core.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.IndexResolver;
 import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
+import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolver;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
@@ -74,19 +75,31 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 	 * Creates new {@link ObjectHashMapper}.
 	 */
 	public ObjectHashMapper() {
-		this(new CustomConversions());
+		this(new RedisCustomConversions());
 	}
 
 	/**
 	 * Creates new {@link ObjectHashMapper}.
 	 *
 	 * @param customConversions can be {@literal null}.
+	 * @deprecated since 2.0, use {@link #ObjectHashMapper(org.springframework.data.convert.CustomConversions)}.
 	 */
+	@Deprecated
 	public ObjectHashMapper(CustomConversions customConversions) {
+		this((org.springframework.data.convert.CustomConversions) customConversions);
+	}
+
+	/**
+	 * Creates new {@link ObjectHashMapper}.
+	 *
+	 * @param customConversions can be {@literal null}.
+	 * @since 2.0
+	 */
+	public ObjectHashMapper(org.springframework.data.convert.CustomConversions customConversions) {
 
 		MappingRedisConverter mappingConverter = new MappingRedisConverter(new RedisMappingContext(),
 				new NoOpIndexResolver(), new NoOpReferenceResolver());
-		mappingConverter.setCustomConversions(customConversions == null ? new CustomConversions() : customConversions);
+		mappingConverter.setCustomConversions(customConversions == null ? new RedisCustomConversions() : customConversions);
 		mappingConverter.afterPropertiesSet();
 
 		converter = mappingConverter;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,8 @@
 package org.springframework.data.redis.core.convert;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +27,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.convert.DefaultTypeMapper;
 import org.springframework.data.convert.EntityInstantiator;
 import org.springframework.data.convert.EntityInstantiators;
@@ -152,7 +144,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		entityInstantiators = new EntityInstantiators();
 
 		this.conversionService = new DefaultConversionService();
-		this.customConversions = new CustomConversions();
+		this.customConversions = new RedisCustomConversions();
 
 		typeMapper = new DefaultTypeMapper<RedisData>(new RedisTypeAliasAccessor(this.conversionService));
 
@@ -232,7 +224,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				if (persistentProperty.isMap()) {
 
 					Map<?, ?> targetValue = null;
-					Class<?> mapValueType = persistentProperty.getMapValueType().orElseThrow(()-> new IllegalArgumentException("Unable to retrieve MapValueType!"));
+					Class<?> mapValueType = persistentProperty.getMapValueType()
+							.orElseThrow(() -> new IllegalArgumentException("Unable to retrieve MapValueType!"));
 
 					if (conversionService.canConvert(byte[].class, mapValueType)) {
 						targetValue = readMapOfSimpleTypes(currentPath, persistentProperty.getType(),
@@ -502,7 +495,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 								pUpdate.getPropertyPath(), pUpdate.getValue()));
 			}
 
-			writeMap(entity.getKeySpace(), pUpdate.getPropertyPath(), targetProperty.getMapValueType().orElse(Object.class), map, sink);
+			writeMap(entity.getKeySpace(), pUpdate.getPropertyPath(), targetProperty.getMapValueType().orElse(Object.class),
+					map, sink);
 		} else {
 
 			writeInternal(entity.getKeySpace(), pUpdate.getPropertyPath(), pUpdate.getValue(),
@@ -735,22 +729,23 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		if (customConversions.hasCustomWriteTarget(value.getClass())) {
 
-			Class<?> targetType = customConversions.getCustomWriteTarget(value.getClass());
+			Optional<Class<?>> targetType = customConversions.getCustomWriteTarget(value.getClass());
 
-			if (!ClassUtils.isAssignable(Map.class, targetType) && customConversions.isSimpleType(value.getClass())
+			if (!targetType.filter(it -> ClassUtils.isAssignable(Map.class, it)).isPresent()
+					&& customConversions.isSimpleType(value.getClass())
 					&& value.getClass() != propertyType) {
 				sink.getBucket().put((!path.isEmpty() ? path + "." + TYPE_HINT_ALIAS : TYPE_HINT_ALIAS),
 						toBytes(value.getClass().getName()));
 			}
 
-			if (ClassUtils.isAssignable(Map.class, targetType)) {
+			if (targetType.filter(it -> ClassUtils.isAssignable(Map.class, it)).isPresent()) {
 
-				Map<?, ?> map = (Map<?, ?>) conversionService.convert(value, targetType);
+				Map<?, ?> map = (Map<?, ?>) conversionService.convert(value, targetType.get());
 				for (Map.Entry<?, ?> entry : map.entrySet()) {
 					sink.getBucket().put(path + (StringUtils.hasText(path) ? "." : "") + entry.getKey(),
 							toBytes(entry.getValue()));
 				}
-			} else if (ClassUtils.isAssignable(byte[].class, targetType)) {
+			} else if (targetType.filter(it -> ClassUtils.isAssignable(byte[].class, it)).isPresent()) {
 				sink.getBucket().put(path, toBytes(value));
 			} else {
 				throw new IllegalArgumentException(
@@ -986,7 +981,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param customConversions
 	 */
 	public void setCustomConversions(CustomConversions customConversions) {
-		this.customConversions = customConversions != null ? customConversions : new CustomConversions();
+		this.customConversions = customConversions != null ? customConversions : new RedisCustomConversions();
 	}
 
 	public void setReferenceResolver(ReferenceResolver referenceResolver) {

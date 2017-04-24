@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core.convert;
 
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.core.convert.ConversionTestEntities.*;
@@ -31,16 +32,7 @@ import java.time.LocalTime;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import org.hamcrest.core.IsEqual;
 import org.junit.Before;
@@ -880,12 +872,17 @@ public class MappingRedisConverterUnitTests {
 		assertThat(write(address).getTimeToLive(), is(5L));
 	}
 
-	@Test // DATAREDIS-425
+	@Test // DATAREDIS-425, DATAREDIS-634
 	public void writeShouldHonorCustomConversionOnRootType() {
 
-		this.converter = new MappingRedisConverter(null, null, resolverMock);
-		this.converter
-				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
+		RedisCustomConversions customConversions = new RedisCustomConversions(
+				Collections.singletonList(new AddressToBytesConverter()));
+
+		RedisMappingContext mappingContext = new RedisMappingContext();
+		mappingContext.setSimpleTypeHolder(customConversions.getSimpleTypeHolder());
+
+		this.converter = new MappingRedisConverter(mappingContext, null, resolverMock);
+		this.converter.setCustomConversions(customConversions);
 		this.converter.afterPropertiesSet();
 
 		Address address = new Address();
@@ -896,12 +893,17 @@ public class MappingRedisConverterUnitTests {
 				isBucket().containingUtf8String("_raw", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}"));
 	}
 
-	@Test // DATAREDIS-425
+	@Test // DATAREDIS-425, DATAREDIS-634
 	public void writeShouldHonorCustomConversionOnNestedType() {
 
-		this.converter = new MappingRedisConverter(null, null, resolverMock);
-		this.converter
-				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
+		RedisCustomConversions customConversions = new RedisCustomConversions(
+				Collections.singletonList(new AddressToBytesConverter()));
+
+		RedisMappingContext mappingContext = new RedisMappingContext();
+		mappingContext.setSimpleTypeHolder(customConversions.getSimpleTypeHolder());
+
+		this.converter = new MappingRedisConverter(mappingContext, null, resolverMock);
+		this.converter.setCustomConversions(customConversions);
 		this.converter.afterPropertiesSet();
 
 		Address address = new Address();
@@ -918,7 +920,7 @@ public class MappingRedisConverterUnitTests {
 
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
 		this.converter
-				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new AddressToBytesConverter())));
 		this.converter.afterPropertiesSet();
 
 		Address address = new Address();
@@ -934,7 +936,7 @@ public class MappingRedisConverterUnitTests {
 
 		this.converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
 		this.converter
-				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new AddressToBytesConverter())));
 		this.converter.afterPropertiesSet();
 
 		Address address = new Address();
@@ -950,7 +952,7 @@ public class MappingRedisConverterUnitTests {
 
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
 		this.converter
-				.setCustomConversions(new CustomConversions(Collections.singletonList(new BytesToAddressConverter())));
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new BytesToAddressConverter())));
 		this.converter.afterPropertiesSet();
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -967,7 +969,7 @@ public class MappingRedisConverterUnitTests {
 
 		this.converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
 		this.converter
-				.setCustomConversions(new CustomConversions(Collections.singletonList(new BytesToAddressConverter())));
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new BytesToAddressConverter())));
 		this.converter.afterPropertiesSet();
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -1003,7 +1005,8 @@ public class MappingRedisConverterUnitTests {
 	public void writeShouldConsiderMapConvertersForRootType() {
 
 		this.converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
-		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new SpeciesToMapConverter())));
+		this.converter
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new SpeciesToMapConverter())));
 		this.converter.afterPropertiesSet();
 
 		Species myrddraal = new Species();
@@ -1018,7 +1021,8 @@ public class MappingRedisConverterUnitTests {
 	public void writeShouldConsiderMapConvertersForNestedType() {
 
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
-		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new SpeciesToMapConverter())));
+		this.converter
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new SpeciesToMapConverter())));
 		this.converter.afterPropertiesSet();
 
 		rand.species = new Species();
@@ -1031,7 +1035,8 @@ public class MappingRedisConverterUnitTests {
 	public void readShouldConsiderMapConvertersForRootType() {
 
 		this.converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
-		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new MapToSpeciesConverter())));
+		this.converter
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new MapToSpeciesConverter())));
 		this.converter.afterPropertiesSet();
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("species-name", "trolloc");
@@ -1046,7 +1051,8 @@ public class MappingRedisConverterUnitTests {
 	public void readShouldConsiderMapConvertersForNestedType() {
 
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
-		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new MapToSpeciesConverter())));
+		this.converter
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new MapToSpeciesConverter())));
 		this.converter.afterPropertiesSet();
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -1062,7 +1068,8 @@ public class MappingRedisConverterUnitTests {
 	public void writeShouldConsiderMapConvertersInsideLists() {
 
 		this.converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
-		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new SpeciesToMapConverter())));
+		this.converter
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new SpeciesToMapConverter())));
 		this.converter.afterPropertiesSet();
 
 		TheWheelOfTime twot = new TheWheelOfTime();
@@ -1081,7 +1088,8 @@ public class MappingRedisConverterUnitTests {
 	public void readShouldConsiderMapConvertersForValuesInList() {
 
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
-		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new MapToSpeciesConverter())));
+		this.converter
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new MapToSpeciesConverter())));
 		this.converter.afterPropertiesSet();
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -1099,7 +1107,8 @@ public class MappingRedisConverterUnitTests {
 	public void writeHandlesArraysProperly() {
 
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
-		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new ListToByteConverter())));
+		this.converter
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new ListToByteConverter())));
 		this.converter.afterPropertiesSet();
 
 		Map<String, Object> innerMap = new LinkedHashMap<String, Object>();
@@ -1534,7 +1543,7 @@ public class MappingRedisConverterUnitTests {
 
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
 		this.converter
-				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new AddressToBytesConverter())));
 		this.converter.afterPropertiesSet();
 
 		Address address = new Address();
