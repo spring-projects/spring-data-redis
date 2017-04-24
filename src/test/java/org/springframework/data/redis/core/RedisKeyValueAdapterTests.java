@@ -113,6 +113,14 @@ public class RedisKeyValueAdapterTests {
 				return null;
 			}
 		});
+
+		RedisConnection connection = template.getConnectionFactory().getConnection();
+
+		try {
+			connection.setConfig("notify-keyspace-events", "KEA");
+		} finally {
+			connection.close();
+		}
 	}
 
 	@After
