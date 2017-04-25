@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.api.sync.RedisSetCommands;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,8 +72,7 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 		}
 
 		Collection<Set<byte[]>> nodeResult = connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand(
-						(LettuceMultiKeyClusterCommandCallback<Set<byte[]>>) (client, key) -> client.smembers(key),
+				.executeMuliKeyCommand((LettuceMultiKeyClusterCommandCallback<Set<byte[]>>) RedisSetCommands::smembers,
 						Arrays.asList(keys))
 				.resultsAsList();
 
@@ -89,7 +90,7 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 			}
 		}
 
-		if (result.isEmpty()) {
+		if (result == null || result.isEmpty()) {
 			return Collections.emptySet();
 		}
 
@@ -128,8 +129,7 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 		}
 
 		Collection<Set<byte[]>> nodeResult = connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand(
-						(LettuceMultiKeyClusterCommandCallback<Set<byte[]>>) (client, key) -> client.smembers(key),
+				.executeMuliKeyCommand((LettuceMultiKeyClusterCommandCallback<Set<byte[]>>) RedisSetCommands::smembers,
 						Arrays.asList(keys))
 				.resultsAsList();
 
@@ -181,8 +181,7 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 
 		ByteArraySet values = new ByteArraySet(sMembers(source));
 		Collection<Set<byte[]>> nodeResult = connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand(
-						(LettuceMultiKeyClusterCommandCallback<Set<byte[]>>) (client, key) -> client.smembers(key),
+				.executeMuliKeyCommand((LettuceMultiKeyClusterCommandCallback<Set<byte[]>>) RedisSetCommands::smembers,
 						Arrays.asList(others))
 				.resultsAsList();
 

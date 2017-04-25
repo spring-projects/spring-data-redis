@@ -34,20 +34,7 @@ import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
-import io.lettuce.core.output.BooleanOutput;
-import io.lettuce.core.output.ByteArrayOutput;
-import io.lettuce.core.output.CommandOutput;
-import io.lettuce.core.output.DateOutput;
-import io.lettuce.core.output.DoubleOutput;
-import io.lettuce.core.output.IntegerOutput;
-import io.lettuce.core.output.KeyListOutput;
-import io.lettuce.core.output.KeyValueOutput;
-import io.lettuce.core.output.MapOutput;
-import io.lettuce.core.output.MultiOutput;
-import io.lettuce.core.output.StatusOutput;
-import io.lettuce.core.output.ValueListOutput;
-import io.lettuce.core.output.ValueOutput;
-import io.lettuce.core.output.ValueSetOutput;
+import io.lettuce.core.output.*;
 import io.lettuce.core.protocol.Command;
 import io.lettuce.core.protocol.CommandArgs;
 import io.lettuce.core.protocol.CommandType;
@@ -56,13 +43,11 @@ import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -76,27 +61,10 @@ import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.AbstractRedisConnection;
-import org.springframework.data.redis.connection.FutureResult;
-import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.RedisGeoCommands;
-import org.springframework.data.redis.connection.RedisHashCommands;
-import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
-import org.springframework.data.redis.connection.RedisKeyCommands;
-import org.springframework.data.redis.connection.RedisListCommands;
-import org.springframework.data.redis.connection.RedisNode;
-import org.springframework.data.redis.connection.RedisPipelineException;
-import org.springframework.data.redis.connection.RedisSentinelConnection;
-import org.springframework.data.redis.connection.RedisSetCommands;
-import org.springframework.data.redis.connection.RedisStringCommands;
-import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
-import org.springframework.data.redis.connection.RedisZSetCommands;
-import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.core.RedisCommand;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -104,7 +72,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * {@code RedisConnection} implementation on top of <a href="https://github.com/mp911de/lettuce">Lettuce</a> Redis
  * client.
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
@@ -134,7 +102,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private boolean isMulti = false;
 	private boolean isPipelined = false;
 	private List<LettuceResult> ppline;
-	private Queue<FutureResult<?>> txResults = new LinkedList<FutureResult<?>>();
+	private Queue<FutureResult<?>> txResults = new LinkedList<>();
 	private AbstractRedisClient client;
 	private volatile LettuceSubscription subscription;
 	private LettucePool pool;
@@ -240,30 +208,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	private class LettuceEvalResultsConverter<T> implements Converter<Object, T> {
-		private ReturnType returnType;
-
-		public LettuceEvalResultsConverter(ReturnType returnType) {
-			this.returnType = returnType;
-		}
-
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		public T convert(Object source) {
-			if (returnType == ReturnType.MULTI) {
-				List resultList = (List) source;
-				for (Object obj : resultList) {
-					if (obj instanceof Exception) {
-						throw convertLettuceAccessException((Exception) obj);
-					}
-				}
-			}
-			return (T) source;
-		}
-	}
-
 	/**
 	 * Instantiates a new lettuce connection.
-	 * 
+	 *
 	 * @param timeout The connection timeout (in milliseconds)
 	 * @param client The {@link RedisClient} to use when instantiating a native connection
 	 */
@@ -273,7 +220,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Instantiates a new lettuce connection.
-	 * 
+	 *
 	 * @param timeout The connection timeout (in milliseconds) * @param client The {@link RedisClient} to use when
 	 *          instantiating a pub/sub connection
 	 * @param pool The connection pool to use for all other native connections
@@ -284,7 +231,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Instantiates a new lettuce connection.
-	 * 
+	 *
 	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s. Will not be used
 	 *          for transactions or blocking operations
 	 * @param timeout The connection timeout (in milliseconds)
@@ -296,7 +243,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Instantiates a new lettuce connection.
-	 * 
+	 *
 	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s. Should not be
 	 *          used for transactions or blocking operations
 	 * @param timeout The connection timeout (in milliseconds)
@@ -339,41 +286,91 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return exception;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#geoCommands()
+	 */
 	@Override
 	public RedisGeoCommands geoCommands() {
 		return new LettuceGeoCommands(this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#hashCommands()
+	 */
 	@Override
 	public RedisHashCommands hashCommands() {
 		return new LettuceHashCommands(this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#hyperLogLogCommands()
+	 */
 	@Override
 	public RedisHyperLogLogCommands hyperLogLogCommands() {
 		return new LettuceHyperLogLogCommands(this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#keyCommands()
+	 */
 	@Override
 	public RedisKeyCommands keyCommands() {
 		return new LettuceKeyCommands(this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#listCommands()
+	 */
 	@Override
 	public RedisListCommands listCommands() {
 		return new LettuceListCommands(this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#setCommands()
+	 */
 	@Override
 	public RedisSetCommands setCommands() {
 		return new LettuceSetCommands(this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#scriptingCommands()
+	 */
+	@Override
+	public RedisScriptingCommands scriptingCommands() {
+		return new LettuceScriptingCommands(this);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#stringCommands()
+	 */
 	@Override
 	public RedisStringCommands stringCommands() {
 		return new LettuceStringCommands(this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#serverCommands()
+	 */
+	@Override
+	public RedisServerCommands serverCommands() {
+		return new LettuceServerCommands(this);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#zSetCommands()
+	 */
 	@Override
 	public RedisZSetCommands zSetCommands() {
 		return new LettuceZSetCommands(this);
@@ -412,7 +409,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 			validateCommandIfRunningInTransactionMode(commandType, args);
 
-			CommandArgs<byte[], byte[]> cmdArg = new CommandArgs<byte[], byte[]>(CODEC);
+			CommandArgs<byte[], byte[]> cmdArg = new CommandArgs<>(CODEC);
 			if (!ObjectUtils.isEmpty(args)) {
 				cmdArg.addKeys(args);
 			}
@@ -497,7 +494,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public void openPipeline() {
 		if (!isPipelined) {
 			isPipelined = true;
-			ppline = new ArrayList<LettuceResult>();
+			ppline = new ArrayList<>();
 		}
 	}
 
@@ -505,7 +502,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		if (isPipelined) {
 			isPipelined = false;
-			List<io.lettuce.core.protocol.RedisCommand<?, ?, ?>> futures = new ArrayList<io.lettuce.core.protocol.RedisCommand<?, ?, ?>>();
+			List<io.lettuce.core.protocol.RedisCommand<?, ?, ?>> futures = new ArrayList<>();
 			for (LettuceResult result : ppline) {
 				futures.add(result.getResultHolder());
 			}
@@ -514,7 +511,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 				boolean done = LettuceFutures.awaitAll(timeout, TimeUnit.MILLISECONDS,
 						futures.toArray(new RedisFuture[futures.size()]));
 
-				List<Object> results = new ArrayList<Object>(futures.size());
+				List<Object> results = new ArrayList<>(futures.size());
 
 				Exception problem = null;
 
@@ -560,241 +557,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return Collections.emptyList();
 	}
 
-	public Long dbSize() {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().dbsize()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().dbsize()));
-				return null;
-			}
-			return getConnection().dbsize();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public void flushDb() {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().flushdb()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getConnection().flushdb()));
-				return;
-			}
-			getConnection().flushdb();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public void flushAll() {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().flushall()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getConnection().flushall()));
-				return;
-			}
-			getConnection().flushall();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public void bgSave() {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().bgsave()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getConnection().bgsave()));
-				return;
-			}
-			getConnection().bgsave();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public void bgReWriteAof() {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().bgrewriteaof()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getConnection().bgrewriteaof()));
-				return;
-			}
-			getConnection().bgrewriteaof();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	/**
-	 * @deprecated As of 1.3, use {@link #bgReWriteAof}.
-	 */
-	@Deprecated
-	public void bgWriteAof() {
-		bgReWriteAof();
-	}
-
-	public void save() {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().save()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getConnection().save()));
-				return;
-			}
-			getConnection().save();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public List<String> getConfig(String param) {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().configGet(param)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().configGet(param)));
-				return null;
-			}
-			return getConnection().configGet(param);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public Properties info() {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().info(), LettuceConverters.stringToProps()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().info(), LettuceConverters.stringToProps()));
-				return null;
-			}
-			return LettuceConverters.toProperties(getConnection().info());
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public Properties info(String section) {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().info(section), LettuceConverters.stringToProps()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().info(section), LettuceConverters.stringToProps()));
-				return null;
-			}
-			return LettuceConverters.toProperties(getConnection().info(section));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public Long lastSave() {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().lastsave(), LettuceConverters.dateToLong()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().lastsave(), LettuceConverters.dateToLong()));
-				return null;
-			}
-			return LettuceConverters.toLong(getConnection().lastsave());
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public void setConfig(String param, String value) {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().configSet(param, value)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getConnection().configSet(param, value)));
-				return;
-			}
-			getConnection().configSet(param, value);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public void resetConfigStats() {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().configResetstat()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getConnection().configResetstat()));
-				return;
-			}
-			getConnection().configResetstat();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public void shutdown() {
-		try {
-			if (isPipelined()) {
-				getAsyncConnection().shutdown(true);
-				return;
-			}
-			getConnection().shutdown(true);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown(org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption)
 	 */
 	@Override
-	public void shutdown(ShutdownOption option) {
-
-		if (option == null) {
-			shutdown();
-			return;
-		}
-
-		boolean save = ShutdownOption.SAVE.equals(option);
-		try {
-			if (isPipelined()) {
-				getAsyncConnection().shutdown(save);
-				return;
-			}
-			getConnection().shutdown(save);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
 
 	public byte[] echo(byte[] message) {
 		try {
@@ -944,129 +711,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	//
-	// Scripting commands
-	//
-
-	public void scriptFlush() {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().scriptFlush()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getConnection().scriptFlush()));
-				return;
-			}
-			getConnection().scriptFlush();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public void scriptKill() {
-		if (isQueueing()) {
-			throw new UnsupportedOperationException("Script kill not permitted in a transaction");
-		}
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().scriptKill()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getConnection().scriptKill()));
-				return;
-			}
-			getConnection().scriptKill();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public String scriptLoad(byte[] script) {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().scriptLoad(script)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().scriptLoad(script)));
-				return null;
-			}
-			return getConnection().scriptLoad(script);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public List<Boolean> scriptExists(String... scriptSha1) {
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().scriptExists(scriptSha1)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().scriptExists(scriptSha1)));
-				return null;
-			}
-			return getConnection().scriptExists(scriptSha1);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		try {
-			byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
-			byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
-			String convertedScript = LettuceConverters.toString(script);
-			if (isPipelined()) {
-				pipeline(new LettuceResult(
-						getAsyncConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType), keys, args),
-						new LettuceEvalResultsConverter<T>(returnType)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(
-						getConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType), keys, args),
-						new LettuceEvalResultsConverter<T>(returnType)));
-				return null;
-			}
-			return new LettuceEvalResultsConverter<T>(returnType)
-					.convert(getConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType), keys, args));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		try {
-			byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
-			byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
-
-			if (isPipelined()) {
-				pipeline(new LettuceResult(
-						getAsyncConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType), keys, args),
-						new LettuceEvalResultsConverter<T>(returnType)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(
-						getConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType), keys, args),
-						new LettuceEvalResultsConverter<T>(returnType)));
-				return null;
-			}
-			return new LettuceEvalResultsConverter<T>(returnType)
-					.convert(getConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType), keys, args));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		return evalSha(LettuceConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
-	}
-
-	//
 	// Pub/Sub functionality
 	//
 
@@ -1126,145 +770,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
-	 */
-	@Override
-	public Long time() {
-
-		try {
-
-			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().time(), LettuceConverters.toTimeConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().time(), LettuceConverters.toTimeConverter()));
-				return null;
-			}
-
-			return LettuceConverters.toTimeConverter().convert(getConnection().time());
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	@Override
-	public void killClient(String host, int port) {
-
-		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'.");
-
-		String client = String.format("%s:%s", host, port);
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().clientKill(client)));
-				return;
-			}
-			getConnection().clientKill(client);
-		} catch (Exception e) {
-			throw convertLettuceAccessException(e);
-		}
-	}
-
-	@Override
-	public void setClientName(byte[] name) {
-
-		if (isQueueing()) {
-			pipeline(new LettuceStatusResult(getAsyncConnection().clientSetname(name)));
-			return;
-		}
-		if (isQueueing()) {
-			transaction(new LettuceTxResult(getConnection().clientSetname(name)));
-			return;
-		}
-
-		getAsyncConnection().clientSetname(name);
-	}
-
-	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.redis.connection.RedisServerCommands#slaveOf(java.lang.String, int)
-	*/
-	@Override
-	public void slaveOf(String host, int port) {
-
-		Assert.hasText(host, "Host must not be null for 'SLAVEOF' command.");
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().slaveof(host, port)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().slaveof(host, port)));
-				return;
-			}
-			getConnection().slaveof(host, port);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientName()
-	 */
-	@Override
-	public String getClientName() {
-
-		try {
-
-			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().clientGetname(), LettuceConverters.bytesToString()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().clientGetname(), LettuceConverters.bytesToString()));
-				return null;
-			}
-
-			return LettuceConverters.toString(getConnection().clientGetname());
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	@Override
-	public List<RedisClientInfo> getClientList() {
-
-		if (isPipelined()) {
-			throw new UnsupportedOperationException("Cannot be called in pipeline mode.");
-		}
-		if (isQueueing()) {
-			transaction(
-					new LettuceTxResult(getAsyncConnection().clientList(), LettuceConverters.stringToRedisClientListConverter()));
-			return null;
-		}
-
-		return LettuceConverters.toListOfRedisClientInformation(getConnection().clientList());
-	}
-
-	/*
-		* @see org.springframework.data.redis.connection.RedisServerCommands#slaveOfNoOne()
-	 */
-	@Override
-	public void slaveOfNoOne() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().slaveofNoOne()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().slaveofNoOne()));
-				return;
-			}
-			getConnection().slaveofNoOne();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
 	@SuppressWarnings("unchecked")
 	<T> T failsafeReadScanValues(List<?> source, @SuppressWarnings("rawtypes") Converter converter) {
 
@@ -1279,7 +784,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	/**
 	 * Specifies if pipelined and transaction results should be converted to the expected data type. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the Lettuce driver
-	 * 
+	 *
 	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
@@ -1401,20 +906,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 				String.format("%s is not a supported connection type.", asyncDedicatedConn.getClass().getName()));
 	}
 
-	private byte[][] extractScriptKeys(int numKeys, byte[]... keysAndArgs) {
-		if (numKeys > 0) {
-			return Arrays.copyOfRange(keysAndArgs, 0, numKeys);
-		}
-		return new byte[0][0];
-	}
-
-	private byte[][] extractScriptArgs(int numKeys, byte[]... keysAndArgs) {
-		if (keysAndArgs.length > numKeys) {
-			return Arrays.copyOfRange(keysAndArgs, numKeys, keysAndArgs.length);
-		}
-		return new byte[0][0];
-	}
-
 	io.lettuce.core.ScanCursor getScanCursor(long cursorId) {
 		return io.lettuce.core.ScanCursor.of(Long.toString(cursorId));
 	}
@@ -1493,16 +984,16 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * {@link TypeHints} provide {@link CommandOutput} information for a given {@link CommandType}.
-	 * 
+	 *
 	 * @since 1.2.1
 	 */
 	static class TypeHints {
 
 		@SuppressWarnings("rawtypes") //
-		private static final Map<CommandType, Class<? extends CommandOutput>> COMMAND_OUTPUT_TYPE_MAPPING = new HashMap<CommandType, Class<? extends CommandOutput>>();
+		private static final Map<CommandType, Class<? extends CommandOutput>> COMMAND_OUTPUT_TYPE_MAPPING = new HashMap<>();
 
 		@SuppressWarnings("rawtypes") //
-		private static final Map<Class<?>, Constructor<CommandOutput>> CONSTRUCTORS = new ConcurrentHashMap<Class<?>, Constructor<CommandOutput>>();
+		private static final Map<Class<?>, Constructor<CommandOutput>> CONSTRUCTORS = new ConcurrentHashMap<>();
 
 		{
 			// INTEGER
@@ -1654,18 +1145,18 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		/**
 		 * Returns the {@link CommandOutput} mapped for given {@link CommandType} or {@link ByteArrayOutput} as default.
-		 * 
+		 *
 		 * @param type
 		 * @return {@link ByteArrayOutput} as default when no matching {@link CommandOutput} available.
 		 */
 		@SuppressWarnings("rawtypes")
 		public CommandOutput getTypeHint(CommandType type) {
-			return getTypeHint(type, new ByteArrayOutput<byte[], byte[]>(CODEC));
+			return getTypeHint(type, new ByteArrayOutput<>(CODEC));
 		}
 
 		/**
 		 * Returns the {@link CommandOutput} mapped for given {@link CommandType} given {@link CommandOutput} as default.
-		 * 
+		 *
 		 * @param type
 		 * @return
 		 */
@@ -1691,38 +1182,4 @@ public class LettuceConnection extends AbstractRedisConnection {
 			return BeanUtils.instantiateClass(constructor, CODEC);
 		}
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption)
-	 */
-	@Override
-	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option) {
-		migrate(key, target, dbIndex, option, Long.MAX_VALUE);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption, long)
-	 */
-	@Override
-	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout) {
-
-		try {
-			if (isPipelined()) {
-				pipeline(
-						new LettuceResult(getAsyncConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(
-						new LettuceTxResult(getConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout)));
-				return;
-			}
-			getConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
 }

@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +22,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
  * Server-specific commands supported by Redis.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Thomas Darimont
@@ -43,12 +43,14 @@ public interface RedisServerCommands {
 
 	/**
 	 * Start an {@literal Append Only File} rewrite process on server.
-	 * 
+	 *
 	 * @deprecated As of 1.3, use {@link #bgReWriteAof}.
 	 * @see <a href="http://redis.io/commands/bgrewriteaof">Redis Documentation: BGREWRITEAOF</a>
 	 */
 	@Deprecated
-	void bgWriteAof();
+	default void bgWriteAof() {
+		bgReWriteAof();
+	}
 
 	/**
 	 * Start an {@literal Append Only File} rewrite process on server.
@@ -110,7 +112,7 @@ public interface RedisServerCommands {
 	 * <li>replication</li>
 	 * </ul>
 	 * <p>
-	 * 
+	 *
 	 * @return
 	 * @see <a href="http://redis.io/commands/info">Redis Documentation: INFO</a>
 	 */
@@ -167,7 +169,7 @@ public interface RedisServerCommands {
 
 	/**
 	 * Request server timestamp using {@code TIME} command.
-	 * 
+	 *
 	 * @return current server time in milliseconds.
 	 * @since 1.1
 	 * @see <a href="http://redis.io/commands/time">Redis Documentation: TIME</a>
@@ -176,7 +178,7 @@ public interface RedisServerCommands {
 
 	/**
 	 * Closes a given client connection identified by {@literal host:port}.
-	 * 
+	 *
 	 * @param host of connection to close.
 	 * @param port of connection to close
 	 * @since 1.3
@@ -186,7 +188,7 @@ public interface RedisServerCommands {
 
 	/**
 	 * Assign given name to current connection.
-	 * 
+	 *
 	 * @param name
 	 * @since 1.3
 	 * @see <a href="http://redis.io/commands/client-setname">Redis Documentation: CLIENT SETNAME</a>
@@ -232,7 +234,7 @@ public interface RedisServerCommands {
 	/**
 	 * Atomically transfer a key from a source Redis instance to a destination Redis instance. On success the key is
 	 * deleted from the original instance and is guaranteed to exist in the target instance.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param target must not be {@literal null}.
 	 * @param dbIndex

@@ -19,6 +19,9 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,12 +44,10 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.util.ObjectUtils;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 /**
  * Integration tests for {@link RedisKeyValueTemplate}.
@@ -77,6 +78,7 @@ public class RedisKeyValueTemplateTests {
 		jedis.afterPropertiesSet();
 
 		LettuceConnectionFactory lettuce = new LettuceConnectionFactory();
+		lettuce.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		lettuce.afterPropertiesSet();
 
 		return Arrays.<RedisConnectionFactory> asList(jedis, lettuce);

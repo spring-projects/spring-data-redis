@@ -39,7 +39,7 @@ import org.springframework.data.redis.connection.StringRedisConnection;
 
 /**
  * Integration test of {@link LettuceConnectionFactory}
- * 
+ *
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -325,6 +325,7 @@ public class LettuceConnectionFactoryTests {
 	public void factoryShouldReturnReactiveConnectionWhenCorrectly() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();
+		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		factory.afterPropertiesSet();
 
 		ConnectionFactoryTracker.add(factory);

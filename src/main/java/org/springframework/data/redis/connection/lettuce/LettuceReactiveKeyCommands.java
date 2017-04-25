@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-public class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
+class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 	private final LettuceReactiveRedisConnection connection;
 

@@ -36,6 +36,7 @@ import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -72,6 +73,7 @@ abstract public class ReactiveOperationsTestParams {
 		}
 
 		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
+		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		lettuceConnectionFactory.setPort(SettingsUtils.getPort());
 		lettuceConnectionFactory.setHostName(SettingsUtils.getHost());
 		lettuceConnectionFactory.afterPropertiesSet();

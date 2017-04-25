@@ -15,34 +15,13 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import io.lettuce.core.GeoArgs;
-import io.lettuce.core.GeoCoordinates;
-import io.lettuce.core.GeoWithin;
-import io.lettuce.core.KeyValue;
-import io.lettuce.core.Limit;
-import io.lettuce.core.Range;
-import io.lettuce.core.RedisURI;
-import io.lettuce.core.ScoredValue;
-import io.lettuce.core.ScriptOutputType;
-import io.lettuce.core.SetArgs;
-import io.lettuce.core.SortArgs;
-import io.lettuce.core.TransactionResult;
+import io.lettuce.core.*;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 import io.lettuce.core.protocol.LettuceCharsets;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -88,7 +67,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Lettuce type converters
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
@@ -134,7 +113,7 @@ abstract public class LettuceConverters extends Converters {
 		};
 		BYTES_LIST_TO_BYTES_SET = new Converter<List<byte[]>, Set<byte[]>>() {
 			public Set<byte[]> convert(List<byte[]> results) {
-				return results != null ? new LinkedHashSet<byte[]>(results) : null;
+				return results != null ? new LinkedHashSet<>(results) : null;
 			}
 		};
 		BYTES_TO_STRING = new Converter<byte[], String>() {
@@ -159,7 +138,7 @@ abstract public class LettuceConverters extends Converters {
 		};
 		BYTES_SET_TO_BYTES_LIST = new Converter<Set<byte[]>, List<byte[]>>() {
 			public List<byte[]> convert(Set<byte[]> results) {
-				return results != null ? new ArrayList<byte[]>(results) : null;
+				return results != null ? new ArrayList<>(results) : null;
 			}
 		};
 		BYTES_COLLECTION_TO_BYTES_LIST = new Converter<Collection<byte[]>, List<byte[]>>() {
@@ -167,7 +146,7 @@ abstract public class LettuceConverters extends Converters {
 				if (results instanceof List) {
 					return (List<byte[]>) results;
 				}
-				return results != null ? new ArrayList<byte[]>(results) : null;
+				return results != null ? new ArrayList<>(results) : null;
 			}
 		};
 		KEY_VALUE_TO_BYTES_LIST = new Converter<KeyValue<byte[], byte[]>, List<byte[]>>() {
@@ -175,7 +154,7 @@ abstract public class LettuceConverters extends Converters {
 				if (source == null) {
 					return null;
 				}
-				List<byte[]> list = new ArrayList<byte[]>(2);
+				List<byte[]> list = new ArrayList<>(2);
 				list.add(source.getKey());
 				list.add(source.getValue());
 				return list;
@@ -190,7 +169,7 @@ abstract public class LettuceConverters extends Converters {
 					return Collections.emptyMap();
 				}
 
-				Map<byte[], byte[]> target = new LinkedHashMap<byte[], byte[]>();
+				Map<byte[], byte[]> target = new LinkedHashMap<>();
 
 				Iterator<byte[]> kv = source.iterator();
 				while (kv.hasNext()) {
@@ -205,7 +184,7 @@ abstract public class LettuceConverters extends Converters {
 				if (source == null) {
 					return null;
 				}
-				Set<Tuple> tuples = new LinkedHashSet<Tuple>(source.size());
+				Set<Tuple> tuples = new LinkedHashSet<>(source.size());
 				for (ScoredValue<byte[]> value : source) {
 					tuples.add(LettuceConverters.toTuple(value));
 				}
@@ -218,7 +197,7 @@ abstract public class LettuceConverters extends Converters {
 				if (source == null) {
 					return null;
 				}
-				List<Tuple> tuples = new ArrayList<Tuple>(source.size());
+				List<Tuple> tuples = new ArrayList<>(source.size());
 				for (ScoredValue<byte[]> value : source) {
 					tuples.add(LettuceConverters.toTuple(value));
 				}
@@ -239,7 +218,7 @@ abstract public class LettuceConverters extends Converters {
 					return Collections.emptyList();
 				}
 
-				List<Tuple> tuples = new ArrayList<Tuple>();
+				List<Tuple> tuples = new ArrayList<>();
 				Iterator<byte[]> it = source.iterator();
 				while (it.hasNext()) {
 					tuples.add(
@@ -257,7 +236,7 @@ abstract public class LettuceConverters extends Converters {
 				if (source == null) {
 					return Collections.emptyList();
 				}
-				List<RedisClusterNode> nodes = new ArrayList<RedisClusterNode>();
+				List<RedisClusterNode> nodes = new ArrayList<>();
 				for (io.lettuce.core.cluster.models.partitions.RedisClusterNode node : source.getPartitions()) {
 					nodes.add(CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER.convert(node));
 				}
@@ -283,7 +262,7 @@ abstract public class LettuceConverters extends Converters {
 
 			private Set<Flag> parseFlags(Set<NodeFlag> source) {
 
-				Set<Flag> flags = new LinkedHashSet<Flag>(source != null ? source.size() : 8, 1);
+				Set<Flag> flags = new LinkedHashSet<>(source != null ? source.size() : 8, 1);
 				for (NodeFlag flag : source) {
 					switch (flag) {
 						case NOFLAGS:
@@ -342,8 +321,7 @@ abstract public class LettuceConverters extends Converters {
 						: null;
 			}
 		};
-		GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER = new ListConverter<GeoCoordinates, Point>(
-				GEO_COORDINATE_TO_POINT_CONVERTER);
+		GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER = new ListConverter<>(GEO_COORDINATE_TO_POINT_CONVERTER);
 
 		KEY_VALUE_UNWRAPPER = new Converter<KeyValue<Object, Object>, Object>() {
 
@@ -658,7 +636,7 @@ abstract public class LettuceConverters extends Converters {
 			return Collections.emptyList();
 		}
 
-		List<RedisServer> sentinels = new ArrayList<RedisServer>();
+		List<RedisServer> sentinels = new ArrayList<>();
 		for (Map<String, String> info : source) {
 			sentinels.add(RedisServer.newServerFrom(Converters.toProperties(info)));
 		}
@@ -783,7 +761,7 @@ abstract public class LettuceConverters extends Converters {
 
 	/**
 	 * Converts a given {@link Expiration} and {@link SetOption} to the according {@link SetArgs}.<br />
-	 * 
+	 *
 	 * @param expiration can be {@literal null}.
 	 * @param option can be {@literal null}.
 	 * @since 1.7
@@ -825,7 +803,7 @@ abstract public class LettuceConverters extends Converters {
 
 	/**
 	 * Convert {@link Metric} into {@link GeoArgs.Unit}.
-	 * 
+	 *
 	 * @param metric
 	 * @return
 	 * @since 1.8
@@ -839,7 +817,7 @@ abstract public class LettuceConverters extends Converters {
 
 	/**
 	 * Convert {@link GeoRadiusCommandArgs} into {@link GeoArgs}.
-	 * 
+	 *
 	 * @param args
 	 * @return
 	 * @since 1.8
@@ -880,7 +858,7 @@ abstract public class LettuceConverters extends Converters {
 
 	/**
 	 * Get {@link Converter} capable of {@link Set} of {@link Byte} into {@link GeoResults}.
-	 * 
+	 *
 	 * @return
 	 * @since 1.8
 	 */
@@ -891,22 +869,22 @@ abstract public class LettuceConverters extends Converters {
 			public GeoResults<GeoLocation<byte[]>> convert(Set<byte[]> source) {
 
 				if (CollectionUtils.isEmpty(source)) {
-					return new GeoResults<GeoLocation<byte[]>>(Collections.<GeoResult<GeoLocation<byte[]>>> emptyList());
+					return new GeoResults<>(Collections.<GeoResult<GeoLocation<byte[]>>> emptyList());
 				}
 
-				List<GeoResult<GeoLocation<byte[]>>> results = new ArrayList<GeoResult<GeoLocation<byte[]>>>(source.size());
+				List<GeoResult<GeoLocation<byte[]>>> results = new ArrayList<>(source.size());
 				Iterator<byte[]> it = source.iterator();
 				while (it.hasNext()) {
-					results.add(new GeoResult<GeoLocation<byte[]>>(new GeoLocation<byte[]>(it.next(), null), new Distance(0D)));
+					results.add(new GeoResult<>(new GeoLocation<>(it.next(), null), new Distance(0D)));
 				}
-				return new GeoResults<GeoLocation<byte[]>>(results);
+				return new GeoResults<>(results);
 			}
 		};
 	}
 
 	/**
 	 * Get {@link Converter} capable of convering {@link GeoWithin} into {@link GeoResults}.
-	 * 
+	 *
 	 * @param metric
 	 * @return
 	 * @since 1.8
@@ -962,7 +940,7 @@ abstract public class LettuceConverters extends Converters {
 			@Override
 			public GeoResults<GeoLocation<byte[]>> convert(List<GeoWithin<byte[]>> source) {
 
-				List<GeoResult<GeoLocation<byte[]>>> results = new ArrayList<GeoResult<GeoLocation<byte[]>>>(source.size());
+				List<GeoResult<GeoLocation<byte[]>>> results = new ArrayList<>(source.size());
 
 				Converter<GeoWithin<byte[]>, GeoResult<GeoLocation<byte[]>>> converter = GeoResultConverterFactory.INSTANCE
 						.forMetric(metric);
@@ -970,7 +948,7 @@ abstract public class LettuceConverters extends Converters {
 					results.add(converter.convert(result));
 				}
 
-				return new GeoResults<GeoLocation<byte[]>>(results, metric);
+				return new GeoResults<>(results, metric);
 			}
 		}
 	}
@@ -1000,7 +978,7 @@ abstract public class LettuceConverters extends Converters {
 
 				Point point = GEO_COORDINATE_TO_POINT_CONVERTER.convert(source.getCoordinates());
 
-				return new GeoResult<GeoLocation<byte[]>>(new GeoLocation<byte[]>(source.getMember(), point),
+				return new GeoResult<>(new GeoLocation<>(source.getMember(), point),
 						new Distance(source.getDistance() != null ? source.getDistance() : 0D, metric));
 			}
 		}

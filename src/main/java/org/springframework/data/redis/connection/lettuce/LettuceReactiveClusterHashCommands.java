@@ -21,8 +21,7 @@ import org.springframework.data.redis.connection.ReactiveClusterHashCommands;
  * @author Christoph Strobl
  * @since 2.0
  */
-public class LettuceReactiveClusterHashCommands extends LettuceReactiveHashCommands
-		implements ReactiveClusterHashCommands {
+class LettuceReactiveClusterHashCommands extends LettuceReactiveHashCommands implements ReactiveClusterHashCommands {
 
 	/**
 	 * Create new {@link LettuceReactiveHashCommands}.

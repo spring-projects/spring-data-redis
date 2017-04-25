@@ -15,13 +15,13 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.util.SafeEncoder;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.ReturnType;
-
-import redis.clients.util.SafeEncoder;
 
 /**
  * Converts the value returned by Jedis script eval to the expected {@link ReturnType}
@@ -54,7 +54,7 @@ public class JedisScriptReturnConverter implements Converter<Object, Object> {
 		}
 		if (returnType == ReturnType.MULTI) {
 			List<Object> resultList = (List<Object>) result;
-			List<Object> convertedResults = new ArrayList<Object>();
+			List<Object> convertedResults = new ArrayList<>();
 			for (Object res : resultList) {
 				if (res instanceof String) {
 					// evalsha converts byte[] to String. Convert back for

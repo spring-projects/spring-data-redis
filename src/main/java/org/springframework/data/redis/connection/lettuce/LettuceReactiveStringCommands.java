@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-public class LettuceReactiveStringCommands implements ReactiveStringCommands {
+class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 	private final static ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.wrap(new byte[0]);
 	private final LettuceReactiveRedisConnection connection;

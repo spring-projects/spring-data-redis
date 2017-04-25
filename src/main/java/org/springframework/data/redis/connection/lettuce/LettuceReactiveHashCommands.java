@@ -41,7 +41,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @since 2.0
  */
-public class LettuceReactiveHashCommands implements ReactiveHashCommands {
+class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 	private final LettuceReactiveRedisConnection connection;
 

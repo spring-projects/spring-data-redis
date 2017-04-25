@@ -16,6 +16,15 @@
 
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BinaryClient.LIST_POSITION;
+import redis.clients.jedis.BinaryJedisPubSub;
+import redis.clients.jedis.Protocol;
+import redis.clients.jedis.SortingParams;
+import redis.clients.jedis.exceptions.JedisConnectionException;
+import redis.clients.jedis.exceptions.JedisDataException;
+import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.util.SafeEncoder;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.UnknownHostException;
@@ -34,22 +43,13 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
 import org.springframework.util.Assert;
-
-import redis.clients.jedis.BinaryClient.LIST_POSITION;
-import redis.clients.jedis.BinaryJedisPubSub;
-import redis.clients.jedis.Protocol;
-import redis.clients.jedis.SortingParams;
-import redis.clients.jedis.exceptions.JedisConnectionException;
-import redis.clients.jedis.exceptions.JedisDataException;
-import redis.clients.jedis.exceptions.JedisException;
-import redis.clients.util.SafeEncoder;
 
 /**
  * Helper class featuring methods for Jedis connection handling, providing support for exception translation. Deprecated
@@ -126,7 +126,7 @@ public abstract class JedisUtils {
 	 */
 	@Deprecated
 	static Set<Tuple> convertJedisTuple(Set<redis.clients.jedis.Tuple> tuples) {
-		Set<Tuple> value = new LinkedHashSet<Tuple>(tuples.size());
+		Set<Tuple> value = new LinkedHashSet<>(tuples.size());
 		for (redis.clients.jedis.Tuple tuple : tuples) {
 			value.add(new DefaultTuple(tuple.getBinaryElement(), tuple.getScore()));
 		}
@@ -150,7 +150,7 @@ public abstract class JedisUtils {
 	 */
 	@Deprecated
 	static Map<String, String> convert(String[] fields, String[] values) {
-		Map<String, String> result = new LinkedHashMap<String, String>(fields.length);
+		Map<String, String> result = new LinkedHashMap<>(fields.length);
 
 		for (int i = 0; i < values.length; i++) {
 			result.put(fields[i], values[i]);
@@ -256,7 +256,7 @@ public abstract class JedisUtils {
 	}
 
 	static byte[][] bXPopArgs(int timeout, byte[]... keys) {
-		final List<byte[]> args = new ArrayList<byte[]>();
+		final List<byte[]> args = new ArrayList<>();
 		for (final byte[] arg : keys) {
 			args.add(arg);
 		}
@@ -298,7 +298,7 @@ public abstract class JedisUtils {
 		}
 		if (returnType == ReturnType.MULTI) {
 			List<Object> resultList = (List<Object>) result;
-			List<Object> convertedResults = new ArrayList<Object>();
+			List<Object> convertedResults = new ArrayList<>();
 			for (Object res : resultList) {
 				if (res instanceof String) {
 					// evalsha converts byte[] to String. Convert back for consistency

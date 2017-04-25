@@ -21,7 +21,7 @@ import org.springframework.data.redis.connection.ReactiveClusterNumberCommands;
  * @author Christoph Strobl
  * @since 2.0
  */
-public class LettuceReactiveClusterNumberCommands extends LettuceReactiveNumberCommands
+class LettuceReactiveClusterNumberCommands extends LettuceReactiveNumberCommands
 		implements ReactiveClusterNumberCommands {
 
 	/**

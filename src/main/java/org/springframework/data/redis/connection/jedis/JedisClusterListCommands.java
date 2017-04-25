@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.Jedis;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -237,13 +235,10 @@ class JedisClusterListCommands implements RedisListCommands {
 		}
 
 		return connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand(new JedisMultiKeyClusterCommandCallback<List<byte[]>>() {
-
-					@Override
-					public List<byte[]> doInCluster(Jedis client, byte[] key) {
-						return client.blpop(timeout, key);
-					}
-				}, Arrays.asList(keys)).getFirstNonNullNotEmptyOrDefault(Collections.<byte[]> emptyList());
+				.executeMuliKeyCommand(
+						(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.blpop(timeout, key),
+						Arrays.asList(keys))
+				.getFirstNonNullNotEmptyOrDefault(Collections.<byte[]> emptyList());
 	}
 
 	/*
@@ -254,13 +249,10 @@ class JedisClusterListCommands implements RedisListCommands {
 	public List<byte[]> bRPop(final int timeout, byte[]... keys) {
 
 		return connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand(new JedisMultiKeyClusterCommandCallback<List<byte[]>>() {
-
-					@Override
-					public List<byte[]> doInCluster(Jedis client, byte[] key) {
-						return client.brpop(timeout, key);
-					}
-				}, Arrays.asList(keys)).getFirstNonNullNotEmptyOrDefault(Collections.<byte[]> emptyList());
+				.executeMuliKeyCommand(
+						(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.brpop(timeout, key),
+						Arrays.asList(keys))
+				.getFirstNonNullNotEmptyOrDefault(Collections.<byte[]> emptyList());
 	}
 
 	/*

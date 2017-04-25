@@ -21,8 +21,7 @@ import org.springframework.data.redis.connection.ReactiveClusterGeoCommands;
  * @author Christoph Strobl
  * @since 2.0
  */
-public class LettuceReactiveClusterGeoCommands extends LettuceReactiveGeoCommands
-		implements ReactiveClusterGeoCommands {
+class LettuceReactiveClusterGeoCommands extends LettuceReactiveGeoCommands implements ReactiveClusterGeoCommands {
 
 	/**
 	 * Create new {@link LettuceReactiveGeoCommands}.

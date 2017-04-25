@@ -40,7 +40,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @since 2.0
  */
-public class LettuceReactiveListCommands implements ReactiveListCommands {
+class LettuceReactiveListCommands implements ReactiveListCommands {
 
 	private final LettuceReactiveRedisConnection connection;
 

@@ -31,7 +31,16 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.ReactiveGeoCommands;
+import org.springframework.data.redis.connection.ReactiveHashCommands;
+import org.springframework.data.redis.connection.ReactiveHyperLogLogCommands;
+import org.springframework.data.redis.connection.ReactiveKeyCommands;
+import org.springframework.data.redis.connection.ReactiveListCommands;
+import org.springframework.data.redis.connection.ReactiveNumberCommands;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveSetCommands;
+import org.springframework.data.redis.connection.ReactiveStringCommands;
+import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.util.Assert;
 
 /**
@@ -39,7 +48,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-public class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
+class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 	private StatefulConnection<ByteBuffer, ByteBuffer> connection;
 

@@ -33,6 +33,7 @@ import org.springframework.data.redis.Person;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.hash.Jackson2HashMapper;
 
@@ -40,6 +41,7 @@ import org.springframework.data.redis.hash.Jackson2HashMapper;
  * Integration tests for {@link Jackson2HashMapper}.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class Jackson2HashMapperTests {
@@ -60,7 +62,10 @@ public class Jackson2HashMapperTests {
 
 	@Parameters
 	public static Collection<RedisConnectionFactory> params() {
-		return Arrays.<RedisConnectionFactory> asList(new JedisConnectionFactory(), new LettuceConnectionFactory());
+
+		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
+		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		return Arrays.<RedisConnectionFactory> asList(new JedisConnectionFactory(), lettuceConnectionFactory);
 	}
 
 	@AfterClass

@@ -15,15 +15,13 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.Jedis;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
@@ -71,14 +69,10 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 			}
 		}
 
-		return Long.valueOf(
-				connection.getClusterCommandExecutor().executeMuliKeyCommand(new JedisMultiKeyClusterCommandCallback<Long>() {
-
-					@Override
-					public Long doInCluster(Jedis client, byte[] key) {
-						return client.del(key);
-					}
-				}, Arrays.asList(keys)).resultsAsList().size());
+		return (long) connection.getClusterCommandExecutor()
+				.executeMuliKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) (client, key) -> client.del(key),
+						Arrays.asList(keys))
+				.resultsAsList().size();
 	}
 
 	/*
@@ -105,15 +99,10 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		Assert.notNull(pattern, "Pattern must not be null!");
 
 		Collection<Set<byte[]>> keysPerNode = connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes(new JedisClusterCommandCallback<Set<byte[]>>() {
+				.executeCommandOnAllNodes((JedisClusterCommandCallback<Set<byte[]>>) client -> client.keys(pattern))
+				.resultsAsList();
 
-					@Override
-					public Set<byte[]> doInCluster(Jedis client) {
-						return client.keys(pattern);
-					}
-				}).resultsAsList();
-
-		Set<byte[]> keys = new HashSet<byte[]>();
+		Set<byte[]> keys = new HashSet<>();
 		for (Set<byte[]> keySet : keysPerNode) {
 			keys.addAll(keySet);
 		}
@@ -129,13 +118,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		Assert.notNull(pattern, "Pattern must not be null!");
 
 		return connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode(new JedisClusterCommandCallback<Set<byte[]>>() {
-
-					@Override
-					public Set<byte[]> doInCluster(Jedis client) {
-						return client.keys(pattern);
-					}
-				}, node).getValue();
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<Set<byte[]>>) client -> client.keys(pattern), node)
+				.getValue();
 	}
 
 	/*
@@ -144,7 +128,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	 */
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
-		throw new InvalidDataAccessApiUsageException("Scan is not supported accros multiple nodes within a cluster");
+		throw new InvalidDataAccessApiUsageException("Scan is not supported across multiple nodes within a cluster");
 	}
 
 	/*
@@ -154,16 +138,16 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public byte[] randomKey() {
 
-		List<RedisClusterNode> nodes = new ArrayList<RedisClusterNode>(
+		List<RedisClusterNode> nodes = new ArrayList<>(
 				connection.getTopologyProvider().getTopology().getActiveMasterNodes());
-		Set<RedisNode> inspectedNodes = new HashSet<RedisNode>(nodes.size());
+		Set<RedisNode> inspectedNodes = new HashSet<>(nodes.size());
 
 		do {
 
-			RedisClusterNode node = nodes.get(new Random().nextInt(nodes.size()));
+			RedisClusterNode node = nodes.get(ThreadLocalRandom.current().nextInt(nodes.size()));
 
 			while (inspectedNodes.contains(node)) {
-				node = nodes.get(new Random().nextInt(nodes.size()));
+				node = nodes.get(ThreadLocalRandom.current().nextInt(nodes.size()));
 			}
 			inspectedNodes.add(node);
 			byte[] key = randomKey(node);
@@ -182,13 +166,9 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	 */
 	public byte[] randomKey(RedisClusterNode node) {
 
-		return connection.getClusterCommandExecutor().executeCommandOnSingleNode(new JedisClusterCommandCallback<byte[]>() {
-
-			@Override
-			public byte[] doInCluster(Jedis client) {
-				return client.randomBinaryKey();
-			}
-		}, node).getValue();
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.randomBinaryKey(), node)
+				.getValue();
 	}
 
 	/*
@@ -361,13 +341,10 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long pTtl(final byte[] key) {
 
-		return connection.getClusterCommandExecutor().executeCommandOnSingleNode(new JedisClusterCommandCallback<Long>() {
-
-			@Override
-			public Long doInCluster(Jedis client) {
-				return client.pttl(key);
-			}
-		}, connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key)).getValue();
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.pttl(key),
+						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
+				.getValue();
 	}
 
 	/*
@@ -377,13 +354,11 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long pTtl(final byte[] key, final TimeUnit timeUnit) {
 
-		return connection.getClusterCommandExecutor().executeCommandOnSingleNode(new JedisClusterCommandCallback<Long>() {
-
-			@Override
-			public Long doInCluster(Jedis client) {
-				return Converters.millisecondsToTimeUnit(client.pttl(key), timeUnit);
-			}
-		}, connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key)).getValue();
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode(
+						(JedisClusterCommandCallback<Long>) client -> Converters.millisecondsToTimeUnit(client.pttl(key), timeUnit),
+						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
+				.getValue();
 	}
 
 	/*
@@ -393,13 +368,10 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public byte[] dump(final byte[] key) {
 
-		return connection.getClusterCommandExecutor().executeCommandOnSingleNode(new JedisClusterCommandCallback<byte[]>() {
-
-			@Override
-			public byte[] doInCluster(Jedis client) {
-				return client.dump(key);
-			}
-		}, connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key)).getValue();
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.dump(key),
+						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
+				.getValue();
 	}
 
 	/*
@@ -413,13 +385,9 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 			throw new UnsupportedOperationException("Jedis does not support ttlInMillis exceeding Integer.MAX_VALUE.");
 		}
 
-		connection.getClusterCommandExecutor().executeCommandOnSingleNode(new JedisClusterCommandCallback<String>() {
-
-			@Override
-			public String doInCluster(Jedis client) {
-				return client.restore(key, Long.valueOf(ttlInMillis).intValue(), serializedValue);
-			}
-		}, connection.clusterGetNodeForKey(key));
+		connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<String>) client -> client.restore(key,
+						Long.valueOf(ttlInMillis).intValue(), serializedValue), connection.clusterGetNodeForKey(key));
 	}
 
 	/*

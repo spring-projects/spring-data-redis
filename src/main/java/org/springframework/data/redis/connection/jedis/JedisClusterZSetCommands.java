@@ -635,7 +635,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 				redis.clients.jedis.ScanResult<redis.clients.jedis.Tuple> result = connection.getCluster().zscan(key,
 						JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<Tuple>(Long.valueOf(result.getStringCursor()),
+				return new ScanIteration<>(Long.valueOf(result.getStringCursor()),
 						JedisConverters.tuplesToTuples().convert(result.getResult()));
 			}
 		}.open();

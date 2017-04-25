@@ -15,13 +15,11 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
@@ -53,13 +51,13 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	 */
 	@Override
 	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
-		throw new InvalidDataAccessApiUsageException("Scan is not supported accros multiple nodes within a cluster.");
+		throw new InvalidDataAccessApiUsageException("Scan is not supported across multiple nodes within a cluster.");
 	}
 
 	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.redis.connection.lettuce.LettuceConnection#randomKey()
-	*/
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#randomKey()
+	 */
 	@Override
 	public byte[] randomKey() {
 
@@ -68,10 +66,10 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 
 		do {
 
-			RedisClusterNode node = nodes.get(new Random().nextInt(nodes.size()));
+			RedisClusterNode node = nodes.get(ThreadLocalRandom.current().nextInt(nodes.size()));
 
 			while (inspectedNodes.contains(node)) {
-				node = nodes.get(new Random().nextInt(nodes.size()));
+				node = nodes.get(ThreadLocalRandom.current().nextInt(nodes.size()));
 			}
 			inspectedNodes.add(node);
 			byte[] key = randomKey(node);
@@ -177,13 +175,8 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	public byte[] randomKey(RedisClusterNode node) {
 
 		return connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode(new LettuceClusterCommandCallback<byte[]>() {
-
-					@Override
-					public byte[] doInCluster(RedisClusterCommands<byte[], byte[]> client) {
-						return client.randomkey();
-					}
-				}, node).getValue();
+				.executeCommandOnSingleNode((LettuceClusterCommandCallback<byte[]>) client -> client.randomkey(), node)
+				.getValue();
 	}
 
 	/*
@@ -193,13 +186,8 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	public Set<byte[]> keys(RedisClusterNode node, final byte[] pattern) {
 
 		return LettuceConverters.toBytesSet(connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode(new LettuceClusterCommandCallback<List<byte[]>>() {
-
-					@Override
-					public List<byte[]> doInCluster(RedisClusterCommands<byte[], byte[]> client) {
-						return client.keys(pattern);
-					}
-				}, node).getValue());
+				.executeCommandOnSingleNode((LettuceClusterCommandCallback<List<byte[]>>) client -> client.keys(pattern), node)
+				.getValue());
 	}
 
 	/*

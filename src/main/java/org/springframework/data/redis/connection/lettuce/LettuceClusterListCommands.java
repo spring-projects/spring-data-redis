@@ -40,9 +40,9 @@ class LettuceClusterListCommands extends LettuceListCommands {
 	}
 
 	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.redis.connection.lettuce.LettuceConnection#bLPop(int, byte[][])
-	*/
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#bLPop(int, byte[][])
+	 */
 	@Override
 	public List<byte[]> bLPop(final int timeout, byte[]... keys) {
 

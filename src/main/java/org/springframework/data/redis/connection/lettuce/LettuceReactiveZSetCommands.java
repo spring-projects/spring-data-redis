@@ -48,7 +48,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @since 2.0
  */
-public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
+class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 	private final LettuceReactiveRedisConnection connection;
 

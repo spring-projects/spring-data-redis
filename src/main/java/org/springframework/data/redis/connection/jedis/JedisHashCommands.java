@@ -90,7 +90,6 @@ class JedisHashCommands implements RedisHashCommands {
 		}
 	}
 
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisHashCommands#hDel(byte[], byte[][])

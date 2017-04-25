@@ -117,7 +117,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null!");
 
-		List<Object> values = new ArrayList<Object>();
+		List<Object> values = new ArrayList<>();
 		for (Entry<byte[], Point> entry : memberCoordinateMap.entrySet()) {
 
 			values.add(entry.getValue().getX());
@@ -138,7 +138,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(locations, "Locations must not be null!");
 
-		List<Object> values = new ArrayList<Object>();
+		List<Object> values = new ArrayList<>();
 		for (GeoLocation<byte[]> location : locations) {
 
 			values.add(location.getPoint().getX());
@@ -438,7 +438,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 		connection.transaction(result);
 	}
 
-	RedisClusterAsyncCommands<byte[], byte[]> getAsyncConnection() {
+	private RedisClusterAsyncCommands<byte[], byte[]> getAsyncConnection() {
 		return connection.getAsyncConnection();
 	}
 
