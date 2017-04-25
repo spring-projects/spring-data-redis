@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.ScanParams;
+
 import java.util.List;
 import java.util.Set;
 
@@ -24,7 +26,6 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
-import redis.clients.jedis.ScanParams;
 
 /**
  * @author Christoph Strobl
@@ -214,11 +215,13 @@ class JedisSetCommands implements RedisSetCommands {
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().smove(srcKey, destKey, value), JedisConverters.longToBoolean()));
+				pipeline(connection.newJedisResult(connection.getPipeline().smove(srcKey, destKey, value),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().smove(srcKey, destKey, value), JedisConverters.longToBoolean()));
+				transaction(connection.newJedisResult(connection.getTransaction().smove(srcKey, destKey, value),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(connection.getJedis().smove(srcKey, destKey, value));
@@ -387,7 +390,8 @@ class JedisSetCommands implements RedisSetCommands {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 
-				redis.clients.jedis.ScanResult<byte[]> result = connection.getJedis().sscan(key, JedisConverters.toBytes(cursorId), params);
+				redis.clients.jedis.ScanResult<byte[]> result = connection.getJedis().sscan(key,
+						JedisConverters.toBytes(cursorId), params);
 				return new ScanIteration<>(Long.valueOf(result.getStringCursor()), result.getResult());
 			}
 

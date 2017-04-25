@@ -77,7 +77,6 @@ class JedisStringCommands implements RedisStringCommands {
 	@Override
 	public List<byte[]> mGet(byte[]... keys) {
 
-
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newJedisResult(connection.getPipeline().mget(keys)));
@@ -164,7 +163,8 @@ class JedisStringCommands implements RedisStringCommands {
 									"Expiration.expirationTime must be less than Integer.MAX_VALUE for pipeline in Jedis.");
 						}
 
-						pipeline(connection.newStatusResult(connection.getPipeline().set(key, value, nxxx, expx, (int) expiration.getExpirationTime())));
+						pipeline(connection.newStatusResult(
+								connection.getPipeline().set(key, value, nxxx, expx, (int) expiration.getExpirationTime())));
 						return;
 					}
 					if (isQueueing()) {
@@ -174,8 +174,8 @@ class JedisStringCommands implements RedisStringCommands {
 									"Expiration.expirationTime must be less than Integer.MAX_VALUE for transactions in Jedis.");
 						}
 
-						transaction(
-								connection.newStatusResult(connection.getTransaction().set(key, value, nxxx, expx, (int) expiration.getExpirationTime())));
+						transaction(connection.newStatusResult(
+								connection.getTransaction().set(key, value, nxxx, expx, (int) expiration.getExpirationTime())));
 						return;
 					}
 
@@ -188,18 +188,18 @@ class JedisStringCommands implements RedisStringCommands {
 		}
 	}
 
-
-
 	@Override
 	public Boolean setNX(byte[] key, byte[] value) {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().setnx(key, value), JedisConverters.longToBoolean()));
+				pipeline(
+						connection.newJedisResult(connection.getPipeline().setnx(key, value), JedisConverters.longToBoolean()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().setnx(key, value), JedisConverters.longToBoolean()));
+				transaction(
+						connection.newJedisResult(connection.getTransaction().setnx(key, value), JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(connection.getJedis().setnx(key, value));
@@ -271,13 +271,13 @@ class JedisStringCommands implements RedisStringCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(
-						connection.newJedisResult(connection.getPipeline().msetnx(JedisConverters.toByteArrays(tuples)), JedisConverters.longToBoolean()));
+				pipeline(connection.newJedisResult(connection.getPipeline().msetnx(JedisConverters.toByteArrays(tuples)),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(
-						connection.newJedisResult(connection.getTransaction().msetnx(JedisConverters.toByteArrays(tuples)), JedisConverters.longToBoolean()));
+				transaction(connection.newJedisResult(connection.getTransaction().msetnx(JedisConverters.toByteArrays(tuples)),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(connection.getJedis().msetnx(JedisConverters.toByteArrays(tuples)));
@@ -406,11 +406,13 @@ class JedisStringCommands implements RedisStringCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().substr(key, (int) start, (int) end), JedisConverters.stringToBytes()));
+				pipeline(connection.newJedisResult(connection.getPipeline().substr(key, (int) start, (int) end),
+						JedisConverters.stringToBytes()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().substr(key, (int) start, (int) end), JedisConverters.stringToBytes()));
+				transaction(connection.newJedisResult(connection.getTransaction().substr(key, (int) start, (int) end),
+						JedisConverters.stringToBytes()));
 				return null;
 			}
 			return connection.getJedis().substr(key, (int) start, (int) end);
@@ -472,7 +474,8 @@ class JedisStringCommands implements RedisStringCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().setbit(key, offset, JedisConverters.toBit(value))));
+				transaction(
+						connection.newJedisResult(connection.getTransaction().setbit(key, offset, JedisConverters.toBit(value))));
 				return null;
 			}
 			return connection.getJedis().setbit(key, offset, JedisConverters.toBit(value));
@@ -521,17 +524,18 @@ class JedisStringCommands implements RedisStringCommands {
 	@Override
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
 
-
 		if (op == BitOperation.NOT && keys.length > 1) {
 			throw new UnsupportedOperationException("Bitop NOT should only be performed against one key");
 		}
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().bitop(JedisConverters.toBitOp(op), destination, keys)));
+				pipeline(
+						connection.newJedisResult(connection.getPipeline().bitop(JedisConverters.toBitOp(op), destination, keys)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().bitop(JedisConverters.toBitOp(op), destination, keys)));
+				transaction(connection
+						.newJedisResult(connection.getTransaction().bitop(JedisConverters.toBitOp(op), destination, keys)));
 				return null;
 			}
 			return connection.getJedis().bitop(JedisConverters.toBitOp(op), destination, keys);

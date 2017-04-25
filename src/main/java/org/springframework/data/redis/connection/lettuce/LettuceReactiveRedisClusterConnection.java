@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @since 2.0
  */
-public class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnection
+class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnection
 		implements ReactiveRedisClusterConnection {
 
 	public LettuceReactiveRedisClusterConnection(RedisClusterClient client) {

@@ -72,7 +72,7 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null!");
 
-		Map<byte[], GeoCoordinate> redisGeoCoordinateMap = new HashMap<byte[], GeoCoordinate>();
+		Map<byte[], GeoCoordinate> redisGeoCoordinateMap = new HashMap<>();
 		for (byte[] mapKey : memberCoordinateMap.keySet()) {
 			redisGeoCoordinateMap.put(mapKey, JedisConverters.toGeoCoordinate(memberCoordinateMap.get(mapKey)));
 		}
@@ -94,7 +94,7 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(locations, "Locations must not be null!");
 
-		Map<byte[], redis.clients.jedis.GeoCoordinate> redisGeoCoordinateMap = new HashMap<byte[], GeoCoordinate>();
+		Map<byte[], redis.clients.jedis.GeoCoordinate> redisGeoCoordinateMap = new HashMap<>();
 		for (GeoLocation<byte[]> location : locations) {
 			redisGeoCoordinateMap.put(location.getName(), JedisConverters.toGeoCoordinate(location.getPoint()));
 		}

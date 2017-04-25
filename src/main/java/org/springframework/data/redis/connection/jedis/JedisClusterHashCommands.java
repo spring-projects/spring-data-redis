@@ -203,7 +203,7 @@ class JedisClusterHashCommands implements RedisHashCommands {
 	public List<byte[]> hVals(byte[] key) {
 
 		try {
-			return new ArrayList<byte[]>(connection.getCluster().hvals(key));
+			return new ArrayList<>(connection.getCluster().hvals(key));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

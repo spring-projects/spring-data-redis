@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.Jedis;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -87,13 +85,9 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		}
 
 		return connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand(new JedisMultiKeyClusterCommandCallback<byte[]>() {
-
-					@Override
-					public byte[] doInCluster(Jedis client, byte[] key) {
-						return client.get(key);
-					}
-				}, Arrays.asList(keys)).resultsAsListSortBy(keys);
+				.executeMuliKeyCommand((JedisMultiKeyClusterCommandCallback<byte[]>) (client, key) -> client.get(key),
+						Arrays.asList(keys))
+				.resultsAsListSortBy(keys);
 	}
 
 	/*
@@ -196,13 +190,9 @@ class JedisClusterStringCommands implements RedisStringCommands {
 			throw new IllegalArgumentException("Milliseconds have cannot exceed Integer.MAX_VALUE!");
 		}
 
-		connection.getClusterCommandExecutor().executeCommandOnSingleNode(new JedisClusterCommandCallback<String>() {
-
-			@Override
-			public String doInCluster(Jedis client) {
-				return client.psetex(key, milliseconds, value);
-			}
-		}, connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key));
+		connection.getClusterCommandExecutor().executeCommandOnSingleNode(
+				(JedisClusterCommandCallback<String>) client -> client.psetex(key, milliseconds, value),
+				connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key));
 	}
 
 	/*

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection;
 
 import java.util.List;
@@ -24,9 +23,10 @@ import org.springframework.dao.DataAccessException;
  * A connection to a Redis server. Acts as an common abstraction across various Redis client libraries (or drivers).
  * Additionally performs exception translation between the underlying Redis client library and Spring DAO exceptions.
  * The methods follow as much as possible the Redis names and conventions.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface RedisConnection extends RedisCommands {
 
@@ -34,6 +34,7 @@ public interface RedisConnection extends RedisCommands {
 	 * Get {@link RedisGeoCommands}.
 	 *
 	 * @return never {@literal null}.
+	 * @since 2.0
 	 */
 	default RedisGeoCommands geoCommands() {
 		return this;
@@ -53,6 +54,7 @@ public interface RedisConnection extends RedisCommands {
 	 * Get {@link RedisHyperLogLogCommands}.
 	 *
 	 * @return never {@literal null}.
+	 * @since 2.0
 	 */
 	default RedisHyperLogLogCommands hyperLogLogCommands() {
 		return this;
@@ -89,6 +91,26 @@ public interface RedisConnection extends RedisCommands {
 	}
 
 	/**
+	 * Get {@link RedisScriptingCommands}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 */
+	default RedisScriptingCommands scriptingCommands() {
+		return this;
+	}
+
+	/**
+	 * Get {@link RedisServerCommands}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 */
+	default RedisServerCommands serverCommands() {
+		return this;
+	}
+
+	/**
 	 * Get {@link RedisStringCommands}.
 	 *
 	 * @return never {@literal null}.
@@ -110,21 +132,21 @@ public interface RedisConnection extends RedisCommands {
 
 	/**
 	 * Closes (or quits) the connection.
-	 * 
+	 *
 	 * @throws DataAccessException
 	 */
 	void close() throws DataAccessException;
 
 	/**
 	 * Indicates whether the underlying connection is closed or not.
-	 * 
+	 *
 	 * @return true if the connection is closed, false otherwise.
 	 */
 	boolean isClosed();
 
 	/**
 	 * Returns the native connection (the underlying library/driver object).
-	 * 
+	 *
 	 * @return underlying, native object
 	 */
 	Object getNativeConnection();
@@ -133,14 +155,14 @@ public interface RedisConnection extends RedisCommands {
 	 * Indicates whether the connection is in "queue"(or "MULTI") mode or not. When queueing, all commands are postponed
 	 * until EXEC or DISCARD commands are issued. Since in queueing no results are returned, the connection will return
 	 * NULL on all operations that interact with the data.
-	 * 
+	 *
 	 * @return true if the connection is in queue/MULTI mode, false otherwise
 	 */
 	boolean isQueueing();
 
 	/**
 	 * Indicates whether the connection is currently pipelined or not.
-	 * 
+	 *
 	 * @return true if the connection is pipelined, false otherwise
 	 * @see #openPipeline()
 	 * @see #isQueueing()
@@ -158,7 +180,7 @@ public interface RedisConnection extends RedisCommands {
 	 * </p>
 	 * Consider doing some performance testing before using this feature since in many cases the performance benefits are
 	 * minimal yet the impact on usage are not.
-	 * 
+	 *
 	 * @see #multi()
 	 */
 	void openPipeline();
@@ -166,7 +188,7 @@ public interface RedisConnection extends RedisCommands {
 	/**
 	 * Executes the commands in the pipeline and returns their result. If the connection is not pipelined, an empty
 	 * collection is returned.
-	 * 
+	 *
 	 * @throws RedisPipelineException if the pipeline contains any incorrect/invalid statements
 	 * @return the result of the executed commands.
 	 */

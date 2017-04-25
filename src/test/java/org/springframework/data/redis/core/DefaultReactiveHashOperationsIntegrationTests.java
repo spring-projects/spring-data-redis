@@ -41,6 +41,7 @@ import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -68,6 +69,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
 		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
+		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		lettuceConnectionFactory.setPort(SettingsUtils.getPort());
 		lettuceConnectionFactory.setHostName(SettingsUtils.getHost());
 		lettuceConnectionFactory.afterPropertiesSet();

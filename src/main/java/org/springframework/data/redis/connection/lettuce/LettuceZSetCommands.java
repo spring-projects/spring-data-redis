@@ -684,7 +684,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				List<ScoredValue<byte[]>> result = scoredValueScanCursor.getValues();
 
 				List<Tuple> values = connection.failsafeReadScanValues(result, LettuceConverters.scoredValuesToTupleList());
-				return new ScanIteration<Tuple>(Long.valueOf(nextCursorId), values);
+				return new ScanIteration<>(Long.valueOf(nextCursorId), values);
 			}
 
 			protected void doClose() {

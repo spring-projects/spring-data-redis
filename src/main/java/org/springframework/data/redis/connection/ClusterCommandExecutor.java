@@ -15,21 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -215,13 +202,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		Map<NodeExecution, Future<NodeResult<T>>> futures = new LinkedHashMap<NodeExecution, Future<NodeResult<T>>>();
 		for (final RedisClusterNode node : resolvedRedisClusterNodes) {
 
-			futures.put(new NodeExecution(node), executor.submit(new Callable<NodeResult<T>>() {
-
-				@Override
-				public NodeResult<T> call() throws Exception {
-					return executeCommandOnSingleNode(callback, node);
-				}
-			}));
+			futures.put(new NodeExecution(node), executor.submit(() -> executeCommandOnSingleNode(callback, node)));
 		}
 
 		return collectResults(futures);
@@ -310,13 +291,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 			if (entry.getKey().isMaster()) {
 				for (final byte[] key : entry.getValue()) {
-					futures.put(new NodeExecution(entry.getKey(), key), executor.submit(new Callable<NodeResult<T>>() {
-
-						@Override
-						public NodeResult<T> call() throws Exception {
-							return executeMultiKeyCommandOnSingleNode(cmd, entry.getKey(), key);
-						}
-					}));
+					futures.put(new NodeExecution(entry.getKey(), key),
+							executor.submit(() -> executeMultiKeyCommandOnSingleNode(cmd, entry.getKey(), key)));
 				}
 			}
 		}

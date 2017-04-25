@@ -811,7 +811,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	private Map<byte[], Double> zAddArgs(Set<Tuple> tuples) {
 
 		Map<byte[], Double> args = new LinkedHashMap<>(tuples.size(), 1);
-		Set<Double> scores = new HashSet<Double>(tuples.size(), 1);
+		Set<Double> scores = new HashSet<>(tuples.size(), 1);
 
 		boolean isAtLeastJedis24 = JedisVersionUtil.atLeastJedis24();
 

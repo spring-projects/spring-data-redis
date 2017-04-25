@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,14 +30,11 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Boolean
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 /**
  * @author Christoph Strobl
  * @since @since 2.0
  */
-public class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHyperLogLogCommands
+class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHyperLogLogCommands
 		implements ReactiveClusterHyperLogLogCommands {
 
 	/**

@@ -418,7 +418,7 @@ class LettuceListCommands implements RedisListCommands {
 		connection.transaction(result);
 	}
 
-	RedisClusterAsyncCommands<byte[], byte[]> getAsyncConnection() {
+	private RedisClusterAsyncCommands<byte[], byte[]> getAsyncConnection() {
 		return connection.getAsyncConnection();
 	}
 

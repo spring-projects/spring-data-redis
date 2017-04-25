@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import java.nio.ByteBuffer;
 
 import org.reactivestreams.Publisher;
@@ -24,16 +27,12 @@ import org.springframework.data.redis.connection.ReactiveClusterListCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
 import org.springframework.util.Assert;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 2.0
  */
-public class LettuceReactiveClusterListCommands extends LettuceReactiveListCommands
-		implements ReactiveClusterListCommands {
+class LettuceReactiveClusterListCommands extends LettuceReactiveListCommands implements ReactiveClusterListCommands {
 
 	/**
 	 * Create new {@link LettuceReactiveListCommands}.

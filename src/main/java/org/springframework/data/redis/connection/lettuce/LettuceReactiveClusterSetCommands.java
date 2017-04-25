@@ -36,8 +36,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands
-		implements ReactiveClusterSetCommands {
+class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands implements ReactiveClusterSetCommands {
 
 	/**
 	 * Create new {@link LettuceReactiveSetCommands}.

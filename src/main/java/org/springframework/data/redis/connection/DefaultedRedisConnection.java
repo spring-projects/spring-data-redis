@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -29,12 +30,16 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
- * {@link DefaultedRedisConnection} provides method delegates to {@code Redis*Command} interfaces accessible via {@link RedisConnection}.
- * This allows us to maintain backwards compatibility while moving the actual implementation and stay in sync with {@link ReactiveRedisConnection}.
- * Going forward the {@link RedisCommands} extension is likely to be removed from {@link RedisConnection}.
+ * {@link DefaultedRedisConnection} provides method delegates to {@code Redis*Command} interfaces accessible via
+ * {@link RedisConnection}. This allows us to maintain backwards compatibility while moving the actual implementation
+ * and stay in sync with {@link ReactiveRedisConnection}. Going forward the {@link RedisCommands} extension is likely to
+ * be removed from {@link RedisConnection}.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public interface DefaultedRedisConnection extends RedisConnection {
@@ -1011,5 +1016,226 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Deprecated
 	default void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
 		hyperLogLogCommands().pfMerge(destinationKey, sourceKeys);
+	}
+
+	// SERVER COMMANDS
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void bgWriteAof() {
+		serverCommands().bgWriteAof();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void bgReWriteAof() {
+		serverCommands().bgReWriteAof();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void bgSave() {
+		serverCommands().bgSave();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default Long lastSave() {
+		return serverCommands().lastSave();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void save() {
+		serverCommands().save();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default Long dbSize() {
+		return serverCommands().dbSize();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void flushDb() {
+		serverCommands().flushDb();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void flushAll() {
+		serverCommands().flushAll();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default Properties info() {
+		return serverCommands().info();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default Properties info(String section) {
+		return serverCommands().info(section);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void shutdown() {
+		serverCommands().shutdown();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void shutdown(ShutdownOption option) {
+		serverCommands().shutdown(option);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default List<String> getConfig(String pattern) {
+		return serverCommands().getConfig(pattern);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void setConfig(String param, String value) {
+		serverCommands().setConfig(param, value);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void resetConfigStats() {
+		serverCommands().resetConfigStats();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default Long time() {
+		return serverCommands().time();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void killClient(String host, int port) {
+		serverCommands().killClient(host, port);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void setClientName(byte[] name) {
+		serverCommands().setClientName(name);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default String getClientName() {
+		return serverCommands().getClientName();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default List<RedisClientInfo> getClientList() {
+		return serverCommands().getClientList();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void slaveOf(String host, int port) {
+		serverCommands().slaveOf(host, port);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void slaveOfNoOne() {
+		serverCommands().slaveOfNoOne();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option) {
+		serverCommands().migrate(key, target, dbIndex, option);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout) {
+		serverCommands().migrate(key, target, dbIndex, option, timeout);
+	}
+
+	// SCRIPTING COMMANDS
+
+	/** @deprecated in favor of {@link RedisConnection#scriptingCommands()}. */
+	@Override
+	@Deprecated
+	default void scriptFlush() {
+		scriptingCommands().scriptFlush();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#scriptingCommands()}. */
+	@Override
+	@Deprecated
+	default void scriptKill() {
+		scriptingCommands().scriptKill();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#scriptingCommands()}. */
+	@Override
+	@Deprecated
+	default String scriptLoad(byte[] script) {
+		return scriptingCommands().scriptLoad(script);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#scriptingCommands()}. */
+	@Override
+	@Deprecated
+	default List<Boolean> scriptExists(String... scriptShas) {
+		return scriptingCommands().scriptExists(scriptShas);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#scriptingCommands()}. */
+	@Override
+	@Deprecated
+	default <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return scriptingCommands().eval(script, returnType, numKeys, keysAndArgs);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#scriptingCommands()}. */
+	@Override
+	@Deprecated
+	default <T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return scriptingCommands().evalSha(scriptSha, returnType, numKeys, keysAndArgs);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#scriptingCommands()}. */
+	@Override
+	@Deprecated
+	default <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return scriptingCommands().evalSha(scriptSha, returnType, numKeys, keysAndArgs);
 	}
 }

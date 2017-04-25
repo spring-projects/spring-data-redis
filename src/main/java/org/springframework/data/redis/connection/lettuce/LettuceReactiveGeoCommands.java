@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.0
  */
-public class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
+class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 
 	private final LettuceReactiveRedisConnection connection;
 

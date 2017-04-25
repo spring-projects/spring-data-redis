@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
@@ -22,15 +25,11 @@ import org.springframework.data.redis.connection.ReactiveClusterZSetCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 /**
  * @author Christoph Strobl
  * @since @since 2.0
  */
-public class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetCommands
-		implements ReactiveClusterZSetCommands {
+class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetCommands implements ReactiveClusterZSetCommands {
 
 	/**
 	 * Create new {@link LettuceReactiveSetCommands}.

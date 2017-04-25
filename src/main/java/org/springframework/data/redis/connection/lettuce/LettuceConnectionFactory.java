@@ -594,7 +594,7 @@ public class LettuceConnectionFactory
 
 		if (isClusterAware()) {
 
-			List<RedisURI> initialUris = new ArrayList<RedisURI>();
+			List<RedisURI> initialUris = new ArrayList<>();
 			for (RedisNode node : this.clusterConfiguration.getClusterNodes()) {
 				initialUris.add(createRedisURIAndApplySettings(node.getHost(), node.getPort()));
 			}

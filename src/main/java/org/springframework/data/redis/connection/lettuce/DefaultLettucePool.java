@@ -36,7 +36,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Default implementation of {@link LettucePool}.
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -62,7 +62,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Uses the {@link Config} and {@link RedisClient} defaults for configuring the connection pool
-	 * 
+	 *
 	 * @param hostName The Redis host
 	 * @param port The Redis port
 	 */
@@ -84,7 +84,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Uses the {@link RedisClient} defaults for configuring the connection pool
-	 * 
+	 *
 	 * @param hostName The Redis host
 	 * @param port The Redis port
 	 * @param poolConfig The pool {@link GenericObjectPoolConfig}
@@ -117,8 +117,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 		}
 
 		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
-		this.internalPool = new GenericObjectPool<StatefulConnection<byte[], byte[]>>(new LettuceFactory(client, dbIndex),
-				poolConfig);
+		this.internalPool = new GenericObjectPool<>(new LettuceFactory(client, dbIndex), poolConfig);
 	}
 
 	/**
@@ -220,7 +219,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Returns the index of the database.
-	 * 
+	 *
 	 * @return Returns the database index
 	 */
 	public int getDatabase() {
@@ -229,7 +228,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Sets the index of the database used by this connection pool. Default is 0.
-	 * 
+	 *
 	 * @param index database index
 	 */
 	public void setDatabase(int index) {
@@ -239,7 +238,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Returns the password used for authenticating with the Redis server.
-	 * 
+	 *
 	 * @return password for authentication
 	 */
 	public String getPassword() {
@@ -248,7 +247,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Sets the password used for authenticating with the Redis server.
-	 * 
+	 *
 	 * @param password the password to set
 	 */
 	public void setPassword(String password) {
@@ -257,7 +256,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Returns the current host.
-	 * 
+	 *
 	 * @return the host
 	 */
 	public String getHostName() {
@@ -266,7 +265,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Sets the host.
-	 * 
+	 *
 	 * @param host the host to set
 	 */
 	public void setHostName(String host) {
@@ -275,7 +274,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Returns the current port.
-	 * 
+	 *
 	 * @return the port
 	 */
 	public int getPort() {
@@ -284,7 +283,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Sets the port.
-	 * 
+	 *
 	 * @param port the port to set
 	 */
 	public void setPort(int port) {
@@ -293,7 +292,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Returns the connection timeout (in milliseconds).
-	 * 
+	 *
 	 * @return connection timeout
 	 */
 	public long getTimeout() {
@@ -302,7 +301,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Sets the connection timeout (in milliseconds).
-	 * 
+	 *
 	 * @param timeout connection timeout
 	 */
 	public void setTimeout(long timeout) {
@@ -311,7 +310,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Get the {@link ClientResources} to reuse infrastructure.
-	 * 
+	 *
 	 * @return {@literal null} if not set.
 	 * @since 1.7
 	 */
@@ -322,7 +321,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	/**
 	 * Sets the {@link ClientResources} to reuse the client infrastructure. <br />
 	 * Set to {@literal null} to not share resources.
-	 * 
+	 *
 	 * @param clientResources can be {@literal null}.
 	 * @since 1.7
 	 */
@@ -399,7 +398,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 		 */
 		@Override
 		public PooledObject<StatefulConnection<byte[], byte[]>> wrap(StatefulConnection<byte[], byte[]> obj) {
-			return new DefaultPooledObject<StatefulConnection<byte[], byte[]>>(obj);
+			return new DefaultPooledObject<>(obj);
 		}
 	}
 }
