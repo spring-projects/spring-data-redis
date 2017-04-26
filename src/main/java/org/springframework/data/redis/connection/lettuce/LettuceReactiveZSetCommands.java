@@ -39,7 +39,6 @@ import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -186,22 +185,29 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			if (ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)) {
 				if (command.isWithScores()) {
 
-					result = cmd.zrangeWithScores(command.getKey(), command.getRange().getLowerBound(),
-							command.getRange().getUpperBound()).map(sc -> (Tuple) new DefaultTuple(getBytes(sc), sc.getScore()));
+					result = cmd
+							.zrangeWithScores(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
+									command.getRange().getUpperBound().getValue().orElse(null))
+							.map(sc -> (Tuple) new DefaultTuple(getBytes(sc), sc.getScore()));
 				} else {
 
-					result = cmd.zrange(command.getKey(), command.getRange().getLowerBound(), command.getRange().getUpperBound())
+					result = cmd
+							.zrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
+									command.getRange().getUpperBound().getValue().orElse(null))
 							.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 				}
 			} else {
 				if (command.isWithScores()) {
 
-					result = cmd.zrevrangeWithScores(command.getKey(), command.getRange().getLowerBound(),
-							command.getRange().getUpperBound()).map(sc -> (Tuple) new DefaultTuple(getBytes(sc), sc.getScore()));
+					result = cmd
+							.zrevrangeWithScores(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
+									command.getRange().getUpperBound().getValue().orElse(null))
+							.map(sc -> (Tuple) new DefaultTuple(getBytes(sc), sc.getScore()));
 				} else {
 
 					result = cmd
-							.zrevrange(command.getKey(), command.getRange().getLowerBound(), command.getRange().getUpperBound())
+							.zrevrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
+									command.getRange().getUpperBound().getValue().orElse(null))
 							.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 				}
 			}
@@ -349,7 +355,8 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getRange(), "Range must not be null!");
 
 			return cmd
-					.zremrangebyrank(command.getKey(), command.getRange().getLowerBound(), command.getRange().getUpperBound())
+					.zremrangebyrank(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
+							command.getRange().getUpperBound().getValue().orElse(null))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -519,12 +526,9 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 			return (source) -> {
 
-				// TODO: fix range exclusion pattern when DATACMNS-920 is resolved
-				DirectFieldAccessFallbackBeanWrapper bw = new DirectFieldAccessFallbackBeanWrapper(source);
-
-				Boolean inclusive = upper ? Boolean.valueOf(bw.getPropertyValue("upperInclusive").toString())
-						: Boolean.valueOf(bw.getPropertyValue("lowerInclusive").toString());
-				Object value = upper ? source.getUpperBound() : source.getLowerBound();
+				Boolean inclusive = upper ? source.getUpperBound().isInclusive() : source.getLowerBound().isInclusive();
+				Object value = upper ? source.getUpperBound().getValue().orElse(null)
+						: source.getLowerBound().getValue().orElse(null);
 
 				if (value instanceof Number) {
 					return inclusive ? Boundary.including((Number) value) : Boundary.excluding((Number) value);

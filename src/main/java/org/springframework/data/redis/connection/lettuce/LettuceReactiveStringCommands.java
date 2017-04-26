@@ -246,8 +246,8 @@ public class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Range<Long> range = command.getRange();
 
-			return cmd.getrange(command.getKey(), range.getLowerBound(), range.getUpperBound())
-					.map((value) -> new ByteBufferResponse<>(command, value));
+			return cmd.getrange(command.getKey(), range.getLowerBound().getValue().orElse(null),
+					range.getUpperBound().getValue().orElse(null)).map((value) -> new ByteBufferResponse<>(command, value));
 		}));
 	}
 
@@ -316,8 +316,9 @@ public class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
 			Range<Long> range = command.getRange();
-			return (range != null ? cmd.bitcount(command.getKey(), range.getLowerBound(), range.getUpperBound())
-					: cmd.bitcount(command.getKey())).map(responseValue -> new NumericResponse<>(command, responseValue));
+			return (range != null ? cmd.bitcount(command.getKey(), range.getLowerBound().getValue().orElse(null),
+					range.getUpperBound().getValue().orElse(null)) : cmd.bitcount(command.getKey()))
+							.map(responseValue -> new NumericResponse<>(command, responseValue));
 		}));
 	}
 

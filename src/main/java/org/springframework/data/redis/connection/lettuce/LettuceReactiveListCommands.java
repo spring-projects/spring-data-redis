@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import java.nio.ByteBuffer;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -26,15 +29,11 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Boolean
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
-import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * @author Christoph Strobl
@@ -117,7 +116,8 @@ public class LettuceReactiveListCommands implements ReactiveListCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
 
-			Flux<ByteBuffer> result = cmd.lrange(command.getKey(), command.getRange().getLowerBound(), command.getRange().getUpperBound());
+			Flux<ByteBuffer> result = cmd.lrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
+					command.getRange().getUpperBound().getValue().orElse(null));
 			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}
@@ -134,7 +134,9 @@ public class LettuceReactiveListCommands implements ReactiveListCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
 
-			return cmd.ltrim(command.getKey(), command.getRange().getLowerBound(), command.getRange().getUpperBound())
+			return cmd
+					.ltrim(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
+							command.getRange().getUpperBound().getValue().orElse(null))
 					.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
