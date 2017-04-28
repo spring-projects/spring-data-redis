@@ -34,8 +34,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
@@ -59,9 +62,12 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 			new LettuceExceptionConverter());
 	static final RedisCodec<byte[], byte[]> CODEC = ByteArrayCodec.INSTANCE;
 
+	private final Log log = LogFactory.getLog(getClass());
+
 	private final RedisClusterClient clusterClient;
 	private ClusterCommandExecutor clusterCommandExecutor;
 	private ClusterTopologyProvider topologyProvider;
+	private final boolean disposeClusterCommandExecutorOnClose;
 
 	/**
 	 * Creates new {@link LettuceClusterConnection} using {@link RedisClusterClient}.
@@ -78,6 +84,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
 		clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider,
 				new LettuceClusterNodeResourceProvider(clusterClient), exceptionConverter);
+		disposeClusterCommandExecutorOnClose = true;
 	}
 
 	/**
@@ -97,6 +104,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		this.clusterClient = clusterClient;
 		topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
 		clusterCommandExecutor = executor;
+		disposeClusterCommandExecutorOnClose = false;
 	}
 
 	/*
@@ -497,12 +505,10 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	@Override
 	public Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterSlaveMap() {
 
-		List<NodeResult<Collection<RedisClusterNode>>> nodeResults = clusterCommandExecutor
-				.executeCommandAsyncOnNodes(
-						(LettuceClusterCommandCallback<Collection<RedisClusterNode>>) client -> Converters
-								.toSetOfRedisClusterNodes(client.clusterSlaves(client.clusterMyId())),
-						topologyProvider.getTopology().getActiveMasterNodes())
-				.getResults();
+		List<NodeResult<Collection<RedisClusterNode>>> nodeResults = clusterCommandExecutor.executeCommandAsyncOnNodes(
+				(LettuceClusterCommandCallback<Collection<RedisClusterNode>>) client -> Converters
+						.toSetOfRedisClusterNodes(client.clusterSlaves(client.clusterMyId())),
+				topologyProvider.getTopology().getActiveMasterNodes()).getResults();
 
 		Map<RedisClusterNode, Collection<RedisClusterNode>> result = new LinkedHashMap<>();
 
@@ -515,6 +521,24 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 
 	public ClusterCommandExecutor getClusterCommandExecutor() {
 		return clusterCommandExecutor;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#close()
+	 */
+	@Override
+	public void close() throws DataAccessException {
+
+		if (!isClosed() && disposeClusterCommandExecutorOnClose) {
+			try {
+				clusterCommandExecutor.destroy();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close cluster command executor", ex);
+			}
+		}
+
+		super.close();
 	}
 
 	/**
@@ -535,9 +559,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	 * @since 1.7
 	 */
 	protected interface LettuceMultiKeyClusterCommandCallback<T>
-			extends MultiKeyClusterCommandCallback<RedisClusterCommands<byte[], byte[]>, T> {
-
-	}
+			extends MultiKeyClusterCommandCallback<RedisClusterCommands<byte[], byte[]>, T> {}
 
 	/**
 	 * Lettuce specific implementation of {@link ClusterNodeResourceProvider}.

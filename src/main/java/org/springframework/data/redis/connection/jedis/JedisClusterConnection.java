@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -58,12 +60,15 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			JedisConverters.exceptionConverter());
 
+	private final Log log = LogFactory.getLog(getClass());
+
 	private final JedisCluster cluster;
 
 	private boolean closed;
 
 	private final JedisClusterTopologyProvider topologyProvider;
 	private ClusterCommandExecutor clusterCommandExecutor;
+	private final boolean disposeClusterCommandExecutorOnClose;
 
 	private volatile JedisSubscription subscription;
 
@@ -82,6 +87,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		topologyProvider = new JedisClusterTopologyProvider(cluster);
 		clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider, new JedisClusterNodeResourceProvider(cluster),
 				EXCEPTION_TRANSLATION);
+		disposeClusterCommandExecutorOnClose = true;
 
 		try {
 			DirectFieldAccessor dfa = new DirectFieldAccessor(cluster);
@@ -108,6 +114,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		this.cluster = cluster;
 		this.topologyProvider = new JedisClusterTopologyProvider(cluster);
 		this.clusterCommandExecutor = executor;
+		this.disposeClusterCommandExecutorOnClose = false;
 	}
 
 	/*
@@ -366,9 +373,8 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	@Override
 	public String ping() {
 
-		return !clusterCommandExecutor
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) BinaryJedis::ping).resultsAsList()
-				.isEmpty() ? "PONG" : null;
+		return !clusterCommandExecutor.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) BinaryJedis::ping)
+				.resultsAsList().isEmpty() ? "PONG" : null;
 
 	}
 
@@ -588,11 +594,10 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 		final RedisClusterNode nodeToUse = topologyProvider.getTopology().lookup(master);
 
-		return JedisConverters.toSetOfRedisClusterNodes(
-				clusterCommandExecutor
-						.executeCommandOnSingleNode(
-								(JedisClusterCommandCallback<List<String>>) client -> client.clusterSlaves(nodeToUse.getId()), master)
-						.getValue());
+		return JedisConverters.toSetOfRedisClusterNodes(clusterCommandExecutor
+				.executeCommandOnSingleNode(
+						(JedisClusterCommandCallback<List<String>>) client -> client.clusterSlaves(nodeToUse.getId()), master)
+				.getValue());
 	}
 
 	/*
@@ -635,10 +640,8 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	@Override
 	public ClusterInfo clusterGetClusterInfo() {
 
-		return new ClusterInfo(JedisConverters
-				.toProperties(clusterCommandExecutor
-						.executeCommandOnArbitraryNode((JedisClusterCommandCallback<String>) Jedis::clusterInfo)
-						.getValue()));
+		return new ClusterInfo(JedisConverters.toProperties(clusterCommandExecutor
+				.executeCommandOnArbitraryNode((JedisClusterCommandCallback<String>) Jedis::clusterInfo).getValue()));
 	}
 
 	/*
@@ -655,6 +658,15 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	 */
 	@Override
 	public void close() throws DataAccessException {
+
+		if (!closed && disposeClusterCommandExecutorOnClose) {
+			try {
+				clusterCommandExecutor.destroy();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close cluster command executor", ex);
+			}
+		}
+
 		closed = true;
 	}
 
