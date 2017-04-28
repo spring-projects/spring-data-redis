@@ -49,6 +49,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
@@ -82,7 +83,10 @@ public class RedisKeyValueAdapterTests {
 
 	@Parameters
 	public static List<RedisConnectionFactory> params() {
-		return Arrays.<RedisConnectionFactory> asList(new JedisConnectionFactory(), new LettuceConnectionFactory());
+
+		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
+		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		return Arrays.<RedisConnectionFactory> asList(new JedisConnectionFactory(), lettuceConnectionFactory);
 	}
 
 	@AfterClass
@@ -113,6 +117,14 @@ public class RedisKeyValueAdapterTests {
 				return null;
 			}
 		});
+
+		RedisConnection connection = template.getConnectionFactory().getConnection();
+
+		try {
+			connection.setConfig("notify-keyspace-events", "KEA");
+		} finally {
+			connection.close();
+		}
 	}
 
 	@After

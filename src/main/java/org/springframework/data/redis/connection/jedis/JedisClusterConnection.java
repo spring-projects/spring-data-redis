@@ -31,6 +31,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -101,18 +103,21 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			JedisConverters.exceptionConverter());
 
+	private final Log log = LogFactory.getLog(getClass());
+
 	private final JedisCluster cluster;
 
 	private boolean closed;
 
 	private final JedisClusterTopologyProvider topologyProvider;
 	private ClusterCommandExecutor clusterCommandExecutor;
+	private final boolean disposeClusterCommandExecutorOnClose;
 
 	private volatile JedisSubscription subscription;
 
 	/**
 	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link JedisCluster}.
-	 * 
+	 *
 	 * @param cluster must not be {@literal null}.
 	 */
 	public JedisClusterConnection(JedisCluster cluster) {
@@ -125,6 +130,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		topologyProvider = new JedisClusterTopologyProvider(cluster);
 		clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider, new JedisClusterNodeResourceProvider(cluster),
 				EXCEPTION_TRANSLATION);
+		disposeClusterCommandExecutorOnClose = true;
 
 		try {
 			DirectFieldAccessor dfa = new DirectFieldAccessor(cluster);
@@ -151,6 +157,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		this.cluster = cluster;
 		this.topologyProvider = new JedisClusterTopologyProvider(cluster);
 		this.clusterCommandExecutor = executor;
+		this.disposeClusterCommandExecutorOnClose = false;
 	}
 
 	/*
@@ -3998,6 +4005,15 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	 */
 	@Override
 	public void close() throws DataAccessException {
+
+		if (!closed && disposeClusterCommandExecutorOnClose) {
+			try {
+				clusterCommandExecutor.destroy();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close cluster command executor", ex);
+			}
+		}
+
 		closed = true;
 	}
 

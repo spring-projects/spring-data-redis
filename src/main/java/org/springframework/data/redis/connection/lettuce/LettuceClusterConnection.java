@@ -29,8 +29,11 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
@@ -79,13 +82,16 @@ public class LettuceClusterConnection extends LettuceConnection
 			new LettuceExceptionConverter());
 	static final RedisCodec<byte[], byte[]> CODEC = ByteArrayCodec.INSTANCE;
 
+	private final Log log = LogFactory.getLog(getClass());
+
 	private final RedisClusterClient clusterClient;
 	private ClusterCommandExecutor clusterCommandExecutor;
 	private ClusterTopologyProvider topologyProvider;
+	private final boolean disposeClusterCommandExecutorOnClose;
 
 	/**
 	 * Creates new {@link LettuceClusterConnection} using {@link RedisClusterClient}.
-	 * 
+	 *
 	 * @param clusterClient must not be {@literal null}.
 	 */
 	public LettuceClusterConnection(RedisClusterClient clusterClient) {
@@ -98,6 +104,7 @@ public class LettuceClusterConnection extends LettuceConnection
 		topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
 		clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider,
 				new LettuceClusterNodeResourceProvider(clusterClient), exceptionConverter);
+		disposeClusterCommandExecutorOnClose = true;
 	}
 
 	/**
@@ -117,6 +124,7 @@ public class LettuceClusterConnection extends LettuceConnection
 		this.clusterClient = clusterClient;
 		topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
 		clusterCommandExecutor = executor;
+		disposeClusterCommandExecutorOnClose = false;
 	}
 
 	/*
@@ -1511,6 +1519,24 @@ public class LettuceClusterConnection extends LettuceConnection
 		}
 
 		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#close()
+	 */
+	@Override
+	public void close() throws DataAccessException {
+
+		if (!isClosed() && disposeClusterCommandExecutorOnClose) {
+			try {
+				clusterCommandExecutor.destroy();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close cluster command executor", ex);
+			}
+		}
+
+		super.close();
 	}
 
 	/**
