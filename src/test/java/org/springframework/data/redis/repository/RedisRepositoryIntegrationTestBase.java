@@ -77,12 +77,12 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Person egwene = new Person();
 		egwene.firstname = "egwene";
 
-		repo.save(Arrays.asList(rand, egwene));
+		repo.saveAll(Arrays.asList(rand, egwene));
 
 		assertThat(repo.count(), is(2L));
 
-		assertThat(repo.findOne(rand.id), is(Optional.of(rand)));
-		assertThat(repo.findOne(egwene.id), is(Optional.of(egwene)));
+		assertThat(repo.findById(rand.id), is(Optional.of(rand)));
+		assertThat(repo.findById(egwene.id), is(Optional.of(egwene)));
 
 		assertThat(repo.findByFirstname("rand").size(), is(1));
 		assertThat(repo.findByFirstname("rand"), hasItem(rand));
@@ -104,7 +104,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		marin.firstname = "marin";
 		marin.lastname = "al'vere";
 
-		repo.save(Arrays.asList(egwene, marin));
+		repo.saveAll(Arrays.asList(egwene, marin));
 
 		assertThat(repo.findByLastname("al'vere").size(), is(2));
 
@@ -131,14 +131,14 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		repo.save(moiraine);
 
 		// find and assert current location set correctly
-		Optional<Person> loaded = repo.findOne(moiraine.getId());
+		Optional<Person> loaded = repo.findById(moiraine.getId());
 		assertThat(loaded.get().city, is(tarValon));
 
 		// remove reference location data
 		kvTemplate.delete("1", City.class);
 
 		// find and assert the location is gone
-		Optional<Person> reLoaded = repo.findOne(moiraine.getId());
+		Optional<Person> reLoaded = repo.findById(moiraine.getId());
 		assertThat(reLoaded.get().city, IsNull.nullValue());
 	}
 
@@ -152,7 +152,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Person bran = new Person("bran", "stark");
 		Person rickon = new Person("rickon", "stark");
 
-		repo.save(Arrays.asList(eddard, robb, sansa, arya, bran, rickon));
+		repo.saveAll(Arrays.asList(eddard, robb, sansa, arya, bran, rickon));
 
 		Page<Person> page1 = repo.findPersonByLastname("stark", PageRequest.of(0, 5));
 
@@ -172,7 +172,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Person robb = new Person("robb", "stark");
 		Person jon = new Person("jon", "snow");
 
-		repo.save(Arrays.asList(eddard, robb, jon));
+		repo.saveAll(Arrays.asList(eddard, robb, jon));
 
 		List<Person> eddardAndJon = repo.findByFirstnameOrLastname("eddard", "snow");
 
@@ -187,7 +187,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Person robb = new Person("robb", "stark");
 		Person jon = new Person("jon", "snow");
 
-		repo.save(Arrays.asList(eddard, robb, jon));
+		repo.saveAll(Arrays.asList(eddard, robb, jon));
 
 		assertThat(repo.findFirstBy(), hasSize(1));
 	}
@@ -199,7 +199,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Person robb = new Person("robb", "stark");
 		Person jon = new Person("jon", "snow");
 
-		repo.save(Arrays.asList(eddard, robb, jon));
+		repo.saveAll(Arrays.asList(eddard, robb, jon));
 
 		Page<Person> firstPage = repo.findAll(PageRequest.of(0, 2));
 		assertThat(firstPage.getContent(), hasSize(2));
@@ -213,7 +213,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Person robb = new Person("robb", "stark");
 		Person jon = new Person("jon", "snow");
 
-		repo.save(Arrays.asList(eddard, robb, jon));
+		repo.saveAll(Arrays.asList(eddard, robb, jon));
 
 		Page<Person> firstPage = repo.findBy(PageRequest.of(0, 2));
 		assertThat(firstPage.getContent(), hasSize(2));
@@ -228,7 +228,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Person robb = new Person("robb", "stark");
 		Person jon = new Person("jon", "snow");
 
-		repo.save(Arrays.asList(eddard, robb, jon));
+		repo.saveAll(Arrays.asList(eddard, robb, jon));
 
 		Page<Person> firstPage = repo.findAll(PageRequest.of(100, 2));
 		assertThat(firstPage.getContent(), hasSize(0));
@@ -241,7 +241,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Person robb = new Person("robb", "stark");
 		Person sansa = new Person("sansa", "stark");
 
-		repo.save(Arrays.asList(eddard, robb, sansa));
+		repo.saveAll(Arrays.asList(eddard, robb, sansa));
 
 		Page<Person> page1 = repo.findPersonByLastname("stark", PageRequest.of(1, 3));
 
@@ -263,7 +263,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Person robb = new Person("robb", "stark");
 		Person jon = new Person("jon", "snow");
 
-		repo.save(Arrays.asList(eddard, robb, jon));
+		repo.saveAll(Arrays.asList(eddard, robb, jon));
 
 		assertThat(repo.findTop2By(), hasSize(2));
 	}
@@ -277,7 +277,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Person jon = new Person("jon", "snow");
 		Person arya = new Person("arya", "stark");
 
-		repo.save(Arrays.asList(eddard, tyrion, robb, jon, arya));
+		repo.saveAll(Arrays.asList(eddard, tyrion, robb, jon, arya));
 
 		List<Person> result = repo.findTop2ByLastname("stark");
 
@@ -296,7 +296,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		City catania = new City();
 		catania.location = new Point(15.087269D, 37.502669D);
 
-		cityRepo.save(Arrays.asList(palermo, catania));
+		cityRepo.saveAll(Arrays.asList(palermo, catania));
 
 		List<City> result = cityRepo.findByLocationNear(new Point(15D, 37D), new Distance(200, Metrics.KILOMETERS));
 		assertThat(result, hasItems(palermo, catania));
@@ -315,7 +315,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		City catania = new City();
 		catania.location = new Point(15.087269D, 37.502669D);
 
-		cityRepo.save(Arrays.asList(palermo, catania));
+		cityRepo.saveAll(Arrays.asList(palermo, catania));
 
 		List<City> result = cityRepo.findByLocationNear(new Point(15D, 37D), new Distance(10, Metrics.KILOMETERS));
 		assertThat(result, is(empty()));
@@ -336,7 +336,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Person p2 = new Person("two", "two");
 		p2.hometown = catania;
 
-		repo.save(Arrays.asList(p1, p2));
+		repo.saveAll(Arrays.asList(p1, p2));
 
 		List<Person> result = repo.findByHometownLocationNear(new Point(15D, 37D), new Distance(200, Metrics.KILOMETERS));
 		assertThat(result, hasItems(p1, p2));

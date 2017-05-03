@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,21 @@
  */
 package org.springframework.data.redis.repository.core;
 
-import java.io.Serializable;
-
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.repository.core.support.PersistentEntityInformation;
 
 /**
- * {@link RedisEntityInformation} implementation using a {@link MongoPersistentEntity} instance to lookup the necessary
+ * {@link RedisEntityInformation} implementation using a {@link RedisPersistentEntity} instance to lookup the necessary
  * information. Can be configured with a custom collection to be returned which will trump the one returned by the
- * {@link MongoPersistentEntity} if given.
+ * {@link RedisPersistentEntity} if given.
  * 
  * @author Christoph Strobl
  * @param <T>
  * @param <ID>
  */
-public class MappingRedisEntityInformation<T, ID extends Serializable>
-		extends PersistentEntityInformation<T, Serializable> implements RedisEntityInformation<T, Serializable> {
+public class MappingRedisEntityInformation<T, ID> extends PersistentEntityInformation<T, ID>
+		implements RedisEntityInformation<T, ID> {
 
 	private final RedisPersistentEntity<T> entityMetadata;
 
