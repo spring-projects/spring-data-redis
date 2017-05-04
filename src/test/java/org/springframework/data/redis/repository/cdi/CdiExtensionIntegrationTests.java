@@ -29,8 +29,6 @@ import javax.enterprise.inject.spi.Bean;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Integration tests for Spring Data Redis CDI extension.
@@ -38,8 +36,6 @@ import org.slf4j.LoggerFactory;
  * @author Mark Paluch
  */
 public class CdiExtensionIntegrationTests {
-
-	private static Logger LOGGER = LoggerFactory.getLogger(CdiExtensionIntegrationTests.class);
 
 	static SeContainer container;
 
@@ -50,8 +46,6 @@ public class CdiExtensionIntegrationTests {
 				.disableDiscovery() //
 				.addPackages(RepositoryConsumer.class) //
 				.initialize();
-
-		LOGGER.debug("CDI container bootstrapped!");
 	}
 
 	@AfterClass

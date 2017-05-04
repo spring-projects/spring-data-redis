@@ -31,8 +31,8 @@ import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.ProcessBean;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisKeyValueTemplate;
@@ -50,14 +50,13 @@ import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
  */
 public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 
-	private static final Logger LOG = LoggerFactory.getLogger(RedisRepositoryExtension.class);
-
+	private final Log log = LogFactory.getLog(RedisRepositoryExtension.class);
 	private final Map<Set<Annotation>, Bean<RedisKeyValueAdapter>> redisKeyValueAdapters = new HashMap<>();
 	private final Map<Set<Annotation>, Bean<KeyValueOperations>> redisKeyValueTemplates = new HashMap<>();
 	private final Map<Set<Annotation>, Bean<RedisOperations<?, ?>>> redisOperations = new HashMap<>();
 
 	public RedisRepositoryExtension() {
-		LOG.info("Activating CDI extension for Spring Data Redis repositories.");
+		log.info("Activating CDI extension for Spring Data Redis repositories.");
 	}
 
 	/**
@@ -79,8 +78,8 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 			}
 
 			if (beanType instanceof Class<?> && RedisKeyValueTemplate.class.isAssignableFrom((Class<?>) beanType)) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug(String.format("Discovered %s with qualifiers %s.", RedisKeyValueTemplate.class.getName(),
+				if (log.isDebugEnabled()) {
+					log.debug(String.format("Discovered %s with qualifiers %s.", RedisKeyValueTemplate.class.getName(),
 							bean.getQualifiers()));
 				}
 
@@ -89,8 +88,8 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 			}
 
 			if (beanType instanceof Class<?> && RedisKeyValueAdapter.class.isAssignableFrom((Class<?>) beanType)) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug(String.format("Discovered %s with qualifiers %s.", RedisKeyValueAdapter.class.getName(),
+				if (log.isDebugEnabled()) {
+					log.debug(String.format("Discovered %s with qualifiers %s.", RedisKeyValueAdapter.class.getName(),
 							bean.getQualifiers()));
 				}
 
@@ -99,8 +98,8 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 			}
 
 			if (beanType instanceof Class<?> && RedisOperations.class.isAssignableFrom((Class<?>) beanType)) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug(String.format("Discovered %s with qualifiers %s.", RedisOperations.class.getName(),
+				if (log.isDebugEnabled()) {
+					log.debug(String.format("Discovered %s with qualifiers %s.", RedisOperations.class.getName(),
 							bean.getQualifiers()));
 				}
 
@@ -122,8 +121,8 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 			// Create the bean representing the repository.
 			CdiRepositoryBean<?> repositoryBean = createRepositoryBean(repositoryType, qualifiers, beanManager);
 
-			if (LOG.isInfoEnabled()) {
-				LOG.info(String.format("Registering bean for %s with qualifiers %s.", repositoryType.getName(), qualifiers));
+			if (log.isInfoEnabled()) {
+				log.info(String.format("Registering bean for %s with qualifiers %s.", repositoryType.getName(), qualifiers));
 			}
 
 			// Register the bean to the container.
@@ -147,8 +146,8 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 			Set<Annotation> qualifiers = entry.getValue();
 
 			if (!redisKeyValueAdapters.containsKey(qualifiers)) {
-				if (LOG.isInfoEnabled()) {
-					LOG.info(String.format("Registering bean for %s with qualifiers %s.", RedisKeyValueAdapter.class.getName(),
+				if (log.isInfoEnabled()) {
+					log.info(String.format("Registering bean for %s with qualifiers %s.", RedisKeyValueAdapter.class.getName(),
 							qualifiers));
 				}
 				RedisKeyValueAdapterBean redisKeyValueAdapterBean = createRedisKeyValueAdapterBean(qualifiers, beanManager);
@@ -157,8 +156,8 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 			}
 
 			if (!redisKeyValueTemplates.containsKey(qualifiers)) {
-				if (LOG.isInfoEnabled()) {
-					LOG.info(String.format("Registering bean for %s with qualifiers %s.", RedisKeyValueTemplate.class.getName(),
+				if (log.isInfoEnabled()) {
+					log.info(String.format("Registering bean for %s with qualifiers %s.", RedisKeyValueTemplate.class.getName(),
 							qualifiers));
 				}
 
