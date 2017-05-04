@@ -28,8 +28,6 @@ import org.apache.webbeans.cditest.CdiTestContainer;
 import org.apache.webbeans.cditest.CdiTestContainerLoader;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Integration tests for Spring Data Redis CDI extension.
@@ -38,8 +36,6 @@ import org.slf4j.LoggerFactory;
  */
 public class CdiExtensionIntegrationTests {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(CdiExtensionIntegrationTests.class);
-
 	static CdiTestContainer container;
 
 	@BeforeClass
@@ -47,8 +43,6 @@ public class CdiExtensionIntegrationTests {
 
 		container = CdiTestContainerLoader.getCdiContainer();
 		container.bootContainer();
-
-		LOGGER.debug("CDI container bootstrapped!");
 	}
 
 	@Test // DATAREDIS-425
@@ -88,8 +82,7 @@ public class CdiExtensionIntegrationTests {
 
 		assertThat(result, contains(person));
 	}
-	
-	
+
 	@Test // DATAREDIS-425
 	public void callMethodOnCustomRepositoryShouldSuceed() {
 

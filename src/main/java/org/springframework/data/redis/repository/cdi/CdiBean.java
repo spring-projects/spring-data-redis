@@ -34,8 +34,8 @@ import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.enterprise.inject.spi.PassivationCapable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -47,7 +47,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CdiBean.class);
+	private final Log log = LogFactory.getLog(getClass());
 
 	protected final BeanManager beanManager;
 
@@ -155,8 +155,8 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 	 */
 	public void destroy(T instance, CreationalContext<T> creationalContext) {
 
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug(String.format("Destroying bean instance %s for repository type '%s'.", instance.toString(),
+		if (log.isDebugEnabled()) {
+			log.debug(String.format("Destroying bean instance %s for repository type '%s'.", instance.toString(),
 					beanClass.getName()));
 		}
 
