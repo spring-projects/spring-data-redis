@@ -6,6 +6,21 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 2.0.0.M3 (2017-05-09)
+----------------------------------------
+* DATAREDIS-642 - Upgrade to Lettuce 5.0 M2.
+* DATAREDIS-640 - Adapt to API changes in repository interfaces.
+* DATAREDIS-637 - ClusterConnections do not close dedicated ClusterCommandExecutor instances.
+* DATAREDIS-636 - Adapt to Range API changes.
+* DATAREDIS-634 - Adapt to moved CustomConversions to Spring Data Commons.
+* DATAREDIS-633 - Adapt to renamed KeyValueQuery.getCriteria() method.
+* DATAREDIS-629 - Adopt changed Mono and Flux error handling API.
+* DATAREDIS-626 - Split up RedisConnection and add defaulting to *.Command interfaces.
+* DATAREDIS-624 - Upgrade to Reactor 3.1.0.BUILD-SNAPSHOT.
+* DATAREDIS-622 - Release 2.0 M3 (Kay).
+* DATAREDIS-613 - Stream results instead of returning collections where possible.
+
+
 Changes in version 1.7.10.RELEASE (2017-04-19)
 ----------------------------------------------
 * DATAREDIS-628 - Release 1.7.10 (Hopper SR10).
