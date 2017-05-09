@@ -1,4 +1,4 @@
-Spring Data Redis 2.0 M2
+Spring Data Redis 2.0 M3
    Copyright (c) [$copyright] Pivotal Software, Inc.
 
    ========================================================================
