@@ -15,11 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.collection.IsCollectionWithSize.*;
-import static org.hamcrest.collection.IsIterableContainingInOrder.*;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.number.IsCloseTo.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
@@ -1078,13 +1074,15 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sDiff(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES), hasItems(VALUE_1_BYTES));
 	}
 
-	@Test // DATAREDIS-315
+	@Test // DATAREDIS-315, DATAREDIS-647
 	public void sDiffShouldWorkWhenKeysNotMapToSameSlot() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
 		nativeConnection.sadd(KEY_2, VALUE_2, VALUE_3);
+		nativeConnection.sadd(KEY_3, VALUE_1, VALUE_3);
 
 		assertThat(clusterConnection.sDiff(KEY_1_BYTES, KEY_2_BYTES), hasItems(VALUE_1_BYTES));
+		assertThat(clusterConnection.sDiff(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES), is(empty()));
 	}
 
 	@Test // DATAREDIS-315
