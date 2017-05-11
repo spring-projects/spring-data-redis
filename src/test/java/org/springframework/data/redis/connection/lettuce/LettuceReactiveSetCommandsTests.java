@@ -129,14 +129,18 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		assertThat(connection.setCommands().sIsMember(KEY_1_BBUFFER, VALUE_3_BBUFFER).block(), is(false));
 	}
 
-	@Test // DATAREDIS-525
+	@Test // DATAREDIS-525, DATAREDIS-647
 	public void sInterShouldIntersectSetsCorrectly() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 		nativeCommands.sadd(KEY_2, VALUE_2, VALUE_3);
+		nativeCommands.sadd(KEY_3, VALUE_1, VALUE_3);
 
 		StepVerifier.create(connection.setCommands().sInter(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER))) //
 				.expectNext(VALUE_2_BBUFFER) //
+				.verifyComplete();
+
+		StepVerifier.create(connection.setCommands().sInter(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER))) //
 				.verifyComplete();
 	}
 
@@ -172,14 +176,18 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 				is(3L));
 	}
 
-	@Test // DATAREDIS-525
+	@Test // DATAREDIS-525, DATAREDIS-647
 	public void sDiffShouldBeExcecutedCorrectly() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 		nativeCommands.sadd(KEY_2, VALUE_2, VALUE_3);
+		nativeCommands.sadd(KEY_3, VALUE_2, VALUE_1);
 
 		StepVerifier.create(connection.setCommands().sDiff(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER))) //
 				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		StepVerifier.create(connection.setCommands().sDiff(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER))) //
 				.verifyComplete();
 	}
 
