@@ -115,9 +115,12 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 				intersectingSets.add(cmd.smembers(command.getKeys().get(i)).distinct().collectList());
 			}
 
-			Flux<List<ByteBuffer>> result = Flux.zip(sourceSet, Flux.merge(intersectingSets), (source, intersecting) -> {
+			Flux<List<ByteBuffer>> result = Flux.zip(sourceSet, Flux.merge(intersectingSets).collectList(),
+					(source, intersectings) -> {
 
-				source.retainAll(intersecting);
+						for (List<ByteBuffer> intersecting : intersectings) {
+							source.retainAll(intersecting);
+						}
 				return source;
 			});
 
@@ -172,9 +175,13 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 				intersectingSets.add(cmd.smembers(command.getKeys().get(i)).distinct().collectList());
 			}
 
-			Flux<List<ByteBuffer>> result = Flux.zip(sourceSet, Flux.merge(intersectingSets), (source, intersecting) -> {
+			Flux<List<ByteBuffer>> result = Flux.zip(sourceSet, Flux.merge(intersectingSets).collectList(),
+					(source, intersectings) -> {
 
-				source.removeAll(intersecting);
+						for (List<ByteBuffer> intersecting : intersectings) {
+							source.removeAll(intersecting);
+						}
+
 				return source;
 			});
 

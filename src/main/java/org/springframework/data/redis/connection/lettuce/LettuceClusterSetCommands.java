@@ -177,7 +177,7 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 		}
 
 		byte[] source = keys[0];
-		byte[][] others = Arrays.copyOfRange(keys, 1, keys.length - 1);
+		byte[][] others = Arrays.copyOfRange(keys, 1, keys.length);
 
 		ByteArraySet values = new ByteArraySet(sMembers(source));
 		Collection<Set<byte[]>> nodeResult = connection.getClusterCommandExecutor()
