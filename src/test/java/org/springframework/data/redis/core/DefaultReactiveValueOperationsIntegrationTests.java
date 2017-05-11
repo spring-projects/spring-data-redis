@@ -195,6 +195,8 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
+		StepVerifier.create(valueOperations.get(key)).verifyComplete();
+
 		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(valueOperations.get(key)).expectNext(value).verifyComplete();
@@ -206,6 +208,8 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 		V nextValue = valueFactory.instance();
+
+		StepVerifier.create(valueOperations.getAndSet(key, nextValue)).verifyComplete();
 
 		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
 

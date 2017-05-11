@@ -199,7 +199,8 @@ public interface ReactiveStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return get(Mono.just(new KeyCommand(key))).next().map(CommandResponse::getOutput);
+		return get(Mono.just(new KeyCommand(key))).next().filter(CommandResponse::isPresent)
+				.map(CommandResponse::getOutput);
 	}
 
 	/**
@@ -225,7 +226,8 @@ public interface ReactiveStringCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return getSet(Mono.just(SetCommand.set(key).value(value))).next().map(ByteBufferResponse::getOutput);
+		return getSet(Mono.just(SetCommand.set(key).value(value))).next().filter(CommandResponse::isPresent)
+				.map(ByteBufferResponse::getOutput);
 	}
 
 	/**

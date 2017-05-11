@@ -20,7 +20,11 @@ import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeThat;
+import static org.junit.Assume.*;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.TestSubscriber;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -37,14 +41,11 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveStringCommands.SetCommand;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.core.types.Expiration;
-
 import org.springframework.data.redis.test.util.LettuceRedisClientProvider;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.TestSubscriber;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -59,14 +60,13 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.get(KEY_1), is(equalTo(VALUE_2)));
 	}
 
-	@Test // DATAREDIS-525
+	@Test // DATAREDIS-525, DATAREDIS-645
 	public void getSetShouldReturnPreviousValueCorrectlyWhenNoExists() {
 
 		Mono<ByteBuffer> result = connection.stringCommands().getSet(KEY_1_BBUFFER, VALUE_2_BBUFFER);
 
 		ByteBuffer value = result.block();
-		assertThat(value, is(notNullValue()));
-		assertThat(value, is(equalTo(ByteBuffer.allocate(0))));
+		assertThat(value, is(nullValue()));
 		assertThat(nativeCommands.get(KEY_1), is(equalTo(VALUE_2)));
 	}
 
@@ -104,11 +104,11 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(result.block(), is(equalTo(VALUE_1_BBUFFER)));
 	}
 
-	@Test // DATAREDIS-525
+	@Test // DATAREDIS-525, DATAREDIS-645
 	public void getShouldRetriveNullValueCorrectly() {
 
 		Mono<ByteBuffer> result = connection.stringCommands().get(KEY_1_BBUFFER);
-		assertThat(result.block(), is(equalTo(ByteBuffer.allocate(0))));
+		assertThat(result.block(), is(nullValue()));
 	}
 
 	@Test // DATAREDIS-525

@@ -245,6 +245,14 @@ public interface ReactiveRedisConnection extends Closeable {
 
 		private final I input;
 		private final O output;
+
+		/**
+		 * @return {@literal true} if the response is present. An absent {@link CommandResponse} maps to Redis
+		 *         {@literal (nil)}.
+		 */
+		public boolean isPresent() {
+			return true;
+		}
 	}
 
 	/**
@@ -264,6 +272,26 @@ public interface ReactiveRedisConnection extends Closeable {
 
 		public ByteBufferResponse(I input, ByteBuffer output) {
 			super(input, output);
+		}
+	}
+
+	/**
+	 * {@link CommandResponse} implementation for {@link ByteBuffer} responses for absent keys.
+	 */
+	class AbsentByteBufferResponse<I> extends ByteBufferResponse<I> {
+
+		private final static ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.wrap(new byte[0]);
+
+		public AbsentByteBufferResponse(I input) {
+			super(input, EMPTY_BYTE_BUFFER);
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse#isPresent()
+		 */
+		@Override
+		public boolean isPresent() {
+			return false;
 		}
 	}
 
