@@ -16,11 +16,16 @@
 package org.springframework.data.redis.connection.jedis;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.collection.IsEmptyCollection.*;
 import static org.hamcrest.collection.IsIterableContainingInOrder.*;
 import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
+
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -56,10 +61,6 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.util.RedisClusterRule;
-
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPool;
 
 /**
  * @author Christoph Strobl
@@ -1334,15 +1335,17 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	/**
-	 * @see DATAREDIS-315
+	 * @see DATAREDIS-315,  DATAREDIS-647
 	 */
 	@Test
 	public void sDiffShouldWorkWhenKeysNotMapToSameSlot() {
 
 		nativeConnection.sadd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
 		nativeConnection.sadd(KEY_2_BYTES, VALUE_2_BYTES, VALUE_3_BYTES);
+		nativeConnection.sadd(KEY_3_BYTES, VALUE_1_BYTES, VALUE_3_BYTES);
 
 		assertThat(clusterConnection.sDiff(KEY_1_BYTES, KEY_2_BYTES), hasItems(VALUE_1_BYTES));
+		assertThat(clusterConnection.sDiff(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES), is(empty()));
 	}
 
 	/**
