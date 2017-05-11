@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.AbsentByteBufferResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
@@ -113,7 +114,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			}
 
 			return cmd.getset(command.getKey(), command.getValue()).map((value) -> new ByteBufferResponse<>(command, value))
-					.defaultIfEmpty(new ByteBufferResponse<>(command, EMPTY_BYTE_BUFFER));
+					.defaultIfEmpty(new AbsentByteBufferResponse<>(command));
 		}));
 	}
 
@@ -129,7 +130,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
 			return cmd.get(command.getKey()).map((value) -> new ByteBufferResponse<>(command, value))
-					.defaultIfEmpty(new ByteBufferResponse<>(command, EMPTY_BYTE_BUFFER));
+					.defaultIfEmpty(new AbsentByteBufferResponse<>(command));
 		}));
 	}
 
