@@ -67,7 +67,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Assert.notNull(keys, "Keys must not be null!");
 
-			return cmd.mget(keys.stream().toArray(ByteBuffer[]::new)).map((value) -> value.getValueOrElse(EMPTY_BYTE_BUFFER))
+			return cmd.mget(keys.toArray(new ByteBuffer[0])).map((value) -> value.getValueOrElse(EMPTY_BYTE_BUFFER))
 					.collectList().map((values) -> new MultiValueResponse<>(keys, values));
 		}));
 	}
@@ -337,7 +337,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Mono<Long> result = null;
 			ByteBuffer destinationKey = command.getDestinationKey();
-			ByteBuffer[] sourceKeys = command.getKeys().stream().toArray(ByteBuffer[]::new);
+			ByteBuffer[] sourceKeys = command.getKeys().toArray(new ByteBuffer[0]);
 
 			switch (command.getBitOp()) {
 				case AND:
@@ -369,6 +369,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> strLen(Publisher<KeyCommand> commands) {
+
 		return connection.execute(cmd -> {
 
 			return Flux.from(commands).flatMap(command -> {

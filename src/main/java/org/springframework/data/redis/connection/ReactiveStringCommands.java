@@ -192,7 +192,7 @@ public interface ReactiveStringCommands {
 	 * Get single element stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return empty {@link ByteBuffer} in case {@literal key} does not exist.
+	 * @return {@link Mono#empty()} in case {@literal key} does not exist.
 	 * @see <a href="http://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
 	default Mono<ByteBuffer> get(ByteBuffer key) {
@@ -218,7 +218,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @return
+	 * @return {@link Mono#empty()} if key did not exist.
 	 * @see <a href="http://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
 	default Mono<ByteBuffer> getSet(ByteBuffer key, ByteBuffer value) {
