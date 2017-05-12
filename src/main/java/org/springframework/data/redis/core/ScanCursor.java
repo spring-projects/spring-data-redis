@@ -83,8 +83,10 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	private void scan(long cursorId) {
 
-		ScanIteration<T> result = doScan(cursorId, this.scanOptions);
-		processScanResult(result);
+		do{
+			ScanIteration<T> result = doScan(cursorId, this.scanOptions);
+			processScanResult(result);
+		} while (cursorId > 0 && !delegate.hasNext());
 	}
 
 	/**
