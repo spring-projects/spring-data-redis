@@ -131,7 +131,7 @@ public abstract class RedisConnectionUtils {
 		if (bind) {
 
 			RedisConnection connectionToBind = conn;
-			if (enableTransactionSupport && isActualNonReadonlyTransactionActive()) {
+			if (enableTransactionSupport && !isActualNonReadonlyTransactionActive()) {
 				connectionToBind = createConnectionProxy(conn, factory);
 			}
 
