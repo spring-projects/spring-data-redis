@@ -50,15 +50,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.ClusterCommandExecutor;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
-import org.springframework.data.redis.connection.RedisClusterConnection;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisNode;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisSentinelConnection;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -312,7 +304,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		Client client = jedis.getClient();
 
-		client.setPassword(getPassword());
+		getRedisPassword().map(String::new).ifPresent(client::setPassword);
 		client.setDb(getDatabase());
 
 		return jedis;
@@ -343,9 +335,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 					clientConfiguration.getSslParameters().orElse(null), //
 					clientConfiguration.getHostnameVerifier().orElse(null));
 
-			if (StringUtils.hasLength(getPassword())) {
-				shardInfo.setPassword(getPassword());
-			}
+			getRedisPassword().map(String::new).ifPresent(shardInfo::setPassword);
 
 			int readTimeout = getReadTimeout();
 
@@ -558,6 +548,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @return password for authentication.
 	 */
 	public String getPassword() {
+		return getRedisPassword().map(String::new).orElse(null);
+	}
+
+	private RedisPassword getRedisPassword() {
 
 		if (isRedisSentinelAware()) {
 			return sentinelConfig.getPassword();
@@ -581,16 +575,16 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public void setPassword(String password) {
 
 		if (isRedisSentinelAware()) {
-			sentinelConfig.setPassword(password);
+			sentinelConfig.setPassword(RedisPassword.of(password));
 			return;
 		}
 
 		if (isRedisClusterAware()) {
-			clusterConfig.setPassword(password);
+			clusterConfig.setPassword(RedisPassword.of(password));
 			return;
 		}
 
-		standaloneConfig.setPassword(password);
+		standaloneConfig.setPassword(RedisPassword.of(password));
 	}
 
 	/**

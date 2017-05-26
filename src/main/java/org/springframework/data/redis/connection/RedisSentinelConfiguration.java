@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
  * to <a href="http://redis.io/topics/sentinel">Redis Sentinel(s)</a>. Useful when setting up a high availability Redis
  * environment.
- * 
+ *
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -48,7 +48,7 @@ public class RedisSentinelConfiguration {
 	private NamedNode master;
 	private Set<RedisNode> sentinels;
 	private int database;
-	private String password;
+	private RedisPassword password = RedisPassword.none();
 
 	/**
 	 * Creates new {@link RedisSentinelConfiguration}.
@@ -59,12 +59,12 @@ public class RedisSentinelConfiguration {
 
 	/**
 	 * Creates {@link RedisSentinelConfiguration} for given hostPort combinations.
-	 * 
+	 *
 	 * <pre>
 	 * sentinelHostAndPorts[0] = 127.0.0.1:23679 sentinelHostAndPorts[1] = 127.0.0.1:23680 ...
-	 * 
+	 *
 	 * <pre>
-	 * 
+	 *
 	 * @param sentinelHostAndPorts must not be {@literal null}.
 	 * @since 1.5
 	 */
@@ -74,14 +74,14 @@ public class RedisSentinelConfiguration {
 
 	/**
 	 * Creates {@link RedisSentinelConfiguration} looking up values in given {@link PropertySource}.
-	 * 
+	 *
 	 * <pre>
 	 * <code>
 	 * spring.redis.sentinel.master=myMaster
 	 * spring.redis.sentinel.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
 	 * </code>
 	 * </pre>
-	 * 
+	 *
 	 * @param propertySource must not be {@literal null}.
 	 * @since 1.5
 	 */
@@ -103,7 +103,7 @@ public class RedisSentinelConfiguration {
 
 	/**
 	 * Set {@literal Sentinels} to connect to.
-	 * 
+	 *
 	 * @param sentinels must not be {@literal null}.
 	 */
 	public void setSentinels(Iterable<RedisNode> sentinels) {
@@ -119,7 +119,7 @@ public class RedisSentinelConfiguration {
 
 	/**
 	 * Returns an {@link Collections#unmodifiableSet(Set)} of {@literal Sentinels}.
-	 * 
+	 *
 	 * @return {@link Set} of sentinels. Never {@literal null}.
 	 */
 	public Set<RedisNode> getSentinels() {
@@ -128,7 +128,7 @@ public class RedisSentinelConfiguration {
 
 	/**
 	 * Add sentinel.
-	 * 
+	 *
 	 * @param sentinel must not be {@literal null}.
 	 */
 	public void addSentinel(RedisNode sentinel) {
@@ -139,7 +139,7 @@ public class RedisSentinelConfiguration {
 
 	/**
 	 * Set the master node via its name.
-	 * 
+	 *
 	 * @param name must not be {@literal null}.
 	 */
 	public void setMaster(final String name) {
@@ -156,7 +156,7 @@ public class RedisSentinelConfiguration {
 
 	/**
 	 * Set the master.
-	 * 
+	 *
 	 * @param master must not be {@literal null}.
 	 */
 	public void setMaster(NamedNode master) {
@@ -167,7 +167,7 @@ public class RedisSentinelConfiguration {
 
 	/**
 	 * Get the {@literal Sentinel} master node.
-	 * 
+	 *
 	 * @return
 	 */
 	public NamedNode getMaster() {
@@ -246,15 +246,18 @@ public class RedisSentinelConfiguration {
 	 * @return
 	 * @since 2.0
 	 */
-	public String getPassword() {
+	public RedisPassword getPassword() {
 		return password;
 	}
 
 	/**
-	 * @param password
+	 * @param password must not be {@literal null}.
 	 * @since 2.0
 	 */
-	public void setPassword(String password) {
+	public void setPassword(RedisPassword password) {
+
+		Assert.notNull(password, "RedisPassword must not be null!");
+
 		this.password = password;
 	}
 

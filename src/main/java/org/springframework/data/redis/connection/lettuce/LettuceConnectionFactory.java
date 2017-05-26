@@ -44,7 +44,6 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Connection factory creating <a href="http://github.com/mp911de/lettuce">Lettuce</a>-based connections.
@@ -549,6 +548,10 @@ public class LettuceConnectionFactory
 	 * @return password for authentication.
 	 */
 	public String getPassword() {
+		return getRedisPassword().map(String::new).orElse(null);
+	}
+
+	private RedisPassword getRedisPassword() {
 
 		if (isRedisSentinelAware()) {
 			return sentinelConfiguration.getPassword();
@@ -572,16 +575,16 @@ public class LettuceConnectionFactory
 	public void setPassword(String password) {
 
 		if (isRedisSentinelAware()) {
-			sentinelConfiguration.setPassword(password);
+			sentinelConfiguration.setPassword(RedisPassword.of(password));
 			return;
 		}
 
 		if (isClusterAware()) {
-			clusterConfiguration.setPassword(password);
+			clusterConfiguration.setPassword(RedisPassword.of(password));
 			return;
 		}
 
-		standaloneConfig.setPassword(password);
+		standaloneConfig.setPassword(RedisPassword.of(password));
 	}
 
 	/**
@@ -786,9 +789,7 @@ public class LettuceConnectionFactory
 
 		RedisURI redisUri = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
 
-		if (StringUtils.hasText(getPassword())) {
-			redisUri.setPassword(getPassword());
-		}
+		getRedisPassword().toOptional().ifPresent(redisUri::setPassword);
 
 		return redisUri;
 	}
@@ -796,9 +797,8 @@ public class LettuceConnectionFactory
 	private RedisURI createRedisURIAndApplySettings(String host, int port) {
 
 		RedisURI.Builder builder = RedisURI.Builder.redis(host, port);
-		if (StringUtils.hasText(getPassword())) {
-			builder.withPassword(getPassword());
-		}
+
+		getRedisPassword().toOptional().ifPresent(builder::withPassword);
 
 		builder.withSsl(clientConfiguration.useSsl());
 		builder.withVerifyPeer(clientConfiguration.isVerifyPeer());

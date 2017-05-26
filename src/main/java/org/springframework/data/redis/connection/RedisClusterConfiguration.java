@@ -47,7 +47,7 @@ public class RedisClusterConfiguration {
 
 	private Set<RedisNode> clusterNodes;
 	private Integer maxRedirects;
-	private String password;
+	private RedisPassword password = RedisPassword.none();
 
 	/**
 	 * Creates new {@link RedisClusterConfiguration}.
@@ -183,15 +183,18 @@ public class RedisClusterConfiguration {
 	 * @return
 	 * @since 2.0
 	 */
-	public String getPassword() {
+	public RedisPassword getPassword() {
 		return password;
 	}
 
 	/**
-	 * @param password
+	 * @param password must not be {@literal null}.
 	 * @since 2.0
 	 */
-	public void setPassword(String password) {
+	public void setPassword(RedisPassword password) {
+
+		Assert.notNull(password, "RedisPassword must not be null!");
+
 		this.password = password;
 	}
 
