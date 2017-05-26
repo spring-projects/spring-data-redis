@@ -32,7 +32,7 @@ public class RedisStandaloneConfiguration {
 	private String hostName = DEFAULT_HOST;
 	private int port = DEFAULT_PORT;
 	private int database;
-	private String password;
+	private RedisPassword password = RedisPassword.none();
 
 	/**
 	 * Create a new default {@link RedisStandaloneConfiguration}.
@@ -114,14 +114,17 @@ public class RedisStandaloneConfiguration {
 	/**
 	 * @return
 	 */
-	public String getPassword() {
+	public RedisPassword getPassword() {
 		return password;
 	}
 
 	/**
-	 * @param password
+	 * @param password must not be {@literal null}.
 	 */
-	public void setPassword(String password) {
+	public void setPassword(RedisPassword password) {
+
+		Assert.notNull(password, "RedisPassword must not be null!");
+
 		this.password = password;
 	}
 }

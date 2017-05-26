@@ -34,6 +34,7 @@ import javax.net.ssl.SSLSocketFactory;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -101,7 +102,7 @@ public class JedisConnectionFactoryUnitTests {
 	public void shouldReadStandalonePassword() {
 
 		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
-		envConfig.setPassword("foo");
+		envConfig.setPassword(RedisPassword.of("foo"));
 
 		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
 
@@ -112,20 +113,20 @@ public class JedisConnectionFactoryUnitTests {
 	public void shouldWriteStandalonePassword() {
 
 		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
-		envConfig.setPassword("foo");
+		envConfig.setPassword(RedisPassword.of("foo"));
 
 		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
-		assertThat(envConfig.getPassword()).isEqualTo("bar");
+		assertThat(envConfig.getPassword()).isEqualTo(RedisPassword.of("bar"));
 	}
 
 	@Test // DATAREDIS-574
 	public void shouldReadSentinelPassword() {
 
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
-		envConfig.setPassword("foo");
+		envConfig.setPassword(RedisPassword.of("foo"));
 
 		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
 
@@ -136,20 +137,20 @@ public class JedisConnectionFactoryUnitTests {
 	public void shouldWriteSentinelPassword() {
 
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
-		envConfig.setPassword("foo");
+		envConfig.setPassword(RedisPassword.of("foo"));
 
 		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
-		assertThat(envConfig.getPassword()).isEqualTo("bar");
+		assertThat(envConfig.getPassword()).isEqualTo(RedisPassword.of("bar"));
 	}
 
 	@Test // DATAREDIS-574
 	public void shouldReadClusterPassword() {
 
 		RedisClusterConfiguration envConfig = new RedisClusterConfiguration();
-		envConfig.setPassword("foo");
+		envConfig.setPassword(RedisPassword.of("foo"));
 
 		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
 
@@ -160,13 +161,13 @@ public class JedisConnectionFactoryUnitTests {
 	public void shouldWriteClusterPassword() {
 
 		RedisClusterConfiguration envConfig = new RedisClusterConfiguration();
-		envConfig.setPassword("foo");
+		envConfig.setPassword(RedisPassword.of("foo"));
 
 		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
-		assertThat(envConfig.getPassword()).isEqualTo("bar");
+		assertThat(envConfig.getPassword()).isEqualTo(RedisPassword.of("bar"));
 	}
 
 	@Test // DATAREDIS-574

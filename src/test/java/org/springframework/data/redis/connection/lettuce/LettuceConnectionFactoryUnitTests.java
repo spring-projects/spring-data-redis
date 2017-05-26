@@ -41,6 +41,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 
@@ -288,7 +289,7 @@ public class LettuceConnectionFactoryUnitTests {
 	public void shouldReadStandalonePassword() {
 
 		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
-		envConfig.setPassword("foo");
+		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
 				LettuceClientConfiguration.create());
@@ -300,21 +301,21 @@ public class LettuceConnectionFactoryUnitTests {
 	public void shouldWriteStandalonePassword() {
 
 		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
-		envConfig.setPassword("foo");
+		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
 				LettuceClientConfiguration.create());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword(), is(equalTo("bar")));
-		assertThat(envConfig.getPassword(), is(equalTo("bar")));
+		assertThat(envConfig.getPassword(), is(equalTo(RedisPassword.of("bar"))));
 	}
 
 	@Test // DATAREDIS-574
 	public void shouldReadSentinelPassword() {
 
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
-		envConfig.setPassword("foo");
+		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
 				LettuceClientConfiguration.create());
@@ -326,21 +327,21 @@ public class LettuceConnectionFactoryUnitTests {
 	public void shouldWriteSentinelPassword() {
 
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
-		envConfig.setPassword("foo");
+		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
 				LettuceClientConfiguration.create());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword(), is(equalTo("bar")));
-		assertThat(envConfig.getPassword(), is(equalTo("bar")));
+		assertThat(envConfig.getPassword(), is(equalTo(RedisPassword.of("bar"))));
 	}
 
 	@Test // DATAREDIS-574
 	public void shouldReadClusterPassword() {
 
 		RedisClusterConfiguration envConfig = new RedisClusterConfiguration();
-		envConfig.setPassword("foo");
+		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
 				LettuceClientConfiguration.create());
@@ -352,14 +353,14 @@ public class LettuceConnectionFactoryUnitTests {
 	public void shouldWriteClusterPassword() {
 
 		RedisClusterConfiguration envConfig = new RedisClusterConfiguration();
-		envConfig.setPassword("foo");
+		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
 				LettuceClientConfiguration.create());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword(), is(equalTo("bar")));
-		assertThat(envConfig.getPassword(), is(equalTo("bar")));
+		assertThat(envConfig.getPassword(), is(equalTo(RedisPassword.of("bar"))));
 	}
 
 	@Test // DATAREDIS-574
