@@ -69,4 +69,14 @@ public class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getTimeout()).isEqualTo(Duration.ofMinutes(5));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofHours(2));
 	}
+
+	@Test // DATAREDIS-574
+	public void shouldAllowsConfigurationOverrides() {
+
+		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder() //
+				.useSsl().and().usePlaintext() //
+				.build();
+
+		assertThat(configuration.useSsl()).isFalse();
+	}
 }

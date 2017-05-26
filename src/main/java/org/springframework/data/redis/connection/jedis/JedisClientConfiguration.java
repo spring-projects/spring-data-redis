@@ -133,11 +133,25 @@ public interface JedisClientConfiguration {
 		JedisSslClientConfigurationBuilder useSsl();
 
 		/**
+		 * Use plaintext connections instead of SSL.
+		 *
+		 * @return {@link JedisSslClientConfigurationBuilder}.
+		 */
+		JedisClientConfigurationBuilder usePlaintext();
+
+		/**
 		 * Enable connection-pooling.
 		 *
 		 * @return {@link JedisPoolingClientConfigurationBuilder}.
 		 */
 		JedisPoolingClientConfigurationBuilder usePooling();
+
+		/**
+		 * Disable connection-pooling.
+		 *
+		 * @return {@link JedisClientConfigurationBuilder}.
+		 */
+		JedisClientConfigurationBuilder useUnpooledConnections();
 
 		/**
 		 * Configure a {@code clientName} to be set with {@code CLIENT SETNAME}.
@@ -265,6 +279,16 @@ public interface JedisClientConfiguration {
 		}
 
 		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#usePlaintext()
+		 */
+		@Override
+		public JedisClientConfigurationBuilder usePlaintext() {
+
+			this.useSsl = false;
+			return this;
+		}
+
+		/* (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisSslClientConfigurationBuilder#sslSocketFactory(javax.net.ssl.SSLSocketFactory)
 		 */
 		@Override
@@ -307,6 +331,16 @@ public interface JedisClientConfiguration {
 		public DefaultJedisClientConfigurationBuilder usePooling() {
 
 			this.usePooling = true;
+			return this;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#useUnpooledConnections()
+		 */
+		@Override
+		public JedisClientConfigurationBuilder useUnpooledConnections() {
+
+			this.usePooling = false;
 			return this;
 		}
 

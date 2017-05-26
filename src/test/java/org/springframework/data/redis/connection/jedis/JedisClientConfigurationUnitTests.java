@@ -21,7 +21,6 @@ import redis.clients.jedis.JedisPoolConfig;
 
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -82,7 +81,19 @@ public class JedisClientConfigurationUnitTests {
 		assertThat(configuration.getPoolConfig()).contains(poolConfig);
 	}
 
-	static enum MyHostnameVerifier implements HostnameVerifier {
+	@Test // DATAREDIS-574
+	public void shouldAllowsConfigurationOverrides() {
+
+		JedisClientConfiguration configuration = JedisClientConfiguration.builder().useSsl() //
+				.and().usePlaintext() //
+				.usePooling().and().useUnpooledConnections() //
+				.build();
+
+		assertThat(configuration.useSsl()).isFalse();
+		assertThat(configuration.usePooling()).isFalse();
+	}
+
+	enum MyHostnameVerifier implements HostnameVerifier {
 
 		INSTANCE;
 

@@ -116,6 +116,13 @@ public interface LettuceClientConfiguration {
 		LettuceSslClientConfigurationBuilder useSsl();
 
 		/**
+		 * Use plaintext connections instead of SSL.
+		 *
+		 * @return {@link LettuceClientConfigurationBuilder}.
+		 */
+		LettuceClientConfigurationBuilder usePlaintext();
+
+		/**
 		 * Configure {@link ClientResources}.
 		 *
 		 * @param clientResources must not be {@literal null}.
@@ -223,6 +230,16 @@ public interface LettuceClientConfiguration {
 		public LettuceSslClientConfigurationBuilder useSsl() {
 
 			this.useSsl = true;
+			return this;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#usePlaintext()
+		 */
+		@Override
+		public LettuceClientConfigurationBuilder usePlaintext() {
+
+			this.useSsl = false;
 			return this;
 		}
 
