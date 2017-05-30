@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.cache;
 
 import static edu.umd.cs.mtc.TestFramework.*;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsInstanceOf.*;
 import static org.hamcrest.core.IsNot.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.hamcrest.core.IsSame.*;
@@ -27,18 +25,18 @@ import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
+import edu.umd.cs.mtc.MultithreadedTestCase;
+
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.AfterClass;
-import org.junit.AssumptionViolatedException;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -48,16 +46,14 @@ import org.springframework.cache.Cache.ValueRetrievalException;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.StringObjectFactory;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.AbstractOperationsTestParams;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
-
-import edu.umd.cs.mtc.MultithreadedTestCase;
 
 /**
+ * Tests moved over from 1.x line RedisCache implementation. Just removed somme of the limitations/assumtions previously
+ * required.
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
@@ -65,21 +61,26 @@ import edu.umd.cs.mtc.MultithreadedTestCase;
  */
 @SuppressWarnings("rawtypes")
 @RunWith(Parameterized.class)
-public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
+public class LegacyRedisCacheTests {
 
-	private ObjectFactory<Object> keyFactory;
-	private ObjectFactory<Object> valueFactory;
-	private RedisTemplate template;
+	final static String CACHE_NAME = "testCache";
+	ObjectFactory<Object> keyFactory;
+	ObjectFactory<Object> valueFactory;
+	RedisConnectionFactory connectionFactory;
+	final boolean allowCacheNullValues;
 
-	public RedisCacheTest(RedisTemplate template, ObjectFactory<Object> keyFactory, ObjectFactory<Object> valueFactory,
-			boolean allowCacheNullValues) {
+	RedisCache cache;
 
-		super(allowCacheNullValues);
+	public LegacyRedisCacheTests(RedisTemplate template, ObjectFactory<Object> keyFactory,
+								 ObjectFactory<Object> valueFactory, boolean allowCacheNullValues) {
 
+		this.connectionFactory = template.getConnectionFactory();
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
-		this.template = template;
-		ConnectionFactoryTracker.add(template.getConnectionFactory());
+		this.allowCacheNullValues = allowCacheNullValues;
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		cache = createCache();
 	}
 
 	@Parameters
@@ -103,33 +104,21 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		return target;
 	}
 
-	@SuppressWarnings("unchecked")
-	protected RedisCache createCache(RedisTemplate nativeCache, boolean allowCacheNullValues) {
-
-		return new RedisCache(CACHE_NAME, CACHE_NAME.concat(":").getBytes(), nativeCache, TimeUnit.MINUTES.toSeconds(10),
-				allowCacheNullValues);
-	}
-
-	protected RedisTemplate createNativeCache() throws Exception {
-		return template;
-	}
-
-	@Before
-	public void setUp() throws Exception {
-
-		if (!(template.getValueSerializer() instanceof JdkSerializationRedisSerializer
-				|| template.getValueSerializer() instanceof GenericJackson2JsonRedisSerializer
-				|| template.getValueSerializer() == null) && getAllowCacheNullValues()) {
-			throw new AssumptionViolatedException(
-					"Null values can only be cachend with the Jdk or GenericJackson2 serialization");
-		}
-		ConnectionFactoryTracker.add(template.getConnectionFactory());
-		super.setUp();
-	}
-
 	@AfterClass
 	public static void cleanUp() {
 		ConnectionFactoryTracker.cleanUp();
+	}
+
+	@SuppressWarnings("unchecked")
+	private RedisCache createCache() {
+
+		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+				.entryTtl(Duration.ofSeconds(10));
+		if (!allowCacheNullValues) {
+			cacheConfiguration = cacheConfiguration.disableCachingNullValues();
+		}
+
+		return new RedisCache(CACHE_NAME, new DefaultRedisCacheWriter(connectionFactory), cacheConfiguration);
 	}
 
 	protected Object getValue() {
@@ -141,7 +130,39 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 	}
 
 	@Test
+	public void testCachePut() throws Exception {
+		Object key = getKey();
+		Object value = getValue();
+
+		assertNotNull(value);
+		assertNull(cache.get(key));
+		cache.put(key, value);
+		ValueWrapper valueWrapper = cache.get(key);
+		if (valueWrapper != null) {
+			assertThat(valueWrapper.get(), isEqual(value));
+		}
+	}
+
+	@Test
+	public void testCacheClear() throws Exception {
+		Object key1 = getKey();
+		Object value1 = getValue();
+
+		Object key2 = getKey();
+		Object value2 = getValue();
+
+		assertNull(cache.get(key1));
+		cache.put(key1, value1);
+		assertNull(cache.get(key2));
+		cache.put(key2, value2);
+		cache.clear();
+		assertNull(cache.get(key2));
+		assertNull(cache.get(key1));
+	}
+
+	@Test
 	public void testConcurrentRead() throws Exception {
+
 		final Object key1 = getKey();
 		final Object value1 = getValue();
 
@@ -188,19 +209,8 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 	}
 
 	@Test
-	public void testCacheName() throws Exception {
-
-		RedisCacheManager redisCM = new RedisCacheManager(template);
-		redisCM.afterPropertiesSet();
-
-		String cacheName = "s2gx11";
-		Cache cache = redisCM.getCache(cacheName);
-		assertNotNull(cache);
-		assertTrue(redisCM.getCacheNames().contains(cacheName));
-	}
-
-	@Test
 	public void testGetWhileClear() throws InterruptedException {
+
 		final Object key1 = getKey();
 		final Object value1 = getValue();
 		int numTries = 10;
@@ -232,69 +242,56 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 	@Test // DATAREDIS-243
 	public void testCacheGetShouldReturnCachedInstance() {
-		assumeThat(cache, instanceOf(RedisCache.class));
 
 		Object key = getKey();
 		Object value = getValue();
 		cache.put(key, value);
 
-		assertThat(value, isEqual(((RedisCache) cache).get(key, Object.class)));
+		assertThat(value, isEqual(cache.get(key, Object.class)));
 	}
 
 	@Test // DATAREDIS-243
 	public void testCacheGetShouldRetunInstanceOfCorrectType() {
-		assumeThat(cache, instanceOf(RedisCache.class));
 
 		Object key = getKey();
 		Object value = getValue();
 		cache.put(key, value);
 
-		RedisCache redisCache = (RedisCache) cache;
-		assertThat(redisCache.get(key, value.getClass()), IsInstanceOf.<Object>instanceOf(value.getClass()));
+		assertThat(cache.get(key, value.getClass()), IsInstanceOf.<Object> instanceOf(value.getClass()));
 	}
 
-	@Test(expected = ClassCastException.class) // DATAREDIS-243
+	@Test(expected = IllegalStateException.class) // DATAREDIS-243
 	public void testCacheGetShouldThrowExceptionOnInvalidType() {
-		assumeThat(cache, instanceOf(RedisCache.class));
 
 		Object key = getKey();
 		Object value = getValue();
 		cache.put(key, value);
 
-		RedisCache redisCache = (RedisCache) cache;
 		@SuppressWarnings("unused")
-		Cache retrievedObject = redisCache.get(key, Cache.class);
+		Cache retrievedObject = cache.get(key, Cache.class);
 	}
 
 	@Test // DATAREDIS-243
 	public void testCacheGetShouldReturnNullIfNoCachedValueFound() {
-		assumeThat(cache, instanceOf(RedisCache.class));
 
 		Object key = getKey();
 		Object value = getValue();
 		cache.put(key, value);
 
-		RedisCache redisCache = (RedisCache) cache;
-
-		Object invalidKey = template.getKeySerializer() == null ? "spring-data-redis".getBytes() : "spring-data-redis";
-		assertThat(redisCache.get(invalidKey, value.getClass()), nullValue());
+		Object invalidKey = "spring-data-redis".getBytes();
+		assertThat(cache.get(invalidKey, value.getClass()), nullValue());
 	}
 
 	@Test // DATAREDIS-344, DATAREDIS-416
 	public void putIfAbsentShouldSetValueOnlyIfNotPresent() {
 
-		assumeThat(cache, instanceOf(RedisCache.class));
-
-		RedisCache redisCache = (RedisCache) cache;
-
 		Object key = getKey();
-		template.delete(key);
 
 		Object value = getValue();
 
-		assertThat(redisCache.putIfAbsent(key, value), nullValue());
+		assertThat(cache.putIfAbsent(key, value), nullValue());
 
-		ValueWrapper wrapper = redisCache.putIfAbsent(key, value);
+		ValueWrapper wrapper = cache.putIfAbsent(key, value);
 
 		if (!(value instanceof Number)) {
 			assertThat(wrapper.get(), not(sameInstance(value)));
@@ -306,7 +303,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-510, DATAREDIS-606
 	public void cachePutWithNullShouldNotAddStuffToRedis() {
 
-		assumeThat(getAllowCacheNullValues(), is(false));
+		assumeThat("Only suitable when cache does NOT allow null values.", allowCacheNullValues, is(false));
 
 		Object key = getKey();
 
@@ -316,7 +313,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 	@Test // DATAREDIS-510, DATAREDIS-606
 	public void cachePutWithNullShouldErrorAndLeaveExistingKeyUntouched() {
 
-		assumeThat(getAllowCacheNullValues(), is(false));
+		assumeThat("Only suitable when cache does NOT allow null values.", allowCacheNullValues, is(false));
 
 		Object key = getKey();
 		Object value = getValue();
@@ -336,17 +333,13 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 	@Test // DATAREDIS-443, DATAREDIS-452
 	public void testCacheGetSynchronized() throws Throwable {
-
-		assumeThat(cache, instanceOf(RedisCache.class));
-		assumeThat(valueFactory, instanceOf(StringObjectFactory.class));
-
-		runOnce(new CacheGetWithValueLoaderIsThreadSafe((RedisCache) cache));
+		runOnce(new CacheGetWithValueLoaderIsThreadSafe(cache));
 	}
 
 	@Test // DATAREDIS-553
 	public void cachePutWithNullShouldAddStuffToRedisWhenCachingNullIsEnabled() {
 
-		assumeThat(getAllowCacheNullValues(), is(true));
+		assumeThat("Only suitable when cache does allow null values.", allowCacheNullValues, is(true));
 
 		Object key = getKey();
 		Object value = getValue();
@@ -359,8 +352,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 	@Test // DATAREDIS-553
 	public void testCacheGetSynchronizedNullAllowingNull() {
 
-		assumeThat(getAllowCacheNullValues(), is(true));
-		assumeThat(cache, instanceOf(RedisCache.class));
+		assumeThat("Only suitable when cache does allow null values.", allowCacheNullValues, is(true));
 
 		Object key = getKey();
 		Object value = cache.get(key, new Callable<Object>() {
@@ -374,12 +366,10 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(cache.get(key).get(), is(nullValue()));
 	}
 
-	@Test(expected = ValueRetrievalException.class) // DATAREDIS-553, DATAREDIS-606
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-553, DATAREDIS-606
 	public void testCacheGetSynchronizedNullNotAllowingNull() {
 
-		assumeThat(getAllowCacheNullValues(), is(false));
-		assumeThat(cache, instanceOf(RedisCache.class));
-		assumeThat(template.getValueSerializer(), not(instanceOf(StringRedisSerializer.class)));
+		assumeThat("Only suitable when cache does NOT allow null values.", allowCacheNullValues, is(false));
 
 		Object key = getKey();
 		Object value = cache.get(key, new Callable<Object>() {
@@ -390,11 +380,22 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		});
 	}
 
+	@Test(expected = ValueRetrievalException.class)
+	public void testCacheGetSynchronizedThrowsExceptionInValueLoader() {
+
+		Object key = getKey();
+		Object value = cache.get(key, new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				throw new RuntimeException("doh!");
+			}
+		});
+	}
+
 	@Test // DATAREDIS-553
 	public void testCacheGetSynchronizedNullWithStoredNull() {
 
-		assumeThat(getAllowCacheNullValues(), is(true));
-		assumeThat(cache, instanceOf(RedisCache.class));
+		assumeThat("Only suitable when cache does allow null values.", allowCacheNullValues, is(true));
 
 		Object key = getKey();
 		cache.put(key, null);
@@ -412,10 +413,10 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 	@SuppressWarnings("unused")
 	private static class CacheGetWithValueLoaderIsThreadSafe extends MultithreadedTestCase {
 
-		RedisCache redisCache;
+		Cache redisCache;
 		TestCacheLoader<String> cacheLoader;
 
-		public CacheGetWithValueLoaderIsThreadSafe(RedisCache redisCache) {
+		public CacheGetWithValueLoaderIsThreadSafe(Cache redisCache) {
 
 			this.redisCache = redisCache;
 

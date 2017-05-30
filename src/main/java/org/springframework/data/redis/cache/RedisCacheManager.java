@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,332 +15,306 @@
  */
 package org.springframework.data.redis.cache;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.support.NullValue;
 import org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager;
-import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
- * {@link CacheManager} implementation for Redis. By default saves the keys directly, without appending a prefix (which
- * acts as a namespace). To avoid clashes, it is recommended to change this (by setting 'usePrefix' to 'true'). <br>
- * By default {@link RedisCache}s will be lazily initialized for each {@link #getCache(String)} request unless a set of
- * predefined cache names is provided. <br>
- * <br>
- * Setting {@link #setTransactionAware(boolean)} to {@code true} will force Caches to be decorated as
- * {@link TransactionAwareCacheDecorator} so values will only be written to the cache after successful commit of
- * surrounding transaction.
- * 
- * @author Costin Leau
  * @author Christoph Strobl
- * @author Thomas Darimont
+ * @since 2.0
  */
 public class RedisCacheManager extends AbstractTransactionSupportingCacheManager {
 
-	private final Log logger = LogFactory.getLog(RedisCacheManager.class);
+	private final RedisCacheWriter cacheWriter;
+	private final RedisCacheConfiguration defaultCacheConfig;
+	private final Map<String, RedisCacheConfiguration> initialCacheConfiguration;
 
-	@SuppressWarnings("rawtypes") //
-	private final RedisOperations redisOperations;
+	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration) {
 
-	private boolean usePrefix = false;
-	private RedisCachePrefix cachePrefix = new DefaultRedisCachePrefix();
-	private boolean loadRemoteCachesOnStartup = false;
-	private boolean dynamic = true;
+		Assert.notNull(cacheWriter, "CacheWriter must not be null!");
+		Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null!");
 
-	// 0 - never expire
-	private long defaultExpiration = 0;
-	private Map<String, Long> expires = null;
-
-	private Set<String> configuredCacheNames;
-
-	private final boolean cacheNullValues;
-
-	/**
-	 * Construct a {@link RedisCacheManager}.
-	 * 
-	 * @param redisOperations
-	 */
-	@SuppressWarnings("rawtypes")
-	public RedisCacheManager(RedisOperations redisOperations) {
-		this(redisOperations, Collections.<String> emptyList());
+		this.cacheWriter = cacheWriter;
+		this.defaultCacheConfig = defaultCacheConfiguration;
+		this.initialCacheConfiguration = new LinkedHashMap<>();
 	}
 
 	/**
-	 * Construct a static {@link RedisCacheManager}, managing caches for the specified cache names only.
-	 * 
-	 * @param redisOperations
-	 * @param cacheNames
-	 * @since 1.2
-	 */
-	@SuppressWarnings("rawtypes")
-	public RedisCacheManager(RedisOperations redisOperations, Collection<String> cacheNames) {
-		this(redisOperations, cacheNames, false);
-	}
-
-	/**
-	 * Construct a static {@link RedisCacheManager}, managing caches for the specified cache names only. <br />
-	 * <br />
-	 * <strong>NOTE</strong> When enabling {@code cacheNullValues} please make sure the {@link RedisSerializer} used by
-	 * {@link RedisOperations} is capable of serializing {@link NullValue}.
+	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
+	 * {@link RedisCacheConfiguration}.
 	 *
-	 * @param redisOperations {@link RedisOperations} to work upon.
-	 * @param cacheNames {@link Collection} of known cache names.
-	 * @param cacheNullValues set to {@literal true} to allow caching {@literal null}.
-	 * @since 1.8
+	 * @param cacheWriter must not be {@literal null}.
+	 * @param defaultCacheConfiguration must not be {@literal null}. Maybe just use
+	 *          {@link RedisCacheConfiguration#defaultCacheConfig()}.
+	 * @param initialCacheNames optional set of known cache names that will be created with given
+	 *          {@literal defaultCacheConfiguration}.
 	 */
-	@SuppressWarnings("rawtypes")
-	public RedisCacheManager(RedisOperations redisOperations, Collection<String> cacheNames, boolean cacheNullValues) {
+	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
+							 String... initialCacheNames) {
 
-		this.redisOperations = redisOperations;
-		this.cacheNullValues = cacheNullValues;
-		setCacheNames(cacheNames);
-	}
+		this(cacheWriter, defaultCacheConfiguration);
 
-	/**
-	 * Specify the set of cache names for this CacheManager's 'static' mode. <br>
-	 * The number of caches and their names will be fixed after a call to this method, with no creation of further cache
-	 * regions at runtime. <br>
-	 * Calling this with a {@code null} or empty collection argument resets the mode to 'dynamic', allowing for further
-	 * creation of caches again.
-	 */
-	public void setCacheNames(Collection<String> cacheNames) {
-
-		Set<String> newCacheNames = CollectionUtils.isEmpty(cacheNames) ? Collections.<String> emptySet()
-				: new HashSet<String>(cacheNames);
-
-		this.configuredCacheNames = newCacheNames;
-		this.dynamic = newCacheNames.isEmpty();
-	}
-
-	public void setUsePrefix(boolean usePrefix) {
-		this.usePrefix = usePrefix;
-	}
-
-	/**
-	 * Sets the cachePrefix. Defaults to 'DefaultRedisCachePrefix').
-	 * 
-	 * @param cachePrefix the cachePrefix to set
-	 */
-	public void setCachePrefix(RedisCachePrefix cachePrefix) {
-		this.cachePrefix = cachePrefix;
-	}
-
-	/**
-	 * Sets the default expire time (in seconds).
-	 * 
-	 * @param defaultExpireTime time in seconds.
-	 */
-	public void setDefaultExpiration(long defaultExpireTime) {
-		this.defaultExpiration = defaultExpireTime;
-	}
-
-	/**
-	 * Sets the expire time (in seconds) for cache regions (by key).
-	 * 
-	 * @param expires time in seconds
-	 */
-	public void setExpires(Map<String, Long> expires) {
-		this.expires = (expires != null ? new ConcurrentHashMap<String, Long>(expires) : null);
-	}
-
-	/**
-	 * If set to {@code true} {@link RedisCacheManager} will try to retrieve cache names from redis server using
-	 * {@literal KEYS} command and initialize {@link RedisCache} for each of them.
-	 * 
-	 * @param loadRemoteCachesOnStartup
-	 * @since 1.2
-	 */
-	public void setLoadRemoteCachesOnStartup(boolean loadRemoteCachesOnStartup) {
-		this.loadRemoteCachesOnStartup = loadRemoteCachesOnStartup;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.cache.support.AbstractCacheManager#loadCaches()
-	 */
-	@Override
-	protected Collection<? extends Cache> loadCaches() {
-
-		Assert.notNull(this.redisOperations, "A redis template is required in order to interact with data store");
-
-		Set<Cache> caches = new LinkedHashSet<Cache>(
-				loadRemoteCachesOnStartup ? loadAndInitRemoteCaches() : new ArrayList<Cache>());
-
-		Set<String> cachesToLoad = new LinkedHashSet<String>(this.configuredCacheNames);
-		cachesToLoad.addAll(this.getCacheNames());
-
-		if (!CollectionUtils.isEmpty(cachesToLoad)) {
-
-			for (String cacheName : cachesToLoad) {
-				caches.add(createCache(cacheName));
-			}
+		for (String cacheName : initialCacheNames) {
+			this.initialCacheConfiguration.put(cacheName, defaultCacheConfiguration);
 		}
+	}
 
+	/**
+	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
+	 * {@link RedisCacheConfiguration}.
+	 *
+	 * @param cacheWriter must not be {@literal null}.
+	 * @param defaultCacheConfiguration must not be {@literal null}. Maybe just use
+	 *          {@link RedisCacheConfiguration#defaultCacheConfig()}.
+	 * @param initialCacheConfigurations Map of known cache names along with the configuration to use for those caches.
+	 *          Must not be {@literal null}.
+	 */
+	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
+							 Map<String, RedisCacheConfiguration> initialCacheConfigurations) {
+
+		this(cacheWriter, defaultCacheConfiguration);
+
+		Assert.notNull(initialCacheConfigurations, "InitialCacheConfigurations must not be null!");
+		this.initialCacheConfiguration.putAll(initialCacheConfigurations);
+	}
+
+	/**
+	 * Create a new {@link RedisCacheManager} with defaults applied.
+	 * <dl>
+	 * <dt>locking</dt>
+	 * <dd>disabled</dd>
+	 * <dt>cache configuration</dt>
+	 * <dd>{@link RedisCacheConfiguration#defaultCacheConfig()}</dd>
+	 * <dt>initial caches</dt>
+	 * <dd>none</dd>
+	 * <dt>transaction aware</dt>
+	 * <dd>no</dd>
+	 * </dl>
+	 *
+	 * @param connectionFactory must not be {@literal null}.
+	 * @return new instance of {@link RedisCacheManager}.
+	 */
+	public static RedisCacheManager defaultCacheManager(RedisConnectionFactory connectionFactory) {
+
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
+
+		return new RedisCacheManager(new DefaultRedisCacheWriter(connectionFactory),
+				RedisCacheConfiguration.defaultCacheConfig());
+	}
+
+	/**
+	 * Entry point for builder style {@link RedisCacheManager} configuration.
+	 *
+	 * @param connectionFactory must not be {@literal null}.
+	 * @return new {@link RedisCacheManagerConfigurator}.
+	 */
+	public static RedisCacheManagerConfigurator usingRawConnectionFactory(RedisConnectionFactory connectionFactory) {
+
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
+
+		return RedisCacheManagerConfigurator.usingRawFactory(connectionFactory);
+	}
+
+	/**
+	 * Entry point for builder style {@link RedisCacheManager} configuration.
+	 *
+	 * @param cacheWriter must not be {@literal null}.
+	 * @return new {@link RedisCacheManagerConfigurator}.
+	 */
+	public static RedisCacheManagerConfigurator usingCacheWriter(RedisCacheWriter cacheWriter) {
+
+		Assert.notNull(cacheWriter, "CacheWriter must not be null!");
+
+		return RedisCacheManagerConfigurator.usingCacheWriter(cacheWriter);
+	}
+
+	@Override
+	protected Collection<RedisCache> loadCaches() {
+
+		List<RedisCache> caches = new LinkedList<>();
+		for (Map.Entry<String, RedisCacheConfiguration> entry : initialCacheConfiguration.entrySet()) {
+			caches.add(createRedisCache(entry.getKey(), entry.getValue()));
+		}
 		return caches;
 	}
 
-	/**
-	 * Returns a new {@link Collection} of {@link Cache} from the given caches collection and adds the configured
-	 * {@link Cache}s of they are not already present.
-	 * 
-	 * @param caches must not be {@literal null}
-	 * @return
-	 */
-	protected Collection<? extends Cache> addConfiguredCachesIfNecessary(Collection<? extends Cache> caches) {
-
-		Assert.notNull(caches, "Caches must not be null!");
-
-		Collection<Cache> result = new ArrayList<Cache>(caches);
-
-		for (String cacheName : getCacheNames()) {
-
-			boolean configuredCacheAlreadyPresent = false;
-
-			for (Cache cache : caches) {
-
-				if (cache.getName().equals(cacheName)) {
-					configuredCacheAlreadyPresent = true;
-					break;
-				}
-			}
-
-			if (!configuredCacheAlreadyPresent) {
-				result.add(getCache(cacheName));
-			}
-		}
-
-		return result;
-	}
-
-	/**
-	 * Will no longer add the cache to the set of
-	 *
-	 * @param cacheName
-	 * @return
-	 * @deprecated since 1.8 - please use {@link #getCache(String)}.
-	 */
-	@Deprecated
-	protected Cache createAndAddCache(String cacheName) {
-
-		Cache cache = super.getCache(cacheName);
-		return cache != null ? cache : createCache(cacheName);
-	}
-
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.cache.support.AbstractCacheManager#getMissingCache(java.lang.String)
-	 */
 	@Override
-	protected Cache getMissingCache(String name) {
-		return this.dynamic ? createCache(name) : null;
+	protected RedisCache getMissingCache(String name) {
+		return createRedisCache(name, defaultCacheConfig);
 	}
 
-	@SuppressWarnings("unchecked")
-	protected RedisCache createCache(String cacheName) {
-		long expiration = computeExpiration(cacheName);
-		return new RedisCache(cacheName, (usePrefix ? cachePrefix.prefix(cacheName) : null), redisOperations, expiration,
-				cacheNullValues);
-	}
+	/**
+	 * @return unmodifiable {@link Map} containing cache name / configuration pairs. Never {@literal null}.
+	 */
+	public Map<String, RedisCacheConfiguration> getCacheConfigurations() {
 
-	protected long computeExpiration(String name) {
-		Long expiration = null;
-		if (expires != null) {
-			expiration = expires.get(name);
-		}
-		return (expiration != null ? expiration.longValue() : defaultExpiration);
-	}
+		Map<String, RedisCacheConfiguration> configurationMap = new HashMap<>(getCacheNames().size());
+		getCacheNames().forEach(it -> {
 
-	protected List<Cache> loadAndInitRemoteCaches() {
-
-		List<Cache> caches = new ArrayList<Cache>();
-
-		try {
-			Set<String> cacheNames = loadRemoteCacheKeys();
-			if (!CollectionUtils.isEmpty(cacheNames)) {
-				for (String cacheName : cacheNames) {
-					if (null == super.getCache(cacheName)) {
-						caches.add(createCache(cacheName));
-					}
-				}
-			}
-		} catch (Exception e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("Failed to initialize cache with remote cache keys.", e);
-			}
-		}
-
-		return caches;
-	}
-
-	@SuppressWarnings("unchecked")
-	protected Set<String> loadRemoteCacheKeys() {
-		return (Set<String>) redisOperations.execute(new RedisCallback<Set<String>>() {
-
-			@Override
-			public Set<String> doInRedis(RedisConnection connection) throws DataAccessException {
-
-				// we are using the ~keys postfix as defined in RedisCache#setName
-				Set<byte[]> keys = connection.keys(redisOperations.getKeySerializer().serialize("*~keys"));
-				Set<String> cacheKeys = new LinkedHashSet<String>();
-
-				if (!CollectionUtils.isEmpty(keys)) {
-					for (byte[] key : keys) {
-						cacheKeys.add(redisOperations.getKeySerializer().deserialize(key).toString().replace("~keys", ""));
-					}
-				}
-
-				return cacheKeys;
-			}
+			RedisCache cache = RedisCache.class.cast(lookupCache(it));
+			configurationMap.put(it, cache != null ? cache.getCacheConfiguration() : null);
 		});
+		return Collections.unmodifiableMap(configurationMap);
 	}
 
-	@SuppressWarnings("rawtypes")
-	protected RedisOperations getRedisOperations() {
-		return redisOperations;
+	/**
+	 * Configuration hook for creating {@link RedisCache} with given name and cacheConfig.
+	 *
+	 * @param name must not be {@literal null}.
+	 * @param cacheConfig can be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	protected RedisCache createRedisCache(String name, RedisCacheConfiguration cacheConfig) {
+		return new RedisCache(name, cacheWriter, cacheConfig != null ? cacheConfig : defaultCacheConfig);
 	}
 
-	protected RedisCachePrefix getCachePrefix() {
-		return cachePrefix;
-	}
+	/**
+	 * Configurator for creating {@link RedisCacheManager}.
+	 *
+	 * @author Christoph Strobl
+	 * @since 2.0
+	 */
+	public static class RedisCacheManagerConfigurator {
 
-	protected boolean isUsePrefix() {
-		return usePrefix;
-	}
+		private final RedisCacheConfiguration defaultCacheConfiguration;
+		private final RedisCacheWriter cacheWriter;
+		private final boolean enableTransactions;
+		private final Map<String, RedisCacheConfiguration> intialCaches = new LinkedHashMap<>();
 
-	/* (non-Javadoc)
-	* @see
-	org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager#decorateCache(org.springframework.cache.Cache)
-	*/
-	@Override
-	protected Cache decorateCache(Cache cache) {
+		private RedisCacheManagerConfigurator(RedisCacheWriter cacheWriter,
+				RedisCacheConfiguration defaultCacheConfiguration, Map<String, RedisCacheConfiguration> intialCaches,
+				boolean enableTransactions) {
 
-		if (isCacheAlreadyDecorated(cache)) {
-			return cache;
+			this.cacheWriter = cacheWriter;
+			this.defaultCacheConfiguration = defaultCacheConfiguration;
+
+			if (!CollectionUtils.isEmpty(intialCaches)) {
+				this.intialCaches.putAll(intialCaches);
+			}
+
+			this.enableTransactions = enableTransactions;
 		}
 
-		return super.decorateCache(cache);
-	}
+		/**
+		 * Entry point for builder style {@link RedisCacheManager} configuration.
+		 *
+		 * @param connectionFactory must not be {@literal null}.
+		 * @return new {@link RedisCacheManagerConfigurator}.
+		 */
+		public static RedisCacheManagerConfigurator usingRawFactory(RedisConnectionFactory connectionFactory) {
 
-	protected boolean isCacheAlreadyDecorated(Cache cache) {
-		return isTransactionAware() && cache instanceof TransactionAwareCacheDecorator;
+			Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
+
+			return usingCacheWriter(new DefaultRedisCacheWriter(connectionFactory));
+		}
+
+		/**
+		 * Entry point for builder style {@link RedisCacheManager} configuration.
+		 *
+		 * @param cacheWriter must not be {@literal null}.
+		 * @return new {@link RedisCacheManagerConfigurator}.
+		 */
+		public static RedisCacheManagerConfigurator usingCacheWriter(RedisCacheWriter cacheWriter) {
+
+			Assert.notNull(cacheWriter, "CacheWriter must not be null!");
+
+			return new RedisCacheManagerConfigurator(cacheWriter, RedisCacheConfiguration.defaultCacheConfig(), null, false);
+		}
+
+		/**
+		 * Define a default {@link RedisCacheConfiguration} applied to dynamically created {@link RedisCache}s.
+		 *
+		 * @param defaultCacheConfiguration must not be {@literal null}.
+		 * @return new instance of {@link RedisCacheManagerConfigurator}.
+		 */
+		public RedisCacheManagerConfigurator withCacheDefaults(RedisCacheConfiguration defaultCacheConfiguration) {
+
+			Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null!");
+
+			return new RedisCacheManagerConfigurator(cacheWriter, defaultCacheConfiguration, intialCaches,
+					enableTransactions);
+		}
+
+		/**
+		 * Enable {@link RedisCache}s to synchronize cache put/evict operations with ongoing Spring-managed transactions.
+		 *
+		 * @return new instance of {@link RedisCacheManagerConfigurator}.
+		 */
+		public RedisCacheManagerConfigurator transactionAware() {
+			return new RedisCacheManagerConfigurator(cacheWriter, defaultCacheConfiguration, intialCaches, true);
+		}
+
+		/**
+		 * Append a {@link Set} of cache names to be pre initialized with current {@link RedisCacheConfiguration}.
+		 * <strong>NOTE:</strong> This calls depends on {@link #withCacheDefaults(RedisCacheConfiguration)} using whatever
+		 * default {@link RedisCacheConfiguration} is present at the time of invoking this method.
+		 *
+		 * @param cacheNames must not be {@literal null}.
+		 * @return new instance of {@link RedisCacheManagerConfigurator}.
+		 */
+		public RedisCacheManagerConfigurator withInitialCacheNames(Set<String> cacheNames) {
+
+			Assert.notNull(cacheNames, "CacheNames must not be null!");
+
+			Map<String, RedisCacheConfiguration> cacheConfigMap = new LinkedHashMap<>(cacheNames.size());
+			cacheNames.forEach(it -> cacheConfigMap.put(it, defaultCacheConfiguration));
+			return withInitialCacheConfigurations(cacheConfigMap);
+		}
+
+		/**
+		 * Append a {@link Map} of cache name/{@link RedisCacheConfiguration} pairs to be pre initialized.
+		 *
+		 * @param cacheConfigurations must not be {@literal null}.
+		 * @return new instance of {@link RedisCacheManagerConfigurator}.
+		 */
+		public RedisCacheManagerConfigurator withInitialCacheConfigurations(
+				Map<String, RedisCacheConfiguration> cacheConfigurations) {
+
+			Assert.notNull(cacheConfigurations, "CacheConfigurations must not be null!");
+
+			Map<String, RedisCacheConfiguration> cacheConfigMap = new LinkedHashMap<>(intialCaches);
+			cacheConfigMap.putAll(cacheConfigurations);
+			return new RedisCacheManagerConfigurator(cacheWriter, defaultCacheConfiguration, cacheConfigMap,
+					enableTransactions);
+		}
+
+		/**
+		 * Create new instance of {@link RedisCacheManager} with configuration options applied.
+		 *
+		 * @return new instance of {@link RedisCacheManager}.
+		 */
+		public RedisCacheManager createAndGet() {
+
+			RedisCacheManager cm = new RedisCacheManager(cacheWriter, defaultCacheConfiguration, intialCaches) {
+
+				boolean hasAlreadyBeenSet;
+
+				@Override
+				public void setTransactionAware(boolean transactionAware) {
+
+					if (hasAlreadyBeenSet) {
+						throw new IllegalStateException(
+								String.format("CacheManager transaction awareness has already been set to %s.", isTransactionAware()));
+					}
+
+					super.setTransactionAware(transactionAware);
+					hasAlreadyBeenSet = true;
+				}
+			};
+
+			cm.setTransactionAware(enableTransactions);
+			cm.afterPropertiesSet(); // is this a good idea? Still need to think about it.
+			return cm;
+		}
 	}
 }

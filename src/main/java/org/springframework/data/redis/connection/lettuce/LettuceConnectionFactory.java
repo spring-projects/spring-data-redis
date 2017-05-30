@@ -102,6 +102,13 @@ public class LettuceConnectionFactory
 	}
 
 	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
+	 */
+	public LettuceConnectionFactory(RedisStandaloneConfiguration config) {
+		this(config, new MutableLettuceClientConfiguration());
+	}
+
+	/**
 	 * Constructs a new {@link LettuceConnectionFactory} instance given {@link LettuceClientConfiguration}.
 	 *
 	 * @param clientConfig must not be {@literal null}
