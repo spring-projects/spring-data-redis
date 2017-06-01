@@ -190,7 +190,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.projectreactor.addons</groupId>
+			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-test</artifactId>
 			<version>${reactor}</version>
 			<scope>test</scope>
