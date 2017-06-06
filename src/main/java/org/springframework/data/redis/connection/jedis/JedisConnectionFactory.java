@@ -26,7 +26,6 @@ import redis.clients.jedis.JedisShardInfo;
 import redis.clients.jedis.Protocol;
 import redis.clients.util.Pool;
 
-import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,11 +49,19 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.ClusterCommandExecutor;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisPassword;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -81,19 +88,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			JedisConverters.exceptionConverter());
-
-	private static final Method SET_TIMEOUT_METHOD;
-
-	static {
-
-		// We need to configure Jedis socket timeout via reflection since the method-name was changed between releases.
-		Method setTimeoutMethodCandidate = ReflectionUtils.findMethod(JedisShardInfo.class, "setTimeout", int.class);
-		if (setTimeoutMethodCandidate == null) {
-			// Jedis V 2.7.x changed the setTimeout method to setSoTimeout
-			setTimeoutMethodCandidate = ReflectionUtils.findMethod(JedisShardInfo.class, "setSoTimeout", int.class);
-		}
-		SET_TIMEOUT_METHOD = setTimeoutMethodCandidate;
-	}
 
 	private final JedisClientConfiguration clientConfiguration;
 	private JedisShardInfo shardInfo;
@@ -169,7 +163,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link JedisPoolConfig} applied to
 	 * {@link JedisSentinelPool}.
 	 *
-	 * @param sentinelConfig
+	 * @param sentinelConfig the sentinel configuration to use.
 	 * @param poolConfig pool configuration. Defaulted to new instance if {@literal null}.
 	 * @since 1.4
 	 */
@@ -314,7 +308,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * Post process a newly retrieved connection. Useful for decorating or executing initialization commands on a new
 	 * connection. This implementation simply returns the connection.
 	 *
-	 * @param connection
+	 * @param connection the jedis connection.
 	 * @return processed connection
 	 */
 	protected JedisConnection postProcessConnection(JedisConnection connection) {
@@ -340,7 +334,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			int readTimeout = getReadTimeout();
 
 			if (readTimeout > 0) {
-				setTimeoutOn(shardInfo, readTimeout);
+				shardInfo.setSoTimeout(readTimeout);
 			}
 
 			getMutableConfiguration().setShardInfo(shardInfo);
@@ -366,8 +360,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Creates {@link JedisSentinelPool}.
 	 *
-	 * @param config
-	 * @return
+	 * @param config the actual {@link RedisSentinelConfiguration}. Never {@literal null}.
+	 * @return the {@link Pool} to use. Never {@literal null}.
 	 * @since 1.4
 	 */
 	protected Pool<Jedis> createRedisSentinelPool(RedisSentinelConfiguration config) {
@@ -380,7 +374,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Creates {@link JedisPool}.
 	 *
-	 * @return
+	 * @return the {@link Pool} to use. Never {@literal null}.
 	 * @since 1.4
 	 */
 	protected Pool<Jedis> createRedisPool() {
@@ -406,7 +400,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 *
 	 * @param clusterConfig must not be {@literal null}.
 	 * @param poolConfig can be {@literal null}.
-	 * @return
+	 * @return the actual {@link JedisCluster}.
 	 * @since 1.7
 	 */
 	protected JedisCluster createCluster(RedisClusterConfiguration clusterConfig, GenericObjectPoolConfig poolConfig) {
@@ -526,7 +520,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @since 1.8
 	 */
 	public boolean isUseSsl() {
-		return clientConfiguration.useSsl();
+		return clientConfiguration.isUseSsl();
 	}
 
 	/**
@@ -663,7 +657,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @return the use of connection pooling.
 	 */
 	public boolean getUsePool() {
-		return clientConfiguration.usePooling();
+		return clientConfiguration.isUsePooling();
 	}
 
 	/**
@@ -876,10 +870,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		clientConfiguration.getClientName().ifPresent(jedis::clientSetname);
 	}
 
-	private void setTimeoutOn(JedisShardInfo shardInfo, int timeout) {
-		ReflectionUtils.invokeMethod(SET_TIMEOUT_METHOD, shardInfo, timeout);
-	}
-
 	private int getReadTimeout() {
 		return Math.toIntExact(clientConfiguration.getReadTimeout().toMillis());
 	}
@@ -897,6 +887,11 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return (MutableJedisClientConfiguration) clientConfiguration;
 	}
 
+	/**
+	 * Mutable implementation of {@link JedisClientConfiguration}.
+	 *
+	 * @author Mark Paluch
+	 */
 	static class MutableJedisClientConfiguration implements JedisClientConfiguration {
 
 		private boolean useSsl;
@@ -912,26 +907,22 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		public static JedisClientConfiguration create(JedisShardInfo shardInfo) {
 
 			MutableJedisClientConfiguration configuration = new MutableJedisClientConfiguration();
-
 			configuration.setShardInfo(shardInfo);
-
 			return configuration;
 		}
 
 		public static JedisClientConfiguration create(GenericObjectPoolConfig jedisPoolConfig) {
 
 			MutableJedisClientConfiguration configuration = new MutableJedisClientConfiguration();
-
 			configuration.setPoolConfig(jedisPoolConfig);
-
 			return configuration;
 		}
 
 		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#useSsl()
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#isUseSsl()
 		 */
 		@Override
-		public boolean useSsl() {
+		public boolean isUseSsl() {
 			return useSsl;
 		}
 
@@ -939,7 +930,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.useSsl = useSsl;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getSslSocketFactory()
 		 */
 		@Override
@@ -951,7 +943,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.sslSocketFactory = sslSocketFactory;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getSslParameters()
 		 */
 		@Override
@@ -963,7 +956,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.sslParameters = sslParameters;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getHostnameVerifier()
 		 */
 		@Override
@@ -975,11 +969,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.hostnameVerifier = hostnameVerifier;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#usePooling()
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#isUsePooling()
 		 */
 		@Override
-		public boolean usePooling() {
+		public boolean isUsePooling() {
 			return usePooling;
 		}
 
@@ -987,7 +982,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.usePooling = usePooling;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getPoolConfig()
 		 */
 		@Override
@@ -999,7 +995,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.poolConfig = poolConfig;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getClientName()
 		 */
 		@Override
@@ -1011,7 +1008,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.clientName = clientName;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getReadTimeout()
 		 */
 		@Override
@@ -1023,7 +1021,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.readTimeout = readTimeout;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getConnectTimeout()
 		 */
 		@Override

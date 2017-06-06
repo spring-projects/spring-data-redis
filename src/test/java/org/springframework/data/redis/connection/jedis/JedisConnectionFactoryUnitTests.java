@@ -104,7 +104,7 @@ public class JedisConnectionFactoryUnitTests {
 		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
 
-		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
@@ -115,7 +115,7 @@ public class JedisConnectionFactoryUnitTests {
 		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
 
-		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
@@ -128,7 +128,7 @@ public class JedisConnectionFactoryUnitTests {
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
 
-		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
@@ -139,7 +139,7 @@ public class JedisConnectionFactoryUnitTests {
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
 
-		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
@@ -152,7 +152,7 @@ public class JedisConnectionFactoryUnitTests {
 		RedisClusterConfiguration envConfig = new RedisClusterConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
 
-		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
@@ -163,7 +163,7 @@ public class JedisConnectionFactoryUnitTests {
 		RedisClusterConfiguration envConfig = new RedisClusterConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
 
-		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
@@ -176,7 +176,7 @@ public class JedisConnectionFactoryUnitTests {
 		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
 		envConfig.setDatabase(2);
 
-		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getDatabase()).isEqualTo(2);
 	}
@@ -187,7 +187,7 @@ public class JedisConnectionFactoryUnitTests {
 		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
 		envConfig.setDatabase(2);
 
-		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.defaultConfiguration());
 		connectionFactory.setDatabase(3);
 
 		assertThat(connectionFactory.getDatabase()).isEqualTo(3);
@@ -200,7 +200,7 @@ public class JedisConnectionFactoryUnitTests {
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
 		envConfig.setDatabase(2);
 
-		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getDatabase()).isEqualTo(2);
 	}
@@ -211,7 +211,7 @@ public class JedisConnectionFactoryUnitTests {
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
 		envConfig.setDatabase(2);
 
-		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.defaultConfiguration());
 		connectionFactory.setDatabase(3);
 
 		assertThat(connectionFactory.getDatabase()).isEqualTo(3);
@@ -250,7 +250,7 @@ public class JedisConnectionFactoryUnitTests {
 	public void shouldReturnStandaloneConfiguration() {
 
 		RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
-		connectionFactory = new JedisConnectionFactory(configuration, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(configuration, JedisClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getStandaloneConfiguration()).isSameAs(configuration);
 		assertThat(connectionFactory.getSentinelConfiguration()).isNull();
@@ -261,7 +261,7 @@ public class JedisConnectionFactoryUnitTests {
 	public void shouldReturnSentinelConfiguration() {
 
 		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration();
-		connectionFactory = new JedisConnectionFactory(configuration, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(configuration, JedisClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getStandaloneConfiguration()).isNotNull();
 		assertThat(connectionFactory.getSentinelConfiguration()).isSameAs(configuration);
@@ -272,7 +272,7 @@ public class JedisConnectionFactoryUnitTests {
 	public void shouldReturnClusterConfiguration() {
 
 		RedisClusterConfiguration configuration = new RedisClusterConfiguration();
-		connectionFactory = new JedisConnectionFactory(configuration, JedisClientConfiguration.create());
+		connectionFactory = new JedisConnectionFactory(configuration, JedisClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getStandaloneConfiguration()).isNotNull();
 		assertThat(connectionFactory.getSentinelConfiguration()).isNull();
@@ -283,7 +283,7 @@ public class JedisConnectionFactoryUnitTests {
 	public void shouldDenyChangesToImmutableClientConfiguration() throws NoSuchAlgorithmException {
 
 		connectionFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration(),
-				JedisClientConfiguration.create());
+				JedisClientConfiguration.defaultConfiguration());
 
 		connectionFactory.setClientName("foo");
 	}

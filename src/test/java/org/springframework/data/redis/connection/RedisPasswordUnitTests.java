@@ -23,6 +23,7 @@ import org.junit.Test;
  * Unit tests for {@link RedisPassword}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class RedisPasswordUnitTests {
 
@@ -48,6 +49,6 @@ public class RedisPasswordUnitTests {
 
 	@Test // DATAREDIS-574
 	public void toStringShouldHideValue() {
-		assertThat(RedisPassword.of("foo".toCharArray()).toString()).startsWith("RedisPassword[***");
+		assertThat(RedisPassword.of("foo".toCharArray()).toString()).startsWith("RedisPassword[**").doesNotContain("foo");
 	}
 }

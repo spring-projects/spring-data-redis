@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class RedisClusterConfiguration {
 	 * Creates new {@link RedisClusterConfiguration}.
 	 */
 	public RedisClusterConfiguration() {
-		this(new MapPropertySource("RedisClusterConfiguration", Collections.<String, Object> emptyMap()));
+		this(new MapPropertySource("RedisClusterConfiguration", Collections.emptyMap()));
 	}
 
 	/**
@@ -64,12 +64,13 @@ public class RedisClusterConfiguration {
 	 * clusterHostAndPorts[0] = 127.0.0.1:23679
 	 * clusterHostAndPorts[1] = 127.0.0.1:23680 ...
 	 * </code>
+	 *
 	 * <pre>
 	 *
 	 * @param clusterNodes must not be {@literal null}.
 	 */
 	public RedisClusterConfiguration(Collection<String> clusterNodes) {
-		this(new MapPropertySource("RedisClusterConfiguration", asMap(clusterNodes, -1, -1, null)));
+		this(new MapPropertySource("RedisClusterConfiguration", asMap(clusterNodes, -1)));
 	}
 
 	/**
@@ -90,11 +91,11 @@ public class RedisClusterConfiguration {
 
 		notNull(propertySource, "PropertySource must not be null!");
 
-		this.clusterNodes = new LinkedHashSet<RedisNode>();
+		this.clusterNodes = new LinkedHashSet<>();
 
 		if (propertySource.containsProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY)) {
-			appendClusterNodes(commaDelimitedListToSet(propertySource.getProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY)
-					.toString()));
+			appendClusterNodes(
+					commaDelimitedListToSet(propertySource.getProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY).toString()));
 		}
 		if (propertySource.containsProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY)) {
 			this.maxRedirects = NumberUtils.parseNumber(
@@ -139,7 +140,7 @@ public class RedisClusterConfiguration {
 	}
 
 	/**
-	 * @return
+	 * @return this.
 	 */
 	public RedisClusterConfiguration clusterNode(RedisNode node) {
 
@@ -148,14 +149,14 @@ public class RedisClusterConfiguration {
 	}
 
 	/**
-	 * @return
+	 * @return max number of redirects to follow or {@literal null} if not set.
 	 */
 	public Integer getMaxRedirects() {
 		return maxRedirects != null && maxRedirects > Integer.MIN_VALUE ? maxRedirects : null;
 	}
 
 	/**
-	 * @param maxRedirects
+	 * @param maxRedirects the max number of redirects to follow.
 	 */
 	public void setMaxRedirects(int maxRedirects) {
 
@@ -164,9 +165,9 @@ public class RedisClusterConfiguration {
 	}
 
 	/**
-	 * @param host
-	 * @param port
-	 * @return
+	 * @param host Redis cluster node host name or ip address.
+	 * @param port Redis cluster node port.
+	 * @return this.
 	 */
 	public RedisClusterConfiguration clusterNode(String host, Integer port) {
 		return clusterNode(new RedisNode(host, port));
@@ -180,7 +181,9 @@ public class RedisClusterConfiguration {
 	}
 
 	/**
-	 * @return
+	 * Get the {@link RedisPassword} defined.
+	 *
+	 * @return never {@literal null}.
 	 * @since 2.0
 	 */
 	public RedisPassword getPassword() {
@@ -204,26 +207,24 @@ public class RedisClusterConfiguration {
 
 		notNull(args, "HostAndPort need to be seperated by  ':'.");
 		isTrue(args.length == 2, "Host and Port String needs to specified as host:port");
-		return new RedisNode(args[0], Integer.valueOf(args[1]).intValue());
+		return new RedisNode(args[0], Integer.valueOf(args[1]));
 	}
 
 	/**
 	 * @param clusterHostAndPorts must not be {@literal null} or empty.
-	 * @param timeout
-	 * @param redirects
+	 * @param redirects the max number of redirects to follow.
 	 * @param password can be {@literal null} or empty.
-	 * @return
+	 * @return cluster config map with properties.
 	 */
-	private static Map<String, Object> asMap(Collection<String> clusterHostAndPorts, long timeout, int redirects,
-			String password) {
+	private static Map<String, Object> asMap(Collection<String> clusterHostAndPorts, int redirects) {
 
 		notNull(clusterHostAndPorts, "ClusterHostAndPorts must not be null!");
 
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put(REDIS_CLUSTER_NODES_CONFIG_PROPERTY, StringUtils.collectionToCommaDelimitedString(clusterHostAndPorts));
 
 		if (redirects >= 0) {
-			map.put(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY, Integer.valueOf(redirects));
+			map.put(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY, redirects);
 		}
 
 		return map;

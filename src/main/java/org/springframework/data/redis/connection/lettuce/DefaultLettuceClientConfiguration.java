@@ -53,7 +53,7 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#useSsl()
 	 */
 	@Override
-	public boolean useSsl() {
+	public boolean isUseSsl() {
 		return useSsl;
 	}
 
@@ -93,7 +93,7 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getTimeout()
 	 */
 	@Override
-	public Duration getTimeout() {
+	public Duration getCommandTimeout() {
 		return timeout;
 	}
 

@@ -25,6 +25,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Value object which may or may not contain a Redis password.
@@ -34,13 +36,14 @@ import org.springframework.util.Assert;
  * The password is stored as character array.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode
 public class RedisPassword {
 
-	private static final RedisPassword NONE = new RedisPassword(new char[0]);
+	private static final RedisPassword NONE = new RedisPassword(new char[] {});
 
 	private final char[] thePassword;
 
@@ -53,7 +56,7 @@ public class RedisPassword {
 	public static RedisPassword of(String passwordAsString) {
 
 		return Optional.ofNullable(passwordAsString) //
-				.filter(it -> it.length() != 0) //
+				.filter(StringUtils::hasText) //
 				.map(it -> new RedisPassword(it.toCharArray())) //
 				.orElseGet(RedisPassword::none);
 	}
@@ -61,13 +64,13 @@ public class RedisPassword {
 	/**
 	 * Create a {@link RedisPassword} from a {@code char} array.
 	 *
-	 * @param passwordAsChars the password as string.
+	 * @param passwordAsChars the password as char array.
 	 * @return the {@link RedisPassword} for {@code passwordAsChars}.
 	 */
 	public static RedisPassword of(char[] passwordAsChars) {
 
 		return Optional.ofNullable(passwordAsChars) //
-				.filter(it -> it.length != 0) //
+				.filter(it -> !ObjectUtils.isEmpty(passwordAsChars)) //
 				.map(it -> new RedisPassword(Arrays.copyOf(it, it.length))) //
 				.orElseGet(RedisPassword::none);
 	}
@@ -87,7 +90,7 @@ public class RedisPassword {
 	 * @return {@code true} if there is a password present, otherwise {@code false}
 	 */
 	public boolean isPresent() {
-		return thePassword.length != 0;
+		return !ObjectUtils.isEmpty(thePassword);
 	}
 
 	/**
@@ -117,11 +120,7 @@ public class RedisPassword {
 
 		Assert.notNull(mapper, "Mapper function must not be null!");
 
-		if (isPresent()) {
-			return Optional.ofNullable(mapper.apply(thePassword));
-		}
-
-		return Optional.empty();
+		return toOptional().map(mapper);
 	}
 
 	/**
@@ -140,7 +139,8 @@ public class RedisPassword {
 		return Optional.empty();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

@@ -19,15 +19,16 @@ import org.springframework.util.Assert;
 
 /**
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
- * to <a href="http://redis.io/">Redis</a>.
+ * to a single node <a href="http://redis.io/">Redis</a> installation.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 public class RedisStandaloneConfiguration {
 
-	public static final String DEFAULT_HOST = "localhost";
-	public static final int DEFAULT_PORT = 6379;
+	private static final String DEFAULT_HOST = "localhost";
+	private static final int DEFAULT_PORT = 6379;
 
 	private String hostName = DEFAULT_HOST;
 	private int port = DEFAULT_PORT;
@@ -65,35 +66,35 @@ public class RedisStandaloneConfiguration {
 	}
 
 	/**
-	 * @return
+	 * @return the hostname or ip of the Redis node.
 	 */
 	public String getHostName() {
 		return hostName;
 	}
 
 	/**
-	 * @return
+	 * @return the port or the Redis node.
 	 */
 	public int getPort() {
 		return port;
 	}
 
 	/**
-	 * @param hostName
+	 * @param hostName the hostname or ip of the Redis node.
 	 */
 	public void setHostName(String hostName) {
 		this.hostName = hostName;
 	}
 
 	/**
-	 * @param port
+	 * @param port the Redis node port to connect to.
 	 */
 	public void setPort(int port) {
 		this.port = port;
 	}
 
 	/**
-	 * @return
+	 * @return the db index.
 	 */
 	public int getDatabase() {
 		return database;
@@ -106,13 +107,13 @@ public class RedisStandaloneConfiguration {
 	 */
 	public void setDatabase(int index) {
 
-		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
+		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
 
 		this.database = index;
 	}
 
 	/**
-	 * @return
+	 * @return never {@literal null}.
 	 */
 	public RedisPassword getPassword() {
 		return password;

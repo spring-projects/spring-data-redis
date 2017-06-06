@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * </ul>
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  * @see org.springframework.data.redis.connection.RedisStandaloneConfiguration
  * @see org.springframework.data.redis.connection.RedisSentinelConfiguration
@@ -51,10 +52,10 @@ public interface LettuceClientConfiguration {
 	/**
 	 * @return {@literal true} to use SSL, {@literal false} to use unencrypted connections.
 	 */
-	boolean useSsl();
+	boolean isUseSsl();
 
 	/**
-	 * @return {@literal true} to verify peers when using {@link #useSsl() SSL}.
+	 * @return {@literal true} to verify peers when using {@link #isUseSsl() SSL}.
 	 */
 	boolean isVerifyPeer();
 
@@ -76,7 +77,7 @@ public interface LettuceClientConfiguration {
 	/**
 	 * @return the timeout.
 	 */
-	Duration getTimeout();
+	Duration getCommandTimeout();
 
 	/**
 	 * @return the shutdown timeout used to close the client.
@@ -95,11 +96,27 @@ public interface LettuceClientConfiguration {
 	}
 
 	/**
-	 * Creates an empty {@link LettuceClientConfiguration}.
+	 * Creates a default {@link LettuceClientConfiguration} with:
+	 * <dl>
+	 * <dt>SSL</dt>
+	 * <dd>no</dd>
+	 * <dt>Peer Verification</dt>
+	 * <dd>yes</dd>
+	 * <dt>Start TLS</dt>
+	 * <dd>no</dd>
+	 * <dt>Client Options</dt>
+	 * <dd>none</dd>
+	 * <dt>Client Resources</dt>
+	 * <dd>none</dd>
+	 * <dt>Connect Timeout</dt>
+	 * <dd>60 Seconds</dd>
+	 * <dt>Shutdown Timeout</dt>
+	 * <dd>2 Seconds</dd>
+	 * </dl>
 	 *
-	 * @return an empty {@link LettuceClientConfiguration}.
+	 * @return a {@link LettuceClientConfiguration} with defaults.
 	 */
-	static LettuceClientConfiguration create() {
+	static LettuceClientConfiguration defaultConfiguration() {
 		return builder().build();
 	}
 
@@ -116,17 +133,11 @@ public interface LettuceClientConfiguration {
 		LettuceSslClientConfigurationBuilder useSsl();
 
 		/**
-		 * Use plaintext connections instead of SSL.
-		 *
-		 * @return {@link LettuceClientConfigurationBuilder}.
-		 */
-		LettuceClientConfigurationBuilder usePlaintext();
-
-		/**
 		 * Configure {@link ClientResources}.
 		 *
 		 * @param clientResources must not be {@literal null}.
 		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if clientResources is {@literal null}.
 		 */
 		LettuceClientConfigurationBuilder clientResources(ClientResources clientResources);
 
@@ -135,24 +146,25 @@ public interface LettuceClientConfiguration {
 		 *
 		 * @param clientOptions must not be {@literal null}.
 		 * @return {@literal this} builder.
-		 * @see ClientOptions
-		 * @see io.lettuce.core.cluster.ClusterClientOptions
+		 * @throws IllegalArgumentException if clientOptions is {@literal null}.
 		 */
 		LettuceClientConfigurationBuilder clientOptions(ClientOptions clientOptions);
 
 		/**
-		 * Configure a timeout.
+		 * Configure a command timeout.
 		 *
 		 * @param timeout must not be {@literal null}.
 		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if timeout is {@literal null}.
 		 */
-		LettuceClientConfigurationBuilder timeout(Duration timeout);
+		LettuceClientConfigurationBuilder commandTimeout(Duration timeout);
 
 		/**
 		 * Configure a shutdown timeout.
 		 *
 		 * @param shutdownTimeout must not be {@literal null}.
 		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if shutdownTimeout is {@literal null}.
 		 */
 		LettuceClientConfigurationBuilder shutdownTimeout(Duration shutdownTimeout);
 
@@ -170,19 +182,11 @@ public interface LettuceClientConfiguration {
 	interface LettuceSslClientConfigurationBuilder {
 
 		/**
-		 * Enable peer verification.
+		 * Disable peer verification.
 		 *
 		 * @return {@literal this} builder.
 		 */
-		LettuceSslClientConfigurationBuilder verifyPeer();
-
-		/**
-		 * Enable/disable peer verification.
-		 *
-		 * @param verifyPeer {@literal true} to enable peer verification, {@literal false} to skip peer verification.
-		 * @return {@literal this} builder.
-		 */
-		LettuceSslClientConfigurationBuilder verifyPeer(boolean verifyPeer);
+		LettuceSslClientConfigurationBuilder disablePeerVerification();
 
 		/**
 		 * Enable Start TLS to send the first bytes unencrypted.
@@ -223,7 +227,8 @@ public interface LettuceClientConfiguration {
 
 		private DefaultLettuceClientConfigurationBuilder() {}
 
-		/* (non-Javadoc)
+		/*d
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#useSsl()
 		 */
 		@Override
@@ -233,35 +238,19 @@ public interface LettuceClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#usePlaintext()
+		/*
+		 *(non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#disablePeerVerification()
 		 */
 		@Override
-		public LettuceClientConfigurationBuilder usePlaintext() {
+		public LettuceSslClientConfigurationBuilder disablePeerVerification() {
 
-			this.useSsl = false;
+			this.verifyPeer = false;
 			return this;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#verifyPeer()
-		 */
-		@Override
-		public LettuceSslClientConfigurationBuilder verifyPeer() {
-			return verifyPeer(true);
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#verifyPeer(boolean)
-		 */
-		@Override
-		public LettuceSslClientConfigurationBuilder verifyPeer(boolean verifyPeer) {
-
-			this.verifyPeer = verifyPeer;
-			return this;
-		}
-
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#startTls()
 		 */
 		@Override
@@ -271,7 +260,8 @@ public interface LettuceClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#and()
 		 */
 		@Override
@@ -279,7 +269,8 @@ public interface LettuceClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#clientResources(io.lettuce.core.resource.ClientResources)
 		 */
 		@Override
@@ -291,7 +282,8 @@ public interface LettuceClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#clientOptions(io.lettuce.core.ClientOptions)
 		 */
 		@Override
@@ -303,11 +295,12 @@ public interface LettuceClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#timeout(java.time.Duration)
 		 */
 		@Override
-		public LettuceClientConfigurationBuilder timeout(Duration timeout) {
+		public LettuceClientConfigurationBuilder commandTimeout(Duration timeout) {
 
 			Assert.notNull(timeout, "Duration must not be null!");
 
@@ -315,7 +308,8 @@ public interface LettuceClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#shutdownTimeout(java.time.Duration)
 		 */
 		@Override
@@ -327,7 +321,8 @@ public interface LettuceClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#build()
 		 */
 		@Override

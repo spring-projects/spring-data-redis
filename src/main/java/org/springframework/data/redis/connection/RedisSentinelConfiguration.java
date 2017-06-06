@@ -54,7 +54,7 @@ public class RedisSentinelConfiguration {
 	 * Creates new {@link RedisSentinelConfiguration}.
 	 */
 	public RedisSentinelConfiguration() {
-		this(new MapPropertySource("RedisSentinelConfiguration", Collections.<String, Object> emptyMap()));
+		this(new MapPropertySource("RedisSentinelConfiguration", Collections.emptyMap()));
 	}
 
 	/**
@@ -89,7 +89,7 @@ public class RedisSentinelConfiguration {
 
 		notNull(propertySource, "PropertySource must not be null!");
 
-		this.sentinels = new LinkedHashSet<RedisNode>();
+		this.sentinels = new LinkedHashSet<>();
 
 		if (propertySource.containsProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY)) {
 			this.setMaster(propertySource.getProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY).toString());
@@ -145,13 +145,7 @@ public class RedisSentinelConfiguration {
 	public void setMaster(final String name) {
 
 		notNull(name, "Name of sentinel master must not be null.");
-		setMaster(new NamedNode() {
-
-			@Override
-			public String getName() {
-				return name;
-			}
-		});
+		setMaster(() -> name);
 	}
 
 	/**
@@ -168,7 +162,7 @@ public class RedisSentinelConfiguration {
 	/**
 	 * Get the {@literal Sentinel} master node.
 	 *
-	 * @return
+	 * @return get the master node.
 	 */
 	public NamedNode getMaster() {
 		return master;
@@ -176,8 +170,8 @@ public class RedisSentinelConfiguration {
 
 	/**
 	 * @see #setMaster(String)
-	 * @param master
-	 * @return
+	 * @param master The master node name.
+	 * @return this.
 	 */
 	public RedisSentinelConfiguration master(String master) {
 		this.setMaster(master);
@@ -186,8 +180,8 @@ public class RedisSentinelConfiguration {
 
 	/**
 	 * @see #setMaster(NamedNode)
-	 * @param master
-	 * @return
+	 * @param master the master node
+	 * @return this.
 	 */
 	public RedisSentinelConfiguration master(NamedNode master) {
 		this.setMaster(master);
@@ -196,8 +190,8 @@ public class RedisSentinelConfiguration {
 
 	/**
 	 * @see #addSentinel(RedisNode)
-	 * @param sentinel
-	 * @return
+	 * @param sentinel the node to add as sentinel.
+	 * @return this.
 	 */
 	public RedisSentinelConfiguration sentinel(RedisNode sentinel) {
 		this.addSentinel(sentinel);
@@ -206,9 +200,9 @@ public class RedisSentinelConfiguration {
 
 	/**
 	 * @see #sentinel(RedisNode)
-	 * @param host
-	 * @param port
-	 * @return
+	 * @param host redis sentinel node host name or ip.
+	 * @param port redis sentinel port.
+	 * @return this.
 	 */
 	public RedisSentinelConfiguration sentinel(String host, Integer port) {
 		return sentinel(new RedisNode(host, port));
@@ -222,7 +216,7 @@ public class RedisSentinelConfiguration {
 	}
 
 	/**
-	 * @return
+	 * @return the initial db index.
 	 * @since 2.0
 	 */
 	public int getDatabase() {
@@ -237,13 +231,13 @@ public class RedisSentinelConfiguration {
 	 */
 	public void setDatabase(int index) {
 
-		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
+		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
 
 		this.database = index;
 	}
 
 	/**
-	 * @return
+	 * @return never {@literal null}.
 	 * @since 2.0
 	 */
 	public RedisPassword getPassword() {
@@ -273,14 +267,14 @@ public class RedisSentinelConfiguration {
 	/**
 	 * @param master must not be {@literal null} or empty.
 	 * @param sentinelHostAndPorts must not be {@literal null}.
-	 * @return
+	 * @return configuration map.
 	 */
 	private static Map<String, Object> asMap(String master, Set<String> sentinelHostAndPorts) {
 
 		hasText(master, "Master address must not be null or empty!");
 		notNull(sentinelHostAndPorts, "SentinelHostAndPorts must not be null!");
 
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY, master);
 		map.put(REDIS_SENTINEL_NODES_CONFIG_PROPERTY, StringUtils.collectionToCommaDelimitedString(sentinelHostAndPorts));
 

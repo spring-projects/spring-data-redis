@@ -60,7 +60,7 @@ public class JedisConnectionFactoryIntegrationTests {
 
 		factory = new JedisConnectionFactory(
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
-				JedisClientConfiguration.create());
+				JedisClientConfiguration.defaultConfiguration());
 		factory.afterPropertiesSet();
 
 		assertThat(factory.getConnection().ping(), equalTo("PONG"));

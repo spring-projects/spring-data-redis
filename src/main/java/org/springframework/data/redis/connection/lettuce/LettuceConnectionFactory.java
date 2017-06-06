@@ -41,7 +41,18 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.ClusterCommandExecutor;
+import org.springframework.data.redis.connection.Pool;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisPassword;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -74,8 +85,6 @@ import org.springframework.util.ClassUtils;
  */
 public class LettuceConnectionFactory
 		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
-
-	public static final String PING_REPLY = "PONG";
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			LettuceConverters.exceptionConverter());
@@ -409,7 +418,7 @@ public class LettuceConnectionFactory
 	 * @return use of SSL.
 	 */
 	public boolean isUseSsl() {
-		return clientConfiguration.useSsl();
+		return clientConfiguration.isUseSsl();
 	}
 
 	/**
@@ -800,10 +809,10 @@ public class LettuceConnectionFactory
 
 		getRedisPassword().toOptional().ifPresent(builder::withPassword);
 
-		builder.withSsl(clientConfiguration.useSsl());
+		builder.withSsl(clientConfiguration.isUseSsl());
 		builder.withVerifyPeer(clientConfiguration.isVerifyPeer());
 		builder.withStartTls(clientConfiguration.isStartTls());
-		builder.withTimeout(clientConfiguration.getTimeout().toMillis(), TimeUnit.MILLISECONDS);
+		builder.withTimeout(clientConfiguration.getCommandTimeout().toMillis(), TimeUnit.MILLISECONDS);
 
 		return builder.build();
 	}
@@ -827,9 +836,14 @@ public class LettuceConnectionFactory
 	}
 
 	private long getClientTimeout() {
-		return clientConfiguration.getTimeout().toMillis();
+		return clientConfiguration.getCommandTimeout().toMillis();
 	}
 
+	/**
+	 * Mutable implementation of {@link LettuceClientConfiguration}.
+	 *
+	 * @author Mark Paluch
+	 */
 	static class MutableLettuceClientConfiguration implements LettuceClientConfiguration {
 
 		private boolean useSsl;
@@ -840,10 +854,10 @@ public class LettuceConnectionFactory
 		private Duration shutdownTimeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 
 		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#useSsl()
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isUseSsl()
 		 */
 		@Override
-		public boolean useSsl() {
+		public boolean isUseSsl() {
 			return useSsl;
 		}
 
@@ -899,7 +913,7 @@ public class LettuceConnectionFactory
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getTimeout()
 		 */
 		@Override
-		public Duration getTimeout() {
+		public Duration getCommandTimeout() {
 			return timeout;
 		}
 

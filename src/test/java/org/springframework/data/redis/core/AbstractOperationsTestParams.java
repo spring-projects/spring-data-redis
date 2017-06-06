@@ -41,6 +41,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 abstract public class AbstractOperationsTestParams {
 
@@ -71,46 +72,46 @@ abstract public class AbstractOperationsTestParams {
 		stringTemplate.setConnectionFactory(jedisConnectionFactory);
 		stringTemplate.afterPropertiesSet();
 
-		RedisTemplate<String, Long> longTemplate = new RedisTemplate<String, Long>();
+		RedisTemplate<String, Long> longTemplate = new RedisTemplate<>();
 		longTemplate.setKeySerializer(new StringRedisSerializer());
-		longTemplate.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
+		longTemplate.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		longTemplate.setConnectionFactory(jedisConnectionFactory);
 		longTemplate.afterPropertiesSet();
 
-		RedisTemplate<String, Double> doubleTemplate = new RedisTemplate<String, Double>();
+		RedisTemplate<String, Double> doubleTemplate = new RedisTemplate<>();
 		doubleTemplate.setKeySerializer(new StringRedisSerializer());
-		doubleTemplate.setValueSerializer(new GenericToStringSerializer<Double>(Double.class));
+		doubleTemplate.setValueSerializer(new GenericToStringSerializer<>(Double.class));
 		doubleTemplate.setConnectionFactory(jedisConnectionFactory);
 		doubleTemplate.afterPropertiesSet();
 
-		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<byte[], byte[]>();
+		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<>();
 		rawTemplate.setEnableDefaultSerializer(false);
 		rawTemplate.setConnectionFactory(jedisConnectionFactory);
 		rawTemplate.afterPropertiesSet();
 
-		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> personTemplate = new RedisTemplate<>();
 		personTemplate.setConnectionFactory(jedisConnectionFactory);
 		personTemplate.afterPropertiesSet();
 
 		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
-		RedisTemplate<String, String> xstreamStringTemplate = new RedisTemplate<String, String>();
+		RedisTemplate<String, String> xstreamStringTemplate = new RedisTemplate<>();
 		xstreamStringTemplate.setConnectionFactory(jedisConnectionFactory);
 		xstreamStringTemplate.setDefaultSerializer(serializer);
 		xstreamStringTemplate.afterPropertiesSet();
 
-		RedisTemplate<String, Person> xstreamPersonTemplate = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> xstreamPersonTemplate = new RedisTemplate<>();
 		xstreamPersonTemplate.setConnectionFactory(jedisConnectionFactory);
 		xstreamPersonTemplate.setValueSerializer(serializer);
 		xstreamPersonTemplate.afterPropertiesSet();
 
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
-		RedisTemplate<String, Person> jackson2JsonPersonTemplate = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> jackson2JsonPersonTemplate = new RedisTemplate<>();
 		jackson2JsonPersonTemplate.setConnectionFactory(jedisConnectionFactory);
 		jackson2JsonPersonTemplate.setValueSerializer(jackson2JsonSerializer);
 		jackson2JsonPersonTemplate.afterPropertiesSet();
 
 		GenericJackson2JsonRedisSerializer genericJackson2JsonSerializer = new GenericJackson2JsonRedisSerializer();
-		RedisTemplate<String, Person> genericJackson2JsonPersonTemplate = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> genericJackson2JsonPersonTemplate = new RedisTemplate<>();
 		genericJackson2JsonPersonTemplate.setConnectionFactory(jedisConnectionFactory);
 		genericJackson2JsonPersonTemplate.setValueSerializer(genericJackson2JsonSerializer);
 		genericJackson2JsonPersonTemplate.afterPropertiesSet();
