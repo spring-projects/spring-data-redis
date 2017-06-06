@@ -19,9 +19,10 @@ import org.springframework.util.Assert;
 
 /**
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
- * to <a href="http://redis.io/">Redis</a>.
+ * to a single node <a href="http://redis.io/">Redis</a> installation.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 public class RedisStandaloneConfiguration {
@@ -106,13 +107,13 @@ public class RedisStandaloneConfiguration {
 	 */
 	public void setDatabase(int index) {
 
-		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
+		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
 
 		this.database = index;
 	}
 
 	/**
-	 * @return
+	 * @return never {@literal null}.
 	 */
 	public RedisPassword getPassword() {
 		return password;

@@ -292,7 +292,7 @@ public class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getPassword(), is(equalTo("foo")));
 	}
@@ -304,7 +304,7 @@ public class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword(), is(equalTo("bar")));
@@ -318,7 +318,7 @@ public class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getPassword(), is(equalTo("foo")));
 	}
@@ -330,7 +330,7 @@ public class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword(), is(equalTo("bar")));
@@ -344,7 +344,7 @@ public class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getPassword(), is(equalTo("foo")));
 	}
@@ -356,7 +356,7 @@ public class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword(), is(equalTo("bar")));
@@ -370,7 +370,7 @@ public class LettuceConnectionFactoryUnitTests {
 		envConfig.setDatabase(2);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getDatabase(), is(2));
 	}
@@ -382,7 +382,7 @@ public class LettuceConnectionFactoryUnitTests {
 		envConfig.setDatabase(2);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 		connectionFactory.setDatabase(3);
 
 		assertThat(connectionFactory.getDatabase(), is(3));
@@ -396,7 +396,7 @@ public class LettuceConnectionFactoryUnitTests {
 		envConfig.setDatabase(2);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getDatabase(), is(2));
 	}
@@ -408,7 +408,7 @@ public class LettuceConnectionFactoryUnitTests {
 		envConfig.setDatabase(2);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 		connectionFactory.setDatabase(3);
 
 		assertThat(connectionFactory.getDatabase(), is(3));
@@ -423,11 +423,11 @@ public class LettuceConnectionFactoryUnitTests {
 
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder() //
 				.useSsl() //
-				.verifyPeer(false) //
+				.disablePeerVerification() //
 				.startTls().and() //
 				.clientOptions(clientOptions) //
 				.clientResources(sharedClientResources) //
-				.timeout(Duration.ofMinutes(5)) //
+				.commandTimeout(Duration.ofMinutes(5)) //
 				.shutdownTimeout(Duration.ofHours(2)) //
 				.build();
 
@@ -449,7 +449,7 @@ public class LettuceConnectionFactoryUnitTests {
 
 		RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getStandaloneConfiguration(), is(configuration));
 		assertThat(connectionFactory.getSentinelConfiguration(), is(nullValue()));
@@ -461,7 +461,7 @@ public class LettuceConnectionFactoryUnitTests {
 
 		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration();
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getStandaloneConfiguration(), is(notNullValue()));
 		assertThat(connectionFactory.getSentinelConfiguration(), is(configuration));
@@ -473,7 +473,7 @@ public class LettuceConnectionFactoryUnitTests {
 
 		RedisClusterConfiguration configuration = new RedisClusterConfiguration();
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getStandaloneConfiguration(), is(notNullValue()));
 		assertThat(connectionFactory.getSentinelConfiguration(), is(nullValue()));
@@ -484,7 +484,7 @@ public class LettuceConnectionFactoryUnitTests {
 	public void shouldDenyChangesToImmutableClientConfiguration() throws NoSuchAlgorithmException {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
-				LettuceClientConfiguration.create());
+				LettuceClientConfiguration.defaultConfiguration());
 
 		connectionFactory.setUseSsl(false);
 	}

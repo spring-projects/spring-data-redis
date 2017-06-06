@@ -678,9 +678,7 @@ class RedisOperationsProducer {
   @Produces
   RedisConnectionFactory redisConnectionFactory() {
 
-    JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory();
-    jedisConnectionFactory.setHostName("localhost");
-    jedisConnectionFactory.setPort(6379);
+    JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration());
     jedisConnectionFactory.afterPropertiesSet();
 
     return jedisConnectionFactory;

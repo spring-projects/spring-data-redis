@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ public class RedisClusterConfiguration {
 	 * clusterHostAndPorts[0] = 127.0.0.1:23679
 	 * clusterHostAndPorts[1] = 127.0.0.1:23680 ...
 	 * </code>
+	 *
 	 * <pre>
 	 *
 	 * @param clusterNodes must not be {@literal null}.
@@ -93,8 +94,8 @@ public class RedisClusterConfiguration {
 		this.clusterNodes = new LinkedHashSet<RedisNode>();
 
 		if (propertySource.containsProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY)) {
-			appendClusterNodes(commaDelimitedListToSet(propertySource.getProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY)
-					.toString()));
+			appendClusterNodes(
+					commaDelimitedListToSet(propertySource.getProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY).toString()));
 		}
 		if (propertySource.containsProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY)) {
 			this.maxRedirects = NumberUtils.parseNumber(
@@ -180,7 +181,9 @@ public class RedisClusterConfiguration {
 	}
 
 	/**
-	 * @return
+	 * Get the {@link RedisPassword} defined.
+	 *
+	 * @return never {@literal null}.
 	 * @since 2.0
 	 */
 	public RedisPassword getPassword() {

@@ -40,7 +40,7 @@ public class JedisClientConfigurationUnitTests {
 	@Test // DATAREDIS-574
 	public void shouldCreateEmptyConfiguration() {
 
-		JedisClientConfiguration configuration = JedisClientConfiguration.create();
+		JedisClientConfiguration configuration = JedisClientConfiguration.defaultConfiguration();
 
 		assertThat(configuration.getClientName()).isEmpty();
 		assertThat(configuration.getConnectTimeout()).isEqualTo(Duration.ofSeconds(2));
@@ -69,7 +69,7 @@ public class JedisClientConfigurationUnitTests {
 				.usePooling().poolConfig(poolConfig) //
 				.build();
 
-		assertThat(configuration.useSsl()).isTrue();
+		assertThat(configuration.isUseSsl()).isTrue();
 		assertThat(configuration.getHostnameVerifier()).contains(MyHostnameVerifier.INSTANCE);
 		assertThat(configuration.getSslParameters()).contains(sslParameters);
 		assertThat(configuration.getSslSocketFactory()).contains(socketFactory);
@@ -79,18 +79,6 @@ public class JedisClientConfigurationUnitTests {
 		assertThat(configuration.getReadTimeout()).isEqualTo(Duration.ofHours(5));
 
 		assertThat(configuration.getPoolConfig()).contains(poolConfig);
-	}
-
-	@Test // DATAREDIS-574
-	public void shouldAllowsConfigurationOverrides() {
-
-		JedisClientConfiguration configuration = JedisClientConfiguration.builder().useSsl() //
-				.and().usePlaintext() //
-				.usePooling().and().useUnpooledConnections() //
-				.build();
-
-		assertThat(configuration.useSsl()).isFalse();
-		assertThat(configuration.usePooling()).isFalse();
 	}
 
 	enum MyHostnameVerifier implements HostnameVerifier {

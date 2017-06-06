@@ -34,14 +34,14 @@ public class LettuceClientConfigurationUnitTests {
 	@Test // DATAREDIS-574
 	public void shouldCreateEmptyConfiguration() {
 
-		LettuceClientConfiguration configuration = LettuceClientConfiguration.create();
+		LettuceClientConfiguration configuration = LettuceClientConfiguration.defaultConfiguration();
 
-		assertThat(configuration.useSsl()).isFalse();
+		assertThat(configuration.isUseSsl()).isFalse();
 		assertThat(configuration.isVerifyPeer()).isTrue();
 		assertThat(configuration.isStartTls()).isFalse();
 		assertThat(configuration.getClientOptions()).isEmpty();
 		assertThat(configuration.getClientResources()).isEmpty();
-		assertThat(configuration.getTimeout()).isEqualTo(Duration.ofSeconds(60));
+		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofSeconds(2));
 	}
 
@@ -53,30 +53,20 @@ public class LettuceClientConfigurationUnitTests {
 
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder() //
 				.useSsl() //
-				.verifyPeer(false) //
+				.disablePeerVerification() //
 				.startTls().and() //
 				.clientOptions(clientOptions) //
 				.clientResources(sharedClientResources) //
-				.timeout(Duration.ofMinutes(5)) //
+				.commandTimeout(Duration.ofMinutes(5)) //
 				.shutdownTimeout(Duration.ofHours(2)) //
 				.build();
 
-		assertThat(configuration.useSsl()).isTrue();
+		assertThat(configuration.isUseSsl()).isTrue();
 		assertThat(configuration.isVerifyPeer()).isFalse();
 		assertThat(configuration.isStartTls()).isTrue();
 		assertThat(configuration.getClientOptions()).contains(clientOptions);
 		assertThat(configuration.getClientResources()).contains(sharedClientResources);
-		assertThat(configuration.getTimeout()).isEqualTo(Duration.ofMinutes(5));
+		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofMinutes(5));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofHours(2));
-	}
-
-	@Test // DATAREDIS-574
-	public void shouldAllowsConfigurationOverrides() {
-
-		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder() //
-				.useSsl().and().usePlaintext() //
-				.build();
-
-		assertThat(configuration.useSsl()).isFalse();
 	}
 }

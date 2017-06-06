@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  * </ul>
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  * @see redis.clients.jedis.Jedis
  * @see org.springframework.data.redis.connection.RedisStandaloneConfiguration
@@ -57,7 +58,7 @@ public interface JedisClientConfiguration {
 	/**
 	 * @return {@literal true} to use SSL, {@literal false} to use unencrypted connections.
 	 */
-	boolean useSsl();
+	boolean isUseSsl();
 
 	/**
 	 * @return the optional {@link SSLSocketFactory}.
@@ -77,7 +78,7 @@ public interface JedisClientConfiguration {
 	/**
 	 * @return {@literal true} to use connection-pooling.
 	 */
-	boolean usePooling();
+	boolean isUsePooling();
 
 	/**
 	 * @return the optional {@link GenericObjectPoolConfig}.
@@ -112,11 +113,23 @@ public interface JedisClientConfiguration {
 	}
 
 	/**
-	 * Creates an empty {@link JedisClientConfiguration}.
+	 * Creates a default {@link JedisClientConfiguration}.
+	 * <dl>
+	 * <dt>SSL enabled</dt>
+	 * <dd>no</dd>
+	 * <dt>Pooling enabled</dt>
+	 * <dd>no</dd>
+	 * <dt>Client Name</dt>
+	 * <dd>[not set]</dd>
+	 * <dt>Read Timeout</dt>
+	 * <dd>2000 msec</dd>
+	 * <dt>Connect Timeout</dt>
+	 * <dd>2000 msec</dd>
+	 * </dl>
 	 *
-	 * @return an empty {@link JedisClientConfiguration}.
+	 * @return a {@link JedisClientConfiguration} with defaults.
 	 */
-	static JedisClientConfiguration create() {
+	static JedisClientConfiguration defaultConfiguration() {
 		return builder().build();
 	}
 
@@ -133,13 +146,6 @@ public interface JedisClientConfiguration {
 		JedisSslClientConfigurationBuilder useSsl();
 
 		/**
-		 * Use plaintext connections instead of SSL.
-		 *
-		 * @return {@link JedisSslClientConfigurationBuilder}.
-		 */
-		JedisClientConfigurationBuilder usePlaintext();
-
-		/**
 		 * Enable connection-pooling.
 		 *
 		 * @return {@link JedisPoolingClientConfigurationBuilder}.
@@ -147,17 +153,11 @@ public interface JedisClientConfiguration {
 		JedisPoolingClientConfigurationBuilder usePooling();
 
 		/**
-		 * Disable connection-pooling.
-		 *
-		 * @return {@link JedisClientConfigurationBuilder}.
-		 */
-		JedisClientConfigurationBuilder useUnpooledConnections();
-
-		/**
 		 * Configure a {@code clientName} to be set with {@code CLIENT SETNAME}.
 		 *
 		 * @param clientName must not be {@literal null}.
 		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if clientName is {@literal null}.
 		 */
 		JedisClientConfigurationBuilder clientName(String clientName);
 
@@ -166,6 +166,7 @@ public interface JedisClientConfiguration {
 		 *
 		 * @param readTimeout must not be {@literal null}.
 		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if readTimeout is {@literal null}.
 		 */
 		JedisClientConfigurationBuilder readTimeout(Duration readTimeout);
 
@@ -174,6 +175,7 @@ public interface JedisClientConfiguration {
 		 *
 		 * @param connectTimeout must not be {@literal null}.
 		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if connectTimeout is {@literal null}.
 		 */
 		JedisClientConfigurationBuilder connectTimeout(Duration connectTimeout);
 
@@ -193,6 +195,7 @@ public interface JedisClientConfiguration {
 		/**
 		 * @param poolConfig must not be {@literal null}.
 		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if poolConfig is {@literal null}.
 		 */
 		JedisPoolingClientConfigurationBuilder poolConfig(GenericObjectPoolConfig poolConfig);
 
@@ -219,18 +222,21 @@ public interface JedisClientConfiguration {
 		/**
 		 * @param sslSocketFactory must not be {@literal null}.
 		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if sslSocketFactory is {@literal null}.
 		 */
 		JedisSslClientConfigurationBuilder sslSocketFactory(SSLSocketFactory sslSocketFactory);
 
 		/**
 		 * @param sslParameters must not be {@literal null}.
 		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if sslParameters is {@literal null}.
 		 */
 		JedisSslClientConfigurationBuilder sslParameters(SSLParameters sslParameters);
 
 		/**
 		 * @param hostnameVerifier must not be {@literal null}.
 		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if hostnameVerifier is {@literal null}.
 		 */
 		JedisSslClientConfigurationBuilder hostnameVerifier(HostnameVerifier hostnameVerifier);
 
@@ -268,31 +274,23 @@ public interface JedisClientConfiguration {
 
 		private DefaultJedisClientConfigurationBuilder() {}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#useSsl()
 		 */
 		@Override
-		public DefaultJedisClientConfigurationBuilder useSsl() {
+		public JedisSslClientConfigurationBuilder useSsl() {
 
 			this.useSsl = true;
 			return this;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#usePlaintext()
-		 */
-		@Override
-		public JedisClientConfigurationBuilder usePlaintext() {
-
-			this.useSsl = false;
-			return this;
-		}
-
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisSslClientConfigurationBuilder#sslSocketFactory(javax.net.ssl.SSLSocketFactory)
 		 */
 		@Override
-		public DefaultJedisClientConfigurationBuilder sslSocketFactory(SSLSocketFactory sslSocketFactory) {
+		public JedisSslClientConfigurationBuilder sslSocketFactory(SSLSocketFactory sslSocketFactory) {
 
 			Assert.notNull(sslSocketFactory, "SSLSocketFactory must not be null!");
 
@@ -300,11 +298,12 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisSslClientConfigurationBuilder#sslParameters(javax.net.ssl.SSLParameters)
 		 */
 		@Override
-		public DefaultJedisClientConfigurationBuilder sslParameters(SSLParameters sslParameters) {
+		public JedisSslClientConfigurationBuilder sslParameters(SSLParameters sslParameters) {
 
 			Assert.notNull(sslParameters, "SSLParameters must not be null!");
 
@@ -312,11 +311,12 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisSslClientConfigurationBuilder#hostnameVerifier(javax.net.ssl.HostnameVerifier)
 		 */
 		@Override
-		public DefaultJedisClientConfigurationBuilder hostnameVerifier(HostnameVerifier hostnameVerifier) {
+		public JedisSslClientConfigurationBuilder hostnameVerifier(HostnameVerifier hostnameVerifier) {
 
 			Assert.notNull(hostnameVerifier, "HostnameVerifier must not be null!");
 
@@ -324,31 +324,23 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#usePooling()
 		 */
 		@Override
-		public DefaultJedisClientConfigurationBuilder usePooling() {
+		public JedisPoolingClientConfigurationBuilder usePooling() {
 
 			this.usePooling = true;
 			return this;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#useUnpooledConnections()
-		 */
-		@Override
-		public JedisClientConfigurationBuilder useUnpooledConnections() {
-
-			this.usePooling = false;
-			return this;
-		}
-
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisPoolingClientConfigurationBuilder#poolConfig(org.apache.commons.pool2.impl.GenericObjectPoolConfig)
 		 */
 		@Override
-		public DefaultJedisClientConfigurationBuilder poolConfig(GenericObjectPoolConfig poolConfig) {
+		public JedisPoolingClientConfigurationBuilder poolConfig(GenericObjectPoolConfig poolConfig) {
 
 			Assert.notNull(poolConfig, "GenericObjectPoolConfig must not be null!");
 
@@ -356,7 +348,8 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisPoolingClientConfigurationBuilder#and()
 		 */
 		@Override
@@ -364,7 +357,8 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#clientName(java.lang.String)
 		 */
 		@Override
@@ -376,7 +370,8 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#readTimeout(java.time.Duration)
 		 */
 		@Override
@@ -388,7 +383,8 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#connectTimeout(java.time.Duration)
 		 */
 		@Override
@@ -400,7 +396,8 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#build()
 		 */
 		@Override

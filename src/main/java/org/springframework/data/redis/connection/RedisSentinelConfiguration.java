@@ -54,7 +54,7 @@ public class RedisSentinelConfiguration {
 	 * Creates new {@link RedisSentinelConfiguration}.
 	 */
 	public RedisSentinelConfiguration() {
-		this(new MapPropertySource("RedisSentinelConfiguration", Collections.<String, Object> emptyMap()));
+		this(new MapPropertySource("RedisSentinelConfiguration", Collections.emptyMap()));
 	}
 
 	/**
@@ -89,7 +89,7 @@ public class RedisSentinelConfiguration {
 
 		notNull(propertySource, "PropertySource must not be null!");
 
-		this.sentinels = new LinkedHashSet<RedisNode>();
+		this.sentinels = new LinkedHashSet<>();
 
 		if (propertySource.containsProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY)) {
 			this.setMaster(propertySource.getProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY).toString());
@@ -145,13 +145,7 @@ public class RedisSentinelConfiguration {
 	public void setMaster(final String name) {
 
 		notNull(name, "Name of sentinel master must not be null.");
-		setMaster(new NamedNode() {
-
-			@Override
-			public String getName() {
-				return name;
-			}
-		});
+		setMaster(() -> name);
 	}
 
 	/**
@@ -237,13 +231,13 @@ public class RedisSentinelConfiguration {
 	 */
 	public void setDatabase(int index) {
 
-		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
+		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
 
 		this.database = index;
 	}
 
 	/**
-	 * @return
+	 * @return never {@literal null}.
 	 * @since 2.0
 	 */
 	public RedisPassword getPassword() {
@@ -280,7 +274,7 @@ public class RedisSentinelConfiguration {
 		hasText(master, "Master address must not be null or empty!");
 		notNull(sentinelHostAndPorts, "SentinelHostAndPorts must not be null!");
 
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY, master);
 		map.put(REDIS_SENTINEL_NODES_CONFIG_PROPERTY, StringUtils.collectionToCommaDelimitedString(sentinelHostAndPorts));
 

@@ -409,7 +409,7 @@ public class LettuceConnectionFactory
 	 * @return use of SSL.
 	 */
 	public boolean isUseSsl() {
-		return clientConfiguration.useSsl();
+		return clientConfiguration.isUseSsl();
 	}
 
 	/**
@@ -800,10 +800,10 @@ public class LettuceConnectionFactory
 
 		getRedisPassword().toOptional().ifPresent(builder::withPassword);
 
-		builder.withSsl(clientConfiguration.useSsl());
+		builder.withSsl(clientConfiguration.isUseSsl());
 		builder.withVerifyPeer(clientConfiguration.isVerifyPeer());
 		builder.withStartTls(clientConfiguration.isStartTls());
-		builder.withTimeout(clientConfiguration.getTimeout().toMillis(), TimeUnit.MILLISECONDS);
+		builder.withTimeout(clientConfiguration.getCommandTimeout().toMillis(), TimeUnit.MILLISECONDS);
 
 		return builder.build();
 	}
@@ -827,9 +827,14 @@ public class LettuceConnectionFactory
 	}
 
 	private long getClientTimeout() {
-		return clientConfiguration.getTimeout().toMillis();
+		return clientConfiguration.getCommandTimeout().toMillis();
 	}
 
+	/**
+	 * Mutable implementation of {@link LettuceClientConfiguration}.
+	 *
+	 * @author Mark Paluch
+	 */
 	static class MutableLettuceClientConfiguration implements LettuceClientConfiguration {
 
 		private boolean useSsl;
@@ -840,10 +845,10 @@ public class LettuceConnectionFactory
 		private Duration shutdownTimeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 
 		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#useSsl()
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isUseSsl()
 		 */
 		@Override
-		public boolean useSsl() {
+		public boolean isUseSsl() {
 			return useSsl;
 		}
 
@@ -899,7 +904,7 @@ public class LettuceConnectionFactory
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getTimeout()
 		 */
 		@Override
-		public Duration getTimeout() {
+		public Duration getCommandTimeout() {
 			return timeout;
 		}
 

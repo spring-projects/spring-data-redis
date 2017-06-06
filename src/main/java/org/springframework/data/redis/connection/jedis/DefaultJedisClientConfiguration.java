@@ -61,7 +61,7 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#useSsl()
 	 */
 	@Override
-	public boolean useSsl() {
+	public boolean isUseSsl() {
 		return useSsl;
 	}
 
@@ -93,7 +93,7 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#usePooling()
 	 */
 	@Override
-	public boolean usePooling() {
+	public boolean isUsePooling() {
 		return usePooling;
 	}
 
