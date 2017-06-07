@@ -6,6 +6,12 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.7.11.RELEASE (2017-06-07)
+----------------------------------------------
+* DATAREDIS-637 - ClusterConnections do not close dedicated ClusterCommandExecutor instances.
+* DATAREDIS-630 - Release 1.7.11 (Hopper SR11).
+
+
 Changes in version 2.0.0.M3 (2017-05-09)
 ----------------------------------------
 * DATAREDIS-642 - Upgrade to Lettuce 5.0 M2.
