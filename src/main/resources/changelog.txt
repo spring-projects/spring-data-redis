@@ -6,6 +6,13 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.8.4.RELEASE (2017-06-08)
+---------------------------------------------
+* DATAREDIS-637 - ClusterConnections do not close dedicated ClusterCommandExecutor instances.
+* DATAREDIS-633 - Adapt to renamed KeyValueQuery.getCriteria() method.
+* DATAREDIS-631 - Release 1.8.4 (Ingalls SR4).
+
+
 Changes in version 1.7.11.RELEASE (2017-06-07)
 ----------------------------------------------
 * DATAREDIS-637 - ClusterConnections do not close dedicated ClusterCommandExecutor instances.
