@@ -62,7 +62,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValues(), "Values must not be null!");
 
-			return cmd.sadd(command.getKey(), command.getValues().stream().toArray(ByteBuffer[]::new))
+			return cmd.sadd(command.getKey(), command.getValues().toArray(new ByteBuffer[0]))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -79,7 +79,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValues(), "Values must not be null!");
 
-			return cmd.srem(command.getKey(), command.getValues().stream().toArray(ByteBuffer[]::new))
+			return cmd.srem(command.getKey(), command.getValues().toArray(new ByteBuffer[0]))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -159,7 +159,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
-			Flux<ByteBuffer> result = cmd.sinter(command.getKeys().stream().toArray(ByteBuffer[]::new));
+			Flux<ByteBuffer> result = cmd.sinter(command.getKeys().toArray(new ByteBuffer[0]));
 			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}
@@ -176,7 +176,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
 
-			return cmd.sinterstore(command.getKey(), command.getKeys().stream().toArray(ByteBuffer[]::new))
+			return cmd.sinterstore(command.getKey(), command.getKeys().toArray(new ByteBuffer[0]))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -192,7 +192,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
-			Flux<ByteBuffer> result = cmd.sunion(command.getKeys().stream().toArray(ByteBuffer[]::new));
+			Flux<ByteBuffer> result = cmd.sunion(command.getKeys().toArray(new ByteBuffer[0]));
 			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}
@@ -209,7 +209,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
 
-			return cmd.sunionstore(command.getKey(), command.getKeys().stream().toArray(ByteBuffer[]::new))
+			return cmd.sunionstore(command.getKey(), command.getKeys().toArray(new ByteBuffer[0]))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -225,7 +225,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
-			Flux<ByteBuffer> result = cmd.sdiff(command.getKeys().stream().toArray(ByteBuffer[]::new));
+			Flux<ByteBuffer> result = cmd.sdiff(command.getKeys().toArray(new ByteBuffer[0]));
 			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}
@@ -242,7 +242,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
 
-			return cmd.sdiffstore(command.getKey(), command.getKeys().stream().toArray(ByteBuffer[]::new))
+			return cmd.sdiffstore(command.getKey(), command.getKeys().toArray(new ByteBuffer[0]))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
