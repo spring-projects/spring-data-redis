@@ -6,6 +6,15 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 2.0.0.M4 (2017-06-14)
+----------------------------------------
+* DATAREDIS-651 - Upgrade to Reactor 3.1 M2.
+* DATAREDIS-647 - SDIFF on cluster connection drops last key.
+* DATAREDIS-646 - Release 2.0 M4 (Kay).
+* DATAREDIS-645 - DefaultReactiveValueOperations.get() emits null if key is absent.
+* DATAREDIS-574 - Introduce dedicated RedisClientConfig.
+
+
 Changes in version 1.8.4.RELEASE (2017-06-08)
 ---------------------------------------------
 * DATAREDIS-637 - ClusterConnections do not close dedicated ClusterCommandExecutor instances.
