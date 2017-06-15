@@ -223,11 +223,11 @@ public interface LettuceClientConfiguration {
 		private ClientResources clientResources;
 		private ClientOptions clientOptions;
 		private Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
-		private Duration shutdownTimeout = Duration.ofSeconds(2);
+		private Duration shutdownTimeout = Duration.ofMillis(100);
 
 		private DefaultLettuceClientConfigurationBuilder() {}
 
-		/*d
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#useSsl()
 		 */
@@ -239,7 +239,7 @@ public interface LettuceClientConfiguration {
 		}
 
 		/*
-		 *(non-Javadoc)
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#disablePeerVerification()
 		 */
 		@Override

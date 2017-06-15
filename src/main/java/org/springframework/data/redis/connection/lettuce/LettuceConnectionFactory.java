@@ -851,7 +851,7 @@ public class LettuceConnectionFactory
 		private boolean startTls;
 		private ClientResources clientResources;
 		private Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
-		private Duration shutdownTimeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
+		private Duration shutdownTimeout = Duration.ofMillis(100);
 
 		/* (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isUseSsl()

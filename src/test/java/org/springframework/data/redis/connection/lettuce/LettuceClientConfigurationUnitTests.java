@@ -42,7 +42,7 @@ public class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getClientOptions()).isEmpty();
 		assertThat(configuration.getClientResources()).isEmpty();
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(60));
-		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofSeconds(2));
+		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofMillis(100));
 	}
 
 	@Test // DATAREDIS-574
