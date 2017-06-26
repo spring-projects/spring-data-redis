@@ -23,6 +23,7 @@ import java.util.Collection;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.StandardEnvironment;
@@ -42,14 +43,16 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
  * Unit tests for {@link RedisRepositoryConfigurationExtension}.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class RedisRepositoryConfigurationExtensionUnitTests {
 
 	StandardAnnotationMetadata metadata = new StandardAnnotationMetadata(Config.class, true);
 	ResourceLoader loader = new PathMatchingResourcePatternResolver();
 	Environment environment = new StandardEnvironment();
+	BeanDefinitionRegistry registry = new DefaultListableBeanFactory();
 	RepositoryConfigurationSource configurationSource = new AnnotationRepositoryConfigurationSource(metadata,
-			EnableRedisRepositories.class, loader, environment);
+			EnableRedisRepositories.class, loader, environment, registry);
 
 	RedisRepositoryConfigurationExtension extension;
 
@@ -138,15 +141,16 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 
 	private BeanDefinitionRegistry getBeanDefinitionRegistry() {
 
+		BeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+
 		RepositoryConfigurationSource configurationSource = new AnnotationRepositoryConfigurationSource(metadata,
-				EnableRedisRepositories.class, loader, environment);
+				EnableRedisRepositories.class, loader, environment, registry);
 
 		RedisRepositoryConfigurationExtension extension = new RedisRepositoryConfigurationExtension();
 
-		BeanDefinitionRegistry beanDefintionRegistry = new SimpleBeanDefinitionRegistry();
-		extension.registerBeansForRoot(beanDefintionRegistry, configurationSource);
+		extension.registerBeansForRoot(registry, configurationSource);
 
-		return beanDefintionRegistry;
+		return registry;
 	}
 
 	private Object getEnableKeyspaceEvents(BeanDefinitionRegistry beanDefintionRegistry) {
