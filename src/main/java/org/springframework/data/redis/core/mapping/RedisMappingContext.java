@@ -19,7 +19,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.annotation.AnnotationUtils;
@@ -224,11 +223,9 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 			PersistentProperty<?> ttlProperty = resolveTtlProperty(type);
 
-			if (ttlProperty != null) {
+			if (ttlProperty != null && ttlProperty.isAnnotationPresent(TimeToLive.class)) {
 
-				if (ttlProperty.findAnnotation(TimeToLive.class).isPresent()) {
-					unit = ttlProperty.findAnnotation(TimeToLive.class).get().unit();
-				}
+				unit = ttlProperty.findAnnotation(TimeToLive.class).unit();
 			}
 
 			if (source instanceof PartialUpdate) {
@@ -248,11 +245,11 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 			} else if (ttlProperty != null) {
 
-				RedisPersistentEntity entity = mappingContext.getPersistentEntity(type).get();
+				RedisPersistentEntity entity = mappingContext.getRequiredPersistentEntity(type);
 
-				Optional<Object> ttlPropertyValue = entity.getPropertyAccessor(source).getProperty(ttlProperty);
-				if (ttlPropertyValue.isPresent()) {
-					return TimeUnit.SECONDS.convert(((Number) ttlPropertyValue.get()).longValue(), unit);
+				Object ttlPropertyValue = entity.getPropertyAccessor(source).getProperty(ttlProperty);
+				if (ttlPropertyValue != null) {
+					return TimeUnit.SECONDS.convert(((Number) ttlPropertyValue).longValue(), unit);
 				}
 
 			} else {
@@ -294,9 +291,9 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 				defaultTimeout = keyspaceConfig.getKeyspaceSettings(type).getTimeToLive();
 			}
 
-			Optional<RedisHash> hash = mappingContext.getPersistentEntity(type).get().findAnnotation(RedisHash.class);
-			if (hash.isPresent() && hash.get().timeToLive() > 0) {
-				defaultTimeout = hash.get().timeToLive();
+			RedisHash hash = mappingContext.getRequiredPersistentEntity(type).findAnnotation(RedisHash.class);
+			if (hash != null && hash.timeToLive() > 0) {
+				defaultTimeout = hash.timeToLive();
 			}
 
 			defaultTimeouts.put(type, defaultTimeout);
@@ -310,13 +307,13 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 				return timeoutProperties.get(type);
 			}
 
-			RedisPersistentEntity entity = mappingContext.getPersistentEntity(type).get();
-			Optional<PersistentProperty<?>> ttlProperty = entity.getPersistentProperty(TimeToLive.class);
+			RedisPersistentEntity entity = mappingContext.getRequiredPersistentEntity(type);
+			PersistentProperty<?> ttlProperty = entity.getPersistentProperty(TimeToLive.class);
 
-			if (ttlProperty.isPresent()) {
+			if (ttlProperty != null) {
 
-				timeoutProperties.put(type, ttlProperty.get());
-				return ttlProperty.get();
+				timeoutProperties.put(type, ttlProperty);
+				return ttlProperty;
 			}
 
 			if (keyspaceConfig.hasSettingsFor(type)) {
@@ -325,9 +322,9 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 				if (StringUtils.hasText(settings.getTimeToLivePropertyName())) {
 
 					ttlProperty = entity.getPersistentProperty(settings.getTimeToLivePropertyName());
-					if (ttlProperty.isPresent()) {
-						timeoutProperties.put(type, ttlProperty.get());
-						return ttlProperty.get();
+					if (ttlProperty != null) {
+						timeoutProperties.put(type, ttlProperty);
+						return ttlProperty;
 					}
 				}
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -48,8 +48,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  * <p>
  * Flattening requires all property names to not interfere with JSON paths. Using dots or brackets in map keys or as
  * property names is not supported using flattening. The resulting hash cannot be mapped back into an Object.
- *
  * <strong>Example</strong>
+ *
  * <pre>
  * <code>
  * class Person {

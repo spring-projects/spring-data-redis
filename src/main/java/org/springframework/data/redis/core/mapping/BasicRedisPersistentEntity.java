@@ -15,12 +15,10 @@
  */
 package org.springframework.data.redis.core.mapping;
 
-import java.util.Optional;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.keyvalue.core.mapping.BasicKeyValuePersistentEntity;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
-import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
 import org.springframework.data.util.TypeInformation;
@@ -28,8 +26,9 @@ import org.springframework.util.Assert;
 
 /**
  * {@link RedisPersistentEntity} implementation.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @param <T>
  */
 public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity<T, RedisPersistentProperty>
@@ -39,10 +38,10 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 
 	/**
 	 * Creates new {@link BasicRedisPersistentEntity}.
-	 * 
+	 *
 	 * @param information must not be {@literal null}.
 	 * @param fallbackKeySpaceResolver can be {@literal null}.
-	 * @param timeToLiveResolver can be {@literal null}.
+	 * @param timeToLiveAccessor can be {@literal null}.
 	 */
 	public BasicRedisPersistentEntity(TypeInformation<T> information, KeySpaceResolver fallbackKeySpaceResolver,
 			TimeToLiveAccessor timeToLiveAccessor) {
@@ -75,14 +74,14 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	 * @see org.springframework.data.redis.core.mapping.RedisPersistentEntity#getExplicitTimeToLiveProperty()
 	 */
 	@Override
-	public Optional<RedisPersistentProperty> getExplicitTimeToLiveProperty() {
+	public RedisPersistentProperty getExplicitTimeToLiveProperty() {
 		return this.getPersistentProperty(TimeToLive.class);
 	}
 
 	/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.mapping.model.BasicPersistentEntity#returnPropertyIfBetterIdPropertyCandidateOrNull(org.springframework.data.mapping.PersistentProperty)
-		 */
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#returnPropertyIfBetterIdPropertyCandidateOrNull(org.springframework.data.mapping.PersistentProperty)
+	 */
 	@Override
 	protected RedisPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(RedisPersistentProperty property) {
 
@@ -92,29 +91,27 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 			return null;
 		}
 
-		Optional<RedisPersistentProperty> currentIdProperty = getIdProperty();
-		boolean currentIdPropertyIsSet = currentIdProperty.isPresent();
+		RedisPersistentProperty currentIdProperty = getIdProperty();
+		boolean currentIdPropertyIsSet = currentIdProperty != null;
 
 		if (!currentIdPropertyIsSet) {
 			return property;
 		}
 
-		boolean currentIdPropertyIsExplicit = currentIdProperty.get().isAnnotationPresent(Id.class);
+		boolean currentIdPropertyIsExplicit = currentIdProperty.isAnnotationPresent(Id.class);
 		boolean newIdPropertyIsExplicit = property.isAnnotationPresent(Id.class);
 
 		if (currentIdPropertyIsExplicit && newIdPropertyIsExplicit) {
 			throw new MappingException(String.format(
 					"Attempt to add explicit id property %s but already have an property %s registered "
 							+ "as explicit id. Check your mapping configuration!",
-					property.getField(), currentIdProperty.get().getField()));
+					property.getField(), currentIdProperty.getField()));
 		}
 
 		if (!currentIdPropertyIsExplicit && !newIdPropertyIsExplicit) {
 			throw new MappingException(
-					String.format(
-							"Attempt to add id property %s but already have an property %s registered "
-									+ "as id. Check your mapping configuration!",
-							property.getField(), currentIdProperty.get().getField()));
+					String.format("Attempt to add id property %s but already have an property %s registered "
+							+ "as id. Check your mapping configuration!", property.getField(), currentIdProperty.getField()));
 		}
 
 		if (newIdPropertyIsExplicit) {

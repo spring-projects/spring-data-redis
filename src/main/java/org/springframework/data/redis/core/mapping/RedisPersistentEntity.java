@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core.mapping;
 
-import java.util.Optional;
-
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
@@ -24,7 +22,7 @@ import org.springframework.data.redis.core.TimeToLiveAccessor;
 
 /**
  * Redis specific {@link PersistentEntity}.
- * 
+ *
  * @author Christoph Strobl
  * @param <T>
  * @since 1.7
@@ -33,7 +31,7 @@ public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T, Re
 
 	/**
 	 * Get the {@link TimeToLiveAccessor} associated with the entity.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	TimeToLiveAccessor getTimeToLiveAccessor();
@@ -50,6 +48,6 @@ public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T, Re
 	 * @return can be {@null}.
 	 * @since 1.8
 	 */
-	Optional<RedisPersistentProperty> getExplicitTimeToLiveProperty();
+	RedisPersistentProperty getExplicitTimeToLiveProperty();
 
 }

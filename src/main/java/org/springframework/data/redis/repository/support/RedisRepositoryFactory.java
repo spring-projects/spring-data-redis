@@ -29,9 +29,10 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 /**
  * {@link RepositoryFactorySupport} specific of handing Redis
  * {@link org.springframework.data.keyvalue.repository.KeyValueRepository}.
- * 
+ *
  * @author Christoph Strobl
  * @author Oliver Gierke
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
@@ -78,10 +79,8 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 	public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 
 		RedisPersistentEntity<T> entity = (RedisPersistentEntity<T>) operations.getMappingContext()
-				.getPersistentEntity(domainClass).get();
-		EntityInformation<T, ID> entityInformation = (EntityInformation<T, ID>) new MappingRedisEntityInformation<T, ID>(
-				entity);
+				.getRequiredPersistentEntity(domainClass);
 
-		return entityInformation;
+		return new MappingRedisEntityInformation<>(entity);
 	}
 }

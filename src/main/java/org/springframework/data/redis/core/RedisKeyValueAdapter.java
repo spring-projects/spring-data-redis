@@ -23,7 +23,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -219,10 +218,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			rdo.setId(converter.getConversionService().convert(id, String.class));
 
 			if (!(item instanceof RedisData)) {
-				KeyValuePersistentProperty idProperty = converter.getMappingContext().getPersistentEntity(item.getClass()).get()
-						.getIdProperty().get();
-				converter.getMappingContext().getPersistentEntity(item.getClass()).get().getPropertyAccessor(item)
-						.setProperty(idProperty, Optional.ofNullable(id));
+				KeyValuePersistentProperty idProperty = converter.getMappingContext()
+						.getRequiredPersistentEntity(item.getClass()).getRequiredIdProperty();
+				converter.getMappingContext().getRequiredPersistentEntity(item.getClass()).getPropertyAccessor(item)
+						.setProperty(idProperty, id);
 			}
 		}
 
@@ -441,8 +440,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	public void update(final PartialUpdate<?> update) {
 
-		final RedisPersistentEntity<?> entity = this.converter.getMappingContext().getPersistentEntity(update.getTarget())
-				.get();
+		final RedisPersistentEntity<?> entity = this.converter.getMappingContext()
+				.getRequiredPersistentEntity(update.getTarget());
 
 		final String keyspace = entity.getKeySpace();
 		final Object id = update.getId();
@@ -632,32 +631,28 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			return target;
 		}
 
-		RedisPersistentEntity<?> entity = this.converter.getMappingContext().getPersistentEntity(target.getClass()).get();
+		RedisPersistentEntity<?> entity = this.converter.getMappingContext().getRequiredPersistentEntity(target.getClass());
 		if (entity.hasExplictTimeToLiveProperty()) {
 
-			Optional<RedisPersistentProperty> ttlProperty = entity.getExplicitTimeToLiveProperty();
-			if (!ttlProperty.isPresent()) {
+			RedisPersistentProperty ttlProperty = entity.getExplicitTimeToLiveProperty();
+			if (ttlProperty == null) {
 				return target;
 			}
 
-			final Optional<TimeToLive> ttl = ttlProperty.get().findAnnotation(TimeToLive.class);
+			TimeToLive ttl = ttlProperty.findAnnotation(TimeToLive.class);
 
-			Long timeout = redisOps.execute(new RedisCallback<Long>() {
+			Long timeout = redisOps.execute((RedisCallback<Long>) connection -> {
 
-				@Override
-				public Long doInRedis(RedisConnection connection) throws DataAccessException {
-
-					if (ObjectUtils.nullSafeEquals(TimeUnit.SECONDS, ttl.get().unit())) {
-						return connection.ttl(key);
-					}
-
-					return connection.pTtl(key, ttl.get().unit());
+				if (ObjectUtils.nullSafeEquals(TimeUnit.SECONDS, ttl.unit())) {
+					return connection.ttl(key);
 				}
+
+				return connection.pTtl(key, ttl.unit());
 			});
 
-			if (timeout != null || !ttlProperty.get().getType().isPrimitive()) {
-				entity.getPropertyAccessor(target).setProperty(ttlProperty.get(),
-						Optional.ofNullable(converter.getConversionService().convert(timeout, ttlProperty.get().getType())));
+			if (timeout != null || !ttlProperty.getType().isPrimitive()) {
+				entity.getPropertyAccessor(target).setProperty(ttlProperty,
+						converter.getConversionService().convert(timeout, ttlProperty.getType()));
 			}
 		}
 
@@ -757,7 +752,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	}
 
 	/**
-	 * {@link MessageListener} implementation used to capture Redis keypspace notifications. Tries to read a previously
+	 * {@link MessageListener} implementation used to capture Redis keyspace notifications. Tries to read a previously
 	 * created phantom key {@code keyspace:id:phantom} to provide the expired object as part of the published
 	 * {@link RedisKeyExpiredEvent}.
 	 *

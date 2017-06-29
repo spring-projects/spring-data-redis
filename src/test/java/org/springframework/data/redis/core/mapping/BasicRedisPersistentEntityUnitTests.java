@@ -21,7 +21,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
-import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,13 +30,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
-import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
 import org.springframework.data.redis.core.convert.ConversionTestEntities;
 import org.springframework.data.util.TypeInformation;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @param <T>
  * @param <ID>
  */
@@ -111,6 +111,6 @@ public class BasicRedisPersistentEntityUnitTests<T, ID extends Serializable> {
 		entity.addPersistentProperty(property1);
 		entity.addPersistentProperty(property2);
 
-		assertThat(entity.getIdProperty(), is(equalTo(Optional.of(property2))));
+		assertThat(entity.getIdProperty(), is(equalTo(property2)));
 	}
 }

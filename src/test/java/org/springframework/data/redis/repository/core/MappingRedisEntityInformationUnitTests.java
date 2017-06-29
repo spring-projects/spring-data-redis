@@ -23,12 +23,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.core.convert.ConversionTestEntities;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class MappingRedisEntityInformationUnitTests<T, ID extends Serializable> {

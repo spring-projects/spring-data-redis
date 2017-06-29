@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import org.hamcrest.core.IsCollectionContaining;
@@ -42,15 +41,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.geo.Point;
 import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Address;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.AddressWithId;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Item;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Location;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Person;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.PersonWithAddressReference;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Size;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.TaVeren;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.TheWheelOfTime;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.*;
 import org.springframework.data.redis.core.index.GeoIndexed;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
@@ -253,7 +244,7 @@ public class PathIndexResolverUnitTests {
 	public void resolveIndexShouldReturnDataWhenNoIndexConfiguredButPropertyAnnotated() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(Optional.of(createIndexedInstance()));
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
 		assertThat(resolve("foo", "rand"), notNullValue());
 	}
@@ -263,7 +254,7 @@ public class PathIndexResolverUnitTests {
 
 		when(propertyMock.isCollectionLike()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(Optional.of(createIndexedInstance()));
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
 		IndexedData index = resolve("list.[0].name", "rand");
 
@@ -275,7 +266,7 @@ public class PathIndexResolverUnitTests {
 
 		when(propertyMock.isMap()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(Optional.of(createIndexedInstance()));
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
 		IndexedData index = resolve("map.[foo].name", "rand");
 
@@ -287,7 +278,7 @@ public class PathIndexResolverUnitTests {
 
 		when(propertyMock.isMap()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(Optional.of(createIndexedInstance()));
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
 		IndexedData index = resolve("map.[0].name", "rand");
 
@@ -449,7 +440,7 @@ public class PathIndexResolverUnitTests {
 
 		when(propertyMock.isMap()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(GeoIndexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(GeoIndexed.class))).thenReturn(Optional.of(createGeoIndexedInstance()));
+		when(propertyMock.findAnnotation(eq(GeoIndexed.class))).thenReturn(createGeoIndexedInstance());
 
 		IndexedData index = resolve("location", new Point(1D, 2D));
 
@@ -461,7 +452,7 @@ public class PathIndexResolverUnitTests {
 
 		when(propertyMock.isMap()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(GeoIndexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(GeoIndexed.class))).thenReturn(Optional.of(createGeoIndexedInstance()));
+		when(propertyMock.findAnnotation(eq(GeoIndexed.class))).thenReturn(createGeoIndexedInstance());
 
 		IndexedData index = resolve("property.location", new Point(1D, 2D));
 
