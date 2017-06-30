@@ -23,7 +23,6 @@ import io.lettuce.core.SetArgs;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import reactor.test.TestSubscriber;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -152,11 +151,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		Flux<NumericResponse<KeyCommand, Long>> result = connection.keyCommands()
 				.del(Flux.fromIterable(Arrays.asList(new KeyCommand(KEY_1_BBUFFER), new KeyCommand(KEY_2_BBUFFER))));
 
-		TestSubscriber<NumericResponse<KeyCommand, Long>> subscriber = TestSubscriber.create();
-		result.subscribe(subscriber);
-		subscriber.await();
-
-		subscriber.assertValueCount(2);
+		StepVerifier.create(result).expectNextCount(2).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -181,11 +176,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 						Flux.fromIterable(Arrays.asList(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(KEY_1_BBUFFER))))
 				.map(NumericResponse::getOutput);
 
-		TestSubscriber<Long> subscriber = TestSubscriber.create();
-		result.subscribe(subscriber);
-		subscriber.await();
-
-		subscriber.assertValueCount(2);
+		StepVerifier.create(result).expectNextCount(2).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
