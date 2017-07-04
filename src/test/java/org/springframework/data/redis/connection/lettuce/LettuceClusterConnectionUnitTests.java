@@ -104,7 +104,7 @@ public class LettuceClusterConnectionUnitTests {
 		when(clusterMock.getPartitions()).thenReturn(partitions);
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(
-				new LettuceClusterConnection.LettuceClusterTopologyProvider(clusterMock), resourceProvider,
+				new LettuceClusterTopologyProvider(clusterMock), resourceProvider,
 				LettuceClusterConnection.exceptionConverter);
 
 		connection = new LettuceClusterConnection(clusterMock, executor) {
