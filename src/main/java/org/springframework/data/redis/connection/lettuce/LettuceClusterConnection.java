@@ -29,7 +29,6 @@ import io.lettuce.core.codec.RedisCodec;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -614,35 +613,4 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 			}
 		}
 	}
-
-	/**
-	 * Lettuce specific implementation of {@link ClusterTopologyProvider}.
-	 *
-	 * @author Christoph Strobl
-	 * @since 1.7
-	 */
-	static class LettuceClusterTopologyProvider implements ClusterTopologyProvider {
-
-		private final RedisClusterClient client;
-
-		/**
-		 * @param client must not be {@literal null}.
-		 */
-		public LettuceClusterTopologyProvider(RedisClusterClient client) {
-
-			Assert.notNull(client, "RedisClusterClient must not be null.");
-			this.client = client;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ClusterTopologyProvider#getTopology()
-		 */
-		@Override
-		public ClusterTopology getTopology() {
-			return new ClusterTopology(
-					new LinkedHashSet<>(LettuceConverters.partitionsToClusterNodes(client.getPartitions())));
-		}
-	}
-
 }

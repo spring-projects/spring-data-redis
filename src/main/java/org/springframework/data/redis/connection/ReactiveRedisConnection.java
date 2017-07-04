@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection;
 
 import lombok.Data;
+import reactor.core.publisher.Mono;
 
 import java.io.Closeable;
 import java.nio.ByteBuffer;
@@ -113,6 +114,21 @@ public interface ReactiveRedisConnection extends Closeable {
 	 * @return never {@literal null}.
 	 */
 	ReactiveHyperLogLogCommands hyperLogLogCommands();
+
+	/**
+	 * Get {@link ReactiveServerCommands}.
+	 *
+	 * @return never {@literal null}.
+	 */
+	ReactiveServerCommands serverCommands();
+
+	/**
+	 * Test connection.
+	 *
+	 * @return Server response message - usually {@literal PONG}.
+	 * @see <a href="http://redis.io/commands/ping">Redis Documentation: PING</a>
+	 */
+	Mono<String> ping();
 
 	/**
 	 * Base interface for Redis commands executed with a reactive infrastructure.
