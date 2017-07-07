@@ -132,25 +132,37 @@ public class LettuceReactiveClusterServerCommandsTests extends LettuceReactiveCl
 	@Test // DATAREDIS-659
 	public void setConfigShouldApplyConfiguration() throws InterruptedException {
 
-		StepVerifier.create(connection.serverCommands().setConfig("maxclients", "10000")) //
-				.expectNext("OK") //
-				.verifyComplete();
+		String resetValue = connection.serverCommands().getConfig("slowlog-max-len").map(it -> {
+			if (it.containsKey("slowlog-max-len")) {
+				return it.get("slowlog-max-len");
+			}
+			return it.get("127.0.0.1:7379.slowlog-max-len");
+		}).block().toString();
 
-		StepVerifier.create(connection.serverCommands().setConfig(NODE1, "maxclients", "9999")) //
-				.expectNext("OK") //
-				.verifyComplete();
+		try {
+			StepVerifier.create(connection.serverCommands().setConfig("slowlog-max-len", resetValue)) //
+					.expectNext("OK") //
+					.verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().getConfig(NODE1, "maxclients")) //
-				.consumeNextWith(properties -> {
-					assertThat(properties).containsEntry("maxclients", "9999");
-				}) //
-				.verifyComplete();
+			StepVerifier.create(connection.serverCommands().setConfig(NODE1, "slowlog-max-len", "127")) //
+					.expectNext("OK") //
+					.verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().getConfig(NODE2, "maxclients")) //
-				.consumeNextWith(properties -> {
-					assertThat(properties).containsEntry("maxclients", "10000");
-				}) //
-				.verifyComplete();
+			StepVerifier.create(connection.serverCommands().getConfig(NODE1, "slowlog-max-len")) //
+					.consumeNextWith(properties -> {
+						assertThat(properties).containsEntry("slowlog-max-len", "127");
+					}) //
+					.verifyComplete();
+
+			StepVerifier.create(connection.serverCommands().getConfig(NODE2, "slowlog-max-len")) //
+					.consumeNextWith(properties -> {
+						assertThat(properties).containsEntry("slowlog-max-len", resetValue);
+					}) //
+					.verifyComplete();
+		} finally {
+			connection.serverCommands().setConfig("slowlog-max-len", resetValue).block();
+		}
+
 	}
 
 	@Test // DATAREDIS-659

@@ -156,22 +156,33 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-659
 	public void setConfigShouldApplyConfiguration() {
 
-		StepVerifier.create(connection.serverCommands().setConfig("maxclients", "9999")) //
-				.expectNext("OK") //
-				.verifyComplete();
+		String resetValue = connection.serverCommands().getConfig("slowlog-max-len").map(it -> {
+			if (it.containsKey("slowlog-max-len")) {
+				return it.get("slowlog-max-len");
+			}
+			return it.get("127.0.0.1:7379.slowlog-max-len");
+		}).block().toString();
 
-		if (connection instanceof LettuceReactiveRedisClusterConnection) {
-			StepVerifier.create(connection.serverCommands().getConfig("maxclients")) //
-					.consumeNextWith(properties -> {
-						assertThat(properties).containsEntry("127.0.0.1:7379.maxclients", "9999");
-					}) //
+		try {
+			StepVerifier.create(connection.serverCommands().setConfig("slowlog-max-len", "127")) //
+					.expectNext("OK") //
 					.verifyComplete();
-		} else {
-			StepVerifier.create(connection.serverCommands().getConfig("maxclients")) //
-					.consumeNextWith(properties -> {
-						assertThat(properties).containsEntry("maxclients", "9999");
-					}) //
-					.verifyComplete();
+
+			if (connection instanceof LettuceReactiveRedisClusterConnection) {
+				StepVerifier.create(connection.serverCommands().getConfig("slowlog-max-len")) //
+						.consumeNextWith(properties -> {
+							assertThat(properties).containsEntry("127.0.0.1:7379.slowlog-max-len", "127");
+						}) //
+						.verifyComplete();
+			} else {
+				StepVerifier.create(connection.serverCommands().getConfig("slowlog-max-len")) //
+						.consumeNextWith(properties -> {
+							assertThat(properties).containsEntry("slowlog-max-len", "127");
+						}) //
+						.verifyComplete();
+			}
+		} finally {
+			connection.serverCommands().setConfig("slowlog-max-len", resetValue).block();
 		}
 	}
 

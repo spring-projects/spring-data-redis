@@ -33,6 +33,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * {@link ReactiveRedisClusterConnection} implementation for {@literal Lettuce}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 2.0
@@ -42,14 +44,23 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 
 	private final ClusterTopologyProvider topologyProvider;
 
-	public LettuceReactiveRedisClusterConnection(RedisClusterClient client) {
+	/**
+	 * Creates new {@link LettuceReactiveRedisClusterConnection}.
+	 *
+	 * @param client must not be {@literal null}.
+	 * @throws IllegalArgumentException when {@code client} is {@literal null}.
+	 * @throws org.springframework.dao.InvalidDataAccessResourceUsageException when {@code client} is not suitable for
+	 *           cluster environment.
+	 */
+	LettuceReactiveRedisClusterConnection(RedisClusterClient client) {
 
 		super(client);
 
 		this.topologyProvider = new LettuceClusterTopologyProvider(client);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#keyCommands()
 	 */
 	@Override
@@ -57,7 +68,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return new LettuceReactiveClusterKeyCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#listCommands()
 	 */
 	@Override
@@ -65,7 +77,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return new LettuceReactiveClusterListCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#setCommands()
 	 */
 	@Override
@@ -73,7 +86,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return new LettuceReactiveClusterSetCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#zSetCommands()
 	 */
 	@Override
@@ -81,7 +95,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return new LettuceReactiveClusterZSetCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#hyperLogLogCommands()
 	 */
 	@Override
@@ -89,7 +104,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return new LettuceReactiveClusterHyperLogLogCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#stringCommands()
 	 */
 	@Override
@@ -97,7 +113,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return new LettuceReactiveClusterStringCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#geoCommands()
 	 */
 	@Override
@@ -105,7 +122,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return new LettuceReactiveClusterGeoCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#hashCommands()
 	 */
 	@Override
@@ -113,7 +131,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return new LettuceReactiveClusterHashCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#numberCommands()
 	 */
 	@Override
@@ -121,7 +140,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return new LettuceReactiveClusterNumberCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#serverCommands()
 	 */
 	@Override
@@ -129,7 +149,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return new LettuceReactiveClusterServerCommands(this, topologyProvider);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterConnection#ping(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -138,8 +159,10 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	}
 
 	/**
-	 * @param callback
-	 * @return
+	 * @param node must not be {@literal null}.
+	 * @param callback must not be {@literal null}.
+	 * @throws IllegalArgumentException when {@code node} or {@code callback} is {@literal null}.
+	 * @return {@link Flux} emitting execution results.
 	 */
 	public <T> Flux<T> execute(RedisNode node, LettuceReactiveCallback<T> callback) {
 
@@ -153,7 +176,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return Flux.defer(() -> callback.doWithCommands(getCommands(node))).onErrorMap(translateException());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#getConnection()
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -166,7 +190,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return (StatefulRedisClusterConnection) super.getConnection();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#getCommands()
 	 */
 	protected RedisClusterReactiveCommands<ByteBuffer, ByteBuffer> getCommands() {

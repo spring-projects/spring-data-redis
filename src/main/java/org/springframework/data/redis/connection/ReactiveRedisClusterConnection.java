@@ -24,13 +24,6 @@ import reactor.core.publisher.Mono;
  */
 public interface ReactiveRedisClusterConnection extends ReactiveRedisConnection {
 
-	/**
-	 * @param node must not be {@literal null}.
-	 * @return
-	 * @see RedisConnectionCommands#ping()
-	 */
-	Mono<String> ping(RedisClusterNode node);
-
 	@Override
 	ReactiveClusterKeyCommands keyCommands();
 
@@ -60,4 +53,14 @@ public interface ReactiveRedisClusterConnection extends ReactiveRedisConnection 
 
 	@Override
 	ReactiveClusterServerCommands serverCommands();
+
+	/**
+	 * Test the connection to a specific Redis cluster node.
+	 *
+	 * @param node must not be {@literal null}.
+	 * @return {@link Mono} wrapping server response message - usually {@literal PONG}.
+	 * @throws IllegalArgumentException when {@code node} is {@literal null}.
+	 * @see RedisConnectionCommands#ping()
+	 */
+	Mono<String> ping(RedisClusterNode node);
 }
