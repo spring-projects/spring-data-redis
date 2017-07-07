@@ -372,10 +372,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			this.keyPrefix = keyPrefix;
 
 			StringRedisSerializer stringSerializer = new StringRedisSerializer();
-
+			
 			// name of the set holding the keys
-			this.setOfKnownKeys = usesKeyPrefix() ? new byte[] {} : stringSerializer.serialize(cacheName + "~keys");
-			this.cacheLockName = stringSerializer.serialize(cacheName + "~lock");
+			this.setOfKnownKeys = usesKeyPrefix() ? stringSerializer.serialize(new String(keyPrefix) + cacheName + "~keys"): stringSerializer.serialize(cacheName + "~keys");
+			this.cacheLockName = usesKeyPrefix() ? stringSerializer.serialize(new String(keyPrefix) + cacheName + "~lock"):stringSerializer.serialize(cacheName + "~lock");
 		}
 
 		/**
