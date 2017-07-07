@@ -26,6 +26,7 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 
 /**
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class LettuceReactiveClusterServerCommandsTests extends LettuceReactiveClusterCommandsTestsBase {
 
@@ -132,25 +133,38 @@ public class LettuceReactiveClusterServerCommandsTests extends LettuceReactiveCl
 	@Test // DATAREDIS-659
 	public void setConfigShouldApplyConfiguration() throws InterruptedException {
 
-		StepVerifier.create(connection.serverCommands().setConfig("maxclients", "10000")) //
-				.expectNext("OK") //
-				.verifyComplete();
+		final String slowLogKey = "slowlog-max-len";
 
-		StepVerifier.create(connection.serverCommands().setConfig(NODE1, "maxclients", "9999")) //
-				.expectNext("OK") //
-				.verifyComplete();
+		String resetValue = connection.serverCommands().getConfig(slowLogKey).map(it -> {
+			if (it.containsKey(slowLogKey)) {
+				return it.get(slowLogKey);
+			}
+			return it.get("127.0.0.1:7379." + slowLogKey);
+		}).block().toString();
 
-		StepVerifier.create(connection.serverCommands().getConfig(NODE1, "maxclients")) //
-				.consumeNextWith(properties -> {
-					assertThat(properties).containsEntry("maxclients", "9999");
-				}) //
-				.verifyComplete();
+		try {
+			StepVerifier.create(connection.serverCommands().setConfig(slowLogKey, resetValue)) //
+					.expectNext("OK") //
+					.verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().getConfig(NODE2, "maxclients")) //
-				.consumeNextWith(properties -> {
-					assertThat(properties).containsEntry("maxclients", "10000");
-				}) //
-				.verifyComplete();
+			StepVerifier.create(connection.serverCommands().setConfig(NODE1, slowLogKey, "127")) //
+					.expectNext("OK") //
+					.verifyComplete();
+
+			StepVerifier.create(connection.serverCommands().getConfig(NODE1, slowLogKey)) //
+					.consumeNextWith(properties -> {
+						assertThat(properties).containsEntry(slowLogKey, "127");
+					}) //
+					.verifyComplete();
+
+			StepVerifier.create(connection.serverCommands().getConfig(NODE2, slowLogKey)) //
+					.consumeNextWith(properties -> {
+						assertThat(properties).containsEntry(slowLogKey, resetValue);
+					}) //
+					.verifyComplete();
+		} finally {
+			connection.serverCommands().setConfig(slowLogKey, resetValue).block();
+		}
 	}
 
 	@Test // DATAREDIS-659

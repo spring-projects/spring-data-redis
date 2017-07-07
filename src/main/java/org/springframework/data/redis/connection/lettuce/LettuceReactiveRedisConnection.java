@@ -33,7 +33,17 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.ReactiveGeoCommands;
+import org.springframework.data.redis.connection.ReactiveHashCommands;
+import org.springframework.data.redis.connection.ReactiveHyperLogLogCommands;
+import org.springframework.data.redis.connection.ReactiveKeyCommands;
+import org.springframework.data.redis.connection.ReactiveListCommands;
+import org.springframework.data.redis.connection.ReactiveNumberCommands;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveServerCommands;
+import org.springframework.data.redis.connection.ReactiveSetCommands;
+import org.springframework.data.redis.connection.ReactiveStringCommands;
+import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.util.Assert;
 
 /**
@@ -43,11 +53,18 @@ import org.springframework.util.Assert;
  */
 class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
-	private StatefulConnection<ByteBuffer, ByteBuffer> connection;
-
 	private static final RedisCodec<ByteBuffer, ByteBuffer> CODEC = ByteBufferCodec.INSTANCE;
 
-	public LettuceReactiveRedisConnection(AbstractRedisClient client) {
+	private StatefulConnection<ByteBuffer, ByteBuffer> connection;
+
+	/**
+	 * Creates new {@link LettuceReactiveRedisConnection}.
+	 *
+	 * @param client must not be {@literal null}.
+	 * @throws IllegalArgumentException when {@code client} is {@literal null}.
+	 * @throws InvalidDataAccessResourceUsageException when {@code client} is not suitable for connection.
+	 */
+	LettuceReactiveRedisConnection(AbstractRedisClient client) {
 
 		Assert.notNull(client, "RedisClient must not be null!");
 
@@ -70,7 +87,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return new LettuceReactiveKeyCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#stringCommands()
 	 */
 	@Override
@@ -78,7 +96,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return new LettuceReactiveStringCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#numberCommands()
 	 */
 	@Override
@@ -86,7 +105,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return new LettuceReactiveNumberCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#listCommands()
 	 */
 	@Override
@@ -94,7 +114,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return new LettuceReactiveListCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#setCommands()
 	 */
 	@Override
@@ -102,7 +123,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return new LettuceReactiveSetCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#zSetCommands()
 	 */
 	@Override
@@ -110,7 +132,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return new LettuceReactiveZSetCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#hashCommands()
 	 */
 	@Override
@@ -118,7 +141,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return new LettuceReactiveHashCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#geoCommands()
 	 */
 	@Override
@@ -126,7 +150,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return new LettuceReactiveGeoCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#hyperLogLogCommands()
 	 */
 	@Override
@@ -134,7 +159,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return new LettuceReactiveHyperLogLogCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#hyperLogLogCommands()
 	 */
 	@Override
@@ -142,7 +168,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return new LettuceReactiveServerCommands(this);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#ping()
 	 */
 	@Override
@@ -200,7 +227,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		Publisher<T> doWithCommands(RedisClusterReactiveCommands<ByteBuffer, ByteBuffer> cmd);
 	}
 
-	static enum ByteBufferCodec implements RedisCodec<ByteBuffer, ByteBuffer> {
+	enum ByteBufferCodec implements RedisCodec<ByteBuffer, ByteBuffer> {
 
 		INSTANCE;
 

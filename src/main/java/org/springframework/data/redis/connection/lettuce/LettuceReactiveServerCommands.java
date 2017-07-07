@@ -29,7 +29,10 @@ import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
 /**
+ * {@link ReactiveServerCommands} implementation for {@literal Lettuce}.
+ *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class LettuceReactiveServerCommands implements ReactiveServerCommands {
 
@@ -39,14 +42,17 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 	 * Create new {@link LettuceReactiveGeoCommands}.
 	 *
 	 * @param connection must not be {@literal null}.
+	 * @throws IllegalArgumentException when {@code connection} is {@literal null}.
 	 */
-	public LettuceReactiveServerCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveServerCommands(LettuceReactiveRedisConnection connection) {
 
 		Assert.notNull(connection, "Connection must not be null!");
+
 		this.connection = connection;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#bgReWriteAof()
 	 */
 	@Override
@@ -54,7 +60,8 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 		return connection.execute(RedisServerReactiveCommands::bgrewriteaof).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#bgSave()
 	 */
 	@Override
@@ -62,7 +69,8 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 		return connection.execute(RedisServerReactiveCommands::bgsave).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#lastSave()
 	 */
 	@Override
@@ -70,7 +78,8 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 		return connection.execute(RedisServerReactiveCommands::lastsave).next().map(Date::getTime);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#save()
 	 */
 	@Override
@@ -78,7 +87,8 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 		return connection.execute(RedisServerReactiveCommands::save).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#dbSize()
 	 */
 	@Override
@@ -86,7 +96,8 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 		return connection.execute(RedisServerReactiveCommands::dbsize).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#flushDb()
 	 */
 	@Override
@@ -94,7 +105,8 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 		return connection.execute(RedisServerReactiveCommands::flushdb).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#flushAll()
 	 */
 	@Override
@@ -102,7 +114,8 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 		return connection.execute(RedisServerReactiveCommands::flushall).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#info()
 	 */
 	@Override
@@ -113,36 +126,48 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 				.next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#info(java.lang.String)
 	 */
 	@Override
 	public Mono<Properties> info(String section) {
+
+		Assert.hasText(section, "Section must not be null nor empty!");
 
 		return connection.execute(c -> c.info(section)) //
 				.map(LettuceConverters::toProperties) //
 				.next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#getConfig(java.lang.String)
 	 */
 	@Override
 	public Mono<Properties> getConfig(String pattern) {
 
+		Assert.hasText(pattern, "Pattern must not be null nor empty!");
+
 		return connection.execute(c -> c.configGet(pattern).collectList()) //
 				.map(LettuceConverters::toProperties).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#setConfig(java.lang.String, java.lang.String)
 	 */
 	@Override
 	public Mono<String> setConfig(String param, String value) {
+
+		Assert.hasText(param, "Param must not be null nor empty!");
+		Assert.hasText(value, "Value must not be null nor empty!");
+
 		return connection.execute(c -> c.configSet(param, value)).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#resetConfigStats()
 	 */
 	@Override
@@ -150,7 +175,8 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 		return connection.execute(RedisServerReactiveCommands::configResetstat).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#time()
 	 */
 	@Override
@@ -162,27 +188,32 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 				.map(LettuceConverters.toTimeConverter()::convert);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#killClient(java.lang.String, int)
 	 */
 	@Override
 	public Mono<String> killClient(String host, int port) {
 
-		Assert.notNull(host, "Host must not be null");
+		Assert.notNull(host, "Host must not be null nor empty!");
 
-		String client = String.format("%s:%s", host, port);
-		return connection.execute(c -> c.clientKill(client)).next();
+		return connection.execute(c -> c.clientKill(String.format("%s:%s", host, port))).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#setClientName(java.lang.String)
 	 */
 	@Override
 	public Mono<String> setClientName(String name) {
+
+		Assert.hasText(name, "Name must not be null nor empty!");
+
 		return connection.execute(c -> c.clientSetname(ByteBuffer.wrap(LettuceConverters.toBytes(name)))).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#getClientName()
 	 */
 	@Override
@@ -194,7 +225,8 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 				.next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#getClientList()
 	 */
 	@Override

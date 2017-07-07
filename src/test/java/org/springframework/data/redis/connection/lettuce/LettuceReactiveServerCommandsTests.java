@@ -24,6 +24,7 @@ import org.junit.Test;
 
 /**
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -156,22 +157,35 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-659
 	public void setConfigShouldApplyConfiguration() {
 
-		StepVerifier.create(connection.serverCommands().setConfig("maxclients", "9999")) //
-				.expectNext("OK") //
-				.verifyComplete();
+		final String slowLogKey = "slowlog-max-len";
 
-		if (connection instanceof LettuceReactiveRedisClusterConnection) {
-			StepVerifier.create(connection.serverCommands().getConfig("maxclients")) //
-					.consumeNextWith(properties -> {
-						assertThat(properties).containsEntry("127.0.0.1:7379.maxclients", "9999");
-					}) //
+		String resetValue = connection.serverCommands().getConfig(slowLogKey).map(it -> {
+			if (it.containsKey(slowLogKey)) {
+				return it.get(slowLogKey);
+			}
+			return it.get("127.0.0.1:7379." + slowLogKey);
+		}).block().toString();
+
+		try {
+			StepVerifier.create(connection.serverCommands().setConfig(slowLogKey, "127")) //
+					.expectNext("OK") //
 					.verifyComplete();
-		} else {
-			StepVerifier.create(connection.serverCommands().getConfig("maxclients")) //
-					.consumeNextWith(properties -> {
-						assertThat(properties).containsEntry("maxclients", "9999");
-					}) //
-					.verifyComplete();
+
+			if (connection instanceof LettuceReactiveRedisClusterConnection) {
+				StepVerifier.create(connection.serverCommands().getConfig(slowLogKey)) //
+						.consumeNextWith(properties -> {
+							assertThat(properties).containsEntry("127.0.0.1:7379." + slowLogKey, "127");
+						}) //
+						.verifyComplete();
+			} else {
+				StepVerifier.create(connection.serverCommands().getConfig(slowLogKey)) //
+						.consumeNextWith(properties -> {
+							assertThat(properties).containsEntry(slowLogKey, "127");
+						}) //
+						.verifyComplete();
+			}
+		} finally {
+			connection.serverCommands().setConfig(slowLogKey, resetValue).block();
 		}
 	}
 

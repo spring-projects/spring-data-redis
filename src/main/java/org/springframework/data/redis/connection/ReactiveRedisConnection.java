@@ -97,7 +97,7 @@ public interface ReactiveRedisConnection extends Closeable {
 	/**
 	 * Get {@link ReactiveHashCommands}.
 	 *
-	 * @return
+	 * @return never {@literal null}.
 	 */
 	ReactiveHashCommands hashCommands();
 
@@ -125,7 +125,7 @@ public interface ReactiveRedisConnection extends Closeable {
 	/**
 	 * Test connection.
 	 *
-	 * @return Server response message - usually {@literal PONG}.
+	 * @return {@link Mono} wrapping server response message - usually {@literal PONG}.
 	 * @see <a href="http://redis.io/commands/ping">Redis Documentation: PING</a>
 	 */
 	Mono<String> ping();

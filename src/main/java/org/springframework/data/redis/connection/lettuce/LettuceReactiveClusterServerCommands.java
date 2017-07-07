@@ -42,9 +42,13 @@ import org.springframework.data.redis.connection.ReactiveClusterServerCommands;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.util.Assert;
 
 /**
+ * {@link ReactiveClusterServerCommands} implementation for {@literal Lettuce}.
+ *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
@@ -57,6 +61,9 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 	 * Create new {@link LettuceReactiveGeoCommands}.
 	 *
 	 * @param connection must not be {@literal null}.
+	 * @param topologyProvider must not be {@literal null}.
+	 * @throws IllegalArgumentException when {@code connection} is {@literal null}.
+	 * @throws IllegalArgumentException when {@code topologyProvider} is {@literal null}.
 	 */
 	public LettuceReactiveClusterServerCommands(LettuceReactiveRedisClusterConnection connection,
 			ClusterTopologyProvider topologyProvider) {
@@ -67,7 +74,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		this.topologyProvider = topologyProvider;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#bgReWriteAof(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -75,7 +83,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return connection.execute(node, RedisServerReactiveCommands::bgrewriteaof).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#bgSave(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -83,7 +92,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return connection.execute(node, RedisServerReactiveCommands::bgsave).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#lastSave(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -91,7 +101,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return connection.execute(node, RedisServerReactiveCommands::lastsave).map(Date::getTime).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#save(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -99,7 +110,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return connection.execute(node, RedisServerReactiveCommands::save).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#dbSize(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -107,7 +119,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return connection.execute(node, RedisServerReactiveCommands::dbsize).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#flushDb(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -115,7 +128,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return connection.execute(node, RedisServerReactiveCommands::flushdb).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#flushAll(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -123,7 +137,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return connection.execute(node, RedisServerReactiveCommands::flushall).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveServerCommands#info()
 	 */
 	@Override
@@ -131,7 +146,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return Flux.merge(executeOnAllNodes(this::info)).collect(PropertiesCollector.INSTANCE);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#info(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -148,42 +164,54 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 	@Override
 	public Mono<Properties> info(String section) {
 
+		Assert.hasText(section, "Section must not be null nor empty!");
+
 		return Flux.merge(executeOnAllNodes(redisClusterNode -> info(redisClusterNode, section)))
 				.collect(PropertiesCollector.INSTANCE);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#info(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String)
 	 */
 	@Override
 	public Mono<Properties> info(RedisClusterNode node, String section) {
 
+		Assert.hasText(section, "Section must not be null nor empty!");
+
 		return connection.execute(node, c -> c.info(section)) //
 				.map(LettuceConverters::toProperties).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveServerCommands#getConfig(java.lang.String)
 	 */
 	@Override
 	public Mono<Properties> getConfig(String pattern) {
 
+		Assert.hasText(pattern, "Pattern must not be null nor empty!");
+
 		return Flux.merge(executeOnAllNodes(node -> getConfig(node, pattern))) //
 				.collect(PropertiesCollector.INSTANCE);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#getConfig(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String)
 	 */
 	@Override
 	public Mono<Properties> getConfig(RedisClusterNode node, String pattern) {
+
+		Assert.hasText(pattern, "Pattern must not be null nor empty!");
 
 		return connection.execute(node, c -> c.configGet(pattern).collectList()) //
 				.map(LettuceConverters::toProperties) //
 				.next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveServerCommands#setConfig(java.lang.String, java.lang.String)
 	 */
 	@Override
@@ -191,15 +219,21 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return Flux.merge(executeOnAllNodes(node -> setConfig(node, param, value))).map(Tuple2::getT2).last();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#setConfig(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String, java.lang.String)
 	 */
 	@Override
 	public Mono<String> setConfig(RedisClusterNode node, String param, String value) {
+
+		Assert.hasText(param, "Param must not be null nor empty!");
+		Assert.hasText(value, "Value must not be null nor empty!");
+
 		return connection.execute(node, c -> c.configSet(param, value)).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveServerCommands#resetConfigStats()
 	 */
 	@Override
@@ -207,7 +241,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return Flux.merge(executeOnAllNodes(this::resetConfigStats)).map(Tuple2::getT2).last();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#resetConfigStats(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -215,7 +250,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return connection.execute(node, RedisServerReactiveCommands::configResetstat).next();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#time(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -227,7 +263,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 				.map(LettuceConverters.toTimeConverter()::convert);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveServerCommands#getClientList()
 	 */
 	@Override
@@ -235,7 +272,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return Flux.merge(executeOnAllNodesMany(this::getClientList)).map(Tuple2::getT2);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#getClientList(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -279,7 +317,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 
 		INSTANCE;
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see java.util.stream.Collector#supplier()
 		 */
 		@Override
@@ -301,7 +340,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 			};
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see java.util.stream.Collector#combiner()
 		 */
 		@Override
@@ -318,7 +358,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 			};
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see java.util.stream.Collector#finisher()
 		 */
 		@Override
@@ -326,7 +367,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 			return properties -> properties;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see java.util.stream.Collector#characteristics()
 		 */
 		@Override
