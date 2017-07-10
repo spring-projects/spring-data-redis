@@ -15,15 +15,16 @@
  */
 package org.springframework.data.redis.cache;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
 
@@ -31,20 +32,19 @@ import org.springframework.util.Assert;
  * {@link RedisCacheWriter} implementation capable of reading/writing binary data from/to Redis in {@literal standalone}
  * and {@literal cluster} environments. Works upon a given {@link RedisConnectionFactory} to obtain the actual
  * {@link RedisConnection}. <br />
- * {@link DefaultRedisCacheWriter} can be used in {@link #lockingRedisCacheWriter(RedisConnectionFactory) locking} or
- * {@link #nonLockingRedisCacheWriter(RedisConnectionFactory) non-locking} mode. While {@literal non-locking} aims for
- * maximum performance it may result in overlapping, non atomic, command execution for operations spanning multiple
- * Redis interactions like {@code putIfAbsent}. The {@literal locking} counterpart prevents command overlap by setting
- * an explicit lock key and checking against presence of this key which leads to additional requests and potential
- * command wait times.
+ * {@link DefaultRedisCacheWriter} can be used in
+ * {@link RedisCacheWriter#lockingRedisCacheWriter(RedisConnectionFactory) locking} or
+ * {@link RedisCacheWriter#nonLockingRedisCacheWriter(RedisConnectionFactory) non-locking} mode. While
+ * {@literal non-locking} aims for maximum performance it may result in overlapping, non atomic, command execution for
+ * operations spanning multiple Redis interactions like {@code putIfAbsent}. The {@literal locking} counterpart prevents
+ * command overlap by setting an explicit lock key and checking against presence of this key which leads to additional
+ * requests and potential command wait times.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
-public class DefaultRedisCacheWriter implements RedisCacheWriter {
-
-	private static final byte[] CLEAN_SCRIPT = "local keys = redis.call('KEYS', ARGV[1]); local keysCount = table.getn(keys); if(keysCount > 0) then for _, key in ipairs(keys) do redis.call('del', key); end; end; return keysCount;"
-			.getBytes(Charset.forName("UTF-8"));
+class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	private final RedisConnectionFactory connectionFactory;
 	private final Duration sleepTime;
@@ -70,30 +70,10 @@ public class DefaultRedisCacheWriter implements RedisCacheWriter {
 		this.sleepTime = sleepTime;
 	}
 
-	/**
-	 * Create new {@link RedisCacheWriter} without locking behavior.
-	 *
-	 * @param connectionFactory must not be {@literal null}.
-	 * @return new instance of {@link DefaultRedisCacheWriter}.
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter#put(java.lang.String, byte[], byte[], java.time.Duration)
 	 */
-	public static DefaultRedisCacheWriter nonLockingRedisCacheWriter(RedisConnectionFactory connectionFactory) {
-
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
-		return new DefaultRedisCacheWriter(connectionFactory);
-	}
-
-	/**
-	 * Create new {@link RedisCacheWriter} with locking behavior.
-	 *
-	 * @param connectionFactory must not be {@literal null}.
-	 * @return new instance of {@link DefaultRedisCacheWriter}.
-	 */
-	public static DefaultRedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory) {
-
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
-		return new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(50));
-	}
-
 	@Override
 	public void put(String name, byte[] key, byte[] value, Duration ttl) {
 
@@ -114,6 +94,10 @@ public class DefaultRedisCacheWriter implements RedisCacheWriter {
 		});
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter#get(java.lang.String, byte[])
+	 */
 	@Override
 	public byte[] get(String name, byte[] key) {
 
@@ -123,6 +107,10 @@ public class DefaultRedisCacheWriter implements RedisCacheWriter {
 		return execute(name, connection -> connection.get(key));
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter#putIfAbsent(java.lang.String, byte[], byte[], java.time.Duration)
+	 */
 	@Override
 	public byte[] putIfAbsent(String name, byte[] key, byte[] value, Duration ttl) {
 
@@ -156,6 +144,10 @@ public class DefaultRedisCacheWriter implements RedisCacheWriter {
 		});
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter#remove(java.lang.String, byte[])
+	 */
 	@Override
 	public void remove(String name, byte[] key) {
 
@@ -165,46 +157,10 @@ public class DefaultRedisCacheWriter implements RedisCacheWriter {
 		execute(name, connection -> connection.del(key));
 	}
 
-	/**
-	 * Explicitly set a write lock on a cache.
-	 *
-	 * @param name the name of the cache to lock.
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter#clean(java.lang.String, byte[])
 	 */
-	public void lock(String name) {
-		execute(name, connection -> doLock(name, connection));
-	}
-
-	private Boolean doLock(String name, RedisConnection connection) {
-		return connection.setNX(createCacheLockKey(name), new byte[] {});
-	}
-
-	/**
-	 * Explicitly remove a write lock from a cache.
-	 *
-	 * @param name the name of the cache to unlock.
-	 */
-	public void unlock(String name) {
-		executeWithoutLockCheck(connection -> doUnlock(name, connection));
-	}
-
-	private Long doUnlock(String name, RedisConnection connection) {
-		return connection.del(createCacheLockKey(name));
-	}
-
-	/**
-	 * Check if a cache has set a lock.
-	 *
-	 * @param name the name of the cache to check for presence of a lock.
-	 * @return {@literal true} if lock found.
-	 */
-	public boolean isLoked(String name) {
-		return executeWithoutLockCheck(connection -> doCheckLock(name, connection));
-	}
-
-	private boolean doCheckLock(String name, RedisConnection connection) {
-		return connection.exists(createCacheLockKey(name));
-	}
-
 	@Override
 	public void clean(String name, byte[] pattern) {
 
@@ -216,17 +172,16 @@ public class DefaultRedisCacheWriter implements RedisCacheWriter {
 			boolean wasLocked = false;
 
 			try {
-				if (connection instanceof RedisClusterConnection) {
 
-					if (isLockingCacheWriter()) {
-						doLock(name, connection);
-						wasLocked = true;
-					}
+				if (isLockingCacheWriter()) {
+					doLock(name, connection);
+					wasLocked = true;
+				}
 
-					byte[][] keys = connection.keys(pattern).stream().toArray(size -> new byte[size][]);
+				byte[][] keys = connection.keys(pattern).toArray(new byte[0][]);
+
+				if (keys.length > 0) {
 					connection.del(keys);
-				} else {
-					connection.eval(CLEAN_SCRIPT, ReturnType.INTEGER, 0, pattern);
 				}
 			} finally {
 
@@ -240,30 +195,60 @@ public class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	/**
+	 * Explicitly set a write lock on a cache.
+	 *
+	 * @param name the name of the cache to lock.
+	 */
+	void lock(String name) {
+		execute(name, connection -> doLock(name, connection));
+	}
+
+	/**
+	 * Explicitly remove a write lock from a cache.
+	 *
+	 * @param name the name of the cache to unlock.
+	 */
+	void unlock(String name) {
+		executeLockFree(connection -> doUnlock(name, connection));
+	}
+
+	private Boolean doLock(String name, RedisConnection connection) {
+		return connection.setNX(createCacheLockKey(name), new byte[0]);
+	}
+
+	private Long doUnlock(String name, RedisConnection connection) {
+		return connection.del(createCacheLockKey(name));
+	}
+
+	boolean doCheckLock(String name, RedisConnection connection) {
+		return connection.exists(createCacheLockKey(name));
+	}
+
+	/**
 	 * @return {@literal true} if {@link RedisCacheWriter} uses locks.
 	 */
-	public boolean isLockingCacheWriter() {
+	private boolean isLockingCacheWriter() {
 		return !sleepTime.isZero() && !sleepTime.isNegative();
 	}
 
-	<T> T execute(String name, ConnectionCallback<T> callback) {
+	private <T> T execute(String name, Function<RedisConnection, T> callback) {
 
 		RedisConnection connection = connectionFactory.getConnection();
 		try {
 
 			checkAndPotentiallyWaitUntilUnlocked(name, connection);
-			return callback.doWithConnection(connection);
+			return callback.apply(connection);
 		} finally {
 			connection.close();
 		}
 	}
 
-	private <T> T executeWithoutLockCheck(ConnectionCallback<T> callback) {
+	private void executeLockFree(Consumer<RedisConnection> callback) {
 
 		RedisConnection connection = connectionFactory.getConnection();
 
 		try {
-			return callback.doWithConnection(connection);
+			callback.accept(connection);
 		} finally {
 			connection.close();
 		}
@@ -271,35 +256,30 @@ public class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	private void checkAndPotentiallyWaitUntilUnlocked(String name, RedisConnection connection) {
 
-		if (isLockingCacheWriter()) {
+		if (!isLockingCacheWriter()) {
+			return;
+		}
 
-			long timeout = sleepTime.toMillis();
+		try {
 
 			while (doCheckLock(name, connection)) {
-				try {
-					Thread.sleep(timeout);
-				} catch (InterruptedException ex) {
-					Thread.currentThread().interrupt();
-				}
+				Thread.sleep(sleepTime.toMillis());
 			}
+		} catch (InterruptedException ex) {
+
+			// Re-interrupt current thread, to allow other participants to react.
+			Thread.currentThread().interrupt();
+
+			throw new PessimisticLockingFailureException(String.format("Interrupted while waiting to unlock cache %s", name),
+					ex);
 		}
 	}
 
-	private boolean shouldExpireWithin(Duration ttl) {
+	private static boolean shouldExpireWithin(Duration ttl) {
 		return ttl != null && !ttl.isZero() && !ttl.isNegative();
 	}
 
-	byte[] createCacheLockKey(String name) {
-		return (name + "~lock").getBytes(Charset.forName("UTF-8"));
-	}
-
-	/**
-	 * @param <T>
-	 * @author Christoph Strobl
-	 * @since 2.0
-	 */
-	interface ConnectionCallback<T> {
-
-		T doWithConnection(RedisConnection connection);
+	private static byte[] createCacheLockKey(String name) {
+		return (name + "~lock").getBytes(StandardCharsets.UTF_8);
 	}
 }

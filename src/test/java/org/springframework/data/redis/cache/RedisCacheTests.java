@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
@@ -34,6 +35,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.cache.Cache.ValueWrapper;
+import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.cache.support.NullValue;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -41,13 +43,13 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Tests for {@link RedisCache} with {@link DefaultRedisCacheWriter} using different {@link RedisSerializer} and
  * {@link RedisConnectionFactory} pairs.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class RedisCacheTests {
@@ -59,8 +61,7 @@ public class RedisCacheTests {
 	Person sample = new Person("calmity", new Date());
 	byte[] binarySample;
 
-	NullValue nullValue = NullValue.class.cast(ReflectionTestUtils.getField(NullValue.class, "INSTANCE"));
-	byte[] binaryNullValue = new JdkSerializationRedisSerializer().serialize(nullValue);
+	byte[] binaryNullValue = new JdkSerializationRedisSerializer().serialize(NullValue.INSTANCE);
 
 	RedisConnectionFactory connectionFactory;
 	RedisSerializer serializer;
@@ -180,6 +181,38 @@ public class RedisCacheTests {
 	}
 
 	@Test // DATAREDIS-481
+	public void shouldReadAndWriteSimpleCacheKey() {
+
+		SimpleKey key = new SimpleKey("param-1", "param-2");
+
+		cache.put(key, sample);
+
+		ValueWrapper result = cache.get(key);
+		assertThat(result).isNotNull();
+		assertThat(result.get()).isEqualTo(sample);
+	}
+
+	@Test(expected = IllegalStateException.class) // DATAREDIS-481
+	public void shouldRejectNonInvalidKey() {
+
+		InvalidKey key = new InvalidKey(sample.getFirstame(), sample.getBirthdate());
+
+		cache.put(key, sample);
+	}
+
+	@Test // DATAREDIS-481
+	public void shouldAllowComplexKeyWithToStringMethod() {
+
+		ComplexKey key = new ComplexKey(sample.getFirstame(), sample.getBirthdate());
+
+		cache.put(key, sample);
+
+		ValueWrapper result = cache.get(key);
+		assertThat(result).isNotNull();
+		assertThat(result.get()).isEqualTo(sample);
+	}
+
+	@Test // DATAREDIS-481
 	public void getShouldReturnNullWhenKeyDoesNotExist() {
 		assertThat(cache.get(key)).isNull();
 	}
@@ -253,4 +286,16 @@ public class RedisCacheTests {
 		Date birthdate;
 	}
 
+	@RequiredArgsConstructor // toString not overridden
+	static class InvalidKey implements Serializable {
+		final String firstame;
+		final Date birthdate;
+	}
+
+	@Data
+	@RequiredArgsConstructor
+	static class ComplexKey implements Serializable {
+		final String firstame;
+		final Date birthdate;
+	}
 }

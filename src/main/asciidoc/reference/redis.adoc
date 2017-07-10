@@ -473,19 +473,19 @@ Spring Redis provides an implementation for Spring http://docs.spring.io/spring/
 ----
 @Bean
 public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-	return RedisCacheManager.defaultCacheManager(connectionFactory);
+	return RedisCacheManager.create(connectionFactory);
 }
 ----
 
-`RedisCacheManager` behavior can be configured via `RedisCacheManagerConfigurator` allowing to set the default `RedisCacheConfiguration`, transaction behaviour and predefined caches.
+`RedisCacheManager` behavior can be configured via `RedisCacheManagerBuilder` allowing to set the default `RedisCacheConfiguration`, transaction behaviour and predefined caches.
 
 [source,java]
 ----
-RedisCacheManager cm = RedisCacheManager.usingRawConnectionFactory(connectionFactory)
-	.withCacheDefaults(defaultCacheConfig())
-	.withInitialCacheConfigurations(singletonMap("predefined", defaultCacheConfig().disableCachingNullValues()))
+RedisCacheManager cm = RedisCacheManager.builder(connectionFactory)
+	.cacheDefaults(defaultCacheConfig())
+	.initialCacheConfigurations(singletonMap("predefined", defaultCacheConfig().disableCachingNullValues()))
 	.transactionAware()
-	.createAndGet();
+	.build();
 ----
 
 Behavior of `RedisCache` created via `RedisCacheManager` is defined via `RedisCacheConfiguration`. The configuration allows to set key expiration times, prefixes and ``RedisSerializer``s for converting to and from the binary storage format.
@@ -498,16 +498,15 @@ RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
 	.disableCachingNullValues();
 ----
 
-Using default `RedisCacheManager` uses a non locking `RedisCacheWriter` for reading & writing bits.
-While this ensures a max of performance the lack of entry locking can lead to overlapping, non atomic commands, for `putIfAbsent` and `clean` as those methods combine a series of commands sent to Redis.
-The locking counterpart prevents command overlap by setting an explicit lock key and checking against presence of this key which leads to additional requests and potential command wait times.
+`RedisCacheManager` defaults to a lock-free `RedisCacheWriter` for reading & writing binary values. Lock-free caching improves throughput. The lack of entry locking can lead to overlapping, non atomic commands, for `putIfAbsent` and `clean` methods as those require multiple commands sent to Redis.
+The locking counterpart prevents command overlap by setting an explicit lock key and checking against presence of this key, which leads to additional requests and potential command wait times.
 
 It is possible to opt in to the locking behavior as follows:
 
 [source,java]
 ----
-RedisCacheManager cm = RedisCacheManager.usingCacheWriter(DefaultRedisCacheWriter.lockingRedisCacheWriter())
-	.withCacheDefaults(defaultCacheConfig())
+RedisCacheManager cm = RedisCacheManager.build(RedisCacheWriter.lockingRedisCacheWriter())
+	.cacheDefaults(defaultCacheConfig())
 	...
 ----
 
@@ -521,7 +520,7 @@ RedisCacheManager cm = RedisCacheManager.usingCacheWriter(DefaultRedisCacheWrite
 |non locking
 
 |Cache Configuration
-|`RedisCacheConfiguraiton#defaultConfiguration`
+|`RedisCacheConfiguration#defaultConfiguration`
 
 |Initial Caches
 |none
@@ -550,5 +549,8 @@ RedisCacheManager cm = RedisCacheManager.usingCacheWriter(DefaultRedisCacheWrite
 
 |Value Serializer
 |`JdkSerializationRedisSerializer`
+
+|Conversion Service
+|`DefaultFormattingConversionService` with default cache key converters
 |====
 

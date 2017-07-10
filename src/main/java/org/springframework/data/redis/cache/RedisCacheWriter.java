@@ -17,16 +17,46 @@ package org.springframework.data.redis.cache;
 
 import java.time.Duration;
 
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.util.Assert;
+
 /**
- * {@link RedisCacheWriter} provides low level access to redis commands ({@code SET, SETNX, GET, EXPIRE,...} used for
+ * {@link RedisCacheWriter} provides low level access to Redis commands ({@code SET, SETNX, GET, EXPIRE,...}) used for
  * caching. <br />
  * The {@link RedisCacheWriter} may be shared by multiple cache implementations and is responsible for writing / reading
  * binary data to / from Redis. The implementation honors potential cache lock flags that might be set.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public interface RedisCacheWriter {
+
+	/**
+	 * Create new {@link RedisCacheWriter} without locking behavior.
+	 *
+	 * @param connectionFactory must not be {@literal null}.
+	 * @return new instance of {@link DefaultRedisCacheWriter}.
+	 */
+	static RedisCacheWriter nonLockingRedisCacheWriter(RedisConnectionFactory connectionFactory) {
+
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
+
+		return new DefaultRedisCacheWriter(connectionFactory);
+	}
+
+	/**
+	 * Create new {@link RedisCacheWriter} with locking behavior.
+	 *
+	 * @param connectionFactory must not be {@literal null}.
+	 * @return new instance of {@link DefaultRedisCacheWriter}.
+	 */
+	static RedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory) {
+
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
+
+		return new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(50));
+	}
 
 	/**
 	 * Write the given key/value pair to Redis an set the expiration time if defined.
@@ -57,7 +87,6 @@ public interface RedisCacheWriter {
 	 * @param ttl Optional expiration time. Can be {@literal null}.
 	 * @return {@literal null} if the value has been written, the value stored for the key if it already exists.
 	 */
-
 	byte[] putIfAbsent(String name, byte[] key, byte[] value, Duration ttl);
 
 	/**
@@ -75,5 +104,4 @@ public interface RedisCacheWriter {
 	 * @param pattern The pattern for the keys to remove. Must not be {@literal null}.
 	 */
 	void clean(String name, byte[] pattern);
-
 }
