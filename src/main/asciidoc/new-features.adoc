@@ -11,6 +11,7 @@ New and noteworthy in the latest releases.
 * Upgrade to `Lettuce` 5.0.
 * Reactive connection support using https://github.com/lettuce-io/lettuce-core[lettuce-io/lettuce-core].
 * Introduce Redis feature-specific interfaces for `RedisConnection`.
+* Revised `RedisCache` implementation.
 
 
 [[new-in-1.8.0]]

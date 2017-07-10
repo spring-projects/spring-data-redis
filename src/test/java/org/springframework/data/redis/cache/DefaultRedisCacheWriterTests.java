@@ -16,12 +16,15 @@
 package org.springframework.data.redis.cache;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.redis.cache.DefaultRedisCacheWriter.*;
+import static org.springframework.data.redis.cache.RedisCacheWriter.*;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.junit.AfterClass;
@@ -39,6 +42,7 @@ import org.springframework.data.redis.core.types.Expiration;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class DefaultRedisCacheWriterTests {
@@ -47,9 +51,9 @@ public class DefaultRedisCacheWriterTests {
 
 	String key = "key-1";
 	String cacheKey = CACHE_NAME + "::" + key;
-	byte[] binaryCacheKey = cacheKey.getBytes(Charset.forName("UTF-8"));
 
-	byte[] binaryCacheValue = "value".getBytes(Charset.forName("UTF-8"));
+	byte[] binaryCacheKey = cacheKey.getBytes(StandardCharsets.UTF_8);
+	byte[] binaryCacheValue = "value".getBytes(StandardCharsets.UTF_8);
 
 	RedisConnectionFactory connectionFactory;
 
@@ -211,7 +215,7 @@ public class DefaultRedisCacheWriterTests {
 	@Test // DATAREDIS-481
 	public void nonLockingCacheWriterShouldIgnoreExistingLock() {
 
-		lockingRedisCacheWriter(connectionFactory).lock(CACHE_NAME);
+		((DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory)).lock(CACHE_NAME);
 
 		nonLockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
 
@@ -223,7 +227,7 @@ public class DefaultRedisCacheWriterTests {
 	@Test // DATAREDIS-481
 	public void lockingCacheWriterShouldIgnoreExistingLockOnDifferenceCache() {
 
-		lockingRedisCacheWriter(connectionFactory).lock(CACHE_NAME);
+		((DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory)).lock(CACHE_NAME);
 
 		lockingRedisCacheWriter(connectionFactory).put(CACHE_NAME + "-no-the-other-cache", binaryCacheKey, binaryCacheValue,
 				Duration.ZERO);
@@ -236,15 +240,25 @@ public class DefaultRedisCacheWriterTests {
 	@Test // DATAREDIS-481
 	public void lockingCacheWriterShouldWaitForLockRelease() throws InterruptedException {
 
-		DefaultRedisCacheWriter cw = lockingRedisCacheWriter(connectionFactory);
+		DefaultRedisCacheWriter cw = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory);
 		cw.lock(CACHE_NAME);
 
+		CountDownLatch beforeWrite = new CountDownLatch(1);
+		CountDownLatch afterWrite = new CountDownLatch(1);
+
 		Thread th = new Thread(() -> {
-			lockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+
+			RedisCacheWriter writer = lockingRedisCacheWriter(connectionFactory);
+			beforeWrite.countDown();
+			writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+			afterWrite.countDown();
 		});
 		th.start();
 
 		try {
+
+			beforeWrite.await();
+
 			Thread.sleep(200);
 
 			doWithConnection(connection -> {
@@ -253,8 +267,7 @@ public class DefaultRedisCacheWriterTests {
 
 			cw.unlock(CACHE_NAME);
 
-			Thread.sleep(200);
-
+			afterWrite.await();
 			doWithConnection(connection -> {
 				assertThat(connection.exists(binaryCacheKey)).isTrue();
 			});
@@ -263,7 +276,49 @@ public class DefaultRedisCacheWriterTests {
 		}
 	}
 
-	void doWithConnection(Consumer<RedisConnection> callback) {
+	@Test // DATAREDIS-481
+	public void lockingCacheWriterShouldExitWhenInterruptedWaitForLockRelease() throws InterruptedException {
+
+		DefaultRedisCacheWriter cw = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory);
+		cw.lock(CACHE_NAME);
+
+		CountDownLatch beforeWrite = new CountDownLatch(1);
+		CountDownLatch afterWrite = new CountDownLatch(1);
+		AtomicReference<Exception> exceptionRef = new AtomicReference<>();
+
+		Thread th = new Thread(() -> {
+
+			DefaultRedisCacheWriter writer = new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(50)) {
+
+				@Override
+				boolean doCheckLock(String name, RedisConnection connection) {
+					beforeWrite.countDown();
+					return super.doCheckLock(name, connection);
+				}
+			};
+
+			try {
+				writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+			} catch (Exception e) {
+				exceptionRef.set(e);
+			} finally {
+				afterWrite.countDown();
+			}
+		});
+
+		th.start();
+		beforeWrite.await();
+
+		th.interrupt();
+
+		afterWrite.await();
+
+		assertThat(exceptionRef.get()).hasMessageContaining("Interrupted while waiting to unlock")
+				.hasCauseInstanceOf(InterruptedException.class);
+	}
+
+	private void doWithConnection(Consumer<RedisConnection> callback) {
+
 		RedisConnection connection = connectionFactory.getConnection();
 		try {
 			callback.accept(connection);
@@ -271,5 +326,4 @@ public class DefaultRedisCacheWriterTests {
 			connection.close();
 		}
 	}
-
 }

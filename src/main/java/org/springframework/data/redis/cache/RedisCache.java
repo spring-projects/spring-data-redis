@@ -15,24 +15,31 @@
  */
 package org.springframework.data.redis.cache;
 
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.cache.support.NullValue;
 import org.springframework.cache.support.SimpleValueWrapper;
-import org.springframework.core.convert.support.ConfigurableConversionService;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.format.support.DefaultFormattingConversionService;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * {@link org.springframework.cache.Cache} implementation using for Redis as underlying store.
+ * <p />
+ * Use {@link RedisCacheManager} to create {@link RedisCache} instances.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
+ * @see RedisCacheConfiguration
+ * @see RedisCacheWriter
  */
 public class RedisCache extends AbstractValueAdaptingCache {
 
@@ -41,7 +48,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	private final String name;
 	private final RedisCacheWriter cacheWriter;
 	private final RedisCacheConfiguration cacheConfig;
-	private final ConfigurableConversionService conversionService = new DefaultFormattingConversionService();
+	private final ConversionService conversionService;
 
 	/**
 	 * Create new {@link RedisCache}.
@@ -50,7 +57,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @param cacheWriter must not be {@literal null}.
 	 * @param cacheConfig must not be {@literal null}.
 	 */
-	RedisCache(String name, RedisCacheWriter cacheWriter, RedisCacheConfiguration cacheConfig) {
+	protected RedisCache(String name, RedisCacheWriter cacheWriter, RedisCacheConfiguration cacheConfig) {
 
 		super(cacheConfig.getAllowCacheNullValues());
 
@@ -61,10 +68,13 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		this.name = name;
 		this.cacheWriter = cacheWriter;
 		this.cacheConfig = cacheConfig;
-
-		conversionService.addConverter(String.class, byte[].class, source -> source.getBytes(Charset.forName("UTF-8")));
+		this.conversionService = cacheConfig.getConversionService();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.support.AbstractValueAdaptingCache#lookup(java.lang.Object)
+	 */
 	@Override
 	protected Object lookup(Object key) {
 
@@ -77,17 +87,30 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		return deserializeCacheValue(value);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.Cache#getName()
+	 */
 	@Override
 	public String getName() {
 		return name;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.Cache#getNativeCache()
+	 */
 	@Override
 	public RedisCacheWriter getNativeCache() {
 		return this.cacheWriter;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.Cache#get(java.lang.Object, java.util.concurrent.Callable)
+	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public synchronized <T> T get(Object key, Callable<T> valueLoader) {
 
 		ValueWrapper result = get(key);
@@ -101,6 +124,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		return value;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.Cache#put(java.lang.Object, java.lang.Object)
+	 */
 	@Override
 	public void put(Object key, Object value) {
 
@@ -116,6 +143,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		cacheWriter.put(name, createAndConvertCacheKey(key), serializeCacheValue(cacheValue), cacheConfig.getTtl());
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.Cache#putIfAbsent(java.lang.Object, java.lang.Object)
+	 */
 	@Override
 	public ValueWrapper putIfAbsent(Object key, Object value) {
 
@@ -135,11 +166,19 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		return new SimpleValueWrapper(fromStoreValue(deserializeCacheValue(result)));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.Cache#evict(java.lang.Object)
+	 */
 	@Override
 	public void evict(Object key) {
 		cacheWriter.remove(name, createAndConvertCacheKey(key));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.Cache#clear()
+	 */
 	@Override
 	public void clear() {
 
@@ -163,7 +202,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @param value can be {@literal null}.
 	 * @return preprocessed value. Can be {@literal null}.
 	 */
-
 	protected Object preProcessCacheValue(Object value) {
 
 		if (value != null) {
@@ -180,7 +218,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @return never {@literal null}.
 	 */
 	protected byte[] serializeCacheKey(String cacheKey) {
-		return cacheConfig.getKeySerializationPair().write(cacheKey).array();
+		return ByteUtils.getBytes(cacheConfig.getKeySerializationPair().write(cacheKey));
 	}
 
 	/**
@@ -195,7 +233,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return BINARY_NULL_VALUE;
 		}
 
-		return cacheConfig.getValueSerializationPair().write(value).array();
+		return ByteUtils.getBytes(cacheConfig.getValueSerializationPair().write(value));
 	}
 
 	/**
@@ -204,7 +242,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @param value must not be {@literal null}.
 	 * @return can be {@literal null}.
 	 */
-
 	protected Object deserializeCacheValue(byte[] value) {
 
 		if (isAllowNullValues() && ObjectUtils.nullSafeEquals(value, BINARY_NULL_VALUE)) {
@@ -222,12 +259,37 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	protected String createCacheKey(Object key) {
 
-		String convertedKey = conversionService.convert(key, String.class);
+		String convertedKey = convertKey(key);
+
 		if (!cacheConfig.usePrefix()) {
 			return convertedKey;
 		}
 
 		return prefixCacheKey(convertedKey);
+	}
+
+	/**
+	 * Convert {@code key} to a {@link String} representation used for cache key creation.
+	 *
+	 * @param key will never be {@literal null}.
+	 * @return never {@literal null}.
+	 * @throws IllegalStateException if {@code key} cannot be converted to {@link String}.
+	 */
+	protected String convertKey(Object key) {
+
+		TypeDescriptor source = TypeDescriptor.forObject(key);
+		if (conversionService.canConvert(source, TypeDescriptor.valueOf(String.class))) {
+			return conversionService.convert(key, String.class);
+		}
+
+		Method toString = ReflectionUtils.findMethod(key.getClass(), "toString");
+
+		if (toString != null && !Object.class.equals(toString.getDeclaringClass())) {
+			return key.toString();
+		}
+
+		throw new IllegalStateException(
+				"Cannot convert " + source + " to String. Register a Converter or override toString().");
 	}
 
 	private byte[] createAndConvertCacheKey(Object key) {
@@ -246,5 +308,4 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			throw new ValueRetrievalException(key, valueLoader, e);
 		}
 	}
-
 }

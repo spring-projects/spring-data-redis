@@ -25,12 +25,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.cache.Cache;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
-import org.springframework.context.annotation.Bean;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
+ * Unit tests for {@link RedisCacheManager}.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RedisCacheManagerUnitTests {
@@ -42,8 +43,29 @@ public class RedisCacheManagerUnitTests {
 
 		RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
 
-		RedisCacheManager cm = RedisCacheManager.usingCacheWriter(cacheWriter).withCacheDefaults(configuration).createAndGet();
+		RedisCacheManager cm = RedisCacheManager.builder(cacheWriter).cacheDefaults(configuration).build();
+		cm.afterPropertiesSet();
+
 		assertThat(cm.getMissingCache("new-cache").getCacheConfiguration()).isEqualTo(configuration);
+	}
+
+	@Test // DATAREDIS-481
+	public void appliesDefaultConfigurationToInitialCache() {
+
+		RedisCacheConfiguration withPrefix = RedisCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
+		RedisCacheConfiguration withoutPrefix = RedisCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
+
+		RedisCacheManager cm = RedisCacheManager.builder(cacheWriter).cacheDefaults(withPrefix) //
+				.initialCacheNames(Collections.singleton("first-cache")) //
+				.cacheDefaults(withoutPrefix) //
+				.initialCacheNames(Collections.singleton("second-cache")) //
+				.build();
+
+		cm.afterPropertiesSet();
+
+		assertThat(((RedisCache) cm.getCache("first-cache")).getCacheConfiguration()).isEqualTo(withPrefix);
+		assertThat(((RedisCache) cm.getCache("second-cache")).getCacheConfiguration()).isEqualTo(withoutPrefix);
+		assertThat(((RedisCache) cm.getCache("other-cache")).getCacheConfiguration()).isEqualTo(withoutPrefix);
 	}
 
 	@Test // DATAREDIS-481
@@ -51,8 +73,9 @@ public class RedisCacheManagerUnitTests {
 
 		RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
 
-		RedisCacheManager cm = RedisCacheManager.usingCacheWriter(cacheWriter)
-				.withInitialCacheConfigurations(Collections.singletonMap("predefined-cache", configuration)).createAndGet();
+		RedisCacheManager cm = RedisCacheManager.builder(cacheWriter)
+				.withInitialCacheConfigurations(Collections.singletonMap("predefined-cache", configuration)).build();
+		cm.afterPropertiesSet();
 
 		assertThat(((RedisCache) cm.getCache("predefined-cache")).getCacheConfiguration()).isEqualTo(configuration);
 		assertThat(cm.getMissingCache("new-cache").getCacheConfiguration()).isNotEqualTo(configuration);
@@ -61,20 +84,9 @@ public class RedisCacheManagerUnitTests {
 	@Test // DATAREDIS-481
 	public void transactionAwareCacheManagerShouldDecoracteCache() {
 
-		Cache cache = RedisCacheManager.usingCacheWriter(cacheWriter).transactionAware().createAndGet()
-				.getCache("decoracted-cache");
+		Cache cache = RedisCacheManager.builder(cacheWriter).transactionAware().build().getCache("decoracted-cache");
 
 		assertThat(cache).isInstanceOfAny(TransactionAwareCacheDecorator.class);
 		assertThat(ReflectionTestUtils.getField(cache, "targetCache")).isInstanceOf(RedisCache.class);
 	}
-
-	@Bean
-	public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-		return RedisCacheManager.usingRawConnectionFactory(connectionFactory)
-				.withCacheDefaults(RedisCacheConfiguration.defaultCacheConfig())
-				.withInitialCacheConfigurations(Collections.singletonMap("predefined", RedisCacheConfiguration.defaultCacheConfig().disableCachingNullValues()))
-				.transactionAware()
-				.createAndGet();
-	}
-
 }
