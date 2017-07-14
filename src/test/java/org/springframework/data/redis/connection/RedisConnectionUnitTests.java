@@ -556,7 +556,7 @@ public class RedisConnectionUnitTests {
 			return delegate.expireAt(key, unixTime);
 		}
 
-		public List<String> getConfig(String pattern) {
+		public Properties getConfig(String pattern) {
 			return delegate.getConfig(pattern);
 		}
 

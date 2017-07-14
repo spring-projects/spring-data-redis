@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,9 @@
  */
 package org.springframework.data.redis.connection.convert;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import lombok.RequiredArgsConstructor;
+
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
@@ -50,8 +43,6 @@ import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import lombok.RequiredArgsConstructor;
-
 /**
  * Common type converters
  *
@@ -70,6 +61,7 @@ abstract public class Converters {
 	private static final Converter<String, DataType> STRING_TO_DATA_TYPE = new StringToDataTypeConverter();
 	private static final Converter<Map<?, ?>, Properties> MAP_TO_PROPERTIES = MapToPropertiesConverter.INSTANCE;
 	private static final Converter<String, RedisClusterNode> STRING_TO_CLUSTER_NODE_CONVERTER;
+	private static final Converter<List<String>, Properties> STRING_LIST_TO_PROPERTIES_CONVERTER;
 	private static final Map<String, Flag> flagLookupMap;
 
 	static {
@@ -172,6 +164,21 @@ abstract public class Converters {
 			}
 
 		};
+
+		STRING_LIST_TO_PROPERTIES_CONVERTER = input -> {
+
+			Assert.notNull(input, "Input list must not be null!");
+			Assert.isTrue(input.size() % 2 == 0, "Input list must contain an even number of entries!");
+
+			Properties properties = new Properties();
+
+			for (int i = 0; i < input.size(); i += 2) {
+
+				properties.setProperty(input.get(i), input.get(i + 1));
+			}
+
+			return properties;
+		};
 	}
 
 	public static Boolean stringToBoolean(String s) {
@@ -224,7 +231,7 @@ abstract public class Converters {
 	/**
 	 * Converts lines from the result of {@code CLUSTER NODES} into {@link RedisClusterNode}s.
 	 *
-	 * @param clusterNodes
+	 * @param lines
 	 * @return
 	 * @since 1.7
 	 */
@@ -302,7 +309,7 @@ abstract public class Converters {
 
 	/**
 	 * Creates a new {@link Converter} to convert from seconds to the given {@link TimeUnit}.
-	 * 
+	 *
 	 * @param timeUnit muist not be {@literal null}.
 	 * @return
 	 * @since 1.8
@@ -379,6 +386,29 @@ abstract public class Converters {
 	}
 
 	/**
+	 * Converts array outputs with key-value sequences (such as produced by {@code CONFIG GET}) from a {@link List} to
+	 * {@link Properties}.
+	 *
+	 * @param input must not be {@literal null}.
+	 * @return the mapped result.
+	 * @since 2.0
+	 */
+	public static Properties toProperties(List<String> input) {
+		return STRING_LIST_TO_PROPERTIES_CONVERTER.convert(input);
+	}
+
+	/**
+	 * Returns a converter to convert array outputs with key-value sequences (such as produced by {@code CONFIG GET}) from
+	 * a {@link List} to {@link Properties}.
+	 *
+	 * @return the converter.
+	 * @since 2.0
+	 */
+	public static Converter<List<String>, Properties> listToPropertiesConverter() {
+		return STRING_LIST_TO_PROPERTIES_CONVERTER;
+	}
+
+	/**
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
@@ -436,5 +466,4 @@ abstract public class Converters {
 			return new GeoResults<GeoLocation<V>>(values, source.getAverageDistance().getMetric());
 		}
 	}
-
 }

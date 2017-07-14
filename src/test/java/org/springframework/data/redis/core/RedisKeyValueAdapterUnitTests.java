@@ -19,6 +19,7 @@ package org.springframework.data.redis.core;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import java.util.Arrays;
@@ -26,6 +27,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.collections.MapUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,7 +72,7 @@ public class RedisKeyValueAdapterUnitTests {
 
 		when(jedisConnectionFactoryMock.getConnection()).thenReturn(redisConnectionMock);
 		when(redisConnectionMock.getConfig("notify-keyspace-events"))
-				.thenReturn(Arrays.asList("notify-keyspace-events", "KEA"));
+				.thenReturn(MapUtils.toProperties(Collections.singletonMap("notify-keyspace-events", "KEA")));
 
 		context = new RedisMappingContext(new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration()));
 		context.afterPropertiesSet();

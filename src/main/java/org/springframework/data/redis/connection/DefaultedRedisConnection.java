@@ -1107,7 +1107,7 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
-	default List<String> getConfig(String pattern) {
+	default Properties getConfig(String pattern) {
 		return serverCommands().getConfig(pattern);
 	}
 

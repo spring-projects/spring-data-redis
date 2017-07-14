@@ -300,7 +300,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#getConfig(java.lang.String)
 	 */
 	@Override
-	public List<String> getConfig(final String pattern) {
+	public Properties getConfig(final String pattern) {
 
 		List<NodeResult<List<String>>> mapResult = connection.getClusterCommandExecutor()
 				.executeCommandOnAllNodes((JedisClusterCommandCallback<List<String>>) client -> client.configGet(pattern))
@@ -316,7 +316,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 			}
 		}
 
-		return result;
+		return Converters.toProperties(result);
 	}
 
 	/*
@@ -324,10 +324,11 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#getConfig(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String)
 	 */
 	@Override
-	public List<String> getConfig(RedisClusterNode node, final String pattern) {
+	public Properties getConfig(RedisClusterNode node, final String pattern) {
 
 		return connection.getClusterCommandExecutor().executeCommandOnSingleNode(
-				(JedisClusterCommandCallback<List<String>>) client -> client.configGet(pattern), node).getValue();
+				(JedisClusterCommandCallback<Properties>) client -> Converters.toProperties(client.configGet(pattern)), node)
+				.getValue();
 	}
 
 	/*

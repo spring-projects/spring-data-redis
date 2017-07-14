@@ -21,6 +21,7 @@ import java.util.Properties;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.jedis.JedisConnection.JedisResult;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
@@ -39,7 +40,7 @@ class JedisServerCommands implements RedisServerCommands {
 		this.connection = connection;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#bgReWriteAof()
 	 */
@@ -60,7 +61,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#bgSave()
 	 */
@@ -81,7 +82,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#lastSave()
 	 */
@@ -102,7 +103,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#save()
 	 */
@@ -123,7 +124,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#dbSize()
 	 */
@@ -144,7 +145,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushDb()
 	 */
@@ -165,7 +166,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushAll()
 	 */
@@ -186,7 +187,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#info()
 	 */
@@ -207,7 +208,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#info(java.lang.String)
 	 */
@@ -226,7 +227,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown()
 	 */
@@ -247,7 +248,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown(org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption)
 	 */
@@ -262,28 +263,30 @@ class JedisServerCommands implements RedisServerCommands {
 		connection.eval(String.format(SHUTDOWN_SCRIPT, option.name()).getBytes(), ReturnType.STATUS, 0);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#getConfig(java.lang.String)
 	 */
 	@Override
-	public List<String> getConfig(String param) {
+	public Properties getConfig(String param) {
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().configGet(param)));
+				pipeline(connection.newJedisResult(connection.getPipeline().configGet(param),
+						Converters.listToPropertiesConverter()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().configGet(param)));
+				transaction(connection.newJedisResult(connection.getTransaction().configGet(param),
+						Converters.listToPropertiesConverter()));
 				return null;
 			}
-			return connection.getJedis().configGet(param);
+			return Converters.toProperties(connection.getJedis().configGet(param));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#setConfig(java.lang.String, java.lang.String)
 	 */
@@ -304,7 +307,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#resetConfigStats()
 	 */
@@ -325,7 +328,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
 	 */
@@ -349,7 +352,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#killClient(java.lang.String, int)
 	 */
@@ -369,7 +372,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#setClientName(byte[])
 	 */
@@ -383,7 +386,7 @@ class JedisServerCommands implements RedisServerCommands {
 		connection.getJedis().clientSetname(name);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientName()
 	 */
@@ -397,7 +400,7 @@ class JedisServerCommands implements RedisServerCommands {
 		return connection.getJedis().clientGetname();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientList()
 	 */
@@ -410,7 +413,7 @@ class JedisServerCommands implements RedisServerCommands {
 		return JedisConverters.toListOfRedisClientInformation(this.connection.getJedis().clientList());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOf(java.lang.String, int)
 	 */
@@ -428,7 +431,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOfNoOne()
 	 */
@@ -445,7 +448,7 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption)
 	 */
@@ -454,7 +457,7 @@ class JedisServerCommands implements RedisServerCommands {
 		migrate(key, target, dbIndex, option, Long.MAX_VALUE);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption, long)
 	 */

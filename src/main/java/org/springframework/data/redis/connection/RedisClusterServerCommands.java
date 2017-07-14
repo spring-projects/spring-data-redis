@@ -97,7 +97,7 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 	 * @return
 	 * @see RedisServerCommands#getConfig(String)
 	 */
-	List<String> getConfig(RedisClusterNode node, String pattern);
+	Properties getConfig(RedisClusterNode node, String pattern);
 
 	/**
 	 * @param node must not be {@literal null}.

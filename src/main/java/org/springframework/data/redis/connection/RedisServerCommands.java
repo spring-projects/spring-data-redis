@@ -148,7 +148,7 @@ public interface RedisServerCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/config-get">Redis Documentation: CONFIG GET</a>
 	 */
-	List<String> getConfig(String pattern);
+	Properties getConfig(String pattern);
 
 	/**
 	 * Set server configuration for {@code param} to {@code value}.

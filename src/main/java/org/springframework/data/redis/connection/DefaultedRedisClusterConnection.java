@@ -100,7 +100,7 @@ public interface DefaultedRedisClusterConnection extends RedisClusterConnection,
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
-	default List<String> getConfig(RedisClusterNode node, String pattern) {
+	default Properties getConfig(RedisClusterNode node, String pattern) {
 		return serverCommands().getConfig(node, pattern);
 	}
 

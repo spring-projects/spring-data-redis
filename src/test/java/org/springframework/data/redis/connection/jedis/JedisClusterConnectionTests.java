@@ -1785,42 +1785,28 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(properties.getProperty("used_memory"), nullValue());
 	}
 
-	@Test // DATAREDIS-315
+	@Test // DATAREDIS-315, DATAREDIS-661
 	public void getConfigShouldLoadCumulatedConfiguration() {
 
-		List<String> result = clusterConnection.getConfig("*max-*-entries*");
+		Properties result = clusterConnection.getConfig("*max-*-entries*");
 
 		// config get *max-*-entries on redis 3.0.7 returns 8 entries per node while on 3.2.0-rc3 returns 6.
 		// @link https://github.com/spring-projects/spring-data-redis/pull/187
-		assertThat(result.size() % 6, is(0));
-		for (int i = 0; i < result.size(); i++) {
+		assertThat(result.size() % 3, is(0));
 
-			if (i % 2 == 0) {
-				assertThat(result.get(i), startsWith(CLUSTER_HOST));
-			} else {
-				assertThat(result.get(i), not(startsWith(CLUSTER_HOST)));
-			}
+		for (Object o : result.keySet()) {
+
+			assertThat(o.toString(), startsWith(CLUSTER_HOST));
+			assertThat(result.getProperty(o.toString()), not(startsWith(CLUSTER_HOST)));
 		}
 	}
 
-	@Test // DATAREDIS-315
+	@Test // DATAREDIS-315, DATAREDIS-661
 	public void getConfigShouldLoadConfigurationOfSpecificNode() {
 
-		List<String> result = clusterConnection.getConfig(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT), "*");
+		Properties result = clusterConnection.getConfig(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT), "*");
 
-		ListIterator<String> it = result.listIterator();
-		Integer valueIndex = null;
-		while (it.hasNext()) {
-
-			String cur = it.next();
-			if (cur.equals("slaveof")) {
-				valueIndex = it.nextIndex();
-				break;
-			}
-		}
-
-		assertThat(valueIndex, notNullValue());
-		assertThat(result.get(valueIndex), endsWith("7379"));
+		assertThat(result.getProperty("slaveof"), endsWith("7379"));
 	}
 
 	@Test // DATAREDIS-315

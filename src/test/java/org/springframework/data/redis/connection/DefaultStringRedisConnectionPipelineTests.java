@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.collections.MapUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.geo.Distance;
@@ -29,7 +30,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 
 /**
  * Unit test of {@link DefaultStringRedisConnection} that executes commands in a pipeline
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Ninad Divadkar
@@ -218,9 +219,9 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 		super.testGetBit();
 	}
 
-	@Test
+	@Test // DATAREDIS-661
 	public void testGetConfig() {
-		List<String> results = Collections.singletonList("bar");
+		Properties results = MapUtils.toProperties(Collections.singletonMap("foo", "bar"));
 		doReturn(Arrays.asList(new Object[] { results })).when(nativeConnection).closePipeline();
 		super.testGetConfig();
 	}

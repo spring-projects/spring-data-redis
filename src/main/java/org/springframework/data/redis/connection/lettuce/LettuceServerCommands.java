@@ -24,6 +24,7 @@ import java.util.Properties;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceResult;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceTxResult;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -276,17 +277,19 @@ class LettuceServerCommands implements RedisServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#getConfig(java.lang.String)
 	 */
 	@Override
-	public List<String> getConfig(String param) {
+	public Properties getConfig(String param) {
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().configGet(param)));
+				pipeline(
+						connection.newLettuceResult(getAsyncConnection().configGet(param), Converters.listToPropertiesConverter()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().configGet(param)));
+				transaction(
+						connection.newLettuceTxResult(getConnection().configGet(param), Converters.listToPropertiesConverter()));
 				return null;
 			}
-			return getConnection().configGet(param);
+			return Converters.toProperties(getConnection().configGet(param));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

@@ -812,27 +812,6 @@ abstract public class LettuceConverters extends Converters {
 	}
 
 	/**
-	 * Convert {@code CONFIG GET} output from a {@link List} to {@link Properties}.
-	 *
-	 * @param input must not be {@literal null}.
-	 * @return the mapped result.
-	 */
-	public static Properties toProperties(List<String> input) {
-
-		Assert.notNull(input, "Input list must not be null!");
-		Assert.isTrue(input.size() % 2 == 0, "Input list must contain an even number of entries!");
-
-		Properties properties = new Properties();
-
-		for (int i = 0; i < input.size(); i += 2) {
-
-			properties.setProperty(input.get(i), input.get(i + 1));
-		}
-
-		return properties;
-	}
-
-	/**
 	 * Get {@link Converter} capable of {@link Set} of {@link Byte} into {@link GeoResults}.
 	 *
 	 * @return

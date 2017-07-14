@@ -18,18 +18,10 @@ package org.springframework.data.redis.connection;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.collections.MapUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -53,10 +45,11 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Unit test of {@link DefaultStringRedisConnection}
- * 
+ *
  * @author Jennifer Hickey
  * @auhtor Christoph Strobl
  * @author Ninad Divadkar
+ * @author Mark Paluch
  */
 public class DefaultStringRedisConnectionTests {
 
@@ -302,9 +295,9 @@ public class DefaultStringRedisConnectionTests {
 		verifyResults(Arrays.asList(new Object[] { true }));
 	}
 
-	@Test
+	@Test // DATAREDIS-661
 	public void testGetConfig() {
-		List<String> results = Collections.singletonList("bar");
+		Properties results = MapUtils.toProperties(Collections.singletonMap("foo", "bar"));
 		doReturn(results).when(nativeConnection).getConfig("foo");
 		actual.add(connection.getConfig("foo"));
 		verifyResults(Arrays.asList(new Object[] { results }));
