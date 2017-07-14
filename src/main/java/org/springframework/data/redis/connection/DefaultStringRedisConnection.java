@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2016 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,17 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -52,7 +43,7 @@ import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@link StringRedisConnection}.
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
@@ -122,7 +113,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	/**
 	 * Constructs a new <code>DefaultStringRedisConnection</code> instance. Uses {@link StringRedisSerializer} as
 	 * underlying serializer.
-	 * 
+	 *
 	 * @param connection Redis connection
 	 */
 	public DefaultStringRedisConnection(RedisConnection connection) {
@@ -131,7 +122,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/**
 	 * Constructs a new <code>DefaultStringRedisConnection</code> instance.
-	 * 
+	 *
 	 * @param connection Redis connection
 	 * @param serializer String serializer
 	 */
@@ -308,8 +299,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
-	public List<String> getConfig(String pattern) {
-		List<String> results = delegate.getConfig(pattern);
+	public Properties getConfig(String pattern) {
+		Properties results = delegate.getConfig(pattern);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -939,7 +930,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[])
 	 */
@@ -953,7 +944,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[], java.util.concurrent.TimeUnit)
 	 */
@@ -1351,7 +1342,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[])
 	 */
@@ -1366,7 +1357,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[], java.util.concurrent.TimeUnit)
 	 */
@@ -2103,7 +2094,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#ttl(java.lang.String)
 	 */
@@ -2112,7 +2103,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return ttl(serialize(key));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#ttl(java.lang.String, java.util.concurrent.TimeUnit)
 	 */
@@ -2743,7 +2734,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return pExpireAt(serialize(key), unixTimeInMillis);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#pTtl(java.lang.String)
 	 */
@@ -2752,7 +2743,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return pTtl(serialize(key));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#pTtl(java.lang.String, java.util.concurrent.TimeUnit)
 	 */
@@ -2835,7 +2826,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	/*
-	 * 
+	 *
 	 */
 	@Override
 	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
@@ -2863,7 +2854,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	/**
 	 * Specifies if pipelined and tx results should be deserialized to Strings. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the underlying connection
-	 * 
+	 *
 	 * @param deserializePipelineAndTxResults Whether or not to deserialize pipeline and tx results
 	 */
 	public void setDeserializePipelineAndTxResults(boolean deserializePipelineAndTxResults) {

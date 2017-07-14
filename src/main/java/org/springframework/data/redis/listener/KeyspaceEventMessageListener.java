@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.listener;
 
-import java.util.List;
+import java.util.Properties;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -27,8 +27,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * Base {@link MessageListener} implementation for listening to Redis keyspace notifications.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public abstract class KeyspaceEventMessageListener implements MessageListener, InitializingBean, DisposableBean {
@@ -39,7 +40,7 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 
 	/**
 	 * Creates new {@link KeyspaceEventMessageListener}.
-	 * 
+	 *
 	 * @param listenerContainer must not be {@literal null}.
 	 */
 	public KeyspaceEventMessageListener(RedisMessageListenerContainer listenerContainer) {
@@ -64,7 +65,7 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 
 	/**
 	 * Handle the actual message
-	 * 
+	 *
 	 * @param message never {@literal null}.
 	 */
 	protected abstract void doHandleMessage(Message message);
@@ -81,9 +82,9 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 
 			try {
 
-				List<String> config = connection.getConfig("notify-keyspace-events");
+				Properties config = connection.getConfig("notify-keyspace-events");
 
-				if (config.size() == 2 && !StringUtils.hasText(config.get(1))) {
+				if (!StringUtils.hasText(config.getProperty("notify-keyspace-events"))) {
 					connection.setConfig("notify-keyspace-events", keyspaceNotificationsConfigParameter);
 				}
 
@@ -97,7 +98,7 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 
 	/**
 	 * Register instance within the container.
-	 * 
+	 *
 	 * @param container never {@literal null}.
 	 */
 	protected void doRegister(RedisMessageListenerContainer container) {

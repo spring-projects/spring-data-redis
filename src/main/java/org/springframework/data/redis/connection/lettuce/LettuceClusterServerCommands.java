@@ -226,7 +226,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#getConfig(java.lang.String)
 	 */
 	@Override
-	public List<String> getConfig(final String pattern) {
+	public Properties getConfig(final String pattern) {
 
 		List<NodeResult<List<String>>> mapResult = executeCommandOnAllNodes(client -> client.configGet(pattern))
 				.getResults();
@@ -241,7 +241,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 			}
 		}
 
-		return result;
+		return Converters.toProperties(result);
 	}
 
 	/*
@@ -249,8 +249,8 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#getConfig(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String)
 	 */
 	@Override
-	public List<String> getConfig(RedisClusterNode node, final String pattern) {
-		return executeCommandOnSingleNode(client -> client.configGet(pattern), node).getValue();
+	public Properties getConfig(RedisClusterNode node, final String pattern) {
+		return executeCommandOnSingleNode(client -> Converters.toProperties(client.configGet(pattern)), node).getValue();
 	}
 
 	/*

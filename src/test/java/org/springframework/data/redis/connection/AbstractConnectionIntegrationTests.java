@@ -27,18 +27,7 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.Distanc
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -89,7 +78,7 @@ import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 
 /**
  * Base test class for AbstractConnection integration tests
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
@@ -915,10 +904,10 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-661
 	public void testGetConfig() {
 		actual.add(connection.getConfig("*"));
-		List<String> config = (List<String>) getResults().get(0);
+		Properties config = (Properties) getResults().get(0);
 		assertTrue(!config.isEmpty());
 	}
 
