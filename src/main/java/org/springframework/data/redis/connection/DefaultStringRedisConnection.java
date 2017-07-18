@@ -15,8 +15,17 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -299,7 +308,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#getConfig(java.lang.String)
+	 */
 	public Properties getConfig(String pattern) {
+
 		Properties results = delegate.getConfig(pattern);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);

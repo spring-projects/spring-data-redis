@@ -25,9 +25,9 @@ import static org.springframework.test.util.ReflectionTestUtils.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.collections.MapUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,8 +71,11 @@ public class RedisKeyValueAdapterUnitTests {
 		template.afterPropertiesSet();
 
 		when(jedisConnectionFactoryMock.getConnection()).thenReturn(redisConnectionMock);
-		when(redisConnectionMock.getConfig("notify-keyspace-events"))
-				.thenReturn(MapUtils.toProperties(Collections.singletonMap("notify-keyspace-events", "KEA")));
+
+		Properties keyspaceEventsConfig = new Properties();
+		keyspaceEventsConfig.put("notify-keyspace-events", "KEA");
+
+		when(redisConnectionMock.getConfig("notify-keyspace-events")).thenReturn(keyspaceEventsConfig);
 
 		context = new RedisMappingContext(new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration()));
 		context.afterPropertiesSet();
@@ -106,8 +109,7 @@ public class RedisKeyValueAdapterUnitTests {
 
 		adapter.put("1", rd, "persons");
 
-		verify(redisConnectionMock, times(1)).sRem(Mockito.any(byte[].class),
-				Mockito.any(byte[].class));
+		verify(redisConnectionMock, times(1)).sRem(Mockito.any(byte[].class), Mockito.any(byte[].class));
 	}
 
 	@Test // DATAREDIS-512

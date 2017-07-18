@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.commons.collections.MapUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.geo.Distance;
@@ -223,9 +222,12 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 		super.testGetBit();
 	}
 
-	@Test
+	@Test // DATAREDIS-661
 	public void testGetConfig() {
-		Properties results = MapUtils.toProperties(Collections.singletonMap("foo", "bar"));
+
+		Properties results = new Properties();
+		results.put("foo", "bar");
+
 		doReturn(Arrays.asList(new Object[] { Arrays.asList(new Object[] { results }) })).when(nativeConnection)
 				.closePipeline();
 		super.testGetConfig();

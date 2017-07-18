@@ -1807,10 +1807,10 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		// @link https://github.com/spring-projects/spring-data-redis/pull/187
 		assertThat(result.size() % 3, is(0));
 
-		for (Object o : result.keySet()) {
+		for (Object key : result.keySet()) {
 
-			assertThat(o.toString(), startsWith(CLUSTER_HOST));
-			assertThat(result.getProperty(o.toString()), not(startsWith(CLUSTER_HOST)));
+			assertThat(key.toString(), startsWith(CLUSTER_HOST));
+			assertThat(result.getProperty(key.toString()), not(startsWith(CLUSTER_HOST)));
 		}
 	}
 

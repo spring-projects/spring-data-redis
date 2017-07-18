@@ -144,8 +144,8 @@ public interface RedisServerCommands {
 	/**
 	 * Load configuration parameters for given {@code pattern} from server.
 	 *
-	 * @param pattern
-	 * @return
+	 * @param pattern must not be {@literal null}.
+	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/config-get">Redis Documentation: CONFIG GET</a>
 	 */
 	Properties getConfig(String pattern);
