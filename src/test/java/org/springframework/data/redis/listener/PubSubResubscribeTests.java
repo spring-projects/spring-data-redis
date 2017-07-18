@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -38,6 +39,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.junit.runners.model.Statement;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
@@ -53,6 +55,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceTestClientResour
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.test.util.RedisClusterRule;
 
 /**
  * @author Costin Leau
@@ -97,6 +100,8 @@ public class PubSubResubscribeTests {
 		int port = SettingsUtils.getPort();
 		String host = SettingsUtils.getHost();
 
+		List<RedisConnectionFactory> factories = new ArrayList<>(3);
+
 		// Jedis
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
 		jedisConnFactory.setUsePool(false);
@@ -104,6 +109,8 @@ public class PubSubResubscribeTests {
 		jedisConnFactory.setHostName(host);
 		jedisConnFactory.setDatabase(2);
 		jedisConnFactory.afterPropertiesSet();
+
+		factories.add(jedisConnFactory);
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
@@ -114,16 +121,22 @@ public class PubSubResubscribeTests {
 		lettuceConnFactory.setValidateConnection(true);
 		lettuceConnFactory.afterPropertiesSet();
 
-		LettuceConnectionFactory lettuceClusterConnFactory = new LettuceConnectionFactory(
-				new RedisClusterConfiguration().clusterNode(ClusterTestVariables.CLUSTER_NODE_1));
-		lettuceClusterConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceClusterConnFactory.setPort(port);
-		lettuceClusterConnFactory.setHostName(host);
-		lettuceClusterConnFactory.setValidateConnection(true);
-		lettuceClusterConnFactory.afterPropertiesSet();
+		factories.add(lettuceConnFactory);
 
-		return Arrays
-				.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory }, { lettuceClusterConnFactory } });
+		if (clusterAvailable()) {
+
+			LettuceConnectionFactory lettuceClusterConnFactory = new LettuceConnectionFactory(
+					new RedisClusterConfiguration().clusterNode(ClusterTestVariables.CLUSTER_NODE_1));
+			lettuceClusterConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+			lettuceClusterConnFactory.setPort(port);
+			lettuceClusterConnFactory.setHostName(host);
+			lettuceClusterConnFactory.setValidateConnection(true);
+			lettuceClusterConnFactory.afterPropertiesSet();
+
+			factories.add(lettuceClusterConnFactory);
+		}
+
+		return factories.stream().map(factory -> new Object[] { factory }).collect(Collectors.toList());
 	}
 
 	@Before
@@ -302,5 +315,20 @@ public class PubSubResubscribeTests {
 		public void handleMessage(String message) {
 			bag.add(message);
 		}
+	}
+
+	private static boolean clusterAvailable() {
+
+		try {
+			new RedisClusterRule().apply(new Statement() {
+				@Override
+				public void evaluate() throws Throwable {
+
+				}
+			}, null).evaluate();
+		} catch (Throwable throwable) {
+			return false;
+		}
+		return true;
 	}
 }

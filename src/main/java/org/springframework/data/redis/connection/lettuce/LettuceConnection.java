@@ -798,6 +798,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	/**
+	 * {@link #close()} the current connection and open a new pub/sub connection to the Redis server.
+	 *
+	 * @return never {@literal null}.
+	 */
 	protected StatefulRedisPubSubConnection<byte[], byte[]> switchToPubSub() {
 
 		close();

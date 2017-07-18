@@ -515,7 +515,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		return result;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#switchToPubSub()
 	 */
