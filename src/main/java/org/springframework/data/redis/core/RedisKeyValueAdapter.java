@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -196,9 +195,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#put(java.io.Serializable, java.lang.Object, java.io.Serializable)
+	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#put(java.lang.Object, java.lang.Object, java.lang.String)
 	 */
-	public Object put(final Serializable id, final Object item, final Serializable keyspace) {
+	@Override
+	public Object put(final Object id, final Object item, final String keyspace) {
 
 		final RedisData rdo = item instanceof RedisData ? (RedisData) item : new RedisData();
 		if (!(item instanceof RedisData)) {
@@ -265,9 +265,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#contains(java.io.Serializable, java.io.Serializable)
+	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#contains(java.lang.Object, java.lang.String)
 	 */
-	public boolean contains(final Serializable id, final Serializable keyspace) {
+	@Override
+	public boolean contains(final Object id, final String keyspace) {
 
 		Boolean exists = redisOps.execute(new RedisCallback<Boolean>() {
 
@@ -282,19 +283,19 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#get(java.io.Serializable, java.io.Serializable)
+	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#get(java.lang.Object, java.lang.String)
 	 */
-	public Object get(Serializable id, Serializable keyspace) {
+	@Override
+	public Object get(Object id, String keyspace) {
 		return get(id, keyspace, Object.class);
 	}
 
-	/**
-	 * @param id
-	 * @param keyspace
-	 * @param type
-	 * @return
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#get(java.lang.Object, java.lang.String, java.lang.Class)
 	 */
-	public <T> T get(Serializable id, Serializable keyspace, Class<T> type) {
+	@Override
+	public <T> T get(Object id, String keyspace, Class<T> type) {
 
 		String stringId = asString(id);
 		String stringKeyspace = asString(keyspace);
@@ -318,17 +319,19 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#delete(java.io.Serializable, java.io.Serializable)
+	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#delete(java.lang.Object, java.lang.String)
 	 */
-	public Object delete(final Serializable id, final Serializable keyspace) {
+	@Override
+	public Object delete(final Object id, final String keyspace) {
 		return delete(id, keyspace, Object.class);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.AbstractKeyValueAdapter#delete(java.io.Serializable, java.io.Serializable, java.lang.Class)
+	 * @see org.springframework.data.keyvalue.core.AbstractKeyValueAdapter#delete(java.lang.Object, java.lang.String, java.lang.Class)
 	 */
-	public <T> T delete(final Serializable id, final Serializable keyspace, final Class<T> type) {
+	@Override
+	public <T> T delete(final Object id, final String keyspace, final Class<T> type) {
 
 		final byte[] binId = toBytes(id);
 		final byte[] binKeyspace = toBytes(keyspace);
@@ -358,13 +361,14 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#getAllOf(java.io.Serializable)
+	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#getAllOf(java.lang.String)
 	 */
-	public List<?> getAllOf(final Serializable keyspace) {
+	@Override
+	public List<?> getAllOf(final String keyspace) {
 		return getAllOf(keyspace, -1, -1);
 	}
 
-	public List<?> getAllOf(final Serializable keyspace, long offset, int rows) {
+	public List<?> getAllOf(final String keyspace, long offset, int rows) {
 
 		final byte[] binKeyspace = toBytes(keyspace);
 
@@ -397,9 +401,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#deleteAllOf(java.io.Serializable)
+	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#deleteAllOf(java.lang.String)
 	 */
-	public void deleteAllOf(final Serializable keyspace) {
+	@Override
+	public void deleteAllOf(final String keyspace) {
 
 		redisOps.execute(new RedisCallback<Void>() {
 
@@ -415,17 +420,19 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#entries(java.io.Serializable)
+	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#entries(java.lang.String)
 	 */
-	public CloseableIterator<Entry<Serializable, Object>> entries(Serializable keyspace) {
+	@Override
+	public CloseableIterator<Entry<Object, Object>> entries(String keyspace) {
 		throw new UnsupportedOperationException("Not yet implemented");
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#count(java.io.Serializable)
+	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#count(java.lang.String)
 	 */
-	public long count(final Serializable keyspace) {
+	@Override
+	public long count(final String keyspace) {
 
 		Long count = redisOps.execute(new RedisCallback<Long>() {
 
@@ -592,7 +599,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		// nothing to do
 	}
 
-	private String asString(Serializable value) {
+	private String asString(Object value) {
 		return value instanceof String ? (String) value
 				: getConverter().getConversionService().convert(value, String.class);
 	}

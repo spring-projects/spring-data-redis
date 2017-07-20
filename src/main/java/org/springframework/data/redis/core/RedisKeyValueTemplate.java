@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -114,10 +113,10 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueTemplate#insert(java.io.Serializable, java.lang.Object)
+	 * @see org.springframework.data.keyvalue.core.KeyValueTemplate#insert(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void insert(final Serializable id, final Object objectToInsert) {
+	public void insert(final Object id, final Object objectToInsert) {
 
 		if (objectToInsert instanceof PartialUpdate) {
 			doPartialUpdate((PartialUpdate<?>) objectToInsert);
