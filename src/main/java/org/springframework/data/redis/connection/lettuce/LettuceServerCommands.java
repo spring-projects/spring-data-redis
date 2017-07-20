@@ -281,12 +281,12 @@ class LettuceServerCommands implements RedisServerCommands {
 		try {
 			if (isPipelined()) {
 				pipeline(
-						connection.newLettuceResult(getAsyncConnection().configGet(param), Converters.listToPropertiesConverter()));
+						connection.newLettuceResult(getAsyncConnection().configGet(param), Converters.mapToPropertiesConverter()));
 				return null;
 			}
 			if (isQueueing()) {
 				transaction(
-						connection.newLettuceTxResult(getConnection().configGet(param), Converters.listToPropertiesConverter()));
+						connection.newLettuceTxResult(getConnection().configGet(param), Converters.mapToPropertiesConverter()));
 				return null;
 			}
 			return Converters.toProperties(getConnection().configGet(param));

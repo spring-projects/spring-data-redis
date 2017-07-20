@@ -34,7 +34,6 @@ import io.lettuce.core.resource.ClientResources;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
@@ -93,8 +92,7 @@ public class LettuceConnectionFactoryUnitTests {
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.getTimeout(), is(equalTo(connectionFactory.getTimeout())));
-			assertThat(uri.getUnit(), is(equalTo(TimeUnit.MILLISECONDS)));
+			assertThat(uri.getTimeout(), is(equalTo(Duration.ofMillis(connectionFactory.getTimeout()))));
 		}
 	}
 

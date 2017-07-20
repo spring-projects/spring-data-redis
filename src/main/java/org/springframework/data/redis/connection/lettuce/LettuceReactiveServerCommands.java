@@ -149,7 +149,7 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 
 		Assert.hasText(pattern, "Pattern must not be null nor empty!");
 
-		return connection.execute(c -> c.configGet(pattern).collectList()) //
+		return connection.execute(c -> c.configGet(pattern)) //
 				.map(LettuceConverters::toProperties).next();
 	}
 

@@ -767,8 +767,7 @@ public class LettuceConnectionFactory
 					.map(clientResources -> RedisClusterClient.create(clientResources, initialUris)) //
 					.orElseGet(() -> RedisClusterClient.create(initialUris));
 
-			this.clusterCommandExecutor = new ClusterCommandExecutor(
-					new LettuceClusterTopologyProvider(clusterClient),
+			this.clusterCommandExecutor = new ClusterCommandExecutor(new LettuceClusterTopologyProvider(clusterClient),
 					new LettuceClusterConnection.LettuceClusterNodeResourceProvider(clusterClient), EXCEPTION_TRANSLATION);
 
 			clientConfiguration.getClientOptions() //
@@ -795,6 +794,7 @@ public class LettuceConnectionFactory
 		RedisURI redisUri = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
 
 		getRedisPassword().toOptional().ifPresent(redisUri::setPassword);
+		redisUri.setTimeout(clientConfiguration.getCommandTimeout());
 
 		return redisUri;
 	}
@@ -808,7 +808,7 @@ public class LettuceConnectionFactory
 		builder.withSsl(clientConfiguration.isUseSsl());
 		builder.withVerifyPeer(clientConfiguration.isVerifyPeer());
 		builder.withStartTls(clientConfiguration.isStartTls());
-		builder.withTimeout(clientConfiguration.getCommandTimeout().toMillis(), TimeUnit.MILLISECONDS);
+		builder.withTimeout(clientConfiguration.getCommandTimeout());
 
 		return builder.build();
 	}

@@ -409,6 +409,16 @@ abstract public class Converters {
 	}
 
 	/**
+	 * Returns a converter to convert from {@link Map} to {@link Properties}.
+	 *
+	 * @return the converter.
+	 * @since 2.0
+	 */
+	public static Converter<Map<?, ?>, Properties> mapToPropertiesConverter() {
+		return MAP_TO_PROPERTIES;
+	}
+
+	/**
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */

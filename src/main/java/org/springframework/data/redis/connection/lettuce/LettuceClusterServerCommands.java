@@ -20,6 +20,7 @@ import io.lettuce.core.api.sync.RedisServerCommands;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -228,20 +229,18 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	@Override
 	public Properties getConfig(final String pattern) {
 
-		List<NodeResult<List<String>>> mapResult = executeCommandOnAllNodes(client -> client.configGet(pattern))
+		List<NodeResult<Map<String, String>>> mapResult = executeCommandOnAllNodes(client -> client.configGet(pattern))
 				.getResults();
 
-		List<String> result = new ArrayList<>();
-		for (NodeResult<List<String>> entry : mapResult) {
+		Properties properties = new Properties();
+
+		for (NodeResult<Map<String, String>> entry : mapResult) {
 
 			String prefix = entry.getNode().asString();
-			int i = 0;
-			for (String value : entry.getValue()) {
-				result.add((i++ % 2 == 0 ? (prefix + ".") : "") + value);
-			}
+			entry.getValue().forEach((key, value) -> properties.setProperty(prefix + "." + key, value));
 		}
 
-		return Converters.toProperties(result);
+		return properties;
 	}
 
 	/*

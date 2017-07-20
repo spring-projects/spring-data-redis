@@ -205,7 +205,7 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 
 		Assert.hasText(pattern, "Pattern must not be null nor empty!");
 
-		return connection.execute(node, c -> c.configGet(pattern).collectList()) //
+		return connection.execute(node, c -> c.configGet(pattern)) //
 				.map(LettuceConverters::toProperties) //
 				.next();
 	}
