@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,12 +71,12 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.io.Serializable, java.lang.Class)
+	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.lang.String, java.lang.Class)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> Collection<T> execute(final RedisOperationChain criteria, final Comparator<?> sort, final long offset,
-			final int rows, final Serializable keyspace, Class<T> type) {
+			final int rows, final String keyspace, Class<T> type) {
 
 		if (criteria == null
 				|| (CollectionUtils.isEmpty(criteria.getOrSismember()) && CollectionUtils.isEmpty(criteria.getSismember()))
@@ -151,20 +150,20 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.io.Serializable)
+	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.lang.String)
 	 */
 	@Override
 	public Collection<?> execute(final RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
-			final Serializable keyspace) {
+			final String keyspace) {
 		return execute(criteria, sort, offset, rows, keyspace, Object.class);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.QueryEngine#count(java.lang.Object, java.io.Serializable)
+	 * @see org.springframework.data.keyvalue.core.QueryEngine#count(java.lang.Object, java.lang.String)
 	 */
 	@Override
-	public long count(final RedisOperationChain criteria, final Serializable keyspace) {
+	public long count(final RedisOperationChain criteria, final String keyspace) {
 
 		if (criteria == null) {
 			return this.getAdapter().count(keyspace);
