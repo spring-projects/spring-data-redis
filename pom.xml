@@ -88,7 +88,6 @@
 		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-core</artifactId>
-			<version>${reactor}</version>
 			<optional>true</optional>
 		</dependency>
 
@@ -192,7 +191,6 @@
 		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-test</artifactId>
-			<version>${reactor}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
