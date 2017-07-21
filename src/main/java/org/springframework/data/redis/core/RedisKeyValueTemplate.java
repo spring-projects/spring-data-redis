@@ -18,7 +18,6 @@ package org.springframework.data.redis.core;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueCallback;
@@ -29,15 +28,16 @@ import org.springframework.util.ClassUtils;
 
 /**
  * Redis specific implementation of {@link KeyValueTemplate}.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisKeyValueTemplate extends KeyValueTemplate {
 
 	/**
 	 * Create new {@link RedisKeyValueTemplate}.
-	 * 
+	 *
 	 * @param adapter must not be {@literal null}.
 	 * @param mappingContext must not be {@literal null}.
 	 */
@@ -58,7 +58,7 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	 * Retrieve entities by resolving their {@literal id}s and converting them into required type. <br />
 	 * The callback provides either a single {@literal id} or an {@link Iterable} of {@literal id}s, used for retrieving
 	 * the actual domain types and shortcuts manual retrieval and conversion of {@literal id}s via {@link RedisTemplate}.
-	 * 
+	 *
 	 * <pre>
 	 * <code>
 	 * List&#60;RedisSession&#62; sessions = template.find(new RedisCallback&#60;Set&#60;byte[]&#62;&#62;() {
@@ -69,14 +69,14 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	 *   }
 	 * }, RedisSession.class);
 	 * </code>
-	 * 
+	 *
 	 * <pre>
 	 *
 	 * @param callback provides the to retrieve entity ids. Must not be {@literal null}.
 	 * @param type must not be {@literal null}.
 	 * @return empty list if not elements found.
 	 */
-	public <T> List<T> find(final RedisCallback<?> callback, final Class<T> type) {
+	public <T> List<T> find(RedisCallback<?> callback, Class<T> type) {
 
 		Assert.notNull(callback, "Callback must not be null.");
 
@@ -92,18 +92,17 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 				}
 
 				Iterable<?> ids = ClassUtils.isAssignable(Iterable.class, callbackResult.getClass())
-						? (Iterable<?>) callbackResult : Collections.singleton(callbackResult);
+						? (Iterable<?>) callbackResult
+						: Collections.singleton(callbackResult);
 
 				List<T> result = new ArrayList<T>();
 				for (Object id : ids) {
 
 					String idToUse = adapter.getConverter().getConversionService().canConvert(id.getClass(), String.class)
-							? adapter.getConverter().getConversionService().convert(id, String.class) : id.toString();
+							? adapter.getConverter().getConversionService().convert(id, String.class)
+							: id.toString();
 
-					Optional<T> candidate = findById(idToUse, type);
-					if (candidate.isPresent()) {
-						result.add(candidate.get());
-					}
+					findById(idToUse, type).ifPresent(result::add);
 				}
 
 				return result;
@@ -116,7 +115,7 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	 * @see org.springframework.data.keyvalue.core.KeyValueTemplate#insert(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void insert(final Object id, final Object objectToInsert) {
+	public void insert(Object id, Object objectToInsert) {
 
 		if (objectToInsert instanceof PartialUpdate) {
 			doPartialUpdate((PartialUpdate<?>) objectToInsert);
@@ -156,7 +155,7 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 
 	/**
 	 * Redis specific {@link KeyValueCallback}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @param <T>
 	 * @since 1.7

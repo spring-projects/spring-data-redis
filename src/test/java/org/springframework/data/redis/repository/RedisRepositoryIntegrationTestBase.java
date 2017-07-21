@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.Data;
 import org.hamcrest.core.IsNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -401,8 +402,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@RedisHash("persons")
-	@SuppressWarnings("serial")
-	public static class Person implements Serializable {
+	@Data
+	public static class Person {
 
 		@Id String id;
 		@Indexed String firstname;
@@ -417,127 +418,14 @@ public abstract class RedisRepositoryIntegrationTestBase {
 			this.firstname = firstname;
 			this.lastname = lastname;
 		}
-
-		public City getCity() {
-			return city;
-		}
-
-		public void setCity(City city) {
-			this.city = city;
-		}
-
-		public String getId() {
-			return id;
-		}
-
-		public void setId(String id) {
-			this.id = id;
-		}
-
-		public String getFirstname() {
-			return firstname;
-		}
-
-		public void setFirstname(String firstname) {
-			this.firstname = firstname;
-		}
-
-		public void setLastname(String lastname) {
-			this.lastname = lastname;
-		}
-
-		public String getLastname() {
-			return lastname;
-		}
-
-		@Override
-		public String toString() {
-			return "Person [id=" + id + ", firstname=" + firstname + "]";
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((firstname == null) ? 0 : firstname.hashCode());
-			result = prime * result + ((id == null) ? 0 : id.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (!(obj instanceof Person)) {
-				return false;
-			}
-			Person other = (Person) obj;
-			if (firstname == null) {
-				if (other.firstname != null) {
-					return false;
-				}
-			} else if (!firstname.equals(other.firstname)) {
-				return false;
-			}
-			if (id == null) {
-				if (other.id != null) {
-					return false;
-				}
-			} else if (!id.equals(other.id)) {
-				return false;
-			}
-			return true;
-		}
-
 	}
 
+	@Data
 	public static class City {
 
 		@Id String id;
 		String name;
 
 		@GeoIndexed Point location;
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((id == null) ? 0 : id.hashCode());
-			result = prime * result + ((name == null) ? 0 : name.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (!(obj instanceof City)) {
-				return false;
-			}
-			City other = (City) obj;
-			if (id == null) {
-				if (other.id != null) {
-					return false;
-				}
-			} else if (!id.equals(other.id)) {
-				return false;
-			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
-				return false;
-			}
-			return true;
-		}
 	}
 }

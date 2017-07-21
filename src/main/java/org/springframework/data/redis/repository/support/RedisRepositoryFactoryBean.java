@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.repository.support;
 
-import java.io.Serializable;
-
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactoryBean;
@@ -27,20 +25,21 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 /**
  * Adapter for Springs {@link FactoryBean} interface to allow easy setup of {@link RedisRepositoryFactory} via Spring
  * configuration.
- * 
+ *
  * @author Christoph Strobl
  * @author Oliver Gierke
+ * @author Mark Paluch
  * @param <T> The repository type.
  * @param <S> The repository domain type.
  * @param <ID> The repository id type.
  * @since 1.7
  */
-public class RedisRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
+public class RedisRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		extends KeyValueRepositoryFactoryBean<T, S, ID> {
 
 	/**
 	 * Creates a new {@link RedisRepositoryFactoryBean} for the given repository interface.
-	 * 
+	 *
 	 * @param repositoryInterface must not be {@literal null}.
 	 */
 	public RedisRepositoryFactoryBean(Class<? extends T> repositoryInterface) {

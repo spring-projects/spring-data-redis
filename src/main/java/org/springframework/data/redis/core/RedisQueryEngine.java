@@ -23,7 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
@@ -31,7 +30,6 @@ import org.springframework.data.keyvalue.core.CriteriaAccessor;
 import org.springframework.data.keyvalue.core.QueryEngine;
 import org.springframework.data.keyvalue.core.SortAccessor;
 import org.springframework.data.keyvalue.core.query.KeyValueQuery;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.core.convert.GeoIndexedPropertyValue;
 import org.springframework.data.redis.core.convert.RedisData;
@@ -53,7 +51,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	/**
 	 * Creates new {@link RedisQueryEngine} with defaults.
 	 */
-	public RedisQueryEngine() {
+	RedisQueryEngine() {
 		this(new RedisCriteriaAccessor(), null);
 	}
 
@@ -64,7 +62,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	 * @param sortAccessor
 	 * @see QueryEngine#QueryEngine(CriteriaAccessor, SortAccessor)
 	 */
-	public RedisQueryEngine(CriteriaAccessor<RedisOperationChain> criteriaAccessor,
+	private RedisQueryEngine(CriteriaAccessor<RedisOperationChain> criteriaAccessor,
 			SortAccessor<Comparator<?>> sortAccessor) {
 		super(criteriaAccessor, sortAccessor);
 	}
@@ -75,8 +73,8 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> Collection<T> execute(final RedisOperationChain criteria, final Comparator<?> sort, final long offset,
-			final int rows, final String keyspace, Class<T> type) {
+	public <T> Collection<T> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
+			String keyspace, Class<T> type) {
 
 		if (criteria == null
 				|| (CollectionUtils.isEmpty(criteria.getOrSismember()) && CollectionUtils.isEmpty(criteria.getSismember()))
@@ -84,60 +82,55 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 			return (Collection<T>) getAdapter().getAllOf(keyspace, offset, rows);
 		}
 
-		RedisCallback<Map<byte[], Map<byte[], byte[]>>> callback = new RedisCallback<Map<byte[], Map<byte[], byte[]>>>() {
+		RedisCallback<Map<byte[], Map<byte[], byte[]>>> callback = connection -> {
 
-			@Override
-			public Map<byte[], Map<byte[], byte[]>> doInRedis(RedisConnection connection) throws DataAccessException {
-
-				List<byte[]> allKeys = new ArrayList<byte[]>();
-				if (!criteria.getSismember().isEmpty()) {
-					allKeys.addAll(connection.sInter(keys(keyspace + ":", criteria.getSismember())));
-				}
-
-				if (!criteria.getOrSismember().isEmpty()) {
-					allKeys.addAll(connection.sUnion(keys(keyspace + ":", criteria.getOrSismember())));
-				}
-
-				if (criteria.getNear() != null) {
-
-					GeoResults<GeoLocation<byte[]>> x = connection.geoRadius(geoKey(keyspace + ":", criteria.getNear()),
-							new Circle(criteria.getNear().getPoint(), criteria.getNear().getDistance()));
-					for (GeoResult<GeoLocation<byte[]>> y : x) {
-						allKeys.add(y.getContent().getName());
-					}
-				}
-
-				byte[] keyspaceBin = getAdapter().getConverter().getConversionService().convert(keyspace + ":", byte[].class);
-
-				final Map<byte[], Map<byte[], byte[]>> rawData = new LinkedHashMap<byte[], Map<byte[], byte[]>>();
-
-				if (allKeys.isEmpty() || allKeys.size() < offset) {
-					return Collections.emptyMap();
-				}
-
-				int offsetToUse = Math.max(0, (int) offset);
-				if (rows > 0) {
-					allKeys = allKeys.subList(Math.max(0, offsetToUse), Math.min(offsetToUse + rows, allKeys.size()));
-				}
-				for (byte[] id : allKeys) {
-
-					byte[] singleKey = ByteUtils.concat(keyspaceBin, id);
-					rawData.put(id, connection.hGetAll(singleKey));
-				}
-
-				return rawData;
-
+			List<byte[]> allKeys = new ArrayList<>();
+			if (!criteria.getSismember().isEmpty()) {
+				allKeys.addAll(connection.sInter(keys(keyspace + ":", criteria.getSismember())));
 			}
+
+			if (!criteria.getOrSismember().isEmpty()) {
+				allKeys.addAll(connection.sUnion(keys(keyspace + ":", criteria.getOrSismember())));
+			}
+
+			if (criteria.getNear() != null) {
+
+				GeoResults<GeoLocation<byte[]>> x = connection.geoRadius(geoKey(keyspace + ":", criteria.getNear()),
+						new Circle(criteria.getNear().getPoint(), criteria.getNear().getDistance()));
+				for (GeoResult<GeoLocation<byte[]>> y : x) {
+					allKeys.add(y.getContent().getName());
+				}
+			}
+
+			byte[] keyspaceBin = getAdapter().getConverter().getConversionService().convert(keyspace + ":", byte[].class);
+
+			Map<byte[], Map<byte[], byte[]>> rawData = new LinkedHashMap<>();
+
+			if (allKeys.isEmpty() || allKeys.size() < offset) {
+				return Collections.emptyMap();
+			}
+
+			int offsetToUse = Math.max(0, (int) offset);
+			if (rows > 0) {
+				allKeys = allKeys.subList(Math.max(0, offsetToUse), Math.min(offsetToUse + rows, allKeys.size()));
+			}
+			for (byte[] id : allKeys) {
+
+				byte[] singleKey = ByteUtils.concat(keyspaceBin, id);
+				rawData.put(id, connection.hGetAll(singleKey));
+			}
+
+			return rawData;
 		};
 
 		Map<byte[], Map<byte[], byte[]>> raw = this.getAdapter().execute(callback);
 
-		List<T> result = new ArrayList<T>(raw.size());
+		List<T> result = new ArrayList<>(raw.size());
 		for (Map.Entry<byte[], Map<byte[], byte[]>> entry : raw.entrySet()) {
 
 			RedisData data = new RedisData(entry.getValue());
 			data.setId(getAdapter().getConverter().getConversionService().convert(entry.getKey(), String.class));
-			data.setKeyspace(keyspace.toString());
+			data.setKeyspace(keyspace);
 
 			T converted = this.getAdapter().getConverter().read(type, data);
 
@@ -153,8 +146,8 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.lang.String)
 	 */
 	@Override
-	public Collection<?> execute(final RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
-			final String keyspace) {
+	public Collection<?> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
+			String keyspace) {
 		return execute(criteria, sort, offset, rows, keyspace, Object.class);
 	}
 
@@ -163,26 +156,22 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	 * @see org.springframework.data.keyvalue.core.QueryEngine#count(java.lang.Object, java.lang.String)
 	 */
 	@Override
-	public long count(final RedisOperationChain criteria, final String keyspace) {
+	public long count(RedisOperationChain criteria, String keyspace) {
 
 		if (criteria == null) {
 			return this.getAdapter().count(keyspace);
 		}
 
-		return this.getAdapter().execute(new RedisCallback<Long>() {
+		return this.getAdapter().execute(connection -> {
 
-			@Override
-			public Long doInRedis(RedisConnection connection) throws DataAccessException {
-
-				String key = keyspace + ":";
-				byte[][] keys = new byte[criteria.getSismember().size()][];
-				int i = 0;
-				for (Object o : criteria.getSismember()) {
-					keys[i] = getAdapter().getConverter().getConversionService().convert(key + o, byte[].class);
-				}
-
-				return (long) connection.sInter(keys).size();
+			String key = keyspace + ":";
+			byte[][] keys = new byte[criteria.getSismember().size()][];
+			int i = 0;
+			for (Object o : criteria.getSismember()) {
+				keys[i] = getAdapter().getConverter().getConversionService().convert(key + o, byte[].class);
 			}
+
+			return (long) connection.sInter(keys).size();
 		});
 	}
 

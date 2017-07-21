@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import java.io.Serializable;
 import java.util.Map;
 
 import org.springframework.data.annotation.Reference;
 
 /**
  * {@link ReferenceResolver} retrieves Objects marked with {@link Reference} from Redis.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public interface ReferenceResolver {
@@ -33,5 +33,5 @@ public interface ReferenceResolver {
 	 * @param keyspace must not be {@literal null}.
 	 * @return {@literal null} if referenced object does not exist.
 	 */
-	Map<byte[], byte[]> resolveReference(Serializable id, String keyspace);
+	Map<byte[], byte[]> resolveReference(Object id, String keyspace);
 }

@@ -90,7 +90,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.id = "1";
 
-		assertThat(write(rand).getId(), is((Serializable) "1"));
+		assertThat(write(rand).getId(), is("1"));
 	}
 
 	@Test // DATAREDIS-425

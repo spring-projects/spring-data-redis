@@ -15,11 +15,8 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import java.io.Serializable;
 import java.util.Map;
 
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisOperations;
@@ -28,8 +25,9 @@ import org.springframework.util.Assert;
 
 /**
  * {@link ReferenceResolver} using {@link RedisKeyValueAdapter} to read raw data.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class ReferenceResolverImpl implements ReferenceResolver {
@@ -50,19 +48,13 @@ public class ReferenceResolverImpl implements ReferenceResolver {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.convert.ReferenceResolver#resolveReference(java.io.Serializable, java.io.Serializable, java.lang.Class)
+	 * @see org.springframework.data.redis.core.convert.ReferenceResolver#resolveReference(java.lang.Object, java.lang.String)
 	 */
 	@Override
-	public Map<byte[], byte[]> resolveReference(Serializable id, String keyspace) {
+	public Map<byte[], byte[]> resolveReference(Object id, String keyspace) {
 
-		final byte[] key = converter.convert(keyspace + ":" + id);
+		byte[] key = converter.convert(keyspace + ":" + id);
 
-		return redisOps.execute(new RedisCallback<Map<byte[], byte[]>>() {
-
-			@Override
-			public Map<byte[], byte[]> doInRedis(RedisConnection connection) throws DataAccessException {
-				return connection.hGetAll(key);
-			}
-		});
+		return redisOps.execute((RedisCallback<Map<byte[], byte[]>>) connection -> connection.hGetAll(key));
 	}
 }

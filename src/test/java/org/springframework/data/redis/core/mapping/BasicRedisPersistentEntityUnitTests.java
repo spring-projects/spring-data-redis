@@ -42,7 +42,7 @@ import org.springframework.data.util.TypeInformation;
  * @param <ID>
  */
 @RunWith(MockitoJUnitRunner.class)
-public class BasicRedisPersistentEntityUnitTests<T, ID extends Serializable> {
+public class BasicRedisPersistentEntityUnitTests<T> {
 
 	public @Rule ExpectedException expectedException = ExpectedException.none();
 

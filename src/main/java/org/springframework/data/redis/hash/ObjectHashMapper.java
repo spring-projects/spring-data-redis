@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.hash;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -144,7 +143,7 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 	 * @return
 	 */
 	public <T> T fromHash(Map<byte[], byte[]> hash, Class<T> type) {
-		return (T) fromHash(hash);
+		return type.cast(fromHash(hash));
 	}
 
 	/**
@@ -158,10 +157,10 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.core.convert.ReferenceResolver#resolveReference(java.io.Serializable, java.lang.String)
+		 * @see org.springframework.data.redis.core.convert.ReferenceResolver#resolveReference(java.lang.Object, java.lang.String)
 		 */
 		@Override
-		public Map<byte[], byte[]> resolveReference(Serializable id, String keyspace) {
+		public Map<byte[], byte[]> resolveReference(Object id, String keyspace) {
 			return NO_REFERENCE;
 		}
 	}

@@ -32,7 +32,7 @@ import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
  * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
-public class MappingRedisEntityInformationUnitTests<T, ID extends Serializable> {
+public class MappingRedisEntityInformationUnitTests<T, ID> {
 
 	@Mock RedisPersistentEntity<T> entity;
 
