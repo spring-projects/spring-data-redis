@@ -106,6 +106,18 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 		return createMono(connection -> connection.sPop(rawKey(key)).map(this::readValue));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveSetOperations#pop(java.lang.Object, long)
+	 */
+	@Override
+	public Flux<V> pop(K key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createFlux(connection -> connection.sPop(rawKey(key), count).map(this::readValue));
+	}
+
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveSetOperations#move(java.lang.Object, java.lang.Object, java.lang.Object)
 	 */

@@ -27,7 +27,18 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.Distanc
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -36,6 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.hamcrest.core.IsNot;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -1456,6 +1468,17 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sPop("myset"));
 		assertTrue(
 				new HashSet<String>(Arrays.asList(new String[] { "foo", "bar" })).contains((String) getResults().get(2)));
+	}
+
+	@Test // DATAREDIS-688
+	public void testSPopWithCount() {
+
+		actual.add(connection.sAdd("myset", "foo"));
+		actual.add(connection.sAdd("myset", "bar"));
+		actual.add(connection.sAdd("myset", "baz"));
+		actual.add(connection.sPop("myset", 2));
+
+		assertThat((Collection<Object>) getResults().get(3), hasSize(2));
 	}
 
 	@Test

@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.collection.IsCollectionWithSize;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -173,6 +175,20 @@ public class DefaultSetOperationsTests<K, V> {
 		setOps.add(key, v1);
 		assertThat(setOps.pop(key), isEqual(v1));
 		assertTrue(setOps.members(key).isEmpty());
+	}
+
+	@Test // DATAREDIS-668
+	public void testPopWithCount() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		setOps.add(key, v1, v2, v3);
+
+		List<V> result = setOps.pop(key, 2);
+		assertThat(result, hasSize(2));
+		assertThat(result.get(0), instanceOf(v1.getClass()));
 	}
 
 	@SuppressWarnings("unchecked")

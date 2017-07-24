@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.ScanParams;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -246,6 +247,28 @@ class JedisSetCommands implements RedisSetCommands {
 				return null;
 			}
 			return connection.getJedis().spop(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sPop(byte[], long)
+	 */
+	@Override
+	public List<byte[]> sPop(byte[] key, long count) {
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newJedisResult(connection.getPipeline().spop(key, count), ArrayList::new));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newJedisResult(connection.getTransaction().spop(key, count), ArrayList::new));
+				return null;
+			}
+			return new ArrayList<>(connection.getJedis().spop(key, count));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

@@ -69,6 +69,14 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		assertThat(connection.setCommands().sPop(KEY_1_BBUFFER).block(), is(notNullValue()));
 	}
 
+	@Test // DATAREDIS-668
+	public void sPopCountShouldRetrieveValues() {
+
+		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
+
+		StepVerifier.create(connection.setCommands().sPop(KEY_1_BBUFFER, 2)).expectNextCount(2).verifyComplete();
+	}
+
 	@Test // DATAREDIS-525
 	public void sPopShouldReturnNullWhenNotPresent() {
 		assertThat(connection.setCommands().sPop(KEY_1_BBUFFER).block(), is(nullValue()));

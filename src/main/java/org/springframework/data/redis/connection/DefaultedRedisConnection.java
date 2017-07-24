@@ -566,6 +566,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#setCommands()}}. */
 	@Override
 	@Deprecated
+	default List<byte[]> sPop(byte[] key, long count) {
+		return setCommands().sPop(key, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#setCommands()}}. */
+	@Override
+	@Deprecated
 	default byte[] sRandMember(byte[] key) {
 		return setCommands().sRandMember(key);
 	}

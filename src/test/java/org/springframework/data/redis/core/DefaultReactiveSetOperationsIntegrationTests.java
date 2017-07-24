@@ -133,6 +133,21 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		}).verifyComplete();
 	}
 
+	@Test // DATAREDIS-668
+	public void popWithCount() {
+
+		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		StepVerifier.create(setOperations.add(key, value1, value2, value3)).expectNext(3L).verifyComplete();
+		StepVerifier.create(setOperations.pop(key, 2)).expectNextCount(2).verifyComplete();
+		StepVerifier.create(setOperations.size(key)).expectNext(1L).verifyComplete();
+	}
+
 	@Test // DATAREDIS-602
 	public void move() {
 

@@ -21,9 +21,11 @@ import io.lettuce.core.ValueScanCursor;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisSetCommands;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceResult;
@@ -250,6 +252,29 @@ class LettuceSetCommands implements RedisSetCommands {
 				return null;
 			}
 			return getConnection().spop(key);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sPop(byte[], long)
+	 */
+	@Override
+	public List<byte[]> sPop(byte[] key, long count) {
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().spop(key, count),
+						(Converter<Set<byte[]>, List<byte[]>>) ArrayList::new));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().spop(key, count),
+						(Converter<Set<byte[]>, List<byte[]>>) ArrayList::new));
+				return null;
+			}
+			return new ArrayList<>(getConnection().spop(key, count));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
