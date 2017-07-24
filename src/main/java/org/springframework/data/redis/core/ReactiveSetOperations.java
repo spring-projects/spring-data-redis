@@ -60,6 +60,16 @@ public interface ReactiveSetOperations<K, V> {
 	Mono<V> pop(K key);
 
 	/**
+	 * Remove and return {@code count} random members from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return
+	 * @return {@link Flux} emitting random members.
+	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 */
+	Flux<V> pop(K key, long count);
+
+	/**
 	 * Move {@code value} from {@code key} to {@code destKey}
 	 *
 	 * @param sourceKey must not be {@literal null}.

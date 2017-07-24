@@ -868,6 +868,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sPop(byte[], long)
+	 */
+	@Override
+	public List<byte[]> sPop(byte[] key, long count) {
+
+		List<byte[]> result = delegate.sPop(key, count);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
 	public byte[] sRandMember(byte[] key) {
 		byte[] result = delegate.sRandMember(key);
 		if (isFutureConversion()) {
@@ -2030,6 +2044,22 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 			addResultConverter(bytesToString);
 		}
 		return bytesToString.convert(result);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sPop(java.lang.String, long)
+	 */
+	@Override
+	public List<String> sPop(String key, long count) {
+
+		List<byte[]> result = delegate.sPop(serialize(key), count);
+
+		if (isFutureConversion()) {
+			addResultConverter(byteListToStringList);
+		}
+
+		return byteListToStringList.convert(result);
 	}
 
 	public String sRandMember(String key) {

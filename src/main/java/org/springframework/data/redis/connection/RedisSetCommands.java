@@ -60,6 +60,17 @@ public interface RedisSetCommands {
 	byte[] sPop(byte[] key);
 
 	/**
+	 * Remove and return {@code count} random members from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count the number of random members to pop from the set.
+	 * @return empty {@link List} if set does not exist. Never {@literal null}.
+	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 * @since 2.0
+	 */
+	List<byte[]> sPop(byte[] key, long count);
+
+	/**
 	 * Move {@code value} from {@code srcKey} to {@code destKey}
 	 *
 	 * @param srcKey must not be {@literal null}.

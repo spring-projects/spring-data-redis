@@ -252,6 +252,39 @@ public interface ReactiveSetCommands {
 	Flux<NumericResponse<SRemCommand, Long>> sRem(Publisher<SRemCommand> commands);
 
 	/**
+	 * {@code SPOP} command parameters.
+	 *
+	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 */
+	class SPopCommand extends KeyCommand {
+
+		private final long count;
+
+		private SPopCommand(ByteBuffer key, long count) {
+
+			super(key);
+			this.count = count;
+		}
+
+		public static SPopCommand one() {
+			return new SPopCommand(null, 1L);
+		}
+
+		public static SPopCommand members(long count) {
+			return new SPopCommand(null, count);
+		}
+
+		public SPopCommand from(ByteBuffer key) {
+			return new SPopCommand(key, count);
+		}
+
+		public long getCount() {
+			return count;
+		}
+	}
+
+	/**
 	 * Remove and return a random member from set at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -262,8 +295,31 @@ public interface ReactiveSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return sPop(Mono.just(new KeyCommand(key))).next().map(ByteBufferResponse::getOutput);
+		return sPop(Mono.just(SPopCommand.one().from(key))).next().map(ByteBufferResponse::getOutput);
 	}
+
+	/**
+	 * Remove and return a random member from set at {@literal key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 */
+	default Flux<ByteBuffer> sPop(ByteBuffer key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return sPop(SPopCommand.members(count).from(key));
+	}
+
+	/**
+	 * Remove and return a random member from set at {@literal key}.
+	 *
+	 * @param command must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 */
+	Flux<ByteBuffer> sPop(SPopCommand command);
 
 	/**
 	 * Remove and return a random member from set at {@link KeyCommand#getKey()}

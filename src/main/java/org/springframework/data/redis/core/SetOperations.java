@@ -58,6 +58,17 @@ public interface SetOperations<K, V> {
 	V pop(K key);
 
 	/**
+	 * Remove and return {@code count} random members from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return.
+	 * @return empty {@link List} if key does not exist. Never {@literal null}.
+	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 * @since 2.0
+	 */
+	List<V> pop(K key, long count);
+
+	/**
 	 * Move {@code value} from {@code key} to {@code destKey}
 	 *
 	 * @param key must not be {@literal null}.

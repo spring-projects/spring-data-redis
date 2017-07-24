@@ -934,6 +934,15 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sPop(KEY_1_BYTES), notNullValue());
 	}
 
+	@Test // DATAREDIS-668
+	public void sPopWithCountShouldPopValueFromSetCorrectly() {
+
+		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
+
+		assertThat(clusterConnection.setCommands().sPop(KEY_1_BYTES, 2), hasSize(2));
+		assertThat(nativeConnection.scard(KEY_1), is(1L));
+	}
+
 	@Test // DATAREDIS-315
 	public void sMoveShouldWorkWhenKeysMapToSameSlot() {
 

@@ -782,6 +782,18 @@ public interface StringRedisConnection extends RedisConnection {
 	String sPop(String key);
 
 	/**
+	 * Remove and return {@code count} random members from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count the number of random members to return.
+	 * @return empty {@link List} if {@literal key} does not exist.
+	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 * @see RedisSetCommands#sPop(byte[], long)
+	 * @since 2.0
+	 */
+	List<String> sPop(String key, long count);
+
+	/**
 	 * Move {@code value} from {@code srcKey} to {@code destKey}
 	 *
 	 * @param srcKey must not be {@literal null}.

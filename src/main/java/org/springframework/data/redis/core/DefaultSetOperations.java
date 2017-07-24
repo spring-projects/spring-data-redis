@@ -206,6 +206,19 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		}, true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.SetOperations(java.lang.Object, long)
+	 */
+	@Override
+	public List<V> pop(K key, long count) {
+
+		final byte[] rawKey = rawKey(key);
+
+		List<byte[]> rawValues = execute(connection -> connection.sPop(rawKey, count), true);
+		return deserializeValues(rawValues);
+	}
+
 	public Long size(K key) {
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Long>() {

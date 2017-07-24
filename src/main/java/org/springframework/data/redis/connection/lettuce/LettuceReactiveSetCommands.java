@@ -101,6 +101,19 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sPop(org.springframework.data.redis.connection.ReactiveSetCommands.SPopCommand)
+	 */
+	@Override
+	public Flux<ByteBuffer> sPop(SPopCommand command) {
+
+		Assert.notNull(command, "Command must not be null!");
+		Assert.notNull(command.getKey(), "Key must not be null!");
+
+		return connection.execute(cmd -> cmd.spop(command.getKey(), command.getCount()));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sMove(org.reactivestreams.Publisher)
 	 */
 	@Override
