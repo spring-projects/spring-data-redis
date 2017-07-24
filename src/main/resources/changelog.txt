@@ -6,6 +6,13 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.8.5.RELEASE (2017-07-24)
+---------------------------------------------
+* DATAREDIS-657 - Fix unit tests after API changes in Spring Data Commons.
+* DATAREDIS-653 - Release 1.8.5 (Ingalls SR5).
+* DATAREDIS-647 - SDIFF on cluster connection drops last key.
+
+
 Changes in version 2.0.0.M4 (2017-06-14)
 ----------------------------------------
 * DATAREDIS-651 - Upgrade to Reactor 3.1 M2.
