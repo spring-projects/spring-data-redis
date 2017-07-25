@@ -6,6 +6,22 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 2.0.0.RC1 (2017-07-25)
+-----------------------------------------
+* DATAREDIS-665 - Upgrade to Lettuce 5.0 RC1.
+* DATAREDIS-664 - Adapt to ID type changes in KeyValue module.
+* DATAREDIS-663 - Inherit Project Reactor version from dependency management.
+* DATAREDIS-661 - Change RedisServerCommands.getConfig() result to Properties.
+* DATAREDIS-660 - Adapt to API changes in mapping subsystem.
+* DATAREDIS-659 - Provide ReactiveServerCommands for basic server interaction.
+* DATAREDIS-657 - Fix unit tests after API changes in Spring Data Commons.
+* DATAREDIS-656 - LettuceConnectionFactory defaults to 60 second shutdown timeout.
+* DATAREDIS-655 - Release 2.0 RC1 (Kay).
+* DATAREDIS-625 - Remove copy of TestSubscriber and replace usage with StepVerifyer.
+* DATAREDIS-508 - Redis Repositories with Cluster and lettuce breaks application initialization.
+* DATAREDIS-481 - Improve RedisCache Manger implementation.
+
+
 Changes in version 1.8.5.RELEASE (2017-07-24)
 ---------------------------------------------
 * DATAREDIS-657 - Fix unit tests after API changes in Spring Data Commons.
