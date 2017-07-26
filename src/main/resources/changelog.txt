@@ -6,6 +6,11 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.8.6.RELEASE (2017-07-26)
+---------------------------------------------
+* DATAREDIS-669 - Release 1.8.6 (Ingalls SR6).
+
+
 Changes in version 2.0.0.RC2 (2017-07-25)
 -----------------------------------------
 * DATAREDIS-670 - Release 2.0 RC2 (Kay).
