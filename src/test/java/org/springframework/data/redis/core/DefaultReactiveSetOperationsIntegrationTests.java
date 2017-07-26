@@ -18,13 +18,9 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
-import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.Before;

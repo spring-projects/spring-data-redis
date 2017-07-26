@@ -246,8 +246,9 @@ public interface SetOperations<K, V> {
 	 * Get {@code count} distinct random elements from set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param count
-	 * @return
+	 * @param count nr of members to return
+	 * @return empty {@link Set} if {@code key} does not exist.
+	 * @throws IllegalArgumentException if count is negative.
 	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	Set<V> distinctRandomMembers(K key, long count);
@@ -256,8 +257,9 @@ public interface SetOperations<K, V> {
 	 * Get {@code count} random elements from set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param count
-	 * @return
+	 * @param count nr of members to return.
+	 * @return empty {@link List} if {@code key} does not exist.
+	 * @throws IllegalArgumentException if count is negative.
 	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	List<V> randomMembers(K key, long count);

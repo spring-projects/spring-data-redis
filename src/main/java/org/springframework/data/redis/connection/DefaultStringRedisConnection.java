@@ -49,6 +49,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Default implementation of {@link StringRedisConnection}.
@@ -68,19 +69,17 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	private final RedisConnection delegate;
 	private final RedisSerializer<String> serializer;
 	private Converter<byte[], String> bytesToString = new DeserializingConverter();
-	private SetConverter<Tuple, StringTuple> tupleToStringTuple = new SetConverter<Tuple, StringTuple>(
-			new TupleConverter());
-	private SetConverter<StringTuple, Tuple> stringTupleToTuple = new SetConverter<StringTuple, Tuple>(
-			new StringTupleConverter());
-	private ListConverter<byte[], String> byteListToStringList = new ListConverter<byte[], String>(bytesToString);
-	private MapConverter<byte[], String> byteMapToStringMap = new MapConverter<byte[], String>(bytesToString);
-	private SetConverter<byte[], String> byteSetToStringSet = new SetConverter<byte[], String>(bytesToString);
+	private SetConverter<Tuple, StringTuple> tupleToStringTuple = new SetConverter<>(new TupleConverter());
+	private SetConverter<StringTuple, Tuple> stringTupleToTuple = new SetConverter<>(new StringTupleConverter());
+	private ListConverter<byte[], String> byteListToStringList = new ListConverter<>(bytesToString);
+	private MapConverter<byte[], String> byteMapToStringMap = new MapConverter<>(bytesToString);
+	private SetConverter<byte[], String> byteSetToStringSet = new SetConverter<>(bytesToString);
 	private Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<String>>> byteGeoResultsToStringGeoResults;
 
-	@SuppressWarnings("rawtypes") private Queue<Converter> pipelineConverters = new LinkedList<Converter>();
-	@SuppressWarnings("rawtypes") private Queue<Converter> txConverters = new LinkedList<Converter>();
+	@SuppressWarnings("rawtypes") private Queue<Converter> pipelineConverters = new LinkedList<>();
+	@SuppressWarnings("rawtypes") private Queue<Converter> txConverters = new LinkedList<>();
 	private boolean deserializePipelineAndTxResults = false;
-	private IdentityConverter identityConverter = new IdentityConverter();
+	private IdentityConverter<Object, ?> identityConverter = new IdentityConverter();
 
 	private class DeserializingConverter implements Converter<byte[], String> {
 		public String convert(byte[] source) {
@@ -100,7 +99,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		}
 	}
 
-	private class IdentityConverter implements Converter<Object, Object> {
+	private class IdentityConverter<S, T> implements Converter<S, T> {
 		public Object convert(Object source) {
 			return source;
 		}
@@ -145,18 +144,28 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		this.byteGeoResultsToStringGeoResults = Converters.deserializingGeoResultsConverter(serializer);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#append(byte[], byte[])
+	 */
+	@Override
 	public Long append(byte[] key, byte[] value) {
-		Long result = delegate.append(key, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.append(key, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#bgSave()
+	 */
+	@Override
 	public void bgSave() {
 		delegate.bgSave();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#bgReWriteAof()
+	 */
 	@Override
 	public void bgReWriteAof() {
 		delegate.bgReWriteAof();
@@ -170,66 +179,83 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		bgReWriteAof();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bLPop(int, byte[][])
+	 */
+	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
-		List<byte[]> results = delegate.bLPop(timeout, keys);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.bLPop(timeout, keys), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bRPop(int, byte[][])
+	 */
+	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
-		List<byte[]> results = delegate.bRPop(timeout, keys);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.bRPop(timeout, keys), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bRPopLPush(int, byte[], byte[])
+	 */
+	@Override
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
-		byte[] result = delegate.bRPopLPush(timeout, srcKey, dstKey);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.bRPopLPush(timeout, srcKey, dstKey), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#close()
+	 */
+	@Override
 	public void close() throws RedisSystemException {
 		delegate.close();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#dbSize()
+	 */
+	@Override
 	public Long dbSize() {
-		Long result = delegate.dbSize();
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.dbSize(), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#decr(byte[])
+	 */
+	@Override
 	public Long decr(byte[] key) {
-		Long result = delegate.decr(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.decr(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#decrBy(byte[], long)
+	 */
+	@Override
 	public Long decrBy(byte[] key, long value) {
-		Long result = delegate.decrBy(key, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.decrBy(key, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#del(byte[][])
+	 */
+	@Override
 	public Long del(byte[]... keys) {
-		Long result = delegate.del(keys);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.del(keys), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisTxCommands#discard()
+	 */
+	@Override
 	public void discard() {
 		try {
 			delegate.discard();
@@ -238,16 +264,23 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#echo(byte[])
+	 */
+	@Override
 	public byte[] echo(byte[] message) {
-		byte[] result = delegate.echo(message);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.echo(message), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisTxCommands#exec()
+	 */
+	@Override
 	@SuppressWarnings("rawtypes")
 	public List<Object> exec() {
+
 		try {
 			List<Object> results = delegate.exec();
 			if (isPipelined()) {
@@ -260,491 +293,625 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[])
+	 */
+	@Override
 	public Boolean exists(byte[] key) {
-		Boolean result = delegate.exists(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.exists(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#expire(byte[], long)
+	 */
+	@Override
 	public Boolean expire(byte[] key, long seconds) {
-		Boolean result = delegate.expire(key, seconds);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.expire(key, seconds), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#expireAt(byte[], long)
+	 */
+	@Override
 	public Boolean expireAt(byte[] key, long unixTime) {
-		Boolean result = delegate.expireAt(key, unixTime);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.expireAt(key, unixTime), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushAll()
+	 */
+	@Override
 	public void flushAll() {
 		delegate.flushAll();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushDb()
+	 */
+	@Override
 	public void flushDb() {
 		delegate.flushDb();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#get(byte[])
+	 */
+	@Override
 	public byte[] get(byte[] key) {
-		byte[] result = delegate.get(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.get(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#getBit(byte[], long)
+	 */
+	@Override
 	public Boolean getBit(byte[] key, long offset) {
-		Boolean result = delegate.getBit(key, offset);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.getBit(key, offset), identityConverter);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#getConfig(java.lang.String)
 	 */
+	@Override
 	public Properties getConfig(String pattern) {
-
-		Properties results = delegate.getConfig(pattern);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.getConfig(pattern), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#getNativeConnection()
+	 */
+	@Override
 	public Object getNativeConnection() {
-		Object result = delegate.getNativeConnection();
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.getNativeConnection(), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#getRange(byte[], long, long)
+	 */
+	@Override
 	public byte[] getRange(byte[] key, long start, long end) {
-		byte[] result = delegate.getRange(key, start, end);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.getRange(key, start, end), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#getSet(byte[], byte[])
+	 */
+	@Override
 	public byte[] getSet(byte[] key, byte[] value) {
-		byte[] result = delegate.getSet(key, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.getSet(key, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#getSubscription()
+	 */
+	@Override
 	public Subscription getSubscription() {
 		return delegate.getSubscription();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hDel(byte[], byte[][])
+	 */
+	@Override
 	public Long hDel(byte[] key, byte[]... fields) {
-		Long result = delegate.hDel(key, fields);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.hDel(key, fields), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hExists(byte[], byte[])
+	 */
+	@Override
 	public Boolean hExists(byte[] key, byte[] field) {
-		Boolean result = delegate.hExists(key, field);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.hExists(key, field), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hGet(byte[], byte[])
+	 */
+	@Override
 	public byte[] hGet(byte[] key, byte[] field) {
-		byte[] result = delegate.hGet(key, field);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.hGet(key, field), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hGetAll(byte[])
+	 */
+	@Override
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
-		Map<byte[], byte[]> results = delegate.hGetAll(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.hGetAll(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hIncrBy(byte[], byte[], long)
+	 */
+	@Override
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
-		Long result = delegate.hIncrBy(key, field, delta);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.hIncrBy(key, field, delta), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hIncrBy(byte[], byte[], double)
+	 */
+	@Override
 	public Double hIncrBy(byte[] key, byte[] field, double delta) {
-		Double result = delegate.hIncrBy(key, field, delta);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.hIncrBy(key, field, delta), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hKeys(byte[])
+	 */
+	@Override
 	public Set<byte[]> hKeys(byte[] key) {
-		Set<byte[]> results = delegate.hKeys(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.hKeys(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hLen(byte[])
+	 */
+	@Override
 	public Long hLen(byte[] key) {
-		Long result = delegate.hLen(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.hLen(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hMGet(byte[], byte[][])
+	 */
+	@Override
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
-		List<byte[]> results = delegate.hMGet(key, fields);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.hMGet(key, fields), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hMSet(byte[], java.util.Map)
+	 */
+	@Override
 	public void hMSet(byte[] key, Map<byte[], byte[]> hashes) {
 		delegate.hMSet(key, hashes);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hSet(byte[], byte[], byte[])
+	 */
+	@Override
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
-		Boolean result = delegate.hSet(key, field, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.hSet(key, field, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hSetNX(byte[], byte[], byte[])
+	 */
+	@Override
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
-		Boolean result = delegate.hSetNX(key, field, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.hSetNX(key, field, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hVals(byte[])
+	 */
+	@Override
 	public List<byte[]> hVals(byte[] key) {
-		List<byte[]> results = delegate.hVals(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.hVals(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#incr(byte[])
+	 */
+	@Override
 	public Long incr(byte[] key) {
-		Long result = delegate.incr(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.incr(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#incrBy(byte[], long)
+	 */
+	@Override
 	public Long incrBy(byte[] key, long value) {
-		Long result = delegate.incrBy(key, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+
+		return convertAndReturn(delegate.incrBy(key, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#incrBy(byte[], double)
+	 */
+	@Override
 	public Double incrBy(byte[] key, double value) {
-		Double result = delegate.incrBy(key, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.incrBy(key, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#info()
+	 */
+	@Override
 	public Properties info() {
-		Properties result = delegate.info();
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.info(), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#info(java.lang.String)
+	 */
+	@Override
 	public Properties info(String section) {
-		Properties result = delegate.info(section);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.info(section), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#isClosed()
+	 */
+	@Override
 	public boolean isClosed() {
 		return delegate.isClosed();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#isQueueing()
+	 */
+	@Override
 	public boolean isQueueing() {
 		return delegate.isQueueing();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#isSubscribed()
+	 */
+	@Override
 	public boolean isSubscribed() {
 		return delegate.isSubscribed();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#keys(byte[])
+	 */
+	@Override
 	public Set<byte[]> keys(byte[] pattern) {
-		Set<byte[]> results = delegate.keys(pattern);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.keys(pattern), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#lastSave()
+	 */
+	@Override
 	public Long lastSave() {
-		Long result = delegate.lastSave();
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.lastSave(), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lIndex(byte[], long)
+	 */
+	@Override
 	public byte[] lIndex(byte[] key, long index) {
-		byte[] result = delegate.lIndex(key, index);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.lIndex(key, index), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lInsert(byte[], org.springframework.data.redis.connection.RedisListCommands.Position, byte[], byte[])
+	 */
+	@Override
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
-		Long result = delegate.lInsert(key, where, pivot, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.lInsert(key, where, pivot, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lLen(byte[])
+	 */
+	@Override
 	public Long lLen(byte[] key) {
-		Long result = delegate.lLen(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.lLen(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lPop(byte[])
+	 */
+	@Override
 	public byte[] lPop(byte[] key) {
-		byte[] result = delegate.lPop(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.lPop(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lPush(byte[], byte[][])
+	 */
+	@Override
 	public Long lPush(byte[] key, byte[]... values) {
-		Long result = delegate.lPush(key, values);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.lPush(key, values), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lPushX(byte[], byte[])
+	 */
+	@Override
 	public Long lPushX(byte[] key, byte[] value) {
-		Long result = delegate.lPushX(key, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.lPushX(key, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lRange(byte[], long, long)
+	 */
+	@Override
 	public List<byte[]> lRange(byte[] key, long start, long end) {
-		List<byte[]> results = delegate.lRange(key, start, end);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.lRange(key, start, end), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lRem(byte[], long, byte[])
+	 */
+	@Override
 	public Long lRem(byte[] key, long count, byte[] value) {
-		Long result = delegate.lRem(key, count, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+
+		return convertAndReturn(delegate.lRem(key, count, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lSet(byte[], long, byte[])
+	 */
+	@Override
 	public void lSet(byte[] key, long index, byte[] value) {
 		delegate.lSet(key, index, value);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lTrim(byte[], long, long)
+	 */
+	@Override
 	public void lTrim(byte[] key, long start, long end) {
 		delegate.lTrim(key, start, end);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#mGet(byte[][])
+	 */
+	@Override
 	public List<byte[]> mGet(byte[]... keys) {
-		List<byte[]> results = delegate.mGet(keys);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.mGet(keys), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#mSet(java.util.Map)
+	 */
+	@Override
 	public void mSet(Map<byte[], byte[]> tuple) {
 		delegate.mSet(tuple);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#mSetNX(java.util.Map)
+	 */
+	@Override
 	public Boolean mSetNX(Map<byte[], byte[]> tuple) {
-		Boolean result = delegate.mSetNX(tuple);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.mSetNX(tuple), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisTxCommands#multi()
+	 */
+	@Override
 	public void multi() {
 		delegate.multi();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#persist(byte[])
+	 */
+	@Override
 	public Boolean persist(byte[] key) {
-		Boolean result = delegate.persist(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.persist(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#move(byte[], int)
+	 */
+	@Override
 	public Boolean move(byte[] key, int dbIndex) {
-		Boolean result = delegate.move(key, dbIndex);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.move(key, dbIndex), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#ping()
+	 */
+	@Override
 	public String ping() {
-		String result = delegate.ping();
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.ping(), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#pSubscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
+	 */
+	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
 		delegate.pSubscribe(listener, patterns);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#publish(byte[], byte[])
+	 */
+	@Override
 	public Long publish(byte[] channel, byte[] message) {
-		Long result = delegate.publish(channel, message);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.publish(channel, message), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#randomKey()
+	 */
+	@Override
 	public byte[] randomKey() {
-		byte[] result = delegate.randomKey();
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.randomKey(), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#rename(byte[], byte[])
+	 */
+	@Override
 	public void rename(byte[] oldName, byte[] newName) {
 		delegate.rename(oldName, newName);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#renameNX(byte[], byte[])
+	 */
+	@Override
 	public Boolean renameNX(byte[] oldName, byte[] newName) {
-		Boolean result = delegate.renameNX(oldName, newName);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.renameNX(oldName, newName), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#resetConfigStats()
+	 */
+	@Override
 	public void resetConfigStats() {
 		delegate.resetConfigStats();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#rPop(byte[])
+	 */
+	@Override
 	public byte[] rPop(byte[] key) {
-		byte[] result = delegate.rPop(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.rPop(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#rPopLPush(byte[], byte[])
+	 */
+	@Override
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
-		byte[] result = delegate.rPopLPush(srcKey, dstKey);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.rPopLPush(srcKey, dstKey), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#rPush(byte[], byte[][])
+	 */
+	@Override
 	public Long rPush(byte[] key, byte[]... values) {
-		Long result = delegate.rPush(key, values);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.rPush(key, values), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#rPushX(byte[], byte[])
+	 */
+	@Override
 	public Long rPushX(byte[] key, byte[] value) {
-		Long result = delegate.rPushX(key, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.rPushX(key, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sAdd(byte[], byte[][])
+	 */
+	@Override
 	public Long sAdd(byte[] key, byte[]... values) {
-		Long result = delegate.sAdd(key, values);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.sAdd(key, values), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#save()
+	 */
+	@Override
 	public void save() {
 		delegate.save();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sCard(byte[])
+	 */
+	@Override
 	public Long sCard(byte[] key) {
-		Long result = delegate.sCard(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.sCard(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sDiff(byte[][])
+	 */
+	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
-		Set<byte[]> results = delegate.sDiff(keys);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.sDiff(keys), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sDiffStore(byte[], byte[][])
+	 */
+	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
-		Long result = delegate.sDiffStore(destKey, keys);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.sDiffStore(destKey, keys), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#select(int)
+	 */
+	@Override
 	public void select(int dbIndex) {
 		delegate.select(dbIndex);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[])
+	 */
+	@Override
 	public void set(byte[] key, byte[] value) {
 		delegate.set(key, value);
 	}
@@ -758,14 +925,29 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		delegate.set(key, value, expiration, option);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#setBit(byte[], long, boolean)
+	 */
+	@Override
 	public Boolean setBit(byte[] key, long offset, boolean value) {
-		return delegate.setBit(key, offset, value);
+		return convertAndReturn(delegate.setBit(key, offset, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#setConfig(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void setConfig(String param, String value) {
 		delegate.setConfig(param, value);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#setEx(byte[], long, byte[])
+	 */
+	@Override
 	public void setEx(byte[] key, long seconds, byte[] value) {
 		delegate.setEx(key, seconds, value);
 	}
@@ -779,18 +961,29 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		delegate.pSetEx(key, milliseconds, value);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#setNX(byte[], byte[])
+	 */
+	@Override
 	public Boolean setNX(byte[] key, byte[] value) {
-		Boolean result = delegate.setNX(key, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.setNX(key, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#setRange(byte[], byte[], long)
+	 */
+	@Override
 	public void setRange(byte[] key, byte[] value, long start) {
 		delegate.setRange(key, value, start);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown()
+	 */
+	@Override
 	public void shutdown() {
 		delegate.shutdown();
 	}
@@ -804,68 +997,76 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		delegate.shutdown(option);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sInter(byte[][])
+	 */
+	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
-		Set<byte[]> results = delegate.sInter(keys);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.sInter(keys), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sInterStore(byte[], byte[][])
+	 */
+	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
-		Long result = delegate.sInterStore(destKey, keys);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.sInterStore(destKey, keys), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sIsMember(byte[], byte[])
+	 */
+	@Override
 	public Boolean sIsMember(byte[] key, byte[] value) {
-		Boolean result = delegate.sIsMember(key, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.sIsMember(key, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sMembers(byte[])
+	 */
+	@Override
 	public Set<byte[]> sMembers(byte[] key) {
-		Set<byte[]> results = delegate.sMembers(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.sMembers(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sMove(byte[], byte[], byte[])
+	 */
+	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
-		Boolean result = delegate.sMove(srcKey, destKey, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.sMove(srcKey, destKey, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#sort(byte[], org.springframework.data.redis.connection.SortParameters, byte[])
+	 */
+	@Override
 	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
-		Long result = delegate.sort(key, params, storeKey);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.sort(key, params, storeKey), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#sort(byte[], org.springframework.data.redis.connection.SortParameters)
+	 */
+	@Override
 	public List<byte[]> sort(byte[] key, SortParameters params) {
-		List<byte[]> results = delegate.sort(key, params);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.sort(key, params), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sPop(byte[])
+	 */
+	@Override
 	public byte[] sPop(byte[] key) {
-		byte[] result = delegate.sPop(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.sPop(key), identityConverter);
 	}
 
 	/*
@@ -874,88 +1075,97 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<byte[]> sPop(byte[] key, long count) {
-
-		List<byte[]> result = delegate.sPop(key, count);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.sPop(key, count), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sRandMember(byte[])
+	 */
+	@Override
 	public byte[] sRandMember(byte[] key) {
-		byte[] result = delegate.sRandMember(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.sRandMember(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sRandMember(byte[], long)
+	 */
+	@Override
 	public List<byte[]> sRandMember(byte[] key, long count) {
-		List<byte[]> results = delegate.sRandMember(key, count);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.sRandMember(key, count), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sRem(byte[], byte[][])
+	 */
+	@Override
 	public Long sRem(byte[] key, byte[]... values) {
-		Long result = delegate.sRem(key, values);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.sRem(key, values), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#strLen(byte[])
+	 */
+	@Override
 	public Long strLen(byte[] key) {
-		Long result = delegate.strLen(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.strLen(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitCount(byte[])
+	 */
+	@Override
 	public Long bitCount(byte[] key) {
-		Long result = delegate.bitCount(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.bitCount(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitCount(byte[], long, long)
+	 */
+	@Override
 	public Long bitCount(byte[] key, long begin, long end) {
-		Long result = delegate.bitCount(key, begin, end);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.bitCount(key, begin, end), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitOp(org.springframework.data.redis.connection.RedisStringCommands.BitOperation, byte[], byte[][])
+	 */
+	@Override
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
-		Long result = delegate.bitOp(op, destination, keys);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.bitOp(op, destination, keys), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#subscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
+	 */
+	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		delegate.subscribe(listener, channels);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sUnion(byte[][])
+	 */
+	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
-		Set<byte[]> results = delegate.sUnion(keys);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.sUnion(keys), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sUnionStore(byte[], byte[][])
+	 */
+	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
-		Long result = delegate.sUnionStore(destKey, keys);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.sUnionStore(destKey, keys), identityConverter);
 	}
 
 	/*
@@ -964,12 +1174,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long ttl(byte[] key) {
-
-		Long result = delegate.ttl(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.ttl(key), identityConverter);
 	}
 
 	/*
@@ -978,61 +1183,70 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long ttl(byte[] key, TimeUnit timeUnit) {
-
-		Long result = delegate.ttl(key, timeUnit);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-
-		return result;
+		return convertAndReturn(delegate.ttl(key, timeUnit), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#type(byte[])
+	 */
+	@Override
 	public DataType type(byte[] key) {
-		DataType result = delegate.type(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.type(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisTxCommands#unwatch()
+	 */
+	@Override
 	public void unwatch() {
 		delegate.unwatch();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisTxCommands#watch(byte[][])
+	 */
+	@Override
 	public void watch(byte[]... keys) {
 		delegate.watch(keys);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], double, byte[])
+	 */
+	@Override
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
-		Boolean result = delegate.zAdd(key, score, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zAdd(key, score, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], java.util.Set)
+	 */
+	@Override
 	public Long zAdd(byte[] key, Set<Tuple> tuples) {
-		Long result = delegate.zAdd(key, tuples);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zAdd(key, tuples), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zCard(byte[])
+	 */
+	@Override
 	public Long zCard(byte[] key) {
-		Long result = delegate.zCard(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zCard(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zCount(byte[], double, double)
+	 */
+	@Override
 	public Long zCount(byte[] key, double min, double max) {
-		Long result = delegate.zCount(key, min, max);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zCount(key, min, max), identityConverter);
 	}
 
 	/*
@@ -1041,52 +1255,52 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zCount(byte[] key, Range range) {
-
-		Long result = delegate.zCount(key, range);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zCount(key, range), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zIncrBy(byte[], double, byte[])
+	 */
+	@Override
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
-		Double result = delegate.zIncrBy(key, increment, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zIncrBy(key, increment, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], byte[][])
+	 */
+	@Override
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
-		Long result = delegate.zInterStore(destKey, aggregate, weights, sets);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zInterStore(destKey, aggregate, weights, sets), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], byte[][])
+	 */
+	@Override
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
-		Long result = delegate.zInterStore(destKey, sets);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zInterStore(destKey, sets), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRange(byte[], long, long)
+	 */
+	@Override
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
-		Set<byte[]> results = delegate.zRange(key, start, end);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRange(key, start, end), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], double, double, long, long)
+	 */
+	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
-		Set<byte[]> results = delegate.zRangeByScore(key, min, max, offset, count);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRangeByScore(key, min, max, offset, count), identityConverter);
 	}
 
 	/*
@@ -1095,12 +1309,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, Range range) {
-
-		Set<byte[]> results = delegate.zRangeByScore(key, range);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRangeByScore(key, range), identityConverter);
 	}
 
 	/*
@@ -1109,12 +1318,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
-
-		Set<byte[]> results = delegate.zRangeByScore(key, range, limit);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRangeByScore(key, range, limit), identityConverter);
 	}
 
 	/*
@@ -1123,28 +1327,25 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range) {
-
-		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, range);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRangeByScoreWithScores(key, range), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], double, double)
+	 */
+	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
-		Set<byte[]> results = delegate.zRangeByScore(key, min, max);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRangeByScore(key, min, max), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScoreWithScores(byte[], double, double, long, long)
+	 */
+	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
-		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, min, max, offset, count);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRangeByScoreWithScores(key, min, max, offset, count), identityConverter);
 	}
 
 	/*
@@ -1153,36 +1354,34 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
-
-		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, range, limit);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRangeByScoreWithScores(key, range, limit), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScoreWithScores(byte[], double, double)
+	 */
+	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
-		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, min, max);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRangeByScoreWithScores(key, min, max), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeWithScores(byte[], long, long)
+	 */
+	@Override
 	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
-		Set<Tuple> results = delegate.zRangeWithScores(key, start, end);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRangeWithScores(key, start, end), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScore(byte[], double, double, long, long)
+	 */
+	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
-		Set<byte[]> results = delegate.zRevRangeByScore(key, min, max, offset, count);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRevRangeByScore(key, min, max, offset, count), identityConverter);
 	}
 
 	/*
@@ -1191,20 +1390,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, Range range) {
-
-		Set<byte[]> results = delegate.zRevRangeByScore(key, range);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRevRangeByScore(key, range), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScore(byte[], double, double)
+	 */
+	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
-		Set<byte[]> results = delegate.zRevRangeByScore(key, min, max);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRevRangeByScore(key, min, max), identityConverter);
 	}
 
 	/*
@@ -1213,20 +1408,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
-
-		Set<byte[]> results = delegate.zRevRangeByScore(key, range, limit);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRevRangeByScore(key, range, limit), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScoreWithScores(byte[], double, double, long, long)
+	 */
+	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
-		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, min, max, offset, count);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, min, max, offset, count), identityConverter);
 	}
 
 	/*
@@ -1235,12 +1426,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range) {
-
-		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, range);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, range), identityConverter);
 	}
 
 	/*
@@ -1249,125 +1435,131 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
-
-		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, range, limit);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, range, limit), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScoreWithScores(byte[], double, double)
+	 */
+	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
-		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, min, max);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, min, max), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRank(byte[], byte[])
+	 */
+	@Override
 	public Long zRank(byte[] key, byte[] value) {
-		Long result = delegate.zRank(key, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zRank(key, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRem(byte[], byte[][])
+	 */
+	@Override
 	public Long zRem(byte[] key, byte[]... values) {
-		Long result = delegate.zRem(key, values);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zRem(key, values), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRange(byte[], long, long)
+	 */
+	@Override
 	public Long zRemRange(byte[] key, long start, long end) {
-		Long result = delegate.zRemRange(key, start, end);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zRemRange(key, start, end), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRangeByScore(byte[], double, double)
+	 */
+	@Override
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
-		Long result = delegate.zRemRangeByScore(key, min, max);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zRemRangeByScore(key, min, max), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
 	@Override
 	public Long zRemRangeByScore(byte[] key, Range range) {
-		Long result = delegate.zRemRangeByScore(key, range);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zRemRangeByScore(key, range), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRange(byte[], long, long)
+	 */
+	@Override
 	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
-		Set<byte[]> results = delegate.zRevRange(key, start, end);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRevRange(key, start, end), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeWithScores(byte[], long, long)
+	 */
+	@Override
 	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
-		Set<Tuple> results = delegate.zRevRangeWithScores(key, start, end);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.zRevRangeWithScores(key, start, end), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRank(byte[], byte[])
+	 */
+	@Override
 	public Long zRevRank(byte[] key, byte[] value) {
-		Long result = delegate.zRevRank(key, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zRevRank(key, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zScore(byte[], byte[])
+	 */
+	@Override
 	public Double zScore(byte[] key, byte[] value) {
-		Double result = delegate.zScore(key, value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zScore(key, value), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], byte[][])
+	 */
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
-		Long result = delegate.zUnionStore(destKey, aggregate, weights, sets);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zUnionStore(destKey, aggregate, weights, sets), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], byte[][])
+	 */
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
-		Long result = delegate.zUnionStore(destKey, sets);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.zUnionStore(destKey, sets), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pExpire(byte[], long)
+	 */
+	@Override
 	public Boolean pExpire(byte[] key, long millis) {
-		Boolean result = delegate.pExpire(key, millis);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.pExpire(key, millis), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pExpireAt(byte[], long)
+	 */
+	@Override
 	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
-		Boolean result = delegate.pExpireAt(key, unixTimeInMillis);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.pExpireAt(key, unixTimeInMillis), identityConverter);
 	}
 
 	/*
@@ -1376,13 +1568,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long pTtl(byte[] key) {
-
-		Long result = delegate.pTtl(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-
-		return result;
+		return convertAndReturn(delegate.pTtl(key), identityConverter);
 	}
 
 	/*
@@ -1391,73 +1577,88 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long pTtl(byte[] key, TimeUnit timeUnit) {
-
-		Long result = delegate.pTtl(key, timeUnit);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-
-		return result;
+		return convertAndReturn(delegate.pTtl(key, timeUnit), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#dump(byte[])
+	 */
+	@Override
 	public byte[] dump(byte[] key) {
-		byte[] result = delegate.dump(key);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.dump(key), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[])
+	 */
+	@Override
 	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
 		delegate.restore(key, ttlInMillis, serializedValue);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptFlush()
+	 */
+	@Override
 	public void scriptFlush() {
 		delegate.scriptFlush();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptKill()
+	 */
+	@Override
 	public void scriptKill() {
 		delegate.scriptKill();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptLoad(byte[])
+	 */
+	@Override
 	public String scriptLoad(byte[] script) {
-		String result = delegate.scriptLoad(script);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.scriptLoad(script), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptExists(java.lang.String[])
+	 */
+	@Override
 	public List<Boolean> scriptExists(String... scriptSha1) {
-		List<Boolean> results = delegate.scriptExists(scriptSha1);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+		return convertAndReturn(delegate.scriptExists(scriptSha1), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#eval(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
+	 */
+	@Override
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		T result = delegate.eval(script, returnType, numKeys, keysAndArgs);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.eval(script, returnType, numKeys, keysAndArgs), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(java.lang.String, org.springframework.data.redis.connection.ReturnType, int, byte[][])
+	 */
+	@Override
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		T result = delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
+	 */
+	@Override
 	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		T result = delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs), identityConverter);
 	}
 
 	//
@@ -1484,7 +1685,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	private Map<byte[], byte[]> serialize(Map<String, String> hashes) {
-		Map<byte[], byte[]> ret = new LinkedHashMap<byte[], byte[]>(hashes.size());
+		Map<byte[], byte[]> ret = new LinkedHashMap<>(hashes.size());
 
 		for (Map.Entry<String, String> entry : hashes.entrySet()) {
 			ret.put(serializer.serialize(entry.getKey()), serializer.serialize(entry.getValue()));
@@ -1493,454 +1694,542 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return ret;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#append(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Long append(String key, String value) {
-		Long result = delegate.append(serialize(key), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return append(serialize(key), serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bLPop(int, java.lang.String[])
+	 */
+	@Override
 	public List<String> bLPop(int timeout, String... keys) {
-		List<byte[]> results = delegate.bLPop(timeout, serializeMulti(keys));
-		if (isFutureConversion()) {
-			addResultConverter(byteListToStringList);
-		}
-		return byteListToStringList.convert(results);
+		return convertAndReturn(delegate.bLPop(timeout, serializeMulti(keys)), byteListToStringList);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bRPop(int, java.lang.String[])
+	 */
+	@Override
 	public List<String> bRPop(int timeout, String... keys) {
-		List<byte[]> results = delegate.bRPop(timeout, serializeMulti(keys));
-		if (isFutureConversion()) {
-			addResultConverter(byteListToStringList);
-		}
-		return byteListToStringList.convert(results);
+		return convertAndReturn(delegate.bRPop(timeout, serializeMulti(keys)), byteListToStringList);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bRPopLPush(int, java.lang.String, java.lang.String)
+	 */
+	@Override
 	public String bRPopLPush(int timeout, String srcKey, String dstKey) {
-		byte[] result = delegate.bRPopLPush(timeout, serialize(srcKey), serialize(dstKey));
-		if (isFutureConversion()) {
-			addResultConverter(bytesToString);
-		}
-		return bytesToString.convert(result);
+		return convertAndReturn(delegate.bRPopLPush(timeout, serialize(srcKey), serialize(dstKey)), bytesToString);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#decr(java.lang.String)
+	 */
+	@Override
 	public Long decr(String key) {
-		Long result = delegate.decr(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return decr(serialize(key));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#decrBy(java.lang.String, long)
+	 */
+	@Override
 	public Long decrBy(String key, long value) {
-		Long result = delegate.decrBy(serialize(key), value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return decrBy(serialize(key), value);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#del(java.lang.String[])
+	 */
+	@Override
 	public Long del(String... keys) {
-		Long result = delegate.del(serializeMulti(keys));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return del(serializeMulti(keys));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#echo(java.lang.String)
+	 */
+	@Override
 	public String echo(String message) {
-		byte[] result = delegate.echo(serialize(message));
-		if (isFutureConversion()) {
-			addResultConverter(bytesToString);
-		}
-		return bytesToString.convert(result);
+		return convertAndReturn(delegate.echo(serialize(message)), bytesToString);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#exists(java.lang.String)
+	 */
+	@Override
 	public Boolean exists(String key) {
-		Boolean result = delegate.exists(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return exists(serialize(key));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#expire(java.lang.String, long)
+	 */
+	@Override
 	public Boolean expire(String key, long seconds) {
-		Boolean result = delegate.expire(serialize(key), seconds);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return expire(serialize(key), seconds);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#expireAt(java.lang.String, long)
+	 */
+	@Override
 	public Boolean expireAt(String key, long unixTime) {
-		Boolean result = delegate.expireAt(serialize(key), unixTime);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return expireAt(serialize(key), unixTime);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#get(java.lang.String)
+	 */
+	@Override
 	public String get(String key) {
-		byte[] result = delegate.get(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(bytesToString);
-		}
-		return bytesToString.convert(result);
+		return convertAndReturn(delegate.get(serialize(key)), bytesToString);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#getBit(java.lang.String, long)
+	 */
+	@Override
 	public Boolean getBit(String key, long offset) {
-		Boolean result = delegate.getBit(serialize(key), offset);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return getBit(serialize(key), offset);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#getRange(java.lang.String, long, long)
+	 */
+	@Override
 	public String getRange(String key, long start, long end) {
-		byte[] result = delegate.getRange(serialize(key), start, end);
-		if (isFutureConversion()) {
-			addResultConverter(bytesToString);
-		}
-		return bytesToString.convert(result);
+		return convertAndReturn(delegate.getRange(serialize(key), start, end), bytesToString);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#getSet(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public String getSet(String key, String value) {
-		byte[] result = delegate.getSet(serialize(key), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(bytesToString);
-		}
-		return bytesToString.convert(result);
+		return convertAndReturn(delegate.getSet(serialize(key), serialize(value)), bytesToString);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hDel(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Long hDel(String key, String... fields) {
-		Long result = delegate.hDel(serialize(key), serializeMulti(fields));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return hDel(serialize(key), serializeMulti(fields));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hExists(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Boolean hExists(String key, String field) {
-		Boolean result = delegate.hExists(serialize(key), serialize(field));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return hExists(serialize(key), serialize(field));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hGet(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public String hGet(String key, String field) {
-		byte[] result = delegate.hGet(serialize(key), serialize(field));
-		if (isFutureConversion()) {
-			addResultConverter(bytesToString);
-		}
-		return bytesToString.convert(result);
+		return convertAndReturn(delegate.hGet(serialize(key), serialize(field)), bytesToString);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hGetAll(java.lang.String)
+	 */
+	@Override
 	public Map<String, String> hGetAll(String key) {
-		Map<byte[], byte[]> results = delegate.hGetAll(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(byteMapToStringMap);
-		}
-		return byteMapToStringMap.convert(results);
+		return convertAndReturn(delegate.hGetAll(serialize(key)), byteMapToStringMap);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hIncrBy(java.lang.String, java.lang.String, long)
+	 */
+	@Override
 	public Long hIncrBy(String key, String field, long delta) {
-		Long result = delegate.hIncrBy(serialize(key), serialize(field), delta);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return hIncrBy(serialize(key), serialize(field), delta);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hIncrBy(java.lang.String, java.lang.String, double)
+	 */
+	@Override
 	public Double hIncrBy(String key, String field, double delta) {
-		Double result = delegate.hIncrBy(serialize(key), serialize(field), delta);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return hIncrBy(serialize(key), serialize(field), delta);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hKeys(java.lang.String)
+	 */
+	@Override
 	public Set<String> hKeys(String key) {
-		Set<byte[]> results = delegate.hKeys(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.hKeys(serialize(key)), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hLen(java.lang.String)
+	 */
+	@Override
 	public Long hLen(String key) {
-		Long result = delegate.hLen(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return hLen(serialize(key));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hMGet(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public List<String> hMGet(String key, String... fields) {
-		List<byte[]> results = delegate.hMGet(serialize(key), serializeMulti(fields));
-		if (isFutureConversion()) {
-			addResultConverter(byteListToStringList);
-		}
-		return byteListToStringList.convert(results);
+		return convertAndReturn(delegate.hMGet(serialize(key), serializeMulti(fields)), byteListToStringList);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hMSet(java.lang.String, java.util.Map)
+	 */
+	@Override
 	public void hMSet(String key, Map<String, String> hashes) {
 		delegate.hMSet(serialize(key), serialize(hashes));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hSet(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Boolean hSet(String key, String field, String value) {
-		Boolean result = delegate.hSet(serialize(key), serialize(field), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return hSet(serialize(key), serialize(field), serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hSetNX(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Boolean hSetNX(String key, String field, String value) {
-		Boolean result = delegate.hSetNX(serialize(key), serialize(field), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return hSetNX(serialize(key), serialize(field), serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hVals(java.lang.String)
+	 */
+	@Override
 	public List<String> hVals(String key) {
-		List<byte[]> results = delegate.hVals(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(byteListToStringList);
-		}
-		return byteListToStringList.convert(results);
+		return convertAndReturn(delegate.hVals(serialize(key)), byteListToStringList);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#incr(java.lang.String)
+	 */
+	@Override
 	public Long incr(String key) {
-		Long result = delegate.incr(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return incr(serialize(key));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#incrBy(java.lang.String, long)
+	 */
+	@Override
 	public Long incrBy(String key, long value) {
-		Long result = delegate.incrBy(serialize(key), value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return incrBy(serialize(key), value);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#incrBy(java.lang.String, double)
+	 */
+	@Override
 	public Double incrBy(String key, double value) {
-		Double result = delegate.incrBy(serialize(key), value);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return incrBy(serialize(key), value);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#keys(java.lang.String)
+	 */
+	@Override
 	public Collection<String> keys(String pattern) {
-		Set<byte[]> results = delegate.keys(serialize(pattern));
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.keys(serialize(pattern)), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#lIndex(java.lang.String, long)
+	 */
+	@Override
 	public String lIndex(String key, long index) {
-		byte[] result = delegate.lIndex(serialize(key), index);
-		if (isFutureConversion()) {
-			addResultConverter(bytesToString);
-		}
-		return bytesToString.convert(result);
+		return convertAndReturn(delegate.lIndex(serialize(key), index), bytesToString);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#lInsert(java.lang.String, org.springframework.data.redis.connection.RedisListCommands.Position, java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Long lInsert(String key, Position where, String pivot, String value) {
-		Long result = delegate.lInsert(serialize(key), where, serialize(pivot), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return lInsert(serialize(key), where, serialize(pivot), serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#lLen(java.lang.String)
+	 */
+	@Override
 	public Long lLen(String key) {
-		Long result = delegate.lLen(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return lLen(serialize(key));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#lPop(java.lang.String)
+	 */
+	@Override
 	public String lPop(String key) {
-		byte[] result = delegate.lPop(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(bytesToString);
-		}
-		return bytesToString.convert(result);
+		return convertAndReturn(delegate.lPop(serialize(key)), bytesToString);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#lPush(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Long lPush(String key, String... values) {
-		Long result = delegate.lPush(serialize(key), serializeMulti(values));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return lPush(serialize(key), serializeMulti(values));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#lPushX(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Long lPushX(String key, String value) {
-		Long result = delegate.lPushX(serialize(key), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return lPushX(serialize(key), serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#lRange(java.lang.String, long, long)
+	 */
+	@Override
 	public List<String> lRange(String key, long start, long end) {
-		List<byte[]> results = delegate.lRange(serialize(key), start, end);
-		if (isFutureConversion()) {
-			addResultConverter(byteListToStringList);
-		}
-		return byteListToStringList.convert(results);
+		return convertAndReturn(delegate.lRange(serialize(key), start, end), byteListToStringList);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#lRem(java.lang.String, long, java.lang.String)
+	 */
+	@Override
 	public Long lRem(String key, long count, String value) {
-		Long result = delegate.lRem(serialize(key), count, serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return lRem(serialize(key), count, serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#lSet(java.lang.String, long, java.lang.String)
+	 */
+	@Override
 	public void lSet(String key, long index, String value) {
 		delegate.lSet(serialize(key), index, serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#lTrim(java.lang.String, long, long)
+	 */
+	@Override
 	public void lTrim(String key, long start, long end) {
 		delegate.lTrim(serialize(key), start, end);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#mGet(java.lang.String[])
+	 */
+	@Override
 	public List<String> mGet(String... keys) {
-		List<byte[]> results = delegate.mGet(serializeMulti(keys));
-		if (isFutureConversion()) {
-			addResultConverter(byteListToStringList);
-		}
-		return byteListToStringList.convert(results);
+		return convertAndReturn(delegate.mGet(serializeMulti(keys)), byteListToStringList);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#mSetNXString(java.util.Map)
+	 */
+	@Override
 	public Boolean mSetNXString(Map<String, String> tuple) {
-		Boolean result = delegate.mSetNX(serialize(tuple));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return mSetNX(serialize(tuple));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#mSetString(java.util.Map)
+	 */
+	@Override
 	public void mSetString(Map<String, String> tuple) {
 		delegate.mSet(serialize(tuple));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#persist(java.lang.String)
+	 */
+	@Override
 	public Boolean persist(String key) {
-		Boolean result = delegate.persist(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return persist(serialize(key));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#move(java.lang.String, int)
+	 */
+	@Override
 	public Boolean move(String key, int dbIndex) {
-		Boolean result = delegate.move(serialize(key), dbIndex);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return move(serialize(key), dbIndex);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#pSubscribe(org.springframework.data.redis.connection.MessageListener, java.lang.String[])
+	 */
+	@Override
 	public void pSubscribe(MessageListener listener, String... patterns) {
 		delegate.pSubscribe(listener, serializeMulti(patterns));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#publish(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Long publish(String channel, String message) {
-		Long result = delegate.publish(serialize(channel), serialize(message));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return publish(serialize(channel), serialize(message));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#rename(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void rename(String oldName, String newName) {
 		delegate.rename(serialize(oldName), serialize(newName));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#renameNX(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Boolean renameNX(String oldName, String newName) {
-		Boolean result = delegate.renameNX(serialize(oldName), serialize(newName));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return renameNX(serialize(oldName), serialize(newName));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#rPop(java.lang.String)
+	 */
+	@Override
 	public String rPop(String key) {
-		byte[] result = delegate.rPop(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(bytesToString);
-		}
-		return bytesToString.convert(result);
+		return convertAndReturn(delegate.rPop(serialize(key)), bytesToString);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#rPopLPush(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public String rPopLPush(String srcKey, String dstKey) {
-		byte[] result = delegate.rPopLPush(serialize(srcKey), serialize(dstKey));
-		if (isFutureConversion()) {
-			addResultConverter(bytesToString);
-		}
-		return bytesToString.convert(result);
+		return convertAndReturn(delegate.rPopLPush(serialize(srcKey), serialize(dstKey)), bytesToString);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#rPush(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Long rPush(String key, String... values) {
-		Long result = delegate.rPush(serialize(key), serializeMulti(values));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return rPush(serialize(key), serializeMulti(values));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#rPushX(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Long rPushX(String key, String value) {
-		Long result = delegate.rPushX(serialize(key), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return rPushX(serialize(key), serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sAdd(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Long sAdd(String key, String... values) {
-		Long result = delegate.sAdd(serialize(key), serializeMulti(values));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return sAdd(serialize(key), serializeMulti(values));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sCard(java.lang.String)
+	 */
+	@Override
 	public Long sCard(String key) {
-		Long result = delegate.sCard(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return sCard(serialize(key));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sDiff(java.lang.String[])
+	 */
+	@Override
 	public Set<String> sDiff(String... keys) {
-		Set<byte[]> results = delegate.sDiff(serializeMulti(keys));
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.sDiff(serializeMulti(keys)), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sDiffStore(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Long sDiffStore(String destKey, String... keys) {
-		Long result = delegate.sDiffStore(serialize(destKey), serializeMulti(keys));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return sDiffStore(serialize(destKey), serializeMulti(keys));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#set(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void set(String key, String value) {
 		delegate.set(serialize(key), serialize(value));
 	}
@@ -1949,14 +2238,25 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#set(java.lang.String, java.lang.String, org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOptions)
 	 */
+	@Override
 	public void set(String key, String value, Expiration expiration, SetOption option) {
 		set(serialize(key), serialize(value), expiration, option);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#setBit(java.lang.String, long, boolean)
+	 */
+	@Override
 	public Boolean setBit(String key, long offset, boolean value) {
-		return delegate.setBit(serialize(key), offset, value);
+		return setBit(serialize(key), offset, value);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#setEx(java.lang.String, long, java.lang.String)
+	 */
+	@Override
 	public void setEx(String key, long seconds, String value) {
 		delegate.setEx(serialize(key), seconds, serialize(value));
 	}
@@ -1970,80 +2270,94 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		pSetEx(serialize(key), seconds, serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#setNX(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Boolean setNX(String key, String value) {
-		Boolean result = delegate.setNX(serialize(key), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return setNX(serialize(key), serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#setRange(java.lang.String, java.lang.String, long)
+	 */
+	@Override
 	public void setRange(String key, String value, long start) {
 		delegate.setRange(serialize(key), serialize(value), start);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sInter(java.lang.String[])
+	 */
+	@Override
 	public Set<String> sInter(String... keys) {
-		Set<byte[]> results = delegate.sInter(serializeMulti(keys));
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.sInter(serializeMulti(keys)), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sInterStore(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Long sInterStore(String destKey, String... keys) {
-		Long result = delegate.sInterStore(serialize(destKey), serializeMulti(keys));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return sInterStore(serialize(destKey), serializeMulti(keys));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sIsMember(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Boolean sIsMember(String key, String value) {
-		Boolean result = delegate.sIsMember(serialize(key), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return sIsMember(serialize(key), serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sMembers(java.lang.String)
+	 */
+	@Override
 	public Set<String> sMembers(String key) {
-		Set<byte[]> results = delegate.sMembers(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.sMembers(serialize(key)), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sMove(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Boolean sMove(String srcKey, String destKey, String value) {
-		Boolean result = delegate.sMove(serialize(srcKey), serialize(destKey), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return sMove(serialize(srcKey), serialize(destKey), serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sort(java.lang.String, org.springframework.data.redis.connection.SortParameters, java.lang.String)
+	 */
+	@Override
 	public Long sort(String key, SortParameters params, String storeKey) {
-		Long result = delegate.sort(serialize(key), params, serialize(storeKey));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return sort(serialize(key), params, serialize(storeKey));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sort(java.lang.String, org.springframework.data.redis.connection.SortParameters)
+	 */
+	@Override
 	public List<String> sort(String key, SortParameters params) {
-		List<byte[]> results = delegate.sort(serialize(key), params);
-		if (isFutureConversion()) {
-			addResultConverter(byteListToStringList);
-		}
-		return byteListToStringList.convert(results);
+		return convertAndReturn(delegate.sort(serialize(key), params), byteListToStringList);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sPop(java.lang.String)
+	 */
+	@Override
 	public String sPop(String key) {
-		byte[] result = delegate.sPop(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(bytesToString);
-		}
-		return bytesToString.convert(result);
+		return convertAndReturn(delegate.sPop(serialize(key)), bytesToString);
 	}
 
 	/*
@@ -2052,90 +2366,97 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<String> sPop(String key, long count) {
-
-		List<byte[]> result = delegate.sPop(serialize(key), count);
-
-		if (isFutureConversion()) {
-			addResultConverter(byteListToStringList);
-		}
-
-		return byteListToStringList.convert(result);
+		return convertAndReturn(delegate.sPop(serialize(key), count), byteListToStringList);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sRandMember(java.lang.String)
+	 */
+	@Override
 	public String sRandMember(String key) {
-		byte[] result = delegate.sRandMember(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(bytesToString);
-		}
-		return bytesToString.convert(result);
+		return convertAndReturn(delegate.sRandMember(serialize(key)), bytesToString);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sRandMember(java.lang.String, long)
+	 */
+	@Override
 	public List<String> sRandMember(String key, long count) {
-		List<byte[]> results = delegate.sRandMember(serialize(key), count);
-		if (isFutureConversion()) {
-			addResultConverter(byteListToStringList);
-		}
-		return byteListToStringList.convert(results);
+		return convertAndReturn(delegate.sRandMember(serialize(key), count), byteListToStringList);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sRem(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Long sRem(String key, String... values) {
-		Long result = delegate.sRem(serialize(key), serializeMulti(values));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return sRem(serialize(key), serializeMulti(values));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#strLen(java.lang.String)
+	 */
+	@Override
 	public Long strLen(String key) {
-		Long result = delegate.strLen(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return strLen(serialize(key));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bitCount(java.lang.String)
+	 */
+	@Override
 	public Long bitCount(String key) {
-		Long result = delegate.bitCount(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return bitCount(serialize(key));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bitCount(java.lang.String, long, long)
+	 */
+	@Override
 	public Long bitCount(String key, long begin, long end) {
-		Long result = delegate.bitCount(serialize(key), begin, end);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return bitCount(serialize(key), begin, end);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bitOp(org.springframework.data.redis.connection.RedisStringCommands.BitOperation, java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Long bitOp(BitOperation op, String destination, String... keys) {
-		Long result = delegate.bitOp(op, serialize(destination), serializeMulti(keys));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return bitOp(op, serialize(destination), serializeMulti(keys));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#subscribe(org.springframework.data.redis.connection.MessageListener, java.lang.String[])
+	 */
+	@Override
 	public void subscribe(MessageListener listener, String... channels) {
 		delegate.subscribe(listener, serializeMulti(channels));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sUnion(java.lang.String[])
+	 */
+	@Override
 	public Set<String> sUnion(String... keys) {
-		Set<byte[]> results = delegate.sUnion(serializeMulti(keys));
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.sUnion(serializeMulti(keys)), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sUnionStore(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Long sUnionStore(String destKey, String... keys) {
-		Long result = delegate.sUnionStore(serialize(destKey), serializeMulti(keys));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return sUnionStore(serialize(destKey), serializeMulti(keys));
 	}
 
 	/*
@@ -2156,228 +2477,258 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return ttl(serialize(key), timeUnit);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#type(java.lang.String)
+	 */
+	@Override
 	public DataType type(String key) {
-		DataType result = delegate.type(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return type(serialize(key));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zAdd(java.lang.String, double, java.lang.String)
+	 */
+	@Override
 	public Boolean zAdd(String key, double score, String value) {
-		Boolean result = delegate.zAdd(serialize(key), score, serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zAdd(serialize(key), score, serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zAdd(java.lang.String, java.util.Set)
+	 */
+	@Override
 	public Long zAdd(String key, Set<StringTuple> tuples) {
-		Long result = delegate.zAdd(serialize(key), stringTupleToTuple.convert(tuples));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zAdd(serialize(key), stringTupleToTuple.convert(tuples));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zCard(java.lang.String)
+	 */
+	@Override
 	public Long zCard(String key) {
-		Long result = delegate.zCard(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zCard(serialize(key));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zCount(java.lang.String, double, double)
+	 */
+	@Override
 	public Long zCount(String key, double min, double max) {
-		Long result = delegate.zCount(serialize(key), min, max);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zCount(serialize(key), min, max);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zIncrBy(java.lang.String, double, java.lang.String)
+	 */
+	@Override
 	public Double zIncrBy(String key, double increment, String value) {
-		Double result = delegate.zIncrBy(serialize(key), increment, serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zIncrBy(serialize(key), increment, serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zInterStore(java.lang.String, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], java.lang.String[])
+	 */
+	@Override
 	public Long zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
-		Long result = delegate.zInterStore(serialize(destKey), aggregate, weights, serializeMulti(sets));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zInterStore(serialize(destKey), aggregate, weights, serializeMulti(sets));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zInterStore(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Long zInterStore(String destKey, String... sets) {
-		Long result = delegate.zInterStore(serialize(destKey), serializeMulti(sets));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zInterStore(serialize(destKey), serializeMulti(sets));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRange(java.lang.String, long, long)
+	 */
+	@Override
 	public Set<String> zRange(String key, long start, long end) {
-		Set<byte[]> results = delegate.zRange(serialize(key), start, end);
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.zRange(serialize(key), start, end), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRangeByScore(java.lang.String, double, double, long, long)
+	 */
+	@Override
 	public Set<String> zRangeByScore(String key, double min, double max, long offset, long count) {
-		Set<byte[]> results = delegate.zRangeByScore(serialize(key), min, max, offset, count);
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.zRangeByScore(serialize(key), min, max, offset, count), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRangeByScore(java.lang.String, double, double)
+	 */
+	@Override
 	public Set<String> zRangeByScore(String key, double min, double max) {
-		Set<byte[]> results = delegate.zRangeByScore(serialize(key), min, max);
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.zRangeByScore(serialize(key), min, max), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRangeByScoreWithScores(java.lang.String, double, double, long, long)
+	 */
+	@Override
 	public Set<StringTuple> zRangeByScoreWithScores(String key, double min, double max, long offset, long count) {
-		Set<Tuple> results = delegate.zRangeByScoreWithScores(serialize(key), min, max, offset, count);
-		if (isFutureConversion()) {
-			addResultConverter(tupleToStringTuple);
-		}
-		return tupleToStringTuple.convert(results);
+		return convertAndReturn(delegate.zRangeByScoreWithScores(serialize(key), min, max, offset, count),
+				tupleToStringTuple);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRangeByScoreWithScores(java.lang.String, double, double)
+	 */
+	@Override
 	public Set<StringTuple> zRangeByScoreWithScores(String key, double min, double max) {
-		Set<Tuple> results = delegate.zRangeByScoreWithScores(serialize(key), min, max);
-		if (isFutureConversion()) {
-			addResultConverter(tupleToStringTuple);
-		}
-		return tupleToStringTuple.convert(results);
+		return convertAndReturn(delegate.zRangeByScoreWithScores(serialize(key), min, max), tupleToStringTuple);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRangeWithScores(java.lang.String, long, long)
+	 */
+	@Override
 	public Set<StringTuple> zRangeWithScores(String key, long start, long end) {
-		Set<Tuple> results = delegate.zRangeWithScores(serialize(key), start, end);
-		if (isFutureConversion()) {
-			addResultConverter(tupleToStringTuple);
-		}
-		return tupleToStringTuple.convert(results);
+		return convertAndReturn(delegate.zRangeWithScores(serialize(key), start, end), tupleToStringTuple);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRank(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Long zRank(String key, String value) {
-		Long result = delegate.zRank(serialize(key), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zRank(serialize(key), serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRem(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Long zRem(String key, String... values) {
-		Long result = delegate.zRem(serialize(key), serializeMulti(values));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zRem(serialize(key), serializeMulti(values));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRemRange(java.lang.String, long, long)
+	 */
+	@Override
 	public Long zRemRange(String key, long start, long end) {
-		Long result = delegate.zRemRange(serialize(key), start, end);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zRemRange(serialize(key), start, end);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRemRangeByScore(java.lang.String, double, double)
+	 */
+	@Override
 	public Long zRemRangeByScore(String key, double min, double max) {
-		Long result = delegate.zRemRangeByScore(serialize(key), min, max);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zRemRangeByScore(serialize(key), min, max);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRevRange(java.lang.String, long, long)
+	 */
+	@Override
 	public Set<String> zRevRange(String key, long start, long end) {
-		Set<byte[]> results = delegate.zRevRange(serialize(key), start, end);
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.zRevRange(serialize(key), start, end), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRevRangeWithScores(java.lang.String, long, long)
+	 */
+	@Override
 	public Set<StringTuple> zRevRangeWithScores(String key, long start, long end) {
-		Set<Tuple> results = delegate.zRevRangeWithScores(serialize(key), start, end);
-		if (isFutureConversion()) {
-			addResultConverter(tupleToStringTuple);
-		}
-		return tupleToStringTuple.convert(results);
+		return convertAndReturn(delegate.zRevRangeWithScores(serialize(key), start, end), tupleToStringTuple);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRevRangeByScore(java.lang.String, double, double)
+	 */
+	@Override
 	public Set<String> zRevRangeByScore(String key, double min, double max) {
-		Set<byte[]> results = delegate.zRevRangeByScore(serialize(key), min, max);
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.zRevRangeByScore(serialize(key), min, max), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRevRangeByScoreWithScores(java.lang.String, double, double)
+	 */
+	@Override
 	public Set<StringTuple> zRevRangeByScoreWithScores(String key, double min, double max) {
-		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(serialize(key), min, max);
-		if (isFutureConversion()) {
-			addResultConverter(tupleToStringTuple);
-		}
-		return tupleToStringTuple.convert(results);
+		return convertAndReturn(delegate.zRevRangeByScoreWithScores(serialize(key), min, max), tupleToStringTuple);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRevRangeByScore(java.lang.String, double, double, long, long)
+	 */
+	@Override
 	public Set<String> zRevRangeByScore(String key, double min, double max, long offset, long count) {
-		Set<byte[]> results = delegate.zRevRangeByScore(serialize(key), min, max, offset, count);
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.zRevRangeByScore(serialize(key), min, max, offset, count), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRevRangeByScoreWithScores(java.lang.String, double, double, long, long)
+	 */
+	@Override
 	public Set<StringTuple> zRevRangeByScoreWithScores(String key, double min, double max, long offset, long count) {
-		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(serialize(key), min, max, offset, count);
-		if (isFutureConversion()) {
-			addResultConverter(tupleToStringTuple);
-		}
-		return tupleToStringTuple.convert(results);
+		return convertAndReturn(delegate.zRevRangeByScoreWithScores(serialize(key), min, max, offset, count),
+				tupleToStringTuple);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRevRank(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Long zRevRank(String key, String value) {
-		Long result = delegate.zRevRank(serialize(key), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zRevRank(serialize(key), serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zScore(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Double zScore(String key, String value) {
-		Double result = delegate.zScore(serialize(key), serialize(value));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zScore(serialize(key), serialize(value));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zUnionStore(java.lang.String, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], java.lang.String[])
+	 */
+	@Override
 	public Long zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
-		Long result = delegate.zUnionStore(serialize(destKey), aggregate, weights, serializeMulti(sets));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zUnionStore(serialize(destKey), aggregate, weights, serializeMulti(sets));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zUnionStore(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Long zUnionStore(String destKey, String... sets) {
-		Long result = delegate.zUnionStore(serialize(destKey), serializeMulti(sets));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return zUnionStore(serialize(destKey), serializeMulti(sets));
 	}
 
 	/*
@@ -2387,11 +2738,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long geoAdd(byte[] key, Point point, byte[] member) {
 
-		Long result = delegate.geoAdd(key, point, member);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoAdd(key, point, member), identityConverter);
 	}
 
 	/*
@@ -2399,12 +2746,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
 	 */
 	public Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
-
-		Long result = delegate.geoAdd(key, location);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoAdd(key, location), identityConverter);
 	}
 
 	/*
@@ -2433,12 +2775,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap) {
-
-		Long result = delegate.geoAdd(key, memberCoordinateMap);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoAdd(key, memberCoordinateMap), identityConverter);
 	}
 
 	/*
@@ -2447,12 +2784,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations) {
-
-		Long result = delegate.geoAdd(key, locations);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoAdd(key, locations), identityConverter);
 	}
 
 	/*
@@ -2464,7 +2796,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null!");
 
-		Map<byte[], Point> byteMap = new HashMap<byte[], Point>();
+		Map<byte[], Point> byteMap = new HashMap<>();
 		for (Entry<String, Point> entry : memberCoordinateMap.entrySet()) {
 			byteMap.put(serialize(entry.getKey()), entry.getValue());
 		}
@@ -2481,7 +2813,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 		Assert.notNull(locations, "Locations must not be null!");
 
-		Map<byte[], Point> byteMap = new HashMap<byte[], Point>();
+		Map<byte[], Point> byteMap = new HashMap<>();
 		for (GeoLocation<String> location : locations) {
 			byteMap.put(serialize(location.getName()), location.getPoint());
 		}
@@ -2495,12 +2827,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Distance geoDist(byte[] key, byte[] member1, byte[] member2) {
-
-		Distance result = delegate.geoDist(key, member1, member2);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoDist(key, member1, member2), identityConverter);
 	}
 
 	/*
@@ -2518,12 +2845,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric) {
-
-		Distance result = delegate.geoDist(key, member1, member2, metric);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoDist(key, member1, member2, metric), identityConverter);
 	}
 
 	/*
@@ -2541,12 +2863,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<String> geoHash(byte[] key, byte[]... members) {
-
-		List<String> result = delegate.geoHash(key, members);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoHash(key, members), identityConverter);
 	}
 
 	/*
@@ -2555,12 +2872,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<String> geoHash(String key, String... members) {
-
-		List<String> result = delegate.geoHash(serialize(key), serializeMulti(members));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoHash(serialize(key), serializeMulti(members)), identityConverter);
 	}
 
 	/*
@@ -2569,12 +2881,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<Point> geoPos(byte[] key, byte[]... members) {
-
-		List<Point> result = delegate.geoPos(key, members);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoPos(key, members), identityConverter);
 	}
 
 	/*
@@ -2592,13 +2899,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public GeoResults<GeoLocation<String>> geoRadius(String key, Circle within) {
-
-		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadius(serialize(key), within);
-		if (isFutureConversion()) {
-			addResultConverter(byteGeoResultsToStringGeoResults);
-		}
-
-		return byteGeoResultsToStringGeoResults.convert(result);
+		return convertAndReturn(delegate.geoRadius(serialize(key), within), byteGeoResultsToStringGeoResults);
 	}
 
 	/*
@@ -2607,12 +2908,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public GeoResults<GeoLocation<String>> geoRadius(String key, Circle within, GeoRadiusCommandArgs args) {
-
-		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadius(serialize(key), within, args);
-		if (isFutureConversion()) {
-			addResultConverter(byteGeoResultsToStringGeoResults);
-		}
-		return byteGeoResultsToStringGeoResults.convert(result);
+		return convertAndReturn(delegate.geoRadius(serialize(key), within, args), byteGeoResultsToStringGeoResults);
 	}
 
 	/*
@@ -2631,11 +2927,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, Distance radius) {
 
-		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadiusByMember(serialize(key), serialize(member), radius);
-		if (isFutureConversion()) {
-			addResultConverter(byteGeoResultsToStringGeoResults);
-		}
-		return byteGeoResultsToStringGeoResults.convert(result);
+		return convertAndReturn(delegate.geoRadiusByMember(serialize(key), serialize(member), radius),
+				byteGeoResultsToStringGeoResults);
 	}
 
 	/*
@@ -2646,12 +2939,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	public GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, Distance radius,
 			GeoRadiusCommandArgs args) {
 
-		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadiusByMember(serialize(key), serialize(member), radius,
-				args);
-		if (isFutureConversion()) {
-			addResultConverter(byteGeoResultsToStringGeoResults);
-		}
-		return byteGeoResultsToStringGeoResults.convert(result);
+		return convertAndReturn(delegate.geoRadiusByMember(serialize(key), serialize(member), radius, args),
+				byteGeoResultsToStringGeoResults);
 	}
 
 	/*
@@ -2660,12 +2949,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
-
-		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadius(key, within);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoRadius(key, within), identityConverter);
 	}
 
 	/*
@@ -2674,12 +2958,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args) {
-
-		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadius(key, within, args);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoRadius(key, within, args), identityConverter);
 	}
 
 	/*
@@ -2697,12 +2976,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
-
-		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadiusByMember(key, member, radius);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoRadiusByMember(key, member, radius), identityConverter);
 	}
 
 	/*
@@ -2713,11 +2987,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
 			GeoRadiusCommandArgs args) {
 
-		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadiusByMember(key, member, radius, args);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.geoRadiusByMember(key, member, radius, args), identityConverter);
 	}
 
 	/*
@@ -2738,7 +3008,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return geoRemove(serialize(key), serializeMulti(members));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#closePipeline()
+	 */
+	@Override
 	public List<Object> closePipeline() {
+
 		try {
 			return convertResults(delegate.closePipeline(), pipelineConverters);
 		} finally {
@@ -2746,34 +3022,65 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#isPipelined()
+	 */
+	@Override
 	public boolean isPipelined() {
 		return delegate.isPipelined();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#openPipeline()
+	 */
+	@Override
 	public void openPipeline() {
 		delegate.openPipeline();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#execute(java.lang.String)
+	 */
+	@Override
 	public Object execute(String command) {
 		return execute(command, (byte[][]) null);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisCommands#execute(java.lang.String, byte[][])
+	 */
+	@Override
 	public Object execute(String command, byte[]... args) {
-		Object result = delegate.execute(command, args);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return convertAndReturn(delegate.execute(command, args), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#execute(java.lang.String, java.lang.String[])
+	 */
+	@Override
 	public Object execute(String command, String... args) {
 		return execute(command, serializeMulti(args));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#pExpire(java.lang.String, long)
+	 */
+	@Override
 	public Boolean pExpire(String key, long millis) {
 		return pExpire(serialize(key), millis);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#pExpireAt(java.lang.String, long)
+	 */
+	@Override
 	public Boolean pExpireAt(String key, long unixTimeInMillis) {
 		return pExpireAt(serialize(key), unixTimeInMillis);
 	}
@@ -2796,12 +3103,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return pTtl(serialize(key), timeUnit);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#scriptLoad(java.lang.String)
+	 */
+	@Override
 	public String scriptLoad(String script) {
-		String result = delegate.scriptLoad(serialize(script));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return scriptLoad(serialize(script));
 	}
 
 	/**
@@ -2809,11 +3117,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * serializer used here. They will be returned as byte[]s
 	 */
 	public <T> T eval(String script, ReturnType returnType, int numKeys, String... keysAndArgs) {
-		T result = delegate.eval(serialize(script), returnType, numKeys, serializeMulti(keysAndArgs));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return eval(serialize(script), returnType, numKeys, serializeMulti(keysAndArgs));
 	}
 
 	/**
@@ -2821,11 +3125,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * serializer used here. They will be returned as byte[]s
 	 */
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, String... keysAndArgs) {
-		T result = delegate.evalSha(scriptSha1, returnType, numKeys, serializeMulti(keysAndArgs));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return evalSha(scriptSha1, returnType, numKeys, serializeMulti(keysAndArgs));
 	}
 
 	/*
@@ -2834,12 +3134,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long time() {
-		return this.delegate.time();
+		return convertAndReturn(this.delegate.time(), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#getClientList()
+	 */
 	@Override
 	public List<RedisClientInfo> getClientList() {
-		return this.delegate.getClientList();
+		return convertAndReturn(this.delegate.getClientList(), identityConverter);
 	}
 
 	/*
@@ -2870,7 +3174,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	/*
-	 *
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zScan(byte[], org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
 	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
@@ -2903,6 +3208,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	public void setDeserializePipelineAndTxResults(boolean deserializePipelineAndTxResults) {
 		this.deserializePipelineAndTxResults = deserializePipelineAndTxResults;
+	}
+
+	private <T> T convertAndReturn(Object value, Converter converter) {
+
+		if (isFutureConversion()) {
+			addResultConverter(converter);
+		}
+
+		return ObjectUtils.nullSafeEquals(converter, identityConverter) ? (T) value : (T) converter.convert(value);
 	}
 
 	private void addResultConverter(Converter<?, ?> converter) {
@@ -2966,7 +3280,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public String getClientName() {
-		return this.delegate.getClientName();
+		return convertAndReturn(this.delegate.getClientName(), identityConverter);
 	}
 
 	/*
@@ -3022,49 +3336,49 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 				new TupleConverter());
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#getSentinelConnection()
+	 */
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
 		return delegate.getSentinelConnection();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRangeByScore(java.lang.String, java.lang.String, java.lang.String)
+	 */
 	@Override
-	public Set<byte[]> zRangeByScore(String key, String min, String max) {
-		Set<byte[]> results = delegate.zRangeByScore(serialize(key), min, max);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+	public Set<String> zRangeByScore(String key, String min, String max) {
+		return convertAndReturn(delegate.zRangeByScore(serialize(key), min, max), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRangeByScore(java.lang.String, java.lang.String, java.lang.String, long, long)
+	 */
 	@Override
-	public Set<byte[]> zRangeByScore(String key, String min, String max, long offset, long count) {
-		Set<byte[]> results = delegate.zRangeByScore(serialize(key), min, max, offset, count);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return results;
+	public Set<String> zRangeByScore(String key, String min, String max, long offset, long count) {
+		return convertAndReturn(delegate.zRangeByScore(serialize(key), min, max, offset, count), byteSetToStringSet);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], java.lang.String, java.lang.String)
+	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
-
-		Set<byte[]> results = delegate.zRangeByScore(key, min, max);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-
-		return results;
+		return convertAndReturn(delegate.zRangeByScore(key, min, max), identityConverter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], java.lang.String, java.lang.String, long, long)
+	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
-
-		Set<byte[]> results = delegate.zRangeByScore(key, min, max, offset, count);
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-
-		return results;
+		return convertAndReturn(delegate.zRangeByScore(key, min, max, offset, count), identityConverter);
 	}
 
 	/*
@@ -3073,7 +3387,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long pfAdd(byte[] key, byte[]... values) {
-		return delegate.pfAdd(key, values);
+		return convertAndReturn(delegate.pfAdd(key, values), identityConverter);
 	}
 
 	/*
@@ -3082,7 +3396,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long pfAdd(String key, String... values) {
-		return this.pfAdd(serialize(key), serializeMulti(values));
+		return pfAdd(serialize(key), serializeMulti(values));
 	}
 
 	/*
@@ -3091,7 +3405,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long pfCount(byte[]... keys) {
-		return delegate.pfCount(keys);
+		return convertAndReturn(delegate.pfCount(keys), identityConverter);
 	}
 
 	/*
@@ -3100,7 +3414,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long pfCount(String... keys) {
-		return this.pfCount(serializeMulti(keys));
+		return pfCount(serializeMulti(keys));
 	}
 
 	/*
@@ -3127,7 +3441,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByLex(byte[] key) {
-		return delegate.zRangeByLex(key);
+		return convertAndReturn(delegate.zRangeByLex(key), identityConverter);
 	}
 
 	/*
@@ -3136,7 +3450,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByLex(byte[] key, Range range) {
-		return delegate.zRangeByLex(key, range);
+		return convertAndReturn(delegate.zRangeByLex(key, range), identityConverter);
 	}
 
 	/*
@@ -3145,7 +3459,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
-		return delegate.zRangeByLex(key, range, limit);
+		return convertAndReturn(delegate.zRangeByLex(key, range, limit), identityConverter);
 	}
 
 	/*
@@ -3172,12 +3486,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<String> zRangeByLex(String key, Range range, Limit limit) {
-
-		Set<byte[]> results = delegate.zRangeByLex(serialize(key), range);
-		if (isFutureConversion()) {
-			addResultConverter(byteSetToStringSet);
-		}
-		return byteSetToStringSet.convert(results);
+		return convertAndReturn(delegate.zRangeByLex(serialize(key), range), byteSetToStringSet);
 	}
 
 	/*
