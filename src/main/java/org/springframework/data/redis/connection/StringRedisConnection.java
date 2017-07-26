@@ -1289,7 +1289,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScore(byte[], String, String)
 	 */
-	Set<byte[]> zRangeByScore(String key, String min, String max);
+	Set<String> zRangeByScore(String key, String min, String max);
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} where score is between {@code min} and {@code max} from
@@ -1305,7 +1305,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScore(byte[], double, double, long, long)
 	 */
-	Set<byte[]> zRangeByScore(String key, String min, String max, long offset, long count);
+	Set<String> zRangeByScore(String key, String min, String max, long offset, long count);
 
 	/**
 	 * Get all the elements in the sorted set at {@literal key} in lexicographical ordering.

@@ -74,7 +74,7 @@ public interface RedisSetCommands {
 	 * Move {@code value} from {@code srcKey} to {@code destKey}
 	 *
 	 * @param srcKey must not be {@literal null}.
-	 * @param destKey  must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
 	 * @param value
 	 * @return
 	 * @see <a href="http://redis.io/commands/smove">Redis Documentation: SMOVE</a>
@@ -84,7 +84,7 @@ public interface RedisSetCommands {
 	/**
 	 * Get size of set at {@code key}.
 	 *
-	 * @param key  must not be {@literal null}.
+	 * @param key must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/scard">Redis Documentation: SCARD</a>
 	 */
@@ -103,7 +103,7 @@ public interface RedisSetCommands {
 	/**
 	 * Returns the members intersecting all given sets at {@code keys}.
 	 *
-	 * @param keys  must not be {@literal null}.
+	 * @param keys must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
@@ -132,7 +132,7 @@ public interface RedisSetCommands {
 	 * Union all sets at given {@code keys} and store result in {@code destKey}.
 	 *
 	 * @param destKey must not be {@literal null}.
-	 * @param keys  must not be {@literal null}.
+	 * @param keys must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 */
@@ -169,7 +169,7 @@ public interface RedisSetCommands {
 	/**
 	 * Get random element from set at {@code key}.
 	 *
-	 * @param key  must not be {@literal null}.
+	 * @param key must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
