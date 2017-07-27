@@ -42,7 +42,7 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
 /**
  * Integration tests confirming that {@link RedisMessageListenerContainer} closes connections after unsubscribing
- * 
+ *
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -56,7 +56,7 @@ public class SubscriptionConnectionTests {
 
 	private RedisConnectionFactory connectionFactory;
 
-	private List<RedisMessageListenerContainer> containers = new ArrayList<RedisMessageListenerContainer>();
+	private List<RedisMessageListenerContainer> containers = new ArrayList<>();
 
 	private final Object handler = new Object() {
 		@SuppressWarnings("unused")

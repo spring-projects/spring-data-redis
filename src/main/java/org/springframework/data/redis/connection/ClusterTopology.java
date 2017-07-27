@@ -25,7 +25,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * {@link ClusterTopology} holds snapshot like information about {@link RedisClusterNode}s.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.7
@@ -36,7 +36,7 @@ public class ClusterTopology {
 
 	/**
 	 * Creates new instance of {@link ClusterTopology}.
-	 * 
+	 *
 	 * @param nodes can be {@literal null}.
 	 */
 	public ClusterTopology(Set<RedisClusterNode> nodes) {
@@ -45,7 +45,7 @@ public class ClusterTopology {
 
 	/**
 	 * Get all {@link RedisClusterNode}s.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public Set<RedisClusterNode> getNodes() {
@@ -55,12 +55,12 @@ public class ClusterTopology {
 	/**
 	 * Get all nodes (master and slave) in cluster where {@code link-state} is {@literal connected} and {@code flags} does
 	 * not contain {@literal fail} or {@literal fail?}.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public Set<RedisClusterNode> getActiveNodes() {
 
-		Set<RedisClusterNode> activeNodes = new LinkedHashSet<RedisClusterNode>(nodes.size());
+		Set<RedisClusterNode> activeNodes = new LinkedHashSet<>(nodes.size());
 		for (RedisClusterNode node : nodes) {
 			if (node.isConnected() && !node.isMarkedAsFail()) {
 				activeNodes.add(node);
@@ -72,12 +72,12 @@ public class ClusterTopology {
 	/**
 	 * Get all master nodes in cluster where {@code link-state} is {@literal connected} and {@code flags} does not contain
 	 * {@literal fail} or {@literal fail?}.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public Set<RedisClusterNode> getActiveMasterNodes() {
 
-		Set<RedisClusterNode> activeMasterNodes = new LinkedHashSet<RedisClusterNode>(nodes.size());
+		Set<RedisClusterNode> activeMasterNodes = new LinkedHashSet<>(nodes.size());
 		for (RedisClusterNode node : nodes) {
 			if (node.isMaster() && node.isConnected() && !node.isMarkedAsFail()) {
 				activeMasterNodes.add(node);
@@ -88,12 +88,12 @@ public class ClusterTopology {
 
 	/**
 	 * Get all master nodes in cluster.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public Set<RedisClusterNode> getMasterNodes() {
 
-		Set<RedisClusterNode> masterNodes = new LinkedHashSet<RedisClusterNode>(nodes.size());
+		Set<RedisClusterNode> masterNodes = new LinkedHashSet<>(nodes.size());
 		for (RedisClusterNode node : nodes) {
 			if (node.isMaster()) {
 				masterNodes.add(node);
@@ -104,13 +104,13 @@ public class ClusterTopology {
 
 	/**
 	 * Get the {@link RedisClusterNode}s (master and slave) serving s specific slot.
-	 * 
+	 *
 	 * @param slot
 	 * @return never {@literal null}.
 	 */
 	public Set<RedisClusterNode> getSlotServingNodes(int slot) {
 
-		Set<RedisClusterNode> slotServingNodes = new LinkedHashSet<RedisClusterNode>(nodes.size());
+		Set<RedisClusterNode> slotServingNodes = new LinkedHashSet<>(nodes.size());
 		for (RedisClusterNode node : nodes) {
 			if (node.servesSlot(slot)) {
 				slotServingNodes.add(node);
@@ -121,7 +121,7 @@ public class ClusterTopology {
 
 	/**
 	 * Get the {@link RedisClusterNode} that is the current master serving the given key.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 * @throws ClusterStateFailureException
@@ -142,7 +142,7 @@ public class ClusterTopology {
 
 	/**
 	 * Get the {@link RedisClusterNode} matching given {@literal host} and {@literal port}.
-	 * 
+	 *
 	 * @param host must not be {@literal null}.
 	 * @param port
 	 * @return

@@ -38,7 +38,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.SettingsUtils;
-import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -53,7 +52,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Integration test of {@link LettuceConnection}
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
@@ -70,14 +69,12 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testMultiThreadsOneBlocking() throws Exception {
-		Thread th = new Thread(new Runnable() {
-			public void run() {
-				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
-				conn2.openPipeline();
-				conn2.bLPop(3, "multilist");
-				conn2.closePipeline();
-				conn2.close();
-			}
+		Thread th = new Thread(() -> {
+			DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
+			conn2.openPipeline();
+			conn2.bLPop(3, "multilist");
+			conn2.closePipeline();
+			conn2.close();
 		});
 		th.start();
 		Thread.sleep(1000);
@@ -247,32 +244,26 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		getResults();
 		assumeTrue(RedisVersionUtils.atLeast("2.6", byteConnection));
 		final AtomicBoolean scriptDead = new AtomicBoolean(false);
-		Thread th = new Thread(new Runnable() {
-			public void run() {
-				// Use a different factory to get a non-shared native conn for blocking script
-				final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
-						SettingsUtils.getPort());
-				factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
-				factory2.setShutdownTimeout(0);
-				factory2.afterPropertiesSet();
-				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
-				try {
-					conn2.eval("local time=1 while time < 10000000000 do time=time+1 end", ReturnType.BOOLEAN, 0);
-				} catch (DataAccessException e) {
-					scriptDead.set(true);
-				}
-				conn2.close();
-				factory2.destroy();
+		Thread th = new Thread(() -> {
+			// Use a different factory to get a non-shared native conn for blocking script
+			final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
+					SettingsUtils.getPort());
+			factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
+			factory2.setShutdownTimeout(0);
+			factory2.afterPropertiesSet();
+			DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
+			try {
+				conn2.eval("local time=1 while time < 10000000000 do time=time+1 end", ReturnType.BOOLEAN, 0);
+			} catch (DataAccessException e) {
+				scriptDead.set(true);
 			}
+			conn2.close();
+			factory2.destroy();
 		});
 		th.start();
 		Thread.sleep(1000);
 		connection.scriptKill();
-		assertTrue(waitFor(new TestCondition() {
-			public boolean passes() {
-				return scriptDead.get();
-			}
-		}, 3000l));
+		assertTrue(waitFor(scriptDead::get, 3000l));
 	}
 
 	@Test

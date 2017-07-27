@@ -36,14 +36,13 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link DefaultHashOperations}
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @param <K> Key type
@@ -90,7 +89,7 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		stringTemplate.setConnectionFactory(jedisConnectionFactory);
 		stringTemplate.afterPropertiesSet();
 
-		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<byte[], byte[]>();
+		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<>();
 		rawTemplate.setConnectionFactory(jedisConnectionFactory);
 		rawTemplate.setEnableDefaultSerializer(false);
 		rawTemplate.afterPropertiesSet();
@@ -111,11 +110,9 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 
 	@After
 	public void tearDown() {
-		redisTemplate.execute(new RedisCallback<Object>() {
-			public Object doInRedis(RedisConnection connection) {
-				connection.flushDb();
-				return null;
-			}
+		redisTemplate.execute((RedisCallback<Object>) connection -> {
+			connection.flushDb();
+			return null;
 		});
 	}
 

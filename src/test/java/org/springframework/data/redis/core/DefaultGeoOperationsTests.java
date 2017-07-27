@@ -43,7 +43,6 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -105,11 +104,9 @@ public class DefaultGeoOperationsTests<K, M> {
 	@After
 	public void tearDown() {
 
-		redisTemplate.execute(new RedisCallback<Object>() {
-			public Object doInRedis(RedisConnection connection) {
-				connection.flushDb();
-				return null;
-			}
+		redisTemplate.execute((RedisCallback<Object>) connection -> {
+			connection.flushDb();
+			return null;
 		});
 	}
 
@@ -124,7 +121,7 @@ public class DefaultGeoOperationsTests<K, M> {
 	@Test // DATAREDIS-438
 	public void testGeoAddWithLocationMap() {
 
-		Map<M, Point> memberCoordinateMap = new HashMap<M, Point>();
+		Map<M, Point> memberCoordinateMap = new HashMap<>();
 		memberCoordinateMap.put(valueFactory.instance(), POINT_PALERMO);
 		memberCoordinateMap.put(valueFactory.instance(), POINT_CATANIA);
 

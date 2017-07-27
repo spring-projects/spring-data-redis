@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.Person;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
@@ -42,7 +41,7 @@ import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link DefaultScriptExecutor}
- * 
+ *
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -64,12 +63,10 @@ public abstract class AbstractDefaultScriptExecutorTests {
 			return;
 		}
 
-		template.execute(new RedisCallback<Object>() {
-			public Object doInRedis(RedisConnection connection) {
-				connection.flushDb();
-				connection.scriptFlush();
-				return null;
-			}
+		template.execute((RedisCallback<Object>) connection -> {
+			connection.flushDb();
+			connection.scriptFlush();
+			return null;
 		});
 	}
 
@@ -79,7 +76,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
-		DefaultRedisScript<Long> script = new DefaultRedisScript<Long>();
+		DefaultRedisScript<Long> script = new DefaultRedisScript<>();
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/increment.lua"));
 		script.setResultType(Long.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
@@ -94,10 +91,10 @@ public abstract class AbstractDefaultScriptExecutorTests {
 	public void testExecuteBooleanResult() {
 		this.template = new RedisTemplate<String, Long>();
 		template.setKeySerializer(new StringRedisSerializer());
-		template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
+		template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
-		DefaultRedisScript<Boolean> script = new DefaultRedisScript<Boolean>();
+		DefaultRedisScript<Boolean> script = new DefaultRedisScript<>();
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/cas.lua"));
 		script.setResultType(Boolean.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
@@ -114,11 +111,11 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
 		template.boundListOps("mylist").leftPushAll("a", "b", "c", "d");
-		DefaultRedisScript<List> script = new DefaultRedisScript<List>();
+		DefaultRedisScript<List> script = new DefaultRedisScript<>();
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/bulkpop.lua"));
 		script.setResultType(List.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
-		List<String> result = scriptExecutor.execute(script, new GenericToStringSerializer<Long>(Long.class),
+		List<String> result = scriptExecutor.execute(script, new GenericToStringSerializer<>(Long.class),
 				template.getValueSerializer(), Collections.singletonList("mylist"), 1l);
 		assertEquals(Collections.singletonList("a"), result);
 	}
@@ -129,7 +126,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
-		DefaultRedisScript<List> script = new DefaultRedisScript<List>();
+		DefaultRedisScript<List> script = new DefaultRedisScript<>();
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/popandlength.lua"));
 		script.setResultType(List.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
@@ -146,7 +143,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
-		DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		DefaultRedisScript<String> script = new DefaultRedisScript<>();
 		script.setScriptText("return redis.call('GET',KEYS[1])");
 		script.setResultType(String.class);
 		template.opsForValue().set("foo", "bar");
@@ -159,7 +156,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 	public void testExecuteStatusResult() {
 		this.template = new RedisTemplate<String, Long>();
 		template.setKeySerializer(new StringRedisSerializer());
-		template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
+		template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
 		DefaultRedisScript script = new DefaultRedisScript();
@@ -172,13 +169,13 @@ public abstract class AbstractDefaultScriptExecutorTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testExecuteCustomResultSerializer() {
-		Jackson2JsonRedisSerializer<Person> personSerializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
+		Jackson2JsonRedisSerializer<Person> personSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 		this.template = new RedisTemplate<String, Person>();
 		template.setKeySerializer(new StringRedisSerializer());
 		template.setValueSerializer(personSerializer);
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
-		DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		DefaultRedisScript<String> script = new DefaultRedisScript<>();
 		script.setScriptSource(new StaticScriptSource("redis.call('SET',KEYS[1], ARGV[1])\nreturn 'FOO'"));
 		script.setResultType(String.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
@@ -195,7 +192,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
-		final DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		final DefaultRedisScript<String> script = new DefaultRedisScript<>();
 		script.setScriptText("return KEYS[1]");
 		script.setResultType(String.class);
 		List<Object> results = template.executePipelined(new SessionCallback<String>() {
@@ -215,7 +212,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
-		final DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		final DefaultRedisScript<String> script = new DefaultRedisScript<>();
 		script.setScriptText("return 'bar'..KEYS[1]");
 		script.setResultType(String.class);
 		List<Object> results = (List<Object>) template.execute(new SessionCallback<List<Object>>() {
@@ -237,7 +234,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
-		DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		DefaultRedisScript<String> script = new DefaultRedisScript<>();
 		script.setScriptText("return 'HELLO'");
 		script.setResultType(String.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
@@ -253,7 +250,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
 
-		DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		DefaultRedisScript<String> script = new DefaultRedisScript<>();
 		script.setScriptText("return 'BUBU" + System.currentTimeMillis() + "'");
 		script.setResultType(String.class);
 

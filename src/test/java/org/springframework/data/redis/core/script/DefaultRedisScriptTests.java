@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core.script;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -25,7 +24,7 @@ import org.springframework.scripting.support.StaticScriptSource;
 
 /**
  * Test of {@link DefaultRedisScript}
- * 
+ *
  * @author Jennifer Hickey
  */
 public class DefaultRedisScriptTests {
@@ -33,7 +32,7 @@ public class DefaultRedisScriptTests {
 	@Test
 	public void testGetSha1() {
 		StaticScriptSource script = new StaticScriptSource("return KEYS[1]");
-		DefaultRedisScript<String> redisScript = new DefaultRedisScript<String>();
+		DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
 		redisScript.setScriptSource(script);
 		redisScript.setResultType(String.class);
 		String sha1 = redisScript.getSha1();
@@ -46,7 +45,7 @@ public class DefaultRedisScriptTests {
 
 	@Test
 	public void testGetScriptAsString() {
-		DefaultRedisScript<String> redisScript = new DefaultRedisScript<String>();
+		DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
 		redisScript.setScriptText("return ARGS[1]");
 		redisScript.setResultType(String.class);
 		assertEquals("return ARGS[1]", redisScript.getScriptAsString());
@@ -54,7 +53,7 @@ public class DefaultRedisScriptTests {
 
 	@Test(expected = ScriptingException.class)
 	public void testGetScriptAsStringError() {
-		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<Long>();
+		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
 		redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("nonexistent")));
 		redisScript.setResultType(Long.class);
 		redisScript.getScriptAsString();
@@ -62,7 +61,7 @@ public class DefaultRedisScriptTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void initializeWithNoScript() throws Exception {
-		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<Long>();
+		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
 		redisScript.afterPropertiesSet();
 	}
 }

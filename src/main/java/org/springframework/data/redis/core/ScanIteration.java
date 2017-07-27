@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.Iterator;
 /**
  * {@link ScanIteration} holds the values contained in Redis {@literal Multibulk reply} on exectuting {@literal SCAN}
  * command.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.4
  */
@@ -39,12 +39,12 @@ public class ScanIteration<T> implements Iterable<T> {
 	public ScanIteration(long cursorId, Collection<T> items) {
 
 		this.cursorId = cursorId;
-		this.items = (items != null ? new ArrayList<T>(items) : Collections.<T> emptyList());
+		this.items = (items != null ? new ArrayList<>(items) : Collections.<T> emptyList());
 	}
 
 	/**
 	 * The cursor id to be used for subsequent requests.
-	 * 
+	 *
 	 * @return
 	 */
 	public long getCursorId() {
@@ -53,7 +53,7 @@ public class ScanIteration<T> implements Iterable<T> {
 
 	/**
 	 * Get the items returned.
-	 * 
+	 *
 	 * @return
 	 */
 	public Collection<T> getItems() {

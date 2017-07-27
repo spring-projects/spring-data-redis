@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2014 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,7 +30,7 @@ import org.springframework.data.redis.core.ScanOptions;
 /**
  * Default implementation for {@link RedisSet}. Note that the collection support works only with normal,
  * non-pipeline/multi-exec connections as it requires a reply to be sent right away.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  */
@@ -51,7 +51,7 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 
 	/**
 	 * Constructs a new <code>DefaultRedisSet</code> instance.
-	 * 
+	 *
 	 * @param key
 	 * @param operations
 	 */
@@ -62,7 +62,7 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 
 	/**
 	 * Constructs a new <code>DefaultRedisSet</code> instance.
-	 * 
+	 *
 	 * @param boundOps
 	 */
 	public DefaultRedisSet(BoundSetOperations<String, E> boundOps) {
@@ -80,12 +80,12 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 
 	public RedisSet<E> diffAndStore(RedisSet<?> set, String destKey) {
 		boundSetOps.diffAndStore(set.getKey(), destKey);
-		return new DefaultRedisSet<E>(boundSetOps.getOperations().boundSetOps(destKey));
+		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
 	public RedisSet<E> diffAndStore(Collection<? extends RedisSet<?>> sets, String destKey) {
 		boundSetOps.diffAndStore(CollectionUtils.extractKeys(sets), destKey);
-		return new DefaultRedisSet<E>(boundSetOps.getOperations().boundSetOps(destKey));
+		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
 	public Set<E> intersect(RedisSet<?> set) {
@@ -98,12 +98,12 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 
 	public RedisSet<E> intersectAndStore(RedisSet<?> set, String destKey) {
 		boundSetOps.intersectAndStore(set.getKey(), destKey);
-		return new DefaultRedisSet<E>(boundSetOps.getOperations().boundSetOps(destKey));
+		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
 	public RedisSet<E> intersectAndStore(Collection<? extends RedisSet<?>> sets, String destKey) {
 		boundSetOps.intersectAndStore(CollectionUtils.extractKeys(sets), destKey);
-		return new DefaultRedisSet<E>(boundSetOps.getOperations().boundSetOps(destKey));
+		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
 	public Set<E> union(RedisSet<?> set) {
@@ -116,12 +116,12 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 
 	public RedisSet<E> unionAndStore(RedisSet<?> set, String destKey) {
 		boundSetOps.unionAndStore(set.getKey(), destKey);
-		return new DefaultRedisSet<E>(boundSetOps.getOperations().boundSetOps(destKey));
+		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
 	public RedisSet<E> unionAndStore(Collection<? extends RedisSet<?>> sets, String destKey) {
 		boundSetOps.unionAndStore(CollectionUtils.extractKeys(sets), destKey);
-		return new DefaultRedisSet<E>(boundSetOps.getOperations().boundSetOps(destKey));
+		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
 	@SuppressWarnings("unchecked")

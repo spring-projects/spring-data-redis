@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.core.convert.converter.Converter;
 
 /**
  * Converts a Map of values of one key/value type to a Map of values of another type
- * 
+ *
  * @author Jennifer Hickey
  * @param <S> The type of keys and values in the Map to convert
  * @param <T> The type of keys and values in the converted Map
@@ -40,18 +40,23 @@ public class MapConverter<S, T> implements Converter<Map<S, S>, Map<T, T>> {
 	}
 
 	public Map<T, T> convert(Map<S, S> source) {
+
 		if (source == null) {
 			return null;
 		}
+
 		Map<T, T> results;
+
 		if (source instanceof LinkedHashMap) {
-			results = new LinkedHashMap<T, T>();
+			results = new LinkedHashMap<>();
 		} else {
-			results = new HashMap<T, T>();
+			results = new HashMap<>();
 		}
+
 		for (Map.Entry<S, S> result : source.entrySet()) {
 			results.put(itemConverter.convert(result.getKey()), itemConverter.convert(result.getValue()));
 		}
+
 		return results;
 	}
 

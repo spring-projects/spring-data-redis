@@ -88,15 +88,15 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	static final byte[] VALUE_2_BYTES = LettuceConverters.toBytes(VALUE_2);
 	static final byte[] VALUE_3_BYTES = LettuceConverters.toBytes(VALUE_3);
 
-	static final GeoLocation<String> ARIGENTO = new GeoLocation<String>("arigento", POINT_ARIGENTO);
-	static final GeoLocation<String> CATANIA = new GeoLocation<String>("catania", POINT_CATANIA);
-	static final GeoLocation<String> PALERMO = new GeoLocation<String>("palermo", POINT_PALERMO);
+	static final GeoLocation<String> ARIGENTO = new GeoLocation<>("arigento", POINT_ARIGENTO);
+	static final GeoLocation<String> CATANIA = new GeoLocation<>("catania", POINT_CATANIA);
+	static final GeoLocation<String> PALERMO = new GeoLocation<>("palermo", POINT_PALERMO);
 
-	static final GeoLocation<byte[]> ARIGENTO_BYTES = new GeoLocation<byte[]>(
+	static final GeoLocation<byte[]> ARIGENTO_BYTES = new GeoLocation<>(
 			"arigento".getBytes(Charset.forName("UTF-8")), POINT_ARIGENTO);
-	static final GeoLocation<byte[]> CATANIA_BYTES = new GeoLocation<byte[]>("catania".getBytes(Charset.forName("UTF-8")),
+	static final GeoLocation<byte[]> CATANIA_BYTES = new GeoLocation<>("catania".getBytes(Charset.forName("UTF-8")),
 			POINT_CATANIA);
-	static final GeoLocation<byte[]> PALERMO_BYTES = new GeoLocation<byte[]>("palermo".getBytes(Charset.forName("UTF-8")),
+	static final GeoLocation<byte[]> PALERMO_BYTES = new GeoLocation<>("palermo".getBytes(Charset.forName("UTF-8")),
 			POINT_PALERMO);
 
 	RedisClusterClient client;
@@ -529,7 +529,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315
 	public void mSetShouldWorkWhenKeysMapToSameSlot() {
 
-		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
+		Map<byte[], byte[]> map = new LinkedHashMap<>();
 		map.put(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES);
 		map.put(SAME_SLOT_KEY_2_BYTES, VALUE_2_BYTES);
 
@@ -542,7 +542,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315
 	public void mSetShouldWorkWhenKeysDoNotMapToSameSlot() {
 
-		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
+		Map<byte[], byte[]> map = new LinkedHashMap<>();
 		map.put(KEY_1_BYTES, VALUE_1_BYTES);
 		map.put(KEY_2_BYTES, VALUE_2_BYTES);
 
@@ -555,7 +555,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315
 	public void mSetNXShouldReturnTrueIfAllKeysSet() {
 
-		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
+		Map<byte[], byte[]> map = new LinkedHashMap<>();
 		map.put(KEY_1_BYTES, VALUE_1_BYTES);
 		map.put(KEY_2_BYTES, VALUE_2_BYTES);
 
@@ -569,7 +569,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	public void mSetNXShouldReturnFalseIfNotAllKeysSet() {
 
 		nativeConnection.set(KEY_2, VALUE_3);
-		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
+		Map<byte[], byte[]> map = new LinkedHashMap<>();
 		map.put(KEY_1_BYTES, VALUE_1_BYTES);
 		map.put(KEY_2_BYTES, VALUE_2_BYTES);
 
@@ -582,7 +582,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315
 	public void mSetNXShouldWorkForOnSameSlotKeys() {
 
-		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
+		Map<byte[], byte[]> map = new LinkedHashMap<>();
 		map.put(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES);
 		map.put(SAME_SLOT_KEY_2_BYTES, VALUE_2_BYTES);
 
@@ -1488,7 +1488,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315
 	public void hMSetShouldAddValuesCorrectly() {
 
-		Map<byte[], byte[]> hashes = new HashMap<byte[], byte[]>();
+		Map<byte[], byte[]> hashes = new HashMap<>();
 		hashes.put(KEY_2_BYTES, VALUE_1_BYTES);
 		hashes.put(KEY_3_BYTES, VALUE_2_BYTES);
 
@@ -1571,7 +1571,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315
 	public void hGetAllShouldRetrieveEntriesCorrectly() {
 
-		Map<String, String> hashes = new HashMap<String, String>();
+		Map<String, String> hashes = new HashMap<>();
 		hashes.put(KEY_2, VALUE_1);
 		hashes.put(KEY_3, VALUE_2);
 

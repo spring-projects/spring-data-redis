@@ -31,7 +31,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * <p>
  * Pipelined results are generally native to the provider and not transformed by our {@link RedisConnection}, so this
  * test overrides {@link AbstractConnectionIntegrationTests} when result types are different
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  */
@@ -132,7 +132,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends Abstrac
 	}
 
 	protected void verifyResults(List<Object> expected) {
-		List<Object> expectedPipeline = new ArrayList<Object>();
+		List<Object> expectedPipeline = new ArrayList<>();
 		for (int i = 0; i < actual.size(); i++) {
 			expectedPipeline.add(null);
 		}

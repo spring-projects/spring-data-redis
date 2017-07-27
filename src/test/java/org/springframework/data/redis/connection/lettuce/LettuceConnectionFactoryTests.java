@@ -257,11 +257,7 @@ public class LettuceConnectionFactoryTests {
 		ConnectionFactoryTracker.add(factory2);
 
 		for (int i = 1; i < 1000; i++) {
-			Thread th = new Thread(new Runnable() {
-				public void run() {
-					factory2.getConnection().bRPop(50000, "foo".getBytes());
-				}
-			});
+			Thread th = new Thread(() -> factory2.getConnection().bRPop(50000, "foo".getBytes()));
 			th.start();
 		}
 		Thread.sleep(234234234);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class PartialUpdate<T> {
 	private final T value;
 	private boolean refreshTtl = false;
 
-	private final List<PropertyUpdate> propertyUpdates = new ArrayList<PropertyUpdate>();
+	private final List<PropertyUpdate> propertyUpdates = new ArrayList<>();
 
 	private PartialUpdate(Object id, Class<T> target, T value, boolean refreshTtl, List<PropertyUpdate> propertyUpdates) {
 
@@ -90,7 +90,7 @@ public class PartialUpdate<T> {
 	 * @param targetType must not be {@literal null}.
 	 */
 	public static <S> PartialUpdate<S> newPartialUpdate(Object id, Class<S> targetType) {
-		return new PartialUpdate<S>(id, targetType);
+		return new PartialUpdate<>(id, targetType);
 	}
 
 	/**
@@ -111,7 +111,7 @@ public class PartialUpdate<T> {
 
 		Assert.hasText(path, "Path to set must not be null or empty!");
 
-		PartialUpdate<T> update = new PartialUpdate<T>(this.id, this.target, this.value, this.refreshTtl,
+		PartialUpdate<T> update = new PartialUpdate<>(this.id, this.target, this.value, this.refreshTtl,
 				this.propertyUpdates);
 		update.propertyUpdates.add(new PropertyUpdate(UpdateCommand.SET, path, value));
 
@@ -128,7 +128,7 @@ public class PartialUpdate<T> {
 
 		Assert.hasText(path, "Path to remove must not be null or empty!");
 
-		PartialUpdate<T> update = new PartialUpdate<T>(this.id, this.target, this.value, this.refreshTtl,
+		PartialUpdate<T> update = new PartialUpdate<>(this.id, this.target, this.value, this.refreshTtl,
 				this.propertyUpdates);
 		update.propertyUpdates.add(new PropertyUpdate(UpdateCommand.DEL, path));
 
@@ -176,7 +176,7 @@ public class PartialUpdate<T> {
 	 * @return a new {@link PartialUpdate}.
 	 */
 	public PartialUpdate<T> refreshTtl(boolean refreshTtl) {
-		return new PartialUpdate<T>(this.id, this.target, this.value, refreshTtl, this.propertyUpdates);
+		return new PartialUpdate<>(this.id, this.target, this.value, refreshTtl, this.propertyUpdates);
 	}
 
 	/**

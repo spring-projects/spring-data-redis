@@ -95,7 +95,7 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 						? (Iterable<?>) callbackResult
 						: Collections.singleton(callbackResult);
 
-				List<T> result = new ArrayList<T>();
+				List<T> result = new ArrayList<>();
 				for (Object id : ids) {
 
 					String idToUse = adapter.getConverter().getConversionService().canConvert(id.getClass(), String.class)

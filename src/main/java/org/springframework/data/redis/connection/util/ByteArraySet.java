@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ public class ByteArraySet implements Set<ByteArrayWrapper> {
 	LinkedHashSet<ByteArrayWrapper> delegate;
 
 	public ByteArraySet() {
-		this.delegate = new LinkedHashSet<ByteArrayWrapper>();
+		this.delegate = new LinkedHashSet<>();
 	}
 
 	public ByteArraySet(Collection<byte[]> values) {
@@ -131,7 +131,7 @@ public class ByteArraySet implements Set<ByteArrayWrapper> {
 
 	public Set<byte[]> asRawSet() {
 
-		Set<byte[]> result = new LinkedHashSet<byte[]>();
+		Set<byte[]> result = new LinkedHashSet<>();
 		for (ByteArrayWrapper wrapper : delegate) {
 			result.add(wrapper.getArray());
 		}

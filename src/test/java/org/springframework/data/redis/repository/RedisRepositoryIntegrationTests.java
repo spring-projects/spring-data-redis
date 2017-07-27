@@ -45,7 +45,7 @@ public class RedisRepositoryIntegrationTests extends RedisRepositoryIntegrationT
 			JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 			connectionFactory.afterPropertiesSet();
 
-			RedisTemplate<byte[], byte[]> template = new RedisTemplate<byte[], byte[]>();
+			RedisTemplate<byte[], byte[]> template = new RedisTemplate<>();
 			template.setConnectionFactory(connectionFactory);
 
 			return template;

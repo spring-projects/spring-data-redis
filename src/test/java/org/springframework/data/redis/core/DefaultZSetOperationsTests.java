@@ -43,7 +43,6 @@ import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
@@ -51,7 +50,7 @@ import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link DefaultZSetOperations}
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -98,11 +97,9 @@ public class DefaultZSetOperationsTests<K, V> {
 
 	@After
 	public void tearDown() {
-		redisTemplate.execute(new RedisCallback<Object>() {
-			public Object doInRedis(RedisConnection connection) {
-				connection.flushDb();
-				return null;
-			}
+		redisTemplate.execute((RedisCallback<Object>) connection -> {
+			connection.flushDb();
+			return null;
 		});
 	}
 
@@ -125,7 +122,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		Set<TypedTuple<V>> values = zSetOps.rangeWithScores(key1, 0, -1);
 		assertEquals(1, values.size());
 		TypedTuple<V> tuple = values.iterator().next();
-		assertEquals(new DefaultTypedTuple<V>(value1, 5.7), tuple);
+		assertEquals(new DefaultTypedTuple<>(value1, 5.7), tuple);
 	}
 
 	@Test
@@ -153,7 +150,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		Set<TypedTuple<V>> tuples = zSetOps.rangeByScoreWithScores(key, 1.5, 4.7, 0, 1);
 		assertEquals(1, tuples.size());
 		TypedTuple<V> tuple = tuples.iterator().next();
-		assertThat(tuple, isEqual(new DefaultTypedTuple<V>(value1, 1.9)));
+		assertThat(tuple, isEqual(new DefaultTypedTuple<>(value1, 1.9)));
 	}
 
 	@Test
@@ -180,7 +177,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		Set<TypedTuple<V>> tuples = zSetOps.reverseRangeByScoreWithScores(key, 1.5, 4.7, 0, 1);
 		assertEquals(1, tuples.size());
 		TypedTuple<V> tuple = tuples.iterator().next();
-		assertThat(tuple, isEqual(new DefaultTypedTuple<V>(value2, 3.7)));
+		assertThat(tuple, isEqual(new DefaultTypedTuple<>(value2, 3.7)));
 	}
 
 	@Test // DATAREDIS-407
@@ -275,12 +272,12 @@ public class DefaultZSetOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
-		Set<TypedTuple<V>> values = new HashSet<TypedTuple<V>>();
-		values.add(new DefaultTypedTuple<V>(value1, 1.7));
-		values.add(new DefaultTypedTuple<V>(value2, 3.2));
-		values.add(new DefaultTypedTuple<V>(value3, 0.8));
+		Set<TypedTuple<V>> values = new HashSet<>();
+		values.add(new DefaultTypedTuple<>(value1, 1.7));
+		values.add(new DefaultTypedTuple<>(value2, 3.2));
+		values.add(new DefaultTypedTuple<>(value3, 0.8));
 		assertEquals(Long.valueOf(3), zSetOps.add(key, values));
-		Set<V> expected = new LinkedHashSet<V>();
+		Set<V> expected = new LinkedHashSet<>();
 		expected.add(value3);
 		expected.add(value1);
 		expected.add(value2);
@@ -293,13 +290,13 @@ public class DefaultZSetOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
-		Set<TypedTuple<V>> values = new HashSet<TypedTuple<V>>();
-		values.add(new DefaultTypedTuple<V>(value1, 1.7));
-		values.add(new DefaultTypedTuple<V>(value2, 3.2));
-		values.add(new DefaultTypedTuple<V>(value3, 0.8));
+		Set<TypedTuple<V>> values = new HashSet<>();
+		values.add(new DefaultTypedTuple<>(value1, 1.7));
+		values.add(new DefaultTypedTuple<>(value2, 3.2));
+		values.add(new DefaultTypedTuple<>(value3, 0.8));
 		assertEquals(Long.valueOf(3), zSetOps.add(key, values));
 		assertEquals(Long.valueOf(2), zSetOps.remove(key, value1, value3));
-		Set<V> expected = new LinkedHashSet<V>();
+		Set<V> expected = new LinkedHashSet<>();
 		expected.add(value2);
 		assertThat(zSetOps.range(key, 0, -1), isEqual(expected));
 	}
@@ -312,10 +309,10 @@ public class DefaultZSetOperationsTests<K, V> {
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
 
-		Set<TypedTuple<V>> values = new HashSet<TypedTuple<V>>();
-		values.add(new DefaultTypedTuple<V>(value1, 1.7));
-		values.add(new DefaultTypedTuple<V>(value2, 3.2));
-		values.add(new DefaultTypedTuple<V>(value3, 0.8));
+		Set<TypedTuple<V>> values = new HashSet<>();
+		values.add(new DefaultTypedTuple<>(value1, 1.7));
+		values.add(new DefaultTypedTuple<>(value2, 3.2));
+		values.add(new DefaultTypedTuple<>(value3, 0.8));
 		zSetOps.add(key, values);
 
 		assertThat(zSetOps.zCard(key), equalTo(3L));
@@ -329,10 +326,10 @@ public class DefaultZSetOperationsTests<K, V> {
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
 
-		Set<TypedTuple<V>> values = new HashSet<TypedTuple<V>>();
-		values.add(new DefaultTypedTuple<V>(value1, 1.7));
-		values.add(new DefaultTypedTuple<V>(value2, 3.2));
-		values.add(new DefaultTypedTuple<V>(value3, 0.8));
+		Set<TypedTuple<V>> values = new HashSet<>();
+		values.add(new DefaultTypedTuple<>(value1, 1.7));
+		values.add(new DefaultTypedTuple<>(value2, 3.2));
+		values.add(new DefaultTypedTuple<>(value3, 0.8));
 		zSetOps.add(key, values);
 
 		assertThat(zSetOps.size(key), equalTo(3L));
@@ -344,9 +341,9 @@ public class DefaultZSetOperationsTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		final TypedTuple<V> tuple1 = new DefaultTypedTuple<V>(valueFactory.instance(), 1.7);
-		final TypedTuple<V> tuple2 = new DefaultTypedTuple<V>(valueFactory.instance(), 3.2);
-		final TypedTuple<V> tuple3 = new DefaultTypedTuple<V>(valueFactory.instance(), 0.8);
+		final TypedTuple<V> tuple1 = new DefaultTypedTuple<>(valueFactory.instance(), 1.7);
+		final TypedTuple<V> tuple2 = new DefaultTypedTuple<>(valueFactory.instance(), 3.2);
+		final TypedTuple<V> tuple3 = new DefaultTypedTuple<>(valueFactory.instance(), 0.8);
 
 		Set<TypedTuple<V>> values = new HashSet<TypedTuple<V>>() {
 			{

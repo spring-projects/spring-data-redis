@@ -39,9 +39,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.SettingsUtils;
-import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.DataType;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -83,11 +81,9 @@ public class RedisTemplateTests<K, V> {
 
 	@After
 	public void tearDown() {
-		redisTemplate.execute(new RedisCallback<Object>() {
-			public Object doInRedis(RedisConnection connection) {
-				connection.flushDb();
-				return null;
-			}
+		redisTemplate.execute((RedisCallback<Object>) connection -> {
+			connection.flushDb();
+			return null;
 		});
 	}
 
@@ -125,11 +121,7 @@ public class RedisTemplateTests<K, V> {
 		redisTemplate.delete(key1);
 		redisTemplate.restore(key1, serializedValue, 200, TimeUnit.MILLISECONDS);
 		assertThat(redisTemplate.boundValueOps(key1).get(), isEqual(value1));
-		waitFor(new TestCondition() {
-			public boolean passes() {
-				return (!redisTemplate.hasKey(key1));
-			}
-		}, 400);
+		waitFor(() -> (!redisTemplate.hasKey(key1)), 400);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -154,12 +146,10 @@ public class RedisTemplateTests<K, V> {
 	@Test
 	public void testStringTemplateExecutesWithStringConn() {
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
-		String value = redisTemplate.execute(new RedisCallback<String>() {
-			public String doInRedis(RedisConnection connection) {
-				StringRedisConnection stringConn = (StringRedisConnection) connection;
-				stringConn.set("test", "it");
-				return stringConn.get("test");
-			}
+		String value = redisTemplate.execute((RedisCallback<String>) connection -> {
+			StringRedisConnection stringConn = (StringRedisConnection) connection;
+			stringConn.set("test", "it");
+			return stringConn.get("test");
 		});
 		assertEquals(value, "it");
 	}
@@ -190,9 +180,9 @@ public class RedisTemplateTests<K, V> {
 			}
 		});
 		List<V> list = Collections.singletonList(listValue);
-		Set<V> set = new HashSet<V>(Collections.singletonList(setValue));
-		Set<TypedTuple<V>> tupleSet = new LinkedHashSet<TypedTuple<V>>(
-				Collections.singletonList(new DefaultTypedTuple<V>(zsetValue, 1d)));
+		Set<V> set = new HashSet<>(Collections.singletonList(setValue));
+		Set<TypedTuple<V>> tupleSet = new LinkedHashSet<>(
+				Collections.singletonList(new DefaultTypedTuple<>(zsetValue, 1d)));
 		assertThat(results, isEqual(Arrays.asList(new Object[] { value1, 1l, list, 1l, set, true, tupleSet })));
 	}
 
@@ -233,16 +223,15 @@ public class RedisTemplateTests<K, V> {
 				operations.opsForZSet().range("foozset", 0, -1);
 				operations.opsForHash().put("foomap", "10", "11");
 				operations.opsForHash().entries("foomap");
-				return operations.exec(new GenericToStringSerializer<Long>(Long.class));
+				return operations.exec(new GenericToStringSerializer<>(Long.class));
 			}
 		});
 		// Everything should be converted to Longs
 		List<Long> list = Collections.singletonList(6l);
-		Set<Long> longSet = new HashSet<Long>(Collections.singletonList(7l));
-		Set<TypedTuple<Long>> tupleSet = new LinkedHashSet<TypedTuple<Long>>(
-				Collections.singletonList(new DefaultTypedTuple<Long>(9l, 1d)));
-		Set<Long> zSet = new LinkedHashSet<Long>(Collections.singletonList(9l));
-		Map<Long, Long> map = new LinkedHashMap<Long, Long>();
+		Set<Long> longSet = new HashSet<>(Collections.singletonList(7l));
+		Set<TypedTuple<Long>> tupleSet = new LinkedHashSet<>(Collections.singletonList(new DefaultTypedTuple<>(9l, 1d)));
+		Set<Long> zSet = new LinkedHashSet<>(Collections.singletonList(9l));
+		Map<Long, Long> map = new LinkedHashMap<>();
 		map.put(10l, 11l);
 		assertThat(results,
 				isEqual(Arrays.asList(new Object[] { 5l, 1L, 1l, list, 1l, longSet, true, tupleSet, zSet, true, map })));
@@ -281,17 +270,15 @@ public class RedisTemplateTests<K, V> {
 		final K listKey = keyFactory.instance();
 		final V listValue = valueFactory.instance();
 		final V listValue2 = valueFactory.instance();
-		List<Object> results = redisTemplate.executePipelined(new RedisCallback() {
-			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				byte[] rawKey = serialize(key1, redisTemplate.getKeySerializer());
-				byte[] rawListKey = serialize(listKey, redisTemplate.getKeySerializer());
-				connection.set(rawKey, serialize(value1, redisTemplate.getValueSerializer()));
-				connection.get(rawKey);
-				connection.rPush(rawListKey, serialize(listValue, redisTemplate.getValueSerializer()));
-				connection.rPush(rawListKey, serialize(listValue2, redisTemplate.getValueSerializer()));
-				connection.lRange(rawListKey, 0, -1);
-				return null;
-			}
+		List<Object> results = redisTemplate.executePipelined((RedisCallback) connection -> {
+			byte[] rawKey = serialize(key1, redisTemplate.getKeySerializer());
+			byte[] rawListKey = serialize(listKey, redisTemplate.getKeySerializer());
+			connection.set(rawKey, serialize(value1, redisTemplate.getValueSerializer()));
+			connection.get(rawKey);
+			connection.rPush(rawListKey, serialize(listValue, redisTemplate.getValueSerializer()));
+			connection.rPush(rawListKey, serialize(listValue2, redisTemplate.getValueSerializer()));
+			connection.lRange(rawListKey, 0, -1);
+			return null;
 		});
 		assertThat(results,
 				isEqual(Arrays.asList(new Object[] { value1, 1l, 2l, Arrays.asList(new Object[] { listValue, listValue2 }) })));
@@ -303,17 +290,15 @@ public class RedisTemplateTests<K, V> {
 
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
 
-		List<Object> results = redisTemplate.executePipelined(new RedisCallback() {
-			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				StringRedisConnection stringRedisConn = (StringRedisConnection) connection;
-				stringRedisConn.set("foo", "5");
-				stringRedisConn.get("foo");
-				stringRedisConn.rPush("foolist", "10");
-				stringRedisConn.rPush("foolist", "11");
-				stringRedisConn.lRange("foolist", 0, -1);
-				return null;
-			}
-		}, new GenericToStringSerializer<Long>(Long.class));
+		List<Object> results = redisTemplate.executePipelined((RedisCallback) connection -> {
+			StringRedisConnection stringRedisConn = (StringRedisConnection) connection;
+			stringRedisConn.set("foo", "5");
+			stringRedisConn.get("foo");
+			stringRedisConn.rPush("foolist", "10");
+			stringRedisConn.rPush("foolist", "11");
+			stringRedisConn.lRange("foolist", 0, -1);
+			return null;
+		}, new GenericToStringSerializer<>(Long.class));
 
 		assertEquals(Arrays.asList(new Object[] { 5l, 1l, 2l, Arrays.asList(new Long[] { 10l, 11l }) }), results);
 	}
@@ -324,18 +309,16 @@ public class RedisTemplateTests<K, V> {
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
 
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setHashKeySerializer(new GenericToStringSerializer<Long>(Long.class));
-		redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<Person>(Person.class));
+		redisTemplate.setHashKeySerializer(new GenericToStringSerializer<>(Long.class));
+		redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(Person.class));
 
 		Person person = new Person("Homer", "Simpson", 38);
 
 		redisTemplate.opsForHash().put((K) "foo", 1L, person);
 
-		List<Object> results = redisTemplate.executePipelined(new RedisCallback() {
-			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				connection.hGetAll(((StringRedisSerializer) redisTemplate.getKeySerializer()).serialize("foo"));
-				return null;
-			}
+		List<Object> results = redisTemplate.executePipelined((RedisCallback) connection -> {
+			connection.hGetAll(((StringRedisSerializer) redisTemplate.getKeySerializer()).serialize("foo"));
+			return null;
 		});
 
 		assertEquals(((Map) results.get(0)).get(1L), person);
@@ -343,11 +326,7 @@ public class RedisTemplateTests<K, V> {
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
 	public void testExecutePipelinedNonNullRedisCallback() {
-		redisTemplate.executePipelined(new RedisCallback<String>() {
-			public String doInRedis(RedisConnection connection) throws DataAccessException {
-				return "Hey There";
-			}
-		});
+		redisTemplate.executePipelined((RedisCallback<String>) connection -> "Hey There");
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -387,7 +366,7 @@ public class RedisTemplateTests<K, V> {
 				operations.opsForValue().get("foo");
 				return null;
 			}
-		}, new GenericToStringSerializer<Long>(Long.class));
+		}, new GenericToStringSerializer<>(Long.class));
 		// Should contain the List of deserialized exec results and the result of the last call to get()
 		assertEquals(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 1l, 5l, 0l }), 2l }), pipelinedResults);
 	}
@@ -420,7 +399,7 @@ public class RedisTemplateTests<K, V> {
 		V value2 = valueFactory.instance();
 		redisTemplate.opsForValue().set(key1, value1);
 		redisTemplate.opsForValue().set(key2, value2);
-		List<K> keys = new ArrayList<K>();
+		List<K> keys = new ArrayList<>();
 		keys.add(key1);
 		keys.add(key2);
 		redisTemplate.delete(keys);
@@ -456,11 +435,7 @@ public class RedisTemplateTests<K, V> {
 		assumeTrue(value1 instanceof Number);
 		redisTemplate.opsForList().rightPush(key1, value1);
 		List<String> results = redisTemplate.sort(SortQueryBuilder.sort(key1).get("#").build(),
-				new BulkMapper<String, V>() {
-					public String mapBulk(List<V> tuple) {
-						return "FOO";
-					}
-				});
+				tuple -> "FOO");
 		assertEquals(Collections.singletonList("FOO"), results);
 	}
 
@@ -474,11 +449,7 @@ public class RedisTemplateTests<K, V> {
 
 		assertTrue(redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS) > 0l);
 		// Timeout is longer because expire will be 1 sec if pExpire not supported
-		waitFor(new TestCondition() {
-			public boolean passes() {
-				return (!redisTemplate.hasKey(key1));
-			}
-		}, 1500l);
+		waitFor(() -> (!redisTemplate.hasKey(key1)), 1500l);
 	}
 
 	@Test
@@ -629,11 +600,7 @@ public class RedisTemplateTests<K, V> {
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
 		redisTemplate.expireAt(key1, new Date(System.currentTimeMillis() + 5l));
-		waitFor(new TestCondition() {
-			public boolean passes() {
-				return (!redisTemplate.hasKey(key1));
-			}
-		}, 5l);
+		waitFor(() -> (!redisTemplate.hasKey(key1)), 5l);
 	}
 
 	@Test
@@ -651,11 +618,7 @@ public class RedisTemplateTests<K, V> {
 		template2.boundValueOps((String) key1).set((String) value1);
 		template2.expireAt((String) key1, new Date(System.currentTimeMillis() + 5l));
 		// Just ensure this works as expected, pExpireAt just adds some precision over expireAt
-		waitFor(new TestCondition() {
-			public boolean passes() {
-				return (!template2.hasKey((String) key1));
-			}
-		}, 5l);
+		waitFor(() -> (!template2.hasKey((String) key1)), 5l);
 	}
 
 	@Test
@@ -715,11 +678,7 @@ public class RedisTemplateTests<K, V> {
 		final V value3 = valueFactory.instance();
 		redisTemplate.opsForValue().set(key1, value1);
 
-		final Thread th = new Thread(new Runnable() {
-			public void run() {
-				redisTemplate.opsForValue().set(key1, value2);
-			}
-		});
+		final Thread th = new Thread(() -> redisTemplate.opsForValue().set(key1, value2));
 
 		List<Object> results = redisTemplate.execute(new SessionCallback<List<Object>>() {
 			@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -755,11 +714,7 @@ public class RedisTemplateTests<K, V> {
 		final V value2 = valueFactory.instance();
 		final V value3 = valueFactory.instance();
 		redisTemplate.opsForValue().set(key1, value1);
-		final Thread th = new Thread(new Runnable() {
-			public void run() {
-				redisTemplate.opsForValue().set(key1, value2);
-			}
-		});
+		final Thread th = new Thread(() -> redisTemplate.opsForValue().set(key1, value2));
 
 		List<Object> results = redisTemplate.execute(new SessionCallback<List<Object>>() {
 			@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -793,17 +748,13 @@ public class RedisTemplateTests<K, V> {
 		final V value3 = valueFactory.instance();
 		redisTemplate.opsForValue().set(key1, value1);
 
-		final Thread th = new Thread(new Runnable() {
-			public void run() {
-				redisTemplate.opsForValue().set(key1, value2);
-			}
-		});
+		final Thread th = new Thread(() -> redisTemplate.opsForValue().set(key1, value2));
 
 		List<Object> results = redisTemplate.execute(new SessionCallback<List<Object>>() {
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public List<Object> execute(RedisOperations operations) throws DataAccessException {
 
-				List<K> keys = new ArrayList<K>();
+				List<K> keys = new ArrayList<>();
 				keys.add(key1);
 				keys.add(key2);
 				operations.watch(keys);
@@ -839,7 +790,7 @@ public class RedisTemplateTests<K, V> {
 	public void testExecuteScriptCustomSerializers() {
 		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
 		K key1 = keyFactory.instance();
-		final DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		final DefaultRedisScript<String> script = new DefaultRedisScript<>();
 		script.setScriptText("return 'Hey'");
 		script.setResultType(String.class);
 		assertEquals("Hey", redisTemplate.execute(script, redisTemplate.getValueSerializer(), new StringRedisSerializer(),

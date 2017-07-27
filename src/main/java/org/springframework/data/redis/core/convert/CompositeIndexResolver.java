@@ -32,7 +32,7 @@ import org.springframework.util.CollectionUtils;
  * <br />
  * <strong>NOTE</strong> {@link IndexedData} created by an {@link IndexResolver} can be overwritten by subsequent
  * {@link IndexResolver}.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -42,7 +42,7 @@ public class CompositeIndexResolver implements IndexResolver {
 
 	/**
 	 * Create new {@link CompositeIndexResolver}.
-	 * 
+	 *
 	 * @param resolvers must not be {@literal null}.
 	 */
 	public CompositeIndexResolver(Collection<IndexResolver> resolvers) {
@@ -51,7 +51,7 @@ public class CompositeIndexResolver implements IndexResolver {
 		if (CollectionUtils.contains(resolvers.iterator(), null)) {
 			throw new IllegalArgumentException("Resolvers must no contain null values");
 		}
-		this.resolvers = new ArrayList<IndexResolver>(resolvers);
+		this.resolvers = new ArrayList<>(resolvers);
 	}
 
 	/*
@@ -65,7 +65,7 @@ public class CompositeIndexResolver implements IndexResolver {
 			return Collections.emptySet();
 		}
 
-		Set<IndexedData> data = new LinkedHashSet<IndexedData>();
+		Set<IndexedData> data = new LinkedHashSet<>();
 		for (IndexResolver resolver : resolvers) {
 			data.addAll(resolver.resolveIndexesFor(typeInformation, value));
 		}
@@ -79,7 +79,7 @@ public class CompositeIndexResolver implements IndexResolver {
 	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
 			Object value) {
 
-		Set<IndexedData> data = new LinkedHashSet<IndexedData>();
+		Set<IndexedData> data = new LinkedHashSet<>();
 		for (IndexResolver resolver : resolvers) {
 			data.addAll(resolver.resolveIndexesFor(keyspace, path, typeInformation, value));
 		}

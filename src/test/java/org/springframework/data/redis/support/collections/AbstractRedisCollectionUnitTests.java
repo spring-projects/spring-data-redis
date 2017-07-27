@@ -59,7 +59,7 @@ public class AbstractRedisCollectionUnitTests {
 
 		collection = new AbstractRedisCollection<String>("key", redisTemplateSpy) {
 
-			private List<String> delegate = new ArrayList<String>();
+			private List<String> delegate = new ArrayList<>();
 
 			@Override
 			public boolean add(String value) {

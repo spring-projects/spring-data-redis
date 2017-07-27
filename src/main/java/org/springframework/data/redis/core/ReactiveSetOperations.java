@@ -63,7 +63,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * Remove and return {@code count} random members from set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param count nr of members to return
+	 * @param count number of random members to pop from the set.
 	 * @return {@link Flux} emitting random members.
 	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 */
@@ -247,7 +247,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * Get {@code count} distinct random elements from set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param count
+	 * @param count number of members to return.
 	 * @return
 	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
@@ -257,7 +257,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * Get {@code count} random elements from set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param count
+	 * @param count number of members to return.
 	 * @return
 	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */

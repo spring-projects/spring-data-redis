@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -211,7 +211,7 @@ public enum RedisCommand {
 
 	private boolean read = true;
 	private boolean write = true;
-	private Set<String> alias = new HashSet<String>(1);
+	private Set<String> alias = new HashSet<>(1);
 
 	private int minArgs = -1;
 	private int maxArgs = -1;
@@ -225,7 +225,7 @@ public enum RedisCommand {
 	private static Map<String, RedisCommand> buildCommandLookupTable() {
 
 		RedisCommand[] cmds = RedisCommand.values();
-		Map<String, RedisCommand> map = new HashMap<String, RedisCommand>(cmds.length, 1.0F);
+		Map<String, RedisCommand> map = new HashMap<>(cmds.length, 1.0F);
 
 		for (RedisCommand cmd : cmds) {
 
@@ -256,7 +256,7 @@ public enum RedisCommand {
 
 	/**
 	 * Creates a new {@link RedisCommand}.
-	 * 
+	 *
 	 * @param mode
 	 * @param minArgs
 	 * @param maxArgs
@@ -309,7 +309,7 @@ public enum RedisCommand {
 	/**
 	 * {@link String#equalsIgnoreCase(String)} compare the given string representation of {@literal command} against the
 	 * {@link #toString()} representation of the command as well as its given {@link #alias}.
-	 * 
+	 *
 	 * @param command
 	 * @return true if positive match.
 	 */
@@ -328,7 +328,7 @@ public enum RedisCommand {
 
 	/**
 	 * Validates given argument count against expected ones.
-	 * 
+	 *
 	 * @param nrArguments
 	 * @exception IllegalArgumentException in case argument count does not match expected.
 	 */
@@ -351,7 +351,7 @@ public enum RedisCommand {
 	/**
 	 * Returns the command represented by the given {@code key}. Returns {@link #UNKNOWN} if no matching command could be
 	 * found.
-	 * 
+	 *
 	 * @param key
 	 * @return
 	 */

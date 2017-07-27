@@ -116,7 +116,7 @@ public class PathIndexResolverUnitTests {
 	public void shouldResolveMultipleAnnotatedIndexesInLists() {
 
 		TheWheelOfTime twot = new TheWheelOfTime();
-		twot.mainCharacters = new ArrayList<Person>();
+		twot.mainCharacters = new ArrayList<>();
 
 		Person rand = new Person();
 		rand.address = new Address();
@@ -142,7 +142,7 @@ public class PathIndexResolverUnitTests {
 	public void shouldResolveAnnotatedIndexesInMap() {
 
 		TheWheelOfTime twot = new TheWheelOfTime();
-		twot.places = new LinkedHashMap<String, ConversionTestEntities.Location>();
+		twot.places = new LinkedHashMap<>();
 
 		Location stoneOfTear = new Location();
 		stoneOfTear.name = "Stone of Tear";
@@ -165,7 +165,7 @@ public class PathIndexResolverUnitTests {
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
 
 		Person rand = new Person();
-		rand.physicalAttributes = new LinkedHashMap<String, String>();
+		rand.physicalAttributes = new LinkedHashMap<>();
 		rand.physicalAttributes.put("eye-color", "grey");
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Person.class), rand);
@@ -181,7 +181,7 @@ public class PathIndexResolverUnitTests {
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "relatives.father.firstname"));
 
 		Person rand = new Person();
-		rand.relatives = new LinkedHashMap<String, Person>();
+		rand.relatives = new LinkedHashMap<>();
 
 		Person janduin = new Person();
 		janduin.firstname = "janduin";
@@ -201,7 +201,7 @@ public class PathIndexResolverUnitTests {
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
 
 		Person rand = new Person();
-		rand.physicalAttributes = new LinkedHashMap<String, String>();
+		rand.physicalAttributes = new LinkedHashMap<>();
 		rand.physicalAttributes.put("eye-color", null);
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Person.class), rand);
@@ -321,7 +321,7 @@ public class PathIndexResolverUnitTests {
 		hat.type = "hat";
 
 		TaVeren mat = new TaVeren();
-		mat.characteristics = new LinkedHashMap<String, Object>(2);
+		mat.characteristics = new LinkedHashMap<>(2);
 		mat.characteristics.put("clothing", hat);
 		mat.characteristics.put("gambling", "owns the dark one's luck");
 
@@ -339,7 +339,7 @@ public class PathIndexResolverUnitTests {
 		hat.type = "hat";
 
 		TaVeren mat = new TaVeren();
-		mat.items = new ArrayList<Object>(2);
+		mat.items = new ArrayList<>(2);
 		mat.items.add(hat);
 		mat.items.add("foxhead medallion");
 
@@ -358,7 +358,7 @@ public class PathIndexResolverUnitTests {
 		hat.type = "hat";
 
 		TaVeren mat = new TaVeren();
-		mat.items = new ArrayList<Object>(2);
+		mat.items = new ArrayList<>(2);
 		mat.items.add(hat);
 		mat.items.add("foxhead medallion");
 
@@ -384,7 +384,7 @@ public class PathIndexResolverUnitTests {
 	public void resolveIndexOnMapField() {
 
 		IndexedOnMapField source = new IndexedOnMapField();
-		source.values = new LinkedHashMap<String, String>();
+		source.values = new LinkedHashMap<>();
 
 		source.values.put("jon", "snow");
 		source.values.put("arya", "stark");
@@ -403,7 +403,7 @@ public class PathIndexResolverUnitTests {
 	public void resolveIndexOnListField() {
 
 		IndexedOnListField source = new IndexedOnListField();
-		source.values = new ArrayList<String>();
+		source.values = new ArrayList<>();
 
 		source.values.add("jon");
 		source.values.add("arya");

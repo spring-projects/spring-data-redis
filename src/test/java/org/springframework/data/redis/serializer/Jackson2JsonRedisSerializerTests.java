@@ -36,7 +36,7 @@ public class Jackson2JsonRedisSerializerTests {
 
 	@Before
 	public void setUp() {
-		this.serializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
+		this.serializer = new Jackson2JsonRedisSerializer<>(Person.class);
 	}
 
 	@Test // DATAREDIS-241

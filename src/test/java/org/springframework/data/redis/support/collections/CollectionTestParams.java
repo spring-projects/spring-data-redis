@@ -53,7 +53,7 @@ public abstract class CollectionTestParams {
 			throw new RuntimeException("Cannot init XStream", ex);
 		}
 		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
-		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
+		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 		StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
 		// create Jedis Factory
@@ -71,27 +71,27 @@ public abstract class CollectionTestParams {
 		jedisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate(jedisConnFactory);
-		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> personTemplate = new RedisTemplate<>();
 		personTemplate.setConnectionFactory(jedisConnFactory);
 		personTemplate.afterPropertiesSet();
 
-		RedisTemplate<String, String> xstreamStringTemplate = new RedisTemplate<String, String>();
+		RedisTemplate<String, String> xstreamStringTemplate = new RedisTemplate<>();
 		xstreamStringTemplate.setConnectionFactory(jedisConnFactory);
 		xstreamStringTemplate.setDefaultSerializer(serializer);
 		xstreamStringTemplate.afterPropertiesSet();
 
-		RedisTemplate<String, Person> xstreamPersonTemplate = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> xstreamPersonTemplate = new RedisTemplate<>();
 		xstreamPersonTemplate.setConnectionFactory(jedisConnFactory);
 		xstreamPersonTemplate.setValueSerializer(serializer);
 		xstreamPersonTemplate.afterPropertiesSet();
 
 		// jackson2
-		RedisTemplate<String, Person> jackson2JsonPersonTemplate = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> jackson2JsonPersonTemplate = new RedisTemplate<>();
 		jackson2JsonPersonTemplate.setConnectionFactory(jedisConnFactory);
 		jackson2JsonPersonTemplate.setValueSerializer(jackson2JsonSerializer);
 		jackson2JsonPersonTemplate.afterPropertiesSet();
 
-		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<byte[], byte[]>();
+		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<>();
 		rawTemplate.setConnectionFactory(jedisConnFactory);
 		rawTemplate.setEnableDefaultSerializer(false);
 		rawTemplate.setKeySerializer(stringSerializer);
@@ -105,26 +105,26 @@ public abstract class CollectionTestParams {
 		lettuceConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplateLtc = new StringRedisTemplate(lettuceConnFactory);
-		RedisTemplate<String, Person> personTemplateLtc = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> personTemplateLtc = new RedisTemplate<>();
 		personTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		personTemplateLtc.afterPropertiesSet();
 
-		RedisTemplate<String, Person> xstreamStringTemplateLtc = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> xstreamStringTemplateLtc = new RedisTemplate<>();
 		xstreamStringTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		xstreamStringTemplateLtc.setDefaultSerializer(serializer);
 		xstreamStringTemplateLtc.afterPropertiesSet();
 
-		RedisTemplate<String, Person> xstreamPersonTemplateLtc = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> xstreamPersonTemplateLtc = new RedisTemplate<>();
 		xstreamPersonTemplateLtc.setValueSerializer(serializer);
 		xstreamPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		xstreamPersonTemplateLtc.afterPropertiesSet();
 
-		RedisTemplate<String, Person> jackson2JsonPersonTemplateLtc = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> jackson2JsonPersonTemplateLtc = new RedisTemplate<>();
 		jackson2JsonPersonTemplateLtc.setValueSerializer(jackson2JsonSerializer);
 		jackson2JsonPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		jackson2JsonPersonTemplateLtc.afterPropertiesSet();
 
-		RedisTemplate<byte[], byte[]> rawTemplateLtc = new RedisTemplate<byte[], byte[]>();
+		RedisTemplate<byte[], byte[]> rawTemplateLtc = new RedisTemplate<>();
 		rawTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		rawTemplateLtc.setEnableDefaultSerializer(false);
 		rawTemplateLtc.setKeySerializer(stringSerializer);

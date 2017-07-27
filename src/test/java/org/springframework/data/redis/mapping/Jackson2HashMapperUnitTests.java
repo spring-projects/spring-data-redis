@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.mapping;
 
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,8 +32,6 @@ import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.hash.Jackson2HashMapper;
-
-import lombok.Data;
 
 /**
  * Unit tests for {@link Jackson2HashMapper}.
@@ -114,7 +114,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	public void shouldMapTypedMapOfSimpleTypes() {
 
 		WithMap source = new WithMap();
-		source.strings = new LinkedHashMap<String, String>();
+		source.strings = new LinkedHashMap<>();
 		source.strings.put("1", "spring");
 		source.strings.put("2", "data");
 		source.strings.put("3", "redis");
@@ -125,7 +125,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	public void shouldMapTypedMapOfComplexTypes() {
 
 		WithMap source = new WithMap();
-		source.persons = new LinkedHashMap<String, Person>();
+		source.persons = new LinkedHashMap<>();
 		source.persons.put("1", new Person("jon", "snow", 19));
 		source.persons.put("2", new Person("tyrion", "lannister", 19));
 		assertBackAndForwardMapping(source);
@@ -135,7 +135,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	public void shouldMapUntypedMap() {
 
 		WithMap source = new WithMap();
-		source.objects = new LinkedHashMap<String, Object>();
+		source.objects = new LinkedHashMap<>();
 		source.objects.put("1", "spring");
 		source.objects.put("2", Integer.valueOf(100));
 		source.objects.put("3", "redis");
@@ -146,16 +146,16 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	public void nestedStuff() {
 
 		WithList nestedList = new WithList();
-		nestedList.objects = new ArrayList<Object>();
+		nestedList.objects = new ArrayList<>();
 
 		WithMap deepNestedMap = new WithMap();
-		deepNestedMap.persons = new LinkedHashMap<String, Person>();
+		deepNestedMap.persons = new LinkedHashMap<>();
 		deepNestedMap.persons.put("jon", new Person("jon", "snow", 24));
 
 		nestedList.objects.add(deepNestedMap);
 
 		WithMap outer = new WithMap();
-		outer.objects = new LinkedHashMap<String, Object>();
+		outer.objects = new LinkedHashMap<>();
 		outer.objects.put("1", nestedList);
 
 		assertBackAndForwardMapping(outer);

@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2013 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,14 +23,14 @@ import org.springframework.data.redis.connection.SortParameters.Range;
 
 /**
  * Default implementation for {@link SortCriterion}.
- * 
+ *
  * @author Costin Leau
  */
 class DefaultSortCriterion<K> implements SortCriterion<K> {
 
 	private final K key;
 	private String by;
-	private final List<String> getKeys = new ArrayList<String>(4);
+	private final List<String> getKeys = new ArrayList<>(4);
 
 	private Range limit;
 	private Order order;
@@ -41,12 +41,12 @@ class DefaultSortCriterion<K> implements SortCriterion<K> {
 	}
 
 	public SortCriterion<K> alphabetical(boolean alpha) {
-		this.alpha = Boolean.valueOf(alpha);
+		this.alpha = alpha;
 		return this;
 	}
 
 	public SortQuery<K> build() {
-		return new DefaultSortQuery<K>(key, by, limit, order, alpha, getKeys);
+		return new DefaultSortQuery<>(key, by, limit, order, alpha, getKeys);
 	}
 
 	public SortCriterion<K> limit(long offset, long count) {

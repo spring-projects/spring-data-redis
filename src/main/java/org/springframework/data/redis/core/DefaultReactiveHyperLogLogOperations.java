@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.serializer.RedisSerializationContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -24,16 +23,17 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveHyperLogLogCommands;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@link ReactiveHyperLogLogOperations}.
  *
  * @author Mark Paluch
- * @auhtor Christoph Strobl
+ * @author Christoph Strobl
  * @since 2.0
  */
-public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogOperations<K, V> {
+class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogOperations<K, V> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
 	private final RedisSerializationContext<K, V> serializationContext;
@@ -44,7 +44,7 @@ public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyper
 	 * @param template must not be {@literal null}.
 	 * @param serializationContext must not be {@literal null}.
 	 */
-	public DefaultReactiveHyperLogLogOperations(ReactiveRedisTemplate<?, ?> template,
+	DefaultReactiveHyperLogLogOperations(ReactiveRedisTemplate<?, ?> template,
 			RedisSerializationContext<K, V> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");

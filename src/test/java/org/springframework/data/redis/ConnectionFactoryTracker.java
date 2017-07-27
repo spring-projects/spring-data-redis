@@ -32,7 +32,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
  */
 public abstract class ConnectionFactoryTracker {
 
-	private static Set<Object> connFactories = new LinkedHashSet<Object>();
+	private static Set<Object> connFactories = new LinkedHashSet<>();
 
 	public static void add(RedisConnectionFactory factory) {
 		connFactories.add(factory);

@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2016 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
@@ -34,7 +33,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 /**
  * Default implementation for {@link RedisZSet}. Note that the collection support works only with normal,
  * non-pipeline/multi-exec connections as it requires a reply to be sent right away.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -57,7 +56,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	/**
 	 * Constructs a new <code>DefaultRedisZSet</code> instance with a default score of '1'.
-	 * 
+	 *
 	 * @param key
 	 * @param operations
 	 */
@@ -67,7 +66,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	/**
 	 * Constructs a new <code>DefaultRedisSortedSet</code> instance.
-	 * 
+	 *
 	 * @param key
 	 * @param operations
 	 * @param defaultScore
@@ -80,7 +79,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	/**
 	 * Constructs a new <code>DefaultRedisZSet</code> instance with a default score of '1'.
-	 * 
+	 *
 	 * @param boundOps
 	 */
 	public DefaultRedisZSet(BoundZSetOperations<String, E> boundOps) {
@@ -89,7 +88,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	/**
 	 * Constructs a new <code>DefaultRedisZSet</code> instance.
-	 * 
+	 *
 	 * @param boundOps
 	 * @param defaultScore
 	 */
@@ -101,12 +100,12 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	public RedisZSet<E> intersectAndStore(RedisZSet<?> set, String destKey) {
 		boundZSetOps.intersectAndStore(set.getKey(), destKey);
-		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
+		return new DefaultRedisZSet<>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
 	public RedisZSet<E> intersectAndStore(Collection<? extends RedisZSet<?>> sets, String destKey) {
 		boundZSetOps.intersectAndStore(CollectionUtils.extractKeys(sets), destKey);
-		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
+		return new DefaultRedisZSet<>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
 	public Set<E> range(long start, long end) {
@@ -171,12 +170,12 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	public RedisZSet<E> unionAndStore(RedisZSet<?> set, String destKey) {
 		boundZSetOps.unionAndStore(set.getKey(), destKey);
-		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
+		return new DefaultRedisZSet<>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
 	public RedisZSet<E> unionAndStore(Collection<? extends RedisZSet<?>> sets, String destKey) {
 		boundZSetOps.unionAndStore(CollectionUtils.extractKeys(sets), destKey);
-		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
+		return new DefaultRedisZSet<>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
 	public boolean add(E e) {
@@ -262,13 +261,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	 */
 	@Override
 	public Cursor<E> scan() {
-		return new ConvertingCursor<TypedTuple<E>, E>(scan(ScanOptions.NONE), new Converter<TypedTuple<E>, E>() {
-
-			@Override
-			public E convert(TypedTuple<E> source) {
-				return source.getValue();
-			}
-		});
+		return new ConvertingCursor<>(scan(ScanOptions.NONE), TypedTuple::getValue);
 	}
 
 	/**

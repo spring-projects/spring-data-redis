@@ -111,29 +111,14 @@ abstract public class JedisConverters extends Converters {
 
 	static {
 
-		BYTES_TO_STRING_CONVERTER = new Converter<byte[], String>() {
-
-			@Override
-			public String convert(byte[] source) {
-				return source == null ? null : SafeEncoder.encode(source);
-			}
-		};
+		BYTES_TO_STRING_CONVERTER = source -> source == null ? null : SafeEncoder.encode(source);
 		BYTES_LIST_TO_STRING_LIST_CONVERTER = new ListConverter<>(BYTES_TO_STRING_CONVERTER);
 
-		STRING_TO_BYTES = new Converter<String, byte[]>() {
-			public byte[] convert(String source) {
-				return source == null ? null : SafeEncoder.encode(source);
-			}
-		};
+		STRING_TO_BYTES = source -> source == null ? null : SafeEncoder.encode(source);
 		STRING_LIST_TO_BYTE_LIST = new ListConverter<>(STRING_TO_BYTES);
 		STRING_SET_TO_BYTE_SET = new SetConverter<>(STRING_TO_BYTES);
 		STRING_MAP_TO_BYTE_MAP = new MapConverter<>(STRING_TO_BYTES);
-		TUPLE_CONVERTER = new Converter<redis.clients.jedis.Tuple, Tuple>() {
-			public Tuple convert(redis.clients.jedis.Tuple source) {
-				return source != null ? new DefaultTuple(source.getBinaryElement(), source.getScore()) : null;
-			}
-
-		};
+		TUPLE_CONVERTER = source -> source != null ? new DefaultTuple(source.getBinaryElement(), source.getScore()) : null;
 		TUPLE_SET_TO_TUPLE_SET = new SetConverter<>(TUPLE_CONVERTER);
 		TUPLE_LIST_TO_TUPLE_LIST_CONVERTER = new ListConverter<>(TUPLE_CONVERTER);
 		PLUS_BYTES = toBytes("+");
@@ -141,18 +126,13 @@ abstract public class JedisConverters extends Converters {
 		POSITIVE_INFINITY_BYTES = toBytes("+inf");
 		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
 
-		OBJECT_TO_CLUSTER_NODE_CONVERTER = new Converter<Object, RedisClusterNode>() {
+		OBJECT_TO_CLUSTER_NODE_CONVERTER = infos -> {
 
-			@Override
-			public RedisClusterNode convert(Object infos) {
-
-				List<Object> values = (List<Object>) infos;
-				RedisClusterNode.SlotRange range = new RedisClusterNode.SlotRange(((Number) values.get(0)).intValue(),
-						((Number) values.get(1)).intValue());
-				List<Object> nodeInfo = (List<Object>) values.get(2);
-				return new RedisClusterNode(JedisConverters.toString((byte[]) nodeInfo.get(0)),
-						((Number) nodeInfo.get(1)).intValue(), range);
-			}
+			List<Object> values = (List<Object>) infos;
+			RedisClusterNode.SlotRange range = new RedisClusterNode.SlotRange(((Number) values.get(0)).intValue(),
+					((Number) values.get(1)).intValue());
+			List<Object> nodeInfo = (List<Object>) values.get(2);
+			return new RedisClusterNode(toString((byte[]) nodeInfo.get(0)), ((Number) nodeInfo.get(1)).intValue(), range);
 		};
 
 		EX = toBytes("EX");
@@ -195,25 +175,18 @@ abstract public class JedisConverters extends Converters {
 
 		};
 
-		STRING_LIST_TO_TIME_CONVERTER = new Converter<List<String>, Long>() {
+		STRING_LIST_TO_TIME_CONVERTER = source -> {
 
-			@Override
-			public Long convert(List<String> source) {
+			Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
+			Assert.isTrue(source.size() == 2,
+					"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
 
-				Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
-				Assert.isTrue(source.size() == 2,
-						"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
-
-				return toTimeMillis(source.get(0), source.get(1));
-			}
+			return toTimeMillis(source.get(0), source.get(1));
 		};
 
-		GEO_COORDINATE_TO_POINT_CONVERTER = new Converter<redis.clients.jedis.GeoCoordinate, Point>() {
-			@Override
-			public Point convert(redis.clients.jedis.GeoCoordinate geoCoordinate) {
-				return geoCoordinate != null ? new Point(geoCoordinate.getLongitude(), geoCoordinate.getLatitude()) : null;
-			}
-		};
+		GEO_COORDINATE_TO_POINT_CONVERTER = geoCoordinate -> geoCoordinate != null
+				? new Point(geoCoordinate.getLongitude(), geoCoordinate.getLatitude())
+				: null;
 		LIST_GEO_COORDINATE_TO_POINT_CONVERTER = new ListConverter<>(GEO_COORDINATE_TO_POINT_CONVERTER);
 	}
 
@@ -620,7 +593,7 @@ abstract public class JedisConverters extends Converters {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	static enum GeoResultsConverterFactory {
+	enum GeoResultsConverterFactory {
 
 		INSTANCE;
 
@@ -658,7 +631,7 @@ abstract public class JedisConverters extends Converters {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	static enum GeoResultConverterFactory {
+	enum GeoResultConverterFactory {
 
 		INSTANCE;
 

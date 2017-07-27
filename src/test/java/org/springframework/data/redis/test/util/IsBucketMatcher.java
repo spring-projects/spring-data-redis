@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,14 @@ import org.springframework.data.redis.core.convert.Bucket;
 
 /**
  * {@link TypeSafeMatcher} implementation for checking contents of {@link Bucket}.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
 public class IsBucketMatcher extends TypeSafeMatcher<Bucket> {
 
-	Map<String, Object> expected = new LinkedHashMap<String, Object>();
-	Set<String> without = new LinkedHashSet<String>();
+	Map<String, Object> expected = new LinkedHashMap<>();
+	Set<String> without = new LinkedHashSet<>();
 
 	/*
 	 * (non-Javadoc)
@@ -122,7 +122,7 @@ public class IsBucketMatcher extends TypeSafeMatcher<Bucket> {
 
 	/**
 	 * Creates new {@link IsBucketMatcher}.
-	 * 
+	 *
 	 * @return
 	 */
 	public static IsBucketMatcher isBucket() {
@@ -131,7 +131,7 @@ public class IsBucketMatcher extends TypeSafeMatcher<Bucket> {
 
 	/**
 	 * Checks for presence of type hint at given path.
-	 * 
+	 *
 	 * @param path
 	 * @param type
 	 * @return
@@ -144,7 +144,7 @@ public class IsBucketMatcher extends TypeSafeMatcher<Bucket> {
 
 	/**
 	 * Checks for presence of equivalent String value at path.
-	 * 
+	 *
 	 * @param path
 	 * @param value
 	 * @return
@@ -157,7 +157,7 @@ public class IsBucketMatcher extends TypeSafeMatcher<Bucket> {
 
 	/**
 	 * Checks for presence of given value at path.
-	 * 
+	 *
 	 * @param path
 	 * @param value
 	 * @return
@@ -176,7 +176,7 @@ public class IsBucketMatcher extends TypeSafeMatcher<Bucket> {
 
 	/**
 	 * Checks for presence of equivalent time in msec value at path.
-	 * 
+	 *
 	 * @param path
 	 * @param date
 	 * @return
@@ -189,7 +189,7 @@ public class IsBucketMatcher extends TypeSafeMatcher<Bucket> {
 
 	/**
 	 * Checks given path is not present.
-	 * 
+	 *
 	 * @param path
 	 * @return
 	 */

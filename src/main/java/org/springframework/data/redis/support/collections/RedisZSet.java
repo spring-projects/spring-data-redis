@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2016 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,10 +32,10 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * associated with each item.
  * <p/>
  * Since using a {@link Comparator} does not apply, a ZSet implements the {@link SortedSet} methods where applicable.
- * 
+ *
  * @author Costin Leau
  * @author Mark Paluch
- * @auhtor Christoph Strobl
+ * @author Christoph Strobl
  */
 public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
@@ -54,7 +54,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	/**
 	 * Get all elements with lexicographical ordering with a value between {@link Range#getMin()} and
 	 * {@link Range#getMax()}.
-	 * 
+	 *
 	 * @param range must not be {@literal null}.
 	 * @return
 	 * @see BoundZSetOperations#rangeByLex(Range)
@@ -66,7 +66,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
 	 * {@link Limit#getOffset()} with lexicographical ordering having a value between {@link Range#getMin()} and
 	 * {@link Range#getMax()}.
-	 * 
+	 *
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
 	 * @return
@@ -93,7 +93,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
 	/**
 	 * Adds an element to the set with the given score, or updates the score if the element exists.
-	 * 
+	 *
 	 * @param e element to add
 	 * @param score element score
 	 * @return true if a new element was added, false otherwise (only the score has been updated)
@@ -108,7 +108,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
 	/**
 	 * Returns the score of the given element. Returns null if the element is not contained by the set.
-	 * 
+	 *
 	 * @param o object
 	 * @return the score associated with the given object
 	 */
@@ -117,7 +117,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	/**
 	 * Returns the rank (position) of the given element in the set, in ascending order. Returns null if the element is not
 	 * contained by the set.
-	 * 
+	 *
 	 * @param o object
 	 * @return rank of the given object
 	 */
@@ -126,7 +126,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	/**
 	 * Returns the rank (position) of the given element in the set, in descending order. Returns null if the element is
 	 * not contained by the set.
-	 * 
+	 *
 	 * @param o object
 	 * @return reverse rank of the given object
 	 */
@@ -134,14 +134,14 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
 	/**
 	 * Returns the default score used by this set.
-	 * 
+	 *
 	 * @return the default score used by the implementation.
 	 */
 	Double getDefaultScore();
 
 	/**
 	 * Returns the first (lowest) element currently in this sorted set.
-	 * 
+	 *
 	 * @return the first (lowest) element currently in this sorted set.
 	 * @throws NoSuchElementException sorted set is empty.
 	 */
@@ -149,7 +149,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
 	/**
 	 * Returns the last (highest) element currently in this sorted set.
-	 * 
+	 *
 	 * @return the last (highest) element currently in this sorted set.
 	 * @throws NoSuchElementException sorted set is empty.
 	 */

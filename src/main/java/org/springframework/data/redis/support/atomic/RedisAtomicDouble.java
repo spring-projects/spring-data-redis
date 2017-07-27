@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,9 +75,9 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 		Assert.hasText(redisCounter, "a valid counter name is required");
 		Assert.notNull(factory, "a valid factory is required");
 
-		RedisTemplate<String, Double> redisTemplate = new RedisTemplate<String, Double>();
+		RedisTemplate<String, Double> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new GenericToStringSerializer<Double>(Double.class));
+		redisTemplate.setValueSerializer(new GenericToStringSerializer<>(Double.class));
 		redisTemplate.setExposeConnection(true);
 		redisTemplate.setConnectionFactory(factory);
 		redisTemplate.afterPropertiesSet();

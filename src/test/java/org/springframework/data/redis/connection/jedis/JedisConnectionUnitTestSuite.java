@@ -19,6 +19,11 @@ import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import redis.clients.jedis.Client;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map.Entry;
@@ -37,11 +42,6 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionUnitTestSu
 import org.springframework.data.redis.connection.jedis.JedisConnectionUnitTestSuite.JedisConnectionUnitTests;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
-
-import redis.clients.jedis.Client;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
 
 /**
  * @author Christoph Strobl
@@ -168,7 +168,7 @@ public class JedisConnectionUnitTestSuite {
 		@Test // DATAREDIS-531
 		public void scanShouldKeepTheConnectionOpen() {
 
-			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).scan(anyString(),
+			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).scan(anyString(),
 					any(ScanParams.class));
 
 			connection.scan(ScanOptions.NONE);
@@ -179,7 +179,7 @@ public class JedisConnectionUnitTestSuite {
 		@Test // DATAREDIS-531
 		public void scanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
 
-			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).scan(anyString(),
+			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).scan(anyString(),
 					any(ScanParams.class));
 
 			Cursor<byte[]> cursor = connection.scan(ScanOptions.NONE);
@@ -191,7 +191,7 @@ public class JedisConnectionUnitTestSuite {
 		@Test // DATAREDIS-531
 		public void sScanShouldKeepTheConnectionOpen() {
 
-			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).sscan(any(byte[].class),
+			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).sscan(any(byte[].class),
 					any(byte[].class), any(ScanParams.class));
 
 			connection.sScan("foo".getBytes(), ScanOptions.NONE);
@@ -202,7 +202,7 @@ public class JedisConnectionUnitTestSuite {
 		@Test // DATAREDIS-531
 		public void sScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
 
-			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).sscan(any(byte[].class),
+			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).sscan(any(byte[].class),
 					any(byte[].class), any(ScanParams.class));
 
 			Cursor<byte[]> cursor = connection.sScan("foo".getBytes(), ScanOptions.NONE);
@@ -214,7 +214,7 @@ public class JedisConnectionUnitTestSuite {
 		@Test // DATAREDIS-531
 		public void zScanShouldKeepTheConnectionOpen() {
 
-			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).zscan(any(byte[].class),
+			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).zscan(any(byte[].class),
 					any(byte[].class), any(ScanParams.class));
 
 			connection.zScan("foo".getBytes(), ScanOptions.NONE);
@@ -225,7 +225,7 @@ public class JedisConnectionUnitTestSuite {
 		@Test // DATAREDIS-531
 		public void zScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
 
-			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).zscan(any(byte[].class),
+			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).zscan(any(byte[].class),
 					any(byte[].class), any(ScanParams.class));
 
 			Cursor<Tuple> cursor = connection.zScan("foo".getBytes(), ScanOptions.NONE);
@@ -237,7 +237,7 @@ public class JedisConnectionUnitTestSuite {
 		@Test // DATAREDIS-531
 		public void hScanShouldKeepTheConnectionOpen() {
 
-			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).hscan(any(byte[].class),
+			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).hscan(any(byte[].class),
 					any(byte[].class), any(ScanParams.class));
 
 			connection.hScan("foo".getBytes(), ScanOptions.NONE);
@@ -248,7 +248,7 @@ public class JedisConnectionUnitTestSuite {
 		@Test // DATAREDIS-531
 		public void hScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
 
-			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).hscan(any(byte[].class),
+			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).hscan(any(byte[].class),
 					any(byte[].class), any(ScanParams.class));
 
 			Cursor<Entry<byte[], byte[]>> cursor = connection.hScan("foo".getBytes(), ScanOptions.NONE);

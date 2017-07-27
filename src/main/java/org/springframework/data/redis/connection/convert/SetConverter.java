@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.core.convert.converter.Converter;
 
 /**
  * Converts a Set of values of one type to a Set of values of another type
- * 
+ *
  * @author Jennifer Hickey
  * @param <S> The type of elements in the Set to convert
  * @param <T> The type of elements in the converted Set
@@ -40,18 +40,23 @@ public class SetConverter<S, T> implements Converter<Set<S>, Set<T>> {
 	}
 
 	public Set<T> convert(Set<S> source) {
+
 		if (source == null) {
 			return null;
 		}
+
 		Set<T> results;
+
 		if (source instanceof LinkedHashSet) {
-			results = new LinkedHashSet<T>();
+			results = new LinkedHashSet<>();
 		} else {
-			results = new HashSet<T>();
+			results = new HashSet<>();
 		}
+
 		for (S result : source) {
 			results.add(itemConverter.convert(result));
 		}
+
 		return results;
 	}
 

@@ -98,7 +98,7 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 	 */
 	private final String createPassivationId(Set<Annotation> qualifiers, Class<?> repositoryType) {
 
-		List<String> qualifierNames = new ArrayList<String>(qualifiers.size());
+		List<String> qualifierNames = new ArrayList<>(qualifiers.size());
 
 		for (Annotation qualifier : qualifiers) {
 			qualifierNames.add(qualifier.annotationType().getName());
@@ -118,7 +118,7 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 	 */
 	public Set<Type> getTypes() {
 
-		Set<Type> types = new HashSet<Type>();
+		Set<Type> types = new HashSet<>();
 		types.add(beanClass);
 		types.addAll(Arrays.asList(beanClass.getInterfaces()));
 		types.addAll(this.types);
@@ -187,7 +187,7 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 	 */
 	public Set<Class<? extends Annotation>> getStereotypes() {
 
-		Set<Class<? extends Annotation>> stereotypes = new HashSet<Class<? extends Annotation>>();
+		Set<Class<? extends Annotation>> stereotypes = new HashSet<>();
 
 		for (Annotation annotation : beanClass.getAnnotations()) {
 			Class<? extends Annotation> annotationType = annotation.annotationType();

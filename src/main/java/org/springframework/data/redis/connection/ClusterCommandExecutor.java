@@ -99,7 +99,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	public <T> NodeResult<T> executeCommandOnArbitraryNode(ClusterCommandCallback<?, T> cmd) {
 
 		Assert.notNull(cmd, "ClusterCommandCallback must not be null!");
-		List<RedisClusterNode> nodes = new ArrayList<RedisClusterNode>(getClusterTopology().getActiveNodes());
+		List<RedisClusterNode> nodes = new ArrayList<>(getClusterTopology().getActiveNodes());
 		return executeCommandOnSingleNode(cmd, nodes.get(new Random().nextInt(nodes.size())));
 	}
 
@@ -133,7 +133,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		Assert.notNull(client, "Could not acquire resource for node. Is your cluster info up to date?");
 
 		try {
-			return new NodeResult<T>(node, cmd.doInCluster(client));
+			return new NodeResult<>(node, cmd.doInCluster(client));
 		} catch (RuntimeException ex) {
 
 			RuntimeException translatedException = convertToDataAccessExeption(ex);
@@ -188,7 +188,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		Assert.notNull(callback, "Callback must not be null!");
 		Assert.notNull(nodes, "Nodes must not be null!");
 
-		List<RedisClusterNode> resolvedRedisClusterNodes = new ArrayList<RedisClusterNode>();
+		List<RedisClusterNode> resolvedRedisClusterNodes = new ArrayList<>();
 		ClusterTopology topology = topologyProvider.getTopology();
 
 		for (final RedisClusterNode node : nodes) {
@@ -199,7 +199,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 			}
 		}
 
-		Map<NodeExecution, Future<NodeResult<T>>> futures = new LinkedHashMap<NodeExecution, Future<NodeResult<T>>>();
+		Map<NodeExecution, Future<NodeResult<T>>> futures = new LinkedHashMap<>();
 		for (final RedisClusterNode node : resolvedRedisClusterNodes) {
 
 			futures.put(new NodeExecution(node), executor.submit(() -> executeCommandOnSingleNode(callback, node)));
@@ -212,10 +212,10 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		boolean done = false;
 
-		MulitNodeResult<T> result = new MulitNodeResult<T>();
-		Map<RedisClusterNode, Throwable> exceptions = new HashMap<RedisClusterNode, Throwable>();
+		MulitNodeResult<T> result = new MulitNodeResult<>();
+		Map<RedisClusterNode, Throwable> exceptions = new HashMap<>();
 
-		Set<String> saveGuard = new HashSet<String>();
+		Set<String> saveGuard = new HashSet<>();
 		while (!done) {
 
 			done = true;
@@ -255,7 +255,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		}
 
 		if (!exceptions.isEmpty()) {
-			throw new ClusterCommandExecutionFailureException(new ArrayList<Throwable>(exceptions.values()));
+			throw new ClusterCommandExecutionFailureException(new ArrayList<>(exceptions.values()));
 		}
 		return result;
 	}
@@ -270,7 +270,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	public <S, T> MulitNodeResult<T> executeMuliKeyCommand(final MultiKeyClusterCommandCallback<S, T> cmd,
 			Iterable<byte[]> keys) {
 
-		Map<RedisClusterNode, Set<byte[]>> nodeKeyMap = new HashMap<RedisClusterNode, Set<byte[]>>();
+		Map<RedisClusterNode, Set<byte[]>> nodeKeyMap = new HashMap<>();
 
 		for (byte[] key : keys) {
 			for (RedisClusterNode node : getClusterTopology().getKeyServingNodes(key)) {
@@ -278,14 +278,14 @@ public class ClusterCommandExecutor implements DisposableBean {
 				if (nodeKeyMap.containsKey(node)) {
 					nodeKeyMap.get(node).add(key);
 				} else {
-					Set<byte[]> keySet = new LinkedHashSet<byte[]>();
+					Set<byte[]> keySet = new LinkedHashSet<>();
 					keySet.add(key);
 					nodeKeyMap.put(node, keySet);
 				}
 			}
 		}
 
-		Map<NodeExecution, Future<NodeResult<T>>> futures = new LinkedHashMap<NodeExecution, Future<NodeResult<T>>>();
+		Map<NodeExecution, Future<NodeResult<T>>> futures = new LinkedHashMap<>();
 
 		for (final Entry<RedisClusterNode, Set<byte[]>> entry : nodeKeyMap.entrySet()) {
 
@@ -311,7 +311,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		Assert.notNull(client, "Could not acquire resource for node. Is your cluster info up to date?");
 
 		try {
-			return new NodeResult<T>(node, cmd.doInCluster(client, key), key);
+			return new NodeResult<>(node, cmd.doInCluster(client, key), key);
 		} catch (RuntimeException ex) {
 
 			RuntimeException translatedException = convertToDataAccessExeption(ex);
@@ -518,7 +518,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 */
 	public static class MulitNodeResult<T> {
 
-		List<NodeResult<T>> nodeResults = new ArrayList<NodeResult<T>>();
+		List<NodeResult<T>> nodeResults = new ArrayList<>();
 
 		private void add(NodeResult<T> result) {
 			nodeResults.add(result);
@@ -549,7 +549,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 */
 		public List<T> resultsAsListSortBy(byte[]... keys) {
 
-			ArrayList<NodeResult<T>> clone = new ArrayList<NodeResult<T>>(nodeResults);
+			ArrayList<NodeResult<T>> clone = new ArrayList<>(nodeResults);
 			Collections.sort(clone, new ResultByReferenceKeyPositionComperator(keys));
 
 			return toList(clone);
@@ -580,7 +580,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		private List<T> toList(Collection<NodeResult<T>> source) {
 
-			ArrayList<T> result = new ArrayList<T>();
+			ArrayList<T> result = new ArrayList<>();
 			for (NodeResult<T> nodeResult : source) {
 				result.add(nodeResult.getValue());
 			}
@@ -597,7 +597,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 			List<ByteArrayWrapper> reference;
 
 			public ResultByReferenceKeyPositionComperator(byte[]... keys) {
-				reference = new ArrayList<ByteArrayWrapper>(new ByteArraySet(Arrays.asList(keys)));
+				reference = new ArrayList<>(new ByteArraySet(Arrays.asList(keys)));
 			}
 
 			@Override

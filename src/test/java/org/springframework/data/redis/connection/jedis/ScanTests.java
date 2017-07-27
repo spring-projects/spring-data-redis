@@ -53,7 +53,7 @@ public class ScanTests {
 	RedisTemplate<String, String> redisOperations;
 
 	ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 10, 1, TimeUnit.MINUTES,
-			new LinkedBlockingDeque<Runnable>());
+			new LinkedBlockingDeque<>());
 
 	public ScanTests(RedisConnectionFactory factory) {
 
@@ -94,7 +94,7 @@ public class ScanTests {
 	public void contextLoads() throws InterruptedException {
 
 		BoundHashOperations<String, String, String> hash = redisOperations.boundHashOps("hash");
-		final AtomicReference<Exception> exception = new AtomicReference<Exception>();
+		final AtomicReference<Exception> exception = new AtomicReference<>();
 
 		// Create some keys so that SCAN requires a while to return all data.
 		for (int i = 0; i < 10000; i++) {
@@ -104,22 +104,19 @@ public class ScanTests {
 		// Concurrent access
 		for (int i = 0; i < 10; i++) {
 
-			executor.submit(new Runnable() {
-				@Override
-				public void run() {
-					try {
+			executor.submit(() -> {
+				try {
 
-						Cursor<Entry<Object, Object>> cursorMap = redisOperations.boundHashOps("hash")
-								.scan(ScanOptions.scanOptions().match("*").count(100).build());
+					Cursor<Entry<Object, Object>> cursorMap = redisOperations.boundHashOps("hash")
+							.scan(ScanOptions.scanOptions().match("*").count(100).build());
 
-						// This line invokes the lazy SCAN invocation
-						while (cursorMap.hasNext()) {
-							cursorMap.next();
-						}
-						cursorMap.close();
-					} catch (Exception e) {
-						exception.set(e);
+					// This line invokes the lazy SCAN invocation
+					while (cursorMap.hasNext()) {
+						cursorMap.next();
 					}
+					cursorMap.close();
+				} catch (Exception e) {
+					exception.set(e);
 				}
 			});
 		}

@@ -134,11 +134,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	LettuceResult newLettuceResult(Future resultHolder) {
+	LettuceResult newLettuceResult(Future<?> resultHolder) {
 		return new LettuceResult(resultHolder);
 	}
 
-	<T> LettuceResult newLettuceResult(Future resultHolder, Converter<T, ?> converter) {
+	<T> LettuceResult newLettuceResult(Future<T> resultHolder, Converter<T, ?> converter) {
 		return new LettuceResult(resultHolder, converter);
 	}
 
@@ -150,7 +150,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	LettuceStatusResult newLettuceStatusResult(Future resultHolder) {
+	LettuceStatusResult newLettuceStatusResult(Future<?> resultHolder) {
 		return new LettuceStatusResult(resultHolder);
 	}
 

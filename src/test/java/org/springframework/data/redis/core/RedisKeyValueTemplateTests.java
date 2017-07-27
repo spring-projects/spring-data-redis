@@ -37,10 +37,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.ConnectionFactoryTracker;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -92,7 +90,7 @@ public class RedisKeyValueTemplateTests {
 	@Before
 	public void setUp() {
 
-		nativeTemplate = new RedisTemplate<Object, Object>();
+		nativeTemplate = new RedisTemplate<>();
 		nativeTemplate.setConnectionFactory(connectionFactory);
 		nativeTemplate.afterPropertiesSet();
 
@@ -104,14 +102,10 @@ public class RedisKeyValueTemplateTests {
 	@After
 	public void tearDown() throws Exception {
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-				connection.flushDb();
-				return null;
-			}
+			connection.flushDb();
+			return null;
 		});
 
 		template.destroy();
@@ -126,14 +120,10 @@ public class RedisKeyValueTemplateTests {
 
 		template.insert(rand);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-				assertThat(connection.exists(("template-test-person:" + rand.id).getBytes()), is(true));
-				return null;
-			}
+			assertThat(connection.exists(("template-test-person:" + rand.id).getBytes()), is(true));
+			return null;
 		});
 	}
 
@@ -149,13 +139,7 @@ public class RedisKeyValueTemplateTests {
 		template.insert(rand);
 		template.insert(mat);
 
-		List<Person> result = template.find(new RedisCallback<byte[]>() {
-
-			@Override
-			public byte[] doInRedis(RedisConnection connection) throws DataAccessException {
-				return mat.id.getBytes();
-			}
-		}, Person.class);
+		List<Person> result = template.find(connection -> mat.id.getBytes(), Person.class);
 
 		assertThat(result.size(), is(1));
 		assertThat(result, hasItems(mat));
@@ -173,13 +157,8 @@ public class RedisKeyValueTemplateTests {
 		template.insert(rand);
 		template.insert(mat);
 
-		List<Person> result = template.find(new RedisCallback<List<byte[]>>() {
-
-			@Override
-			public List<byte[]> doInRedis(RedisConnection connection) throws DataAccessException {
-				return Arrays.asList(rand.id.getBytes(), mat.id.getBytes());
-			}
-		}, Person.class);
+		List<Person> result = template.find(connection -> Arrays.asList(rand.id.getBytes(), mat.id.getBytes()),
+				Person.class);
 
 		assertThat(result.size(), is(2));
 		assertThat(result, hasItems(rand, mat));
@@ -197,13 +176,7 @@ public class RedisKeyValueTemplateTests {
 		template.insert(rand);
 		template.insert(mat);
 
-		List<Person> result = template.find(new RedisCallback<List<byte[]>>() {
-
-			@Override
-			public List<byte[]> doInRedis(RedisConnection connection) throws DataAccessException {
-				return null;
-			}
-		}, Person.class);
+		List<Person> result = template.find(connection -> null, Person.class);
 
 		assertThat(result.size(), is(0));
 	}
@@ -220,84 +193,68 @@ public class RedisKeyValueTemplateTests {
 		 * Set the lastname and make sure we've an index on it afterwards
 		 */
 		Person update1 = new Person(rand.id, null, "al-thor");
-		PartialUpdate<Person> update = new PartialUpdate<Person>(rand.id, update1);
+		PartialUpdate<Person> update = new PartialUpdate<>(rand.id, update1);
 
 		template.insert(update);
 
 		assertThat(template.findById(rand.id, Person.class), is(equalTo(Optional.of(new Person(rand.id, "rand", "al-thor")))));
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-				assertThat(connection.hGet(("template-test-person:" + rand.id).getBytes(), "firstname".getBytes()),
-						is(equalTo("rand".getBytes())));
-				assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(true));
-				assertThat(connection.sIsMember("template-test-person:lastname:al-thor".getBytes(), rand.id.getBytes()),
-						is(true));
-				return null;
-			}
+			assertThat(connection.hGet(("template-test-person:" + rand.id).getBytes(), "firstname".getBytes()),
+					is(equalTo("rand".getBytes())));
+			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(true));
+			assertThat(connection.sIsMember("template-test-person:lastname:al-thor".getBytes(), rand.id.getBytes()),
+					is(true));
+			return null;
 		});
 
 		/*
 		 * Set the firstname and make sure lastname index and value is not affected
 		 */
-		update = new PartialUpdate<Person>(rand.id, Person.class).set("firstname", "frodo");
+		update = new PartialUpdate<>(rand.id, Person.class).set("firstname", "frodo");
 
 		template.update(update);
 
 		assertThat(template.findById(rand.id, Person.class), is(equalTo(Optional.of(new Person(rand.id, "frodo", "al-thor")))));
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-				assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(true));
-				assertThat(connection.sIsMember("template-test-person:lastname:al-thor".getBytes(), rand.id.getBytes()),
-						is(true));
-				return null;
-			}
+			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(true));
+			assertThat(connection.sIsMember("template-test-person:lastname:al-thor".getBytes(), rand.id.getBytes()),
+					is(true));
+			return null;
 		});
 
 		/*
 		 * Remote firstname and update lastname. Make sure lastname index is updated
 		 */
-		update = new PartialUpdate<Person>(rand.id, Person.class) //
+		update = new PartialUpdate<>(rand.id, Person.class) //
 				.del("firstname").set("lastname", "baggins");
 
 		template.doPartialUpdate(update);
 
 		assertThat(template.findById(rand.id, Person.class), is(equalTo(Optional.of(new Person(rand.id, null, "baggins")))));
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-				assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(false));
-				assertThat(connection.exists("template-test-person:lastname:baggins".getBytes()), is(true));
-				assertThat(connection.sIsMember("template-test-person:lastname:baggins".getBytes(), rand.id.getBytes()),
-						is(true));
-				return null;
-			}
+			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(false));
+			assertThat(connection.exists("template-test-person:lastname:baggins".getBytes()), is(true));
+			assertThat(connection.sIsMember("template-test-person:lastname:baggins".getBytes(), rand.id.getBytes()),
+					is(true));
+			return null;
 		});
 
 		/*
 		 * Remove lastname and make sure the index vanishes
 		 */
-		update = new PartialUpdate<Person>(rand.id, Person.class) //
+		update = new PartialUpdate<>(rand.id, Person.class) //
 				.del("lastname");
 
 		template.doPartialUpdate(update);
 
 		assertThat(template.findById(rand.id, Person.class), is(equalTo(Optional.of(new Person(rand.id, null, null)))));
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-				assertThat(connection.keys("template-test-person:lastname:*".getBytes()).size(), is(0));
-				return null;
-			}
+			assertThat(connection.keys("template-test-person:lastname:*".getBytes()).size(), is(0));
+			return null;
 		});
 	}
 
@@ -309,22 +266,18 @@ public class RedisKeyValueTemplateTests {
 
 		template.insert(source);
 
-		PartialUpdate<VariousTypes> update = new PartialUpdate<VariousTypes>(source.id, VariousTypes.class) //
+		PartialUpdate<VariousTypes> update = new PartialUpdate<>(source.id, VariousTypes.class) //
 				.set("stringValue", "hooya!");
 
 		template.doPartialUpdate(update);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "stringValue".getBytes()),
-						is("hooya!".getBytes()));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"simpleTypedMap._class".getBytes()), is(false));
-				return null;
-			}
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "stringValue".getBytes()),
+					is("hooya!".getBytes()));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"simpleTypedMap._class".getBytes()), is(false));
+			return null;
 		});
 	}
 
@@ -347,28 +300,24 @@ public class RedisKeyValueTemplateTests {
 		portalStone.dimension.height = 350;
 		portalStone.dimension.width = 70;
 
-		PartialUpdate<VariousTypes> update = new PartialUpdate<VariousTypes>(source.id, VariousTypes.class) //
+		PartialUpdate<VariousTypes> update = new PartialUpdate<>(source.id, VariousTypes.class) //
 				.set("complexValue", portalStone);
 
 		template.doPartialUpdate(update);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+			assertThat(
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "complexValue.name".getBytes()),
+					is("Portal Stone".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexValue.dimension.height".getBytes()), is("350".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexValue.dimension.width".getBytes()), is("70".getBytes()));
 
-				assertThat(
-						connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "complexValue.name".getBytes()),
-						is("Portal Stone".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexValue.dimension.height".getBytes()), is("350".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexValue.dimension.width".getBytes()), is("70".getBytes()));
-
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexValue.dimension.length".getBytes()), is(false));
-				return null;
-			}
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexValue.dimension.length".getBytes()), is(false));
+			return null;
 		});
 	}
 
@@ -391,31 +340,26 @@ public class RedisKeyValueTemplateTests {
 		portalStone.dimension.height = 350;
 		portalStone.dimension.width = 70;
 
-		PartialUpdate<VariousTypes> update = new PartialUpdate<VariousTypes>(source.id, VariousTypes.class) //
+		PartialUpdate<VariousTypes> update = new PartialUpdate<>(source.id, VariousTypes.class) //
 				.set("objectValue", portalStone);
 
 		template.doPartialUpdate(update);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+			assertThat(
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "objectValue._class".getBytes()),
+					is(Item.class.getName().getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "objectValue.name".getBytes()),
+					is("Portal Stone".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"objectValue.dimension.height".getBytes()), is("350".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"objectValue.dimension.width".getBytes()), is("70".getBytes()));
 
-				assertThat(
-						connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "objectValue._class".getBytes()),
-						is(Item.class.getName().getBytes()));
-				assertThat(
-						connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "objectValue.name".getBytes()),
-						is("Portal Stone".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"objectValue.dimension.height".getBytes()), is("350".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"objectValue.dimension.width".getBytes()), is("70".getBytes()));
-
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "objectValue".getBytes()),
-						is(false));
-				return null;
-			}
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "objectValue".getBytes()),
+					is(false));
+			return null;
 		});
 	}
 
@@ -423,33 +367,30 @@ public class RedisKeyValueTemplateTests {
 	public void partialUpdateSimpleTypedMap() {
 
 		final VariousTypes source = new VariousTypes();
-		source.simpleTypedMap = new LinkedHashMap<String, String>();
+		source.simpleTypedMap = new LinkedHashMap<>();
 		source.simpleTypedMap.put("key-1", "rand");
 		source.simpleTypedMap.put("key-2", "mat");
 		source.simpleTypedMap.put("key-3", "perrin");
 
 		template.insert(source);
 
-		PartialUpdate<VariousTypes> update = new PartialUpdate<VariousTypes>(source.id, VariousTypes.class) //
+		PartialUpdate<VariousTypes> update = new PartialUpdate<>(source.id, VariousTypes.class) //
 				.set("simpleTypedMap", Collections.singletonMap("spring", "data"));
 
 		template.doPartialUpdate(update);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"simpleTypedMap.[spring]".getBytes()), is("data".getBytes()));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"simpleTypedMap.[key-1]".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"simpleTypedMap.[key-2]".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"simpleTypedMap.[key-2]".getBytes()), is(false));
-				return null;
-			}
+			assertThat(
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedMap.[spring]".getBytes()),
+					is("data".getBytes()));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"simpleTypedMap.[key-1]".getBytes()), is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"simpleTypedMap.[key-2]".getBytes()), is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"simpleTypedMap.[key-2]".getBytes()), is(false));
+			return null;
 		});
 	}
 
@@ -457,7 +398,7 @@ public class RedisKeyValueTemplateTests {
 	public void partialUpdateComplexTypedMap() {
 
 		final VariousTypes source = new VariousTypes();
-		source.complexTypedMap = new LinkedHashMap<String, Item>();
+		source.complexTypedMap = new LinkedHashMap<>();
 
 		Item callandor = new Item();
 		callandor.name = "Callandor";
@@ -481,38 +422,34 @@ public class RedisKeyValueTemplateTests {
 		hornOfValere.dimension.height = 70;
 		hornOfValere.dimension.width = 25;
 
-		PartialUpdate<VariousTypes> update = new PartialUpdate<VariousTypes>(source.id, VariousTypes.class) //
+		PartialUpdate<VariousTypes> update = new PartialUpdate<>(source.id, VariousTypes.class) //
 				.set("complexTypedMap", Collections.singletonMap("horn-of-valere", hornOfValere));
 
 		template.doPartialUpdate(update);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedMap.[horn-of-valere].name".getBytes()), is("Horn of Valere".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedMap.[horn-of-valere].dimension.height".getBytes()), is("70".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedMap.[horn-of-valere].dimension.width".getBytes()), is("25".getBytes()));
 
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedMap.[horn-of-valere].name".getBytes()), is("Horn of Valere".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedMap.[horn-of-valere].dimension.height".getBytes()), is("70".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedMap.[horn-of-valere].dimension.width".getBytes()), is("25".getBytes()));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedMap.[callandor].name".getBytes()), is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedMap.[callandor].dimension.height".getBytes()), is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedMap.[callandor].dimension.width".getBytes()), is(false));
 
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedMap.[callandor].name".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedMap.[callandor].dimension.height".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedMap.[callandor].dimension.width".getBytes()), is(false));
-
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedMap.[portal-stone].name".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedMap.[portal-stone].dimension.height".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedMap.[portal-stone].dimension.width".getBytes()), is(false));
-				return null;
-			}
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedMap.[portal-stone].name".getBytes()), is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedMap.[portal-stone].dimension.height".getBytes()), is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedMap.[portal-stone].dimension.width".getBytes()), is(false));
+			return null;
 		});
 	}
 
@@ -520,7 +457,7 @@ public class RedisKeyValueTemplateTests {
 	public void partialUpdateObjectTypedMap() {
 
 		final VariousTypes source = new VariousTypes();
-		source.untypedMap = new LinkedHashMap<String, Object>();
+		source.untypedMap = new LinkedHashMap<>();
 
 		Item callandor = new Item();
 		callandor.name = "Callandor";
@@ -545,54 +482,50 @@ public class RedisKeyValueTemplateTests {
 		hornOfValere.dimension.height = 70;
 		hornOfValere.dimension.width = 25;
 
-		Map<String, Object> map = new LinkedHashMap<String, Object>();
+		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("spring", "data");
 		map.put("horn-of-valere", hornOfValere);
 		map.put("some-number", 100L);
 
-		PartialUpdate<VariousTypes> update = new PartialUpdate<VariousTypes>(source.id, VariousTypes.class) //
+		PartialUpdate<VariousTypes> update = new PartialUpdate<>(source.id, VariousTypes.class) //
 				.set("untypedMap", map);
 
 		template.doPartialUpdate(update);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedMap.[horn-of-valere].name".getBytes()), is("Horn of Valere".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedMap.[horn-of-valere].dimension.height".getBytes()), is("70".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedMap.[horn-of-valere].dimension.width".getBytes()), is("25".getBytes()));
 
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedMap.[horn-of-valere].name".getBytes()), is("Horn of Valere".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedMap.[horn-of-valere].dimension.height".getBytes()), is("70".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedMap.[horn-of-valere].dimension.width".getBytes()), is("25".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedMap.[spring]._class".getBytes()), is("java.lang.String".getBytes()));
+			assertThat(
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedMap.[spring]".getBytes()),
+					is("data".getBytes()));
 
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedMap.[spring]._class".getBytes()), is("java.lang.String".getBytes()));
-				assertThat(
-						connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedMap.[spring]".getBytes()),
-						is("data".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedMap.[some-number]._class".getBytes()), is("java.lang.Long".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedMap.[some-number]".getBytes()), is("100".getBytes()));
 
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedMap.[some-number]._class".getBytes()), is("java.lang.Long".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedMap.[some-number]".getBytes()), is("100".getBytes()));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedMap.[callandor].name".getBytes()), is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedMap.[callandor].dimension.height".getBytes()), is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedMap.[callandor].dimension.width".getBytes()), is(false));
 
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedMap.[callandor].name".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedMap.[callandor].dimension.height".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedMap.[callandor].dimension.width".getBytes()), is(false));
-
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedMap.[portal-stone].name".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedMap.[portal-stone].dimension.height".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedMap.[portal-stone].dimension.width".getBytes()), is(false));
-				return null;
-			}
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedMap.[portal-stone].name".getBytes()), is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedMap.[portal-stone].dimension.height".getBytes()), is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedMap.[portal-stone].dimension.width".getBytes()), is(false));
+			return null;
 		});
 	}
 
@@ -600,34 +533,33 @@ public class RedisKeyValueTemplateTests {
 	public void partialUpdateSimpleTypedList() {
 
 		final VariousTypes source = new VariousTypes();
-		source.simpleTypedList = new ArrayList<String>();
+		source.simpleTypedList = new ArrayList<>();
 		source.simpleTypedList.add("rand");
 		source.simpleTypedList.add("mat");
 		source.simpleTypedList.add("perrin");
 
 		template.insert(source);
 
-		PartialUpdate<VariousTypes> update = new PartialUpdate<VariousTypes>(source.id, VariousTypes.class) //
+		PartialUpdate<VariousTypes> update = new PartialUpdate<>(source.id, VariousTypes.class) //
 				.set("simpleTypedList", Collections.singletonList("spring"));
 
 		template.doPartialUpdate(update);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-				assertThat(
-						connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[0]".getBytes()),
-						is("spring".getBytes()));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"simpleTypedList.[1]".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"simpleTypedList.[2]".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"simpleTypedList.[3]".getBytes()), is(false));
-				return null;
-			}
+			assertThat(
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[0]".getBytes()),
+					is("spring".getBytes()));
+			assertThat(
+					connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[1]".getBytes()),
+					is(false));
+			assertThat(
+					connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[2]".getBytes()),
+					is(false));
+			assertThat(
+					connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[3]".getBytes()),
+					is(false));
+			return null;
 		});
 	}
 
@@ -635,7 +567,7 @@ public class RedisKeyValueTemplateTests {
 	public void partialUpdateComplexTypedList() {
 
 		final VariousTypes source = new VariousTypes();
-		source.complexTypedList = new ArrayList<Item>();
+		source.complexTypedList = new ArrayList<>();
 
 		Item callandor = new Item();
 		callandor.name = "Callandor";
@@ -659,31 +591,27 @@ public class RedisKeyValueTemplateTests {
 		hornOfValere.dimension.height = 70;
 		hornOfValere.dimension.width = 25;
 
-		PartialUpdate<VariousTypes> update = new PartialUpdate<VariousTypes>(source.id, VariousTypes.class) //
+		PartialUpdate<VariousTypes> update = new PartialUpdate<>(source.id, VariousTypes.class) //
 				.set("complexTypedList", Collections.singletonList(hornOfValere));
 
 		template.doPartialUpdate(update);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedList.[0].name".getBytes()), is("Horn of Valere".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedList.[0].dimension.height".getBytes()), is("70".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedList.[0].dimension.width".getBytes()), is("25".getBytes()));
 
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedList.[0].name".getBytes()), is("Horn of Valere".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedList.[0].dimension.height".getBytes()), is("70".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedList.[0].dimension.width".getBytes()), is("25".getBytes()));
-
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedMap.[1].name".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedMap.[1].dimension.height".getBytes()), is(false));
-				assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-						"complexTypedMap.[1].dimension.width".getBytes()), is(false));
-				return null;
-			}
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedMap.[1].name".getBytes()), is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedMap.[1].dimension.height".getBytes()), is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
+					"complexTypedMap.[1].dimension.width".getBytes()), is(false));
+			return null;
 		});
 	}
 
@@ -691,7 +619,7 @@ public class RedisKeyValueTemplateTests {
 	public void partialUpdateObjectTypedList() {
 
 		final VariousTypes source = new VariousTypes();
-		source.untypedList = new ArrayList<Object>();
+		source.untypedList = new ArrayList<>();
 
 		Item callandor = new Item();
 		callandor.name = "Callandor";
@@ -716,43 +644,39 @@ public class RedisKeyValueTemplateTests {
 		hornOfValere.dimension.height = 70;
 		hornOfValere.dimension.width = 25;
 
-		List<Object> list = new ArrayList<Object>();
+		List<Object> list = new ArrayList<>();
 		list.add("spring");
 		list.add(hornOfValere);
 		list.add(100L);
 
-		PartialUpdate<VariousTypes> update = new PartialUpdate<VariousTypes>(source.id, VariousTypes.class) //
+		PartialUpdate<VariousTypes> update = new PartialUpdate<>(source.id, VariousTypes.class) //
 				.set("untypedList", list);
 
 		template.doPartialUpdate(update);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+			assertThat(
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[0]._class".getBytes()),
+					is("java.lang.String".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[0]".getBytes()),
+					is("spring".getBytes()));
 
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedList.[0]._class".getBytes()), is("java.lang.String".getBytes()));
-				assertThat(
-						connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[0]".getBytes()),
-						is("spring".getBytes()));
+			assertThat(
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[1].name".getBytes()),
+					is("Horn of Valere".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedList.[1].dimension.height".getBytes()), is("70".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
+					"untypedList.[1].dimension.width".getBytes()), is("25".getBytes()));
 
-				assertThat(
-						connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[1].name".getBytes()),
-						is("Horn of Valere".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedList.[1].dimension.height".getBytes()), is("70".getBytes()));
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedList.[1].dimension.width".getBytes()), is("25".getBytes()));
+			assertThat(
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[2]._class".getBytes()),
+					is("java.lang.Long".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[2]".getBytes()),
+					is("100".getBytes()));
 
-				assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-						"untypedList.[2]._class".getBytes()), is("java.lang.Long".getBytes()));
-				assertThat(
-						connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[2]".getBytes()),
-						is("100".getBytes()));
-
-				return null;
-			}
+			return null;
 		});
 	}
 
@@ -773,18 +697,14 @@ public class RedisKeyValueTemplateTests {
 
 		template.doPartialUpdate(update);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-				assertThat(connection.hGet(("template-test-person:" + rand.id).getBytes(), "lastname".getBytes()),
-						is(equalTo("doe".getBytes())));
-				assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes()), is(true));
-				assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(false));
-				assertThat(connection.sIsMember("template-test-person:lastname:doe".getBytes(), rand.id.getBytes()), is(true));
-				return null;
-			}
+			assertThat(connection.hGet(("template-test-person:" + rand.id).getBytes(), "lastname".getBytes()),
+					is(equalTo("doe".getBytes())));
+			assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes()), is(true));
+			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(false));
+			assertThat(connection.sIsMember("template-test-person:lastname:doe".getBytes(), rand.id.getBytes()), is(true));
+			return null;
 		});
 	}
 
@@ -798,30 +718,22 @@ public class RedisKeyValueTemplateTests {
 
 		template.insert(rand);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-				assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes()), is(true));
-				assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(true));
-				return null;
-			}
+			assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes()), is(true));
+			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(true));
+			return null;
 		});
 
 		rand.lastname = null;
 
 		template.update(rand);
 
-		nativeTemplate.execute(new RedisCallback<Void>() {
+		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-				assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes()), is(true));
-				assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(false));
-				return null;
-			}
+			assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes()), is(true));
+			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(false));
+			return null;
 		});
 	}
 
@@ -886,13 +798,8 @@ public class RedisKeyValueTemplateTests {
 
 		template.insert(source);
 
-		nativeTemplate.execute(new RedisCallback<Boolean>() {
-
-			@Override
-			public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
-				return connection.persist((WithTtl.class.getName() + ":ttl-1").getBytes());
-			}
-		});
+		nativeTemplate.execute(
+				(RedisCallback<Boolean>) connection -> connection.persist((WithTtl.class.getName() + ":ttl-1").getBytes()));
 
 		Optional<WithTtl> target = template.findById(source.id, WithTtl.class);
 		assertThat(target.get().ttl, is(-1L));

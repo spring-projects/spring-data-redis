@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Base {@link IndexDefinition} implementation.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -40,7 +40,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 
 	/**
 	 * Creates new {@link RedisIndexDefinition}.
-	 * 
+	 *
 	 * @param keyspace
 	 * @param path
 	 * @param indexName
@@ -50,7 +50,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 		this.keyspace = keyspace;
 		this.indexName = indexName;
 		this.path = path;
-		this.conditions = new ArrayList<IndexDefinition.Condition<?>>();
+		this.conditions = new ArrayList<>();
 	}
 
 	/*
@@ -183,7 +183,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 	 */
 	public static class CompositeValueTransformer implements IndexValueTransformer {
 
-		private final List<IndexValueTransformer> transformers = new ArrayList<IndexValueTransformer>();
+		private final List<IndexValueTransformer> transformers = new ArrayList<>();
 
 		public CompositeValueTransformer(Collection<IndexValueTransformer> transformers) {
 			this.transformers.addAll(transformers);
@@ -212,7 +212,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 	 */
 	public static class OrCondition<T> implements Condition<T> {
 
-		private final List<Condition<T>> conditions = new ArrayList<Condition<T>>();
+		private final List<Condition<T>> conditions = new ArrayList<>();
 
 		public OrCondition(Collection<Condition<T>> conditions) {
 			this.conditions.addAll(conditions);

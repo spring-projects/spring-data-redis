@@ -43,7 +43,7 @@ public interface RedisGeoCommands {
 
 	/**
 	 * Add {@link Point} with given member {@literal name} to {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param point must not be {@literal null}.
 	 * @param member must not be {@literal null}.
@@ -54,7 +54,7 @@ public interface RedisGeoCommands {
 
 	/**
 	 * Add {@link GeoLocation} to {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param location must not be {@literal null}.
 	 * @return Number of elements added.
@@ -70,7 +70,7 @@ public interface RedisGeoCommands {
 
 	/**
 	 * Add {@link Map} of member / {@link Point} pairs to {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param memberCoordinateMap must not be {@literal null}.
 	 * @return Number of elements added.
@@ -80,7 +80,7 @@ public interface RedisGeoCommands {
 
 	/**
 	 * Add {@link GeoLocation}s to {@literal key}
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param locations must not be {@literal null}.
 	 * @return Number of elements added.
@@ -90,7 +90,7 @@ public interface RedisGeoCommands {
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member1 must not be {@literal null}.
 	 * @param member2 must not be {@literal null}.
@@ -101,7 +101,7 @@ public interface RedisGeoCommands {
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2} in the given {@link Metric}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member1 must not be {@literal null}.
 	 * @param member2 must not be {@literal null}.
@@ -113,7 +113,7 @@ public interface RedisGeoCommands {
 
 	/**
 	 * Get Geohash representation of the position for one or more {@literal member}s.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -123,7 +123,7 @@ public interface RedisGeoCommands {
 
 	/**
 	 * Get the {@link Point} representation of positions for one or more {@literal member}s.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -133,7 +133,7 @@ public interface RedisGeoCommands {
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -143,7 +143,7 @@ public interface RedisGeoCommands {
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
 	 * @param args must not be {@literal null}.
@@ -155,7 +155,7 @@ public interface RedisGeoCommands {
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
 	 * {@literal radius}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param radius
@@ -169,7 +169,7 @@ public interface RedisGeoCommands {
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
 	 * {@link Distance}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param radius must not be {@literal null}.
@@ -181,7 +181,7 @@ public interface RedisGeoCommands {
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates, given {@link Distance}
 	 * and {@link GeoRadiusCommandArgs}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param radius must not be {@literal null}.
@@ -204,14 +204,14 @@ public interface RedisGeoCommands {
 
 	/**
 	 * Additional arguments (like count/sort/...) to be used with {@link RedisGeoCommands}.
-	 * 
+	 *
 	 * @author Ninad Divadkar
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
 	class GeoRadiusCommandArgs implements Cloneable {
 
-		Set<Flag> flags = new LinkedHashSet<Flag>(2, 1);
+		Set<Flag> flags = new LinkedHashSet<>(2, 1);
 		Long limit;
 		Direction sortDirection;
 
@@ -219,7 +219,7 @@ public interface RedisGeoCommands {
 
 		/**
 		 * Create new {@link GeoRadiusCommandArgs}.
-		 * 
+		 *
 		 * @return never {@literal null}.
 		 */
 		public static GeoRadiusCommandArgs newGeoRadiusArgs() {
@@ -250,7 +250,7 @@ public interface RedisGeoCommands {
 
 		/**
 		 * Sort returned items from the nearest to the furthest, relative to the center.
-		 * 
+		 *
 		 * @return never {@literal null}.
 		 */
 		public GeoRadiusCommandArgs sortAscending() {
@@ -261,7 +261,7 @@ public interface RedisGeoCommands {
 
 		/**
 		 * Sort returned items from the furthest to the nearest, relative to the center.
-		 * 
+		 *
 		 * @return never {@literal null}.
 		 */
 		public GeoRadiusCommandArgs sortDescending() {
@@ -272,7 +272,7 @@ public interface RedisGeoCommands {
 
 		/**
 		 * Limit the results to the first N matching items.
-		 * 
+		 *
 		 * @param count
 		 * @return never {@literal null}.
 		 */
@@ -333,7 +333,7 @@ public interface RedisGeoCommands {
 
 	/**
 	 * {@link GeoLocation} representing a {@link Point} associated with a {@literal name}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @param <T>
 	 * @since 1.8
@@ -361,7 +361,7 @@ public interface RedisGeoCommands {
 
 		/**
 		 * Creates a new {@link DistanceUnit} using the given muliplier.
-		 * 
+		 *
 		 * @param multiplier the earth radius at equator.
 		 */
 		private DistanceUnit(double multiplier, String abbreviation) {
@@ -378,7 +378,7 @@ public interface RedisGeoCommands {
 			return multiplier;
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.geo.Metric#getAbbreviation()
 		 */

@@ -72,20 +72,14 @@ public class MultithreadedRedisTemplateTests {
 	@Test // DATAREDIS-300
 	public void assertResouresAreReleasedProperlyWhenSharingRedisTemplate() throws InterruptedException {
 
-		final RedisTemplate<Object, Object> template = new RedisTemplate<Object, Object>();
+		final RedisTemplate<Object, Object> template = new RedisTemplate<>();
 		template.setConnectionFactory(factory);
 		template.afterPropertiesSet();
 
 		ExecutorService executor = Executors.newCachedThreadPool();
 
 		for (int i = 0; i < 9; i++) {
-			executor.execute(new Runnable() {
-
-				@Override
-				public void run() {
-					template.boundValueOps("foo").get();
-				}
-			});
+			executor.execute(template.boundValueOps("foo")::get);
 		}
 
 		executor.shutdown();

@@ -27,7 +27,6 @@ import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.SettingsUtils;
-import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
@@ -38,7 +37,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Integration test of {@link LettuceConnection} pipeline functionality
- * 
+ *
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -60,32 +59,26 @@ public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectio
 		assumeTrue(RedisVersionUtils.atLeast("2.6", byteConnection));
 		initConnection();
 		final AtomicBoolean scriptDead = new AtomicBoolean(false);
-		Thread th = new Thread(new Runnable() {
-			public void run() {
-				// Use separate conn factory to avoid using the underlying shared native conn on blocking script
-				final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
-						SettingsUtils.getPort());
-				factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
-				factory2.afterPropertiesSet();
-				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
-				try {
-					conn2.eval("local time=1 while time < 10000000000 do time=time+1 end", ReturnType.BOOLEAN, 0);
-				} catch (DataAccessException e) {
-					scriptDead.set(true);
-				}
-				conn2.close();
-				factory2.destroy();
+		Thread th = new Thread(() -> {
+			// Use separate conn factory to avoid using the underlying shared native conn on blocking script
+			final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
+					SettingsUtils.getPort());
+			factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
+			factory2.afterPropertiesSet();
+			DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
+			try {
+				conn2.eval("local time=1 while time < 10000000000 do time=time+1 end", ReturnType.BOOLEAN, 0);
+			} catch (DataAccessException e) {
+				scriptDead.set(true);
 			}
+			conn2.close();
+			factory2.destroy();
 		});
 		th.start();
 		Thread.sleep(1000);
 		connection.scriptKill();
 		getResults();
-		assertTrue(waitFor(new TestCondition() {
-			public boolean passes() {
-				return scriptDead.get();
-			}
-		}, 3000l));
+		assertTrue(waitFor(scriptDead::get, 3000l));
 	}
 
 	@Test

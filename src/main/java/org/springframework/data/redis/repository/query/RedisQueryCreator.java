@@ -96,7 +96,7 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 	@Override
 	protected KeyValueQuery<RedisOperationChain> complete(final RedisOperationChain criteria, Sort sort) {
 
-		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<RedisOperationChain>(criteria);
+		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<>(criteria);
 
 		if (query.getCriteria() != null && !CollectionUtils.isEmpty(query.getCriteria().getSismember())
 				&& !CollectionUtils.isEmpty(query.getCriteria().getOrSismember()))

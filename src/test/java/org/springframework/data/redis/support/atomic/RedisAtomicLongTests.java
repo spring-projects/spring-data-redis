@@ -54,10 +54,10 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		this.longCounter = new RedisAtomicLong(getClass().getSimpleName() + ":long", factory);
 		this.factory = factory;
 
-		this.template = new RedisTemplate<String, Long>();
+		this.template = new RedisTemplate<>();
 		this.template.setConnectionFactory(factory);
 		this.template.setKeySerializer(new StringRedisSerializer());
-		this.template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
+		this.template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		this.template.afterPropertiesSet();
 
 		ConnectionFactoryTracker.add(factory);
@@ -154,7 +154,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		expectedException.expect(IllegalArgumentException.class);
 		expectedException.expectMessage("a valid key serializer in template is required");
 
-		RedisTemplate<String, Long> template = new RedisTemplate<String, Long>();
+		RedisTemplate<String, Long> template = new RedisTemplate<>();
 		new RedisAtomicLong("foo", template);
 	}
 
@@ -164,7 +164,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		expectedException.expect(IllegalArgumentException.class);
 		expectedException.expectMessage("a valid value serializer in template is required");
 
-		RedisTemplate<String, Long> template = new RedisTemplate<String, Long>();
+		RedisTemplate<String, Long> template = new RedisTemplate<>();
 		template.setKeySerializer(new StringRedisSerializer());
 		new RedisAtomicLong("foo", template);
 	}
@@ -172,10 +172,10 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 	@Test // DATAREDIS-317
 	public void testShouldBeAbleToUseRedisAtomicLongWithProperlyConfiguredRedisTemplate() {
 
-		RedisTemplate<String, Long> template = new RedisTemplate<String, Long>();
+		RedisTemplate<String, Long> template = new RedisTemplate<>();
 		template.setConnectionFactory(factory);
 		template.setKeySerializer(new StringRedisSerializer());
-		template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
+		template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		template.afterPropertiesSet();
 
 		RedisAtomicLong ral = new RedisAtomicLong("DATAREDIS-317.atomicLong", template);

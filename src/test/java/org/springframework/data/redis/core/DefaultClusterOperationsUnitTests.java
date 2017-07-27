@@ -32,7 +32,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -69,19 +68,19 @@ public class DefaultClusterOperationsUnitTests {
 
 		serializer = new StringRedisSerializer();
 
-		RedisTemplate<String, String> template = new RedisTemplate<String, String>();
+		RedisTemplate<String, String> template = new RedisTemplate<>();
 		template.setConnectionFactory(connectionFactory);
 		template.setValueSerializer(serializer);
 		template.setKeySerializer(serializer);
 		template.afterPropertiesSet();
 
-		this.clusterOps = new DefaultClusterOperations<String, String>(template);
+		this.clusterOps = new DefaultClusterOperations<>(template);
 	}
 
 	@Test // DATAREDIS-315
 	public void keysShouldDelegateToConnectionCorrectly() {
 
-		Set<byte[]> keys = new HashSet<byte[]>(Arrays.asList(serializer.serialize("key-1"), serializer.serialize("key-2")));
+		Set<byte[]> keys = new HashSet<>(Arrays.asList(serializer.serialize("key-1"), serializer.serialize("key-2")));
 		when(connection.keys(any(RedisClusterNode.class), any(byte[].class))).thenReturn(keys);
 
 		assertThat(clusterOps.keys(NODE_1, "*"), hasItems("key-1", "key-2"));
@@ -255,13 +254,7 @@ public class DefaultClusterOperationsUnitTests {
 	public void executeShouldDelegateToConnection() {
 
 		final byte[] key = serializer.serialize("foo");
-		clusterOps.execute(new RedisClusterCallback<String>() {
-
-			@Override
-			public String doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				return serializer.deserialize(connection.get(key));
-			}
-		});
+		clusterOps.execute(connection -> serializer.deserialize(connection.get(key)));
 
 		verify(connection, times(1)).get(eq(key));
 	}

@@ -82,37 +82,18 @@ public class ClusterCommandExecutorUnitTests {
 
 	private ClusterCommandExecutor executor;
 
-	private static final ConnectionCommandCallback<String> COMMAND_CALLBACK = new ConnectionCommandCallback<String>() {
+	private static final ConnectionCommandCallback<String> COMMAND_CALLBACK = Connection::theWheelWeavesAsTheWheelWills;
 
-		@Override
-		public String doInCluster(Connection connection) {
-			return connection.theWheelWeavesAsTheWheelWills();
-		}
-	};
+	private static final Converter<Exception, DataAccessException> exceptionConverter = source -> {
 
-	private static final Converter<Exception, DataAccessException> exceptionConverter = new Converter<Exception, DataAccessException>() {
-
-		@Override
-		public DataAccessException convert(Exception source) {
-
-			if (source instanceof MovedException) {
-				return new ClusterRedirectException(1000, ((MovedException) source).host, ((MovedException) source).port,
-						source);
-			}
-
-			return new InvalidDataAccessApiUsageException(source.getMessage(), source);
+		if (source instanceof MovedException) {
+			return new ClusterRedirectException(1000, ((MovedException) source).host, ((MovedException) source).port, source);
 		}
 
+		return new InvalidDataAccessApiUsageException(source.getMessage(), source);
 	};
 
-	private static final MultiKeyConnectionCommandCallback<String> MULTIKEY_CALLBACK = new MultiKeyConnectionCommandCallback<String>() {
-
-		@Override
-		public String doInCluster(Connection connection, byte[] key) {
-			return connection.bloodAndAshes(key);
-		}
-
-	};
+	private static final MultiKeyConnectionCommandCallback<String> MULTIKEY_CALLBACK = Connection::bloodAndAshes;
 
 	@Mock Connection con1;
 	@Mock Connection con2;
@@ -282,7 +263,8 @@ public class ClusterCommandExecutorUnitTests {
 		when(con2.bloodAndAshes(any(byte[].class))).thenReturn("mat");
 		when(con3.bloodAndAshes(any(byte[].class))).thenReturn("perrin");
 
-		MulitNodeResult<String> result = executor.executeMuliKeyCommand(MULTIKEY_CALLBACK, new HashSet<byte[]>(
+		MulitNodeResult<String> result = executor.executeMuliKeyCommand(MULTIKEY_CALLBACK,
+				new HashSet<>(
 				Arrays.asList("key-1".getBytes(), "key-2".getBytes(), "key-3".getBytes(), "key-9".getBytes())));
 
 		assertThat(result.resultsAsList(), hasItems("rand", "mat", "perrin", "egwene"));
@@ -335,7 +317,7 @@ public class ClusterCommandExecutorUnitTests {
 		@Override
 		public ClusterTopology getTopology() {
 			return new ClusterTopology(
-					new LinkedHashSet<RedisClusterNode>(Arrays.asList(CLUSTER_NODE_1, CLUSTER_NODE_2, CLUSTER_NODE_3)));
+					new LinkedHashSet<>(Arrays.asList(CLUSTER_NODE_1, CLUSTER_NODE_2, CLUSTER_NODE_3)));
 		}
 
 	}

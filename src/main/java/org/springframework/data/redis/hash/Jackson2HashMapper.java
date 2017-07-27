@@ -166,8 +166,8 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> doUnflatten(Map<String, Object> source) {
 
-		Map<String, Object> result = new LinkedHashMap<String, Object>();
-		Set<String> treatSeperate = new LinkedHashSet<String>();
+		Map<String, Object> result = new LinkedHashMap<>();
+		Set<String> treatSeperate = new LinkedHashSet<>();
 		for (Entry<String, Object> entry : source.entrySet()) {
 
 			String key = entry.getKey();
@@ -193,7 +193,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 		for (String partial : treatSeperate) {
 
-			Map<String, Object> newSource = new LinkedHashMap<String, Object>();
+			Map<String, Object> newSource = new LinkedHashMap<>();
 
 			for (Entry<String, Object> entry : source.entrySet()) {
 				if (entry.getKey().startsWith(partial)) {
@@ -220,7 +220,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 	private Map<String, Object> flattenMap(Iterator<Entry<String, JsonNode>> source) {
 
-		Map<String, Object> resultMap = new HashMap<String, Object>();
+		Map<String, Object> resultMap = new HashMap<>();
 		this.doFlatten("", source, resultMap);
 		return resultMap;
 	}
@@ -291,9 +291,9 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 	private List<Object> createTypedListWithValue(Object value) {
 
-		List<Object> listWithTypeHint = new ArrayList<Object>();
+		List<Object> listWithTypeHint = new ArrayList<>();
 		listWithTypeHint.add(ArrayList.class.getName()); // why jackson? why?
-		List<Object> values = new ArrayList<Object>();
+		List<Object> values = new ArrayList<>();
 		values.add(value);
 		listWithTypeHint.add(values);
 		return listWithTypeHint;

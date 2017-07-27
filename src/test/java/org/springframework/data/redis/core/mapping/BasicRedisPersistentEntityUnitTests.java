@@ -20,8 +20,6 @@ import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.io.Serializable;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,7 +55,7 @@ public class BasicRedisPersistentEntityUnitTests<T> {
 	public void setUp() {
 
 		when(entityInformation.getType()).thenReturn((Class<T>) ConversionTestEntities.Person.class);
-		entity = new BasicRedisPersistentEntity<T>(entityInformation, keySpaceResolver, ttlAccessor);
+		entity = new BasicRedisPersistentEntity<>(entityInformation, keySpaceResolver, ttlAccessor);
 	}
 
 	@Test // DATAREDIS-425

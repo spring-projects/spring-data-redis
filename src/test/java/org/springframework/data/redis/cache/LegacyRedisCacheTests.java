@@ -88,7 +88,7 @@ public class LegacyRedisCacheTests {
 
 		Collection<Object[]> params = AbstractOperationsTestParams.testParams();
 
-		Collection<Object[]> target = new ArrayList<Object[]>();
+		Collection<Object[]> target = new ArrayList<>();
 		for (Object[] source : params) {
 
 			Object[] cacheNullDisabled = Arrays.copyOf(source, source.length + 1);
@@ -179,14 +179,12 @@ public class LegacyRedisCacheTests {
 		cache.put(key1, value1);
 		cache.put(key2, value2);
 
-		Thread th = new Thread(new Runnable() {
-			public void run() {
-				cache.clear();
-				cache.put(k1, v1);
-				cache.put(k2, v2);
-				failed.set(v1.equals(cache.get(k1)));
+		Thread th = new Thread(() -> {
+			cache.clear();
+			cache.put(k1, v1);
+			cache.put(k2, v2);
+			failed.set(v1.equals(cache.get(k1)));
 
-			}
 		}, "concurrent-cache-access");
 		th.start();
 		th.join();
@@ -216,20 +214,14 @@ public class LegacyRedisCacheTests {
 		int numTries = 10;
 		final AtomicBoolean monitorStateException = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(numTries);
-		Runnable clearCache = new Runnable() {
-			public void run() {
-				cache.clear();
-			}
-		};
-		Runnable putCache = new Runnable() {
-			public void run() {
-				try {
-					cache.put(key1, value1);
-				} catch (IllegalMonitorStateException e) {
-					monitorStateException.set(true);
-				} finally {
-					latch.countDown();
-				}
+		Runnable clearCache = cache::clear;
+		Runnable putCache = () -> {
+			try {
+				cache.put(key1, value1);
+			} catch (IllegalMonitorStateException e) {
+				monitorStateException.set(true);
+			} finally {
+				latch.countDown();
 			}
 		};
 		for (int i = 0; i < numTries; i++) {
@@ -355,12 +347,7 @@ public class LegacyRedisCacheTests {
 		assumeThat("Only suitable when cache does allow null values.", allowCacheNullValues, is(true));
 
 		Object key = getKey();
-		Object value = cache.get(key, new Callable<Object>() {
-			@Override
-			public Object call() throws Exception {
-				return null;
-			}
-		});
+		Object value = cache.get(key, () -> null);
 
 		assertThat(value, is(nullValue()));
 		assertThat(cache.get(key).get(), is(nullValue()));
@@ -372,23 +359,15 @@ public class LegacyRedisCacheTests {
 		assumeThat("Only suitable when cache does NOT allow null values.", allowCacheNullValues, is(false));
 
 		Object key = getKey();
-		Object value = cache.get(key, new Callable<Object>() {
-			@Override
-			public Object call() throws Exception {
-				return null;
-			}
-		});
+		Object value = cache.get(key, () -> null);
 	}
 
 	@Test(expected = ValueRetrievalException.class)
 	public void testCacheGetSynchronizedThrowsExceptionInValueLoader() {
 
 		Object key = getKey();
-		Object value = cache.get(key, new Callable<Object>() {
-			@Override
-			public Object call() throws Exception {
-				throw new RuntimeException("doh!");
-			}
+		Object value = cache.get(key, () -> {
+			throw new RuntimeException("doh!");
 		});
 	}
 
@@ -400,12 +379,7 @@ public class LegacyRedisCacheTests {
 		Object key = getKey();
 		cache.put(key, null);
 
-		Object cachedValue = cache.get(key, new Callable<Object>() {
-			@Override
-			public Object call() throws Exception {
-				return null;
-			}
-		});
+		Object cachedValue = cache.get(key, () -> null);
 
 		assertThat(cachedValue, is(nullValue()));
 	}
@@ -440,7 +414,7 @@ public class LegacyRedisCacheTests {
 		public void thread2() {
 
 			waitForTick(1);
-			assertThat(redisCache.get("key", new TestCacheLoader<String>("illegal value")), equalTo("test"));
+			assertThat(redisCache.get("key", new TestCacheLoader<>("illegal value")), equalTo("test"));
 			assertTick(2);
 		}
 	}

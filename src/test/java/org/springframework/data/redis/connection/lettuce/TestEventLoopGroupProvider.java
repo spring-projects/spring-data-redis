@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * A {@link io.lettuce.core.resource.EventLoopGroupProvider} suitable for testing. Preserves the event loop groups
  * between tests. Every time a new {@link TestEventLoopGroupProvider} instance is created, a
  * {@link Runtime#addShutdownHook(Thread) shutdown hook} is added to close the resources.
- * 
+ *
  * @author Mark Paluch
  * @author Christoph Strobl
  */
@@ -54,7 +54,7 @@ class TestEventLoopGroupProvider extends DefaultEventLoopGroupProvider {
 	@Override
 	public Promise<Boolean> release(EventExecutorGroup eventLoopGroup, long quietPeriod, long timeout, TimeUnit unit) {
 
-		DefaultPromise<Boolean> result = new DefaultPromise<Boolean>(ImmediateEventExecutor.INSTANCE);
+		DefaultPromise<Boolean> result = new DefaultPromise<>(ImmediateEventExecutor.INSTANCE);
 		result.setSuccess(true);
 
 		return result;

@@ -45,8 +45,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.NumberUtils;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.MethodCallback;
-import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.util.StringUtils;
 
 /**
@@ -99,7 +97,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 	@Override
 	protected <T> RedisPersistentEntity<T> createPersistentEntity(TypeInformation<T> typeInformation) {
-		return new BasicRedisPersistentEntity<T>(typeInformation, fallbackKeySpaceResolver, timeToLiveAccessor);
+		return new BasicRedisPersistentEntity<>(typeInformation, fallbackKeySpaceResolver, timeToLiveAccessor);
 	}
 
 	@Override
@@ -199,9 +197,9 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			Assert.notNull(keyspaceConfig, "KeyspaceConfiguration must not be null!");
 			Assert.notNull(mappingContext, "MappingContext must not be null!");
 
-			this.defaultTimeouts = new HashMap<Class<?>, Long>();
-			this.timeoutProperties = new HashMap<Class<?>, PersistentProperty<?>>();
-			this.timeoutMethods = new HashMap<Class<?>, Method>();
+			this.defaultTimeouts = new HashMap<>();
+			this.timeoutProperties = new HashMap<>();
+			this.timeoutMethods = new HashMap<>();
 			this.keyspaceConfig = keyspaceConfig;
 			this.mappingContext = mappingContext;
 		}
@@ -340,20 +338,9 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			}
 
 			timeoutMethods.put(type, null);
-			ReflectionUtils.doWithMethods(type, new MethodCallback() {
-
-				@Override
-				public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-					timeoutMethods.put(type, method);
-				}
-			}, new MethodFilter() {
-
-				@Override
-				public boolean matches(Method method) {
-					return ClassUtils.isAssignable(Number.class, method.getReturnType())
-							&& AnnotationUtils.findAnnotation(method, TimeToLive.class) != null;
-				}
-			});
+			ReflectionUtils.doWithMethods(type, method -> timeoutMethods.put(type, method),
+					method -> ClassUtils.isAssignable(Number.class, method.getReturnType())
+							&& AnnotationUtils.findAnnotation(method, TimeToLive.class) != null);
 
 			return timeoutMethods.get(type);
 		}

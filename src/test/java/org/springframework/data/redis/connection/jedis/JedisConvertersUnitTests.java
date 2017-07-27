@@ -239,7 +239,7 @@ public class JedisConvertersUnitTests {
 	}
 
 	private Map<String, String> getRedisServerInfoMap(String name, int port) {
-		Map<String, String> map = new HashMap<String, String>();
+		Map<String, String> map = new HashMap<>();
 		map.put("name", name);
 		map.put("ip", "127.0.0.1");
 		map.put("port", Integer.toString(port));

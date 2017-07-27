@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2013 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,7 +39,7 @@ import org.springframework.data.redis.core.RedisOperations;
  * {@link org.springframework.beans.factory.config.PropertiesFactoryBean}.
  * <p/>
  * Note that this implementation only accepts Strings - objects of other type are not supported.
- * 
+ *
  * @see Properties
  * @see org.springframework.core.io.support.PropertiesLoaderSupport
  * @author Costin Leau
@@ -58,7 +58,7 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 
 	/**
 	 * Constructs a new <code>RedisProperties</code> instance.
-	 * 
+	 *
 	 * @param key
 	 * @param operations
 	 */
@@ -68,19 +68,19 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 
 	/**
 	 * Constructs a new <code>RedisProperties</code> instance.
-	 * 
+	 *
 	 * @param defaults
 	 * @param boundOps
 	 */
 	public RedisProperties(Properties defaults, BoundHashOperations<String, String, String> boundOps) {
 		super(defaults);
 		this.hashOps = boundOps;
-		this.delegate = new DefaultRedisMap<String, String>(boundOps);
+		this.delegate = new DefaultRedisMap<>(boundOps);
 	}
 
 	/**
 	 * Constructs a new <code>RedisProperties</code> instance.
-	 * 
+	 *
 	 * @param defaults
 	 * @param key
 	 * @param operations
@@ -103,7 +103,7 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	}
 
 	public Enumeration<?> propertyNames() {
-		Set<String> keys = new LinkedHashSet<String>(delegate.keySet());
+		Set<String> keys = new LinkedHashSet<>(delegate.keySet());
 		if (defaults != null) {
 			keys.addAll(defaults.stringPropertyNames());
 		}

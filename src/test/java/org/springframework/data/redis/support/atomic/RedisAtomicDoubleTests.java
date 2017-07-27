@@ -60,10 +60,10 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		this.doubleCounter = new RedisAtomicDouble(getClass().getSimpleName() + ":double", factory);
 		this.factory = factory;
 
-		this.template = new RedisTemplate<String, Double>();
+		this.template = new RedisTemplate<>();
 		this.template.setConnectionFactory(factory);
 		this.template.setKeySerializer(new StringRedisSerializer());
-		this.template.setValueSerializer(new GenericToStringSerializer<Double>(Double.class));
+		this.template.setValueSerializer(new GenericToStringSerializer<>(Double.class));
 		this.template.afterPropertiesSet();
 
 		ConnectionFactoryTracker.add(factory);
@@ -182,7 +182,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		expectedException.expect(IllegalArgumentException.class);
 		expectedException.expectMessage("a valid key serializer in template is required");
 
-		new RedisAtomicDouble("foo", new RedisTemplate<String, Double>());
+		new RedisAtomicDouble("foo", new RedisTemplate<>());
 	}
 
 	@Test // DATAREDIS-317
@@ -191,7 +191,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		expectedException.expect(IllegalArgumentException.class);
 		expectedException.expectMessage("a valid value serializer in template is required");
 
-		RedisTemplate<String, Double> template = new RedisTemplate<String, Double>();
+		RedisTemplate<String, Double> template = new RedisTemplate<>();
 		template.setKeySerializer(new StringRedisSerializer());
 		new RedisAtomicDouble("foo", template);
 	}

@@ -267,15 +267,34 @@ public interface ReactiveSetCommands {
 			this.count = count;
 		}
 
+		/**
+		 * Creates a new {@link SPopCommand} for a single member.
+		 *
+		 * @return a new {@link SPopCommand} for a single member.
+		 */
 		public static SPopCommand one() {
 			return new SPopCommand(null, 1L);
 		}
 
+		/**
+		 * Creates a new {@link SPopCommand} for {@code count} members.
+		 *
+		 * @return a new {@link SPopCommand} for {@code count} members.
+		 */
 		public static SPopCommand members(long count) {
 			return new SPopCommand(null, count);
 		}
 
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link SRemCommand} with {@literal key} applied.
+		 */
 		public SPopCommand from(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new SPopCommand(key, count);
 		}
 
@@ -299,9 +318,10 @@ public interface ReactiveSetCommands {
 	}
 
 	/**
-	 * Remove and return a random member from set at {@literal key}.
+	 * Remove and return {@code count} random members from set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
+	 * @param count number of random members to pop from the set.
 	 * @return
 	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 */
@@ -742,7 +762,7 @@ public interface ReactiveSetCommands {
 
 	/**
 	 * {@code SUNIONSTORE} command parameters.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 */

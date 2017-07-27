@@ -39,7 +39,7 @@ public class KeyspaceConfiguration {
 
 	public KeyspaceConfiguration() {
 
-		this.settingsMap = new ConcurrentHashMap<Class<?>, KeyspaceSettings>();
+		this.settingsMap = new ConcurrentHashMap<>();
 		for (KeyspaceSettings initial : initialConfiguration()) {
 			settingsMap.put(initial.type, initial);
 		}

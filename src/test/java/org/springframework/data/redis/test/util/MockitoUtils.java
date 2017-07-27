@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class MockitoUtils {
 
 	/**
 	 * Verifies a given method is called a total number of times across all given mocks.
-	 * 
+	 *
 	 * @param method
 	 * @param mode
 	 * @param mocks
@@ -62,7 +62,7 @@ public class MockitoUtils {
 
 	private static List<Invocation> getInvocations(String method, Object... mocks) {
 
-		List<Invocation> invocations = new ArrayList<Invocation>();
+		List<Invocation> invocations = new ArrayList<>();
 		for (Object mock : mocks) {
 
 			if (StringUtils.hasText(method)) {

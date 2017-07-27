@@ -66,7 +66,7 @@ public class RedisKeyValueAdapterUnitTests {
 	@Before
 	public void setUp() throws Exception {
 
-		template = new RedisTemplate<Object, Object>();
+		template = new RedisTemplate<>();
 		template.setConnectionFactory(jedisConnectionFactoryMock);
 		template.afterPropertiesSet();
 
@@ -104,7 +104,7 @@ public class RedisKeyValueAdapterUnitTests {
 		rd.addIndexedData(new SimpleIndexedPropertyValue("persons", "firstname", "rand"));
 
 		when(redisConnectionMock.sMembers(Mockito.any(byte[].class)))
-				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes())));
+				.thenReturn(new LinkedHashSet<>(Arrays.asList("persons:firstname:rand".getBytes())));
 		when(redisConnectionMock.del((byte[][]) any())).thenReturn(1L);
 
 		adapter.put("1", rd, "persons");
@@ -119,7 +119,7 @@ public class RedisKeyValueAdapterUnitTests {
 		rd.addIndexedData(new SimpleIndexedPropertyValue("persons", "firstname", "rand"));
 
 		when(redisConnectionMock.sMembers(Mockito.any(byte[].class)))
-				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes())));
+				.thenReturn(new LinkedHashSet<>(Arrays.asList("persons:firstname:rand".getBytes())));
 		when(redisConnectionMock.del((byte[][]) any())).thenReturn(0L);
 
 		adapter.put("1", rd, "persons");

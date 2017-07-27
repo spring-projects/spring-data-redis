@@ -39,12 +39,10 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
-import org.springframework.data.redis.TestCondition;
-import org.springframework.data.redis.connection.RedisConnection;
 
 /**
  * Integration test of {@link DefaultValueOperations}
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author David Liu
@@ -88,11 +86,9 @@ public class DefaultValueOperationsTests<K, V> {
 
 	@After
 	public void tearDown() {
-		redisTemplate.execute(new RedisCallback<Object>() {
-			public Object doInRedis(RedisConnection connection) {
-				connection.flushDb();
-				return null;
-			}
+		redisTemplate.execute((RedisCallback<Object>) connection -> {
+			connection.flushDb();
+			return null;
 		});
 	}
 
@@ -126,7 +122,7 @@ public class DefaultValueOperationsTests<K, V> {
 
 	@Test
 	public void testMultiSetIfAbsent() {
-		Map<K, V> keysAndValues = new HashMap<K, V>();
+		Map<K, V> keysAndValues = new HashMap<>();
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -134,7 +130,7 @@ public class DefaultValueOperationsTests<K, V> {
 		keysAndValues.put(key1, value1);
 		keysAndValues.put(key2, value2);
 		assertTrue(valueOps.multiSetIfAbsent(keysAndValues));
-		assertThat(valueOps.multiGet(keysAndValues.keySet()), isEqual(new ArrayList<V>(keysAndValues.values())));
+		assertThat(valueOps.multiGet(keysAndValues.keySet()), isEqual(new ArrayList<>(keysAndValues.values())));
 	}
 
 	@Test
@@ -145,7 +141,7 @@ public class DefaultValueOperationsTests<K, V> {
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
 		valueOps.set(key1, value1);
-		Map<K, V> keysAndValues = new HashMap<K, V>();
+		Map<K, V> keysAndValues = new HashMap<>();
 		keysAndValues.put(key1, value2);
 		keysAndValues.put(key2, value3);
 		assertFalse(valueOps.multiSetIfAbsent(keysAndValues));
@@ -153,7 +149,7 @@ public class DefaultValueOperationsTests<K, V> {
 
 	@Test
 	public void testMultiSet() {
-		Map<K, V> keysAndValues = new HashMap<K, V>();
+		Map<K, V> keysAndValues = new HashMap<>();
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -161,7 +157,7 @@ public class DefaultValueOperationsTests<K, V> {
 		keysAndValues.put(key1, value1);
 		keysAndValues.put(key2, value2);
 		valueOps.multiSet(keysAndValues);
-		assertThat(valueOps.multiGet(keysAndValues.keySet()), isEqual(new ArrayList<V>(keysAndValues.values())));
+		assertThat(valueOps.multiGet(keysAndValues.keySet()), isEqual(new ArrayList<>(keysAndValues.values())));
 	}
 
 	@Test
@@ -187,11 +183,7 @@ public class DefaultValueOperationsTests<K, V> {
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		valueOps.set(key1, value1, 1, TimeUnit.SECONDS);
-		waitFor(new TestCondition() {
-			public boolean passes() {
-				return (!redisTemplate.hasKey(key1));
-			}
-		}, 1000);
+		waitFor(() -> (!redisTemplate.hasKey(key1)), 1000);
 	}
 
 	@Test // DATAREDIS-271
@@ -201,11 +193,7 @@ public class DefaultValueOperationsTests<K, V> {
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		valueOps.set(key1, value1, 1, TimeUnit.MILLISECONDS);
-		waitFor(new TestCondition() {
-			public boolean passes() {
-				return (!redisTemplate.hasKey(key1));
-			}
-		}, 500);
+		waitFor(() -> (!redisTemplate.hasKey(key1)), 500);
 	}
 
 	@Test

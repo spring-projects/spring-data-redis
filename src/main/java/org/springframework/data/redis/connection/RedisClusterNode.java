@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * Representation of a Redis server within the cluster.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.7
@@ -42,7 +42,7 @@ public class RedisClusterNode extends RedisNode {
 
 	/**
 	 * Creates new {@link RedisClusterNode} with empty {@link SlotRange}.
-	 * 
+	 *
 	 * @param host must not be {@literal null}.
 	 * @param port
 	 */
@@ -64,7 +64,7 @@ public class RedisClusterNode extends RedisNode {
 
 	/**
 	 * Creates new {@link RedisClusterNode} with given {@link SlotRange}.
-	 * 
+	 *
 	 * @param host must not be {@literal null}.
 	 * @param port
 	 * @param slotRange can be {@literal null}.
@@ -88,7 +88,7 @@ public class RedisClusterNode extends RedisNode {
 
 	/**
 	 * Get the served {@link SlotRange}.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public SlotRange getSlotRange() {
@@ -146,7 +146,7 @@ public class RedisClusterNode extends RedisNode {
 
 	/**
 	 * Get {@link RedisClusterNodeBuilder} for creating new {@link RedisClusterNode}.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public static RedisClusterNodeBuilder newRedisClusterNode() {
@@ -170,7 +170,7 @@ public class RedisClusterNode extends RedisNode {
 			Assert.notNull(lowerBound, "LowerBound must not be null!");
 			Assert.notNull(upperBound, "UpperBound must not be null!");
 
-			this.range = new LinkedHashSet<Integer>();
+			this.range = new LinkedHashSet<>();
 			for (int i = lowerBound; i <= upperBound; i++) {
 				this.range.add(i);
 			}
@@ -178,7 +178,7 @@ public class RedisClusterNode extends RedisNode {
 
 		public SlotRange(Collection<Integer> range) {
 			this.range = CollectionUtils.isEmpty(range) ? Collections.<Integer> emptySet()
-					: new LinkedHashSet<Integer>(range);
+					: new LinkedHashSet<>(range);
 		}
 
 		@Override
@@ -245,7 +245,7 @@ public class RedisClusterNode extends RedisNode {
 
 	/**
 	 * Builder for creating new {@link RedisClusterNode}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
@@ -310,7 +310,7 @@ public class RedisClusterNode extends RedisNode {
 
 		/**
 		 * Set flags for node.
-		 * 
+		 *
 		 * @param flags
 		 * @return
 		 */
@@ -322,7 +322,7 @@ public class RedisClusterNode extends RedisNode {
 
 		/**
 		 * Set {@link SlotRange}.
-		 * 
+		 *
 		 * @param range
 		 * @return
 		 */
@@ -334,7 +334,7 @@ public class RedisClusterNode extends RedisNode {
 
 		/**
 		 * Set {@link LinkState}.
-		 * 
+		 *
 		 * @param linkState
 		 * @return
 		 */
