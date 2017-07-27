@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.0
  */
-public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V> {
+class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
 	private final RedisSerializationContext<K, V> serializationContext;
@@ -54,7 +54,7 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 	 * @param template must not be {@literal null}.
 	 * @param serializationContext must not be {@literal null}.
 	 */
-	public DefaultReactiveZSetOperations(ReactiveRedisTemplate<?, ?> template,
+	DefaultReactiveZSetOperations(ReactiveRedisTemplate<?, ?> template,
 			RedisSerializationContext<K, V> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");

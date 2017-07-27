@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
 
 /**
  * Redis specific {@link PersistentProperty} implementation.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
 public class RedisPersistentProperty extends KeyValuePersistentProperty<RedisPersistentProperty> {
 
-	private static final Set<String> SUPPORTED_ID_PROPERTY_NAMES = new HashSet<String>();
+	private static final Set<String> SUPPORTED_ID_PROPERTY_NAMES = new HashSet<>();
 
 	static {
 		SUPPORTED_ID_PROPERTY_NAMES.add("id");
@@ -40,7 +40,7 @@ public class RedisPersistentProperty extends KeyValuePersistentProperty<RedisPer
 
 	/**
 	 * Creates new {@link RedisPersistentProperty}.
-	 * 
+	 *
 	 * @param property
 	 * @param owner
 	 * @param simpleTypeHolder

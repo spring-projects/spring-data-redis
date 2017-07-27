@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.0
  */
-public class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V> {
+class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
 	private final RedisSerializationContext<K, V> serializationContext;
@@ -50,7 +50,7 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 	 * @param template must not be {@literal null}.
 	 * @param serializationContext must not be {@literal null}.
 	 */
-	public DefaultReactiveListOperations(ReactiveRedisTemplate<?, ?> template,
+	DefaultReactiveListOperations(ReactiveRedisTemplate<?, ?> template,
 			RedisSerializationContext<K, V> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");

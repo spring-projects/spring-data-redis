@@ -158,7 +158,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		Map<K, V> map = new LinkedHashMap<K, V>();
+		Map<K, V> map = new LinkedHashMap<>();
 		map.put(key1, value1);
 		map.put(key2, value2);
 
@@ -176,7 +176,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		Map<K, V> map = new LinkedHashMap<K, V>();
+		Map<K, V> map = new LinkedHashMap<>();
 
 		map.put(key1, value1);
 
@@ -235,7 +235,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 			absentValue = (V) ByteBuffer.wrap(new byte[0]);
 		}
 
-		Map<K, V> map = new LinkedHashMap<K, V>();
+		Map<K, V> map = new LinkedHashMap<>();
 		map.put(key1, value1);
 		map.put(key2, value2);
 

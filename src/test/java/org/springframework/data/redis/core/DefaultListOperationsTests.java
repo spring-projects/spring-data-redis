@@ -34,11 +34,10 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
-import org.springframework.data.redis.connection.RedisConnection;
 
 /**
  * Integration test of {@link DefaultListOperations}
- * 
+ *
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -83,11 +82,9 @@ public class DefaultListOperationsTests<K, V> {
 
 	@After
 	public void tearDown() {
-		redisTemplate.execute(new RedisCallback<Object>() {
-			public Object doInRedis(RedisConnection connection) {
-				connection.flushDb();
-				return null;
-			}
+		redisTemplate.execute((RedisCallback<Object>) connection -> {
+			connection.flushDb();
+			return null;
 		});
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class IndexConfiguration implements ConfigurableIndexDefinitionProvider {
 	 */
 	public IndexConfiguration() {
 
-		this.definitions = new CopyOnWriteArraySet<IndexDefinition>();
+		this.definitions = new CopyOnWriteArraySet<>();
 		for (IndexDefinition initial : initialConfiguration()) {
 			addIndexDefinition(initial);
 		}
@@ -79,7 +79,7 @@ public class IndexConfiguration implements ConfigurableIndexDefinitionProvider {
 	 */
 	public Set<IndexDefinition> getIndexDefinitionsFor(Serializable keyspace) {
 
-		Set<IndexDefinition> indexDefinitions = new LinkedHashSet<IndexDefinition>();
+		Set<IndexDefinition> indexDefinitions = new LinkedHashSet<>();
 
 		for (IndexDefinition indexDef : definitions) {
 			if (indexDef.getKeyspace().equals(keyspace)) {
@@ -102,7 +102,7 @@ public class IndexConfiguration implements ConfigurableIndexDefinitionProvider {
 
 	private Set<IndexDefinition> getIndexDefinitions(Serializable keyspace, String path, Class<?> type) {
 
-		Set<IndexDefinition> def = new LinkedHashSet<IndexDefinition>();
+		Set<IndexDefinition> def = new LinkedHashSet<>();
 		for (IndexDefinition indexDef : definitions) {
 			if (ClassUtils.isAssignable(type, indexDef.getClass()) && indexDef.getKeyspace().equals(keyspace)) {
 

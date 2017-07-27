@@ -52,7 +52,8 @@ public class RedisSentinelConfigurationUnitTests {
 	@Test // DATAREDIS-372
 	public void shouldCreateRedisSentinelConfigurationCorrectlyGivenMasterAndMultipleHostAndPortStrings() {
 
-		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", new HashSet<String>(Arrays.asList(
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster",
+				new HashSet<>(Arrays.asList(
 				HOST_AND_PORT_1, HOST_AND_PORT_2, HOST_AND_PORT_3)));
 
 		assertThat(config.getSentinels().size(), is(3));

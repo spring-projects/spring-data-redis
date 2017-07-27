@@ -44,19 +44,19 @@ public class ScanCursorUnitTests {
 	@Test // DATAREDIS-290
 	public void cursorShouldNotLoopWhenNoValuesFound() {
 
-		CapturingCursorDummy cursor = initCursor(new LinkedList<ScanIteration<String>>());
+		CapturingCursorDummy cursor = initCursor(new LinkedList<>());
 		assertThat(cursor.hasNext(), is(false));
 	}
 
 	@Test(expected = NoSuchElementException.class) // DATAREDIS-290
 	public void cursorShouldReturnNullWhenNoNextElementAvailable() {
-		initCursor(new LinkedList<ScanIteration<String>>()).next();
+		initCursor(new LinkedList<>()).next();
 	}
 
 	@Test // DATAREDIS-290
 	public void cursorShouldNotLoopWhenReachingStartingPointInFistLoop() {
 
-		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
+		LinkedList<ScanIteration<String>> values = new LinkedList<>();
 		values.add(createIteration(0, "spring", "data", "redis"));
 		CapturingCursorDummy cursor = initCursor(values);
 
@@ -76,7 +76,7 @@ public class ScanCursorUnitTests {
 	@Test // DATAREDIS-290
 	public void cursorShouldStopLoopWhenReachingStartingPoint() {
 
-		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
+		LinkedList<ScanIteration<String>> values = new LinkedList<>();
 		values.add(createIteration(1, "spring"));
 		values.add(createIteration(2, "data"));
 		values.add(createIteration(0, "redis"));
@@ -111,7 +111,7 @@ public class ScanCursorUnitTests {
 	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-290
 	public void repoeningCursorShouldHappenAtLastPosition() throws IOException {
 
-		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
+		LinkedList<ScanIteration<String>> values = new LinkedList<>();
 		values.add(createIteration(1, "spring"));
 		values.add(createIteration(2, "data"));
 		values.add(createIteration(0, "redis"));
@@ -131,7 +131,7 @@ public class ScanCursorUnitTests {
 	@Test // DATAREDIS-290
 	public void positionShouldBeIncrementedCorrectly() throws IOException {
 
-		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
+		LinkedList<ScanIteration<String>> values = new LinkedList<>();
 		values.add(createIteration(1, "spring"));
 		values.add(createIteration(2, "data"));
 		values.add(createIteration(0, "redis"));
@@ -149,7 +149,7 @@ public class ScanCursorUnitTests {
 	@Test // DATAREDIS-417
 	public void hasNextShouldCallScanUntilFinishedWhenScanResultIsAnEmptyCollection() {
 
-		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
+		LinkedList<ScanIteration<String>> values = new LinkedList<>();
 		values.add(createIteration(1, "spring"));
 		values.add(createIteration(2));
 		values.add(createIteration(3));
@@ -158,7 +158,7 @@ public class ScanCursorUnitTests {
 		values.add(createIteration(0, "redis"));
 		Cursor<String> cursor = initCursor(values);
 
-		List<String> result = new ArrayList<String>();
+		List<String> result = new ArrayList<>();
 		while (cursor.hasNext()) {
 			result.add(cursor.next());
 		}
@@ -170,7 +170,7 @@ public class ScanCursorUnitTests {
 	@Test // DATAREDIS-417
 	public void hasNextShouldStopWhenScanResultIsAnEmptyCollectionAndStateIsFinished() {
 
-		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
+		LinkedList<ScanIteration<String>> values = new LinkedList<>();
 		values.add(createIteration(1, "spring"));
 		values.add(createIteration(2));
 		values.add(createIteration(3));
@@ -181,7 +181,7 @@ public class ScanCursorUnitTests {
 		values.add(createIteration(0));
 		Cursor<String> cursor = initCursor(values);
 
-		List<String> result = new ArrayList<String>();
+		List<String> result = new ArrayList<>();
 		while (cursor.hasNext()) {
 			result.add(cursor.next());
 		}
@@ -193,7 +193,7 @@ public class ScanCursorUnitTests {
 	@Test // DATAREDIS-417
 	public void hasNextShouldStopCorrectlyWhenWholeScanIterationDoesNotReturnResultsAndStateIsFinished() {
 
-		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
+		LinkedList<ScanIteration<String>> values = new LinkedList<>();
 		values.add(createIteration(1));
 		values.add(createIteration(2));
 		values.add(createIteration(3));
@@ -221,8 +221,7 @@ public class ScanCursorUnitTests {
 	}
 
 	private ScanIteration<String> createIteration(long cursorId, String... values) {
-		return new ScanIteration<String>(cursorId, values.length > 0 ? Arrays.asList(values)
-				: Collections.<String> emptyList());
+		return new ScanIteration<>(cursorId, values.length > 0 ? Arrays.asList(values) : Collections.<String> emptyList());
 	}
 
 	private class CapturingCursorDummy extends ScanCursor<String> {
@@ -239,7 +238,7 @@ public class ScanCursorUnitTests {
 		protected ScanIteration<String> doScan(long cursorId, ScanOptions options) {
 
 			if (cursors == null) {
-				cursors = new Stack<Long>();
+				cursors = new Stack<>();
 			}
 			this.cursors.push(cursorId);
 			return this.values.poll();

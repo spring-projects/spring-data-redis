@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@ import org.springframework.data.redis.connection.FutureResult;
 /**
  * Converts the results of transaction exec using a supplied Queue of {@link FutureResult}s. Converts any Exception
  * objects returned in the list as well, using the supplied Exception {@link Converter}
- * 
+ *
  * @author Jennifer Hickey
  * @param <T> The type of {@link FutureResult} of the individual tx operations
  */
 public class TransactionResultConverter<T> implements Converter<List<Object>, List<Object>> {
 
-	private Queue<FutureResult<T>> txResults = new LinkedList<FutureResult<T>>();
+	private Queue<FutureResult<T>> txResults = new LinkedList<>();
 
 	private Converter<Exception, DataAccessException> exceptionConverter;
 
@@ -44,14 +44,18 @@ public class TransactionResultConverter<T> implements Converter<List<Object>, Li
 	}
 
 	public List<Object> convert(List<Object> execResults) {
+
 		if (execResults == null) {
 			return null;
 		}
+
 		if (execResults.size() != txResults.size()) {
 			throw new IllegalArgumentException("Incorrect number of transaction results. Expected: " + txResults.size()
 					+ " Actual: " + execResults.size());
 		}
-		List<Object> convertedResults = new ArrayList<Object>();
+
+		List<Object> convertedResults = new ArrayList<>();
+
 		for (Object result : execResults) {
 			FutureResult<T> futureResult = txResults.remove();
 			if (result instanceof Exception) {
@@ -61,6 +65,7 @@ public class TransactionResultConverter<T> implements Converter<List<Object>, Li
 				convertedResults.add(futureResult.convert(result));
 			}
 		}
+
 		return convertedResults;
 	}
 }

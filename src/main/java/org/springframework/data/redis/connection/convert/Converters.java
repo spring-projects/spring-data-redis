@@ -17,7 +17,16 @@ package org.springframework.data.redis.connection.convert;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
@@ -66,7 +75,7 @@ abstract public class Converters {
 
 	static {
 
-		flagLookupMap = new LinkedHashMap<String, RedisClusterNode.Flag>(Flag.values().length, 1);
+		flagLookupMap = new LinkedHashMap<>(Flag.values().length, 1);
 		for (Flag flag : Flag.values()) {
 			flagLookupMap.put(flag.getRaw(), flag);
 		}
@@ -113,7 +122,7 @@ abstract public class Converters {
 
 				String raw = args[FLAGS_INDEX];
 
-				Set<Flag> flags = new LinkedHashSet<RedisClusterNode.Flag>(8, 1);
+				Set<Flag> flags = new LinkedHashSet<>(8, 1);
 				if (StringUtils.hasText(raw)) {
 					for (String flag : raw.split(",")) {
 						flags.add(flagLookupMap.get(flag));
@@ -134,7 +143,7 @@ abstract public class Converters {
 
 			private SlotRange parseSlotRange(String[] args) {
 
-				Set<Integer> slots = new LinkedHashSet<Integer>();
+				Set<Integer> slots = new LinkedHashSet<>();
 
 				for (int i = SLOTS_INDEX; i < args.length; i++) {
 
@@ -241,7 +250,7 @@ abstract public class Converters {
 			return Collections.emptySet();
 		}
 
-		Set<RedisClusterNode> nodes = new LinkedHashSet<RedisClusterNode>(lines.size());
+		Set<RedisClusterNode> nodes = new LinkedHashSet<>(lines.size());
 
 		for (String line : lines) {
 			nodes.add(toClusterNode(line));
@@ -268,7 +277,7 @@ abstract public class Converters {
 	}
 
 	public static List<Object> toObjects(Set<Tuple> tuples) {
-		List<Object> tupleArgs = new ArrayList<Object>(tuples.size() * 2);
+		List<Object> tupleArgs = new ArrayList<>(tuples.size() * 2);
 		for (Tuple tuple : tuples) {
 			tupleArgs.add(tuple.getScore());
 			tupleArgs.add(tuple.getValue());
@@ -316,13 +325,7 @@ abstract public class Converters {
 	 */
 	public static Converter<Long, Long> secondsToTimeUnit(final TimeUnit timeUnit) {
 
-		return new Converter<Long, Long>() {
-
-			@Override
-			public Long convert(Long seconds) {
-				return secondsToTimeUnit(seconds, timeUnit);
-			}
-		};
+		return seconds -> secondsToTimeUnit(seconds, timeUnit);
 	}
 
 	/**
@@ -353,13 +356,7 @@ abstract public class Converters {
 	 */
 	public static Converter<Long, Long> millisecondsToTimeUnit(final TimeUnit timeUnit) {
 
-		return new Converter<Long, Long>() {
-
-			@Override
-			public Long convert(Long seconds) {
-				return millisecondsToTimeUnit(seconds, timeUnit);
-			}
-		};
+		return seconds -> millisecondsToTimeUnit(seconds, timeUnit);
 	}
 
 	/**
@@ -371,7 +368,7 @@ abstract public class Converters {
 	 */
 	public static <V> Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<V>>> deserializingGeoResultsConverter(
 			RedisSerializer<V> serializer) {
-		return new DeserializingGeoResultsConverter<V>(serializer);
+		return new DeserializingGeoResultsConverter<>(serializer);
 	}
 
 	/**
@@ -414,8 +411,9 @@ abstract public class Converters {
 	 * @return the converter.
 	 * @since 2.0
 	 */
-	public static Converter<Map<?, ?>, Properties> mapToPropertiesConverter() {
-		return MAP_TO_PROPERTIES;
+	@SuppressWarnings("unchecked")
+	public static <K, V> Converter<Map<K, V>, Properties> mapToPropertiesConverter() {
+		return (Converter) MAP_TO_PROPERTIES;
 	}
 
 	/**
@@ -462,18 +460,18 @@ abstract public class Converters {
 		public GeoResults<GeoLocation<V>> convert(GeoResults<GeoLocation<byte[]>> source) {
 
 			if (source == null) {
-				return new GeoResults<GeoLocation<V>>(Collections.<GeoResult<GeoLocation<V>>> emptyList());
+				return new GeoResults<>(Collections.<GeoResult<GeoLocation<V>>> emptyList());
 			}
 
-			List<GeoResult<GeoLocation<V>>> values = new ArrayList<GeoResult<GeoLocation<V>>>(source.getContent().size());
+			List<GeoResult<GeoLocation<V>>> values = new ArrayList<>(source.getContent().size());
 			for (GeoResult<GeoLocation<byte[]>> value : source.getContent()) {
 
-				values.add(new GeoResult<GeoLocation<V>>(
-						new GeoLocation<V>(serializer.deserialize(value.getContent().getName()), value.getContent().getPoint()),
+				values.add(new GeoResult<>(
+						new GeoLocation<>(serializer.deserialize(value.getContent().getName()), value.getContent().getPoint()),
 						value.getDistance()));
 			}
 
-			return new GeoResults<GeoLocation<V>>(values, source.getAverageDistance().getMetric());
+			return new GeoResults<>(values, source.getAverageDistance().getMetric());
 		}
 	}
 }

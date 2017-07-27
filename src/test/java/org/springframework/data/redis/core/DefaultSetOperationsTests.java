@@ -16,7 +16,7 @@
 package org.springframework.data.redis.core;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.collection.IsCollectionWithSize.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.collection.IsCollectionWithSize;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -41,13 +40,12 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link DefaultSetOperations}
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
@@ -92,11 +90,9 @@ public class DefaultSetOperationsTests<K, V> {
 
 	@After
 	public void tearDown() {
-		redisTemplate.execute(new RedisCallback<Object>() {
-			public Object doInRedis(RedisConnection connection) {
-				connection.flushDb();
-				return null;
-			}
+		redisTemplate.execute((RedisCallback<Object>) connection -> {
+			connection.flushDb();
+			return null;
 		});
 	}
 
@@ -113,7 +109,7 @@ public class DefaultSetOperationsTests<K, V> {
 		setOps.add(setKey, v3);
 		Set<V> members = setOps.distinctRandomMembers(setKey, 2);
 		assertEquals(2, members.size());
-		Set<V> expected = new HashSet<V>();
+		Set<V> expected = new HashSet<>();
 		expected.add(v1);
 		expected.add(v2);
 		expected.add(v3);
@@ -163,8 +159,8 @@ public class DefaultSetOperationsTests<K, V> {
 		setOps.add(key1, v1);
 		setOps.add(key1, v2);
 		setOps.move(key1, v1, key2);
-		assertThat(setOps.members(key1), isEqual(new HashSet<V>(Collections.singletonList(v2))));
-		assertThat(setOps.members(key2), isEqual(new HashSet<V>(Collections.singletonList(v1))));
+		assertThat(setOps.members(key1), isEqual(new HashSet<>(Collections.singletonList(v2))));
+		assertThat(setOps.members(key2), isEqual(new HashSet<>(Collections.singletonList(v1))));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -207,7 +203,7 @@ public class DefaultSetOperationsTests<K, V> {
 		V v1 = valueFactory.instance();
 		V v2 = valueFactory.instance();
 		assertEquals(Long.valueOf(2), setOps.add(key, v1, v2));
-		Set<V> expected = new HashSet<V>();
+		Set<V> expected = new HashSet<>();
 		expected.add(v1);
 		expected.add(v2);
 		assertThat(setOps.members(key), isEqual(expected));

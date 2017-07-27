@@ -344,7 +344,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(zSetOperations.reverseRangeByScoreWithScores(key, new Range<>(9d, 11d))) //
-				.expectNext(new DefaultTypedTuple<V>(value2, 10d)) //
+				.expectNext(new DefaultTypedTuple<>(value2, 10d)) //
 				.verifyComplete();
 	}
 
@@ -396,9 +396,9 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value1, 42.1)).expectNext(true).verifyComplete();
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(zSetOperations.count(key, new Range<Double>(0d, 100d))).expectNext(2L).expectComplete()
+		StepVerifier.create(zSetOperations.count(key, new Range<>(0d, 100d))).expectNext(2L).expectComplete()
 				.verify();
-		StepVerifier.create(zSetOperations.count(key, new Range<Double>(0d, 10d))).expectNext(1L).verifyComplete();
+		StepVerifier.create(zSetOperations.count(key, new Range<>(0d, 10d))).expectNext(1L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602

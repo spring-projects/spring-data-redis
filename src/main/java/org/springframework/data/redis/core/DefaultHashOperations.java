@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
 
 /**
  * Default implementation of {@link HashOperations}.
@@ -41,212 +39,216 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		super((RedisTemplate<K, Object>) template);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#get(java.lang.Object, java.lang.Object)
+	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public HV get(K key, Object hashKey) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawHashKey = rawHashKey(hashKey);
 
-		byte[] rawHashValue = execute(new RedisCallback<byte[]>() {
-
-			public byte[] doInRedis(RedisConnection connection) {
-				return connection.hGet(rawKey, rawHashKey);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		byte[] rawHashKey = rawHashKey(hashKey);
+		byte[] rawHashValue = execute(connection -> connection.hGet(rawKey, rawHashKey), true);
 
 		return (HV) deserializeHashValue(rawHashValue);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#hasKey(java.lang.Object, java.lang.Object)
+	 */
+	@Override
 	public Boolean hasKey(K key, Object hashKey) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawHashKey = rawHashKey(hashKey);
 
-		return execute(new RedisCallback<Boolean>() {
-
-			public Boolean doInRedis(RedisConnection connection) {
-				return connection.hExists(rawKey, rawHashKey);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		byte[] rawHashKey = rawHashKey(hashKey);
+		return execute(connection -> connection.hExists(rawKey, rawHashKey), true);
 	}
 
-	public Long increment(K key, HK hashKey, final long delta) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawHashKey = rawHashKey(hashKey);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#increment(java.lang.Object, java.lang.Object, long)
+	 */
+	@Override
+	public Long increment(K key, HK hashKey, long delta) {
 
-		return execute(new RedisCallback<Long>() {
-
-			public Long doInRedis(RedisConnection connection) {
-				return connection.hIncrBy(rawKey, rawHashKey, delta);
-			}
-		}, true);
-
+		byte[] rawKey = rawKey(key);
+		byte[] rawHashKey = rawHashKey(hashKey);
+		return execute(connection -> connection.hIncrBy(rawKey, rawHashKey, delta), true);
 	}
 
-	public Double increment(K key, HK hashKey, final double delta) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawHashKey = rawHashKey(hashKey);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#increment(java.lang.Object, java.lang.Object, double)
+	 */
+	@Override
+	public Double increment(K key, HK hashKey, double delta) {
 
-		return execute(new RedisCallback<Double>() {
-			public Double doInRedis(RedisConnection connection) {
-				return connection.hIncrBy(rawKey, rawHashKey, delta);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		byte[] rawHashKey = rawHashKey(hashKey);
+		return execute(connection -> connection.hIncrBy(rawKey, rawHashKey, delta), true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#keys(java.lang.Object)
+	 */
+	@Override
 	public Set<HK> keys(K key) {
-		final byte[] rawKey = rawKey(key);
 
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.hKeys(rawKey);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		Set<byte[]> rawValues = execute(connection -> connection.hKeys(rawKey), true);
 
 		return deserializeHashKeys(rawValues);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#size(java.lang.Object)
+	 */
+	@Override
 	public Long size(K key) {
-		final byte[] rawKey = rawKey(key);
 
-		return execute(new RedisCallback<Long>() {
-
-			public Long doInRedis(RedisConnection connection) {
-				return connection.hLen(rawKey);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.hLen(rawKey), true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#putAll(java.lang.Object, java.util.Map)
+	 */
+	@Override
 	public void putAll(K key, Map<? extends HK, ? extends HV> m) {
+
 		if (m.isEmpty()) {
 			return;
 		}
 
-		final byte[] rawKey = rawKey(key);
+		byte[] rawKey = rawKey(key);
 
-		final Map<byte[], byte[]> hashes = new LinkedHashMap<byte[], byte[]>(m.size());
+		Map<byte[], byte[]> hashes = new LinkedHashMap<>(m.size());
 
 		for (Map.Entry<? extends HK, ? extends HV> entry : m.entrySet()) {
 			hashes.put(rawHashKey(entry.getKey()), rawHashValue(entry.getValue()));
 		}
 
-		execute(new RedisCallback<Object>() {
-
-			public Object doInRedis(RedisConnection connection) {
-				connection.hMSet(rawKey, hashes);
-				return null;
-			}
+		execute(connection -> {
+			connection.hMSet(rawKey, hashes);
+			return null;
 		}, true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#multiGet(java.lang.Object, java.util.Collection)
+	 */
+	@Override
 	public List<HV> multiGet(K key, Collection<HK> fields) {
+
 		if (fields.isEmpty()) {
 			return Collections.emptyList();
 		}
 
-		final byte[] rawKey = rawKey(key);
-
-		final byte[][] rawHashKeys = new byte[fields.size()][];
+		byte[] rawKey = rawKey(key);
+		byte[][] rawHashKeys = new byte[fields.size()][];
 
 		int counter = 0;
 		for (HK hashKey : fields) {
 			rawHashKeys[counter++] = rawHashKey(hashKey);
 		}
 
-		List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
-
-			public List<byte[]> doInRedis(RedisConnection connection) {
-				return connection.hMGet(rawKey, rawHashKeys);
-			}
-		}, true);
+		List<byte[]> rawValues = execute(connection -> connection.hMGet(rawKey, rawHashKeys), true);
 
 		return deserializeHashValues(rawValues);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#put(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
+	@Override
 	public void put(K key, HK hashKey, HV value) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawHashKey = rawHashKey(hashKey);
-		final byte[] rawHashValue = rawHashValue(value);
 
-		execute(new RedisCallback<Object>() {
+		byte[] rawKey = rawKey(key);
+		byte[] rawHashKey = rawHashKey(hashKey);
+		byte[] rawHashValue = rawHashValue(value);
 
-			public Object doInRedis(RedisConnection connection) {
-				connection.hSet(rawKey, rawHashKey, rawHashValue);
-				return null;
-			}
+		execute(connection -> {
+			connection.hSet(rawKey, rawHashKey, rawHashValue);
+			return null;
 		}, true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#putIfAbsent(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
+	@Override
 	public Boolean putIfAbsent(K key, HK hashKey, HV value) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawHashKey = rawHashKey(hashKey);
-		final byte[] rawHashValue = rawHashValue(value);
 
-		return execute(new RedisCallback<Boolean>() {
+		byte[] rawKey = rawKey(key);
+		byte[] rawHashKey = rawHashKey(hashKey);
+		byte[] rawHashValue = rawHashValue(value);
 
-			public Boolean doInRedis(RedisConnection connection) {
-				return connection.hSetNX(rawKey, rawHashKey, rawHashValue);
-			}
-		}, true);
+		return execute(connection -> connection.hSetNX(rawKey, rawHashKey, rawHashValue), true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#values(java.lang.Object)
+	 */
+	@Override
 	public List<HV> values(K key) {
-		final byte[] rawKey = rawKey(key);
 
-		List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
-
-			public List<byte[]> doInRedis(RedisConnection connection) {
-				return connection.hVals(rawKey);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		List<byte[]> rawValues = execute(connection -> connection.hVals(rawKey), true);
 
 		return deserializeHashValues(rawValues);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#delete(java.lang.Object, java.lang.Object[])
+	 */
+	@Override
 	public Long delete(K key, Object... hashKeys) {
-		final byte[] rawKey = rawKey(key);
-		final byte[][] rawHashKeys = rawHashKeys(hashKeys);
 
-		return execute(new RedisCallback<Long>() {
+		byte[] rawKey = rawKey(key);
+		byte[][] rawHashKeys = rawHashKeys(hashKeys);
 
-			public Long doInRedis(RedisConnection connection) {
-				return connection.hDel(rawKey, rawHashKeys);
-			}
-		}, true);
+		return execute(connection -> connection.hDel(rawKey, rawHashKeys), true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#entries(java.lang.Object)
+	 */
+	@Override
 	public Map<HK, HV> entries(K key) {
-		final byte[] rawKey = rawKey(key);
 
-		Map<byte[], byte[]> entries = execute(new RedisCallback<Map<byte[], byte[]>>() {
-
-			public Map<byte[], byte[]> doInRedis(RedisConnection connection) {
-				return connection.hGetAll(rawKey);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		Map<byte[], byte[]> entries = execute(connection -> connection.hGetAll(rawKey), true);
 
 		return deserializeHashMap(entries);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.HashOperations#hscan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
+	 * @see org.springframework.data.redis.core.HashOperations#scan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
-	public Cursor<Entry<HK, HV>> scan(K key, final ScanOptions options) {
+	public Cursor<Entry<HK, HV>> scan(K key, ScanOptions options) {
 
-		final byte[] rawKey = rawKey(key);
-		return template.executeWithStickyConnection(new RedisCallback<Cursor<Map.Entry<HK, HV>>>() {
-
-			@Override
-			public Cursor<Entry<HK, HV>> doInRedis(RedisConnection connection) throws DataAccessException {
-
-				return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>(connection.hScan(rawKey, options),
-						new Converter<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>() {
+		byte[] rawKey = rawKey(key);
+		return template.executeWithStickyConnection(
+				(RedisCallback<Cursor<Entry<HK, HV>>>) connection -> new ConvertingCursor<>(connection.hScan(rawKey, options),
+						new Converter<Entry<byte[], byte[]>, Entry<HK, HV>>() {
 
 							@Override
 							public Entry<HK, HV> convert(final Entry<byte[], byte[]> source) {
 
-								return new Map.Entry<HK, HV>() {
+								return new Entry<HK, HV>() {
 
 									@Override
 									public HK getKey() {
@@ -263,12 +265,8 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 										throw new UnsupportedOperationException("Values cannot be set when scanning through entries.");
 									}
 								};
-
 							}
-						});
-			}
-
-		});
+						}));
 
 	}
 }

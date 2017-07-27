@@ -72,7 +72,7 @@ public class SpelIndexResolver implements IndexResolver {
 		Assert.notNull(parser, "SpelExpressionParser must not be null!");
 		this.mappingContext = mappingContext;
 		this.settings = mappingContext.getMappingConfiguration().getIndexConfiguration();
-		this.expressionCache = new HashMap<SpelIndexDefinition, Expression>();
+		this.expressionCache = new HashMap<>();
 		this.parser = parser;
 	}
 
@@ -93,7 +93,7 @@ public class SpelIndexResolver implements IndexResolver {
 
 		String keyspace = entity.getKeySpace();
 
-		Set<IndexedData> indexes = new HashSet<IndexedData>();
+		Set<IndexedData> indexes = new HashSet<>();
 
 		for (IndexDefinition setting : settings.getIndexDefinitionsFor(keyspace)) {
 

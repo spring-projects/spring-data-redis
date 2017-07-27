@@ -181,7 +181,7 @@ final class BinaryConverters {
 
 		@Override
 		public <T extends Number> Converter<byte[], T> getConverter(Class<T> targetType) {
-			return new BytesToNumberConverter<T>(targetType);
+			return new BytesToNumberConverter<>(targetType);
 		}
 
 		private static final class BytesToNumberConverter<T extends Number> extends StringBasedConverter
@@ -212,8 +212,8 @@ final class BinaryConverters {
 	@WritingConverter
 	static class BooleanToBytesConverter extends StringBasedConverter implements Converter<Boolean, byte[]> {
 
-		final byte[] _true = fromString("1");
-		final byte[] _false = fromString("0");
+		byte[] _true = fromString("1");
+		byte[] _false = fromString("0");
 
 		@Override
 		public byte[] convert(Boolean source) {

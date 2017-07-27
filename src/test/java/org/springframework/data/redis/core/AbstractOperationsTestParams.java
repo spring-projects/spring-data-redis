@@ -104,7 +104,7 @@ abstract public class AbstractOperationsTestParams {
 		xstreamPersonTemplate.setValueSerializer(serializer);
 		xstreamPersonTemplate.afterPropertiesSet();
 
-		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
+		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 		RedisTemplate<String, Person> jackson2JsonPersonTemplate = new RedisTemplate<>();
 		jackson2JsonPersonTemplate.setConnectionFactory(jedisConnectionFactory);
 		jackson2JsonPersonTemplate.setValueSerializer(jackson2JsonSerializer);

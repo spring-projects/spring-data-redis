@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.data.redis.core.script;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.NonTransientDataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -31,7 +30,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * Default implementation of {@link ScriptExecutor}. Optimizes performance by attempting to execute script first using
  * evalsha, then falling back to eval if Redis has not yet cached the script. Evalsha is not attempted if the script is
  * executed in a pipeline or transaction.
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
@@ -57,19 +56,17 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 
 	public <T> T execute(final RedisScript<T> script, final RedisSerializer<?> argsSerializer,
 			final RedisSerializer<T> resultSerializer, final List<K> keys, final Object... args) {
-		return template.execute(new RedisCallback<T>() {
-			public T doInRedis(RedisConnection connection) throws DataAccessException {
-				final ReturnType returnType = ReturnType.fromJavaType(script.getResultType());
-				final byte[][] keysAndArgs = keysAndArgs(argsSerializer, keys, args);
-				final int keySize = keys != null ? keys.size() : 0;
-				if (connection.isPipelined() || connection.isQueueing()) {
-					// We could script load first and then do evalsha to ensure sha is present,
-					// but this adds a sha1 to exec/closePipeline results. Instead, just eval
-					connection.eval(scriptBytes(script), returnType, keySize, keysAndArgs);
-					return null;
-				}
-				return eval(connection, script, returnType, keySize, keysAndArgs, resultSerializer);
+		return template.execute((RedisCallback<T>) connection -> {
+			final ReturnType returnType = ReturnType.fromJavaType(script.getResultType());
+			final byte[][] keysAndArgs = keysAndArgs(argsSerializer, keys, args);
+			final int keySize = keys != null ? keys.size() : 0;
+			if (connection.isPipelined() || connection.isQueueing()) {
+				// We could script load first and then do evalsha to ensure sha is present,
+				// but this adds a sha1 to exec/closePipeline results. Instead, just eval
+				connection.eval(scriptBytes(script), returnType, keySize, keysAndArgs);
+				return null;
 			}
+			return eval(connection, script, returnType, keySize, keysAndArgs, resultSerializer);
 		});
 	}
 

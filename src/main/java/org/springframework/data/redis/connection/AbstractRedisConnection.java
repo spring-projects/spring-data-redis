@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,13 @@ import org.springframework.data.redis.RedisSystemException;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.4
  */
 public abstract class AbstractRedisConnection implements DefaultedRedisConnection {
 
 	private RedisSentinelConfiguration sentinelConfiguration;
-	private ConcurrentHashMap<RedisNode, RedisSentinelConnection> connectionCache = new ConcurrentHashMap<RedisNode, RedisSentinelConnection>();
+	private ConcurrentHashMap<RedisNode, RedisSentinelConnection> connectionCache = new ConcurrentHashMap<>();
 
 	/*
 	 * (non-Javadoc)
@@ -73,7 +74,7 @@ public abstract class AbstractRedisConnection implements DefaultedRedisConnectio
 
 	/**
 	 * Check if node is active by sending ping.
-	 * 
+	 *
 	 * @param node
 	 * @return
 	 */
@@ -83,7 +84,7 @@ public abstract class AbstractRedisConnection implements DefaultedRedisConnectio
 
 	/**
 	 * Get {@link RedisSentinelCommands} connected to given node.
-	 * 
+	 *
 	 * @param sentinel
 	 * @return
 	 */

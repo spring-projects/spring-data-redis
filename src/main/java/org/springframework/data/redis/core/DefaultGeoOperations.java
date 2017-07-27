@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 
@@ -36,11 +35,11 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
  * @author Christoph Strobl
  * @since 1.8
  */
-public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements GeoOperations<K, M> {
+class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements GeoOperations<K, M> {
 
 	/**
 	 * Creates new {@link DefaultGeoOperations}.
-	 * 
+	 *
 	 * @param template must not be {@literal null}.
 	 */
 	DefaultGeoOperations(RedisTemplate<K, M> template) {
@@ -52,17 +51,12 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	 * @see org.springframework.data.redis.core.GeoOperations#geoAdd(java.lang.Object, org.springframework.data.geo.Point, java.lang.Object)
 	 */
 	@Override
-	public Long geoAdd(K key, final Point point, M member) {
+	public Long geoAdd(K key, Point point, M member) {
 
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawMember = rawValue(member);
+		byte[] rawKey = rawKey(key);
+		byte[] rawMember = rawValue(member);
 
-		return execute(new RedisCallback<Long>() {
-
-			public Long doInRedis(RedisConnection connection) {
-				return connection.geoAdd(rawKey, point, rawMember);
-			}
-		}, true);
+		return execute(connection -> connection.geoAdd(rawKey, point, rawMember), true);
 	}
 
 	/*
@@ -81,20 +75,15 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	@Override
 	public Long geoAdd(K key, Map<M, Point> memberCoordinateMap) {
 
-		final byte[] rawKey = rawKey(key);
-		final Map<byte[], Point> rawMemberCoordinateMap = new HashMap<byte[], Point>();
+		byte[] rawKey = rawKey(key);
+		Map<byte[], Point> rawMemberCoordinateMap = new HashMap<>();
 
 		for (M member : memberCoordinateMap.keySet()) {
-			final byte[] rawMember = rawValue(member);
+			byte[] rawMember = rawValue(member);
 			rawMemberCoordinateMap.put(rawMember, memberCoordinateMap.get(member));
 		}
 
-		return execute(new RedisCallback<Long>() {
-
-			public Long doInRedis(RedisConnection connection) {
-				return connection.geoAdd(rawKey, rawMemberCoordinateMap);
-			}
-		}, true);
+		return execute(connection -> connection.geoAdd(rawKey, rawMemberCoordinateMap), true);
 	}
 
 	/*
@@ -104,7 +93,7 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	@Override
 	public Long geoAdd(K key, Iterable<GeoLocation<M>> locations) {
 
-		Map<M, Point> memberCoordinateMap = new LinkedHashMap<M, Point>();
+		Map<M, Point> memberCoordinateMap = new LinkedHashMap<>();
 		for (GeoLocation<M> location : locations) {
 			memberCoordinateMap.put(location.getName(), location.getPoint());
 		}
@@ -117,18 +106,13 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	 * @see org.springframework.data.redis.core.GeoOperations#geoDist(java.lang.Object, java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public Distance geoDist(K key, final M member1, final M member2) {
+	public Distance geoDist(K key, M member1, M member2) {
 
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawMember1 = rawValue(member1);
-		final byte[] rawMember2 = rawValue(member2);
+		byte[] rawKey = rawKey(key);
+		byte[] rawMember1 = rawValue(member1);
+		byte[] rawMember2 = rawValue(member2);
 
-		return execute(new RedisCallback<Distance>() {
-
-			public Distance doInRedis(RedisConnection connection) {
-				return connection.geoDist(rawKey, rawMember1, rawMember2);
-			}
-		}, true);
+		return execute(connection -> connection.geoDist(rawKey, rawMember1, rawMember2), true);
 	}
 
 	/*
@@ -136,18 +120,13 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	 * @see org.springframework.data.redis.core.GeoOperations#geoDist(java.lang.Object, java.lang.Object, java.lang.Object, org.springframework.data.geo.Metric)
 	 */
 	@Override
-	public Distance geoDist(K key, M member1, M member2, final Metric metric) {
+	public Distance geoDist(K key, M member1, M member2, Metric metric) {
 
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawMember1 = rawValue(member1);
-		final byte[] rawMember2 = rawValue(member2);
+		byte[] rawKey = rawKey(key);
+		byte[] rawMember1 = rawValue(member1);
+		byte[] rawMember2 = rawValue(member2);
 
-		return execute(new RedisCallback<Distance>() {
-
-			public Distance doInRedis(RedisConnection connection) {
-				return connection.geoDist(rawKey, rawMember1, rawMember2, metric);
-			}
-		}, true);
+		return execute(connection -> connection.geoDist(rawKey, rawMember1, rawMember2, metric), true);
 	}
 
 	/*
@@ -155,17 +134,12 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	 * @see org.springframework.data.redis.core.GeoOperations#geoHash(java.lang.Object, java.lang.Object[])
 	 */
 	@Override
-	public List<String> geoHash(K key, final M... members) {
+	public List<String> geoHash(K key, M... members) {
 
-		final byte[] rawKey = rawKey(key);
-		final byte[][] rawMembers = rawValues(members);
+		byte[] rawKey = rawKey(key);
+		byte[][] rawMembers = rawValues(members);
 
-		return execute(new RedisCallback<List<String>>() {
-
-			public List<String> doInRedis(RedisConnection connection) {
-				return connection.geoHash(rawKey, rawMembers);
-			}
-		}, true);
+		return execute(connection -> connection.geoHash(rawKey, rawMembers), true);
 	}
 
 	/*
@@ -174,15 +148,10 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	 */
 	@Override
 	public List<Point> geoPos(K key, M... members) {
-		final byte[] rawKey = rawKey(key);
-		final byte[][] rawMembers = rawValues(members);
+		byte[] rawKey = rawKey(key);
+		byte[][] rawMembers = rawValues(members);
 
-		return execute(new RedisCallback<List<Point>>() {
-
-			public List<Point> doInRedis(RedisConnection connection) {
-				return connection.geoPos(rawKey, rawMembers);
-			}
-		}, true);
+		return execute(connection -> connection.geoPos(rawKey, rawMembers), true);
 	}
 
 	/*
@@ -190,16 +159,11 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	 * @see org.springframework.data.redis.core.GeoOperations#geoRadius(java.lang.Object, org.springframework.data.geo.Circle)
 	 */
 	@Override
-	public GeoResults<GeoLocation<M>> geoRadius(K key, final Circle within) {
+	public GeoResults<GeoLocation<M>> geoRadius(K key, Circle within) {
 
-		final byte[] rawKey = rawKey(key);
+		byte[] rawKey = rawKey(key);
 
-		GeoResults<GeoLocation<byte[]>> raw = execute(new RedisCallback<GeoResults<GeoLocation<byte[]>>>() {
-
-			public GeoResults<GeoLocation<byte[]>> doInRedis(RedisConnection connection) {
-				return connection.geoRadius(rawKey, within);
-			}
-		}, true);
+		GeoResults<GeoLocation<byte[]>> raw = execute(connection -> connection.geoRadius(rawKey, within), true);
 
 		return deserializeGeoResults(raw);
 	}
@@ -209,16 +173,11 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	 * @see org.springframework.data.redis.core.GeoOperations#geoRadius(java.lang.Object, org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
 	 */
 	@Override
-	public GeoResults<GeoLocation<M>> geoRadius(K key, final Circle within, final GeoRadiusCommandArgs args) {
+	public GeoResults<GeoLocation<M>> geoRadius(K key, Circle within, GeoRadiusCommandArgs args) {
 
-		final byte[] rawKey = rawKey(key);
+		byte[] rawKey = rawKey(key);
 
-		GeoResults<GeoLocation<byte[]>> raw = execute(new RedisCallback<GeoResults<GeoLocation<byte[]>>>() {
-
-			public GeoResults<GeoLocation<byte[]>> doInRedis(RedisConnection connection) {
-				return connection.geoRadius(rawKey, within, args);
-			}
-		}, true);
+		GeoResults<GeoLocation<byte[]>> raw = execute(connection -> connection.geoRadius(rawKey, within, args), true);
 
 		return deserializeGeoResults(raw);
 	}
@@ -228,16 +187,12 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	 * @see org.springframework.data.redis.core.GeoOperations#geoRadiusByMember(java.lang.Object, java.lang.Object, double)
 	 */
 	@Override
-	public GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, final double radius) {
+	public GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, double radius) {
 
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawMember = rawValue(member);
-		GeoResults<GeoLocation<byte[]>> raw = execute(new RedisCallback<GeoResults<GeoLocation<byte[]>>>() {
-
-			public GeoResults<GeoLocation<byte[]>> doInRedis(RedisConnection connection) {
-				return connection.geoRadiusByMember(rawKey, rawMember, radius);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		byte[] rawMember = rawValue(member);
+		GeoResults<GeoLocation<byte[]>> raw = execute(connection -> connection.geoRadiusByMember(rawKey, rawMember, radius),
+				true);
 
 		return deserializeGeoResults(raw);
 	}
@@ -247,17 +202,13 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	 * @see org.springframework.data.redis.core.GeoOperations#geoRadiusByMember(java.lang.Object, java.lang.Object, org.springframework.data.geo.Distance)
 	 */
 	@Override
-	public GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, final Distance distance) {
+	public GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, Distance distance) {
 
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawMember = rawValue(member);
+		byte[] rawKey = rawKey(key);
+		byte[] rawMember = rawValue(member);
 
-		GeoResults<GeoLocation<byte[]>> raw = execute(new RedisCallback<GeoResults<GeoLocation<byte[]>>>() {
-
-			public GeoResults<GeoLocation<byte[]>> doInRedis(RedisConnection connection) {
-				return connection.geoRadiusByMember(rawKey, rawMember, distance);
-			}
-		}, true);
+		GeoResults<GeoLocation<byte[]>> raw = execute(
+				connection -> connection.geoRadiusByMember(rawKey, rawMember, distance), true);
 
 		return deserializeGeoResults(raw);
 	}
@@ -267,18 +218,13 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	 * @see org.springframework.data.redis.core.GeoOperations#geoRadiusByMember(java.lang.Object, java.lang.Object, double, org.springframework.data.geo.Metric, org.springframework.data.redis.core.GeoRadiusCommandArgs)
 	 */
 	@Override
-	public GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, final Distance distance,
-			final GeoRadiusCommandArgs param) {
+	public GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, Distance distance, GeoRadiusCommandArgs param) {
 
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawMember = rawValue(member);
+		byte[] rawKey = rawKey(key);
+		byte[] rawMember = rawValue(member);
 
-		GeoResults<GeoLocation<byte[]>> raw = execute(new RedisCallback<GeoResults<GeoLocation<byte[]>>>() {
-
-			public GeoResults<GeoLocation<byte[]>> doInRedis(RedisConnection connection) {
-				return connection.geoRadiusByMember(rawKey, rawMember, distance, param);
-			}
-		}, true);
+		GeoResults<GeoLocation<byte[]>> raw = execute(
+				connection -> connection.geoRadiusByMember(rawKey, rawMember, distance, param), true);
 
 		return deserializeGeoResults(raw);
 	}
@@ -290,14 +236,8 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 	@Override
 	public Long geoRemove(K key, M... members) {
 
-		final byte[] rawKey = rawKey(key);
-		final byte[][] rawMembers = rawValues(members);
-
-		return execute(new RedisCallback<Long>() {
-
-			public Long doInRedis(RedisConnection connection) {
-				return connection.zRem(rawKey, rawMembers);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		byte[][] rawMembers = rawValues(members);
+		return execute(connection -> connection.zRem(rawKey, rawMembers), true);
 	}
 }

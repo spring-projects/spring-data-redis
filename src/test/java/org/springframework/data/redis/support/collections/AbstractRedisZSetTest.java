@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -48,7 +48,7 @@ import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test for Redis ZSet.
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
@@ -68,7 +68,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 	/**
 	 * Constructs a new <code>AbstractRedisZSetTest</code> instance.
-	 * 
+	 *
 	 * @param factory
 	 * @param template
 	 */
@@ -212,7 +212,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 	@SuppressWarnings("unchecked")
 	private RedisZSet<T> createZSetFor(String key) {
-		return new DefaultRedisZSet<T>((BoundZSetOperations<String, T>) zSet.getOperations().boundZSetOps(key));
+		return new DefaultRedisZSet<>((BoundZSetOperations<String, T>) zSet.getOperations().boundZSetOps(key));
 	}
 
 	@SuppressWarnings("unchecked")

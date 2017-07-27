@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,7 +47,7 @@ import org.springframework.data.redis.test.util.RedisSentinelRule;
 
 /**
  * Base test class for PubSub integration tests
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  */
@@ -62,7 +62,7 @@ public class PubSubTests<T> {
 	protected ObjectFactory<T> factory;
 	@SuppressWarnings("rawtypes") protected RedisTemplate template;
 
-	private final BlockingDeque<Object> bag = new LinkedBlockingDeque<Object>(99);
+	private final BlockingDeque<Object> bag = new LinkedBlockingDeque<>(99);
 
 	private final Object handler = new Object() {
 		@SuppressWarnings("unused")
@@ -121,7 +121,7 @@ public class PubSubTests<T> {
 
 	/**
 	 * Return a new instance of T
-	 * 
+	 *
 	 * @return
 	 */
 	protected T getT() {
@@ -137,7 +137,7 @@ public class PubSubTests<T> {
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(CHANNEL, payload2);
 
-		Set<T> set = new LinkedHashSet<T>();
+		Set<T> set = new LinkedHashSet<>();
 		set.add((T) bag.poll(1, TimeUnit.SECONDS));
 		set.add((T) bag.poll(1, TimeUnit.SECONDS));
 
@@ -188,7 +188,7 @@ public class PubSubTests<T> {
 
 		template.convertAndSend(CHANNEL, payload);
 
-		Set<T> set = new LinkedHashSet<T>();
+		Set<T> set = new LinkedHashSet<>();
 		set.add((T) bag.poll(3, TimeUnit.SECONDS));
 
 		assertThat(set, hasItems(payload));

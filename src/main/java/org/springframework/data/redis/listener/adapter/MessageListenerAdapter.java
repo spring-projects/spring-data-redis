@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2014 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.util.StringUtils;
 
@@ -60,33 +59,33 @@ import org.springframework.util.StringUtils;
  * <p>
  * Find below some examples of method signatures compliant with this adapter class. This first example handles all
  * <code>Message</code> types and gets passed the contents of each <code>Message</code> type as an argument.
- * 
+ *
  * <pre class="code">
  * public interface MessageContentsDelegate {
  * 	void handleMessage(String text);
- * 
+ *
  * 	void handleMessage(byte[] bytes);
- * 
+ *
  * 	void handleMessage(Person obj);
  * }
  * </pre>
  * <p>
  * In addition, the channel or pattern to which a message is sent can be passed in to the method as a second argument of
  * type String:
- * 
+ *
  * <pre class="code">
  * public interface MessageContentsDelegate {
  * 	void handleMessage(String text, String channel);
- * 
+ *
  * 	void handleMessage(byte[] bytes, String pattern);
  * }
  * </pre>
- * 
+ *
  * For further examples and discussion please do refer to the Spring Data reference documentation which describes this
  * class (and its attendant configuration) in detail. <b>Important:</b> Due to the nature of messages, the default
  * serializer used by the adapter is {@link StringRedisSerializer}. If the messages are of a different type, change them
  * accordingly through {@link #setSerializer(RedisSerializer)}.
- * 
+ *
  * @author Juergen Hoeller
  * @author Costin Leau
  * @author Greg Turnquist
@@ -109,17 +108,13 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 			this.delegate = delegate;
 			this.methodName = methodName;
 			this.lenient = delegate instanceof MessageListener;
-			this.methods = new HashSet<Method>();
+			this.methods = new HashSet<>();
 
 			final Class<?> c = delegate.getClass();
 
-			ReflectionUtils.doWithMethods(c, new MethodCallback() {
-
-				public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-					ReflectionUtils.makeAccessible(method);
-					methods.add(method);
-				}
-
+			ReflectionUtils.doWithMethods(c, method -> {
+				ReflectionUtils.makeAccessible(method);
+				methods.add(method);
 			}, new MostSpecificMethodFilter(methodName, c));
 
 			Assert.isTrue(lenient || !methods.isEmpty(), "Cannot find a suitable method named [" + c.getName() + "#"
@@ -150,14 +145,14 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 
 		/**
 		 * Returns the current methodName.
-		 * 
+		 *
 		 * @return the methodName
 		 */
 		public String getMethodName() {
 			return methodName;
 		}
 	}
-	
+
 	/**
 	 * Out-of-the-box value for the default listener method: "handleMessage".
 	 */
@@ -186,7 +181,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 
 	/**
 	 * Create a new {@link MessageListenerAdapter} for the given delegate.
-	 * 
+	 *
 	 * @param delegate the delegate object
 	 */
 	public MessageListenerAdapter(Object delegate) {
@@ -196,7 +191,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 
 	/**
 	 * Create a new {@link MessageListenerAdapter} for the given delegate.
-	 * 
+	 *
 	 * @param delegate the delegate object
 	 * @param defaultListenerMethod method to call when a message comes
 	 * @see #getListenerMethodName
@@ -212,7 +207,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 * <p>
 	 * If no explicit delegate object has been specified, listener methods are expected to present on this adapter
 	 * instance, that is, on a custom subclass of this adapter, defining listener methods.
-	 * 
+	 *
 	 * @param delegate delegate object
 	 */
 	public void setDelegate(Object delegate) {
@@ -222,7 +217,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 
 	/**
 	 * Returns the target object to delegate message listening to.
-	 * 
+	 *
 	 * @return message listening delegation
 	 */
 	public Object getDelegate() {
@@ -232,7 +227,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	/**
 	 * Specify the name of the default listener method to delegate to, for the case where no specific listener method has
 	 * been determined. Out-of-the-box value is {@link #ORIGINAL_DEFAULT_LISTENER_METHOD "handleMessage"}.
-	 * 
+	 *
 	 * @see #getListenerMethodName
 	 */
 	public void setDefaultListenerMethod(String defaultListenerMethod) {
@@ -250,7 +245,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 * Set the serializer that will convert incoming raw Redis messages to listener method arguments.
 	 * <p>
 	 * The default converter is a {@link StringRedisSerializer}.
-	 * 
+	 *
 	 * @param serializer
 	 */
 	public void setSerializer(RedisSerializer<?> serializer) {
@@ -261,7 +256,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 * Sets the serializer used for converting the channel/pattern to a String.
 	 * <p>
 	 * The default converter is a {@link StringRedisSerializer}.
-	 * 
+	 *
 	 * @param serializer
 	 */
 	public void setStringSerializer(RedisSerializer<String> serializer) {
@@ -285,7 +280,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 * <p>
 	 * Delegates the message to the target listener method, with appropriate conversion of the message argument. In case
 	 * of an exception, the {@link #handleListenerException(Throwable)} method will be invoked.
-	 * 
+	 *
 	 * @param message the incoming Redis message
 	 * @see #handleListenerException
 	 */
@@ -315,7 +310,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 
 	/**
 	 * Initialize the default implementations for the adapter's strategies.
-	 * 
+	 *
 	 * @see #setSerializer(RedisSerializer)
 	 * @see JdkSerializationRedisSerializer
 	 */
@@ -328,7 +323,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	/**
 	 * Handle the given exception that arose during listener execution. The default implementation logs the exception at
 	 * error level.
-	 * 
+	 *
 	 * @param ex the exception to handle
 	 */
 	protected void handleListenerException(Throwable ex) {
@@ -337,7 +332,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 
 	/**
 	 * Extract the message body from the given Redis message.
-	 * 
+	 *
 	 * @param message the Redis <code>Message</code>
 	 * @return the content of the message, to be passed into the listener method as argument
 	 */
@@ -352,7 +347,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 * Determine the name of the listener method that is supposed to handle the given message.
 	 * <p>
 	 * The default implementation simply returns the configured default listener method, if any.
-	 * 
+	 *
 	 * @param originalMessage the Redis request message
 	 * @param extractedMessage the converted Redis request message, to be passed into the listener method as argument
 	 * @return the name of the listener method (never <code>null</code>)
@@ -364,7 +359,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 
 	/**
 	 * Invoke the specified listener method.
-	 * 
+	 *
 	 * @param methodName the name of the listener method
 	 * @param arguments the message arguments to be passed in
 	 * @see #getListenerMethodName

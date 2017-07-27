@@ -104,7 +104,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	private RedisOperations<?, ?> redisOps;
 	private RedisConverter converter;
 	private RedisMessageListenerContainer messageListenerContainer;
-	private final AtomicReference<KeyExpirationEventMessageListener> expirationListener = new AtomicReference<KeyExpirationEventMessageListener>(
+	private final AtomicReference<KeyExpirationEventMessageListener> expirationListener = new AtomicReference<>(
 			null);
 	private ApplicationEventPublisher eventPublisher;
 

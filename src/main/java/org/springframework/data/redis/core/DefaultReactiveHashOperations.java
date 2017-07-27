@@ -22,7 +22,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -39,7 +38,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.0
  */
-public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations<H, HK, HV> {
+class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations<H, HK, HV> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
 	private final RedisSerializationContext<H, ?> serializationContext;
@@ -50,7 +49,7 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 	 * @param template must not be {@literal null}.
 	 * @param serializationContext must not be {@literal null}.
 	 */
-	public DefaultReactiveHashOperations(ReactiveRedisTemplate<?, ?> template,
+	DefaultReactiveHashOperations(ReactiveRedisTemplate<?, ?> template,
 			RedisSerializationContext<H, ?> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
@@ -289,7 +288,7 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 
 	private List<HV> deserializeHashValues(List<ByteBuffer> source) {
 
-		List<HV> values = new ArrayList<HV>(source.size());
+		List<HV> values = new ArrayList<>(source.size());
 		for (ByteBuffer byteBuffer : source) {
 			values.add(readHashValue(byteBuffer));
 		}

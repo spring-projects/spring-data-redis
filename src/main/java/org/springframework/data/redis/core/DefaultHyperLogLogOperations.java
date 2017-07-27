@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,15 @@ package org.springframework.data.redis.core;
 
 import java.util.Arrays;
 
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
-
 /**
  * @author Christoph Strobl
  * @since 1.5
  * @param <K>
  * @param <V>
  */
-public class DefaultHyperLogLogOperations<K, V> extends AbstractOperations<K, V> implements HyperLogLogOperations<K, V> {
+class DefaultHyperLogLogOperations<K, V> extends AbstractOperations<K, V> implements HyperLogLogOperations<K, V> {
 
-	public DefaultHyperLogLogOperations(RedisTemplate<K, V> template) {
+	DefaultHyperLogLogOperations(RedisTemplate<K, V> template) {
 		super(template);
 	}
 
@@ -39,17 +36,9 @@ public class DefaultHyperLogLogOperations<K, V> extends AbstractOperations<K, V>
 	@Override
 	public Long add(K key, V... values) {
 
-		final byte[] rawKey = rawKey(key);
-		final byte[][] rawValues = rawValues(values);
-
-		return execute(new RedisCallback<Long>() {
-
-			@Override
-			public Long doInRedis(RedisConnection connection) throws DataAccessException {
-				return connection.pfAdd(rawKey, rawValues);
-			}
-		}, true);
-
+		byte[] rawKey = rawKey(key);
+		byte[][] rawValues = rawValues(values);
+		return execute(connection -> connection.pfAdd(rawKey, rawValues), true);
 	}
 
 	/*
@@ -59,15 +48,8 @@ public class DefaultHyperLogLogOperations<K, V> extends AbstractOperations<K, V>
 	@Override
 	public Long size(K... keys) {
 
-		final byte[][] rawKeys = rawKeys(Arrays.asList(keys));
-
-		return execute(new RedisCallback<Long>() {
-
-			@Override
-			public Long doInRedis(RedisConnection connection) throws DataAccessException {
-				return connection.pfCount(rawKeys);
-			}
-		}, true);
+		byte[][] rawKeys = rawKeys(Arrays.asList(keys));
+		return execute(connection -> connection.pfCount(rawKeys), true);
 	}
 
 	/*
@@ -77,17 +59,12 @@ public class DefaultHyperLogLogOperations<K, V> extends AbstractOperations<K, V>
 	@Override
 	public Long union(K destination, K... sourceKeys) {
 
-		final byte[] rawDestinationKey = rawKey(destination);
-		final byte[][] rawSourceKeys = rawKeys(Arrays.asList(sourceKeys));
+		byte[] rawDestinationKey = rawKey(destination);
+		byte[][] rawSourceKeys = rawKeys(Arrays.asList(sourceKeys));
+		return execute(connection -> {
 
-		return execute(new RedisCallback<Long>() {
-
-			@Override
-			public Long doInRedis(RedisConnection connection) throws DataAccessException {
-
-				connection.pfMerge(rawDestinationKey, rawSourceKeys);
-				return connection.pfCount(rawDestinationKey);
-			}
+			connection.pfMerge(rawDestinationKey, rawSourceKeys);
+			return connection.pfCount(rawDestinationKey);
 		}, true);
 	}
 

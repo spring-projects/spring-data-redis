@@ -161,7 +161,7 @@ public interface RedisSerializationContext<K, V> {
 
 			Assert.notNull(serializer, "RedisSerializer must not be null!");
 
-			return new RedisSerializerToSerializationPairAdapter<T>(serializer);
+			return new RedisSerializerToSerializationPairAdapter<>(serializer);
 		}
 
 		/**

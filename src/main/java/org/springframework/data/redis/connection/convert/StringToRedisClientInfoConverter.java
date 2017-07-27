@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,12 @@ import org.springframework.data.redis.core.types.RedisClientInfo.RedisClientInfo
 
 /**
  * {@link Converter} implementation to create one {@link RedisClientInfo} per line entry in given {@link String} array.
- * 
+ *
  * <pre>
  * ## sample of single line
  * addr=127.0.0.1:60311 fd=6 name= age=4059 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=0 oll=0 omem=0 events=r cmd=client
  * </pre>
- * 
+ *
  * @author Christoph Strobl
  * @since 1.3
  */
@@ -42,10 +42,12 @@ public class StringToRedisClientInfoConverter implements Converter<String[], Lis
 		if (lines == null) {
 			return Collections.emptyList();
 		}
-		List<RedisClientInfo> infos = new ArrayList<RedisClientInfo>(lines.length);
+
+		List<RedisClientInfo> infos = new ArrayList<>(lines.length);
 		for (String line : lines) {
 			infos.add(RedisClientInfoBuilder.fromString(line));
 		}
+
 		return infos;
 	}
 

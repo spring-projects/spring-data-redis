@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2016 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,16 +19,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 
 /**
  * Default implementation of {@link ZSetOperations}.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Thomas Darimont
@@ -41,105 +38,111 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		super(template);
 	}
 
-	public Boolean add(final K key, final V value, final double score) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawValue = rawValue(value);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#add(java.lang.Object, java.lang.Object, double)
+	 */
+	@Override
+	public Boolean add(K key, V value, double score) {
 
-		return execute(new RedisCallback<Boolean>() {
-
-			public Boolean doInRedis(RedisConnection connection) {
-				return connection.zAdd(rawKey, score, rawValue);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+		return execute(connection -> connection.zAdd(rawKey, score, rawValue), true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#add(java.lang.Object, java.util.Set)
+	 */
+	@Override
 	public Long add(K key, Set<TypedTuple<V>> tuples) {
-		final byte[] rawKey = rawKey(key);
-		final Set<Tuple> rawValues = rawTupleValues(tuples);
 
-		return execute(new RedisCallback<Long>() {
-
-			public Long doInRedis(RedisConnection connection) {
-				return connection.zAdd(rawKey, rawValues);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		Set<Tuple> rawValues = rawTupleValues(tuples);
+		return execute(connection -> connection.zAdd(rawKey, rawValues), true);
 	}
 
-	public Double incrementScore(K key, V value, final double delta) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawValue = rawValue(value);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#incrementScore(java.lang.Object, java.lang.Object, double)
+	 */
+	@Override
+	public Double incrementScore(K key, V value, double delta) {
 
-		return execute(new RedisCallback<Double>() {
-
-			public Double doInRedis(RedisConnection connection) {
-				return connection.zIncrBy(rawKey, delta, rawValue);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+		return execute(connection -> connection.zIncrBy(rawKey, delta, rawValue), true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#intersectAndStore(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
+	@Override
 	public Long intersectAndStore(K key, K otherKey, K destKey) {
 		return intersectAndStore(key, Collections.singleton(otherKey), destKey);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
+	 */
+	@Override
 	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
-		final byte[][] rawKeys = rawKeys(key, otherKeys);
-		final byte[] rawDestKey = rawKey(destKey);
-		return execute(new RedisCallback<Long>() {
 
-			public Long doInRedis(RedisConnection connection) {
-				return connection.zInterStore(rawDestKey, rawKeys);
-			}
-		}, true);
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		byte[] rawDestKey = rawKey(destKey);
+		return execute(connection -> connection.zInterStore(rawDestKey, rawKeys), true);
 	}
 
-	public Set<V> range(K key, final long start, final long end) {
-		final byte[] rawKey = rawKey(key);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#range(java.lang.Object, long, long)
+	 */
+	@Override
+	public Set<V> range(K key, long start, long end) {
 
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.zRange(rawKey, start, end);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		Set<byte[]> rawValues = execute(connection -> connection.zRange(rawKey, start, end), true);
 
 		return deserializeValues(rawValues);
 	}
 
-	public Set<V> reverseRange(K key, final long start, final long end) {
-		final byte[] rawKey = rawKey(key);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRange(java.lang.Object, long, long)
+	 */
+	@Override
+	public Set<V> reverseRange(K key, long start, long end) {
 
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.zRevRange(rawKey, start, end);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		Set<byte[]> rawValues = execute(connection -> connection.zRevRange(rawKey, start, end), true);
 
 		return deserializeValues(rawValues);
 	}
 
-	public Set<TypedTuple<V>> rangeWithScores(K key, final long start, final long end) {
-		final byte[] rawKey = rawKey(key);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#rangeWithScores(java.lang.Object, long, long)
+	 */
+	@Override
+	public Set<TypedTuple<V>> rangeWithScores(K key, long start, long end) {
 
-		Set<Tuple> rawValues = execute(new RedisCallback<Set<Tuple>>() {
-
-			public Set<Tuple> doInRedis(RedisConnection connection) {
-				return connection.zRangeWithScores(rawKey, start, end);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		Set<Tuple> rawValues = execute(connection -> connection.zRangeWithScores(rawKey, start, end), true);
 
 		return deserializeTupleValues(rawValues);
 	}
 
-	public Set<TypedTuple<V>> reverseRangeWithScores(K key, final long start, final long end) {
-		final byte[] rawKey = rawKey(key);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRangeWithScores(java.lang.Object, long, long)
+	 */
+	@Override
+	public Set<TypedTuple<V>> reverseRangeWithScores(K key, long start, long end) {
 
-		Set<Tuple> rawValues = execute(new RedisCallback<Set<Tuple>>() {
-
-			public Set<Tuple> doInRedis(RedisConnection connection) {
-				return connection.zRevRangeWithScores(rawKey, start, end);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		Set<Tuple> rawValues = execute(connection -> connection.zRevRangeWithScores(rawKey, start, end), true);
 
 		return deserializeTupleValues(rawValues);
 	}
@@ -149,7 +152,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByLex(java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Range)
 	 */
 	@Override
-	public Set<V> rangeByLex(K key, final Range range) {
+	public Set<V> rangeByLex(K key, Range range) {
 		return rangeByLex(key, range, null);
 	}
 
@@ -158,207 +161,208 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByLex(java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public Set<V> rangeByLex(K key, final Range range, final Limit limit) {
+	public Set<V> rangeByLex(K key, Range range, Limit limit) {
 
-		final byte[] rawKey = rawKey(key);
-
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.zRangeByLex(rawKey, range, limit);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		Set<byte[]> rawValues = execute(connection -> connection.zRangeByLex(rawKey, range, limit), true);
 
 		return deserializeValues(rawValues);
 	}
 
-	public Set<V> rangeByScore(K key, final double min, final double max) {
-		final byte[] rawKey = rawKey(key);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByScore(java.lang.Object, double, double)
+	 */
+	@Override
+	public Set<V> rangeByScore(K key, double min, double max) {
 
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.zRangeByScore(rawKey, min, max);
-			}
-		}, true);
-
-		return deserializeValues(rawValues);
-	}
-
-	public Set<V> rangeByScore(K key, final double min, final double max, final long offset, final long count) {
-		final byte[] rawKey = rawKey(key);
-
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.zRangeByScore(rawKey, min, max, offset, count);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		Set<byte[]> rawValues = execute(connection -> connection.zRangeByScore(rawKey, min, max), true);
 
 		return deserializeValues(rawValues);
 	}
 
-	public Set<V> reverseRangeByScore(K key, final double min, final double max) {
-		final byte[] rawKey = rawKey(key);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByScore(java.lang.Object, double, double, long, long)
+	 */
+	@Override
+	public Set<V> rangeByScore(K key, double min, double max, long offset, long count) {
 
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.zRevRangeByScore(rawKey, min, max);
-			}
-		}, true);
-
-		return deserializeValues(rawValues);
-	}
-
-	public Set<V> reverseRangeByScore(K key, final double min, final double max, final long offset, final long count) {
-		final byte[] rawKey = rawKey(key);
-
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.zRevRangeByScore(rawKey, min, max, offset, count);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		Set<byte[]> rawValues = execute(connection -> connection.zRangeByScore(rawKey, min, max, offset, count), true);
 
 		return deserializeValues(rawValues);
 	}
 
-	public Set<TypedTuple<V>> rangeByScoreWithScores(K key, final double min, final double max) {
-		final byte[] rawKey = rawKey(key);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRangeByScore(java.lang.Object, double, double)
+	 */
+	@Override
+	public Set<V> reverseRangeByScore(K key, double min, double max) {
 
-		Set<Tuple> rawValues = execute(new RedisCallback<Set<Tuple>>() {
+		byte[] rawKey = rawKey(key);
+		Set<byte[]> rawValues = execute(connection -> connection.zRevRangeByScore(rawKey, min, max), true);
 
-			public Set<Tuple> doInRedis(RedisConnection connection) {
-				return connection.zRangeByScoreWithScores(rawKey, min, max);
-			}
-		}, true);
+		return deserializeValues(rawValues);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRangeByScore(java.lang.Object, double, double, long, long)
+	 */
+	@Override
+	public Set<V> reverseRangeByScore(K key, double min, double max, long offset, long count) {
+
+		byte[] rawKey = rawKey(key);
+		Set<byte[]> rawValues = execute(connection -> connection.zRevRangeByScore(rawKey, min, max, offset, count), true);
+
+		return deserializeValues(rawValues);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByScoreWithScores(java.lang.Object, double, double)
+	 */
+	@Override
+	public Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max) {
+
+		byte[] rawKey = rawKey(key);
+		Set<Tuple> rawValues = execute(connection -> connection.zRangeByScoreWithScores(rawKey, min, max), true);
 
 		return deserializeTupleValues(rawValues);
 	}
 
-	public Set<TypedTuple<V>> rangeByScoreWithScores(K key, final double min, final double max, final long offset,
-			final long count) {
-		final byte[] rawKey = rawKey(key);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByScoreWithScores(java.lang.Object, double, double, long, long)
+	 */
+	@Override
+	public Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max, long offset, long count) {
 
-		Set<Tuple> rawValues = execute(new RedisCallback<Set<Tuple>>() {
-
-			public Set<Tuple> doInRedis(RedisConnection connection) {
-				return connection.zRangeByScoreWithScores(rawKey, min, max, offset, count);
-			}
-		}, true);
-
-		return deserializeTupleValues(rawValues);
-	}
-
-	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, final double min, final double max) {
-		final byte[] rawKey = rawKey(key);
-
-		Set<Tuple> rawValues = execute(new RedisCallback<Set<Tuple>>() {
-
-			public Set<Tuple> doInRedis(RedisConnection connection) {
-				return connection.zRevRangeByScoreWithScores(rawKey, min, max);
-
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		Set<Tuple> rawValues = execute(connection -> connection.zRangeByScoreWithScores(rawKey, min, max, offset, count),
+				true);
 
 		return deserializeTupleValues(rawValues);
 	}
 
-	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, final double min, final double max, final long offset,
-			final long count) {
-		final byte[] rawKey = rawKey(key);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRangeByScoreWithScores(java.lang.Object, double, double)
+	 */
+	@Override
+	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max) {
 
-		Set<Tuple> rawValues = execute(new RedisCallback<Set<Tuple>>() {
-
-			public Set<Tuple> doInRedis(RedisConnection connection) {
-				return connection.zRevRangeByScoreWithScores(rawKey, min, max, offset, count);
-
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		Set<Tuple> rawValues = execute(connection -> connection.zRevRangeByScoreWithScores(rawKey, min, max), true);
 
 		return deserializeTupleValues(rawValues);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRangeByScoreWithScores(java.lang.Object, double, double, long, long)
+	 */
+	@Override
+	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max, long offset, long count) {
+
+		byte[] rawKey = rawKey(key);
+		Set<Tuple> rawValues = execute(connection -> connection.zRevRangeByScoreWithScores(rawKey, min, max, offset, count),
+				true);
+
+		return deserializeTupleValues(rawValues);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#rank(java.lang.Object, java.lang.Object)
+	 */
+	@Override
 	public Long rank(K key, Object o) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawValue = rawValue(o);
 
-		return execute(new RedisCallback<Long>() {
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(o);
 
-			public Long doInRedis(RedisConnection connection) {
-				Long zRank = connection.zRank(rawKey, rawValue);
-				return (zRank != null && zRank.longValue() >= 0 ? zRank : null);
-			}
+		return execute(connection -> {
+			Long zRank = connection.zRank(rawKey, rawValue);
+			return (zRank != null && zRank.longValue() >= 0 ? zRank : null);
 		}, true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRank(java.lang.Object, java.lang.Object)
+	 */
+	@Override
 	public Long reverseRank(K key, Object o) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawValue = rawValue(o);
 
-		return execute(new RedisCallback<Long>() {
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(o);
 
-			public Long doInRedis(RedisConnection connection) {
-				Long zRank = connection.zRevRank(rawKey, rawValue);
-				return (zRank != null && zRank.longValue() >= 0 ? zRank : null);
-			}
+		return execute(connection -> {
+			Long zRank = connection.zRevRank(rawKey, rawValue);
+			return (zRank != null && zRank.longValue() >= 0 ? zRank : null);
 		}, true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#remove(java.lang.Object, java.lang.Object[])
+	 */
+	@Override
 	public Long remove(K key, Object... values) {
-		final byte[] rawKey = rawKey(key);
-		final byte[][] rawValues = rawValues(values);
 
-		return execute(new RedisCallback<Long>() {
+		byte[] rawKey = rawKey(key);
+		byte[][] rawValues = rawValues(values);
 
-			public Long doInRedis(RedisConnection connection) {
-				return connection.zRem(rawKey, rawValues);
-			}
-		}, true);
+		return execute(connection -> connection.zRem(rawKey, rawValues), true);
 	}
 
-	public Long removeRange(K key, final long start, final long end) {
-		final byte[] rawKey = rawKey(key);
-		return execute(new RedisCallback<Long>() {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#removeRange(java.lang.Object, long, long)
+	 */
+	@Override
+	public Long removeRange(K key, long start, long end) {
 
-			public Long doInRedis(RedisConnection connection) {
-				return connection.zRemRange(rawKey, start, end);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.zRemRange(rawKey, start, end), true);
 	}
 
-	public Long removeRangeByScore(K key, final double min, final double max) {
-		final byte[] rawKey = rawKey(key);
-		return execute(new RedisCallback<Long>() {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#removeRangeByScore(java.lang.Object, double, double)
+	 */
+	@Override
+	public Long removeRangeByScore(K key, double min, double max) {
 
-			public Long doInRedis(RedisConnection connection) {
-				return connection.zRemRangeByScore(rawKey, min, max);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.zRemRangeByScore(rawKey, min, max), true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#score(java.lang.Object, java.lang.Object)
+	 */
+	@Override
 	public Double score(K key, Object o) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawValue = rawValue(o);
 
-		return execute(new RedisCallback<Double>() {
-
-			public Double doInRedis(RedisConnection connection) {
-				return connection.zScore(rawKey, rawValue);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(o);
+		return execute(connection -> connection.zScore(rawKey, rawValue), true);
 	}
 
-	public Long count(K key, final double min, final double max) {
-		final byte[] rawKey = rawKey(key);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#count(java.lang.Object, double, double)
+	 */
+	@Override
+	public Long count(K key, double min, double max) {
 
-		return execute(new RedisCallback<Long>() {
-
-			public Long doInRedis(RedisConnection connection) {
-				return connection.zCount(rawKey, min, max);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.zCount(rawKey, min, max), true);
 	}
 
 	/*
@@ -377,28 +381,29 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	@Override
 	public Long zCard(K key) {
 
-		final byte[] rawKey = rawKey(key);
-		return execute(new RedisCallback<Long>() {
-
-			public Long doInRedis(RedisConnection connection) {
-				return connection.zCard(rawKey);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.zCard(rawKey), true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#unionAndStore(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
+	@Override
 	public Long unionAndStore(K key, K otherKey, K destKey) {
 		return unionAndStore(key, Collections.singleton(otherKey), destKey);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#unionAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
+	 */
+	@Override
 	public Long unionAndStore(K key, Collection<K> otherKeys, K destKey) {
-		final byte[][] rawKeys = rawKeys(key, otherKeys);
-		final byte[] rawDestKey = rawKey(destKey);
-		return execute(new RedisCallback<Long>() {
 
-			public Long doInRedis(RedisConnection connection) {
-				return connection.zUnionStore(rawDestKey, rawKeys);
-			}
-		}, true);
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		byte[] rawDestKey = rawKey(destKey);
+		return execute(connection -> connection.zUnionStore(rawDestKey, rawKeys), true);
 	}
 
 	/*
@@ -406,51 +411,24 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 * @see org.springframework.data.redis.core.ZSetOperations#scan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
-	public Cursor<TypedTuple<V>> scan(K key, final ScanOptions options) {
+	public Cursor<TypedTuple<V>> scan(K key, ScanOptions options) {
 
-		final byte[] rawKey = rawKey(key);
-		Cursor<Tuple> cursor = template.executeWithStickyConnection(new RedisCallback<Cursor<Tuple>>() {
+		byte[] rawKey = rawKey(key);
+		Cursor<Tuple> cursor = template.executeWithStickyConnection(connection -> connection.zScan(rawKey, options));
 
-			@Override
-			public Cursor<Tuple> doInRedis(RedisConnection connection) throws DataAccessException {
-				return connection.zScan(rawKey, options);
-			}
-		});
-
-		return new ConvertingCursor<Tuple, TypedTuple<V>>(cursor, new Converter<Tuple, TypedTuple<V>>() {
-
-			@Override
-			public TypedTuple<V> convert(Tuple source) {
-				return deserializeTuple(source);
-			}
-		});
+		return new ConvertingCursor<>(cursor, this::deserializeTuple);
 	}
 
-	public Set<byte[]> rangeByScore(K key, final String min, final String max) {
+	public Set<byte[]> rangeByScore(K key, String min, String max) {
 
-		final byte[] rawKey = rawKey(key);
-
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.zRangeByScore(rawKey, min, max);
-			}
-		}, true);
-
-		return rawValues;
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.zRangeByScore(rawKey, min, max), true);
 	}
 
-	public Set<byte[]> rangeByScore(K key, final String min, final String max, final long offset, final long count) {
+	public Set<byte[]> rangeByScore(K key, String min, String max, long offset, long count) {
 
-		final byte[] rawKey = rawKey(key);
+		byte[] rawKey = rawKey(key);
 
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.zRangeByScore(rawKey, min, max, offset, count);
-			}
-		}, true);
-
-		return rawValues;
+		return execute(connection -> connection.zRangeByScore(rawKey, min, max, offset, count), true);
 	}
 }

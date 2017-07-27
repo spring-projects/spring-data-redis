@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import io.lettuce.core.RedisFuture;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ValueScanCursor;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
@@ -266,7 +265,7 @@ class LettuceSetCommands implements RedisSetCommands {
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().spop(key, count),
-						(Converter<Set<byte[]>, List<byte[]>>) ArrayList::new));
+						ArrayList::new));
 				return null;
 			}
 			if (isQueueing()) {
@@ -309,8 +308,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	public List<byte[]> sRandMember(byte[] key, long count) {
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult((RedisFuture) getAsyncConnection().srandmember(key, count),
-						LettuceConverters.bytesCollectionToBytesList()));
+				pipeline(connection.newLettuceResult(getAsyncConnection().srandmember(key, count)));
 				return null;
 			}
 			if (isQueueing()) {

@@ -79,7 +79,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@SuppressWarnings("rawtypes") private Queue<Converter> pipelineConverters = new LinkedList<>();
 	@SuppressWarnings("rawtypes") private Queue<Converter> txConverters = new LinkedList<>();
 	private boolean deserializePipelineAndTxResults = false;
-	private IdentityConverter<Object, ?> identityConverter = new IdentityConverter();
+	private IdentityConverter<Object, ?> identityConverter = new IdentityConverter<>();
 
 	private class DeserializingConverter implements Converter<byte[], String> {
 		public String convert(byte[] source) {
@@ -284,7 +284,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		try {
 			List<Object> results = delegate.exec();
 			if (isPipelined()) {
-				pipelineConverters.add(new TransactionResultConverter(new LinkedList<Converter>(txConverters)));
+				pipelineConverters.add(new TransactionResultConverter(new LinkedList<>(txConverters)));
 				return results;
 			}
 			return convertResults(results, txConverters);
@@ -3200,54 +3200,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return this.delegate.hScan(key, options);
 	}
 
-	/**
-	 * Specifies if pipelined and tx results should be deserialized to Strings. If false, results of
-	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the underlying connection
-	 *
-	 * @param deserializePipelineAndTxResults Whether or not to deserialize pipeline and tx results
-	 */
-	public void setDeserializePipelineAndTxResults(boolean deserializePipelineAndTxResults) {
-		this.deserializePipelineAndTxResults = deserializePipelineAndTxResults;
-	}
-
-	private <T> T convertAndReturn(Object value, Converter converter) {
-
-		if (isFutureConversion()) {
-			addResultConverter(converter);
-		}
-
-		return ObjectUtils.nullSafeEquals(converter, identityConverter) ? (T) value : (T) converter.convert(value);
-	}
-
-	private void addResultConverter(Converter<?, ?> converter) {
-		if (isQueueing()) {
-			txConverters.add(converter);
-		} else {
-			pipelineConverters.add(converter);
-		}
-	}
-
-	private boolean isFutureConversion() {
-		return isPipelined() || isQueueing();
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private List<Object> convertResults(List<Object> results, Queue<Converter> converters) {
-		if (!deserializePipelineAndTxResults || results == null) {
-			return results;
-		}
-		if (results.size() != converters.size()) {
-			// Some of the commands were done directly on the delegate, don't attempt to convert
-			log.warn("Delegate returned an unexpected number of results. Abandoning type conversion.");
-			return results;
-		}
-		List<Object> convertedResults = new ArrayList<Object>();
-		for (Object result : results) {
-			convertedResults.add(converters.remove().convert(result));
-		}
-		return convertedResults;
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#setClientName(java.lang.String)
@@ -3290,29 +3242,23 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Cursor<Entry<String, String>> hScan(String key, ScanOptions options) {
 
-		return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<String, String>>(
+		return new ConvertingCursor<>(
 				this.delegate.hScan(this.serialize(key), options),
-				new Converter<Map.Entry<byte[], byte[]>, Map.Entry<String, String>>() {
+				source -> new Entry<String, String>() {
 
 					@Override
-					public Entry<String, String> convert(final Entry<byte[], byte[]> source) {
-						return new Map.Entry<String, String>() {
+					public String getKey() {
+						return bytesToString.convert(source.getKey());
+					}
 
-							@Override
-							public String getKey() {
-								return bytesToString.convert(source.getKey());
-							}
+					@Override
+					public String getValue() {
+						return bytesToString.convert(source.getValue());
+					}
 
-							@Override
-							public String getValue() {
-								return bytesToString.convert(source.getValue());
-							}
-
-							@Override
-							public String setValue(String value) {
-								throw new UnsupportedOperationException("Cannot set value for entry in cursor");
-							}
-						};
+					@Override
+					public String setValue(String value) {
+						throw new UnsupportedOperationException("Cannot set value for entry in cursor");
 					}
 				});
 	}
@@ -3323,7 +3269,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Cursor<String> sScan(String key, ScanOptions options) {
-		return new ConvertingCursor<byte[], String>(this.delegate.sScan(this.serialize(key), options), bytesToString);
+		return new ConvertingCursor<>(this.delegate.sScan(this.serialize(key), options), bytesToString);
 	}
 
 	/*
@@ -3332,7 +3278,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Cursor<StringTuple> zScan(String key, ScanOptions options) {
-		return new ConvertingCursor<Tuple, StringRedisConnection.StringTuple>(delegate.zScan(this.serialize(key), options),
+		return new ConvertingCursor<>(delegate.zScan(this.serialize(key), options),
 				new TupleConverter());
 	}
 
@@ -3505,6 +3451,55 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout) {
 		delegate.migrate(key, target, dbIndex, option, timeout);
+	}
+
+	/**
+	 * Specifies if pipelined and tx results should be deserialized to Strings. If false, results of
+	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the underlying connection
+	 *
+	 * @param deserializePipelineAndTxResults Whether or not to deserialize pipeline and tx results
+	 */
+	public void setDeserializePipelineAndTxResults(boolean deserializePipelineAndTxResults) {
+		this.deserializePipelineAndTxResults = deserializePipelineAndTxResults;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T convertAndReturn(Object value, Converter converter) {
+
+		if (isFutureConversion()) {
+			addResultConverter(converter);
+		}
+
+		return ObjectUtils.nullSafeEquals(converter, identityConverter) ? (T) value : (T) converter.convert(value);
+	}
+
+	private void addResultConverter(Converter<?, ?> converter) {
+		if (isQueueing()) {
+			txConverters.add(converter);
+		} else {
+			pipelineConverters.add(converter);
+		}
+	}
+
+	private boolean isFutureConversion() {
+		return isPipelined() || isQueueing();
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private List<Object> convertResults(List<Object> results, Queue<Converter> converters) {
+		if (!deserializePipelineAndTxResults || results == null) {
+			return results;
+		}
+		if (results.size() != converters.size()) {
+			// Some of the commands were done directly on the delegate, don't attempt to convert
+			log.warn("Delegate returned an unexpected number of results. Abandoning type conversion.");
+			return results;
+		}
+		List<Object> convertedResults = new ArrayList<>(results.size());
+		for (Object result : results) {
+			convertedResults.add(converters.remove().convert(result));
+		}
+		return convertedResults;
 	}
 
 	/*

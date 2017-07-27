@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2013 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,7 +38,7 @@ import org.w3c.dom.NamedNodeMap;
 
 /**
  * Parser for the Redis <code>&lt;listener-container&gt;</code> element.
- * 
+ *
  * @author Costin Leau
  */
 class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
@@ -73,7 +73,7 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 		List<Element> listDefs = DomUtils.getChildElementsByTagName(element, "listener");
 
 		if (!listDefs.isEmpty()) {
-			ManagedMap<BeanDefinition, Collection<? extends BeanDefinition>> listeners = new ManagedMap<BeanDefinition, Collection<? extends BeanDefinition>>(
+			ManagedMap<BeanDefinition, Collection<? extends BeanDefinition>> listeners = new ManagedMap<>(
 					listDefs.size());
 			for (Element listElement : listDefs) {
 				Object[] listenerDefinition = parseListener(listElement);
@@ -92,7 +92,7 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 	/**
 	 * Parses a listener definition. Returns the listener bean reference definition (as the array first entry) and its
 	 * associated topics (also as bean definitions).
-	 * 
+	 *
 	 * @param element
 	 * @return
 	 */
@@ -113,7 +113,7 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 		}
 
 		// assemble topics
-		Collection<Topic> topics = new ArrayList<Topic>();
+		Collection<Topic> topics = new ArrayList<>();
 
 		// get topic
 		String xTopics = element.getAttribute("topic");

@@ -34,7 +34,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultScriptExecutorUnitTests {
 
-	private final DefaultRedisScript<String> SCRIPT = new DefaultRedisScript<String>("return KEYS[0]", String.class);
+	private final DefaultRedisScript<String> SCRIPT = new DefaultRedisScript<>("return KEYS[0]", String.class);
 
 	private StringRedisTemplate template;
 	private @Mock RedisConnection redisConnectionMock;
@@ -49,7 +49,7 @@ public class DefaultScriptExecutorUnitTests {
 		template = spy(new StringRedisTemplate(connectionFactoryMock));
 		template.afterPropertiesSet();
 
-		executor = new DefaultScriptExecutor<String>(template);
+		executor = new DefaultScriptExecutor<>(template);
 	}
 
 	@Test // DATAREDIS-347

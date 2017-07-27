@@ -76,7 +76,7 @@ public class Jackson2HashMapperTests {
 	@Before
 	public void setUp() {
 
-		this.template = new RedisTemplate<String, Object>();
+		this.template = new RedisTemplate<>();
 		this.template.setConnectionFactory(factory);
 		template.afterPropertiesSet();
 

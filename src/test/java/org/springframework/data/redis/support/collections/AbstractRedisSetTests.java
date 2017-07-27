@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,7 +42,7 @@ import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test for Redis set.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Thomas Darimont
@@ -61,7 +61,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 
 	/**
 	 * Constructs a new <code>AbstractRedisSetTests</code> instance.
-	 * 
+	 *
 	 * @param factory
 	 * @param template
 	 */
@@ -79,7 +79,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 
 	@SuppressWarnings("unchecked")
 	private RedisSet<T> createSetFor(String key) {
-		return new DefaultRedisSet<T>((BoundSetOperations<String, T>) set.getOperations().boundSetOps(key));
+		return new DefaultRedisSet<>((BoundSetOperations<String, T>) set.getOperations().boundSetOps(key));
 	}
 
 	@Test
@@ -238,7 +238,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertThat(collection.addAll(list), is(true));
 		Iterator<T> iterator = collection.iterator();
 
-		List<T> result = new ArrayList<T>(list);
+		List<T> result = new ArrayList<>(list);
 
 		while (iterator.hasNext()) {
 			T expected = iterator.next();
@@ -264,7 +264,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 
 		Object[] array = collection.toArray();
 
-		List<T> result = new ArrayList<T>(list);
+		List<T> result = new ArrayList<>(list);
 
 		for (int i = 0; i < array.length; i++) {
 			Iterator<T> resultItr = result.iterator();
@@ -288,7 +288,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertThat(collection.addAll(list), is(true));
 
 		Object[] array = collection.toArray(new Object[expectedArray.length]);
-		List<T> result = new ArrayList<T>(list);
+		List<T> result = new ArrayList<>(list);
 
 		for (int i = 0; i < array.length; i++) {
 			Iterator<T> resultItr = result.iterator();

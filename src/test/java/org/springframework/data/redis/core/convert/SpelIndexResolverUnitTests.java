@@ -30,9 +30,6 @@ import org.springframework.data.redis.core.index.SpelIndexDefinition;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.util.ClassTypeInformation;
-import org.springframework.expression.AccessException;
-import org.springframework.expression.BeanResolver;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.SpelEvaluationException;
 
 /**
@@ -131,15 +128,10 @@ public class SpelIndexResolverUnitTests {
 	public void withBeanAndThis() {
 
 		this.resolver = createWithExpression("@bean.run(#this)");
-		this.resolver.setBeanResolver(new BeanResolver() {
-			@Override
-			public Object resolve(EvaluationContext context, String beanName) throws AccessException {
-				return new Object() {
-					@SuppressWarnings("unused")
-					public Object run(Object arg) {
-						return arg;
-					}
-				};
+		this.resolver.setBeanResolver((context, beanName) -> new Object() {
+			@SuppressWarnings("unused")
+			public Object run(Object arg) {
+				return arg;
 			}
 		});
 
@@ -174,7 +166,7 @@ public class SpelIndexResolverUnitTests {
 
 	static class Session {
 
-		private Map<String, Object> sessionAttrs = new HashMap<String, Object>();
+		private Map<String, Object> sessionAttrs = new HashMap<>();
 
 		public void setAttribute(String attrName, Object attrValue) {
 			this.sessionAttrs.put(attrName, attrValue);

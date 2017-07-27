@@ -25,8 +25,6 @@ import java.util.concurrent.Executor;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -84,14 +82,10 @@ public class RedisMessageListenerContainerTests {
 		final Thread main = Thread.currentThread();
 
 		// interrupt thread once Executor.execute is called
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocationOnMock -> {
 
-			@Override
-			public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
-
-				main.interrupt();
-				return null;
-			}
+			main.interrupt();
+			return null;
 		}).when(executorMock).execute(any(Runnable.class));
 
 		container.addMessageListener(adapter, new ChannelTopic("a"));

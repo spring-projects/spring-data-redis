@@ -82,7 +82,7 @@ public interface ReactiveNumberCommands {
 
 			Assert.notNull(key, "Key must not be null!");
 
-			return new IncrByCommand<T>(key, null);
+			return new IncrByCommand<>(key, null);
 		}
 
 		/**
@@ -96,7 +96,7 @@ public interface ReactiveNumberCommands {
 
 			Assert.notNull(value, "Value must not be null!");
 
-			return new IncrByCommand<T>(getKey(), value);
+			return new IncrByCommand<>(getKey(), value);
 		}
 
 		/**
@@ -158,7 +158,7 @@ public interface ReactiveNumberCommands {
 
 			Assert.notNull(key, "Key must not be null!");
 
-			return new DecrByCommand<T>(key, null);
+			return new DecrByCommand<>(key, null);
 		}
 
 		/**
@@ -172,7 +172,7 @@ public interface ReactiveNumberCommands {
 
 			Assert.notNull(value, "Value must not be null!");
 
-			return new DecrByCommand<T>(getKey(), value);
+			return new DecrByCommand<>(getKey(), value);
 		}
 
 		/**
@@ -259,7 +259,7 @@ public interface ReactiveNumberCommands {
 
 			Assert.notNull(field, "Field must not be null!");
 
-			return new HIncrByCommand<T>(null, field, null);
+			return new HIncrByCommand<>(null, field, null);
 		}
 
 		/**
@@ -273,7 +273,7 @@ public interface ReactiveNumberCommands {
 
 			Assert.notNull(value, "Value must not be null!");
 
-			return new HIncrByCommand<T>(getKey(), field, value);
+			return new HIncrByCommand<>(getKey(), field, value);
 		}
 
 		/**
@@ -286,7 +286,7 @@ public interface ReactiveNumberCommands {
 
 			Assert.notNull(key, "Key must not be null!");
 
-			return new HIncrByCommand<T>(key, field, value);
+			return new HIncrByCommand<>(key, field, value);
 		}
 
 		/**

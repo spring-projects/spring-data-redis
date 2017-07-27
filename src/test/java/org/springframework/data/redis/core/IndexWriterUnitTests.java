@@ -45,7 +45,7 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
- * @auhtor Rob Winch
+ * @author Rob Winch
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class IndexWriterUnitTests {
@@ -100,7 +100,7 @@ public class IndexWriterUnitTests {
 		byte[] indexKey2 = "persons:firstname:mat".getBytes(CHARSET);
 
 		when(connectionMock.keys(any(byte[].class)))
-				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList(indexKey1, indexKey2)));
+				.thenReturn(new LinkedHashSet<>(Arrays.asList(indexKey1, indexKey2)));
 
 		writer.removeKeyFromExistingIndexes(KEY_BIN, new StubIndxedData());
 
@@ -120,7 +120,7 @@ public class IndexWriterUnitTests {
 		byte[] indexKey2 = "persons:firstname:mat".getBytes(CHARSET);
 
 		when(connectionMock.keys(any(byte[].class)))
-				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList(indexKey1, indexKey2)));
+				.thenReturn(new LinkedHashSet<>(Arrays.asList(indexKey1, indexKey2)));
 
 		writer.removeAllIndexes(KEYSPACE);
 
@@ -159,7 +159,7 @@ public class IndexWriterUnitTests {
 	public void createIndexShouldNotTryToRemoveExistingValues() {
 
 		when(connectionMock.keys(any(byte[].class)))
-				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes(CHARSET))));
+				.thenReturn(new LinkedHashSet<>(Arrays.asList("persons:firstname:rand".getBytes(CHARSET))));
 
 		writer.createIndexes(KEY_BIN,
 				Collections.<IndexedData> singleton(new SimpleIndexedPropertyValue(KEYSPACE, "firstname", "Rand")));
@@ -174,7 +174,7 @@ public class IndexWriterUnitTests {
 	public void updateIndexShouldRemoveExistingValues() {
 
 		when(connectionMock.keys(any(byte[].class)))
-				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes(CHARSET))));
+				.thenReturn(new LinkedHashSet<>(Arrays.asList("persons:firstname:rand".getBytes(CHARSET))));
 
 		writer.updateIndexes(KEY_BIN,
 				Collections.<IndexedData> singleton(new SimpleIndexedPropertyValue(KEYSPACE, "firstname", "Rand")));
@@ -190,7 +190,7 @@ public class IndexWriterUnitTests {
 
 		byte[] indexKey1 = "persons:location".getBytes(CHARSET);
 
-		when(connectionMock.keys(any(byte[].class))).thenReturn(new LinkedHashSet<byte[]>(Arrays.asList(indexKey1)));
+		when(connectionMock.keys(any(byte[].class))).thenReturn(new LinkedHashSet<>(Arrays.asList(indexKey1)));
 
 		writer.removeKeyFromExistingIndexes(KEY_BIN, new GeoIndexedPropertyValue(KEYSPACE, "address.city", null));
 

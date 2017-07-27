@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2013 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,7 +25,7 @@ import java.util.Set;
 
 /**
  * Simple class containing various decoding utilities.
- * 
+ *
  * @author Costin Leau
  */
 public abstract class DecodeUtils {
@@ -47,7 +47,7 @@ public abstract class DecodeUtils {
 	}
 
 	public static Map<byte[], byte[]> encodeMap(Map<String, byte[]> map) {
-		Map<byte[], byte[]> result = new LinkedHashMap<byte[], byte[]>(map.size());
+		Map<byte[], byte[]> result = new LinkedHashMap<>(map.size());
 		for (Map.Entry<String, byte[]> entry : map.entrySet()) {
 			result.put(encode(entry.getKey()), entry.getValue());
 		}
@@ -55,7 +55,7 @@ public abstract class DecodeUtils {
 	}
 
 	public static Map<String, byte[]> decodeMap(Map<byte[], byte[]> tuple) {
-		Map<String, byte[]> result = new LinkedHashMap<String, byte[]>(tuple.size());
+		Map<String, byte[]> result = new LinkedHashMap<>(tuple.size());
 		for (Map.Entry<byte[], byte[]> entry : tuple.entrySet()) {
 			result.put(decode(entry.getKey()), entry.getValue());
 		}
@@ -63,7 +63,7 @@ public abstract class DecodeUtils {
 	}
 
 	public static Set<byte[]> convertToSet(Collection<String> keys) {
-		Set<byte[]> set = new LinkedHashSet<byte[]>(keys.size());
+		Set<byte[]> set = new LinkedHashSet<>(keys.size());
 
 		for (String string : keys) {
 			set.add(encode(string));
@@ -72,7 +72,7 @@ public abstract class DecodeUtils {
 	}
 
 	public static List<byte[]> convertToList(Collection<String> keys) {
-		List<byte[]> set = new ArrayList<byte[]>(keys.size());
+		List<byte[]> set = new ArrayList<>(keys.size());
 
 		for (String string : keys) {
 			set.add(encode(string));

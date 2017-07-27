@@ -55,13 +55,13 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * Unit test of {@link DefaultStringRedisConnection}
  *
  * @author Jennifer Hickey
- * @auhtor Christoph Strobl
+ * @author Christoph Strobl
  * @author Ninad Divadkar
  * @author Mark Paluch
  */
 public class DefaultStringRedisConnectionTests {
 
-	protected List<Object> actual = new ArrayList<Object>();
+	protected List<Object> actual = new ArrayList<>();
 
 	@Mock protected RedisConnection nativeConnection;
 
@@ -85,25 +85,25 @@ public class DefaultStringRedisConnectionTests {
 
 	protected List<String> stringList = Collections.singletonList(bar);
 
-	protected Set<byte[]> bytesSet = new LinkedHashSet<byte[]>(Collections.singletonList(barBytes));
+	protected Set<byte[]> bytesSet = new LinkedHashSet<>(Collections.singletonList(barBytes));
 
-	protected Set<String> stringSet = new LinkedHashSet<String>(Collections.singletonList(bar));
+	protected Set<String> stringSet = new LinkedHashSet<>(Collections.singletonList(bar));
 
-	protected Map<byte[], byte[]> bytesMap = new HashMap<byte[], byte[]>();
+	protected Map<byte[], byte[]> bytesMap = new HashMap<>();
 
-	protected Map<String, String> stringMap = new HashMap<String, String>();
+	protected Map<String, String> stringMap = new HashMap<>();
 
-	protected Set<Tuple> tupleSet = new HashSet<Tuple>(Collections.singletonList(new DefaultTuple(barBytes, 3d)));
+	protected Set<Tuple> tupleSet = new HashSet<>(Collections.singletonList(new DefaultTuple(barBytes, 3d)));
 
-	protected Set<StringTuple> stringTupleSet = new HashSet<StringTuple>(
+	protected Set<StringTuple> stringTupleSet = new HashSet<>(
 			Collections.singletonList(new DefaultStringTuple(new DefaultTuple(barBytes, 3d), bar)));
 
 	protected Point point = new Point(213.00, 324.343);
-	protected List<Point> points = new ArrayList<Point>();
+	protected List<Point> points = new ArrayList<>();
 
 	protected List<GeoResult<GeoLocation<byte[]>>> geoResultList = Collections
-			.singletonList(new GeoResult<GeoLocation<byte[]>>(new GeoLocation<byte[]>(barBytes, null), new Distance(0D)));
-	protected GeoResults<GeoLocation<byte[]>> geoResults = new GeoResults<GeoLocation<byte[]>>(geoResultList);
+			.singletonList(new GeoResult<>(new GeoLocation<>(barBytes, null), new Distance(0D)));
+	protected GeoResults<GeoLocation<byte[]>> geoResults = new GeoResults<>(geoResultList);
 
 	@Before
 	public void setUp() {
@@ -1233,7 +1233,7 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testZAddMultipleBytes() {
-		Set<Tuple> tuples = new HashSet<Tuple>();
+		Set<Tuple> tuples = new HashSet<>();
 		tuples.add(new DefaultTuple(barBytes, 3.0));
 		doReturn(1l).when(nativeConnection).zAdd(fooBytes, tuples);
 		actual.add(connection.zAdd(fooBytes, tuples));
@@ -1242,9 +1242,9 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testZAddMultiple() {
-		Set<Tuple> tuples = new HashSet<Tuple>();
+		Set<Tuple> tuples = new HashSet<>();
 		tuples.add(new DefaultTuple(barBytes, 3.0));
-		Set<StringTuple> strTuples = new HashSet<StringTuple>();
+		Set<StringTuple> strTuples = new HashSet<>();
 		strTuples.add(new DefaultStringTuple(barBytes, bar, 3.0));
 		doReturn(1l).when(nativeConnection).zAdd(fooBytes, tuples);
 		actual.add(connection.zAdd(foo, strTuples));
@@ -1795,9 +1795,9 @@ public class DefaultStringRedisConnectionTests {
 	public void testGeoAddWithGeoLocationBytes() {
 
 		doReturn(1l).when(nativeConnection).geoAdd(fooBytes,
-				new GeoLocation<byte[]>(barBytes, new Point(1.23232, 34.2342434)));
+				new GeoLocation<>(barBytes, new Point(1.23232, 34.2342434)));
 
-		actual.add(connection.geoAdd(fooBytes, new GeoLocation<byte[]>(barBytes, new Point(1.23232, 34.2342434))));
+		actual.add(connection.geoAdd(fooBytes, new GeoLocation<>(barBytes, new Point(1.23232, 34.2342434))));
 		verifyResults(Collections.singletonList(1L));
 	}
 
@@ -1806,7 +1806,7 @@ public class DefaultStringRedisConnectionTests {
 
 		doReturn(1l).when(nativeConnection).geoAdd(fooBytes, new Point(1.23232, 34.2342434), barBytes);
 
-		actual.add(connection.geoAdd(foo, new GeoLocation<String>(bar, new Point(1.23232, 34.2342434))));
+		actual.add(connection.geoAdd(foo, new GeoLocation<>(bar, new Point(1.23232, 34.2342434))));
 		verifyResults(Collections.singletonList(1L));
 	}
 
@@ -1832,7 +1832,7 @@ public class DefaultStringRedisConnectionTests {
 	@Test // DATAREDIS-438
 	public void testGeoAddWithIterableOfGeoLocationBytes() {
 
-		List<GeoLocation<byte[]>> values = Collections.singletonList(new GeoLocation<byte[]>(barBytes, new Point(1, 2)));
+		List<GeoLocation<byte[]>> values = Collections.singletonList(new GeoLocation<>(barBytes, new Point(1, 2)));
 		doReturn(1l).when(nativeConnection).geoAdd(fooBytes, values);
 
 		actual.add(connection.geoAdd(fooBytes, values));
@@ -1844,7 +1844,7 @@ public class DefaultStringRedisConnectionTests {
 
 		doReturn(1l).when(nativeConnection).geoAdd(eq(fooBytes), anyMap());
 
-		actual.add(connection.geoAdd(foo, Collections.singletonList(new GeoLocation<String>(bar, new Point(1, 2)))));
+		actual.add(connection.geoAdd(foo, Collections.singletonList(new GeoLocation<>(bar, new Point(1, 2)))));
 		verifyResults(Collections.singletonList(1L));
 	}
 

@@ -47,7 +47,7 @@ public class RedisTemplateUnitTests {
 	@Before
 	public void setUp() {
 
-		template = new RedisTemplate<Object, Object>();
+		template = new RedisTemplate<>();
 		template.setConnectionFactory(connectionFactoryMock);
 		when(connectionFactoryMock.getConnection()).thenReturn(redisConnectionMock);
 
@@ -73,7 +73,7 @@ public class RedisTemplateUnitTests {
 
 		ShadowingClassLoader scl = new ShadowingClassLoader(ClassLoader.getSystemClassLoader());
 
-		template = new RedisTemplate<Object, Object>();
+		template = new RedisTemplate<>();
 		template.setConnectionFactory(connectionFactoryMock);
 		template.setBeanClassLoader(scl);
 		template.afterPropertiesSet();

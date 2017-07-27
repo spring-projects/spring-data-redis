@@ -123,7 +123,7 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 	}
 
 	protected void verifyResults(List<Object> expected) {
-		List<Object> expectedTx = new ArrayList<Object>();
+		List<Object> expectedTx = new ArrayList<>();
 		for (int i = 0; i < actual.size(); i++) {
 			expectedTx.add(null);
 		}

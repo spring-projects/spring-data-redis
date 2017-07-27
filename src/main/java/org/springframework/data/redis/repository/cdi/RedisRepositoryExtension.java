@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,9 +53,9 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RedisRepositoryExtension.class);
 
-	private final Map<Set<Annotation>, Bean<RedisKeyValueAdapter>> redisKeyValueAdapters = new HashMap<Set<Annotation>, Bean<RedisKeyValueAdapter>>();
-	private final Map<Set<Annotation>, Bean<KeyValueOperations>> redisKeyValueTemplates = new HashMap<Set<Annotation>, Bean<KeyValueOperations>>();
-	private final Map<Set<Annotation>, Bean<RedisOperations<?, ?>>> redisOperations = new HashMap<Set<Annotation>, Bean<RedisOperations<?, ?>>>();
+	private final Map<Set<Annotation>, Bean<RedisKeyValueAdapter>> redisKeyValueAdapters = new HashMap<>();
+	private final Map<Set<Annotation>, Bean<KeyValueOperations>> redisKeyValueTemplates = new HashMap<>();
+	private final Map<Set<Annotation>, Bean<RedisOperations<?, ?>>> redisOperations = new HashMap<>();
 
 	public RedisRepositoryExtension() {
 		LOG.info("Activating CDI extension for Spring Data Redis repositories.");
@@ -86,7 +86,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 				}
 
 				// Store the Key-Value Templates bean using its qualifiers.
-				redisKeyValueTemplates.put(new HashSet<Annotation>(bean.getQualifiers()), (Bean<KeyValueOperations>) bean);
+				redisKeyValueTemplates.put(new HashSet<>(bean.getQualifiers()), (Bean<KeyValueOperations>) bean);
 			}
 
 			if (beanType instanceof Class<?> && RedisKeyValueAdapter.class.isAssignableFrom((Class<?>) beanType)) {
@@ -96,7 +96,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 				}
 
 				// Store the RedisKeyValueAdapter bean using its qualifiers.
-				redisKeyValueAdapters.put(new HashSet<Annotation>(bean.getQualifiers()), (Bean<RedisKeyValueAdapter>) bean);
+				redisKeyValueAdapters.put(new HashSet<>(bean.getQualifiers()), (Bean<RedisKeyValueAdapter>) bean);
 			}
 
 			if (beanType instanceof Class<?> && RedisOperations.class.isAssignableFrom((Class<?>) beanType)) {
@@ -106,7 +106,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 				}
 
 				// Store the RedisOperations bean using its qualifiers.
-				redisOperations.put(new HashSet<Annotation>(bean.getQualifiers()), (Bean<RedisOperations<?, ?>>) bean);
+				redisOperations.put(new HashSet<>(bean.getQualifiers()), (Bean<RedisOperations<?, ?>>) bean);
 			}
 		}
 	}
@@ -192,7 +192,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 		}
 
 		// Construct and return the repository bean.
-		return new RedisRepositoryBean<T>(redisKeyValueTemplate, qualifiers, repositoryType, beanManager,
+		return new RedisRepositoryBean<>(redisKeyValueTemplate, qualifiers, repositoryType, beanManager,
 				getCustomImplementationDetector());
 	}
 

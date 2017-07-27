@@ -38,7 +38,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
 import org.springframework.data.geo.Point;
@@ -65,7 +64,7 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
 @RunWith(Parameterized.class)
 public class RedisKeyValueAdapterTests {
 
-	private static Set<RedisConnectionFactory> initializedFactories = new HashSet<RedisConnectionFactory>();
+	private static Set<RedisConnectionFactory> initializedFactories = new HashSet<>();
 
 	RedisKeyValueAdapter adapter;
 	StringRedisTemplate template;
@@ -109,13 +108,9 @@ public class RedisKeyValueAdapterTests {
 		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.ON_STARTUP);
 		adapter.afterPropertiesSet();
 
-		template.execute(new RedisCallback<Void>() {
-
-			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-				connection.flushDb();
-				return null;
-			}
+		template.execute((RedisCallback<Void>) connection -> {
+			connection.flushDb();
+			return null;
 		});
 
 		RedisConnection connection = template.getConnectionFactory().getConnection();
@@ -192,7 +187,7 @@ public class RedisKeyValueAdapterTests {
 	@Test // DATAREDIS-425
 	public void getShouldReadSimpleObjectCorrectly() {
 
-		Map<String, String> map = new LinkedHashMap<String, String>();
+		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
 		map.put("age", "24");
 		template.opsForHash().putAll("persons:load-1", map);
@@ -206,7 +201,7 @@ public class RedisKeyValueAdapterTests {
 	@Test // DATAREDIS-425
 	public void getShouldReadNestedObjectCorrectly() {
 
-		Map<String, String> map = new LinkedHashMap<String, String>();
+		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
 		map.put("address.country", "Andor");
 		template.opsForHash().putAll("persons:load-1", map);
@@ -220,7 +215,7 @@ public class RedisKeyValueAdapterTests {
 	@Test // DATAREDIS-425
 	public void couldReadsKeyspaceSizeCorrectly() {
 
-		Map<String, String> map = new LinkedHashMap<String, String>();
+		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
 		map.put("address.country", "Andor");
 		template.opsForHash().putAll("persons:load-1", map);
@@ -233,7 +228,7 @@ public class RedisKeyValueAdapterTests {
 	@Test // DATAREDIS-425
 	public void deleteRemovesEntriesCorrectly() {
 
-		Map<String, String> map = new LinkedHashMap<String, String>();
+		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
 		map.put("address.country", "Andor");
 		template.opsForHash().putAll("persons:1", map);
@@ -248,7 +243,7 @@ public class RedisKeyValueAdapterTests {
 	@Test // DATAREDIS-425
 	public void deleteCleansIndexedDataCorrectly() {
 
-		Map<String, String> map = new LinkedHashMap<String, String>();
+		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
 		map.put("firstname", "rand");
 		map.put("address.country", "Andor");
@@ -267,7 +262,7 @@ public class RedisKeyValueAdapterTests {
 
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 
-		Map<String, String> map = new LinkedHashMap<String, String>();
+		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
 		map.put("firstname", "rand");
 		map.put("address.country", "Andor");
@@ -295,7 +290,7 @@ public class RedisKeyValueAdapterTests {
 
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 
-		Map<String, String> map = new LinkedHashMap<String, String>();
+		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
 		map.put("firstname", "rand");
 		map.put("address.country", "Andor");
@@ -363,7 +358,7 @@ public class RedisKeyValueAdapterTests {
 
 		assertThat(template.hasKey("persons:firstname:rand"), is(true));
 
-		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class) //
+		PartialUpdate<Person> update = new PartialUpdate<>("1", Person.class) //
 				.set("firstname", "mat");
 
 		adapter.update(update);
@@ -383,7 +378,7 @@ public class RedisKeyValueAdapterTests {
 
 		assertThat(template.hasKey("persons:address.country:andor"), is(true));
 
-		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class);
+		PartialUpdate<Person> update = new PartialUpdate<>("1", Person.class);
 		Address addressUpdate = new Address();
 		addressUpdate.country = "tear";
 
@@ -406,7 +401,7 @@ public class RedisKeyValueAdapterTests {
 
 		assertThat(template.hasKey("persons:address.country:andor"), is(true));
 
-		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class) //
+		PartialUpdate<Person> update = new PartialUpdate<>("1", Person.class) //
 				.set("address.country", "tear");
 
 		adapter.update(update);
@@ -425,7 +420,7 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", rand, "persons");
 
-		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class) //
+		PartialUpdate<Person> update = new PartialUpdate<>("1", Person.class) //
 				.del("address");
 
 		adapter.update(update);
@@ -443,7 +438,7 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", rand, "persons");
 
-		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class) //
+		PartialUpdate<Person> update = new PartialUpdate<>("1", Person.class) //
 				.del("nicknames");
 
 		adapter.update(update);
@@ -468,7 +463,7 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", rand, "persons");
 
-		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class) //
+		PartialUpdate<Person> update = new PartialUpdate<>("1", Person.class) //
 				.del("coworkers");
 
 		adapter.update(update);
@@ -487,7 +482,7 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", rand, "persons");
 
-		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class) //
+		PartialUpdate<Person> update = new PartialUpdate<>("1", Person.class) //
 				.del("physicalAttributes");
 
 		adapter.update(update);
@@ -506,7 +501,7 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", rand, "persons");
 
-		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class) //
+		PartialUpdate<Person> update = new PartialUpdate<>("1", Person.class) //
 				.del("relatives");
 
 		adapter.update(update);
@@ -555,7 +550,7 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", tam, "persons");
 
-		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class) //
+		PartialUpdate<Person> update = new PartialUpdate<>("1", Person.class) //
 				.del("address.location");
 
 		adapter.update(update);
@@ -574,7 +569,7 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", tam, "persons");
 
-		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class) //
+		PartialUpdate<Person> update = new PartialUpdate<>("1", Person.class) //
 				.set("address.location", new Point(17, 18));
 
 		adapter.update(update);

@@ -179,7 +179,7 @@ public class ConversionTestEntities {
 
 	static class TypeWithObjectValueTypes {
 		Object object;
-		Map<String, Object> map = new HashMap<String, Object>();
-		List<Object> list = new ArrayList<Object>();
+		Map<String, Object> map = new HashMap<>();
+		List<Object> list = new ArrayList<>();
 	}
 }

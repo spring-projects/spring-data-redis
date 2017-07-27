@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * Bucket is the data bag for Redis hash structures to be used with {@link RedisData}.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class Bucket {
@@ -48,19 +49,19 @@ public class Bucket {
 	 * Creates new empty bucket
 	 */
 	public Bucket() {
-		data = new LinkedHashMap<String, byte[]>();
+		data = new LinkedHashMap<>();
 	}
 
 	Bucket(Map<String, byte[]> data) {
 
 		Assert.notNull(data, "Inital data must not be null!");
-		this.data = new LinkedHashMap<String, byte[]>(data.size());
+		this.data = new LinkedHashMap<>(data.size());
 		this.data.putAll(data);
 	}
 
 	/**
 	 * Add {@link String} representation of property dot path with given value.
-	 * 
+	 *
 	 * @param path must not be {@literal null} or {@link String#isEmpty()}.
 	 * @param value can be {@literal null}.
 	 */
@@ -72,7 +73,7 @@ public class Bucket {
 
 	/**
 	 * Get value assigned with path.
-	 * 
+	 *
 	 * @param path path must not be {@literal null} or {@link String#isEmpty()}.
 	 * @return {@literal null} if not set.
 	 */
@@ -84,7 +85,7 @@ public class Bucket {
 
 	/**
 	 * A set view of the mappings contained in this bucket.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public Set<Entry<String, byte[]>> entrySet() {
@@ -121,7 +122,7 @@ public class Bucket {
 
 	/**
 	 * Key/value pairs contained in the {@link Bucket}.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public Map<String, byte[]> asMap() {
@@ -130,7 +131,7 @@ public class Bucket {
 
 	/**
 	 * Extracts a bucket containing key/value pairs with the {@code prefix}.
-	 * 
+	 *
 	 * @param prefix
 	 * @return
 	 */
@@ -148,7 +149,7 @@ public class Bucket {
 
 	/**
 	 * Get all the keys matching a given path.
-	 * 
+	 *
 	 * @param path the path to look for. Can be {@literal null}.
 	 * @return all keys if path is {@null} or empty.
 	 */
@@ -160,7 +161,7 @@ public class Bucket {
 
 		Pattern pattern = Pattern.compile("(" + Pattern.quote(path) + ")\\.\\[.*?\\]");
 
-		Set<String> keys = new LinkedHashSet<String>();
+		Set<String> keys = new LinkedHashSet<>();
 		for (Map.Entry<String, byte[]> entry : data.entrySet()) {
 
 			Matcher matcher = pattern.matcher(entry.getKey());
@@ -174,12 +175,12 @@ public class Bucket {
 
 	/**
 	 * Get keys and values in binary format.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public Map<byte[], byte[]> rawMap() {
 
-		Map<byte[], byte[]> raw = new LinkedHashMap<byte[], byte[]>(data.size());
+		Map<byte[], byte[]> raw = new LinkedHashMap<>(data.size());
 		for (Map.Entry<String, byte[]> entry : data.entrySet()) {
 			if (entry.getValue() != null) {
 				raw.put(entry.getKey().getBytes(CHARSET), entry.getValue());
@@ -190,7 +191,7 @@ public class Bucket {
 
 	/**
 	 * Creates a new Bucket from a given raw map.
-	 * 
+	 *
 	 * @param source can be {@literal null}.
 	 * @return never {@literal null}.
 	 */
@@ -209,7 +210,7 @@ public class Bucket {
 
 	/**
 	 * Creates a new Bucket from a given {@link String} map.
-	 * 
+	 *
 	 * @param source can be {@literal null}.
 	 * @return never {@literal null}.
 	 */
@@ -238,7 +239,7 @@ public class Bucket {
 
 	private String safeToString() {
 
-		Map<String, String> serialized = new LinkedHashMap<String, String>();
+		Map<String, String> serialized = new LinkedHashMap<>();
 		for (Map.Entry<String, byte[]> entry : data.entrySet()) {
 			if (entry.getValue() != null) {
 				serialized.put(entry.getKey(), toUtf8String(entry.getValue()));

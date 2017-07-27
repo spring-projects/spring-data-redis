@@ -87,7 +87,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRange(KEY_1_BBUFFER, new Range<Long>(1L, 2L))) //
+		StepVerifier.create(connection.zSetCommands().zRange(KEY_1_BBUFFER, new Range<>(1L, 2L))) //
 				.expectNext(VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -99,7 +99,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeWithScores(KEY_1_BBUFFER, new Range<Long>(1L, 2L))) //
+		StepVerifier.create(connection.zSetCommands().zRangeWithScores(KEY_1_BBUFFER, new Range<>(1L, 2L))) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D), new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
 				.verifyComplete();
 	}
@@ -111,7 +111,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRange(KEY_1_BBUFFER, new Range<Long>(1L, 2L))) //
+		StepVerifier.create(connection.zSetCommands().zRevRange(KEY_1_BBUFFER, new Range<>(1L, 2L))) //
 				.expectNext(VALUE_2_BBUFFER, VALUE_1_BBUFFER) //
 				.verifyComplete();
 	}
@@ -123,7 +123,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRangeWithScores(KEY_1_BBUFFER, new Range<Long>(1L, 2L))) //
+		StepVerifier.create(connection.zSetCommands().zRevRangeWithScores(KEY_1_BBUFFER, new Range<>(1L, 2L))) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D), new DefaultTuple(VALUE_1_BBUFFER.array(), 1D)) //
 				.verifyComplete();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Enumeration of the Redis data types.
- * 
+ *
  * @author Costin Leau
  */
 public enum DataType {
 
 	NONE("none"), STRING("string"), LIST("list"), SET("set"), ZSET("zset"), HASH("hash");
 
-	private static final Map<String, DataType> codeLookup = new ConcurrentHashMap<String, DataType>(6);
+	private static final Map<String, DataType> codeLookup = new ConcurrentHashMap<>(6);
 
 	static {
 		for (DataType type : EnumSet.allOf(DataType.class))
@@ -45,7 +45,7 @@ public enum DataType {
 
 	/**
 	 * Returns the code associated with the current enum.
-	 * 
+	 *
 	 * @return code of this enum
 	 */
 	public String code() {
@@ -54,7 +54,7 @@ public enum DataType {
 
 	/**
 	 * Utility method for converting an enum code to an actual enum.
-	 * 
+	 *
 	 * @param code enum code
 	 * @return actual enum corresponding to the given code
 	 */

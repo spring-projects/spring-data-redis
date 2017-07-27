@@ -45,7 +45,6 @@ import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.SettingsUtils;
-import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.ClusterTestVariables;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -68,7 +67,7 @@ public class PubSubResubscribeTests {
 
 	private static final String CHANNEL = "pubsub::test";
 
-	private final BlockingDeque<String> bag = new LinkedBlockingDeque<String>(99);
+	private final BlockingDeque<String> bag = new LinkedBlockingDeque<>(99);
 	private final Object handler = new MessageHandler("handler1", bag);
 	private final MessageListenerAdapter adapter = new MessageListenerAdapter(handler);
 
@@ -156,12 +155,7 @@ public class PubSubResubscribeTests {
 		container.afterPropertiesSet();
 		container.start();
 
-		waitFor(new TestCondition() {
-			@Override
-			public boolean passes() {
-				return container.getConnectionFactory().getConnection().isSubscribed();
-			}
-		}, 1000);
+		waitFor(container.getConnectionFactory().getConnection()::isSubscribed, 1000);
 	}
 
 	@After
@@ -178,7 +172,7 @@ public class PubSubResubscribeTests {
 		final String PATTERN = "p*";
 		final String ANOTHER_CHANNEL = "pubsub::test::extra";
 
-		BlockingDeque<String> bag2 = new LinkedBlockingDeque<String>(99);
+		BlockingDeque<String> bag2 = new LinkedBlockingDeque<>(99);
 		MessageListenerAdapter anotherListener = new MessageListenerAdapter(new MessageHandler("handler2", bag2));
 		anotherListener.setSerializer(template.getValueSerializer());
 		anotherListener.afterPropertiesSet();
@@ -195,7 +189,7 @@ public class PubSubResubscribeTests {
 		template.convertAndSend(ANOTHER_CHANNEL, payload2);
 
 		// anotherListener receives both messages
-		List<String> msgs = new ArrayList<String>();
+		List<String> msgs = new ArrayList<>();
 		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
 		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
 
@@ -260,7 +254,7 @@ public class PubSubResubscribeTests {
 		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1);
 		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2);
 
-		Set<String> set = new LinkedHashSet<String>();
+		Set<String> set = new LinkedHashSet<>();
 		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
 		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
 
@@ -293,11 +287,11 @@ public class PubSubResubscribeTests {
 		template.convertAndSend("somechannel", "HELLO");
 		template.convertAndSend(CHANNEL, "WORLD");
 
-		Set<String> set = new LinkedHashSet<String>();
+		Set<String> set = new LinkedHashSet<>();
 		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
 		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
 
-		assertEquals(new HashSet<String>(Arrays.asList(new String[] { "HELLO", "WORLD" })), set);
+		assertEquals(new HashSet<>(Arrays.asList(new String[] { "HELLO", "WORLD" })), set);
 	}
 
 	private class MessageHandler {

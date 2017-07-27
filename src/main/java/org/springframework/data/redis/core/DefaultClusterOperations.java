@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -29,22 +28,22 @@ import org.springframework.util.Assert;
 
 /**
  * Default {@link ClusterOperations} implementation.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  * @param <K>
  * @param <V>
  */
-public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements ClusterOperations<K, V> {
+class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements ClusterOperations<K, V> {
 
 	private final RedisTemplate<K, V> template;
 
 	/**
 	 * Creates new {@link DefaultClusterOperations} delegating to the given {@link RedisTemplate}.
-	 * 
+	 *
 	 * @param template must not be {@literal null}.
 	 */
-	public DefaultClusterOperations(RedisTemplate<K, V> template) {
+	DefaultClusterOperations(RedisTemplate<K, V> template) {
 
 		super(template);
 		this.template = template;
@@ -59,13 +58,7 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		return execute(new RedisClusterCallback<Set<K>>() {
-
-			@Override
-			public Set<K> doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				return deserializeKeys(connection.keys(node, rawKey(pattern)));
-			}
-		});
+		return execute(connection -> deserializeKeys(connection.keys(node, rawKey(pattern))));
 	}
 
 	/*
@@ -77,13 +70,7 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		return execute(new RedisClusterCallback<K>() {
-
-			@Override
-			public K doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				return deserializeKey(connection.randomKey(node));
-			}
-		});
+		return execute(connection -> deserializeKey(connection.randomKey(node)));
 	}
 
 	/*
@@ -95,13 +82,7 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		return execute(new RedisClusterCallback<String>() {
-
-			@Override
-			public String doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				return connection.ping(node);
-			}
-		});
+		return execute(connection -> connection.ping(node));
 	}
 
 	/*
@@ -113,13 +94,9 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute(new RedisClusterCallback<Void>() {
-
-			@Override
-			public Void doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				connection.clusterAddSlots(node, slots);
-				return null;
-			}
+		execute((RedisClusterCallback<Void>) connection -> {
+			connection.clusterAddSlots(node, slots);
+			return null;
 		});
 	}
 
@@ -145,13 +122,9 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute(new RedisClusterCallback<Void>() {
-
-			@Override
-			public Void doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				connection.bgReWriteAof(node);
-				return null;
-			}
+		execute((RedisClusterCallback<Void>) connection -> {
+			connection.bgReWriteAof(node);
+			return null;
 		});
 	}
 
@@ -164,13 +137,9 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute(new RedisClusterCallback<Void>() {
-
-			@Override
-			public Void doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				connection.bgSave(node);
-				return null;
-			}
+		execute((RedisClusterCallback<Void>) connection -> {
+			connection.bgSave(node);
+			return null;
 		});
 	}
 
@@ -183,13 +152,9 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute(new RedisClusterCallback<Void>() {
-
-			@Override
-			public Void doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				connection.clusterMeet(node);
-				return null;
-			}
+		execute((RedisClusterCallback<Void>) connection -> {
+			connection.clusterMeet(node);
+			return null;
 		});
 	}
 
@@ -202,13 +167,9 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute(new RedisClusterCallback<Void>() {
-
-			@Override
-			public Void doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				connection.clusterForget(node);
-				return null;
-			}
+		execute((RedisClusterCallback<Void>) connection -> {
+			connection.clusterForget(node);
+			return null;
 		});
 	}
 
@@ -221,13 +182,9 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute(new RedisClusterCallback<Void>() {
-
-			@Override
-			public Void doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				connection.flushDb(node);
-				return null;
-			}
+		execute((RedisClusterCallback<Void>) connection -> {
+			connection.flushDb(node);
+			return null;
 		});
 	}
 
@@ -240,13 +197,7 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		return execute(new RedisClusterCallback<Collection<RedisClusterNode>>() {
-
-			@Override
-			public Collection<RedisClusterNode> doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				return connection.clusterGetSlaves(node);
-			}
-		});
+		return execute(connection -> connection.clusterGetSlaves(node));
 	}
 
 	/*
@@ -258,13 +209,9 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute(new RedisClusterCallback<Void>() {
-
-			@Override
-			public Void doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				connection.save(node);
-				return null;
-			}
+		execute((RedisClusterCallback<Void>) connection -> {
+			connection.save(node);
+			return null;
 		});
 	}
 
@@ -277,13 +224,9 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute(new RedisClusterCallback<Void>() {
-
-			@Override
-			public Void doInRedis(RedisClusterConnection connection) throws DataAccessException {
-				connection.shutdown(node);
-				return null;
-			}
+		execute((RedisClusterCallback<Void>) connection -> {
+			connection.shutdown(node);
+			return null;
 		});
 	}
 
@@ -297,27 +240,23 @@ public class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> imp
 		Assert.notNull(source, "Source node must not be null.");
 		Assert.notNull(target, "Target node must not be null.");
 
-		execute(new RedisClusterCallback<Void>() {
+		execute((RedisClusterCallback<Void>) connection -> {
 
-			@Override
-			public Void doInRedis(RedisClusterConnection connection) throws DataAccessException {
+			connection.clusterSetSlot(target, slot, AddSlots.IMPORTING);
+			connection.clusterSetSlot(source, slot, AddSlots.MIGRATING);
+			List<byte[]> keys = connection.clusterGetKeysInSlot(slot, Integer.MAX_VALUE);
 
-				connection.clusterSetSlot(target, slot, AddSlots.IMPORTING);
-				connection.clusterSetSlot(source, slot, AddSlots.MIGRATING);
-				List<byte[]> keys = connection.clusterGetKeysInSlot(slot, Integer.MAX_VALUE);
-
-				for (byte[] key : keys) {
-					connection.migrate(key, source, 0, MigrateOption.COPY);
-				}
-				connection.clusterSetSlot(target, slot, AddSlots.NODE);
-				return null;
+			for (byte[] key : keys) {
+				connection.migrate(key, source, 0, MigrateOption.COPY);
 			}
+			connection.clusterSetSlot(target, slot, AddSlots.NODE);
+			return null;
 		});
 	}
 
 	/**
 	 * Executed wrapped command upon {@link RedisClusterConnection}.
-	 * 
+	 *
 	 * @param callback
 	 * @return
 	 */

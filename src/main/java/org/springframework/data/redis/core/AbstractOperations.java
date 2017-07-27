@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2016 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,11 +37,12 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * Internal base class used by various RedisTemplate XXXOperations implementations.
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author David Liu
+ * @author Mark Paluch
  */
 abstract class AbstractOperations<K, V> {
 
@@ -97,10 +98,13 @@ abstract class AbstractOperations<K, V> {
 
 	@SuppressWarnings("unchecked")
 	byte[] rawKey(Object key) {
+
 		Assert.notNull(key, "non null key required");
+
 		if (keySerializer() == null && key instanceof byte[]) {
 			return (byte[]) key;
 		}
+
 		return keySerializer().serialize(key);
 	}
 
@@ -111,18 +115,22 @@ abstract class AbstractOperations<K, V> {
 
 	@SuppressWarnings("unchecked")
 	byte[] rawValue(Object value) {
+
 		if (valueSerializer() == null && value instanceof byte[]) {
 			return (byte[]) value;
 		}
+
 		return valueSerializer().serialize(value);
 	}
 
 	byte[][] rawValues(Object... values) {
-		final byte[][] rawValues = new byte[values.length][];
+
+		byte[][] rawValues = new byte[values.length][];
 		int i = 0;
 		for (Object value : values) {
 			rawValues[i++] = rawValue(value);
 		}
+
 		return rawValues;
 	}
 
@@ -155,7 +163,8 @@ abstract class AbstractOperations<K, V> {
 	}
 
 	<HK> byte[][] rawHashKeys(HK... hashKeys) {
-		final byte[][] rawHashKeys = new byte[hashKeys.length][];
+
+		byte[][] rawHashKeys = new byte[hashKeys.length][];
 		int i = 0;
 		for (HK hashKey : hashKeys) {
 			rawHashKeys[i++] = rawHashKey(hashKey);
@@ -165,6 +174,7 @@ abstract class AbstractOperations<K, V> {
 
 	@SuppressWarnings("unchecked")
 	<HV> byte[] rawHashValue(HV value) {
+
 		if (hashValueSerializer() == null & value instanceof byte[]) {
 			return (byte[]) value;
 		}
@@ -172,7 +182,8 @@ abstract class AbstractOperations<K, V> {
 	}
 
 	byte[][] rawKeys(K key, K otherKey) {
-		final byte[][] rawKeys = new byte[2][];
+
+		byte[][] rawKeys = new byte[2][];
 
 		rawKeys[0] = rawKey(key);
 		rawKeys[1] = rawKey(key);
@@ -184,7 +195,8 @@ abstract class AbstractOperations<K, V> {
 	}
 
 	byte[][] rawKeys(K key, Collection<K> keys) {
-		final byte[][] rawKeys = new byte[keys.size() + (key != null ? 1 : 0)][];
+
+		byte[][] rawKeys = new byte[keys.size() + (key != null ? 1 : 0)][];
 
 		int i = 0;
 
@@ -211,7 +223,7 @@ abstract class AbstractOperations<K, V> {
 		if (rawValues == null) {
 			return null;
 		}
-		Set<TypedTuple<V>> set = new LinkedHashSet<TypedTuple<V>>(rawValues.size());
+		Set<TypedTuple<V>> set = new LinkedHashSet<>(rawValues.size());
 		for (Tuple rawValue : rawValues) {
 			set.add(deserializeTuple(rawValue));
 		}
@@ -232,7 +244,7 @@ abstract class AbstractOperations<K, V> {
 		if (values == null) {
 			return null;
 		}
-		Set<Tuple> rawTuples = new LinkedHashSet<Tuple>(values.size());
+		Set<Tuple> rawTuples = new LinkedHashSet<>(values.size());
 		for (TypedTuple<V> value : values) {
 			byte[] rawValue;
 			if (valueSerializer() == null && value.getValue() instanceof byte[]) {
@@ -276,7 +288,7 @@ abstract class AbstractOperations<K, V> {
 			return null;
 		}
 
-		Map<HK, HV> map = new LinkedHashMap<HK, HV>(entries.size());
+		Map<HK, HV> map = new LinkedHashMap<>(entries.size());
 
 		for (Map.Entry<byte[], byte[]> entry : entries.entrySet()) {
 			map.put((HK) deserializeHashKey(entry.getKey()), (HV) deserializeHashValue(entry.getValue()));
@@ -303,7 +315,7 @@ abstract class AbstractOperations<K, V> {
 		if (CollectionUtils.isEmpty(keys)) {
 			return Collections.emptySet();
 		}
-		Set<K> result = new LinkedHashSet<K>(keys.size());
+		Set<K> result = new LinkedHashSet<>(keys.size());
 		for (byte[] key : keys) {
 			result.add(deserializeKey(key));
 		}
@@ -340,7 +352,7 @@ abstract class AbstractOperations<K, V> {
 
 	/**
 	 * Deserialize {@link GeoLocation} of {@link GeoResults}.
-	 * 
+	 *
 	 * @param source can be {@literal null}.
 	 * @return converted or {@literal null}.
 	 * @since 1.8

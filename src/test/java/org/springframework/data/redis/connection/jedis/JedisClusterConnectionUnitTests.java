@@ -21,6 +21,11 @@ import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.test.util.MockitoUtils.*;
 
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.exceptions.JedisConnectionException;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -39,11 +44,6 @@ import org.springframework.data.redis.connection.ClusterInfo;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterTopologyProvider;
-
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.exceptions.JedisConnectionException;
 
 /**
  * @author Christoph Strobl
@@ -87,7 +87,7 @@ public class JedisClusterConnectionUnitTests {
 	@Before
 	public void setUp() {
 
-		Map<String, JedisPool> nodes = new LinkedHashMap<String, JedisPool>(3);
+		Map<String, JedisPool> nodes = new LinkedHashMap<>(3);
 		nodes.put(CLUSTER_HOST + ":" + MASTER_NODE_1_PORT, node1PoolMock);
 		nodes.put(CLUSTER_HOST + ":" + MASTER_NODE_2_PORT, node2PoolMock);
 		nodes.put(CLUSTER_HOST + ":" + MASTER_NODE_3_PORT, node3PoolMock);

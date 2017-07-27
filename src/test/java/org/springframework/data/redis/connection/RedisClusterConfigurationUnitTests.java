@@ -53,7 +53,8 @@ public class RedisClusterConfigurationUnitTests {
 	@Test // DATAREDIS-315
 	public void shouldCreateRedisClusterConfigurationCorrectlyGivenMultipleHostAndPortStrings() {
 
-		RedisClusterConfiguration config = new RedisClusterConfiguration(new HashSet<String>(Arrays.asList(HOST_AND_PORT_1,
+		RedisClusterConfiguration config = new RedisClusterConfiguration(
+				new HashSet<>(Arrays.asList(HOST_AND_PORT_1,
 				HOST_AND_PORT_2, HOST_AND_PORT_3)));
 
 		assertThat(config.getClusterNodes().size(), is(3));

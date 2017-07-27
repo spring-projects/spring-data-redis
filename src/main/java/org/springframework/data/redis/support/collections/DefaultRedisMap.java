@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2013 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,7 +34,7 @@ import org.springframework.data.redis.core.SessionCallback;
 /**
  * Default implementation for {@link RedisMap}. Note that the current implementation doesn't provide the same locking
  * semantics across all methods. In highly concurrent environments, race conditions might appear.
- * 
+ *
  * @author Costin Leau
  */
 public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
@@ -66,7 +66,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	/**
 	 * Constructs a new <code>DefaultRedisMap</code> instance.
-	 * 
+	 *
 	 * @param key
 	 * @param operations
 	 */
@@ -76,7 +76,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	/**
 	 * Constructs a new <code>DefaultRedisMap</code> instance.
-	 * 
+	 *
 	 * @param boundOps
 	 */
 	public DefaultRedisMap(BoundHashOperations<String, K, V> boundOps) {
@@ -117,7 +117,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		Iterator<K> keys = keySet.iterator();
 		Iterator<V> values = multiGet.iterator();
 
-		Set<Map.Entry<K, V>> entries = new LinkedHashSet<Entry<K, V>>();
+		Set<Map.Entry<K, V>> entries = new LinkedHashSet<>();
 		while (keys.hasNext()) {
 			entries.add(new DefaultRedisMapEntry(keys.next(), values.next()));
 		}

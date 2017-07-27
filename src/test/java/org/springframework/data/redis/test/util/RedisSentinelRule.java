@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.test.util;
 
+import redis.clients.jedis.Jedis;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,8 +26,6 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-
-import redis.clients.jedis.Jedis;
 
 /**
  * @author Christoph Strobl
@@ -42,7 +42,7 @@ public class RedisSentinelRule implements TestRule {
 	private RedisSentinelConfiguration sentinelConfig;
 	private SentinelsAvailable requiredSentinels;
 
-	private Map<Object, Boolean> cache = new HashMap<Object, Boolean>();
+	private Map<Object, Boolean> cache = new HashMap<>();
 
 	protected RedisSentinelRule(RedisSentinelConfiguration config) {
 		this.sentinelConfig = config;
@@ -50,7 +50,7 @@ public class RedisSentinelRule implements TestRule {
 
 	/**
 	 * Create new {@link RedisSentinelRule} for given {@link RedisSentinelConfiguration}.
-	 * 
+	 *
 	 * @param config
 	 * @return
 	 */
@@ -60,7 +60,7 @@ public class RedisSentinelRule implements TestRule {
 
 	/**
 	 * Create new {@link RedisSentinelRule} using default configuration.
-	 * 
+	 *
 	 * @return
 	 */
 	public static RedisSentinelRule withDefaultConfig() {
@@ -75,7 +75,7 @@ public class RedisSentinelRule implements TestRule {
 
 	/**
 	 * Verifies all {@literal Sentinel} nodes are available.
-	 * 
+	 *
 	 * @return
 	 */
 	public RedisSentinelRule allActive() {
@@ -86,7 +86,7 @@ public class RedisSentinelRule implements TestRule {
 
 	/**
 	 * Verifies at least one {@literal Sentinel} node is available.
-	 * 
+	 *
 	 * @return
 	 */
 	public RedisSentinelRule oneActive() {
@@ -98,7 +98,7 @@ public class RedisSentinelRule implements TestRule {
 	/**
 	 * Will only check {@link RedisSentinelConfiguration} configuration in case {@link RequiresRedisSentinel} is detected
 	 * on test method.
-	 * 
+	 *
 	 * @return
 	 */
 	public RedisSentinelRule dynamicModeSelection() {

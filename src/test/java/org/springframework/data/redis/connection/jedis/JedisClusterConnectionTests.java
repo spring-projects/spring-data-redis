@@ -91,11 +91,11 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	static final byte[] VALUE_2_BYTES = JedisConverters.toBytes(VALUE_2);
 	static final byte[] VALUE_3_BYTES = JedisConverters.toBytes(VALUE_3);
 
-	static final GeoLocation<byte[]> ARIGENTO = new GeoLocation<byte[]>("arigento".getBytes(Charset.forName("UTF-8")),
+	static final GeoLocation<byte[]> ARIGENTO = new GeoLocation<>("arigento".getBytes(Charset.forName("UTF-8")),
 			POINT_ARIGENTO);
-	static final GeoLocation<byte[]> CATANIA = new GeoLocation<byte[]>("catania".getBytes(Charset.forName("UTF-8")),
+	static final GeoLocation<byte[]> CATANIA = new GeoLocation<>("catania".getBytes(Charset.forName("UTF-8")),
 			POINT_CATANIA);
-	static final GeoLocation<byte[]> PALERMO = new GeoLocation<byte[]>("palermo".getBytes(Charset.forName("UTF-8")),
+	static final GeoLocation<byte[]> PALERMO = new GeoLocation<>("palermo".getBytes(Charset.forName("UTF-8")),
 			POINT_PALERMO);
 
 	JedisCluster nativeConnection;
@@ -114,7 +114,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@Before
 	public void setUp() throws IOException {
 
-		nativeConnection = new JedisCluster(new HashSet<HostAndPort>(CLUSTER_NODES));
+		nativeConnection = new JedisCluster(new HashSet<>(CLUSTER_NODES));
 		clusterConnection = new JedisClusterConnection(this.nativeConnection);
 	}
 
@@ -523,7 +523,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315
 	public void mSetShouldWorkWhenKeysMapToSameSlot() {
 
-		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
+		Map<byte[], byte[]> map = new LinkedHashMap<>();
 		map.put(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES);
 		map.put(SAME_SLOT_KEY_2_BYTES, VALUE_2_BYTES);
 
@@ -536,7 +536,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315
 	public void mSetShouldWorkWhenKeysDoNotMapToSameSlot() {
 
-		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
+		Map<byte[], byte[]> map = new LinkedHashMap<>();
 		map.put(KEY_1_BYTES, VALUE_1_BYTES);
 		map.put(KEY_2_BYTES, VALUE_2_BYTES);
 
@@ -549,7 +549,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315
 	public void mSetNXShouldReturnTrueIfAllKeysSet() {
 
-		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
+		Map<byte[], byte[]> map = new LinkedHashMap<>();
 		map.put(KEY_1_BYTES, VALUE_1_BYTES);
 		map.put(KEY_2_BYTES, VALUE_2_BYTES);
 
@@ -563,7 +563,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	public void mSetNXShouldReturnFalseIfNotAllKeysSet() {
 
 		nativeConnection.set(KEY_2_BYTES, VALUE_3_BYTES);
-		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
+		Map<byte[], byte[]> map = new LinkedHashMap<>();
 		map.put(KEY_1_BYTES, VALUE_1_BYTES);
 		map.put(KEY_2_BYTES, VALUE_2_BYTES);
 
@@ -576,7 +576,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315
 	public void mSetNXShouldWorkForOnSameSlotKeys() {
 
-		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
+		Map<byte[], byte[]> map = new LinkedHashMap<>();
 		map.put(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES);
 		map.put(SAME_SLOT_KEY_2_BYTES, VALUE_2_BYTES);
 
@@ -1483,7 +1483,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315
 	public void hMSetShouldAddValuesCorrectly() {
 
-		Map<byte[], byte[]> hashes = new HashMap<byte[], byte[]>();
+		Map<byte[], byte[]> hashes = new HashMap<>();
 		hashes.put(KEY_2_BYTES, VALUE_1_BYTES);
 		hashes.put(KEY_3_BYTES, VALUE_2_BYTES);
 
@@ -1566,7 +1566,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315
 	public void hGetAllShouldRetrieveEntriesCorrectly() {
 
-		Map<byte[], byte[]> hashes = new HashMap<byte[], byte[]>();
+		Map<byte[], byte[]> hashes = new HashMap<>();
 		hashes.put(KEY_2_BYTES, VALUE_1_BYTES);
 		hashes.put(KEY_3_BYTES, VALUE_2_BYTES);
 

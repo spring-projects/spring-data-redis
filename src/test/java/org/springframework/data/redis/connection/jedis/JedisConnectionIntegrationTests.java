@@ -18,6 +18,8 @@ package org.springframework.data.redis.connection.jedis;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import redis.clients.jedis.JedisPoolConfig;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -51,11 +53,9 @@ import org.springframework.data.redis.test.util.RequiresRedisSentinel;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 
-import redis.clients.jedis.JedisPoolConfig;
-
 /**
  * Integration test of {@link JedisConnection}
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
@@ -142,7 +142,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 	@Test
 	public void testZAddSameScores() {
-		Set<StringTuple> strTuples = new HashSet<StringTuple>();
+		Set<StringTuple> strTuples = new HashSet<>();
 		strTuples.add(new DefaultStringTuple("Bob".getBytes(), "Bob", 2.0));
 		strTuples.add(new DefaultStringTuple("James".getBytes(), "James", 2.0));
 		Long added = connection.zAdd("myset", strTuples);
@@ -204,13 +204,11 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		final String expectedChannel = "channel1";
 		final String expectedMessage = "msg";
-		final BlockingDeque<Message> messages = new LinkedBlockingDeque<Message>();
+		final BlockingDeque<Message> messages = new LinkedBlockingDeque<>();
 
-		MessageListener listener = new MessageListener() {
-			public void onMessage(Message message, byte[] pattern) {
-				messages.add(message);
-				System.out.println("Received message '" + new String(message.getBody()) + "'");
-			}
+		MessageListener listener = (message, pattern) -> {
+			messages.add(message);
+			System.out.println("Received message '" + new String(message.getBody()) + "'");
 		};
 
 		Thread t = new Thread() {
@@ -263,14 +261,12 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		final String expectedPattern = "channel*";
 		final String expectedMessage = "msg";
-		final BlockingDeque<Message> messages = new LinkedBlockingDeque<Message>();
+		final BlockingDeque<Message> messages = new LinkedBlockingDeque<>();
 
-		final MessageListener listener = new MessageListener() {
-			public void onMessage(Message message, byte[] pattern) {
-				assertEquals(expectedPattern, new String(pattern));
-				messages.add(message);
-				System.out.println("Received message '" + new String(message.getBody()) + "'");
-			}
+		final MessageListener listener = (message, pattern) -> {
+			assertEquals(expectedPattern, new String(pattern));
+			messages.add(message);
+			System.out.println("Received message '" + new String(message.getBody()) + "'");
 		};
 
 		Thread th = new Thread() {

@@ -30,7 +30,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
 
@@ -78,11 +77,9 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 
 	@After
 	public void tearDown() {
-		redisTemplate.execute(new RedisCallback<Object>() {
-			public Object doInRedis(RedisConnection connection) {
-				connection.flushDb();
-				return null;
-			}
+		redisTemplate.execute((RedisCallback<Object>) connection -> {
+			connection.flushDb();
+			return null;
 		});
 	}
 

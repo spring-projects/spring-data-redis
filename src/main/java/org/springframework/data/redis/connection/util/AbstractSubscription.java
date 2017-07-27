@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,13 +28,13 @@ import org.springframework.util.ObjectUtils;
 /**
  * Base implementation for a subscription handling the channel/pattern registration so subclasses only have to deal with
  * the actual registration/unregistration.
- * 
+ *
  * @author Costin Leau
  */
 public abstract class AbstractSubscription implements Subscription {
 
-	private final Collection<ByteArrayWrapper> channels = new ArrayList<ByteArrayWrapper>(2);
-	private final Collection<ByteArrayWrapper> patterns = new ArrayList<ByteArrayWrapper>(2);
+	private final Collection<ByteArrayWrapper> channels = new ArrayList<>(2);
+	private final Collection<ByteArrayWrapper> patterns = new ArrayList<>(2);
 	private final AtomicBoolean alive = new AtomicBoolean(true);
 	private final MessageListener listener;
 
@@ -46,7 +46,7 @@ public abstract class AbstractSubscription implements Subscription {
 	 * Constructs a new <code>AbstractSubscription</code> instance. Allows channels and patterns to be added to the
 	 * subscription w/o triggering a subscription action (as some clients (Jedis) require an initial call before entering
 	 * into listening mode).
-	 * 
+	 *
 	 * @param listener
 	 * @param channels
 	 * @param patterns
@@ -65,14 +65,14 @@ public abstract class AbstractSubscription implements Subscription {
 
 	/**
 	 * Subscribe to the given channels.
-	 * 
+	 *
 	 * @param channels channels to subscribe to
 	 */
 	protected abstract void doSubscribe(byte[]... channels);
 
 	/**
 	 * Channel unsubscribe.
-	 * 
+	 *
 	 * @param all true if all the channels are unsubscribed (used as a hint for the underlying implementation).
 	 * @param channels channels to be unsubscribed
 	 */
@@ -80,14 +80,14 @@ public abstract class AbstractSubscription implements Subscription {
 
 	/**
 	 * Subscribe to the given patterns
-	 * 
+	 *
 	 * @param patterns patterns to subscribe to
 	 */
 	protected abstract void doPsubscribe(byte[]... patterns);
 
 	/**
 	 * Pattern unsubscribe.
-	 * 
+	 *
 	 * @param all true if all the patterns are unsubscribed (used as a hint for the underlying implementation).
 	 * @param patterns patterns to be unsubscribed
 	 */
@@ -218,7 +218,7 @@ public abstract class AbstractSubscription implements Subscription {
 	}
 
 	private static Collection<byte[]> clone(Collection<ByteArrayWrapper> col) {
-		Collection<byte[]> list = new ArrayList<byte[]>(col.size());
+		Collection<byte[]> list = new ArrayList<>(col.size());
 		for (ByteArrayWrapper wrapper : col) {
 			list.add(wrapper.getArray().clone());
 		}

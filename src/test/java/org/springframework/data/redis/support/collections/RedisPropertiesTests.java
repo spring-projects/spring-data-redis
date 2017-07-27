@@ -188,7 +188,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 		props.setProperty(key2, val);
 
 		Enumeration<?> names = props.propertyNames();
-		Set<Object> keys = new LinkedHashSet<Object>();
+		Set<Object> keys = new LinkedHashSet<>();
 		keys.add(names.nextElement());
 		keys.add(names.nextElement());
 		keys.add(names.nextElement());
@@ -238,8 +238,8 @@ public class RedisPropertiesTests extends RedisMapTests {
 			throw new RuntimeException("Cannot init XStream", ex);
 		}
 		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
-		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
-		Jackson2JsonRedisSerializer<String> jackson2JsonStringSerializer = new Jackson2JsonRedisSerializer<String>(
+		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
+		Jackson2JsonRedisSerializer<String> jackson2JsonStringSerializer = new Jackson2JsonRedisSerializer<>(
 				String.class);
 
 		// create Jedis Factory
@@ -257,12 +257,12 @@ public class RedisPropertiesTests extends RedisMapTests {
 
 		RedisTemplate<String, String> genericTemplate = new StringRedisTemplate(jedisConnFactory);
 
-		RedisTemplate<String, String> xstreamGenericTemplate = new RedisTemplate<String, String>();
+		RedisTemplate<String, String> xstreamGenericTemplate = new RedisTemplate<>();
 		xstreamGenericTemplate.setConnectionFactory(jedisConnFactory);
 		xstreamGenericTemplate.setDefaultSerializer(serializer);
 		xstreamGenericTemplate.afterPropertiesSet();
 
-		RedisTemplate<String, Person> jackson2JsonPersonTemplate = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> jackson2JsonPersonTemplate = new RedisTemplate<>();
 		jackson2JsonPersonTemplate.setConnectionFactory(jedisConnFactory);
 		jackson2JsonPersonTemplate.setDefaultSerializer(jackson2JsonSerializer);
 		jackson2JsonPersonTemplate.setHashKeySerializer(jackson2JsonSerializer);
@@ -277,12 +277,12 @@ public class RedisPropertiesTests extends RedisMapTests {
 		lettuceConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> genericTemplateLtc = new StringRedisTemplate(lettuceConnFactory);
-		RedisTemplate<String, Person> xGenericTemplateLtc = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> xGenericTemplateLtc = new RedisTemplate<>();
 		xGenericTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		xGenericTemplateLtc.setDefaultSerializer(serializer);
 		xGenericTemplateLtc.afterPropertiesSet();
 
-		RedisTemplate<String, Person> jackson2JsonPersonTemplateLtc = new RedisTemplate<String, Person>();
+		RedisTemplate<String, Person> jackson2JsonPersonTemplateLtc = new RedisTemplate<>();
 		jackson2JsonPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		jackson2JsonPersonTemplateLtc.setDefaultSerializer(jackson2JsonSerializer);
 		jackson2JsonPersonTemplateLtc.setHashKeySerializer(jackson2JsonSerializer);

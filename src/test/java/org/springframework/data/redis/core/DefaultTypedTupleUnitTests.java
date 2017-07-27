@@ -26,10 +26,10 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  */
 public class DefaultTypedTupleUnitTests {
 
-	private static final TypedTuple<String> WITH_SCORE_1 = new DefaultTypedTuple<String>("foo", 1D);
-	private static final TypedTuple<String> ANOTHER_ONE_WITH_SCORE_1 = new DefaultTypedTuple<String>("another", 1D);
-	private static final TypedTuple<String> WITH_SCORE_2 = new DefaultTypedTuple<String>("bar", 2D);
-	private static final TypedTuple<String> WITH_SCORE_NULL = new DefaultTypedTuple<String>("foo", null);
+	private static final TypedTuple<String> WITH_SCORE_1 = new DefaultTypedTuple<>("foo", 1D);
+	private static final TypedTuple<String> ANOTHER_ONE_WITH_SCORE_1 = new DefaultTypedTuple<>("another", 1D);
+	private static final TypedTuple<String> WITH_SCORE_2 = new DefaultTypedTuple<>("bar", 2D);
+	private static final TypedTuple<String> WITH_SCORE_NULL = new DefaultTypedTuple<>("foo", null);
 
 	@Test // DATAREDIS-294
 	public void compareToShouldUseScore() {

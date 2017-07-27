@@ -84,7 +84,7 @@ public class LettuceConvertersUnitTests {
 		io.lettuce.core.cluster.models.partitions.RedisClusterNode partition = new io.lettuce.core.cluster.models.partitions.RedisClusterNode();
 		partition.setNodeId(CLUSTER_NODE_1.getId());
 		partition.setConnected(true);
-		partition.setFlags(new HashSet<NodeFlag>(Arrays.asList(NodeFlag.MASTER, NodeFlag.MYSELF)));
+		partition.setFlags(new HashSet<>(Arrays.asList(NodeFlag.MASTER, NodeFlag.MYSELF)));
 		partition.setUri(RedisURI.create("redis://" + CLUSTER_HOST + ":" + MASTER_NODE_1_PORT));
 		partition.setSlots(Arrays.<Integer> asList(1, 2, 3, 4, 5));
 

@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -44,7 +44,6 @@ import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
@@ -58,11 +57,11 @@ import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test for Redis Map.
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
- * @auhtor Thomas Darimont
+ * @author Thomas Darimont
  */
 @RunWith(Parameterized.class)
 public abstract class AbstractRedisMapTests<K, V> {
@@ -118,12 +117,9 @@ public abstract class AbstractRedisMapTests<K, V> {
 	public void tearDown() throws Exception {
 		// remove the collection entirely since clear() doesn't always work
 		map.getOperations().delete(Collections.singleton(map.getKey()));
-		template.execute(new RedisCallback<Object>() {
-
-			public Object doInRedis(RedisConnection connection) {
-				connection.flushDb();
-				return null;
-			}
+		template.execute((RedisCallback<Object>) connection -> {
+			connection.flushDb();
+			return null;
 		});
 	}
 
@@ -178,7 +174,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	@Test
 	public void testNotEquals() {
 		RedisOperations<String, ?> ops = map.getOperations();
-		RedisStore newInstance = new DefaultRedisMap<K, V>(ops.<K, V> boundHashOps(map.getKey() + ":new"));
+		RedisStore newInstance = new DefaultRedisMap<>(ops.<K, V> boundHashOps(map.getKey() + ":new"));
 		assertFalse(map.equals(newInstance));
 		assertFalse(newInstance.equals(map));
 	}
@@ -290,7 +286,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	@Test
 	public void testPutAll() {
 
-		Map<K, V> m = new LinkedHashMap<K, V>();
+		Map<K, V> m = new LinkedHashMap<>();
 		K k1 = getKey();
 		K k2 = getKey();
 
@@ -385,8 +381,8 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 		entries = map.entrySet();
 
-		Set<K> keys = new LinkedHashSet<K>();
-		Collection<V> values = new ArrayList<V>();
+		Set<K> keys = new LinkedHashSet<>();
+		Collection<V> values = new ArrayList<>();
 
 		for (Entry<K, V> entry : entries) {
 			keys.add(entry.getKey());
