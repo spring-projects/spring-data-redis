@@ -23,7 +23,7 @@ import org.springframework.data.redis.core.ScanOptions;
 
 /**
  * Set-specific commands supported by Redis.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -63,7 +63,7 @@ public interface RedisSetCommands {
 	 * Remove and return {@code count} random members from set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param count the number of random members to pop from the set.
+	 * @param count number of random members to pop from the set.
 	 * @return empty {@link List} if set does not exist. Never {@literal null}.
 	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 * @since 2.0

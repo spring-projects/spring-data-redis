@@ -21,7 +21,7 @@ import java.util.Set;
 
 /**
  * Redis set specific operations.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -61,7 +61,7 @@ public interface SetOperations<K, V> {
 	 * Remove and return {@code count} random members from set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param count nr of members to return.
+	 * @param count number of random members to pop from the set.
 	 * @return empty {@link List} if key does not exist. Never {@literal null}.
 	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 * @since 2.0

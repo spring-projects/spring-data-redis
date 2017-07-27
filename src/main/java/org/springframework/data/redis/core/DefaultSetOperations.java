@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,9 +25,10 @@ import org.springframework.data.redis.connection.RedisConnection;
 
 /**
  * Default implementation of {@link SetOperations}.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements SetOperations<K, V> {
 
@@ -40,8 +41,9 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 * @see org.springframework.data.redis.core.SetOperations#add(java.lang.Object, java.lang.Object[])
 	 */
 	public Long add(K key, V... values) {
-		final byte[] rawKey = rawKey(key);
-		final byte[][] rawValues = rawValues(values);
+
+		byte[] rawKey = rawKey(key);
+		byte[][] rawValues = rawValues((Object[]) values);
 		return execute(connection -> connection.sAdd(rawKey, rawValues), true);
 	}
 
@@ -57,9 +59,9 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.SetOperations#difference(java.lang.Object, java.util.Collection)
 	 */
-	public Set<V> difference(final K key, final Collection<K> otherKeys) {
+	public Set<V> difference(K key, Collection<K> otherKeys) {
 
-		final byte[][] rawKeys = rawKeys(key, otherKeys);
+		byte[][] rawKeys = rawKeys(key, otherKeys);
 		Set<byte[]> rawValues = execute(connection -> connection.sDiff(rawKeys), true);
 
 		return deserializeValues(rawValues);
@@ -77,10 +79,10 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.SetOperations#differenceAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
 	 */
-	public Long differenceAndStore(final K key, final Collection<K> otherKeys, K destKey) {
+	public Long differenceAndStore(K key, Collection<K> otherKeys, K destKey) {
 
-		final byte[][] rawKeys = rawKeys(key, otherKeys);
-		final byte[] rawDestKey = rawKey(destKey);
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		byte[] rawDestKey = rawKey(destKey);
 		return execute(connection -> connection.sDiffStore(rawDestKey, rawKeys), true);
 	}
 
@@ -98,7 +100,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	public Set<V> intersect(K key, Collection<K> otherKeys) {
 
-		final byte[][] rawKeys = rawKeys(key, otherKeys);
+		byte[][] rawKeys = rawKeys(key, otherKeys);
 		Set<byte[]> rawValues = execute(connection -> connection.sInter(rawKeys), true);
 
 		return deserializeValues(rawValues);
@@ -118,8 +120,8 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
 
-		final byte[][] rawKeys = rawKeys(key, otherKeys);
-		final byte[] rawDestKey = rawKey(destKey);
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		byte[] rawDestKey = rawKey(destKey);
 		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys), true);
 	}
 
@@ -129,8 +131,8 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	public Boolean isMember(K key, Object o) {
 
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawValue = rawValue(o);
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(o);
 		return execute(connection -> connection.sIsMember(rawKey, rawValue), true);
 	}
 
@@ -140,7 +142,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	public Set<V> members(K key) {
 
-		final byte[] rawKey = rawKey(key);
+		byte[] rawKey = rawKey(key);
 		Set<byte[]> rawValues = execute(connection -> connection.sMembers(rawKey), true);
 
 		return deserializeValues(rawValues);
@@ -152,9 +154,9 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	public Boolean move(K key, V value, K destKey) {
 
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawDestKey = rawKey(destKey);
-		final byte[] rawValue = rawValue(value);
+		byte[] rawKey = rawKey(key);
+		byte[] rawDestKey = rawKey(destKey);
+		byte[] rawValue = rawValue(value);
 
 		return execute(connection -> connection.sMove(rawKey, rawDestKey, rawValue), true);
 	}
@@ -177,14 +179,14 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.SetOperations#distinctRandomMembers(java.lang.Object, long)
 	 */
-	public Set<V> distinctRandomMembers(K key, final long count) {
+	public Set<V> distinctRandomMembers(K key, long count) {
 
 		if (count < 0) {
 			throw new IllegalArgumentException(
 					"Negative count not supported. " + "Use randomMembers to allow duplicate elements.");
 		}
 
-		final byte[] rawKey = rawKey(key);
+		byte[] rawKey = rawKey(key);
 		Set<byte[]> rawValues = execute(
 				(RedisCallback<Set<byte[]>>) connection -> new HashSet<>(connection.sRandMember(rawKey, count)), true);
 
@@ -195,14 +197,14 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.SetOperations#randomMembers(java.lang.Object, long)
 	 */
-	public List<V> randomMembers(K key, final long count) {
+	public List<V> randomMembers(K key, long count) {
 
 		if (count < 0) {
 			throw new IllegalArgumentException(
 					"Use a positive number for count. " + "This method is already allowing duplicate elements.");
 		}
 
-		final byte[] rawKey = rawKey(key);
+		byte[] rawKey = rawKey(key);
 		List<byte[]> rawValues = execute(connection -> connection.sRandMember(rawKey, -count), true);
 
 		return deserializeValues(rawValues);
@@ -214,8 +216,8 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	public Long remove(K key, Object... values) {
 
-		final byte[] rawKey = rawKey(key);
-		final byte[][] rawValues = rawValues(values);
+		byte[] rawKey = rawKey(key);
+		byte[][] rawValues = rawValues(values);
 		return execute(connection -> connection.sRem(rawKey, rawValues), true);
 	}
 
@@ -224,6 +226,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 * @see org.springframework.data.redis.core.SetOperations#pop(java.lang.Object)
 	 */
 	public V pop(K key) {
+
 		return execute(new ValueDeserializingRedisCallback(key) {
 
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
@@ -239,9 +242,9 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	@Override
 	public List<V> pop(K key, long count) {
 
-		final byte[] rawKey = rawKey(key);
-
+		byte[] rawKey = rawKey(key);
 		List<byte[]> rawValues = execute(connection -> connection.sPop(rawKey, count), true);
+
 		return deserializeValues(rawValues);
 	}
 
@@ -250,7 +253,8 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 * @see org.springframework.data.redis.core.SetOperations#size(java.lang.Object)
 	 */
 	public Long size(K key) {
-		final byte[] rawKey = rawKey(key);
+
+		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.sCard(rawKey), true);
 	}
 
@@ -264,7 +268,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 
 	public Set<V> union(K key, Collection<K> otherKeys) {
 
-		final byte[][] rawKeys = rawKeys(key, otherKeys);
+		byte[][] rawKeys = rawKeys(key, otherKeys);
 		Set<byte[]> rawValues = execute(connection -> connection.sUnion(rawKeys), true);
 
 		return deserializeValues(rawValues);
@@ -283,8 +287,9 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 * @see org.springframework.data.redis.core.SetOperations#unionAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
 	 */
 	public Long unionAndStore(K key, Collection<K> otherKeys, K destKey) {
-		final byte[][] rawKeys = rawKeys(key, otherKeys);
-		final byte[] rawDestKey = rawKey(destKey);
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		byte[] rawDestKey = rawKey(destKey);
 		return execute(connection -> connection.sUnionStore(rawDestKey, rawKeys), true);
 	}
 
@@ -293,12 +298,11 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 * @see org.springframework.data.redis.core.SetOperations#sScan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
-	public Cursor<V> scan(K key, final ScanOptions options) {
+	public Cursor<V> scan(K key, ScanOptions options) {
 
-		final byte[] rawKey = rawKey(key);
+		byte[] rawKey = rawKey(key);
 		return template.executeWithStickyConnection(
 				(RedisCallback<Cursor<V>>) connection -> new ConvertingCursor<>(connection.sScan(rawKey, options),
-						source -> deserializeValue(source)));
-
+						this::deserializeValue));
 	}
 }
