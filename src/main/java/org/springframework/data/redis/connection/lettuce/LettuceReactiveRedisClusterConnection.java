@@ -52,11 +52,12 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	 * @throws org.springframework.dao.InvalidDataAccessResourceUsageException when {@code client} is not suitable for
 	 *           cluster environment.
 	 */
-	LettuceReactiveRedisClusterConnection(RedisClusterClient client) {
+	LettuceReactiveRedisClusterConnection(LettuceConnectionProvider connectionProvider) {
 
-		super(client);
+		super(connectionProvider);
 
-		this.topologyProvider = new LettuceClusterTopologyProvider(client);
+		this.topologyProvider = new LettuceClusterTopologyProvider(
+				((ClusterConnectionProvider) connectionProvider).getClient());
 	}
 
 	/*
