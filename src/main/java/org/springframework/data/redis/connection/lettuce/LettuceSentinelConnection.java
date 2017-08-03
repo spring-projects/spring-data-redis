@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI.Builder;
+import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.resource.ClientResources;
 import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
 import io.lettuce.core.sentinel.api.sync.RedisSentinelCommands;
@@ -42,12 +43,12 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
 			LettuceConverters.exceptionConverter());
 
-	private RedisClient redisClient;
+	private final LettuceConnectionProvider provider;
 	private StatefulRedisSentinelConnection<String, String> connection;
 
 	/**
 	 * Creates a {@link LettuceSentinelConnection} with a dedicated client for a supplied {@link RedisNode}.
-	 * 
+	 *
 	 * @param sentinel The sentinel to connect to.
 	 */
 	public LettuceSentinelConnection(RedisNode sentinel) {
@@ -56,7 +57,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 
 	/**
 	 * Creates a {@link LettuceSentinelConnection} with a client for the supplied {@code host} and {@code port}.
-	 * 
+	 *
 	 * @param host must not be {@literal null}.
 	 * @param port sentinel port.
 	 */
@@ -64,14 +65,14 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 
 		Assert.notNull(host, "Cannot create LettuceSentinelConnection using 'null' as host.");
 
-		redisClient = RedisClient.create(Builder.redis(host, port).build());
+		this.provider = new DedicatedClientConnectionProvider(host, port);
 		init();
 	}
 
 	/**
 	 * Creates a {@link LettuceSentinelConnection} with a client for the supplied {@code host} and {@code port} and reuse
 	 * existing {@link ClientResources}.
-	 * 
+	 *
 	 * @param host must not be {@literal null}.
 	 * @param port sentinel port.
 	 * @param clientResources must not be {@literal null}.
@@ -81,31 +82,45 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		Assert.notNull(clientResources, "Cannot create LettuceSentinelConnection using 'null' as ClientResources.");
 		Assert.notNull(host, "Cannot create LettuceSentinelConnection using 'null' as host.");
 
-		redisClient = RedisClient.create(clientResources, Builder.redis(host, port).build());
+		this.provider = new DedicatedClientConnectionProvider(host, port, clientResources);
 		init();
 	}
 
 	/**
 	 * Creates a {@link LettuceSentinelConnection} using a supplied {@link RedisClient}.
-	 * 
-	 * @param redisClient
+	 *
+	 * @param redisClient must not be {@literal null}.
 	 */
 	public LettuceSentinelConnection(RedisClient redisClient) {
 
 		Assert.notNull(redisClient, "Cannot create LettuceSentinelConnection using 'null' as client.");
-		this.redisClient = redisClient;
+		this.provider = t -> redisClient.connectSentinel();
 		init();
 	}
 
 	/**
 	 * Creates a {@link LettuceSentinelConnection} using a supplied redis connection.
-	 * 
+	 *
 	 * @param connection native Lettuce connection, must not be {@literal null}
 	 */
 	protected LettuceSentinelConnection(StatefulRedisSentinelConnection<String, String> connection) {
 
 		Assert.notNull(connection, "Cannot create LettuceSentinelConnection using 'null' as connection.");
-		this.connection = connection;
+		this.provider = t -> connection;
+		init();
+	}
+
+	/**
+	 * Creates a {@link LettuceSentinelConnection} using a {@link LettuceConnectionProvider}.
+	 *
+	 * @param connectionProvider must not be {@literal null}.
+	 * @since 2.0
+	 */
+	public LettuceSentinelConnection(LettuceConnectionProvider connectionProvider) {
+
+		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null!");
+		this.provider = connectionProvider;
+		init();
 	}
 
 	/*
@@ -202,17 +217,14 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	 */
 	@Override
 	public void close() throws IOException {
-		connection.close();
-		connection = null;
-
-		if (redisClient != null) {
-			redisClient.shutdown();
-		}
+		provider.release(connection);
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void init() {
+
 		if (connection == null) {
-			connection = connectSentinel();
+			connection = (StatefulRedisSentinelConnection) provider.getConnection(StatefulRedisSentinelConnection.class);
 		}
 	}
 
@@ -220,12 +232,52 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		return connection.sync();
 	}
 
-	private StatefulRedisSentinelConnection<String, String> connectSentinel() {
-		return redisClient.connectSentinel();
-	}
-
 	@Override
 	public boolean isOpen() {
 		return connection != null && connection.isOpen();
+	}
+
+	/**
+	 * {@link LettuceConnectionProvider} for a dedicated client instance.
+	 */
+	private static class DedicatedClientConnectionProvider implements LettuceConnectionProvider {
+
+		private final RedisClient redisClient;
+
+		DedicatedClientConnectionProvider(String host, int port) {
+
+			Assert.notNull(host, "Cannot create LettuceSentinelConnection using 'null' as host.");
+
+			redisClient = RedisClient.create(Builder.redis(host, port).build());
+		}
+
+		DedicatedClientConnectionProvider(String host, int port, ClientResources clientResources) {
+
+			Assert.notNull(clientResources, "Cannot create LettuceSentinelConnection using 'null' as ClientResources.");
+			Assert.notNull(host, "Cannot create LettuceSentinelConnection using 'null' as host.");
+
+			redisClient = RedisClient.create(clientResources, Builder.redis(host, port).build());
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
+		 */
+		@SuppressWarnings("rawtypes")
+		@Override
+		public StatefulConnection<?, ?> getConnection(Class<? extends StatefulConnection> connectionType) {
+			return redisClient.connectSentinel();
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#release(io.lettuce.core.api.StatefulConnection)
+		 */
+		@Override
+		public void release(StatefulConnection<?, ?> connection) {
+
+			connection.close();
+			redisClient.shutdown();
+		}
 	}
 }

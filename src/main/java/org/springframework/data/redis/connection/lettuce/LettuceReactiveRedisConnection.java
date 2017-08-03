@@ -15,12 +15,9 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import io.lettuce.core.AbstractRedisClient;
-import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.reactive.BaseRedisReactiveCommands;
-import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
 import io.lettuce.core.codec.RedisCodec;
@@ -43,29 +40,25 @@ import org.springframework.util.Assert;
  */
 class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
-	private static final RedisCodec<ByteBuffer, ByteBuffer> CODEC = ByteBufferCodec.INSTANCE;
+	static final RedisCodec<ByteBuffer, ByteBuffer> CODEC = ByteBufferCodec.INSTANCE;
+
+	private final LettuceConnectionProvider connectionProvider;
 
 	private StatefulConnection<ByteBuffer, ByteBuffer> connection;
 
 	/**
 	 * Creates new {@link LettuceReactiveRedisConnection}.
 	 *
-	 * @param client must not be {@literal null}.
+	 * @param connectionProvider must not be {@literal null}.
 	 * @throws IllegalArgumentException when {@code client} is {@literal null}.
 	 * @throws InvalidDataAccessResourceUsageException when {@code client} is not suitable for connection.
 	 */
-	LettuceReactiveRedisConnection(AbstractRedisClient client) {
+	LettuceReactiveRedisConnection(LettuceConnectionProvider connectionProvider) {
 
-		Assert.notNull(client, "RedisClient must not be null!");
+		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null!");
 
-		if (client instanceof RedisClient) {
-			connection = ((RedisClient) client).connect(CODEC);
-		} else if (client instanceof RedisClusterClient) {
-			connection = ((RedisClusterClient) client).connect(CODEC);
-		} else {
-			throw new InvalidDataAccessResourceUsageException(
-					String.format("Cannot use client of type %s", client.getClass()));
-		}
+		this.connectionProvider = connectionProvider;
+		this.connection = connectionProvider.getConnection();
 	}
 
 	/*
@@ -189,7 +182,11 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	 */
 	@Override
 	public void close() {
-		connection.close();
+
+		synchronized (connectionProvider) {
+			connectionProvider.release(connection);
+			connection = null;
+		}
 	}
 
 	protected StatefulConnection<ByteBuffer, ByteBuffer> getConnection() {

@@ -39,6 +39,7 @@ import org.springframework.data.redis.test.util.LettuceRedisClusterClientProvide
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public abstract class LettuceReactiveCommandsTestsBase {
@@ -100,11 +101,13 @@ public abstract class LettuceReactiveCommandsTestsBase {
 
 		if (abstractRedisClient instanceof RedisClient) {
 			nativeCommands = ((RedisClient) abstractRedisClient).connect().sync();
-			connection = new LettuceReactiveRedisConnection(abstractRedisClient);
+			connection = new LettuceReactiveRedisConnection(
+					new StandaloneConnectionProvider(((RedisClient) abstractRedisClient), LettuceReactiveRedisConnection.CODEC));
 
 		} else if (abstractRedisClient instanceof RedisClusterClient) {
 			nativeCommands = ((RedisClusterClient) abstractRedisClient).connect().sync();
-			connection = new LettuceReactiveRedisClusterConnection((RedisClusterClient) abstractRedisClient);
+			connection = new LettuceReactiveRedisClusterConnection(new ClusterConnectionProvider(
+					((RedisClusterClient) abstractRedisClient), LettuceReactiveRedisConnection.CODEC));
 		}
 
 	}

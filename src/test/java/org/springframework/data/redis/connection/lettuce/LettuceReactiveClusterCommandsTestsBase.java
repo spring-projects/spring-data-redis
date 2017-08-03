@@ -29,6 +29,7 @@ import org.springframework.data.redis.test.util.LettuceRedisClusterClientProvide
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public abstract class LettuceReactiveClusterCommandsTestsBase {
 
@@ -41,7 +42,8 @@ public abstract class LettuceReactiveClusterCommandsTestsBase {
 	public void before() {
 		assumeThat(clientProvider.test(), is(true));
 		nativeCommands = clientProvider.getClient().connect().sync();
-		connection = new LettuceReactiveRedisClusterConnection(clientProvider.getClient());
+		connection = new LettuceReactiveRedisClusterConnection(
+				new ClusterConnectionProvider(clientProvider.getClient(), LettuceReactiveRedisConnection.CODEC));
 	}
 
 	@After
@@ -63,5 +65,4 @@ public abstract class LettuceReactiveClusterCommandsTestsBase {
 			connection.close();
 		}
 	}
-
 }
