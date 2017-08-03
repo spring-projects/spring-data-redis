@@ -55,6 +55,11 @@ public interface LettuceClientConfiguration {
 	boolean isUseSsl();
 
 	/**
+	 * @return {@literal true} to use connection-pooling.
+	 */
+	boolean isUsePooling();
+
+	/**
 	 * @return {@literal true} to verify peers when using {@link #isUseSsl() SSL}.
 	 */
 	boolean isVerifyPeer();
@@ -217,15 +222,15 @@ public interface LettuceClientConfiguration {
 	class DefaultLettuceClientConfigurationBuilder
 			implements LettuceClientConfigurationBuilder, LettuceSslClientConfigurationBuilder {
 
-		private boolean useSsl;
-		private boolean verifyPeer = true;
-		private boolean startTls;
-		private ClientResources clientResources;
-		private ClientOptions clientOptions;
-		private Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
-		private Duration shutdownTimeout = Duration.ofMillis(100);
+		boolean useSsl;
+		boolean verifyPeer = true;
+		boolean startTls;
+		ClientResources clientResources;
+		ClientOptions clientOptions;
+		Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
+		Duration shutdownTimeout = Duration.ofMillis(100);
 
-		private DefaultLettuceClientConfigurationBuilder() {}
+		DefaultLettuceClientConfigurationBuilder() {}
 
 		/*
 		 * (non-Javadoc)

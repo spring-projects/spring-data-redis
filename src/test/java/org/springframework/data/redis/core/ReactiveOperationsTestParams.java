@@ -39,6 +39,7 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
@@ -65,6 +66,11 @@ abstract public class ReactiveOperationsTestParams {
 				.clientResources(LettuceTestClientResources.getSharedClientResources()) //
 				.build();
 
+		LettuceClientConfiguration poolingConfiguration = LettucePoolingClientConfiguration.builder() //
+				.and().shutdownTimeout(Duration.ZERO) //
+				.clientResources(LettuceTestClientResources.getSharedClientResources()) //
+				.build();
+
 		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration(SettingsUtils.getHost(),
 				SettingsUtils.getPort());
 
@@ -87,8 +93,15 @@ abstract public class ReactiveOperationsTestParams {
 				clientConfiguration);
 		lettuceConnectionFactory.afterPropertiesSet();
 
+		LettuceConnectionFactory poolingConnectionFactory = new LettuceConnectionFactory(standaloneConfiguration,
+				poolingConfiguration);
+		poolingConnectionFactory.afterPropertiesSet();
+
 		JdkSerializationRedisSerializer jdkSerializationRedisSerializer = new JdkSerializationRedisSerializer();
 		ReactiveRedisTemplate<Object, Object> objectTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
+				RedisSerializationContext.fromSerializer(jdkSerializationRedisSerializer));
+
+		ReactiveRedisTemplate<Object, Object> pooledObjectTemplate = new ReactiveRedisTemplate<>(poolingConnectionFactory,
 				RedisSerializationContext.fromSerializer(jdkSerializationRedisSerializer));
 
 		StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
@@ -129,6 +142,7 @@ abstract public class ReactiveOperationsTestParams {
 		List<Object[]> list = Arrays.asList(new Object[][] { //
 				{ stringTemplate, stringFactory, stringFactory, stringRedisSerializer, "String" }, //
 				{ objectTemplate, personFactory, personFactory, jdkSerializationRedisSerializer, "Person/JDK" }, //
+				{ pooledObjectTemplate, personFactory, personFactory, jdkSerializationRedisSerializer, "Pooled/Person/JDK" }, //
 				{ longTemplate, stringFactory, longFactory, longToStringSerializer, "Long" }, //
 				{ doubleTemplate, stringFactory, doubleFactory, doubleToStringSerializer, "Double" }, //
 				{ rawTemplate, rawFactory, rawFactory, null, "raw" }, //

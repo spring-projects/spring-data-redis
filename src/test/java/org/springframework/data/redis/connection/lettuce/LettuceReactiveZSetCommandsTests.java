@@ -415,7 +415,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 	@Test // DATAREDIS-525
 	public void zUnionStoreShouldWorkCorrectly() {
 
-		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
+		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
 
 		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
@@ -432,7 +432,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 	@Test // DATAREDIS-525
 	public void zInterStoreShouldWorkCorrectly() {
 
-		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
+		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
 
 		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);

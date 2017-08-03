@@ -38,7 +38,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -281,8 +280,8 @@ public class LettuceConnectionFactory
 		}
 
 		LettuceConnection connection;
-		if (pool != null) {
 
+		if (pool != null) {
 			connection = new LettuceConnection(getSharedConnection(), getTimeout(), null, pool, getDatabase());
 		} else {
 			connection = new LettuceConnection(getSharedConnection(), connectionProvider, getTimeout(), getDatabase());
@@ -779,6 +778,16 @@ public class LettuceConnectionFactory
 
 	private LettuceConnectionProvider createConnectionProvider(AbstractRedisClient client, RedisCodec<?, ?> codec) {
 
+		LettuceConnectionProvider connectionProvider = doConnectionProvider(client, codec);
+
+		if (this.clientConfiguration.isUsePooling()) {
+			return new LettucePoolingConnectionProvider(connectionProvider, this.clientConfiguration);
+		}
+
+		return connectionProvider;
+	}
+
+	private LettuceConnectionProvider doConnectionProvider(AbstractRedisClient client, RedisCodec<?, ?> codec) {
 		if (isClusterAware()) {
 			return new ClusterConnectionProvider((RedisClusterClient) client, codec);
 		}
@@ -852,11 +861,6 @@ public class LettuceConnectionFactory
 
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
-
-		if (!(connectionProvider instanceof StandaloneConnectionProvider)) {
-			throw new InvalidDataAccessResourceUsageException(
-					"Unable to connect to sentinels using " + connectionProvider.getClass());
-		}
 		return new LettuceSentinelConnection(connectionProvider);
 	}
 
@@ -893,6 +897,14 @@ public class LettuceConnectionFactory
 		@Override
 		public boolean isUseSsl() {
 			return useSsl;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isUsePooling()
+		 */
+		@Override
+		public boolean isUsePooling() {
+			return false;
 		}
 
 		public void setUseSsl(boolean useSsl) {

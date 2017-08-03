@@ -22,21 +22,23 @@ import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
 
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link LettuceClientConfiguration}.
+ * Unit tests for {@link LettucePoolingClientConfiguration}.
  *
  * @author Mark Paluch
  */
-public class LettuceClientConfigurationUnitTests {
+public class LettucePoolingClientConfigurationUnitTests {
 
-	@Test // DATAREDIS-574, DATAREDIS-667
+	@Test // DATAREDIS-667
 	public void shouldCreateEmptyConfiguration() {
 
-		LettuceClientConfiguration configuration = LettuceClientConfiguration.defaultConfiguration();
+		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.defaultConfiguration();
 
-		assertThat(configuration.isUsePooling()).isFalse();
+		assertThat(configuration.isUsePooling()).isTrue();
+		assertThat(configuration.getPoolConfig()).isNotNull();
 		assertThat(configuration.isUseSsl()).isFalse();
 		assertThat(configuration.isVerifyPeer()).isTrue();
 		assertThat(configuration.isStartTls()).isFalse();
@@ -46,13 +48,16 @@ public class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofMillis(100));
 	}
 
-	@Test // DATAREDIS-574, DATAREDIS-667
+	@Test // DATAREDIS-667
 	public void shouldConfigureAllProperties() {
 
 		ClientOptions clientOptions = ClientOptions.create();
 		ClientResources sharedClientResources = LettuceTestClientResources.getSharedClientResources();
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 
-		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder() //
+		LettucePoolingClientConfiguration configuration = (LettucePoolingClientConfiguration) LettucePoolingClientConfiguration
+				.builder() //
+				.poolConfig(poolConfig).and() //
 				.useSsl() //
 				.disablePeerVerification() //
 				.startTls().and() //
@@ -62,7 +67,8 @@ public class LettuceClientConfigurationUnitTests {
 				.shutdownTimeout(Duration.ofHours(2)) //
 				.build();
 
-		assertThat(configuration.isUsePooling()).isFalse();
+		assertThat(configuration.isUsePooling()).isTrue();
+		assertThat(configuration.getPoolConfig()).isEqualTo(poolConfig);
 		assertThat(configuration.isUseSsl()).isTrue();
 		assertThat(configuration.isVerifyPeer()).isFalse();
 		assertThat(configuration.isStartTls()).isTrue();
