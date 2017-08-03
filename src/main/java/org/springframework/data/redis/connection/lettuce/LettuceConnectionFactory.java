@@ -151,6 +151,11 @@ public class LettuceConnectionFactory
 		this(clusterConfiguration, new MutableLettuceClientConfiguration());
 	}
 
+	/**
+	 * @param pool
+	 * @deprecated since 2.0, use pooling via {@link LettucePoolingClientConfiguration}.
+	 */
+	@Deprecated
 	public LettuceConnectionFactory(LettucePool pool) {
 		this(new MutableLettuceClientConfiguration());
 		this.pool = pool;

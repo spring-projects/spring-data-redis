@@ -40,7 +40,9 @@ import org.springframework.util.StringUtils;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @deprecated since 2.0, use pooling via {@link LettucePoolingClientConfiguration}.
  */
+@Deprecated
 public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	@SuppressWarnings("rawtypes") //
@@ -126,7 +128,8 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	private RedisURI getRedisURI() {
 
 		RedisURI redisUri = isRedisSentinelAware()
-				? LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration) : createSimpleHostRedisURI();
+				? LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration)
+				: createSimpleHostRedisURI();
 
 		if (StringUtils.hasText(password)) {
 			redisUri.setPassword(password);

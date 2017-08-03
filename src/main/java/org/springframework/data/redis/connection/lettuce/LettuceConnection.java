@@ -223,7 +223,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param timeout The connection timeout (in milliseconds) * @param client The {@link RedisClient} to use when
 	 *          instantiating a pub/sub connection
 	 * @param pool The connection pool to use for all other native connections
+	 * @deprecated since 2.0, use pooling via {@link LettucePoolingClientConfiguration}.
 	 */
+	@Deprecated
 	public LettuceConnection(long timeout, RedisClient client, LettucePool pool) {
 		this(null, timeout, client, pool);
 	}
@@ -248,7 +250,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param timeout The connection timeout (in milliseconds)
 	 * @param client The {@link RedisClient} to use when making pub/sub connections
 	 * @param pool The connection pool to use for blocking and tx operations
+	 * @deprecated since 2.0, use
+	 *             {@link #LettuceConnection(StatefulRedisConnection, LettuceConnectionProvider, long, int)}
 	 */
+	@Deprecated
 	public LettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout, RedisClient client,
 			LettucePool pool) {
 
@@ -263,7 +268,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param pool The connection pool to use for blocking and tx operations.
 	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
 	 * @since 1.7
+	 * @deprecated since 2.0, use
+	 *             {@link #LettuceConnection(StatefulRedisConnection, LettuceConnectionProvider, long, int)}
 	 */
+	@Deprecated
 	public LettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
 			AbstractRedisClient client, LettucePool pool, int defaultDbIndex) {
 

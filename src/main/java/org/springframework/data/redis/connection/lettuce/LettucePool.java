@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.AbstractRedisClient;
@@ -23,11 +22,13 @@ import org.springframework.data.redis.connection.Pool;
 
 /**
  * Pool of Lettuce {@link StatefulConnection}s
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @deprecated since 2.0, use pooling via {@link LettucePoolingClientConfiguration}.
  */
+@Deprecated
 public interface LettucePool extends Pool<StatefulConnection<byte[], byte[]>> {
 
 	/**
