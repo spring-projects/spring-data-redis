@@ -38,6 +38,7 @@ import reactor.core.publisher.Mono;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTestsBase {
 
@@ -203,7 +204,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 	@Test // DATAREDIS-525
 	public void blPopShouldReturnFirstAvailable() {
 
-		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
+		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
@@ -216,7 +217,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 	@Test // DATAREDIS-525
 	public void brPopShouldReturnLastAvailable() {
 
-		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
+		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
@@ -242,7 +243,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 	@Test // DATAREDIS-525
 	public void brPopLPushShouldWorkCorrectly() {
 
-		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
+		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 		nativeCommands.rpush(KEY_2, VALUE_1);

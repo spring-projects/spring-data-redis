@@ -236,7 +236,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-525
 	public void mSetNXShouldAddMultipleKeyValuePairs() {
 
-		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
+		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
 
 		Map<ByteBuffer, ByteBuffer> map = new LinkedHashMap<>();
 		map.put(KEY_1_BBUFFER, VALUE_1_BBUFFER);
@@ -251,7 +251,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-525
 	public void mSetNXShouldNotAddMultipleKeyValuePairsWhenAlreadyExit() {
 
-		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
+		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
 
 		nativeCommands.set(KEY_2, VALUE_2);
 
@@ -346,7 +346,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-525
 	public void bitOpAndShouldWorkAsExpected() {
 
-		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
+		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
 
 		nativeCommands.set(KEY_1, VALUE_1);
 		nativeCommands.set(KEY_2, VALUE_2);
@@ -363,7 +363,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-525
 	public void bitOpOrShouldWorkAsExpected() {
 
-		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
+		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
 
 		nativeCommands.set(KEY_1, VALUE_1);
 		nativeCommands.set(KEY_2, VALUE_2);
@@ -380,7 +380,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-525
 	public void bitNotShouldThrowExceptionWhenMoreThanOnSourceKey() {
 
-		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
+		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
 
 		StepVerifier
 				.create(connection.stringCommands().bitOp(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), BitOperation.NOT,

@@ -58,6 +58,14 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	}
 
 	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isUsePooling()
+	 */
+	@Override
+	public boolean isUsePooling() {
+		return false;
+	}
+
+	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isVerifyPeer()
 	 */
 	@Override

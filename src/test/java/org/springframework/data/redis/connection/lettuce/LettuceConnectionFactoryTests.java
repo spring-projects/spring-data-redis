@@ -24,6 +24,9 @@ import io.lettuce.core.RedisException;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.reactive.BaseRedisReactiveCommands;
 
+import java.time.Duration;
+
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -35,6 +38,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.StringRedisConnection;
 
 /**
@@ -327,5 +331,34 @@ public class LettuceConnectionFactoryTests {
 		ConnectionFactoryTracker.add(factory);
 
 		assertThat(factory.getReactiveConnection().execute(BaseRedisReactiveCommands::ping).blockFirst(), is("PONG"));
+	}
+
+	@Test // DATAREDIS-667
+	public void factoryCreatesPooledConnections() {
+
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+
+		LettuceClientConfiguration configuration = LettucePoolingClientConfiguration.builder().poolConfig(poolConfig).and()
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).shutdownTimeout(Duration.ZERO).build();
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(), configuration);
+		factory.setShareNativeConnection(false);
+		factory.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory);
+
+		RedisConnection initial = factory.getConnection();
+		Object initialNativeConnection = initial.getNativeConnection();
+
+		initial.close();
+
+		RedisConnection subsequent = factory.getConnection();
+		Object subsequentNativeConnection = subsequent.getNativeConnection();
+
+		subsequent.close();
+
+		assertThat(initialNativeConnection, is(subsequentNativeConnection));
+
+		factory.destroy();
 	}
 }

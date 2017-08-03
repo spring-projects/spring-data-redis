@@ -38,8 +38,11 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 		StepVerifier.create(connection.serverCommands().bgReWriteAof()).expectNextCount(1).verifyComplete();
 	}
 
-	@Test // DATAREDIS-659
+	@Test // DATAREDIS-659, DATAREDIS-667
 	public void bgSaveShouldRespondCorrectly() {
+
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
+
 		StepVerifier.create(connection.serverCommands().bgSave()).expectNextCount(1).verifyComplete();
 	}
 
@@ -48,8 +51,11 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 		StepVerifier.create(connection.serverCommands().lastSave()).expectNextCount(1).verifyComplete();
 	}
 
-	@Test // DATAREDIS-659
+	@Test // DATAREDIS-659, DATAREDIS-667
 	public void saveShouldRespondCorrectly() {
+
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
+
 		StepVerifier.create(connection.serverCommands().save()).expectNext("OK").verifyComplete();
 	}
 
@@ -61,9 +67,8 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-659
 	public void flushDbShouldRespondCorrectly() {
 
-		StepVerifier
-				.create(connection.serverCommands().flushDb() //
-						.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER))) //
+		StepVerifier.create(connection.serverCommands().flushDb() //
+				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER))) //
 				.expectNextCount(1) //
 				.verifyComplete();
 
@@ -77,9 +82,8 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-659
 	public void flushAllShouldRespondCorrectly() {
 
-		StepVerifier
-				.create(connection.serverCommands().flushAll() //
-						.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER))) //
+		StepVerifier.create(connection.serverCommands().flushAll() //
+				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER))) //
 				.expectNextCount(1) //
 				.verifyComplete();
 

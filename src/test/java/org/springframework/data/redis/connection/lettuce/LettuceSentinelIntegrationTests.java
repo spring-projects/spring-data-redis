@@ -20,15 +20,18 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
@@ -43,6 +46,7 @@ import org.springframework.data.redis.test.util.RedisSentinelRule;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
+@RunWith(Parameterized.class)
 public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrationTests {
 
 	private static final String MASTER_NAME = "mymaster";
@@ -58,8 +62,14 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	public static @ClassRule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();
 	public @Rule MinimumRedisVersionRule minimumVersionRule = new MinimumRedisVersionRule();
 
-	@Before
-	public void setUp() {
+	public LettuceSentinelIntegrationTests(LettuceConnectionFactory connectionFactory, String displayName) {
+		this.connectionFactory = connectionFactory;
+	}
+
+	@Parameters(name = "{1}")
+	public static List<Object[]> parameters() {
+
+		List<Object[]> parameters = new ArrayList<>();
 
 		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(SENTINEL_CONFIG);
 		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
@@ -67,14 +77,37 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		lettuceConnectionFactory.setShutdownTimeout(0);
 		lettuceConnectionFactory.afterPropertiesSet();
 
-		connectionFactory = lettuceConnectionFactory;
-		super.setUp();
+		LettuceConnectionFactory pooledConnectionFactory = new LettuceConnectionFactory(SENTINEL_CONFIG,
+				LettucePoolingClientConfiguration.builder().build());
+		pooledConnectionFactory.setShareNativeConnection(false);
+		pooledConnectionFactory.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(lettuceConnectionFactory);
+		ConnectionFactoryTracker.add(pooledConnectionFactory);
+
+		parameters.add(new Object[] { lettuceConnectionFactory, "Sentinel" });
+		parameters.add(new Object[] { pooledConnectionFactory, "Sentinel/Pooled" });
+
+		return parameters;
 	}
 
 	@After
 	public void tearDown() {
-		super.tearDown();
-		((LettuceConnectionFactory) connectionFactory).destroy();
+
+		try {
+
+			// since we use more than one db we're required to flush them all
+			connection.flushAll();
+		} catch (Exception e) {
+			// Connection may be closed in certain cases, like after pub/sub
+			// tests
+		}
+		connection.close();
+	}
+
+	@AfterClass
+	public static void afterClass() {
+		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Test // DATAREDIS-348

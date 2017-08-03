@@ -26,6 +26,7 @@ import org.springframework.data.redis.test.util.LettuceRedisClientProvider;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -56,7 +57,7 @@ public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveComm
 	@Test // DATAREDIS-525
 	public void pfCountWithMultipleKeysShouldReturnCorrectly() {
 
-		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
+		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
 
 		nativeCommands.pfadd(KEY_1, new String[] { VALUE_1, VALUE_2 });
 		nativeCommands.pfadd(KEY_2, new String[] { VALUE_2, VALUE_3 });
@@ -67,7 +68,7 @@ public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveComm
 	@Test // DATAREDIS-525
 	public void pfMergeShouldWorkCorrectly() {
 
-		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
+		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
 
 		nativeCommands.pfadd(KEY_1, new String[] { VALUE_1, VALUE_2 });
 		nativeCommands.pfadd(KEY_2, new String[] { VALUE_2, VALUE_3 });
@@ -78,5 +79,4 @@ public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveComm
 
 		assertThat(nativeCommands.pfcount(new String[] { KEY_3 }), is(3L));
 	}
-
 }
