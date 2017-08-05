@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -985,7 +985,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[])
 	 */
@@ -1010,7 +1010,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[], java.util.concurrent.TimeUnit)
 	 */
@@ -1073,7 +1073,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[])
 	 */
@@ -1098,7 +1098,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[], java.util.concurrent.TimeUnit)
 	 */
@@ -2232,7 +2232,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		if (isPipelined() || isQueueing()) {
 			throw new UnsupportedOperationException("zAdd of multiple fields not supported " + "in pipeline or transaction");
 		}
-		Map<byte[], Double> args = zAddArgs(tuples);
+		Map<byte[], Double> args = JedisConverters.zAddArgsConvertor(tuples);
 		try {
 			return jedis.zadd(key, args);
 		} catch (Exception ex) {
@@ -3955,29 +3955,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 		args.add(Protocol.toByteArray(timeout));
 		return args.toArray(new byte[args.size()][]);
-	}
-
-	private Map<byte[], Double> zAddArgs(Set<Tuple> tuples) {
-
-		Map<byte[], Double> args = new LinkedHashMap<byte[], Double>(tuples.size(), 1);
-		Set<Double> scores = new HashSet<Double>(tuples.size(), 1);
-
-		boolean isAtLeastJedis24 = JedisVersionUtil.atLeastJedis24();
-
-		for (Tuple tuple : tuples) {
-
-			if (!isAtLeastJedis24) {
-				if (scores.contains(tuple.getScore())) {
-					throw new UnsupportedOperationException(
-							"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
-				}
-				scores.add(tuple.getScore());
-			}
-
-			args.put(tuple.getValue(), tuple.getScore());
-		}
-
-		return args;
 	}
 
 	@Override

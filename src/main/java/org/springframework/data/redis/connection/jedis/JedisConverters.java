@@ -18,6 +18,8 @@ package org.springframework.data.redis.connection.jedis;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,7 +74,7 @@ import redis.clients.util.SafeEncoder;
 
 /**
  * Jedis type converters.
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
@@ -224,7 +226,7 @@ abstract public class JedisConverters extends Converters {
 
 	/**
 	 * {@link ListConverter} converting jedis {@link redis.clients.jedis.Tuple} to {@link Tuple}.
-	 * 
+	 *
 	 * @return
 	 * @since 1.4
 	 */
@@ -394,7 +396,7 @@ abstract public class JedisConverters extends Converters {
 	/**
 	 * Converts a given {@link Boundary} to its binary representation suitable for {@literal ZRANGEBY*} commands, despite
 	 * {@literal ZRANGEBYLEX}.
-	 * 
+	 *
 	 * @param boundary
 	 * @param defaultValue
 	 * @return
@@ -411,7 +413,7 @@ abstract public class JedisConverters extends Converters {
 
 	/**
 	 * Converts a given {@link Boundary} to its binary representation suitable for ZRANGEBYLEX command.
-	 * 
+	 *
 	 * @param boundary
 	 * @return
 	 * @since 1.6
@@ -433,7 +435,7 @@ abstract public class JedisConverters extends Converters {
 	 * <dt>{@link TimeUnit#MILLISECONDS}</dt>
 	 * <dd>{@code PX}</dd>
 	 * </dl>
-	 * 
+	 *
 	 * @param expiration
 	 * @return
 	 * @since 1.7
@@ -452,7 +454,7 @@ abstract public class JedisConverters extends Converters {
 	 * <dt>{@link SetOption#SET_IF_PRESENT}</dt>
 	 * <dd>{@code XX}</dd>
 	 * </dl>
-	 * 
+	 *
 	 * @param option
 	 * @return
 	 * @since 1.7
@@ -537,7 +539,7 @@ abstract public class JedisConverters extends Converters {
 
 	/**
 	 * Get a {@link Converter} capable of converting {@link GeoRadiusResponse} into {@link GeoResults}.
-	 * 
+	 *
 	 * @param metric
 	 * @return
 	 * @since 1.8
@@ -549,7 +551,7 @@ abstract public class JedisConverters extends Converters {
 
 	/**
 	 * Convert {@link Metric} into {@link GeoUnit}.
-	 * 
+	 *
 	 * @param metric
 	 * @return
 	 * @since 1.8
@@ -563,7 +565,7 @@ abstract public class JedisConverters extends Converters {
 
 	/**
 	 * Convert {@link Point} into {@link GeoCoordinate}.
-	 * 
+	 *
 	 * @param source
 	 * @return
 	 * @since 1.8
@@ -574,7 +576,7 @@ abstract public class JedisConverters extends Converters {
 
 	/**
 	 * Convert {@link GeoRadiusCommandArgs} into {@link GeoRadiusParam}.
-	 * 
+	 *
 	 * @param source
 	 * @return
 	 * @since 1.8
@@ -685,5 +687,34 @@ abstract public class JedisConverters extends Converters {
 						new Distance(source.getDistance(), metric));
 			}
 		}
+	}
+
+	/**
+	 * Convert tuples to map of bytes and double.
+	 * Bytes represents the value of the element and double is for the score.
+	 * @param tuples
+	 * @return
+	 */
+	public static Map<byte[], Double> zAddArgsConvertor(Set<Tuple> tuples) {
+
+		Map<byte[], Double> args = new LinkedHashMap<byte[], Double>(tuples.size(), 1);
+		Set<Double> scores = new HashSet<Double>(tuples.size(), 1);
+
+		boolean isAtLeastJedis24 = JedisVersionUtil.atLeastJedis24();
+
+		for (Tuple tuple : tuples) {
+
+			if (!isAtLeastJedis24) {
+				if (scores.contains(tuple.getScore())) {
+					throw new UnsupportedOperationException(
+						"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
+				}
+				scores.add(tuple.getScore());
+			}
+
+			args.put(tuple.getValue(), tuple.getScore());
+		}
+
+		return args;
 	}
 }
