@@ -15,15 +15,10 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-
-import org.springframework.data.redis.connection.jedis.JedisVersionUtil;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.util.Assert;
+import java.util.Set;
 
 /**
  * ZSet(SortedSet)-specific commands supported by Redis.
@@ -744,35 +739,5 @@ public interface RedisZSetCommands {
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit);
-
-	/**
-	 * Convert tuples to map of bytes and double.
-	 * Bytes represents the value of the element and double is for the score.
-	 * @param tuples
-	 * @return
-	 */
-	default Map<byte[], Double> zAddArgs(Set<Tuple> tuples) {
-
-		Map<byte[], Double> args = new LinkedHashMap<>(tuples.size(), 1);
-		Set<Double> scores = new HashSet<>(tuples.size(), 1);
-
-		boolean isAtLeastJedis24 = JedisVersionUtil.atLeastJedis24();
-
-		for (Tuple tuple : tuples) {
-
-			if (!isAtLeastJedis24) {
-				if (scores.contains(tuple.getScore())) {
-					throw new UnsupportedOperationException(
-						"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
-				}
-				scores.add(tuple.getScore());
-			}
-
-			args.put(tuple.getValue(), tuple.getScore());
-		}
-
-		return args;
-	}
-
 
 }

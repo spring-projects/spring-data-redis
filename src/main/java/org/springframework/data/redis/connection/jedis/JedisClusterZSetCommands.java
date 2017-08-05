@@ -66,7 +66,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	@Override
 	public Long zAdd(byte[] key, Set<Tuple> tuples) {
 
-		Map<byte[], Double> args = zAddArgs(tuples);
+		Map<byte[], Double> args = JedisConverters.zAddArgsConvertor(tuples);
 
 		try {
 			return connection.getCluster().zadd(key, args);

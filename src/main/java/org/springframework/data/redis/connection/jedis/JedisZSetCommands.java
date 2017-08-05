@@ -77,7 +77,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 			throw new UnsupportedOperationException("zAdd of multiple fields not supported " + "in pipeline or transaction");
 		}
 
-		Map<byte[], Double> args = zAddArgs(tuples);
+		Map<byte[], Double> args = JedisConverters.zAddArgsConvertor(tuples);
 		try {
 			return connection.getJedis().zadd(key, args);
 		} catch (Exception ex) {
