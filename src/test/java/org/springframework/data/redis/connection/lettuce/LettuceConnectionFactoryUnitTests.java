@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.lambdaworks.redis.AbstractRedisClient;
 import com.lambdaworks.redis.RedisClient;
@@ -310,5 +311,15 @@ public class LettuceConnectionFactoryUnitTests {
 		for (RedisURI uri : initialUris) {
 			assertThat(uri.isVerifyPeer(), is(true));
 		}
+	}
+
+	@Test  // DATAREDIS-676
+	public void timeoutShouldBePassedOnToClusterConnection() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
+		connectionFactory.setTimeout(2000);
+		connectionFactory.afterPropertiesSet();
+
+		assertThat((Long) ReflectionTestUtils.getField(connectionFactory.getClusterConnection(), "timeout"), is(equalTo(2000L)));
 	}
 }
