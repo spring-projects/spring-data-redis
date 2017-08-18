@@ -43,6 +43,7 @@ import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Unit tests for {@link LettuceConnectionFactory}.
@@ -485,5 +486,24 @@ public class LettuceConnectionFactoryUnitTests {
 				LettuceClientConfiguration.defaultConfiguration());
 
 		connectionFactory.setUseSsl(false);
+	}
+
+	@Test  // DATAREDIS-676
+	public void timeoutShouldBePassedOnToClusterConnection() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
+		connectionFactory.setTimeout(2000);
+		connectionFactory.afterPropertiesSet();
+
+		assertThat(ReflectionTestUtils.getField(connectionFactory.getClusterConnection(), "timeout"), is(equalTo(2000L)));
+	}
+
+	@Test  // DATAREDIS-676
+	public void timeoutSetOnClientConfigShouldBePassedOnToClusterConnection() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig, LettuceClientConfiguration.builder().commandTimeout(Duration.ofSeconds(2)).build());
+		connectionFactory.afterPropertiesSet();
+
+		assertThat(ReflectionTestUtils.getField(connectionFactory.getClusterConnection(), "timeout"), is(equalTo(2000L)));
 	}
 }
