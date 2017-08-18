@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
 import java.util.ArrayList;
@@ -201,7 +200,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
 		}
 
-		return new LettuceClusterConnection((RedisClusterClient) client, clusterCommandExecutor);
+		return new LettuceClusterConnection((RedisClusterClient) client, getTimeout(), clusterCommandExecutor);
 	}
 
 	public void initConnection() {
@@ -577,7 +576,8 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 			}
 
 			RedisClusterClient clusterClient = clientResources != null
-					? RedisClusterClient.create(clientResources, initialUris) : RedisClusterClient.create(initialUris);
+					? RedisClusterClient.create(clientResources, initialUris)
+					: RedisClusterClient.create(initialUris);
 
 			this.clusterCommandExecutor = new ClusterCommandExecutor(
 					new LettuceClusterConnection.LettuceClusterTopologyProvider(clusterClient),
