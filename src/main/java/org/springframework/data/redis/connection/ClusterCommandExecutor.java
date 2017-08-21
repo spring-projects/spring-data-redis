@@ -171,7 +171,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @return
 	 * @throws ClusterCommandExecutionFailureException
 	 */
-	public <S, T> MulitNodeResult<T> executeCommandOnAllNodes(final ClusterCommandCallback<S, T> cmd) {
+	public <S, T> MultiNodeResult<T> executeCommandOnAllNodes(final ClusterCommandCallback<S, T> cmd) {
 		return executeCommandAsyncOnNodes(cmd, getClusterTopology().getActiveMasterNodes());
 	}
 
@@ -182,7 +182,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @throws ClusterCommandExecutionFailureException
 	 * @throws IllegalArgumentException in case the node could not be resolved to a topology-known node
 	 */
-	public <S, T> MulitNodeResult<T> executeCommandAsyncOnNodes(final ClusterCommandCallback<S, T> callback,
+	public <S, T> MultiNodeResult<T> executeCommandAsyncOnNodes(final ClusterCommandCallback<S, T> callback,
 			Iterable<RedisClusterNode> nodes) {
 
 		Assert.notNull(callback, "Callback must not be null!");
@@ -208,11 +208,11 @@ public class ClusterCommandExecutor implements DisposableBean {
 		return collectResults(futures);
 	}
 
-	private <T> MulitNodeResult<T> collectResults(Map<NodeExecution, Future<NodeResult<T>>> futures) {
+	private <T> MultiNodeResult<T> collectResults(Map<NodeExecution, Future<NodeResult<T>>> futures) {
 
 		boolean done = false;
 
-		MulitNodeResult<T> result = new MulitNodeResult<>();
+		MultiNodeResult<T> result = new MultiNodeResult<>();
 		Map<RedisClusterNode, Throwable> exceptions = new HashMap<>();
 
 		Set<String> saveGuard = new HashSet<>();
@@ -267,7 +267,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @return
 	 * @throws ClusterCommandExecutionFailureException
 	 */
-	public <S, T> MulitNodeResult<T> executeMuliKeyCommand(final MultiKeyClusterCommandCallback<S, T> cmd,
+	public <S, T> MultiNodeResult<T> executeMultiKeyCommand(final MultiKeyClusterCommandCallback<S, T> cmd,
 			Iterable<byte[]> keys) {
 
 		Map<RedisClusterNode, Set<byte[]>> nodeKeyMap = new HashMap<>();
@@ -445,7 +445,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	}
 
 	/**
-	 * {@link NodeResult} encapsules the actual value returned by a {@link ClusterCommandCallback} on a given
+	 * {@link NodeResult} encapsulates the actual value returned by a {@link ClusterCommandCallback} on a given
 	 * {@link RedisClusterNode}.
 	 *
 	 * @author Christoph Strobl
@@ -510,13 +510,13 @@ public class ClusterCommandExecutor implements DisposableBean {
 	}
 
 	/**
-	 * {@link MulitNodeResult} holds all {@link NodeResult} of a command executed on multiple {@link RedisClusterNode}.
+	 * {@link MultiNodeResult} holds all {@link NodeResult} of a command executed on multiple {@link RedisClusterNode}.
 	 *
 	 * @author Christoph Strobl
 	 * @param <T>
 	 * @since 1.7
 	 */
-	public static class MulitNodeResult<T> {
+	public static class MultiNodeResult<T> {
 
 		List<NodeResult<T>> nodeResults = new ArrayList<>();
 
@@ -550,7 +550,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		public List<T> resultsAsListSortBy(byte[]... keys) {
 
 			ArrayList<NodeResult<T>> clone = new ArrayList<>(nodeResults);
-			Collections.sort(clone, new ResultByReferenceKeyPositionComperator(keys));
+			Collections.sort(clone, new ResultByReferenceKeyPositionComparator(keys));
 
 			return toList(clone);
 		}
@@ -591,12 +591,13 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 * {@link Comparator} for sorting {@link NodeResult} by reference keys.
 		 *
 		 * @author Christoph Strobl
+		 * @author Mark Paluch
 		 */
-		private static class ResultByReferenceKeyPositionComperator implements Comparator<NodeResult<?>> {
+		private static class ResultByReferenceKeyPositionComparator implements Comparator<NodeResult<?>> {
 
 			List<ByteArrayWrapper> reference;
 
-			public ResultByReferenceKeyPositionComperator(byte[]... keys) {
+			ResultByReferenceKeyPositionComparator(byte[]... keys) {
 				reference = new ArrayList<>(new ByteArraySet(Arrays.asList(keys)));
 			}
 

@@ -25,7 +25,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.connection.ClusterCommandExecutor.MulitNodeResult;
+import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiNodeResult;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.NodeResult;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterServerCommands;
@@ -361,7 +361,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		return connection.getClusterCommandExecutor().executeCommandOnSingleNode(command, node);
 	}
 
-	private <T> MulitNodeResult<T> executeCommandOnAllNodes(final LettuceClusterCommandCallback<T> cmd) {
+	private <T> MultiNodeResult<T> executeCommandOnAllNodes(final LettuceClusterCommandCallback<T> cmd) {
 		return connection.getClusterCommandExecutor().executeCommandOnAllNodes(cmd);
 	}
 

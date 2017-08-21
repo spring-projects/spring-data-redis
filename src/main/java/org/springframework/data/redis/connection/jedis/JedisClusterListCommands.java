@@ -27,6 +27,7 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisClusterListCommands implements RedisListCommands {
@@ -235,7 +236,7 @@ class JedisClusterListCommands implements RedisListCommands {
 		}
 
 		return connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand(
+				.executeMultiKeyCommand(
 						(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.blpop(timeout, key),
 						Arrays.asList(keys))
 				.getFirstNonNullNotEmptyOrDefault(Collections.<byte[]> emptyList());
@@ -249,7 +250,7 @@ class JedisClusterListCommands implements RedisListCommands {
 	public List<byte[]> bRPop(final int timeout, byte[]... keys) {
 
 		return connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand(
+				.executeMultiKeyCommand(
 						(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.brpop(timeout, key),
 						Arrays.asList(keys))
 				.getFirstNonNullNotEmptyOrDefault(Collections.<byte[]> emptyList());

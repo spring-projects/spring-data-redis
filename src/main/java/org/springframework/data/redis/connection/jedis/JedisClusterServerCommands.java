@@ -25,7 +25,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.connection.ClusterCommandExecutor.MulitNodeResult;
+import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiNodeResult;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.NodeResult;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterServerCommands;
@@ -510,7 +510,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 		return connection.getClusterCommandExecutor().executeCommandOnSingleNode(cmd, node);
 	}
 
-	private <T> MulitNodeResult<T> executeCommandOnAllNodes(JedisClusterCommandCallback<T> cmd) {
+	private <T> MultiNodeResult<T> executeCommandOnAllNodes(JedisClusterCommandCallback<T> cmd) {
 		return connection.getClusterCommandExecutor().executeCommandOnAllNodes(cmd);
 	}
 }

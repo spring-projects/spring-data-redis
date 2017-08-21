@@ -27,6 +27,7 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceClusterListCommands extends LettuceListCommands {
@@ -50,7 +51,7 @@ class LettuceClusterListCommands extends LettuceListCommands {
 			return super.bLPop(timeout, keys);
 		}
 
-		List<KeyValue<byte[], byte[]>> resultList = connection.getClusterCommandExecutor().executeMuliKeyCommand(
+		List<KeyValue<byte[], byte[]>> resultList = connection.getClusterCommandExecutor().executeMultiKeyCommand(
 				(LettuceMultiKeyClusterCommandCallback<KeyValue<byte[], byte[]>>) (client, key) -> client.blpop(timeout, key),
 				Arrays.asList(keys)).resultsAsList();
 
@@ -74,7 +75,7 @@ class LettuceClusterListCommands extends LettuceListCommands {
 			return super.bRPop(timeout, keys);
 		}
 
-		List<KeyValue<byte[], byte[]>> resultList = connection.getClusterCommandExecutor().executeMuliKeyCommand(
+		List<KeyValue<byte[], byte[]>> resultList = connection.getClusterCommandExecutor().executeMultiKeyCommand(
 				(LettuceMultiKeyClusterCommandCallback<KeyValue<byte[], byte[]>>) (client, key) -> client.brpop(timeout, key),
 				Arrays.asList(keys)).resultsAsList();
 
