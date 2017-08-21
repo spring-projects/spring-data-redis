@@ -133,9 +133,8 @@ public class LettuceClusterConnection extends LettuceConnection
 		Assert.notNull(executor, "ClusterCommandExecutor must not be null.");
 
 		this.clusterClient = clusterClient;
-		topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
-		clusterCommandExecutor = executor;
-		disposeClusterCommandExecutorOnClose = false;
+		this.topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
+		this.clusterCommandExecutor = executor;
 	}
 
 	/*
@@ -144,7 +143,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	 */
 	@Override
 	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
-		throw new InvalidDataAccessApiUsageException("Scan is not supported accros multiple nodes within a cluster.");
+		throw new InvalidDataAccessApiUsageException("Scan is not supported across multiple nodes within a cluster.");
 	}
 
 	/*

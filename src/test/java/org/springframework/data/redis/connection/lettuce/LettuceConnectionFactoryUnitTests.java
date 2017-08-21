@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -313,13 +314,18 @@ public class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	@Test  // DATAREDIS-676
+	@Test // DATAREDIS-676
 	public void timeoutShouldBePassedOnToClusterConnection() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
+		connectionFactory.setShutdownTimeout(0);
 		connectionFactory.setTimeout(2000);
 		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
 
-		assertThat((Long) ReflectionTestUtils.getField(connectionFactory.getClusterConnection(), "timeout"), is(equalTo(2000L)));
+		RedisClusterConnection clusterConnection = connectionFactory.getClusterConnection();
+		assertThat((Long) ReflectionTestUtils.getField(clusterConnection, "timeout"), is(equalTo(2000L)));
+
+		clusterConnection.close();
 	}
 }
