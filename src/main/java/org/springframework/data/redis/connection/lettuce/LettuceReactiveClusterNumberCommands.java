@@ -19,17 +19,18 @@ import org.springframework.data.redis.connection.ReactiveClusterNumberCommands;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceReactiveClusterNumberCommands extends LettuceReactiveNumberCommands
 		implements ReactiveClusterNumberCommands {
 
 	/**
-	 * Create new {@link LettuceReactiveStringCommands}.
+	 * Create new {@link LettuceReactiveClusterNumberCommands}.
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveClusterNumberCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveClusterNumberCommands(LettuceReactiveRedisConnection connection) {
 		super(connection);
 	}
 }

@@ -40,7 +40,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 
 	private final JedisClusterConnection connection;
 
-	public JedisClusterStringCommands(JedisClusterConnection jedisClusterConnection) {
+	JedisClusterStringCommands(JedisClusterConnection jedisClusterConnection) {
 		this.connection = jedisClusterConnection;
 	}
 

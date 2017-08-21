@@ -38,7 +38,7 @@ class LettuceServerCommands implements RedisServerCommands {
 
 	private final LettuceConnection connection;
 
-	public LettuceServerCommands(LettuceConnection connection) {
+	LettuceServerCommands(LettuceConnection connection) {
 		this.connection = connection;
 	}
 

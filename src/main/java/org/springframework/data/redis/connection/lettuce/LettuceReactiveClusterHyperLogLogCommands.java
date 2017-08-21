@@ -32,17 +32,18 @@ import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
- * @since @since 2.0
+ * @author Mark Paluch
+ * @since 2.0
  */
 class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHyperLogLogCommands
 		implements ReactiveClusterHyperLogLogCommands {
 
 	/**
-	 * Create new {@link LettuceReactiveHyperLogLogCommands}.
+	 * Create new {@link LettuceReactiveClusterHyperLogLogCommands}.
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveClusterHyperLogLogCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveClusterHyperLogLogCommands(LettuceReactiveRedisConnection connection) {
 		super(connection);
 	}
 

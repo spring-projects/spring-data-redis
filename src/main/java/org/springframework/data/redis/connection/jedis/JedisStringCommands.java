@@ -26,13 +26,14 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisStringCommands implements RedisStringCommands {
 
 	private final JedisConnection connection;
 
-	public JedisStringCommands(JedisConnection connection) {
+	JedisStringCommands(JedisConnection connection) {
 		this.connection = connection;
 	}
 

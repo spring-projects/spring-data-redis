@@ -30,17 +30,18 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceReactiveClusterStringCommands extends LettuceReactiveStringCommands
 		implements ReactiveClusterStringCommands {
 
 	/**
-	 * Create new {@link LettuceReactiveStringCommands}.
+	 * Create new {@link LettuceReactiveClusterStringCommands}.
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveClusterStringCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveClusterStringCommands(LettuceReactiveRedisConnection connection) {
 		super(connection);
 	}
 

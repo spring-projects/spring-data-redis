@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
@@ -54,7 +55,7 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveGeoCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveGeoCommands(LettuceReactiveRedisConnection connection) {
 
 		Assert.notNull(connection, "Connection must not be null!");
 		this.connection = connection;

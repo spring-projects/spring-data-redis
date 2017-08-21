@@ -36,7 +36,7 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 
 	private final LettuceClusterConnection connection;
 
-	public LettuceClusterSetCommands(LettuceClusterConnection connection) {
+	LettuceClusterSetCommands(LettuceClusterConnection connection) {
 
 		super(connection);
 		this.connection = connection;

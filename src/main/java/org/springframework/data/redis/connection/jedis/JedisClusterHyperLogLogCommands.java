@@ -23,13 +23,14 @@ import org.springframework.data.redis.util.ByteUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 
 	private final JedisClusterConnection connection;
 
-	public JedisClusterHyperLogLogCommands(JedisClusterConnection connection) {
+	JedisClusterHyperLogLogCommands(JedisClusterConnection connection) {
 		this.connection = connection;
 	}
 

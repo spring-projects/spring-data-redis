@@ -25,13 +25,14 @@ import org.springframework.data.redis.connection.jedis.JedisConnection.JedisResu
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisListCommands implements RedisListCommands {
 
 	private final JedisConnection connection;
 
-	public JedisListCommands(JedisConnection connection) {
+	JedisListCommands(JedisConnection connection) {
 		this.connection = connection;
 	}
 

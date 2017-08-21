@@ -32,13 +32,14 @@ import org.springframework.data.redis.core.ScanOptions;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisClusterHashCommands implements RedisHashCommands {
 
 	private final JedisClusterConnection connection;
 
-	public JedisClusterHashCommands(JedisClusterConnection connection) {
+	JedisClusterHashCommands(JedisClusterConnection connection) {
 		this.connection = connection;
 	}
 

@@ -34,13 +34,14 @@ import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisClusterGeoCommands implements RedisGeoCommands {
 
 	private final JedisClusterConnection connection;
 
-	public JedisClusterGeoCommands(JedisClusterConnection connection) {
+	JedisClusterGeoCommands(JedisClusterConnection connection) {
 		this.connection = connection;
 	}
 

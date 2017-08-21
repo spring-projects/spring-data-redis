@@ -33,13 +33,14 @@ import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisClusterZSetCommands implements RedisZSetCommands {
 
 	private final JedisClusterConnection connection;
 
-	public JedisClusterZSetCommands(JedisClusterConnection connection) {
+	JedisClusterZSetCommands(JedisClusterConnection connection) {
 		this.connection = connection;
 	}
 

@@ -37,13 +37,14 @@ import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceZSetCommands implements RedisZSetCommands {
 
 	private final LettuceConnection connection;
 
-	public LettuceZSetCommands(LettuceConnection connection) {
+	LettuceZSetCommands(LettuceConnection connection) {
 		this.connection = connection;
 	}
 

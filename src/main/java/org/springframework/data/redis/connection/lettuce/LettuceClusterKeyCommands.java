@@ -33,13 +33,14 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceClusterKeyCommands extends LettuceKeyCommands {
 
 	private final LettuceClusterConnection connection;
 
-	public LettuceClusterKeyCommands(LettuceClusterConnection connection) {
+	LettuceClusterKeyCommands(LettuceClusterConnection connection) {
 
 		super(connection);
 		this.connection = connection;

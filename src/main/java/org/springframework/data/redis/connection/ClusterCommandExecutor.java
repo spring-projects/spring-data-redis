@@ -182,7 +182,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @throws ClusterCommandExecutionFailureException
 	 * @throws IllegalArgumentException in case the node could not be resolved to a topology-known node
 	 */
-	public <S, T> MultiNodeResult<T> executeCommandAsyncOnNodes(final ClusterCommandCallback<S, T> callback,
+	public <S, T> MultiNodeResult<T> executeCommandAsyncOnNodes(ClusterCommandCallback<S, T> callback,
 			Iterable<RedisClusterNode> nodes) {
 
 		Assert.notNull(callback, "Callback must not be null!");
@@ -191,7 +191,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		List<RedisClusterNode> resolvedRedisClusterNodes = new ArrayList<>();
 		ClusterTopology topology = topologyProvider.getTopology();
 
-		for (final RedisClusterNode node : nodes) {
+		for (RedisClusterNode node : nodes) {
 			try {
 				resolvedRedisClusterNodes.add(topology.lookup(node));
 			} catch (ClusterStateFailureException e) {
@@ -200,7 +200,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		}
 
 		Map<NodeExecution, Future<NodeResult<T>>> futures = new LinkedHashMap<>();
-		for (final RedisClusterNode node : resolvedRedisClusterNodes) {
+		for (RedisClusterNode node : resolvedRedisClusterNodes) {
 
 			futures.put(new NodeExecution(node), executor.submit(() -> executeCommandOnSingleNode(callback, node)));
 		}
@@ -267,7 +267,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @return
 	 * @throws ClusterCommandExecutionFailureException
 	 */
-	public <S, T> MultiNodeResult<T> executeMultiKeyCommand(final MultiKeyClusterCommandCallback<S, T> cmd,
+	public <S, T> MultiNodeResult<T> executeMultiKeyCommand(MultiKeyClusterCommandCallback<S, T> cmd,
 			Iterable<byte[]> keys) {
 
 		Map<RedisClusterNode, Set<byte[]>> nodeKeyMap = new HashMap<>();
@@ -287,10 +287,10 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		Map<NodeExecution, Future<NodeResult<T>>> futures = new LinkedHashMap<>();
 
-		for (final Entry<RedisClusterNode, Set<byte[]>> entry : nodeKeyMap.entrySet()) {
+		for (Entry<RedisClusterNode, Set<byte[]>> entry : nodeKeyMap.entrySet()) {
 
 			if (entry.getKey().isMaster()) {
-				for (final byte[] key : entry.getValue()) {
+				for (byte[] key : entry.getValue()) {
 					futures.put(new NodeExecution(entry.getKey(), key),
 							executor.submit(() -> executeMultiKeyCommandOnSingleNode(cmd, entry.getKey(), key)));
 				}
@@ -363,7 +363,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @param <S>
 	 * @since 1.7
 	 */
-	public static interface ClusterCommandCallback<T, S> {
+	public interface ClusterCommandCallback<T, S> {
 		S doInCluster(T client);
 	}
 
@@ -374,7 +374,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @param <T> native driver connection
 	 * @param <S>
 	 */
-	public static interface MultiKeyClusterCommandCallback<T, S> {
+	public interface MultiKeyClusterCommandCallback<T, S> {
 		S doInCluster(T client, byte[] key);
 	}
 
@@ -550,7 +550,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		public List<T> resultsAsListSortBy(byte[]... keys) {
 
 			ArrayList<NodeResult<T>> clone = new ArrayList<>(nodeResults);
-			Collections.sort(clone, new ResultByReferenceKeyPositionComparator(keys));
+			clone.sort(new ResultByReferenceKeyPositionComparator(keys));
 
 			return toList(clone);
 		}

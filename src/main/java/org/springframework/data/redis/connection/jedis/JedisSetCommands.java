@@ -30,13 +30,14 @@ import org.springframework.data.redis.core.ScanOptions;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisSetCommands implements RedisSetCommands {
 
 	private final JedisConnection connection;
 
-	public JedisSetCommands(JedisConnection connection) {
+	JedisSetCommands(JedisConnection connection) {
 		this.connection = connection;
 	}
 

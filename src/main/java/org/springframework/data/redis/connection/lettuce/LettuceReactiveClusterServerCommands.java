@@ -58,14 +58,14 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 	private final ClusterTopologyProvider topologyProvider;
 
 	/**
-	 * Create new {@link LettuceReactiveGeoCommands}.
+	 * Create new {@link LettuceReactiveClusterServerCommands}.
 	 *
 	 * @param connection must not be {@literal null}.
 	 * @param topologyProvider must not be {@literal null}.
 	 * @throws IllegalArgumentException when {@code connection} is {@literal null}.
 	 * @throws IllegalArgumentException when {@code topologyProvider} is {@literal null}.
 	 */
-	public LettuceReactiveClusterServerCommands(LettuceReactiveRedisClusterConnection connection,
+	LettuceReactiveClusterServerCommands(LettuceReactiveRedisClusterConnection connection,
 			ClusterTopologyProvider topologyProvider) {
 
 		super(connection);

@@ -34,7 +34,7 @@ class JedisClusterListCommands implements RedisListCommands {
 
 	private final JedisClusterConnection connection;
 
-	public JedisClusterListCommands(JedisClusterConnection connection) {
+	JedisClusterListCommands(JedisClusterConnection connection) {
 		this.connection = connection;
 	}
 

@@ -27,6 +27,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCommands {
@@ -38,9 +39,10 @@ class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCommands 
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveHyperLogLogCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveHyperLogLogCommands(LettuceReactiveRedisConnection connection) {
 
 		Assert.notNull(connection, "Connection must not be null!");
+
 		this.connection = connection;
 	}
 
