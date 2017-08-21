@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.RedisException;
+import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.sync.BaseRedisCommands;
 import io.lettuce.core.cluster.RedisClusterClient;
@@ -26,6 +27,7 @@ import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -65,36 +67,47 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	private final RedisClusterClient clusterClient;
 	private ClusterCommandExecutor clusterCommandExecutor;
 	private ClusterTopologyProvider topologyProvider;
-	private final boolean disposeClusterCommandExecutorOnClose;
+	private boolean disposeClusterCommandExecutorOnClose;
 
 	/**
-	 * Creates new {@link LettuceClusterConnection} using {@link RedisClusterClient}.
+	 * Creates new {@link LettuceClusterConnection} using {@link RedisClusterClient} with default
+	 * {@link RedisURI#DEFAULT_TIMEOUT_DURATION timeout} and a fresh {@link ClusterCommandExecutor} that gets destroyed on
+	 * close.
 	 *
 	 * @param clusterClient must not be {@literal null}.
 	 */
 	public LettuceClusterConnection(RedisClusterClient clusterClient) {
 
-		super(null, 100, clusterClient, null, 0);
+		this(clusterClient, RedisURI.DEFAULT_TIMEOUT_DURATION,
+				new ClusterCommandExecutor(new LettuceClusterTopologyProvider(clusterClient),
+						new LettuceClusterNodeResourceProvider(clusterClient), exceptionConverter));
 
-		Assert.notNull(clusterClient, "RedisClusterClient must not be null.");
-
-		this.clusterClient = clusterClient;
-		topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
-		clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider,
-				new LettuceClusterNodeResourceProvider(clusterClient), exceptionConverter);
-		disposeClusterCommandExecutorOnClose = true;
+		this.disposeClusterCommandExecutorOnClose = true;
 	}
 
 	/**
-	 * Creates new {@link LettuceClusterConnection} using {@link RedisClusterClient} running commands across the cluster
-	 * via given {@link ClusterCommandExecutor}.
+	 * Creates new {@link LettuceClusterConnection} with default {@link RedisURI#DEFAULT_TIMEOUT_DURATION timeout} using
+	 * {@link RedisClusterClient} running commands across the cluster via given {@link ClusterCommandExecutor}.
 	 *
 	 * @param clusterClient must not be {@literal null}.
 	 * @param executor must not be {@literal null}.
 	 */
 	public LettuceClusterConnection(RedisClusterClient clusterClient, ClusterCommandExecutor executor) {
+		this(clusterClient, RedisURI.DEFAULT_TIMEOUT_DURATION, executor);
+	}
 
-		super(null, 100, clusterClient, null, 0);
+	/**
+	 * Creates new {@link LettuceClusterConnection} with given command {@code timeout} using {@link RedisClusterClient}
+	 * running commands across the cluster via given {@link ClusterCommandExecutor}.
+	 *
+	 * @param clusterClient must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @param executor must not be {@literal null}.
+	 * @since 2.0
+	 */
+	public LettuceClusterConnection(RedisClusterClient clusterClient, Duration timeout, ClusterCommandExecutor executor) {
+
+		super(null, timeout.toMillis(), clusterClient, null, 0);
 
 		Assert.notNull(clusterClient, "RedisClusterClient must not be null.");
 		Assert.notNull(executor, "ClusterCommandExecutor must not be null.");
@@ -102,7 +115,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		this.clusterClient = clusterClient;
 		this.topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
 		this.clusterCommandExecutor = executor;
-		this.disposeClusterCommandExecutorOnClose = false;
 	}
 
 	/*
