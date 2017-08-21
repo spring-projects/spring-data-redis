@@ -115,7 +115,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		this.clusterClient = clusterClient;
 		this.topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
 		this.clusterCommandExecutor = executor;
-		this.disposeClusterCommandExecutorOnClose = false;
 	}
 
 	/*

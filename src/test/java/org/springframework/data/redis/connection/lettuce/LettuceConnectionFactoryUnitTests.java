@@ -40,6 +40,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -488,22 +489,33 @@ public class LettuceConnectionFactoryUnitTests {
 		connectionFactory.setUseSsl(false);
 	}
 
-	@Test  // DATAREDIS-676
+	@Test // DATAREDIS-676
 	public void timeoutShouldBePassedOnToClusterConnection() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
+		connectionFactory.setShutdownTimeout(0);
 		connectionFactory.setTimeout(2000);
 		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
 
-		assertThat(ReflectionTestUtils.getField(connectionFactory.getClusterConnection(), "timeout"), is(equalTo(2000L)));
+		RedisClusterConnection clusterConnection = connectionFactory.getClusterConnection();
+		assertThat(ReflectionTestUtils.getField(clusterConnection, "timeout"), is(equalTo(2000L)));
+
+		clusterConnection.close();
 	}
 
-	@Test  // DATAREDIS-676
+	@Test // DATAREDIS-676
 	public void timeoutSetOnClientConfigShouldBePassedOnToClusterConnection() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig, LettuceClientConfiguration.builder().commandTimeout(Duration.ofSeconds(2)).build());
-		connectionFactory.afterPropertiesSet();
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig, LettuceClientConfiguration
+				.builder().commandTimeout(Duration.ofSeconds(2)).shutdownTimeout(Duration.ZERO).build());
 
-		assertThat(ReflectionTestUtils.getField(connectionFactory.getClusterConnection(), "timeout"), is(equalTo(2000L)));
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		RedisClusterConnection clusterConnection = connectionFactory.getClusterConnection();
+		assertThat(ReflectionTestUtils.getField(clusterConnection, "timeout"), is(equalTo(2000L)));
+
+		clusterConnection.close();
 	}
 }

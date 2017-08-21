@@ -272,7 +272,7 @@ public class LettuceConnectionFactory
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
 		}
 
-		return new LettuceClusterConnection((RedisClusterClient) client, Duration.ofMillis(getTimeout()),
+		return new LettuceClusterConnection((RedisClusterClient) client, clientConfiguration.getCommandTimeout(),
 				clusterCommandExecutor);
 	}
 
