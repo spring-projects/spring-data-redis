@@ -27,16 +27,17 @@ import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
- * @since @since 2.0
+ * @author Mark Paluch
+ * @since 2.0
  */
 class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetCommands implements ReactiveClusterZSetCommands {
 
 	/**
-	 * Create new {@link LettuceReactiveSetCommands}.
+	 * Create new {@link LettuceReactiveClusterZSetCommands}.
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveClusterZSetCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveClusterZSetCommands(LettuceReactiveRedisConnection connection) {
 		super(connection);
 	}
 

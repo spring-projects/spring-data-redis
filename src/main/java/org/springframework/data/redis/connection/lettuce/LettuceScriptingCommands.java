@@ -36,11 +36,11 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 
 	private final LettuceConnection connection;
 
-	public LettuceScriptingCommands(LettuceConnection connection) {
+	LettuceScriptingCommands(LettuceConnection connection) {
 		this.connection = connection;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptFlush()
 	 */
@@ -61,7 +61,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptKill()
 	 */
@@ -85,7 +85,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptLoad(byte[])
 	 */
@@ -106,7 +106,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptExists(java.lang.String[])
 	 */
@@ -127,7 +127,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#eval(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
 	 */
@@ -156,7 +156,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(java.lang.String, org.springframework.data.redis.connection.ReturnType, int, byte[][])
 	 */
@@ -185,7 +185,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
 	 */

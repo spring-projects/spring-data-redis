@@ -35,13 +35,14 @@ import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisKeyCommands implements RedisKeyCommands {
 
 	private final JedisConnection connection;
 
-	public JedisKeyCommands(JedisConnection connection) {
+	JedisKeyCommands(JedisConnection connection) {
 		this.connection = connection;
 	}
 

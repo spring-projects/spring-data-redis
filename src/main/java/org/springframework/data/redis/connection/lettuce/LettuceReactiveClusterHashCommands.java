@@ -19,16 +19,17 @@ import org.springframework.data.redis.connection.ReactiveClusterHashCommands;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceReactiveClusterHashCommands extends LettuceReactiveHashCommands implements ReactiveClusterHashCommands {
 
 	/**
-	 * Create new {@link LettuceReactiveHashCommands}.
+	 * Create new {@link LettuceReactiveClusterHashCommands}.
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveClusterHashCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveClusterHashCommands(LettuceReactiveRedisConnection connection) {
 		super(connection);
 	}
 }

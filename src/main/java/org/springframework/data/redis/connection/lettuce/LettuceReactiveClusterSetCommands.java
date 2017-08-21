@@ -39,11 +39,11 @@ import org.springframework.util.Assert;
 class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands implements ReactiveClusterSetCommands {
 
 	/**
-	 * Create new {@link LettuceReactiveSetCommands}.
+	 * Create new {@link LettuceReactiveClusterSetCommands}.
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveClusterSetCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveClusterSetCommands(LettuceReactiveRedisConnection connection) {
 		super(connection);
 	}
 

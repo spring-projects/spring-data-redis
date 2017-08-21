@@ -49,7 +49,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 	private final JedisClusterConnection connection;
 
-	public JedisClusterKeyCommands(JedisClusterConnection connection) {
+	JedisClusterKeyCommands(JedisClusterConnection connection) {
 		this.connection = connection;
 	}
 

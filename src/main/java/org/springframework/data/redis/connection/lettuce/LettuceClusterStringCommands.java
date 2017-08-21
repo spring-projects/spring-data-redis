@@ -21,16 +21,13 @@ import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceClusterStringCommands extends LettuceStringCommands {
 
-	private final LettuceClusterConnection connection;
-
-	public LettuceClusterStringCommands(LettuceClusterConnection connection) {
-
+	LettuceClusterStringCommands(LettuceClusterConnection connection) {
 		super(connection);
-		this.connection = connection;
 	}
 
 	/*

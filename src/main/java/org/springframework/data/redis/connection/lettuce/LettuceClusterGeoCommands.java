@@ -17,11 +17,12 @@ package org.springframework.data.redis.connection.lettuce;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceClusterGeoCommands extends LettuceGeoCommands {
 
-	public LettuceClusterGeoCommands(LettuceClusterConnection connection) {
+	LettuceClusterGeoCommands(LettuceClusterConnection connection) {
 		super(connection);
 	}
 }

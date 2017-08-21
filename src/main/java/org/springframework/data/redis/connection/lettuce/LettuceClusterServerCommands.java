@@ -43,7 +43,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 
 	private final LettuceClusterConnection connection;
 
-	public LettuceClusterServerCommands(LettuceClusterConnection connection) {
+	LettuceClusterServerCommands(LettuceClusterConnection connection) {
 
 		super(connection);
 		this.connection = connection;

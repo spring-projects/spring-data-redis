@@ -36,7 +36,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 	private final JedisConnection connection;
 
-	public JedisServerCommands(JedisConnection connection) {
+	JedisServerCommands(JedisConnection connection) {
 		this.connection = connection;
 	}
 

@@ -30,13 +30,14 @@ import org.springframework.data.redis.core.types.Expiration;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceStringCommands implements RedisStringCommands {
 
 	private final LettuceConnection connection;
 
-	public LettuceStringCommands(LettuceConnection connection) {
+	LettuceStringCommands(LettuceConnection connection) {
 		this.connection = connection;
 	}
 

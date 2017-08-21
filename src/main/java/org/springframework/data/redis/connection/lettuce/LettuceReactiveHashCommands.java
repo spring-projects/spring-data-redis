@@ -50,7 +50,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveHashCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveHashCommands(LettuceReactiveRedisConnection connection) {
 
 		Assert.notNull(connection, "Connection must not be null!");
 		this.connection = connection;

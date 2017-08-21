@@ -41,11 +41,11 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 	private LettuceReactiveRedisClusterConnection connection;
 
 	/**
-	 * Create new {@link LettuceReactiveKeyCommands}.
+	 * Create new {@link LettuceReactiveClusterKeyCommands}.
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveClusterKeyCommands(LettuceReactiveRedisClusterConnection connection) {
+	LettuceReactiveClusterKeyCommands(LettuceReactiveRedisClusterConnection connection) {
 
 		super(connection);
 

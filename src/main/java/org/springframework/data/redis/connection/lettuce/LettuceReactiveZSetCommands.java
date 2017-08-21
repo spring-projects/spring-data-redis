@@ -53,11 +53,11 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	private final LettuceReactiveRedisConnection connection;
 
 	/**
-	 * Create new {@link LettuceReactiveSetCommands}.
+	 * Create new {@link LettuceReactiveZSetCommands}.
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveZSetCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveZSetCommands(LettuceReactiveRedisConnection connection) {
 
 		Assert.notNull(connection, "Connection must not be null!");
 

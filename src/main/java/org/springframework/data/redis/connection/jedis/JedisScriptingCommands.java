@@ -28,11 +28,11 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 
 	private final JedisConnection connection;
 
-	public JedisScriptingCommands(JedisConnection connection) {
+	JedisScriptingCommands(JedisConnection connection) {
 		this.connection = connection;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptFlush()
 	 */
@@ -51,7 +51,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptKill()
 	 */
@@ -70,7 +70,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptLoad(byte[])
 	 */
@@ -89,7 +89,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptExists(java.lang.String[])
 	 */
@@ -108,7 +108,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#eval(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
 	 */
@@ -129,7 +129,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(java.lang.String, org.springframework.data.redis.connection.ReturnType, int, byte[][])
 	 */
@@ -138,7 +138,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		return evalSha(JedisConverters.toBytes(scriptSha1), returnType, numKeys, keysAndArgs);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
 	 */

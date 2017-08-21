@@ -36,13 +36,14 @@ import org.springframework.data.redis.core.ScanOptions;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceSetCommands implements RedisSetCommands {
 
 	private final LettuceConnection connection;
 
-	public LettuceSetCommands(LettuceConnection connection) {
+	LettuceSetCommands(LettuceConnection connection) {
 		this.connection = connection;
 	}
 

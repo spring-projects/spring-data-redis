@@ -47,7 +47,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveKeyCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveKeyCommands(LettuceReactiveRedisConnection connection) {
 
 		Assert.notNull(connection, "Connection must not be null!");
 

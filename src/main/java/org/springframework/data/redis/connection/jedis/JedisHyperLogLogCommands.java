@@ -21,13 +21,14 @@ import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 
 	private final JedisConnection connection;
 
-	public JedisHyperLogLogCommands(JedisConnection connection) {
+	JedisHyperLogLogCommands(JedisConnection connection) {
 		this.connection = connection;
 	}
 

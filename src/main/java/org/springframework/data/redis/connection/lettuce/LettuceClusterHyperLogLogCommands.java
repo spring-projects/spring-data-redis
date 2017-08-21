@@ -21,11 +21,12 @@ import org.springframework.data.redis.util.ByteUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class LettuceClusterHyperLogLogCommands extends LettuceHyperLogLogCommands {
 
-	public LettuceClusterHyperLogLogCommands(LettuceClusterConnection connection) {
+	LettuceClusterHyperLogLogCommands(LettuceClusterConnection connection) {
 		super(connection);
 	}
 

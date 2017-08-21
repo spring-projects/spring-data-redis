@@ -43,7 +43,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	 *
 	 * @param connection must not be {@literal null}.
 	 */
-	public LettuceReactiveSetCommands(LettuceReactiveRedisConnection connection) {
+	LettuceReactiveSetCommands(LettuceReactiveRedisConnection connection) {
 
 		Assert.notNull(connection, "Connection must not be null!");
 
