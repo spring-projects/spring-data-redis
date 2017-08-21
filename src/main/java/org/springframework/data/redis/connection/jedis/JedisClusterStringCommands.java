@@ -33,6 +33,7 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisClusterStringCommands implements RedisStringCommands {
@@ -85,7 +86,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		}
 
 		return connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand((JedisMultiKeyClusterCommandCallback<byte[]>) (client, key) -> client.get(key),
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<byte[]>) (client, key) -> client.get(key),
 						Arrays.asList(keys))
 				.resultsAsListSortBy(keys);
 	}

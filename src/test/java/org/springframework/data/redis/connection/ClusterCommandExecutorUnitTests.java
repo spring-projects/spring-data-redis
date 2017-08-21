@@ -41,8 +41,8 @@ import org.springframework.data.redis.ClusterRedirectException;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.TooManyClusterRedirectionsException;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.ClusterCommandCallback;
-import org.springframework.data.redis.connection.ClusterCommandExecutor.MulitNodeResult;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKeyClusterCommandCallback;
+import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiNodeResult;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
@@ -248,7 +248,7 @@ public class ClusterCommandExecutorUnitTests {
 		when(con2.theWheelWeavesAsTheWheelWills()).thenReturn("mat");
 		when(con3.theWheelWeavesAsTheWheelWills()).thenReturn("perrin");
 
-		MulitNodeResult<String> result = executor.executeCommandOnAllNodes(COMMAND_CALLBACK);
+		MultiNodeResult<String> result = executor.executeCommandOnAllNodes(COMMAND_CALLBACK);
 
 		assertThat(result.resultsAsList(), hasItems("rand", "mat", "perrin"));
 	}
@@ -263,7 +263,7 @@ public class ClusterCommandExecutorUnitTests {
 		when(con2.bloodAndAshes(any(byte[].class))).thenReturn("mat");
 		when(con3.bloodAndAshes(any(byte[].class))).thenReturn("perrin");
 
-		MulitNodeResult<String> result = executor.executeMuliKeyCommand(MULTIKEY_CALLBACK,
+		MultiNodeResult<String> result = executor.executeMultiKeyCommand(MULTIKEY_CALLBACK,
 				new HashSet<>(
 				Arrays.asList("key-1".getBytes(), "key-2".getBytes(), "key-3".getBytes(), "key-9".getBytes())));
 

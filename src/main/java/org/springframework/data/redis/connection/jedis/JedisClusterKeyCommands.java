@@ -42,6 +42,7 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisClusterKeyCommands implements RedisKeyCommands {
@@ -70,7 +71,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 
 		return (long) connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) (client, key) -> client.del(key),
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) (client, key) -> client.del(key),
 						Arrays.asList(keys))
 				.resultsAsList().size();
 	}

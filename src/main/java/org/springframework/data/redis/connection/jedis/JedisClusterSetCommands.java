@@ -37,6 +37,7 @@ import org.springframework.data.redis.util.ByteUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 class JedisClusterSetCommands implements RedisSetCommands {
@@ -169,7 +170,8 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		}
 
 		Collection<Set<byte[]>> resultList = connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand((JedisMultiKeyClusterCommandCallback<Set<byte[]>>) (client, key) -> client.smembers(key),
+				.executeMultiKeyCommand(
+						(JedisMultiKeyClusterCommandCallback<Set<byte[]>>) (client, key) -> client.smembers(key),
 						Arrays.asList(keys))
 				.resultsAsList();
 
@@ -235,7 +237,8 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		}
 
 		Collection<Set<byte[]>> resultList = connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand((JedisMultiKeyClusterCommandCallback<Set<byte[]>>) (client, key) -> client.smembers(key),
+				.executeMultiKeyCommand(
+						(JedisMultiKeyClusterCommandCallback<Set<byte[]>>) (client, key) -> client.smembers(key),
 						Arrays.asList(keys))
 				.resultsAsList();
 
@@ -295,7 +298,8 @@ class JedisClusterSetCommands implements RedisSetCommands {
 
 		ByteArraySet values = new ByteArraySet(sMembers(source));
 		Collection<Set<byte[]>> resultList = connection.getClusterCommandExecutor()
-				.executeMuliKeyCommand((JedisMultiKeyClusterCommandCallback<Set<byte[]>>) (client, key) -> client.smembers(key),
+				.executeMultiKeyCommand(
+						(JedisMultiKeyClusterCommandCallback<Set<byte[]>>) (client, key) -> client.smembers(key),
 						Arrays.asList(others))
 				.resultsAsList();
 
