@@ -116,6 +116,13 @@ public interface ReactiveRedisConnection extends Closeable {
 	ReactiveHyperLogLogCommands hyperLogLogCommands();
 
 	/**
+	 * Get {@link ReactiveScriptingCommands}.
+	 *
+	 * @return never {@literal null}.
+	 */
+	ReactiveScriptingCommands scriptingCommands();
+
+	/**
 	 * Get {@link ReactiveServerCommands}.
 	 *
 	 * @return never {@literal null}.

@@ -15,15 +15,19 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.serializer.RedisSerializationContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
  * Interface that specified a basic set of Redis operations, implemented by {@link ReactiveRedisTemplate}. Not often
@@ -172,6 +176,36 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @see <a href="http://redis.io/commands/pttl">Redis Documentation: PTTL</a>
 	 */
 	Mono<Duration> getExpire(K key);
+
+	// -------------------------------------------------------------------------
+	// Methods dealing with Redis Lua scripts
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Executes the given {@link RedisScript}
+	 *
+	 * @param script The script to execute
+	 * @param keys keys that need to be passed to the script.
+	 * @param args args that need to be passed to the script.
+	 * @return return value of the script or raw {@link java.nio.ByteBuffer} if {@link RedisScript#getResultType()} is
+	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK").
+	 */
+	<T> Flux<T> execute(RedisScript<T> script, List<K> keys, Object... args);
+
+	/**
+	 * Executes the given {@link RedisScript}, using the provided {@link RedisSerializer}s to serialize the script
+	 * arguments and result.
+	 *
+	 * @param script The script to execute
+	 * @param argsSerializerPair The {@link SerializationPair} to use for serializing args
+	 * @param resultSerializerPair The {@link SerializationPair} to use for serializing the script return value
+	 * @param keys keys that need to be passed to the script.
+	 * @param args args that need to be passed to the script.
+	 * @return return value of the script or raw {@link java.nio.ByteBuffer} if {@link RedisScript#getResultType()} is
+	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK").
+	 */
+	<T> Flux<T> execute(RedisScript<T> script, SerializationPair<?> argsSerializerPair,
+			SerializationPair<T> resultSerializerPair, List<K> keys, Object... args);
 
 	// -------------------------------------------------------------------------
 	// Methods to obtain specific operations interface objects.

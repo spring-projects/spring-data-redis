@@ -18,11 +18,13 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
+import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -39,8 +41,11 @@ import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -158,6 +163,48 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		StepVerifier.create(redisTemplate.renameIfAbsent(newName, existing)).expectNext(false) //
 				.expectComplete() //
 				.verify();
+	}
+
+	@Test // DATAREDIS-683
+	@SuppressWarnings("unchecked")
+	public void execute() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assumeFalse(value instanceof Long);
+
+		StepVerifier.create(redisTemplate.opsForValue().set(key, value)).expectNext(true).verifyComplete();
+
+		Flux<V> execute = redisTemplate.execute(
+				new DefaultRedisScript<>("return redis.call('get', KEYS[1])", (Class<V>) value.getClass()),
+				Collections.singletonList(key));
+
+		StepVerifier.create(execute).expectNext(value).verifyComplete();
+	}
+
+	@Test // DATAREDIS-683
+	public void executeWithSerializationPairs() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		SerializationPair<Person> json = SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(Person.class));
+		SerializationPair<String> string = SerializationPair.fromSerializer(new StringRedisSerializer());
+
+		assumeFalse(value instanceof Long);
+
+		Person person = new Person("Walter", "White", 51);
+		StepVerifier.create(
+				redisTemplate.execute(new DefaultRedisScript<>("return redis.call('set', KEYS[1], ARGV[1])", String.class),
+						json, string, Collections.singletonList(key), person))
+				.expectNext("OK").verifyComplete();
+
+		Flux<Person> execute = redisTemplate.execute(
+				new DefaultRedisScript<>("return redis.call('get', KEYS[1])", Person.class), json, json,
+				Collections.singletonList(key));
+
+		StepVerifier.create(execute).expectNext(person).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602

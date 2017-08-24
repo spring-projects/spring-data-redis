@@ -24,6 +24,7 @@ import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
 import io.lettuce.core.codec.RedisCodec;
+import org.springframework.data.redis.connection.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -33,17 +34,6 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.data.redis.connection.ReactiveGeoCommands;
-import org.springframework.data.redis.connection.ReactiveHashCommands;
-import org.springframework.data.redis.connection.ReactiveHyperLogLogCommands;
-import org.springframework.data.redis.connection.ReactiveKeyCommands;
-import org.springframework.data.redis.connection.ReactiveListCommands;
-import org.springframework.data.redis.connection.ReactiveNumberCommands;
-import org.springframework.data.redis.connection.ReactiveRedisConnection;
-import org.springframework.data.redis.connection.ReactiveServerCommands;
-import org.springframework.data.redis.connection.ReactiveSetCommands;
-import org.springframework.data.redis.connection.ReactiveStringCommands;
-import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.util.Assert;
 
 /**
@@ -157,6 +147,15 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	@Override
 	public ReactiveHyperLogLogCommands hyperLogLogCommands() {
 		return new LettuceReactiveHyperLogLogCommands(this);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#scriptingCommands()
+	 */
+	@Override
+	public ReactiveScriptingCommands scriptingCommands() {
+		return new LettuceReactiveScriptingCommands(this);
 	}
 
 	/*

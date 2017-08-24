@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core.script;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.dao.NonTransientDataAccessException;
@@ -34,6 +33,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  * @param <K> The type of keys that may be passed during script execution
  */
 public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
@@ -78,7 +78,7 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 			result = connection.evalSha(script.getSha1(), returnType, numKeys, keysAndArgs);
 		} catch (Exception e) {
 
-			if (!exceptionContainsNoScriptError(e)) {
+			if (!ScriptUtils.exceptionContainsNoScriptError(e)) {
 				throw e instanceof RuntimeException ? (RuntimeException) e : new RedisSystemException(e.getMessage(), e);
 			}
 
@@ -120,47 +120,12 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 		return template.getStringSerializer().serialize(script.getScriptAsString());
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected <T> T deserializeResult(RedisSerializer<T> resultSerializer, Object result) {
-		if (result instanceof byte[]) {
-			if (resultSerializer == null) {
-				return (T) result;
-			}
-			return resultSerializer.deserialize((byte[]) result);
-		}
-		if (result instanceof List) {
-			List results = new ArrayList();
-			for (Object obj : (List) result) {
-				results.add(deserializeResult(resultSerializer, obj));
-			}
-			return (T) results;
-		}
-		return (T) result;
+		return ScriptUtils.deserializeResult(resultSerializer, result);
 	}
 
 	@SuppressWarnings("rawtypes")
 	protected RedisSerializer keySerializer() {
 		return template.getKeySerializer();
 	}
-
-	private boolean exceptionContainsNoScriptError(Exception e) {
-
-		if (!(e instanceof NonTransientDataAccessException)) {
-			return false;
-		}
-
-		Throwable current = e;
-		while (current != null) {
-
-			String exMessage = current.getMessage();
-			if (exMessage != null && exMessage.contains("NOSCRIPT")) {
-				return true;
-			}
-
-			current = current.getCause();
-		}
-
-		return false;
-	}
-
 }
