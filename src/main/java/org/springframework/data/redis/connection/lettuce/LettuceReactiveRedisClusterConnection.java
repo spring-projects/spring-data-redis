@@ -142,6 +142,15 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#scriptingCommands()
+	 */
+	@Override
+	public LettuceReactiveClusterScriptingCommands scriptingCommands() {
+		return new LettuceReactiveClusterScriptingCommands(this);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#serverCommands()
 	 */
 	@Override

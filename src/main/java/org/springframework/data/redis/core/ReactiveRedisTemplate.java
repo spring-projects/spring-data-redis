@@ -30,7 +30,11 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.core.script.DefaultScriptOperators;
+import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.core.script.ScriptOperators;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -54,6 +58,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	private final ReactiveRedisConnectionFactory connectionFactory;
 	private final RedisSerializationContext<K, V> serializationContext;
 	private final boolean exposeConnection;
+	private final ScriptOperators<K> scriptOperators;
 
 	/**
 	 * Creates new {@link ReactiveRedisTemplate} using given {@link ReactiveRedisConnectionFactory} and
@@ -84,6 +89,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		this.connectionFactory = connectionFactory;
 		this.serializationContext = serializationContext;
 		this.exposeConnection = exposeConnection;
+		this.scriptOperators = new DefaultScriptOperators<>(connectionFactory, serializationContext);
 	}
 
 	/**
@@ -130,6 +136,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForSet()
 	 */
+	@Override
 	public ReactiveSetOperations<K, V> opsForSet() {
 		return opsForSet(serializationContext);
 	}
@@ -145,6 +152,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForZSet()
 	 */
+	@Override
 	public ReactiveZSetOperations<K, V> opsForZSet() {
 		return opsForZSet(serializationContext);
 	}
@@ -211,6 +219,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	// Execution methods
 	// -------------------------------------------------------------------------
 
+	@Override
 	public <T> Flux<T> execute(ReactiveRedisCallback<T> action) {
 		return execute(action, exposeConnection);
 	}
@@ -238,9 +247,10 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 			ReactiveRedisConnection connToExpose = (exposeConnection ? connToUse : createRedisConnectionProxy(connToUse));
 			Publisher<T> result = action.doInRedis(connToExpose);
 
-			return Flux.from(postProcessResult(result, connToUse, false));
-		} finally {
+			return Flux.from(postProcessResult(result, connToUse, false)).doFinally(signalType -> conn.close());
+		} catch (RuntimeException e) {
 			conn.close();
+			throw e;
 		}
 	}
 
@@ -293,7 +303,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		ReactiveRedisConnection connToExpose = (exposeConnection ? connToUse : createRedisConnectionProxy(connToUse));
 		Publisher<T> result = action.doInRedis(connToExpose);
 
-		return Flux.from(postProcessResult(result, connToUse, false)).doAfterTerminate(conn::close);
+		return Flux.from(postProcessResult(result, connToUse, false)).doFinally(signal -> conn.close());
 	}
 
 	// -------------------------------------------------------------------------
@@ -303,6 +313,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#hasKey(java.lang.Object)
 	 */
+	@Override
 	public Mono<Boolean> hasKey(K key) {
 
 		Assert.notNull(key, "Key must not be null!");
@@ -313,6 +324,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#type(java.lang.Object)
 	 */
+	@Override
 	public Mono<DataType> type(K key) {
 
 		Assert.notNull(key, "Key must not be null!");
@@ -323,6 +335,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#keys(java.lang.Object)
 	 */
+	@Override
 	public Flux<K> keys(K pattern) {
 
 		Assert.notNull(pattern, "Pattern must not be null!");
@@ -335,6 +348,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#randomKey()
 	 */
+	@Override
 	public Mono<K> randomKey() {
 		return createMono(connection -> connection.keyCommands().randomKey()).map(this::readKey);
 	}
@@ -342,6 +356,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#rename(java.lang.Object, java.lang.Object)
 	 */
+	@Override
 	public Mono<Boolean> rename(K oldKey, K newKey) {
 
 		Assert.notNull(oldKey, "Old key must not be null!");
@@ -353,18 +368,19 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#renameIfAbsent(java.lang.Object, java.lang.Object)
 	 */
+	@Override
 	public Mono<Boolean> renameIfAbsent(K oldKey, K newKey) {
 
 		Assert.notNull(oldKey, "Old key must not be null!");
 		Assert.notNull(newKey, "New Key must not be null!");
 
 		return createMono(connection -> connection.keyCommands().renameNX(rawKey(oldKey), rawKey(newKey)));
-
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#delete(java.lang.Object[])
 	 */
+	@Override
 	@SafeVarargs
 	public final Mono<Long> delete(K... keys) {
 
@@ -383,6 +399,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#delete(org.reactivestreams.Publisher)
 	 */
+	@Override
 	public Mono<Long> delete(Publisher<K> keys) {
 
 		Assert.notNull(keys, "Keys must not be null!");
@@ -468,6 +485,27 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.notNull(key, "Key must not be null!");
 
 		return createMono(connection -> connection.keyCommands().move(rawKey(key), dbIndex));
+	}
+
+	// -------------------------------------------------------------------------
+	// Methods dealing with Redis Lua scripts
+	// -------------------------------------------------------------------------
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#execute(org.springframework.data.redis.core.script.RedisScript, java.util.List, java.lang.Object[])
+	 */
+	@Override
+	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, Object... args) {
+		return scriptOperators.execute(script, keys, args);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#execute(org.springframework.data.redis.core.script.RedisScript, org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair, org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair, java.util.List, java.lang.Object[])
+	 */
+	@Override
+	public <T> Flux<T> execute(RedisScript<T> script, SerializationPair<?> argsSerializerPair,
+			SerializationPair<T> resultSerializerPair, List<K> keys, Object... args) {
+		return scriptOperators.execute(script, argsSerializerPair, resultSerializerPair, keys, args);
 	}
 
 	// -------------------------------------------------------------------------
