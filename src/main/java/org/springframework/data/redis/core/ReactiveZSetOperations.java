@@ -251,7 +251,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param o the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrem">Redis Documentation: ZREM</a>
+	 * @see <a href="http://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 */
 	Mono<Double> score(K key, Object o);
 

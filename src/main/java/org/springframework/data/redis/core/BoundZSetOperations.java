@@ -25,7 +25,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
  * ZSet (or SortedSet) operations bound to a certain key.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -202,7 +202,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param o the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrem">Redis Documentation: ZREM</a>
+	 * @see <a href="http://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 */
 	Double score(Object o);
 

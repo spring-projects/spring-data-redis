@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
 
 /**
  * ZSet(SortedSet)-specific commands supported by Redis.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Thomas Darimont
@@ -51,7 +51,7 @@ public interface RedisZSetCommands {
 
 	/**
 	 * {@link Range} defines {@literal min} and {@literal max} values to retrieve from a {@literal ZSET}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.6
 	 */
@@ -80,7 +80,7 @@ public interface RedisZSetCommands {
 
 		/**
 		 * Greater Than Equals
-		 * 
+		 *
 		 * @param min
 		 * @return
 		 */
@@ -93,7 +93,7 @@ public interface RedisZSetCommands {
 
 		/**
 		 * Greater Than
-		 * 
+		 *
 		 * @param min
 		 * @return
 		 */
@@ -106,7 +106,7 @@ public interface RedisZSetCommands {
 
 		/**
 		 * Less Then Equals
-		 * 
+		 *
 		 * @param max
 		 * @return
 		 */
@@ -119,7 +119,7 @@ public interface RedisZSetCommands {
 
 		/**
 		 * Less Than
-		 * 
+		 *
 		 * @param max
 		 * @return
 		 */
@@ -304,7 +304,7 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Get set of {@link Tuple}s where score is between {@code Range#min} and {@code Range#max} from sorted set.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @return
@@ -365,7 +365,7 @@ public interface RedisZSetCommands {
 	/**
 	 * Get set of {@link Tuple}s in range from {@code Limit#offset} to {@code Limit#offset + Limit#count} where score is
 	 * between {@code Range#min} and {@code Range#max} from sorted set.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @param limit
@@ -413,7 +413,7 @@ public interface RedisZSetCommands {
 	/**
 	 * Get elements where score is between {@code Range#min} and {@code Range#max} from sorted set ordered from high to
 	 * low.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @return
@@ -549,17 +549,17 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Get the score of element with {@code value} from sorted set with key {@code key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param value the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrem">Redis Documentation: ZREM</a>
+	 * @see <a href="http://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 */
 	Double zScore(byte[] key, byte[] value);
 
 	/**
 	 * Remove elements in range between {@code start} and {@code end} from sorted set with {@code key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end

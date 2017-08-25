@@ -24,17 +24,18 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 
 /**
  * Redis ZSet/sorted set specific operations.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Rosty Kerei
  */
 public interface ZSetOperations<K, V> {
 
 	/**
 	 * Typed ZSet tuple.
 	 */
-	public interface TypedTuple<V> extends Comparable<TypedTuple<V>> {
+	interface TypedTuple<V> extends Comparable<TypedTuple<V>> {
 		V getValue();
 
 		Double getScore();
@@ -361,6 +362,7 @@ public interface ZSetOperations<K, V> {
 	 * @param key
 	 * @param options
 	 * @return
+	 * @see <a href="http://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
 	 * @since 1.4
 	 */
 	Cursor<TypedTuple<V>> scan(K key, ScanOptions options);
