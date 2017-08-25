@@ -1177,7 +1177,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrem">Redis Documentation: ZREM</a>
+	 * @see <a href="http://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 * @see RedisZSetCommands#zScore(byte[], byte[])
 	 */
 	Double zScore(String key, String value);
