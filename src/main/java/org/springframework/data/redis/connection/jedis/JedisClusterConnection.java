@@ -1600,11 +1600,18 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], java.util.Set)
+	 */
 	@Override
 	public Long zAdd(byte[] key, Set<Tuple> tuples) {
 
-		// TODO: need to move the tuple conversion form jedisconnection.
-		throw new UnsupportedOperationException();
+		try {
+			return cluster.zadd(key, JedisConverters.toTupleMap(tuples));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	/*

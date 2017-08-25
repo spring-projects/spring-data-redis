@@ -30,8 +30,9 @@ import org.springframework.test.context.ContextConfiguration;
  * <p>
  * Each method of {@link JedisConnection} behaves differently if executed with a transaction (i.e. between multi and
  * exec or discard calls), so this test covers those branching points
- * 
+ *
  * @author Jennifer Hickey
+ * @author Mark Paluch
  */
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
@@ -179,11 +180,6 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testInfoBySection() throws Exception {
 		super.testInfoBySection();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testZAddMultiple() {
-		super.testZAddMultiple();
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)

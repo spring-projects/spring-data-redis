@@ -2229,12 +2229,18 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	public Long zAdd(byte[] key, Set<Tuple> tuples) {
-		if (isPipelined() || isQueueing()) {
-			throw new UnsupportedOperationException("zAdd of multiple fields not supported " + "in pipeline or transaction");
-		}
-		Map<byte[], Double> args = JedisConverters.zAddArgsConvertor(tuples);
+
+		Map<byte[], Double> mappedTuples = JedisConverters.toTupleMap(tuples);
 		try {
-			return jedis.zadd(key, args);
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.zadd(key, mappedTuples)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.zadd(key, mappedTuples)));
+				return null;
+			}
+			return jedis.zadd(key, mappedTuples);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

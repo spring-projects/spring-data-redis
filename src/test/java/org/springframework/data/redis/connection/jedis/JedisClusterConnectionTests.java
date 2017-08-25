@@ -1141,6 +1141,18 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zcard(KEY_1_BYTES), is(2L));
 	}
 
+	@Test // DATAREDIS-674
+	public void zAddShouldAddMultipleValuesWithScoreCorrectly() {
+
+		Set<Tuple> tuples = new HashSet<Tuple>();
+		tuples.add(new DefaultTuple(VALUE_1_BYTES, 10D));
+		tuples.add(new DefaultTuple(VALUE_2_BYTES, 20D));
+
+		clusterConnection.zAdd(KEY_1_BYTES, tuples);
+
+		assertThat(nativeConnection.zcard(KEY_1_BYTES), is(2L));
+	}
+
 	@Test // DATAREDIS-315
 	public void zRemShouldRemoveValueWithScoreCorrectly() {
 
