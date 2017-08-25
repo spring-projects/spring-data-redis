@@ -15,11 +15,10 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.Set;
-
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.util.Assert;
+import java.util.Set;
 
 /**
  * ZSet(SortedSet)-specific commands supported by Redis.
@@ -29,6 +28,7 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @author David Liu
  * @author Mark Paluch
+ * @author Clement Ong
  */
 public interface RedisZSetCommands {
 

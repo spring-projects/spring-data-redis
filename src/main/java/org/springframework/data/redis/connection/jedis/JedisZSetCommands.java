@@ -19,8 +19,6 @@ import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.ZParams;
 
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -79,7 +77,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 			throw new UnsupportedOperationException("zAdd of multiple fields not supported " + "in pipeline or transaction");
 		}
 
-		Map<byte[], Double> args = zAddArgs(tuples);
+		Map<byte[], Double> args = JedisConverters.zAddArgsConvertor(tuples);
 		try {
 			return connection.getJedis().zadd(key, args);
 		} catch (Exception ex) {
@@ -806,29 +804,6 @@ class JedisZSetCommands implements RedisZSetCommands {
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
-	}
-
-	private Map<byte[], Double> zAddArgs(Set<Tuple> tuples) {
-
-		Map<byte[], Double> args = new LinkedHashMap<>(tuples.size(), 1);
-		Set<Double> scores = new HashSet<>(tuples.size(), 1);
-
-		boolean isAtLeastJedis24 = JedisVersionUtil.atLeastJedis24();
-
-		for (Tuple tuple : tuples) {
-
-			if (!isAtLeastJedis24) {
-				if (scores.contains(tuple.getScore())) {
-					throw new UnsupportedOperationException(
-							"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
-				}
-				scores.add(tuple.getScore());
-			}
-
-			args.put(tuple.getValue(), tuple.getScore());
-		}
-
-		return args;
 	}
 
 	private boolean isPipelined() {

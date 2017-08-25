@@ -28,6 +28,8 @@ import redis.clients.util.SafeEncoder;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -657,5 +659,34 @@ abstract public class JedisConverters extends Converters {
 						new Distance(source.getDistance(), metric));
 			}
 		}
+	}
+
+	/**
+	 * Convert tuples to map of bytes and double.
+	 * Bytes represents the value of the element and double is for the score.
+	 * @param tuples
+	 * @return
+	 */
+	public static Map<byte[], Double> zAddArgsConvertor(Set<Tuple> tuples) {
+
+		Map<byte[], Double> args = new LinkedHashMap<>(tuples.size(), 1);
+		Set<Double> scores = new HashSet<>(tuples.size(), 1);
+
+		boolean isAtLeastJedis24 = JedisVersionUtil.atLeastJedis24();
+
+		for (Tuple tuple : tuples) {
+
+			if (!isAtLeastJedis24) {
+				if (scores.contains(tuple.getScore())) {
+					throw new UnsupportedOperationException(
+						"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
+				}
+				scores.add(tuple.getScore());
+			}
+
+			args.put(tuple.getValue(), tuple.getScore());
+		}
+
+		return args;
 	}
 }
