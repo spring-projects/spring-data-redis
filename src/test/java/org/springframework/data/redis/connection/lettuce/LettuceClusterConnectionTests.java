@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,8 +93,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	static final GeoLocation<String> CATANIA = new GeoLocation<>("catania", POINT_CATANIA);
 	static final GeoLocation<String> PALERMO = new GeoLocation<>("palermo", POINT_PALERMO);
 
-	static final GeoLocation<byte[]> ARIGENTO_BYTES = new GeoLocation<>(
-			"arigento".getBytes(Charset.forName("UTF-8")), POINT_ARIGENTO);
+	static final GeoLocation<byte[]> ARIGENTO_BYTES = new GeoLocation<>("arigento".getBytes(Charset.forName("UTF-8")),
+			POINT_ARIGENTO);
 	static final GeoLocation<byte[]> CATANIA_BYTES = new GeoLocation<>("catania".getBytes(Charset.forName("UTF-8")),
 			POINT_CATANIA);
 	static final GeoLocation<byte[]> PALERMO_BYTES = new GeoLocation<>("palermo".getBytes(Charset.forName("UTF-8")),
@@ -1161,6 +1162,18 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.zAdd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
 		clusterConnection.zAdd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(nativeConnection.zcard(KEY_1), is(2L));
+	}
+
+	@Test // DATAREDIS-674
+	public void zAddShouldAddMultipleValuesWithScoreCorrectly() {
+
+		Set<Tuple> tuples = new HashSet<>();
+		tuples.add(new DefaultTuple(VALUE_1_BYTES, 10D));
+		tuples.add(new DefaultTuple(VALUE_2_BYTES, 20D));
+
+		clusterConnection.zAdd(KEY_1_BYTES, tuples);
 
 		assertThat(nativeConnection.zcard(KEY_1), is(2L));
 	}

@@ -19,7 +19,6 @@ import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ZParams;
 
 import java.util.Set;
-import java.util.Map;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -66,10 +65,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	@Override
 	public Long zAdd(byte[] key, Set<Tuple> tuples) {
 
-		Map<byte[], Double> args = JedisConverters.zAddArgsConvertor(tuples);
-
 		try {
-			return connection.getCluster().zadd(key, args);
+			return connection.getCluster().zadd(key, JedisConverters.toTupleMap(tuples));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

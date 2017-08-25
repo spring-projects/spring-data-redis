@@ -19,7 +19,6 @@ import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.ZParams;
 
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisZSetCommands;
@@ -32,6 +31,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
+ * @author Clement Ong
  * @since 2.0
  */
 class JedisZSetCommands implements RedisZSetCommands {
@@ -73,13 +73,17 @@ class JedisZSetCommands implements RedisZSetCommands {
 	@Override
 	public Long zAdd(byte[] key, Set<Tuple> tuples) {
 
-		if (isPipelined() || isQueueing()) {
-			throw new UnsupportedOperationException("zAdd of multiple fields not supported " + "in pipeline or transaction");
-		}
-
-		Map<byte[], Double> args = JedisConverters.zAddArgsConvertor(tuples);
 		try {
-			return connection.getJedis().zadd(key, args);
+			if (isPipelined()) {
+				pipeline(connection.newJedisResult(connection.getPipeline().zadd(key, JedisConverters.toTupleMap(tuples))));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(
+						connection.newJedisResult(connection.getTransaction().zadd(key, JedisConverters.toTupleMap(tuples))));
+				return null;
+			}
+			return connection.getJedis().zadd(key, JedisConverters.toTupleMap(tuples));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

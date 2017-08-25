@@ -238,6 +238,38 @@ abstract public class JedisConverters extends Converters {
 		return TUPLE_SET_TO_TUPLE_SET.convert(source);
 	}
 
+	/**
+	 * Map a {@link Set} of {@link Tuple} by {@code value} to its {@code score}.
+	 *
+	 * @param tuples must not be {@literal null}.
+	 * @return
+	 * @since 2.0
+	 */
+	public static Map<byte[], Double> toTupleMap(Set<Tuple> tuples) {
+
+		Assert.notNull(tuples, "Tuple set must not be null!");
+
+		Map<byte[], Double> args = new LinkedHashMap<>(tuples.size(), 1);
+		Set<Double> scores = new HashSet<>(tuples.size(), 1);
+
+		boolean isAtLeastJedis24 = JedisVersionUtil.atLeastJedis24();
+
+		for (Tuple tuple : tuples) {
+
+			if (!isAtLeastJedis24) {
+				if (scores.contains(tuple.getScore())) {
+					throw new UnsupportedOperationException(
+							"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
+				}
+				scores.add(tuple.getScore());
+			}
+
+			args.put(tuple.getValue(), tuple.getScore());
+		}
+
+		return args;
+	}
+
 	public static byte[] toBytes(Integer source) {
 		return String.valueOf(source).getBytes();
 	}
@@ -659,34 +691,5 @@ abstract public class JedisConverters extends Converters {
 						new Distance(source.getDistance(), metric));
 			}
 		}
-	}
-
-	/**
-	 * Convert tuples to map of bytes and double.
-	 * Bytes represents the value of the element and double is for the score.
-	 * @param tuples
-	 * @return
-	 */
-	public static Map<byte[], Double> zAddArgsConvertor(Set<Tuple> tuples) {
-
-		Map<byte[], Double> args = new LinkedHashMap<>(tuples.size(), 1);
-		Set<Double> scores = new HashSet<>(tuples.size(), 1);
-
-		boolean isAtLeastJedis24 = JedisVersionUtil.atLeastJedis24();
-
-		for (Tuple tuple : tuples) {
-
-			if (!isAtLeastJedis24) {
-				if (scores.contains(tuple.getScore())) {
-					throw new UnsupportedOperationException(
-						"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
-				}
-				scores.add(tuple.getScore());
-			}
-
-			args.put(tuple.getValue(), tuple.getScore());
-		}
-
-		return args;
 	}
 }

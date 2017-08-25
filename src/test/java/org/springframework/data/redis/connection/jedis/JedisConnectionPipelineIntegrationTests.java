@@ -37,10 +37,11 @@ import redis.clients.jedis.JedisPoolConfig;
 
 /**
  * Integration test of {@link JedisConnection} pipeline functionality
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
@@ -248,11 +249,6 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testInfoBySection() throws Exception {
 		super.testInfoBySection();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testZAddMultiple() {
-		super.testZAddMultiple();
 	}
 
 	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-269
