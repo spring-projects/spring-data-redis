@@ -17,11 +17,14 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.ByteBuffer;
 
+import org.springframework.util.Assert;
+
 /**
  * Strategy interface that specifies a deserializer that can deserialize a binary element representation stored in Redis
  * into an object.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 @FunctionalInterface
@@ -34,4 +37,16 @@ public interface RedisElementReader<T> {
 	 * @return the deserialized value.
 	 */
 	T read(ByteBuffer buffer);
+
+	/**
+	 * Create new {@link RedisElementReader} using given {@link RedisSerializer}.
+	 *
+	 * @param serializer must not be {@literal null}.
+	 * @return new instance of {@link RedisElementReader}.
+	 */
+	static <T> RedisElementReader<T> from(RedisSerializer<T> serializer) {
+
+		Assert.notNull(serializer, "Serializer must not be null!");
+		return new DefaultRedisElementReader<>(serializer);
+	}
 }

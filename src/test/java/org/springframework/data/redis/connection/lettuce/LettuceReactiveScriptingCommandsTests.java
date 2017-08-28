@@ -23,6 +23,7 @@ import io.lettuce.core.ScriptOutputType;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,6 +35,7 @@ import org.springframework.data.redis.connection.ReturnType;
 
 /**
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -44,7 +46,7 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 
 		String sha1 = nativeCommands.scriptLoad("return KEYS[1]");
 
-		StepVerifier.create(connection.scriptingCommands().scriptExists("foo", sha1)) //
+		StepVerifier.create(connection.scriptingCommands().scriptExists(Arrays.asList("foo", sha1))) //
 				.expectNext(false) //
 				.expectNext(true) //
 				.verifyComplete();

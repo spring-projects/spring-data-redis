@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.redis.Person;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
@@ -37,9 +38,10 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 /**
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @RunWith(MockitoJUnitRunner.class)
-public class DefaultScriptOperatorsUnitTests {
+public class DefaultReactiveScriptExecutorUnitTests {
 
 	private final DefaultRedisScript<String> SCRIPT = new DefaultRedisScript<>("return KEYS[0]", String.class);
 
@@ -47,7 +49,7 @@ public class DefaultScriptOperatorsUnitTests {
 	@Mock ReactiveRedisConnection connectionMock;
 	@Mock ReactiveScriptingCommands scriptingCommandsMock;
 
-	DefaultScriptOperators<String> executor;
+	DefaultReactiveScriptExecutor<String> executor;
 
 	@Before
 	public void setUp() {
@@ -55,7 +57,7 @@ public class DefaultScriptOperatorsUnitTests {
 		when(connectionFactoryMock.getReactiveConnection()).thenReturn(connectionMock);
 		when(connectionMock.scriptingCommands()).thenReturn(scriptingCommandsMock);
 
-		executor = new DefaultScriptOperators<>(connectionFactoryMock, RedisSerializationContext.string());
+		executor = new DefaultReactiveScriptExecutor<>(connectionFactoryMock, RedisSerializationContext.string());
 	}
 
 	@Test // DATAREDIS-683
@@ -64,7 +66,7 @@ public class DefaultScriptOperatorsUnitTests {
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.just(ByteBuffer.wrap("FOO".getBytes())));
 
-		StepVerifier.create(executor.execute(SCRIPT, Collections.emptyList())).expectNext("FOO").verifyComplete();
+		StepVerifier.create(executor.execute(SCRIPT)).expectNext("FOO").verifyComplete();
 
 		verify(scriptingCommandsMock).evalSha(anyString(), any(ReturnType.class), anyInt());
 		verify(scriptingCommandsMock, never()).eval(any(), any(ReturnType.class), anyInt());
@@ -79,7 +81,7 @@ public class DefaultScriptOperatorsUnitTests {
 		when(scriptingCommandsMock.eval(any(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.just(ByteBuffer.wrap("FOO".getBytes())));
 
-		StepVerifier.create(executor.execute(SCRIPT, Collections.emptyList())).expectNext("FOO").verifyComplete();
+		StepVerifier.create(executor.execute(SCRIPT)).expectNext("FOO").verifyComplete();
 
 		verify(scriptingCommandsMock).evalSha(anyString(), any(ReturnType.class), anyInt());
 		verify(scriptingCommandsMock).eval(any(), any(ReturnType.class), anyInt());
@@ -91,8 +93,7 @@ public class DefaultScriptOperatorsUnitTests {
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn(Flux
 				.error(new UnsupportedOperationException("NOSCRIPT No matching script. Please use EVAL.", new Exception())));
 
-		StepVerifier.create(executor.execute(SCRIPT, Collections.emptyList()))
-				.expectError(UnsupportedOperationException.class).verify();
+		StepVerifier.create(executor.execute(SCRIPT)).expectError(UnsupportedOperationException.class).verify();
 	}
 
 	@Test // DATAREDIS-683
@@ -116,8 +117,19 @@ public class DefaultScriptOperatorsUnitTests {
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.error(new RuntimeException()));
 
-		StepVerifier.create(executor.execute(SCRIPT, Collections.emptyList())).expectError().verify();
+		StepVerifier.create(executor.execute(SCRIPT)).expectError().verify();
 
 		verify(connectionMock).close();
+	}
+
+	@Test // DATAREDIS-683
+	public void doesNotConvertRawResult() {
+
+		Person returnValue = new Person();
+
+		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
+				.thenReturn(Flux.just(returnValue));
+
+		StepVerifier.create(executor.execute(RedisScript.of("return KEYS[0]"))).expectNext(returnValue).verifyComplete();
 	}
 }

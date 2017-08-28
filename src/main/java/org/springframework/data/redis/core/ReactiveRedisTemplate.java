@@ -30,11 +30,12 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
-import org.springframework.data.redis.core.script.DefaultScriptOperators;
+import org.springframework.data.redis.core.script.DefaultReactiveScriptExecutor;
+import org.springframework.data.redis.core.script.ReactiveScriptExecutor;
 import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.data.redis.core.script.ScriptOperators;
+import org.springframework.data.redis.serializer.RedisElementReader;
+import org.springframework.data.redis.serializer.RedisElementWriter;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -58,7 +59,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	private final ReactiveRedisConnectionFactory connectionFactory;
 	private final RedisSerializationContext<K, V> serializationContext;
 	private final boolean exposeConnection;
-	private final ScriptOperators<K> scriptOperators;
+	private final ReactiveScriptExecutor<K> reactiveScriptExecutor;
 
 	/**
 	 * Creates new {@link ReactiveRedisTemplate} using given {@link ReactiveRedisConnectionFactory} and
@@ -89,7 +90,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		this.connectionFactory = connectionFactory;
 		this.serializationContext = serializationContext;
 		this.exposeConnection = exposeConnection;
-		this.scriptOperators = new DefaultScriptOperators<>(connectionFactory, serializationContext);
+		this.reactiveScriptExecutor = new DefaultReactiveScriptExecutor<>(connectionFactory, serializationContext);
 	}
 
 	/**
@@ -491,21 +492,23 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	// Methods dealing with Redis Lua scripts
 	// -------------------------------------------------------------------------
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#execute(org.springframework.data.redis.core.script.RedisScript, java.util.List, java.lang.Object[])
+	/*
+	 *(non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#execute(org.springframework.data.redis.core.script.RedisScript, java.util.List, java.util.List)
 	 */
 	@Override
-	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, Object... args) {
-		return scriptOperators.execute(script, keys, args);
+	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args) {
+		return reactiveScriptExecutor.execute(script, keys, args);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#execute(org.springframework.data.redis.core.script.RedisScript, org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair, org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair, java.util.List, java.lang.Object[])
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#execute(org.springframework.data.redis.core.script.RedisScript, java.util.List, java.util.List, org.springframework.data.redis.serializer.RedisElementWriter, org.springframework.data.redis.serializer.RedisElementReader)
 	 */
 	@Override
-	public <T> Flux<T> execute(RedisScript<T> script, SerializationPair<?> argsSerializerPair,
-			SerializationPair<T> resultSerializerPair, List<K> keys, Object... args) {
-		return scriptOperators.execute(script, argsSerializerPair, resultSerializerPair, keys, args);
+	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args, RedisElementWriter<?> argsWriter,
+			RedisElementReader<T> resultReader) {
+		return reactiveScriptExecutor.execute(script, keys, args, argsWriter, resultReader);
 	}
 
 	// -------------------------------------------------------------------------

@@ -22,13 +22,17 @@ import reactor.core.publisher.Mono;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.data.redis.connection.ReactiveScriptingCommands;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.util.Assert;
 
 /**
+ * {@link ReactiveScriptingCommands} implementation for the <a href="https://lettuce.io/">Lettuce</a> Redis driver.
+ *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
@@ -81,14 +85,14 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveScriptingCommands#scriptExists(java.lang.String[])
+	 * @see org.springframework.data.redis.connection.ReactiveScriptingCommands#scriptExists(java.util.List)
 	 */
 	@Override
-	public Flux<Boolean> scriptExists(String... scriptShas) {
+	public Flux<Boolean> scriptExists(List<String> scriptShas) {
 
-		Assert.notNull(scriptShas, "Script SHAs must not be null!");
+		Assert.notEmpty(scriptShas, "Script SHAs must not be empty!");
 
-		return connection.execute(cmd -> cmd.scriptExists(scriptShas));
+		return connection.execute(cmd -> cmd.scriptExists(scriptShas.toArray(new String[scriptShas.size()])));
 	}
 
 	/*

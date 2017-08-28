@@ -17,11 +17,15 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.ByteBuffer;
 
+import org.springframework.util.Assert;
+
 /**
  * Strategy interface that specifies a serializer that can serialize an element to its binary representation to be used
  * as Redis protocol payload.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
+ * @since 2.0
  */
 @FunctionalInterface
 public interface RedisElementWriter<T> {
@@ -29,8 +33,20 @@ public interface RedisElementWriter<T> {
 	/**
 	 * Serialize a {@code element} to its {@link ByteBuffer} representation.
 	 *
-	 * @param element
+	 * @param element can be {@literal null}.
 	 * @return the {@link ByteBuffer} representing {@code element} in its binary form.
 	 */
 	ByteBuffer write(T element);
+
+	/**
+	 * Create new {@link RedisElementWriter} using given {@link RedisSerializer}.
+	 *
+	 * @param serializer must not be {@literal null}.
+	 * @return new instance of {@link RedisElementWriter}.
+	 */
+	static <T> RedisElementWriter<T> from(RedisSerializer<T> serializer) {
+
+		Assert.notNull(serializer, "Serializer must not be null!");
+		return new DefaultRedisElementWriter<>(serializer);
+	}
 }

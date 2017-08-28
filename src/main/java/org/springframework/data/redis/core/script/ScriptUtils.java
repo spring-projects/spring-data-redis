@@ -27,6 +27,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * Utilities for Lua script execution and result deserialization.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 class ScriptUtils {
@@ -45,7 +46,7 @@ class ScriptUtils {
 	static <T> T deserializeResult(RedisSerializer<T> resultSerializer, Object result) {
 
 		if (result instanceof byte[]) {
-			return resultSerializer == null ? (T) result : resultSerializer.deserialize((byte[]) result);
+			return resultSerializer.deserialize((byte[]) result);
 		}
 
 		if (result instanceof List) {
@@ -66,7 +67,7 @@ class ScriptUtils {
 	 * Deserialize {@code result} using {@link RedisElementReader} to the reader type. Collection types and intermediate
 	 * collection elements are deserialized recursivly.
 	 *
-	 * @param resultSerializer must not be {@literal null}.
+	 * @param reader must not be {@literal null}.
 	 * @param result must not be {@literal null}.
 	 * @return the deserialized result.
 	 */
@@ -75,7 +76,7 @@ class ScriptUtils {
 
 		if (result instanceof ByteBuffer) {
 
-			return reader == null ? (T) result : reader.read((ByteBuffer) result);
+			return reader.read((ByteBuffer) result);
 		}
 
 		if (result instanceof List) {

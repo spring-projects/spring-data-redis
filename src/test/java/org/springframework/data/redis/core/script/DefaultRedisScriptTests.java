@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,13 @@ import org.springframework.scripting.support.StaticScriptSource;
  * Test of {@link DefaultRedisScript}
  *
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 public class DefaultRedisScriptTests {
 
 	@Test
 	public void testGetSha1() {
+
 		StaticScriptSource script = new StaticScriptSource("return KEYS[1]");
 		DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
 		redisScript.setScriptSource(script);
@@ -45,6 +47,7 @@ public class DefaultRedisScriptTests {
 
 	@Test
 	public void testGetScriptAsString() {
+
 		DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
 		redisScript.setScriptText("return ARGS[1]");
 		redisScript.setResultType(String.class);
@@ -53,14 +56,16 @@ public class DefaultRedisScriptTests {
 
 	@Test(expected = ScriptingException.class)
 	public void testGetScriptAsStringError() {
+
 		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
 		redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("nonexistent")));
 		redisScript.setResultType(Long.class);
 		redisScript.getScriptAsString();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalStateException.class)
 	public void initializeWithNoScript() throws Exception {
+
 		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
 		redisScript.afterPropertiesSet();
 	}
