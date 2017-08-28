@@ -44,6 +44,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.RedisElementReader;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -167,7 +168,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 	@Test // DATAREDIS-683
 	@SuppressWarnings("unchecked")
-	public void execute() {
+	public void executeScript() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -184,25 +185,26 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-683
-	public void executeWithSerializationPairs() {
+	public void executeScriptWithElementReaderAndWriter() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		SerializationPair<Person> json = SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(Person.class));
-		SerializationPair<String> string = SerializationPair.fromSerializer(new StringRedisSerializer());
+		SerializationPair json = SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(Person.class));
+		RedisElementReader<String> resultReader = RedisElementReader.from(new StringRedisSerializer());
 
 		assumeFalse(value instanceof Long);
 
 		Person person = new Person("Walter", "White", 51);
-		StepVerifier.create(
-				redisTemplate.execute(new DefaultRedisScript<>("return redis.call('set', KEYS[1], ARGV[1])", String.class),
-						json, string, Collections.singletonList(key), person))
+		StepVerifier
+				.create(
+						redisTemplate.execute(new DefaultRedisScript<>("return redis.call('set', KEYS[1], ARGV[1])", String.class),
+								Collections.singletonList(key), Collections.singletonList(person), json.getWriter(), resultReader))
 				.expectNext("OK").verifyComplete();
 
 		Flux<Person> execute = redisTemplate.execute(
-				new DefaultRedisScript<>("return redis.call('get', KEYS[1])", Person.class), json, json,
-				Collections.singletonList(key));
+				new DefaultRedisScript<>("return redis.call('get', KEYS[1])", Person.class), Collections.singletonList(key),
+				Collections.emptyList(), json.getWriter(), json.getReader());
 
 		StepVerifier.create(execute).expectNext(person).verifyComplete();
 	}

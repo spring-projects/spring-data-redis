@@ -17,7 +17,6 @@ package org.springframework.data.redis.core.script;
 
 import java.util.List;
 
-import org.springframework.dao.NonTransientDataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;

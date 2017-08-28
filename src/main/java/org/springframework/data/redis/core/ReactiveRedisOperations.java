@@ -20,13 +20,15 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.serializer.RedisElementReader;
+import org.springframework.data.redis.serializer.RedisElementWriter;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
@@ -182,30 +184,53 @@ public interface ReactiveRedisOperations<K, V> {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Executes the given {@link RedisScript}.
+	 *
+	 * @param script must not be {@literal null}.
+	 * @return result value of the script {@link Flux#empty()} if {@link RedisScript#getResultType()} is {@literal null},
+	 *         likely indicating a throw-away status reply (i.e. "OK").
+	 */
+	default <T> Flux<T> execute(RedisScript<T> script) {
+		return execute(script, Collections.emptyList());
+	}
+
+	/**
+	 * Executes the given {@link RedisScript}.
+	 *
+	 * @param script must not be {@literal null}.
+	 * @param keys must not be {@literal null}.
+	 * @return result value of the script {@link Flux#empty()} if {@link RedisScript#getResultType()} is {@literal null},
+	 *         likely indicating a throw-away status reply (i.e. "OK").
+	 */
+	default <T> Flux<T> execute(RedisScript<T> script, List<K> keys) {
+		return execute(script, keys, Collections.emptyList());
+	}
+
+	/**
 	 * Executes the given {@link RedisScript}
 	 *
-	 * @param script The script to execute
-	 * @param keys keys that need to be passed to the script.
-	 * @param args args that need to be passed to the script.
-	 * @return return value of the script or raw {@link java.nio.ByteBuffer} if {@link RedisScript#getResultType()} is
-	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK").
+	 * @param script The script to execute. Must not be {@literal null}.
+	 * @param keys keys that need to be passed to the script. Must not be {@literal null}.
+	 * @param args args that need to be passed to the script. Must not be {@literal null}.
+	 * @return result value of the script {@link Flux#empty()} if {@link RedisScript#getResultType()} is {@literal null},
+	 *         likely indicating a throw-away status reply (i.e. "OK").
 	 */
-	<T> Flux<T> execute(RedisScript<T> script, List<K> keys, Object... args);
+	<T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args);
 
 	/**
 	 * Executes the given {@link RedisScript}, using the provided {@link RedisSerializer}s to serialize the script
 	 * arguments and result.
 	 *
 	 * @param script The script to execute
-	 * @param argsSerializerPair The {@link SerializationPair} to use for serializing args
-	 * @param resultSerializerPair The {@link SerializationPair} to use for serializing the script return value
+	 * @param argsWriter The {@link RedisElementWriter} to use for serializing args
+	 * @param resultReader The {@link RedisElementReader} to use for serializing the script return value
 	 * @param keys keys that need to be passed to the script.
 	 * @param args args that need to be passed to the script.
-	 * @return return value of the script or raw {@link java.nio.ByteBuffer} if {@link RedisScript#getResultType()} is
-	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK").
+	 * @return result value of the script {@link Flux#empty()} if {@link RedisScript#getResultType()} is {@literal null},
+	 *         likely indicating a throw-away status reply (i.e. "OK").
 	 */
-	<T> Flux<T> execute(RedisScript<T> script, SerializationPair<?> argsSerializerPair,
-			SerializationPair<T> resultSerializerPair, List<K> keys, Object... args);
+	<T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args, RedisElementWriter<?> argsWriter,
+			RedisElementReader<T> resultReader);
 
 	// -------------------------------------------------------------------------
 	// Methods to obtain specific operations interface objects.

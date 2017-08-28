@@ -19,37 +19,41 @@ import reactor.core.publisher.Flux;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.core.ReactiveRedisCallback;
+import org.springframework.data.redis.serializer.RedisElementReader;
+import org.springframework.data.redis.serializer.RedisElementWriter;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.util.Assert;
 
 /**
- * Default implementation of {@link ScriptOperators}. Optimizes performance by attempting to execute script first using
- * evalsha, then falling back to eval if Redis has not yet cached the script.
+ * Default implementation of {@link ReactiveScriptExecutor}. Optimizes performance by attempting to execute script first
+ * using {@code EVALSHA}, then falling back to {@code EVAL} if Redis has not yet cached the script.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @param <K> The type of keys that may be passed during script execution
  * @since 2.0
  */
-public class DefaultScriptOperators<K> implements ScriptOperators<K> {
+public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<K> {
 
 	private final ReactiveRedisConnectionFactory connectionFactory;
 	private final RedisSerializationContext<K, ?> serializationContext;
 
 	/**
-	 * Creates a new {@link DefaultScriptOperators} given {@link ReactiveRedisConnectionFactory} and
+	 * Creates a new {@link DefaultReactiveScriptExecutor} given {@link ReactiveRedisConnectionFactory} and
 	 * {@link RedisSerializationContext}.
 	 *
 	 * @param connectionFactory must not be {@literal null}.
 	 * @param serializationContext must not be {@literal null}.
 	 */
-	public DefaultScriptOperators(ReactiveRedisConnectionFactory connectionFactory,
+	public DefaultReactiveScriptExecutor(ReactiveRedisConnectionFactory connectionFactory,
 			RedisSerializationContext<K, ?> serializationContext) {
 
 		Assert.notNull(connectionFactory, "ReactiveRedisConnectionFactory must not be null!");
@@ -59,49 +63,51 @@ public class DefaultScriptOperators<K> implements ScriptOperators<K> {
 		this.serializationContext = serializationContext;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.script.ScriptOperators#execute(org.springframework.data.redis.core.script.RedisScript, java.util.List, java.lang.Object[])
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.script.ReactiveScriptExecutor#execute(org.springframework.data.redis.core.script.RedisScript, java.util.List, java.util.List)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, Object... args) {
+	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args) {
 
 		Assert.notNull(script, "RedisScript must not be null!");
 		Assert.notNull(keys, "Keys must not be null!");
 		Assert.notNull(args, "Args must not be null!");
 
 		// use the Template's value serializer for args and result
-		return execute(script, serializationContext.getKeySerializationPair(),
-				(SerializationPair<T>) serializationContext.getValueSerializationPair(), keys, args);
+		return execute(script, keys, args, serializationContext.getKeySerializationPair().getWriter(),
+				(RedisElementReader<T>) serializationContext.getValueSerializationPair().getReader());
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.script.ScriptOperators#execute(org.springframework.data.redis.core.script.RedisScript, org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair, org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair, java.util.List, java.lang.Object[])
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.script.ReactiveScriptExecutor#execute(org.springframework.data.redis.core.script.RedisScript, java.util.List, java.util.List, org.springframework.data.redis.serializer.RedisElementWriter, org.springframework.data.redis.serializer.RedisElementReader)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> Flux<T> execute(RedisScript<T> script, SerializationPair<?> argsSerializerPair,
-			SerializationPair<T> resultSerializationPair, List<K> keys, Object... args) {
+	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args, RedisElementWriter<?> argsWriter,
+			RedisElementReader<T> resultReader) {
 
 		Assert.notNull(script, "RedisScript must not be null!");
-		Assert.notNull(argsSerializerPair, "Argument SerializationPair must not be null!");
-		Assert.notNull(resultSerializationPair, "Result SerializationPair must not be null!");
+		Assert.notNull(argsWriter, "Argument Writer must not be null!");
+		Assert.notNull(resultReader, "Result Reader must not be null!");
 		Assert.notNull(keys, "Keys must not be null!");
 		Assert.notNull(args, "Args must not be null!");
 
 		return execute(connection -> {
 
 			ReturnType returnType = ReturnType.fromJavaType(script.getResultType());
-			ByteBuffer[] keysAndArgs = keysAndArgs((SerializationPair<Object>) argsSerializerPair, keys, args);
+			ByteBuffer[] keysAndArgs = keysAndArgs(argsWriter, keys, args);
 			int keySize = keys.size();
 
-			return eval(connection, script, returnType, keySize, keysAndArgs, resultSerializationPair);
+			return eval(connection, script, returnType, keySize, keysAndArgs, resultReader);
 
 		});
 	}
 
 	protected <T> Flux<T> eval(ReactiveRedisConnection connection, RedisScript<T> script, ReturnType returnType,
-			int numKeys, ByteBuffer[] keysAndArgs, SerializationPair<T> resultSerializer) {
+			int numKeys, ByteBuffer[] keysAndArgs, RedisElementReader<T> resultReader) {
 
 		Flux<T> result = connection.scriptingCommands().evalSha(script.getSha1(), returnType, numKeys, keysAndArgs);
 
@@ -115,41 +121,25 @@ public class DefaultScriptOperators<K> implements ScriptOperators<K> {
 					.error(e instanceof RuntimeException ? (RuntimeException) e : new RedisSystemException(e.getMessage(), e));
 		});
 
-		return script.getResultType() == null ? result : deserializeResult(resultSerializer, result);
+		return script.returnsRawValue() ? result : deserializeResult(resultReader, result);
 	}
 
-	protected ByteBuffer[] keysAndArgs(SerializationPair<Object> argsSerializer, List<K> keys, Object[] args) {
+	protected ByteBuffer[] keysAndArgs(RedisElementWriter argsWriter, List<K> keys, List<?> args) {
 
-		int keySize = keys != null ? keys.size() : 0;
-		ByteBuffer[] keysAndArgs = new ByteBuffer[args.length + keySize];
-		int i = 0;
-
-		if (keys != null) {
-			for (K key : keys) {
-				if (key instanceof ByteBuffer) {
-					keysAndArgs[i++] = (ByteBuffer) key;
-				} else {
-					keysAndArgs[i++] = keySerializer().getWriter().write(key);
-				}
-			}
-		}
-
-		for (Object arg : args) {
-			if (arg instanceof ByteBuffer) {
-				keysAndArgs[i++] = (ByteBuffer) arg;
-			} else {
-				keysAndArgs[i++] = argsSerializer.getWriter().write(arg);
-			}
-		}
-		return keysAndArgs;
+		return Stream.concat(keys.stream().map(t -> keySerializer().getWriter().write(t)),
+				args.stream().map(t -> argsWriter.write(t))).toArray(size -> new ByteBuffer[size]);
 	}
 
+	/**
+	 * @param script
+	 * @return
+	 */
 	protected ByteBuffer scriptBytes(RedisScript<?> script) {
 		return serializationContext.getStringSerializationPair().getWriter().write(script.getScriptAsString());
 	}
 
-	protected <T> Flux<T> deserializeResult(SerializationPair<T> pair, Flux<T> result) {
-		return result.map(it -> ScriptUtils.deserializeResult(pair.getReader(), it));
+	protected <T> Flux<T> deserializeResult(RedisElementReader<T> reader, Flux<T> result) {
+		return result.map(it -> ScriptUtils.deserializeResult(reader, it));
 	}
 
 	protected SerializationPair<K> keySerializer() {
@@ -174,6 +164,7 @@ public class DefaultScriptOperators<K> implements ScriptOperators<K> {
 		try {
 			return Flux.defer(() -> action.doInRedis(conn)).doFinally(signal -> conn.close());
 		} catch (RuntimeException e) {
+
 			conn.close();
 			throw e;
 		}

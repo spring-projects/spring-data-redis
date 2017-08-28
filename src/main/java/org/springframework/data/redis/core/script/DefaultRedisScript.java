@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,23 +37,32 @@ import org.springframework.util.Assert;
 public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 
 	private ScriptSource scriptSource;
-
 	private String sha1;
-
 	private Class<T> resultType;
-
 	private final Object shaModifiedMonitor = new Object();
 
 	/**
 	 * Creates a new {@link DefaultRedisScript}
 	 */
-	public DefaultRedisScript() {}
+	public DefaultRedisScript() {
+
+	}
+
+	/**
+	 * Creates a new {@link DefaultRedisScript}
+	 *
+	 * @param script must not be {@literal null}.
+	 * @since 2.0
+	 */
+	public DefaultRedisScript(String script) {
+		this(script, null);
+	}
 
 	/**
 	 * Creates a new {@link DefaultRedisScript}
 	 * 
-	 * @param script
-	 * @param resultType
+	 * @param script must not be {@literal null}.
+	 * @param resultType can be {@literal null}.
 	 */
 	public DefaultRedisScript(String script, Class<T> resultType) {
 
@@ -61,11 +70,20 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 		this.resultType = resultType;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+	 */
 	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(this.scriptSource, "Either script, script location," + " or script source is required");
+		Assert.state(this.scriptSource != null, "Either script, script location," + " or script source is required");
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.script.RedisScript#getSha1()
+	 */
 	public String getSha1() {
+
 		synchronized (shaModifiedMonitor) {
 			if (sha1 == null || scriptSource.isModified()) {
 				this.sha1 = DigestUtils.sha1DigestAsHex(getScriptAsString());
@@ -74,11 +92,20 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.script.RedisScript#getResultType()
+	 */
 	public Class<T> getResultType() {
 		return this.resultType;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.script.RedisScript#getScriptAsString()
+	 */
 	public String getScriptAsString() {
+
 		try {
 			return scriptSource.getScriptAsString();
 		} catch (IOException e) {
@@ -95,7 +122,7 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	}
 
 	/**
-	 * @param script The script text
+	 * @param scriptText The script text
 	 */
 	public void setScriptText(String scriptText) {
 		this.scriptSource = new StaticScriptSource(scriptText);
