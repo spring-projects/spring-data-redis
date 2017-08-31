@@ -17,8 +17,10 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.BinaryJedisPubSub;
+import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisClusterConnectionHandler;
 import redis.clients.jedis.JedisPool;
 
 import java.util.Collection;
@@ -32,6 +34,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.PropertyAccessor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ClusterStateFailureException;
@@ -43,6 +46,7 @@ import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKey
 import org.springframework.data.redis.connection.ClusterCommandExecutor.NodeResult;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
 
 /**
@@ -85,8 +89,8 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 		closed = false;
 		topologyProvider = new JedisClusterTopologyProvider(cluster);
-		clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider, new JedisClusterNodeResourceProvider(cluster),
-				EXCEPTION_TRANSLATION);
+		clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider,
+				new JedisClusterNodeResourceProvider(cluster, topologyProvider), EXCEPTION_TRANSLATION);
 		disposeClusterCommandExecutorOnClose = true;
 
 		try {
@@ -755,19 +759,35 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	 * Jedis specific implementation of {@link ClusterNodeResourceProvider}.
 	 *
 	 * @author Christoph Strobl
+	 * @author Mark Paluch
 	 * @since 1.7
 	 */
 	static class JedisClusterNodeResourceProvider implements ClusterNodeResourceProvider {
 
 		private final JedisCluster cluster;
+		private final ClusterTopologyProvider topologyProvider;
+		private final JedisClusterConnectionHandler connectionHandler;
 
 		/**
 		 * Creates new {@link JedisClusterNodeResourceProvider}.
 		 *
 		 * @param cluster must not be {@literal null}.
+		 * @param topologyProvider must not be {@literal null}.
 		 */
-		public JedisClusterNodeResourceProvider(JedisCluster cluster) {
+		JedisClusterNodeResourceProvider(JedisCluster cluster, ClusterTopologyProvider topologyProvider) {
+
 			this.cluster = cluster;
+			this.topologyProvider = topologyProvider;
+
+			if (cluster != null) {
+				PropertyAccessor accessor = new DirectFieldAccessFallbackBeanWrapper(cluster);
+
+				this.connectionHandler = accessor.isReadableProperty("connectionHandler")
+						? (JedisClusterConnectionHandler) accessor.getPropertyValue("connectionHandler")
+						: null;
+			} else {
+				this.connectionHandler = null;
+			}
 		}
 
 		/*
@@ -778,21 +798,37 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		@SuppressWarnings("unchecked")
 		public Jedis getResourceForSpecificNode(RedisClusterNode node) {
 
+			Assert.notNull(node, "Cannot get Pool for 'null' node!");
+
 			JedisPool pool = getResourcePoolForSpecificNode(node);
 			if (pool != null) {
 				return pool.getResource();
 			}
 
+			Jedis connection = getConnectionForSpecificNode(node);
+
+			if (connection != null) {
+				return connection;
+			}
+
 			throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node));
 		}
 
-		protected JedisPool getResourcePoolForSpecificNode(RedisNode node) {
-
-			Assert.notNull(node, "Cannot get Pool for 'null' node!");
+		private JedisPool getResourcePoolForSpecificNode(RedisClusterNode node) {
 
 			Map<String, JedisPool> clusterNodes = cluster.getClusterNodes();
 			if (clusterNodes.containsKey(node.asString())) {
 				return clusterNodes.get(node.asString());
+			}
+
+			return null;
+		}
+
+		private Jedis getConnectionForSpecificNode(RedisClusterNode node) {
+
+			RedisClusterNode member = topologyProvider.getTopology().lookup(node);
+			if (connectionHandler != null && member != null) {
+				return connectionHandler.getConnectionFromNode(new HostAndPort(member.getHost(), member.getPort()));
 			}
 
 			return null;
@@ -806,7 +842,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		public void returnResourceForSpecificNode(RedisClusterNode node, Object client) {
 			getResourcePoolForSpecificNode(node).returnResource((Jedis) client);
 		}
-
 	}
 
 	/**

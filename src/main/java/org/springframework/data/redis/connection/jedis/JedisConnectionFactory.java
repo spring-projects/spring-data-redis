@@ -59,6 +59,7 @@ import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterTopologyProvider;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -389,9 +390,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private JedisCluster createCluster() {
 
 		JedisCluster cluster = createCluster(this.clusterConfig, getPoolConfig());
-		this.clusterCommandExecutor = new ClusterCommandExecutor(
-				new JedisClusterConnection.JedisClusterTopologyProvider(cluster),
-				new JedisClusterConnection.JedisClusterNodeResourceProvider(cluster), EXCEPTION_TRANSLATION);
+		JedisClusterTopologyProvider topologyProvider = new JedisClusterTopologyProvider(cluster);
+		this.clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider,
+				new JedisClusterConnection.JedisClusterNodeResourceProvider(cluster, topologyProvider), EXCEPTION_TRANSLATION);
 		return cluster;
 	}
 
