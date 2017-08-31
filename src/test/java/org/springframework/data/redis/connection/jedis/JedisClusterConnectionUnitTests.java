@@ -279,6 +279,7 @@ public class JedisClusterConnectionUnitTests {
 		connection.resetConfigStats(CLUSTER_NODE_2);
 
 		verify(con2Mock, times(1)).configResetStat();
+		verify(con2Mock, times(1)).close();
 		verify(con1Mock, never()).configResetStat();
 		verify(con3Mock, never()).configResetStat();
 	}

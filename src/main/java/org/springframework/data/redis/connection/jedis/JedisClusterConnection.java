@@ -804,9 +804,8 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		 */
 		@Override
 		public void returnResourceForSpecificNode(RedisClusterNode node, Object client) {
-			getResourcePoolForSpecificNode(node).returnResource((Jedis) client);
+			((Jedis) client).close();
 		}
-
 	}
 
 	/**
