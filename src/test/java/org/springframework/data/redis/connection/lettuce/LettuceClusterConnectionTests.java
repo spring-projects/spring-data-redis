@@ -1729,9 +1729,11 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				LettuceConverters.toBytes("c"), LettuceConverters.toBytes("d"))));
 	}
 
-	@Test // DATAREDIS-315
+	@Test // DATAREDIS-315, DATAREDIS-685
 	public void infoShouldCollectionInfoFromAllClusterNodes() {
-		assertThat(Double.valueOf(clusterConnection.info().size()), closeTo(245d, 35d));
+
+		Properties singleNodeInfo = clusterConnection.serverCommands().info(new RedisClusterNode("127.0.0.1", 7380));
+		assertThat(Double.valueOf(clusterConnection.serverCommands().info().size()), closeTo(singleNodeInfo.size() * 3, 12d));
 	}
 
 	@Test // DATAREDIS-315
