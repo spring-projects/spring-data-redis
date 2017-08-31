@@ -284,29 +284,27 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	public void close() throws DataAccessException {
+
 		super.close();
+
 		// return the connection to the pool
 		if (pool != null) {
-			if (!broken) {
+
+			if (broken) {
+				pool.returnBrokenResource(jedis);
+			} else {
+
 				// reset the connection
 				try {
 					if (dbIndex > 0) {
 						jedis.select(0);
 					}
-					pool.returnResource(jedis);
 					return;
 				} catch (Exception ex) {
-					DataAccessException dae = convertJedisAccessException(ex);
-					if (broken) {
-						pool.returnBrokenResource(jedis);
-					} else {
-						pool.returnResource(jedis);
-					}
-					throw dae;
+					throw convertJedisAccessException(ex);
+				} finally {
+					jedis.close();
 				}
-			} else {
-				pool.returnBrokenResource(jedis);
-				return;
 			}
 		}
 		// else close the connection normally (doing the try/catch dance)
@@ -314,13 +312,13 @@ public class JedisConnection extends AbstractRedisConnection {
 		if (isQueueing()) {
 			try {
 				client.quit();
-			} catch (Exception ex) {
-				exc = ex;
+			} catch (Exception o_O) {
+				// ignore exception
 			}
 			try {
 				client.disconnect();
-			} catch (Exception ex) {
-				exc = ex;
+			} catch (Exception o_O) {
+				// ignore exception
 			}
 			return;
 		}
