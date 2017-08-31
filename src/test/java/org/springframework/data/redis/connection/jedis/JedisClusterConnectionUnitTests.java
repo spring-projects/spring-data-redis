@@ -15,15 +15,24 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.core.Is.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.anyVararg;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.test.util.MockitoUtils.*;
 
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisClusterConnectionHandler;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.exceptions.JedisConnectionException;
+
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,17 +43,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.data.redis.ClusterStateFailureException;
 import org.springframework.data.redis.connection.ClusterInfo;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterTopologyProvider;
-
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.exceptions.JedisConnectionException;
 
 /**
  * @author Christoph Strobl
@@ -54,26 +61,21 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 public class JedisClusterConnectionUnitTests {
 
 	private static final String CLUSTER_NODES_RESPONSE = "" //
-			+ MASTER_NODE_1_ID + " " + CLUSTER_HOST + ":" + MASTER_NODE_1_PORT
-			+ " myself,master - 0 0 1 connected 0-5460"
-			+ "\n" + MASTER_NODE_2_ID + " " + CLUSTER_HOST + ":"
-			+ MASTER_NODE_2_PORT
-			+ " master - 0 1427718161587 2 connected 5461-10922" + "\n"
-			+ MASTER_NODE_2_ID
-			+ " " + CLUSTER_HOST + ":" + MASTER_NODE_3_PORT + " master - 0 1427718161587 3 connected 10923-16383";
+			+ MASTER_NODE_1_ID + " " + CLUSTER_HOST + ":" + MASTER_NODE_1_PORT + " myself,master - 0 0 1 connected 0-5460"
+			+ "\n" + MASTER_NODE_2_ID + " " + CLUSTER_HOST + ":" + MASTER_NODE_2_PORT
+			+ " master - 0 1427718161587 2 connected 5461-10922" + "\n" + MASTER_NODE_2_ID + " " + CLUSTER_HOST + ":"
+			+ MASTER_NODE_3_PORT + " master - 0 1427718161587 3 connected 10923-16383";
 
-	static final String CLUSTER_INFO_RESPONSE = "cluster_state:ok" + "\n"
-			+ "cluster_slots_assigned:16384" + "\n" + "cluster_slots_ok:16384"
-			+ "\n" + "cluster_slots_pfail:0" + "\n"
-			+ "cluster_slots_fail:0" + "\n" + "cluster_known_nodes:4"
-			+ "\n" + "cluster_size:3" + "\n"
-			+ "cluster_current_epoch:30" + "\n" + "cluster_my_epoch:2"
-			+ "\n" + "cluster_stats_messages_sent:2560260"
-			+ "\n" + "cluster_stats_messages_received:2560086";
+	static final String CLUSTER_INFO_RESPONSE = "cluster_state:ok" + "\n" + "cluster_slots_assigned:16384" + "\n"
+			+ "cluster_slots_ok:16384" + "\n" + "cluster_slots_pfail:0" + "\n" + "cluster_slots_fail:0" + "\n"
+			+ "cluster_known_nodes:4" + "\n" + "cluster_size:3" + "\n" + "cluster_current_epoch:30" + "\n"
+			+ "cluster_my_epoch:2" + "\n" + "cluster_stats_messages_sent:2560260" + "\n"
+			+ "cluster_stats_messages_received:2560086";
 
 	JedisClusterConnection connection;
 
-	@Mock JedisCluster clusterMock;
+	@Spy StubJedisCluster clusterMock;
+	@Mock JedisClusterConnectionHandler connectionHandlerMock;
 
 	@Mock JedisPool node1PoolMock;
 	@Mock JedisPool node2PoolMock;
@@ -83,12 +85,13 @@ public class JedisClusterConnectionUnitTests {
 	@Mock Jedis con2Mock;
 	@Mock Jedis con3Mock;
 
+	Map<String, JedisPool> nodes = new LinkedHashMap<String, JedisPool>();
+
 	public @Rule ExpectedException expectedException = ExpectedException.none();
 
 	@Before
 	public void setUp() {
 
-		Map<String, JedisPool> nodes = new LinkedHashMap<String, JedisPool>(3);
 		nodes.put(CLUSTER_HOST + ":" + MASTER_NODE_1_PORT, node1PoolMock);
 		nodes.put(CLUSTER_HOST + ":" + MASTER_NODE_2_PORT, node2PoolMock);
 		nodes.put(CLUSTER_HOST + ":" + MASTER_NODE_3_PORT, node3PoolMock);
@@ -99,6 +102,7 @@ public class JedisClusterConnectionUnitTests {
 		when(node3PoolMock.getResource()).thenReturn(con3Mock);
 
 		when(con1Mock.clusterNodes()).thenReturn(CLUSTER_NODES_RESPONSE);
+		clusterMock.setConnectionHandler(connectionHandlerMock);
 
 		connection = new JedisClusterConnection(clusterMock);
 	}
@@ -252,6 +256,53 @@ public class JedisClusterConnectionUnitTests {
 		verifyInvocationsAcross("time", times(1), con1Mock, con2Mock, con3Mock);
 	}
 
+	@Test // DATAREDIS-679
+	public void shouldFailWithUnknownNode() {
+
+		try {
+			connection.dbSize(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT));
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(),
+					containsString("Node " + CLUSTER_HOST + ":" + SLAVEOF_NODE_1_PORT + " is unknown to cluster"));
+		}
+	}
+
+	@Test // DATAREDIS-679
+	public void shouldFailWithAbsentConnection() {
+
+		nodes.remove(CLUSTER_HOST + ":" + MASTER_NODE_3_PORT);
+
+		try {
+			connection.dbSize(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT));
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(),
+					containsString("Node " + CLUSTER_HOST + ":" + MASTER_NODE_3_PORT + " is unknown to cluster"));
+		}
+	}
+
+	@Test // DATAREDIS-679
+	public void shouldReconfigureJedisWithDiscoveredNode() {
+
+		nodes.remove(CLUSTER_HOST + ":" + MASTER_NODE_3_PORT);
+
+		when(connectionHandlerMock.getConnectionFromNode(new HostAndPort(CLUSTER_HOST, MASTER_NODE_3_PORT)))
+				.thenReturn(con3Mock);
+		when(con3Mock.dbSize()).thenAnswer(new Answer<Long>() {
+			@Override
+			public Long answer(InvocationOnMock invocation) throws Throwable {
+
+				// Required to return the resource properly after invocation.
+				nodes.put(CLUSTER_HOST + ":" + MASTER_NODE_3_PORT, node3PoolMock);
+
+				return 42L;
+			}
+		});
+
+		Long result = connection.dbSize(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT));
+
+		assertThat(result, is(42L));
+	}
+
 	@Test // DATAREDIS-315
 	public void timeShouldBeExecutedOnSingleNode() {
 
@@ -297,5 +348,22 @@ public class JedisClusterConnectionUnitTests {
 		when(con3Mock.clusterNodes()).thenThrow(new JedisConnectionException("o.2"));
 
 		new JedisClusterTopologyProvider(clusterMock).getTopology();
+	}
+
+	static class StubJedisCluster extends JedisCluster {
+
+		JedisClusterConnectionHandler connectionHandler;
+
+		public StubJedisCluster() {
+			super(Collections.<HostAndPort> emptySet());
+		}
+
+		JedisClusterConnectionHandler getConnectionHandler() {
+			return connectionHandler;
+		}
+
+		void setConnectionHandler(JedisClusterConnectionHandler connectionHandler) {
+			this.connectionHandler = connectionHandler;
+		}
 	}
 }

@@ -58,7 +58,7 @@ import redis.clients.util.Pool;
 
 /**
  * Connection factory creating <a href="http://github.com/xetorthio/jedis">Jedis</a> based connections.
- * 
+ *
  * @author Costin Leau
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -118,7 +118,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance. Will override the other connection parameters passed
 	 * to the factory.
-	 * 
+	 *
 	 * @param shardInfo shard information
 	 */
 	public JedisConnectionFactory(JedisShardInfo shardInfo) {
@@ -127,7 +127,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance using the given pool configuration.
-	 * 
+	 *
 	 * @param poolConfig pool configuration
 	 */
 	public JedisConnectionFactory(JedisPoolConfig poolConfig) {
@@ -137,7 +137,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link JedisPoolConfig} applied to
 	 * {@link JedisSentinelPool}.
-	 * 
+	 *
 	 * @param sentinelConfig
 	 * @since 1.4
 	 */
@@ -148,7 +148,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link JedisPoolConfig} applied to
 	 * {@link JedisSentinelPool}.
-	 * 
+	 *
 	 * @param sentinelConfig
 	 * @param poolConfig pool configuration. Defaulted to new instance if {@literal null}.
 	 * @since 1.4
@@ -161,7 +161,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisClusterConfiguration} applied
 	 * to create a {@link JedisCluster}.
-	 * 
+	 *
 	 * @param clusterConfig
 	 * @since 1.7
 	 */
@@ -172,7 +172,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisClusterConfiguration} applied
 	 * to create a {@link JedisCluster}.
-	 * 
+	 *
 	 * @param clusterConfig
 	 * @since 1.7
 	 */
@@ -184,7 +184,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Returns a Jedis instance to be used as a Redis connection. The instance can be newly created or retrieved from a
 	 * pool.
-	 * 
+	 *
 	 * @return Jedis instance ready for wrapping into a {@link RedisConnection}.
 	 */
 	protected Jedis fetchJedisConnector() {
@@ -208,7 +208,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Post process a newly retrieved connection. Useful for decorating or executing initialization commands on a new
 	 * connection. This implementation simply returns the connection.
-	 * 
+	 *
 	 * @param connection
 	 * @return processed connection
 	 */
@@ -252,7 +252,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Creates {@link JedisSentinelPool}.
-	 * 
+	 *
 	 * @param config
 	 * @return
 	 * @since 1.4
@@ -265,7 +265,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Creates {@link JedisPool}.
-	 * 
+	 *
 	 * @return
 	 * @since 1.4
 	 */
@@ -277,16 +277,16 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	private JedisCluster createCluster() {
 
-		JedisCluster cluster = createCluster(this.clusterConfig, this.poolConfig);
-		this.clusterCommandExecutor = new ClusterCommandExecutor(
-				new JedisClusterConnection.JedisClusterTopologyProvider(cluster),
-				new JedisClusterConnection.JedisClusterNodeResourceProvider(cluster), EXCEPTION_TRANSLATION);
+		JedisCluster cluster = createCluster(this.clusterConfig, getPoolConfig());
+		JedisClusterConnection.JedisClusterTopologyProvider topologyProvider = new JedisClusterConnection.JedisClusterTopologyProvider(cluster);
+		this.clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider,
+				new JedisClusterConnection.JedisClusterNodeResourceProvider(cluster, topologyProvider), EXCEPTION_TRANSLATION);
 		return cluster;
 	}
 
 	/**
 	 * Creates {@link JedisCluster} for given {@link RedisClusterConfiguration} and {@link GenericObjectPoolConfig}.
-	 * 
+	 *
 	 * @param clusterConfig must not be {@literal null}.
 	 * @param poolConfig can be {@literal null}.
 	 * @return
@@ -375,7 +375,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Returns the Redis hostName.
-	 * 
+	 *
 	 * @return the hostName.
 	 */
 	public String getHostName() {
@@ -384,7 +384,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Sets the Redis hostName.
-	 * 
+	 *
 	 * @param hostName the hostName to set.
 	 */
 	public void setHostName(String hostName) {
@@ -413,7 +413,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Returns the password used for authenticating with the Redis server.
-	 * 
+	 *
 	 * @return password for authentication.
 	 */
 	public String getPassword() {
@@ -422,7 +422,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Sets the password used for authenticating with the Redis server.
-	 * 
+	 *
 	 * @param password the password to set.
 	 */
 	public void setPassword(String password) {
@@ -431,7 +431,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Returns the port used to connect to the Redis instance.
-	 * 
+	 *
 	 * @return the Redis port.
 	 */
 	public int getPort() {
@@ -440,7 +440,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Sets the port used to connect to the Redis instance.
-	 * 
+	 *
 	 * @param port the Redis port.
 	 */
 	public void setPort(int port) {
@@ -449,7 +449,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Returns the shardInfo.
-	 * 
+	 *
 	 * @return the shardInfo.
 	 */
 	public JedisShardInfo getShardInfo() {
@@ -458,7 +458,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Sets the shard info for this factory.
-	 * 
+	 *
 	 * @param shardInfo the shardInfo to set.
 	 */
 	public void setShardInfo(JedisShardInfo shardInfo) {
@@ -467,7 +467,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Returns the timeout.
-	 * 
+	 *
 	 * @return the timeout.
 	 */
 	public int getTimeout() {
@@ -485,7 +485,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Indicates the use of a connection pool.
-	 * 
+	 *
 	 * @return the use of connection pooling.
 	 */
 	public boolean getUsePool() {
@@ -494,7 +494,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Turns on or off the use of connection pooling.
-	 * 
+	 *
 	 * @param usePool the usePool to set.
 	 */
 	public void setUsePool(boolean usePool) {
@@ -503,7 +503,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Returns the poolConfig.
-	 * 
+	 *
 	 * @return the poolConfig
 	 */
 	public JedisPoolConfig getPoolConfig() {
@@ -512,7 +512,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Sets the pool configuration for this factory.
-	 * 
+	 *
 	 * @param poolConfig the poolConfig to set.
 	 */
 	public void setPoolConfig(JedisPoolConfig poolConfig) {
@@ -521,7 +521,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Returns the index of the database.
-	 * 
+	 *
 	 * @return the database index.
 	 */
 	public int getDatabase() {
@@ -530,7 +530,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Sets the index of the database used by this connection factory. Default is 0.
-	 * 
+	 *
 	 * @param index database index.
 	 */
 	public void setDatabase(int index) {
@@ -562,7 +562,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link JedisConnection#closePipeline()} and {@link JedisConnection#exec()} will be of the type returned by the
 	 * Jedis driver.
-	 * 
+	 *
 	 * @return Whether or not to convert pipeline and tx results.
 	 */
 	public boolean getConvertPipelineAndTxResults() {
@@ -573,7 +573,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link JedisConnection#closePipeline()} and {@link JedisConnection#exec()} will be of the type returned by the
 	 * Jedis driver.
-	 * 
+	 *
 	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results.
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
