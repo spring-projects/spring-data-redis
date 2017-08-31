@@ -840,7 +840,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		 */
 		@Override
 		public void returnResourceForSpecificNode(RedisClusterNode node, Object client) {
-			getResourcePoolForSpecificNode(node).returnResource((Jedis) client);
+			((Jedis) client).close();
 		}
 	}
 
@@ -897,7 +897,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 					errors.put(entry.getKey(), ex);
 				} finally {
 					if (jedis != null) {
-						entry.getValue().returnResource(jedis);
+						jedis.close();
 					}
 				}
 			}
