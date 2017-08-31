@@ -25,6 +25,7 @@ import java.util.Optional;
  * Default implementation of {@literal LettuceClientConfiguration}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
@@ -55,14 +56,6 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	@Override
 	public boolean isUseSsl() {
 		return useSsl;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isUsePooling()
-	 */
-	@Override
-	public boolean isUsePooling() {
-		return false;
 	}
 
 	/* (non-Javadoc)

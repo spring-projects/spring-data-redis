@@ -26,6 +26,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvid
 
 /**
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetAware {
@@ -43,20 +44,18 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
 	 */
-	@SuppressWarnings("rawtypes")
 	@Override
-	public StatefulConnection<?, ?> getConnection(Class<? extends StatefulConnection> connectionType) {
-
+	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
 		if (connectionType.equals(StatefulRedisSentinelConnection.class)) {
-			return client.connectSentinel();
+			return connectionType.cast(client.connectSentinel());
 		}
 
 		if (connectionType.equals(StatefulRedisPubSubConnection.class)) {
-			return client.connectPubSub(codec);
+			return connectionType.cast(client.connectPubSub(codec));
 		}
 
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
-			return client.connect(codec);
+			return connectionType.cast(client.connect(codec));
 		}
 
 		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");
@@ -66,20 +65,19 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware#getConnection(java.lang.Class, io.lettuce.core.RedisURI)
 	 */
-	@SuppressWarnings("rawtypes")
 	@Override
-	public StatefulConnection<?, ?> getConnection(Class<? extends StatefulConnection> connectionType, RedisURI redisURI) {
+	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType, RedisURI redisURI) {
 
 		if (connectionType.equals(StatefulRedisSentinelConnection.class)) {
-			return client.connectSentinel(redisURI);
+			return connectionType.cast(client.connectSentinel(redisURI));
 		}
 
 		if (connectionType.equals(StatefulRedisPubSubConnection.class)) {
-			return client.connectPubSub(codec, redisURI);
+			return connectionType.cast(client.connectPubSub(codec, redisURI));
 		}
 
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
-			return client.connect(codec, redisURI);
+			return connectionType.cast(client.connect(codec, redisURI));
 		}
 
 		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");

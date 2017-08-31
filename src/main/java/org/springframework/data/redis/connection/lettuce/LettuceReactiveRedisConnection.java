@@ -21,7 +21,6 @@ import io.lettuce.core.api.reactive.BaseRedisReactiveCommands;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
 import io.lettuce.core.codec.RedisCodec;
-import org.springframework.data.redis.connection.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -31,6 +30,7 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.data.redis.connection.*;
 import org.springframework.util.Assert;
 
 /**
@@ -58,7 +58,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null!");
 
 		this.connectionProvider = connectionProvider;
-		this.connection = connectionProvider.getConnection();
+		this.connection = connectionProvider.getConnection(StatefulConnection.class);
 	}
 
 	/*

@@ -768,7 +768,7 @@ public class LettuceConnectionFactory
 
 			StatefulRedisConnection<byte[], byte[]> connection;
 			if (!isClusterAware()) {
-				connection = connectionProvider.getConnection();
+				connection = connectionProvider.getConnection(StatefulRedisConnection.class);
 				if (getDatabase() > 0) {
 					connection.sync().select(getDatabase());
 				}
@@ -785,8 +785,9 @@ public class LettuceConnectionFactory
 
 		LettuceConnectionProvider connectionProvider = doConnectionProvider(client, codec);
 
-		if (this.clientConfiguration.isUsePooling()) {
-			return new LettucePoolingConnectionProvider(connectionProvider, this.clientConfiguration);
+		if (this.clientConfiguration instanceof LettucePoolingClientConfiguration) {
+			return new LettucePoolingConnectionProvider(connectionProvider,
+					(LettucePoolingClientConfiguration) this.clientConfiguration);
 		}
 
 		return connectionProvider;
@@ -902,14 +903,6 @@ public class LettuceConnectionFactory
 		@Override
 		public boolean isUseSsl() {
 			return useSsl;
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isUsePooling()
-		 */
-		@Override
-		public boolean isUsePooling() {
-			return false;
 		}
 
 		public void setUseSsl(boolean useSsl) {

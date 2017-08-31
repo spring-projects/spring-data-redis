@@ -25,6 +25,7 @@ import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
  * Connection provider for Cluster connections.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 class ClusterConnectionProvider implements LettuceConnectionProvider {
@@ -42,17 +43,16 @@ class ClusterConnectionProvider implements LettuceConnectionProvider {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
 	 */
-	@SuppressWarnings("rawtypes")
 	@Override
-	public StatefulConnection<?, ?> getConnection(Class<? extends StatefulConnection> connectionType) {
+	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
 
 		if (connectionType.equals(StatefulRedisPubSubConnection.class)) {
-			return client.connectPubSub(codec);
+			return connectionType.cast(client.connectPubSub(codec));
 		}
 
 		if (StatefulRedisClusterConnection.class.isAssignableFrom(connectionType)
 				|| connectionType.equals(StatefulConnection.class)) {
-			return client.connect(codec);
+			return connectionType.cast(client.connect(codec));
 		}
 
 		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");
