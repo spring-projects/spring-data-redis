@@ -66,8 +66,8 @@ abstract public class ReactiveOperationsTestParams {
 				.clientResources(LettuceTestClientResources.getSharedClientResources()) //
 				.build();
 
-		LettuceClientConfiguration poolingConfiguration = LettucePoolingClientConfiguration.builder() //
-				.and().shutdownTimeout(Duration.ZERO) //
+		LettucePoolingClientConfiguration poolingConfiguration = LettucePoolingClientConfiguration.builder() //
+				.shutdownTimeout(Duration.ZERO) //
 				.clientResources(LettuceTestClientResources.getSharedClientResources()) //
 				.build();
 

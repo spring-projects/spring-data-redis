@@ -29,6 +29,7 @@ import org.junit.Test;
  * Unit tests for {@link LettucePoolingClientConfiguration}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class LettucePoolingClientConfigurationUnitTests {
 
@@ -37,7 +38,6 @@ public class LettucePoolingClientConfigurationUnitTests {
 
 		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.defaultConfiguration();
 
-		assertThat(configuration.isUsePooling()).isTrue();
 		assertThat(configuration.getPoolConfig()).isNotNull();
 		assertThat(configuration.isUseSsl()).isFalse();
 		assertThat(configuration.isVerifyPeer()).isTrue();
@@ -55,19 +55,17 @@ public class LettucePoolingClientConfigurationUnitTests {
 		ClientResources sharedClientResources = LettuceTestClientResources.getSharedClientResources();
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 
-		LettucePoolingClientConfiguration configuration = (LettucePoolingClientConfiguration) LettucePoolingClientConfiguration
-				.builder() //
-				.poolConfig(poolConfig).and() //
+		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.builder() //
 				.useSsl() //
 				.disablePeerVerification() //
 				.startTls().and() //
+				.poolConfig(poolConfig) //
 				.clientOptions(clientOptions) //
 				.clientResources(sharedClientResources) //
 				.commandTimeout(Duration.ofMinutes(5)) //
 				.shutdownTimeout(Duration.ofHours(2)) //
 				.build();
 
-		assertThat(configuration.isUsePooling()).isTrue();
 		assertThat(configuration.getPoolConfig()).isEqualTo(poolConfig);
 		assertThat(configuration.isUseSsl()).isTrue();
 		assertThat(configuration.isVerifyPeer()).isFalse();

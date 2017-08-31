@@ -55,11 +55,6 @@ public interface LettuceClientConfiguration {
 	boolean isUseSsl();
 
 	/**
-	 * @return {@literal true} to use connection-pooling.
-	 */
-	boolean isUsePooling();
-
-	/**
 	 * @return {@literal true} to verify peers when using {@link #isUseSsl() SSL}.
 	 */
 	boolean isVerifyPeer();
@@ -97,7 +92,7 @@ public interface LettuceClientConfiguration {
 	 * @return a new {@link LettuceClientConfigurationBuilder} to build {@link LettuceClientConfiguration}.
 	 */
 	static LettuceClientConfigurationBuilder builder() {
-		return new DefaultLettuceClientConfigurationBuilder();
+		return new LettuceClientConfigurationBuilder();
 	}
 
 	/**
@@ -126,101 +121,10 @@ public interface LettuceClientConfiguration {
 	}
 
 	/**
-	 * Builder for {@link LettuceClientConfiguration}.
+	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 */
-	interface LettuceClientConfigurationBuilder {
-
-		/**
-		 * Enable SSL connections.
-		 *
-		 * @return {@link LettuceSslClientConfigurationBuilder}.
-		 */
-		LettuceSslClientConfigurationBuilder useSsl();
-
-		/**
-		 * Configure {@link ClientResources}.
-		 *
-		 * @param clientResources must not be {@literal null}.
-		 * @return {@literal this} builder.
-		 * @throws IllegalArgumentException if clientResources is {@literal null}.
-		 */
-		LettuceClientConfigurationBuilder clientResources(ClientResources clientResources);
-
-		/**
-		 * Configure {@link ClientOptions}.
-		 *
-		 * @param clientOptions must not be {@literal null}.
-		 * @return {@literal this} builder.
-		 * @throws IllegalArgumentException if clientOptions is {@literal null}.
-		 */
-		LettuceClientConfigurationBuilder clientOptions(ClientOptions clientOptions);
-
-		/**
-		 * Configure a command timeout.
-		 *
-		 * @param timeout must not be {@literal null}.
-		 * @return {@literal this} builder.
-		 * @throws IllegalArgumentException if timeout is {@literal null}.
-		 */
-		LettuceClientConfigurationBuilder commandTimeout(Duration timeout);
-
-		/**
-		 * Configure a shutdown timeout.
-		 *
-		 * @param shutdownTimeout must not be {@literal null}.
-		 * @return {@literal this} builder.
-		 * @throws IllegalArgumentException if shutdownTimeout is {@literal null}.
-		 */
-		LettuceClientConfigurationBuilder shutdownTimeout(Duration shutdownTimeout);
-
-		/**
-		 * Build the {@link LettuceClientConfiguration} with the configuration applied from this builder.
-		 *
-		 * @return a new {@link LettuceClientConfiguration} object.
-		 */
-		LettuceClientConfiguration build();
-	}
-
-	/**
-	 * Builder for SSL-related {@link LettuceClientConfiguration}.
-	 */
-	interface LettuceSslClientConfigurationBuilder {
-
-		/**
-		 * Disable peer verification.
-		 *
-		 * @return {@literal this} builder.
-		 */
-		LettuceSslClientConfigurationBuilder disablePeerVerification();
-
-		/**
-		 * Enable Start TLS to send the first bytes unencrypted.
-		 *
-		 * @return {@literal this} builder.
-		 */
-		LettuceSslClientConfigurationBuilder startTls();
-
-		/**
-		 * Return to {@link LettuceClientConfigurationBuilder}.
-		 *
-		 * @return {@link LettuceClientConfigurationBuilder}.
-		 */
-		LettuceClientConfigurationBuilder and();
-
-		/**
-		 * Build the {@link LettuceClientConfiguration} with the configuration applied from this builder.
-		 *
-		 * @return a new {@link LettuceClientConfiguration} object.
-		 */
-		LettuceClientConfiguration build();
-	}
-
-	/**
-	 * Default {@link LettuceClientConfigurationBuilder} implementation to build an immutable
-	 * {@link LettuceClientConfiguration}.
-	 */
-	class DefaultLettuceClientConfigurationBuilder
-			implements LettuceClientConfigurationBuilder, LettuceSslClientConfigurationBuilder {
+	class LettuceClientConfigurationBuilder {
 
 		boolean useSsl;
 		boolean verifyPeer = true;
@@ -230,55 +134,26 @@ public interface LettuceClientConfiguration {
 		Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 		Duration shutdownTimeout = Duration.ofMillis(100);
 
-		DefaultLettuceClientConfigurationBuilder() {}
+		LettuceClientConfigurationBuilder() {}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#useSsl()
+		/**
+		 * Enable SSL connections.
+		 *
+		 * @return {@link LettuceSslClientConfigurationBuilder}.
 		 */
-		@Override
 		public LettuceSslClientConfigurationBuilder useSsl() {
 
 			this.useSsl = true;
-			return this;
+			return new LettuceSslClientConfigurationBuilder(this);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#disablePeerVerification()
+		/**
+		 * Configure {@link ClientResources}.
+		 *
+		 * @param clientResources must not be {@literal null}.
+		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if clientResources is {@literal null}.
 		 */
-		@Override
-		public LettuceSslClientConfigurationBuilder disablePeerVerification() {
-
-			this.verifyPeer = false;
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#startTls()
-		 */
-		@Override
-		public LettuceSslClientConfigurationBuilder startTls() {
-
-			this.startTls = true;
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#and()
-		 */
-		@Override
-		public LettuceClientConfigurationBuilder and() {
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#clientResources(io.lettuce.core.resource.ClientResources)
-		 */
-		@Override
 		public LettuceClientConfigurationBuilder clientResources(ClientResources clientResources) {
 
 			Assert.notNull(clientResources, "ClientResources must not be null!");
@@ -287,11 +162,13 @@ public interface LettuceClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#clientOptions(io.lettuce.core.ClientOptions)
+		/**
+		 * Configure {@link ClientOptions}.
+		 *
+		 * @param clientOptions must not be {@literal null}.
+		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if clientOptions is {@literal null}.
 		 */
-		@Override
 		public LettuceClientConfigurationBuilder clientOptions(ClientOptions clientOptions) {
 
 			Assert.notNull(clientOptions, "ClientOptions must not be null!");
@@ -300,11 +177,13 @@ public interface LettuceClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#timeout(java.time.Duration)
+		/**
+		 * Configure a command timeout.
+		 *
+		 * @param timeout must not be {@literal null}.
+		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if timeout is {@literal null}.
 		 */
-		@Override
 		public LettuceClientConfigurationBuilder commandTimeout(Duration timeout) {
 
 			Assert.notNull(timeout, "Duration must not be null!");
@@ -313,11 +192,13 @@ public interface LettuceClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#shutdownTimeout(java.time.Duration)
+		/**
+		 * Configure a shutdown timeout.
+		 *
+		 * @param shutdownTimeout must not be {@literal null}.
+		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if shutdownTimeout is {@literal null}.
 		 */
-		@Override
 		public LettuceClientConfigurationBuilder shutdownTimeout(Duration shutdownTimeout) {
 
 			Assert.notNull(timeout, "Duration must not be null!");
@@ -326,14 +207,69 @@ public interface LettuceClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#build()
+		/**
+		 * Build the {@link LettuceClientConfiguration} with the configuration applied from this builder.
+		 *
+		 * @return a new {@link LettuceClientConfiguration} object.
 		 */
-		@Override
 		public LettuceClientConfiguration build() {
+
 			return new DefaultLettuceClientConfiguration(useSsl, verifyPeer, startTls, clientResources, clientOptions,
 					timeout, shutdownTimeout);
+		}
+	}
+
+	/**
+	 * Builder for SSL-related {@link LettuceClientConfiguration}.
+	 */
+	class LettuceSslClientConfigurationBuilder {
+
+		private LettuceClientConfigurationBuilder delegate;
+
+		LettuceSslClientConfigurationBuilder(LettuceClientConfigurationBuilder delegate) {
+
+			Assert.notNull(delegate, "Delegate client configuration builder must not be null!");
+			this.delegate = delegate;
+		}
+
+		/**
+		 * Disable peer verification.
+		 *
+		 * @return {@literal this} builder.
+		 */
+		LettuceSslClientConfigurationBuilder disablePeerVerification() {
+
+			delegate.verifyPeer = false;
+			return this;
+		}
+
+		/**
+		 * Enable Start TLS to send the first bytes unencrypted.
+		 *
+		 * @return {@literal this} builder.
+		 */
+		LettuceSslClientConfigurationBuilder startTls() {
+
+			delegate.startTls = true;
+			return this;
+		}
+
+		/**
+		 * Return to {@link LettuceClientConfigurationBuilder}.
+		 *
+		 * @return {@link LettuceClientConfigurationBuilder}.
+		 */
+		LettuceClientConfigurationBuilder and() {
+			return delegate;
+		}
+
+		/**
+		 * Build the {@link LettuceClientConfiguration} with the configuration applied from this builder.
+		 *
+		 * @return a new {@link LettuceClientConfiguration} object.
+		 */
+		LettuceClientConfiguration build() {
+			return delegate.build();
 		}
 	}
 }

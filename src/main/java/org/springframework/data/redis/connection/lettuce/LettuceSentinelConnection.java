@@ -94,7 +94,12 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	public LettuceSentinelConnection(RedisClient redisClient) {
 
 		Assert.notNull(redisClient, "Cannot create LettuceSentinelConnection using 'null' as client.");
-		this.provider = t -> redisClient.connectSentinel();
+		this.provider = new LettuceConnectionProvider() {
+			@Override
+			public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> t) {
+				return t.cast(redisClient.connectSentinel());
+			}
+		};
 		init();
 	}
 
@@ -106,7 +111,12 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	protected LettuceSentinelConnection(StatefulRedisSentinelConnection<String, String> connection) {
 
 		Assert.notNull(connection, "Cannot create LettuceSentinelConnection using 'null' as connection.");
-		this.provider = t -> connection;
+		this.provider = new LettuceConnectionProvider() {
+			@Override
+			public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> t) {
+				return t.cast(connection);
+			}
+		};
 		init();
 	}
 
@@ -263,10 +273,9 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
 		 */
-		@SuppressWarnings("rawtypes")
 		@Override
-		public StatefulConnection<?, ?> getConnection(Class<? extends StatefulConnection> connectionType) {
-			return redisClient.connectSentinel();
+		public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
+			return connectionType.cast(redisClient.connectSentinel());
 		}
 
 		/*

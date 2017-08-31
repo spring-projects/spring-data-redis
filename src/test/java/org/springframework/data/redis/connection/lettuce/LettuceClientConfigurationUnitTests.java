@@ -28,6 +28,7 @@ import org.junit.Test;
  * Unit tests for {@link LettuceClientConfiguration}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class LettuceClientConfigurationUnitTests {
 
@@ -36,7 +37,6 @@ public class LettuceClientConfigurationUnitTests {
 
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.defaultConfiguration();
 
-		assertThat(configuration.isUsePooling()).isFalse();
 		assertThat(configuration.isUseSsl()).isFalse();
 		assertThat(configuration.isVerifyPeer()).isTrue();
 		assertThat(configuration.isStartTls()).isFalse();
@@ -62,7 +62,6 @@ public class LettuceClientConfigurationUnitTests {
 				.shutdownTimeout(Duration.ofHours(2)) //
 				.build();
 
-		assertThat(configuration.isUsePooling()).isFalse();
 		assertThat(configuration.isUseSsl()).isTrue();
 		assertThat(configuration.isVerifyPeer()).isFalse();
 		assertThat(configuration.isStartTls()).isTrue();

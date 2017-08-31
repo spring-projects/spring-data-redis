@@ -27,6 +27,7 @@ import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.connection.PoolException;
+import org.springframework.util.Assert;
 
 /**
  * {@link LettuceConnectionProvider} with connection pooling support. This connection provider holds multiple pools (one
@@ -37,6 +38,7 @@ import org.springframework.data.redis.connection.PoolException;
  * to close the pools.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  * @see #getConnection(Class)
  */
@@ -51,10 +53,13 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Dis
 	private final Map<Class<?>, GenericObjectPool<StatefulConnection<?, ?>>> pools = new ConcurrentHashMap<>(32);
 
 	LettucePoolingConnectionProvider(LettuceConnectionProvider connectionProvider,
-			LettuceClientConfiguration clientConfiguration) {
+			LettucePoolingClientConfiguration clientConfiguration) {
+
+		Assert.notNull(connectionProvider, "ConnectionProvider must not be null!");
+		Assert.notNull(clientConfiguration, "ClientConfiguration must not be null!");
 
 		this.connectionProvider = connectionProvider;
-		this.poolConfig = ((LettucePoolingClientConfiguration) clientConfiguration).getPoolConfig();
+		this.poolConfig = clientConfiguration.getPoolConfig();
 	}
 
 	/*
@@ -62,8 +67,7 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Dis
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public StatefulConnection<?, ?> getConnection(Class<? extends StatefulConnection> connectionType) {
+	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
 
 		GenericObjectPool<StatefulConnection<?, ?>> pool = pools.computeIfAbsent(connectionType, poolType -> {
 			return ConnectionPoolSupport.createGenericObjectPool(() -> connectionProvider.getConnection(connectionType),
@@ -71,11 +75,12 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Dis
 		});
 
 		try {
+
 			StatefulConnection<?, ?> connection = pool.borrowObject();
 
 			poolRef.put(connection, pool);
 
-			return connection;
+			return connectionType.cast(connection);
 		} catch (Exception e) {
 			throw new PoolException("Could not get a resource from the pool", e);
 		}

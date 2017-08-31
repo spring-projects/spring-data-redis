@@ -338,7 +338,7 @@ public class LettuceConnectionFactoryTests {
 
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 
-		LettuceClientConfiguration configuration = LettucePoolingClientConfiguration.builder().poolConfig(poolConfig).and()
+		LettuceClientConfiguration configuration = LettucePoolingClientConfiguration.builder().poolConfig(poolConfig)
 				.clientResources(LettuceTestClientResources.getSharedClientResources()).shutdownTimeout(Duration.ZERO).build();
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(), configuration);

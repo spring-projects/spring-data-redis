@@ -31,6 +31,7 @@ import io.lettuce.core.api.StatefulConnection;
  * with an appropriate codec.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  * @see StatefulConnection
  */
@@ -46,7 +47,7 @@ public interface LettuceConnectionProvider {
 	 *         longer in use.
 	 */
 	@SuppressWarnings("rawtypes")
-	StatefulConnection<?, ?> getConnection(Class<? extends StatefulConnection> connectionType);
+	<T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType);
 
 	/**
 	 * Request a connection.
@@ -55,8 +56,8 @@ public interface LettuceConnectionProvider {
 	 *         longer in use.
 	 */
 	@SuppressWarnings("unchecked")
-	default <T> T getConnection() {
-		return (T) getConnection(StatefulConnection.class);
+	default StatefulConnection getConnection() {
+		return getConnection(StatefulConnection.class);
 	}
 
 	/**
@@ -83,6 +84,6 @@ public interface LettuceConnectionProvider {
 		 * @return the requested connection.
 		 */
 		@SuppressWarnings("rawtypes")
-		StatefulConnection<?, ?> getConnection(Class<? extends StatefulConnection> connectionType, RedisURI redisURI);
+		<T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType, RedisURI redisURI);
 	}
 }

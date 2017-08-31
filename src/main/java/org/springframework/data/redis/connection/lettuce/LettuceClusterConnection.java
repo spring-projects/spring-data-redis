@@ -619,7 +619,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 			if (connection == null) {
 				synchronized (this) {
 					if (connection == null) {
-						this.connection = connectionProvider.getConnection();
+						this.connection = connectionProvider.getConnection(StatefulRedisClusterConnection.class);
 					}
 				}
 			}

@@ -19,6 +19,7 @@ import io.lettuce.core.ClientOptions;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
+import java.util.Optional;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
@@ -26,33 +27,87 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
  * Default implementation of {@literal LettucePoolingClientConfiguration}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
-class DefaultLettucePoolingClientConfiguration extends DefaultLettuceClientConfiguration
-		implements LettucePoolingClientConfiguration {
+class DefaultLettucePoolingClientConfiguration implements LettucePoolingClientConfiguration {
 
+	private final LettuceClientConfiguration clientConfiguration;
 	private final GenericObjectPoolConfig poolConfig;
 
-	DefaultLettucePoolingClientConfiguration(boolean useSsl, boolean verifyPeer, boolean startTls,
-			ClientResources clientResources, ClientOptions clientOptions, Duration timeout, Duration shutdownTimeout,
+	DefaultLettucePoolingClientConfiguration(LettuceClientConfiguration clientConfiguration,
 			GenericObjectPoolConfig poolConfig) {
 
-		super(useSsl, verifyPeer, startTls, clientResources, clientOptions, timeout, shutdownTimeout);
-
+		this.clientConfiguration = clientConfiguration;
 		this.poolConfig = poolConfig;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isUsePooling()
-	 */
-	@Override
-	public boolean isUsePooling() {
-		return true;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration#getPoolConfig()
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isUseSsl()
+	 */
+	@Override
+	public boolean isUseSsl() {
+		return clientConfiguration.isUseSsl();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isVerifyPeer()
+	 */
+	@Override
+	public boolean isVerifyPeer() {
+		return clientConfiguration.isVerifyPeer();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isStartTls()
+	 */
+	@Override
+	public boolean isStartTls() {
+		return clientConfiguration.isStartTls();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientResources()
+	 */
+	@Override
+	public Optional<ClientResources> getClientResources() {
+		return clientConfiguration.getClientResources();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientOptions()
+	 */
+	@Override
+	public Optional<ClientOptions> getClientOptions() {
+		return clientConfiguration.getClientOptions();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getCommandTimeout()
+	 */
+	@Override
+	public Duration getCommandTimeout() {
+		return clientConfiguration.getCommandTimeout();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getShutdownTimeout()
+	 */
+	@Override
+	public Duration getShutdownTimeout() {
+		return clientConfiguration.getShutdownTimeout();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettucePoolingClientConfiguration#getPoolConfig()
 	 */
 	@Override
 	public GenericObjectPoolConfig getPoolConfig() {

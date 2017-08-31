@@ -1206,9 +1206,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 		private final LettucePool pool;
 
 		@Override
-		@SuppressWarnings("unchecked")
-		public StatefulConnection<?, ?> getConnection(Class<? extends StatefulConnection> connectionType) {
-			return pool.getResource();
+		public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
+			return connectionType.cast(pool.getResource());
 		}
 
 		@Override
