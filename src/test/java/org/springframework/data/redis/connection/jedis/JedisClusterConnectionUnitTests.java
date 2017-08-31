@@ -145,6 +145,7 @@ public class JedisClusterConnectionUnitTests {
 
 		verify(con2Mock, times(1)).clusterReplicate(CLUSTER_NODE_1.getId());
 		verify(con1Mock, times(1)).clusterNodes();
+		verify(con1Mock, times(1)).close();
 		verifyZeroInteractions(con1Mock);
 	}
 
@@ -259,7 +260,9 @@ public class JedisClusterConnectionUnitTests {
 		connection.time(CLUSTER_NODE_2);
 
 		verify(con2Mock, times(1)).time();
+		verify(con2Mock, times(1)).close();
 		verify(con1Mock, times(1)).clusterNodes();
+		verify(con1Mock, times(1)).close();
 		verifyZeroInteractions(con1Mock, con3Mock);
 	}
 

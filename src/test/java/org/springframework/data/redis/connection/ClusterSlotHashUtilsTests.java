@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,11 @@ package org.springframework.data.redis.connection;
 
 import static org.junit.Assert.*;
 
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisPool;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Random;
@@ -26,13 +31,9 @@ import org.junit.Test;
 import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.util.StringUtils;
 
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPool;
-
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class ClusterSlotHashUtilsTests {
 
@@ -58,7 +59,7 @@ public class ClusterSlotHashUtilsTests {
 						serverSlot.intValue(), slot);
 
 			}
-			pool.returnResource(jedis);
+			jedis.close();
 		} finally {
 			if (cluster != null) {
 				cluster.close();
@@ -100,7 +101,7 @@ public class ClusterSlotHashUtilsTests {
 						serverSlot1.intValue(), slot1);
 
 			}
-			pool.returnResource(jedis);
+			jedis.close();
 		} finally {
 			if (cluster != null) {
 				cluster.close();
@@ -110,7 +111,7 @@ public class ClusterSlotHashUtilsTests {
 
 	/**
 	 * Generate random string using ascii chars {@code ' ' (space)} to {@code 'z'}. Explicitly skipping { and }.
-	 * 
+	 *
 	 * @return
 	 */
 	private String randomString() {

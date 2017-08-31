@@ -861,7 +861,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 					errors.put(entry.getKey(), ex);
 				} finally {
 					if (jedis != null) {
-						entry.getValue().returnResource(jedis);
+						jedis.close();
 					}
 				}
 			}
