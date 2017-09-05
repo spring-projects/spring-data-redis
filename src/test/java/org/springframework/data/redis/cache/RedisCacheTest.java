@@ -43,7 +43,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.cache.Cache;
+import org.springframework.cache.Cache.ValueRetrievalException;
 import org.springframework.cache.Cache.ValueWrapper;
+import org.springframework.core.SpringVersion;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
@@ -301,7 +303,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(wrapper.get(), equalTo(value));
 	}
 
-	@Test // DATAREDIS-510
+	@Test // DATAREDIS-510, DATAREDIS-687
 	public void cachePutWithNullShouldNotAddStuffToRedis() {
 
 		assumeThat(getAllowCacheNullValues(), is(false));
@@ -309,9 +311,16 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		Object key = getKey();
 		Object value = getValue();
 
-		cache.put(key, null);
+		try {
 
-		assertThat(cache.get(key), is(nullValue()));
+			cache.put(key, null);
+			assertThat(cache.get(key), is(nullValue()));
+		} catch (IllegalArgumentException e) {
+
+			if (!SpringVersion.getVersion().startsWith("5")) {
+				throw e;
+			}
+		}
 	}
 
 	@Test // DATAREDIS-510
@@ -326,9 +335,16 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 		assertThat(cache.get(key).get(), is(equalTo(value)));
 
-		cache.put(key, null);
+		try {
 
-		assertThat(cache.get(key), is(nullValue()));
+			cache.put(key, null);
+			assertThat(cache.get(key), is(nullValue()));
+		} catch (IllegalArgumentException e) {
+
+			if (!SpringVersion.getVersion().startsWith("5")) {
+				throw e;
+			}
+		}
 	}
 
 	@Test // DATAREDIS-443, DATAREDIS-452
@@ -371,23 +387,32 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(cache.get(key).get(), is(nullValue()));
 	}
 
-	@Test // DATAREDIS-553
+	@Test // DATAREDIS-553, DATAREDIS-687
 	public void testCacheGetSynchronizedNullNotAllowingNull() {
 
 		assumeThat(getAllowCacheNullValues(), is(false));
+
 		assumeThat(cache, instanceOf(RedisCache.class));
 		assumeThat(template.getValueSerializer(), not(instanceOf(StringRedisSerializer.class)));
 
 		Object key = getKey();
-		Object value = cache.get(key, new Callable<Object>() {
-			@Override
-			public Object call() throws Exception {
-				return null;
-			}
-		});
+		try {
 
-		assertThat(value, is(nullValue()));
-		assertThat(cache.get(key), is(nullValue()));
+			Object value = cache.get(key, new Callable<Object>() {
+				@Override
+				public Object call() throws Exception {
+					return null;
+				}
+			});
+
+			assertThat(value, is(nullValue()));
+			assertThat(cache.get(key), is(nullValue()));
+		} catch (ValueRetrievalException e) {
+
+			if (!SpringVersion.getVersion().startsWith("5")) {
+				throw e;
+			}
+		}
 	}
 
 	@Test // DATAREDIS-553

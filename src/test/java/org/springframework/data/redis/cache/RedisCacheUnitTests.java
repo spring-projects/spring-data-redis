@@ -34,7 +34,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.cache.Cache;
+import org.springframework.cache.Cache.ValueRetrievalException;
 import org.springframework.cache.support.NullValue;
+import org.springframework.core.SpringVersion;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -132,8 +134,7 @@ public class RedisCacheUnitTests {
 		cache = new RedisCache(CACHE_NAME, PREFIX_BYTES, templateSpy, EXPIRATION);
 		cache.clear();
 
-		verify(connectionMock).eval(any(byte[].class), eq(ReturnType.INTEGER), eq(0),
-				eq((PREFIX + "*").getBytes()));
+		verify(connectionMock).eval(any(byte[].class), eq(ReturnType.INTEGER), eq(0), eq((PREFIX + "*").getBytes()));
 	}
 
 	@Test // DATAREDIS-402
@@ -209,23 +210,32 @@ public class RedisCacheUnitTests {
 		});
 	}
 
-	@Test // DATAREDIS-553
+	@Test // DATAREDIS-553, DATAREDIS-687
 	@SuppressWarnings("unchecked")
 	public void getWithCallableShouldStoreNullNotAllowingNull() throws ClassNotFoundException {
 
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L, false);
 
-		cache.get(KEY, new Callable<Object>() {
-			@Override
-			public Object call() throws Exception {
-				return null;
-			}
-		});
+		try {
 
-		verify(connectionMock).get(eq(KEY_BYTES));
-		verify(connectionMock).multi();
-		verify(connectionMock).del(eq(KEY_BYTES));
-		verify(connectionMock).exec();
+			cache.get(KEY, new Callable<Object>() {
+				@Override
+				public Object call() throws Exception {
+					return null;
+				}
+			});
+
+			verify(connectionMock).get(eq(KEY_BYTES));
+			verify(connectionMock).multi();
+			verify(connectionMock).del(eq(KEY_BYTES));
+			verify(connectionMock).exec();
+
+		} catch (ValueRetrievalException e) {
+
+			if (!SpringVersion.getVersion().startsWith("5")) {
+				throw e;
+			}
+		}
 	}
 
 	@Test // DATAREDIS-553
