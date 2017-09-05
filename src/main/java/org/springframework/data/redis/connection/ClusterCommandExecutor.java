@@ -626,7 +626,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 			@Override
 			public int compare(NodeResult<?> o1, NodeResult<?> o2) {
-				return Integer.compare(reference.indexOf(o1.key), reference.indexOf(o2.key));
+				return Integer.valueOf(reference.indexOf(o1.key)).compareTo(Integer.valueOf(reference.indexOf(o2.key)));
 			}
 		}
 	}
