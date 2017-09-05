@@ -574,7 +574,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		public List<T> resultsAsListSortBy(byte[]... keys) {
 
 			ArrayList<NodeResult<T>> clone = new ArrayList<NodeResult<T>>(nodeResults);
-			Collections.sort(clone, new ResultByReferenceKeyPositionComperator(keys));
+			Collections.sort(clone, new ResultByReferenceKeyPositionComparator(keys));
 
 			return toList(clone);
 		}
@@ -616,17 +616,17 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 *
 		 * @author Christoph Strobl
 		 */
-		private static class ResultByReferenceKeyPositionComperator implements Comparator<NodeResult<?>> {
+		private static class ResultByReferenceKeyPositionComparator implements Comparator<NodeResult<?>> {
 
 			List<ByteArrayWrapper> reference;
 
-			public ResultByReferenceKeyPositionComperator(byte[]... keys) {
+			public ResultByReferenceKeyPositionComparator(byte[]... keys) {
 				reference = new ArrayList<ByteArrayWrapper>(new ByteArraySet(Arrays.asList(keys)));
 			}
 
 			@Override
 			public int compare(NodeResult<?> o1, NodeResult<?> o2) {
-				return Integer.valueOf(reference.indexOf(o1.key)).compareTo(Integer.valueOf(reference.indexOf(o2.key)));
+				return Integer.valueOf(reference.indexOf(o1.key)).compareTo(reference.indexOf(o2.key));
 			}
 		}
 	}
