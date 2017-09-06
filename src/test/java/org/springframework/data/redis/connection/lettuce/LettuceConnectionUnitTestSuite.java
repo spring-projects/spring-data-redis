@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -25,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
+import org.mockito.Mockito;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
@@ -32,10 +35,12 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTe
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTestSuite.LettucePipelineConnectionUnitTests;
 
 import com.lambdaworks.redis.RedisClient;
+import com.lambdaworks.redis.RedisFuture;
 import com.lambdaworks.redis.api.StatefulRedisConnection;
 import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 import com.lambdaworks.redis.api.sync.RedisCommands;
 import com.lambdaworks.redis.codec.RedisCodec;
+import com.lambdaworks.redis.protocol.RedisCommand;
 
 /**
  * @author Christoph Strobl
@@ -137,6 +142,43 @@ public class LettuceConnectionUnitTestSuite {
 			connection.getNativeConnection();
 
 			verify(syncCommandsMock, times(1)).select(1);
+		}
+
+		@Test // DATAREDIS-603
+		public void translatesUnknownExceptions() {
+
+			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
+
+			when(syncCommandsMock.set(any(), any())).thenThrow(exception);
+			connection = new LettuceConnection(null, 0, clientMock, null, 1);
+
+			try {
+				connection.set("foo".getBytes(), "bar".getBytes());
+			} catch (Exception e) {
+
+				assertThat(e.getMessage(), containsString(exception.getMessage()));
+				assertThat(e.getCause(), is((Throwable) exception));
+			}
+		}
+
+		@Test // DATAREDIS-603
+		public void translatesPipelineUnknownExceptions() {
+
+			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
+
+			RedisCommand future = mock(RedisCommand.class, Mockito.withSettings().extraInterfaces(RedisFuture.class));
+
+			when(future.getOutput()).thenThrow(exception);
+			when(asyncCommandsMock.set(any(byte[].class), any(byte[].class))).thenReturn((RedisFuture) future);
+			connection = new LettuceConnection(null, 0, clientMock, null, 1);
+			connection.openPipeline();
+
+			try {
+				connection.set("foo".getBytes(), "bar".getBytes());
+			} catch (Exception e) {
+				assertThat(e.getMessage(), containsString(exception.getMessage()));
+				assertThat(e.getCause(), is((Throwable) exception));
+			}
 		}
 	}
 
