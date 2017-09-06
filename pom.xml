@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-redis</artifactId>
-	<version>1.8.8.BUILD-SNAPSHOT</version>
+	<version>1.8.8.DATAREDIS-603-SNAPSHOT</version>
 
 	<name>Spring Data Redis</name>
 
@@ -31,26 +31,26 @@
 
 	<dependencyManagement>
 		<dependencies>
-		
+
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-pool2</artifactId>
 				<version>${pool}</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
 				<version>${guava}</version>
 			</dependency>
-			
+
 		</dependencies>
 	</dependencyManagement>
 
 	<dependencies>
 
 		<!-- Spring -->
-		
+
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-keyvalue</artifactId>
@@ -78,35 +78,35 @@
 		</dependency>
 
 		<!-- REDIS Drivers -->
-		
+
 		<dependency>
 			<groupId>redis.clients</groupId>
 			<artifactId>jedis</artifactId>
 			<version>${jedis}</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.jredis</groupId>
 			<artifactId>jredis-core-api</artifactId>
 			<version>${jredis}</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.jredis</groupId>
 			<artifactId>jredis-core-ri</artifactId>
 			<version>${jredis}</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.github.spullara.redis</groupId>
 			<artifactId>client</artifactId>
 			<version>${srp}</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>biz.paluch.redis</groupId>
 			<artifactId>lettuce</artifactId>
@@ -221,7 +221,7 @@
 
 	<build>
 		<plugins>
-		
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -242,12 +242,12 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>wagon-maven-plugin</artifactId>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.asciidoctor</groupId>
 				<artifactId>asciidoctor-maven-plugin</artifactId>
@@ -261,13 +261,13 @@
 			<id>release</id>
 			<build>
 				<plugins>
-				
+
 					<plugin>
 						<groupId>org.jfrog.buildinfo</groupId>
 						<artifactId>artifactory-maven-plugin</artifactId>
 						<inherited>false</inherited>
 					</plugin>
-					
+
 				</plugins>
 			</build>
 		</profile>
