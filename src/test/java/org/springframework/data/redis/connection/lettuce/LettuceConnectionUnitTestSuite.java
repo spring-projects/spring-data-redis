@@ -15,13 +15,19 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
 
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.protocol.RedisCommand;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -29,6 +35,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
+import org.mockito.Mockito;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
@@ -135,6 +142,43 @@ public class LettuceConnectionUnitTestSuite {
 			connection.getNativeConnection();
 
 			verify(syncCommandsMock, times(1)).select(1);
+		}
+
+		@Test // DATAREDIS-603
+		public void translatesUnknownExceptions() {
+
+			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
+
+			when(syncCommandsMock.set(any(), any())).thenThrow(exception);
+			connection = new LettuceConnection(null, 0, clientMock, null, 1);
+
+			try {
+				connection.set("foo".getBytes(), "bar".getBytes());
+			} catch (Exception e) {
+
+				assertThat(e.getMessage(), containsString(exception.getMessage()));
+				assertThat(e.getCause(), is((Throwable) exception));
+			}
+		}
+
+		@Test // DATAREDIS-603
+		public void translatesPipelineUnknownExceptions() throws Exception {
+
+			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
+
+			RedisCommand future = mock(RedisCommand.class, Mockito.withSettings().extraInterfaces(RedisFuture.class));
+
+			when(((RedisFuture) future).get()).thenThrow(exception);
+			when(asyncCommandsMock.set(any(byte[].class), any(byte[].class))).thenReturn((RedisFuture) future);
+			connection = new LettuceConnection(null, 0, clientMock, null, 1);
+			connection.openPipeline();
+
+			try {
+				connection.set("foo".getBytes(), "bar".getBytes());
+			} catch (Exception e) {
+				assertThat(e.getMessage(), containsString(exception.getMessage()));
+				assertThat(e.getCause(), is((Throwable) exception));
+			}
 		}
 	}
 

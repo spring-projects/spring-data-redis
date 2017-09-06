@@ -40,7 +40,8 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ClusterStateFailureException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
-import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
+import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.ClusterCommandCallback;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKeyClusterCommandCallback;
@@ -63,7 +64,7 @@ import org.springframework.util.Assert;
  */
 public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
-	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
 			JedisConverters.exceptionConverter());
 
 	private final Log log = LogFactory.getLog(getClass());
@@ -653,7 +654,10 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	 */
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
-		return EXCEPTION_TRANSLATION.translate(ex);
+
+		DataAccessException translated = EXCEPTION_TRANSLATION.translate(ex);
+
+		return translated != null ? translated : new RedisSystemException(ex.getMessage(), ex);
 	}
 
 	/*

@@ -43,6 +43,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.lang.Nullable;
@@ -207,7 +208,7 @@ public class JedisConnection extends AbstractRedisConnection {
 			broken = true;
 		}
 
-		return exception;
+		return exception != null ? exception : new RedisSystemException(ex.getMessage(), ex);
 	}
 
 	/*

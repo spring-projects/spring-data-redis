@@ -422,6 +422,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	/**
 	 * 'Native' or 'raw' execution of the given command along-side the given arguments.
 	 *
+	 * @see RedisCommands#execute(String, byte[]...)
 	 * @param command Command to execute
 	 * @param commandOutputTypeHint Type of Output to use, may be (may be {@literal null}).
 	 * @param args Possible command arguments (may be {@literal null})
