@@ -20,8 +20,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +40,7 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.AbstractRedisConnection;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.FutureResult;
@@ -244,7 +243,7 @@ public class JedisConnection extends AbstractRedisConnection {
 			broken = true;
 		}
 
-		return exception;
+		return exception != null ? exception : new RedisSystemException(ex.getMessage(), ex);
 	}
 
 	public Object execute(String command, byte[]... args) {
