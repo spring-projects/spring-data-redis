@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
  *
  * @author Ninad Divadkar
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.8
  */
 class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> implements BoundGeoOperations<K, M> {
@@ -52,128 +53,128 @@ class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> imple
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoAdd(org.springframework.data.geo.Point, java.lang.Object)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#add(org.springframework.data.geo.Point, java.lang.Object)
 	 */
 	@Override
-	public Long geoAdd(Point point, M member) {
-		return ops.geoAdd(getKey(), point, member);
+	public Long add(Point point, M member) {
+		return ops.add(getKey(), point, member);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoAdd(org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#add(org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
 	 */
 	@Override
-	public Long geoAdd(GeoLocation<M> location) {
-		return ops.geoAdd(getKey(), location);
+	public Long add(GeoLocation<M> location) {
+		return ops.add(getKey(), location);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoAdd(java.util.Map)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#add(java.util.Map)
 	 */
 	@Override
-	public Long geoAdd(Map<M, Point> memberCoordinateMap) {
-		return ops.geoAdd(getKey(), memberCoordinateMap);
+	public Long add(Map<M, Point> memberCoordinateMap) {
+		return ops.add(getKey(), memberCoordinateMap);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoAdd(java.lang.Iterable)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#add(java.lang.Iterable)
 	 */
 	@Override
-	public Long geoAdd(Iterable<GeoLocation<M>> locations) {
-		return ops.geoAdd(getKey(), locations);
+	public Long add(Iterable<GeoLocation<M>> locations) {
+		return ops.add(getKey(), locations);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoDist(java.lang.Object, java.lang.Object)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#distance(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public Distance geoDist(M member1, M member2) {
-		return ops.geoDist(getKey(), member1, member2);
+	public Distance distance(M member1, M member2) {
+		return ops.distance(getKey(), member1, member2);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoDist(java.lang.Object, java.lang.Object, org.springframework.data.geo.Metric)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#distance(java.lang.Object, java.lang.Object, org.springframework.data.geo.Metric)
 	 */
 	@Override
-	public Distance geoDist(M member1, M member2, Metric unit) {
-		return ops.geoDist(getKey(), member1, member2, unit);
+	public Distance distance(M member1, M member2, Metric unit) {
+		return ops.distance(getKey(), member1, member2, unit);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoHash(java.lang.Object[])
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#hash(java.lang.Object[])
 	 */
 	@Override
-	public List<String> geoHash(M... members) {
-		return ops.geoHash(getKey(), members);
+	public List<String> hash(M... members) {
+		return ops.hash(getKey(), members);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoPos(java.lang.Object[])
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#position(java.lang.Object[])
 	 */
 	@Override
-	public List<Point> geoPos(M... members) {
-		return ops.geoPos(getKey(), members);
+	public List<Point> position(M... members) {
+		return ops.position(getKey(), members);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoRadius(org.springframework.data.geo.Circle)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#radius(org.springframework.data.geo.Circle)
 	 */
 	@Override
-	public GeoResults<GeoLocation<M>> geoRadius(Circle within) {
-		return ops.geoRadius(getKey(), within);
+	public GeoResults<GeoLocation<M>> radius(Circle within) {
+		return ops.radius(getKey(), within);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoRadius(org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#radius(org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
 	 */
 	@Override
-	public GeoResults<GeoLocation<M>> geoRadius(Circle within, GeoRadiusCommandArgs param) {
-		return ops.geoRadius(getKey(), within, param);
+	public GeoResults<GeoLocation<M>> radius(Circle within, GeoRadiusCommandArgs param) {
+		return ops.radius(getKey(), within, param);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoRadiusByMember(java.lang.Object, java.lang.Object, double)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#radius(java.lang.Object, java.lang.Object, double)
 	 */
 	@Override
-	public GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, double radius) {
-		return ops.geoRadiusByMember(getKey(), member, radius);
+	public GeoResults<GeoLocation<M>> radius(K key, M member, double radius) {
+		return ops.radius(getKey(), member, radius);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoRadiusByMember(java.lang.Object, org.springframework.data.geo.Distance)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#radius(java.lang.Object, org.springframework.data.geo.Distance)
 	 */
 	@Override
-	public GeoResults<GeoLocation<M>> geoRadiusByMember(M member, Distance distance) {
-		return ops.geoRadiusByMember(getKey(), member, distance);
+	public GeoResults<GeoLocation<M>> radius(M member, Distance distance) {
+		return ops.radius(getKey(), member, distance);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoRadiusByMember(java.lang.Object, org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#radius(java.lang.Object, org.springframework.data.geo.Distance, org.springframework.data.redis.core.radiusCommandArgs)
 	 */
 	@Override
-	public GeoResults<GeoLocation<M>> geoRadiusByMember(M member, Distance distance, GeoRadiusCommandArgs param) {
-		return ops.geoRadiusByMember(getKey(), member, distance, param);
+	public GeoResults<GeoLocation<M>> radius(M member, Distance distance, GeoRadiusCommandArgs param) {
+		return ops.radius(getKey(), member, distance, param);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#geoRemove(java.lang.Object[])
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#remove(java.lang.Object[])
 	 */
 	@Override
-	public Long geoRemove(M... members) {
-		return ops.geoRemove(getKey(), members);
+	public Long remove(M... members) {
+		return ops.remove(getKey(), members);
 	}
 
 	/*

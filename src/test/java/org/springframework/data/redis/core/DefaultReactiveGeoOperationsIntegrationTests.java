@@ -109,28 +109,28 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		connection.close();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoAdd() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(geoOperations.geoAdd(key, POINT_PALERMO, value)).expectNext(1L).verifyComplete();
+		StepVerifier.create(geoOperations.add(key, POINT_PALERMO, value)).expectNext(1L).verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoAddLocation() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(geoOperations.geoAdd(key, new GeoLocation<>(value, POINT_PALERMO))) //
+		StepVerifier.create(geoOperations.add(key, new GeoLocation<>(value, POINT_PALERMO))) //
 				.expectNext(1L) //
 				.expectComplete() //
 				.verify();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoAddMapOfLocations() {
 
 		K key = keyFactory.instance();
@@ -139,12 +139,12 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		memberCoordinateMap.put(valueFactory.instance(), POINT_PALERMO);
 		memberCoordinateMap.put(valueFactory.instance(), POINT_CATANIA);
 
-		StepVerifier.create(geoOperations.geoAdd(key, memberCoordinateMap)) //
+		StepVerifier.create(geoOperations.add(key, memberCoordinateMap)) //
 				.expectNext(2L) //
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoAddIterableOfLocations() {
 
 		K key = keyFactory.instance();
@@ -152,12 +152,12 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		List<GeoLocation<V>> geoLocations = Arrays.asList(new GeoLocation<>(valueFactory.instance(), POINT_ARIGENTO),
 				new GeoLocation<>(valueFactory.instance(), POINT_PALERMO));
 
-		StepVerifier.create(geoOperations.geoAdd(key, geoLocations)) //
+		StepVerifier.create(geoOperations.add(key, geoLocations)) //
 				.expectNext(2L) //
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoAddPublisherOfLocations() {
 
 		K key = keyFactory.instance();
@@ -169,22 +169,22 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 
 		Flux<List<GeoLocation<V>>> geoLocations = Flux.just(batch1, batch2);
 
-		StepVerifier.create(geoOperations.geoAdd(key, geoLocations)).expectNext(2L) //
+		StepVerifier.create(geoOperations.add(key, geoLocations)).expectNext(2L) //
 				.expectNext(1L) //
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoDistShouldReturnDistanceInMetersByDefault() {
 
 		K key = keyFactory.instance();
 		V member1 = valueFactory.instance();
 		V member2 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
-		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
+		geoOperations.add(key, POINT_PALERMO, member1).block();
+		geoOperations.add(key, POINT_CATANIA, member2).block();
 
-		StepVerifier.create(geoOperations.geoDist(key, member1, member2)) //
+		StepVerifier.create(geoOperations.distance(key, member1, member2)) //
 				.consumeNextWith(actual -> {
 
 					assertThat(actual.getValue()).isCloseTo(DISTANCE_PALERMO_CATANIA_METERS, offset(0.005));
@@ -193,17 +193,17 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoDistShouldReturnDistanceInKilometersCorrectly() {
 
 		K key = keyFactory.instance();
 		V member1 = valueFactory.instance();
 		V member2 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
-		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
+		geoOperations.add(key, POINT_PALERMO, member1).block();
+		geoOperations.add(key, POINT_CATANIA, member2).block();
 
-		StepVerifier.create(geoOperations.geoDist(key, member1, member2, Metrics.KILOMETERS)) //
+		StepVerifier.create(geoOperations.distance(key, member1, member2, Metrics.KILOMETERS)) //
 				.consumeNextWith(actual -> {
 
 					assertThat(actual.getValue()).isCloseTo(DISTANCE_PALERMO_CATANIA_KILOMETERS, offset(0.005));
@@ -212,20 +212,20 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoHash() {
 
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, v1).block();
+		geoOperations.add(key, POINT_PALERMO, v1).block();
 
-		StepVerifier.create(geoOperations.geoHash(key, v1)) //
+		StepVerifier.create(geoOperations.hash(key, v1)) //
 				.expectNext("sqc8b49rny0") //
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoHashShouldReturnMultipleElements() {
 
 		K key = keyFactory.instance();
@@ -233,23 +233,23 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		V v2 = valueFactory.instance();
 		V v3 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, v1).block();
-		geoOperations.geoAdd(key, POINT_CATANIA, v2).block();
+		geoOperations.add(key, POINT_PALERMO, v1).block();
+		geoOperations.add(key, POINT_CATANIA, v2).block();
 
-		StepVerifier.create(geoOperations.geoHash(key, v1, v3, v2)) //
+		StepVerifier.create(geoOperations.hash(key, v1, v3, v2)) //
 				.expectNext(Arrays.asList("sqc8b49rny0", null, "sqdtr74hyu0")) //
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoPos() {
 
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, v1).block();
+		geoOperations.add(key, POINT_PALERMO, v1).block();
 
-		StepVerifier.create(geoOperations.geoPos(key, v1)) //
+		StepVerifier.create(geoOperations.position(key, v1)) //
 				.consumeNextWith(actual -> {
 
 					assertThat(actual.getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.005));
@@ -258,7 +258,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoPosShouldReturnMultipleElements() {
 
 		K key = keyFactory.instance();
@@ -266,10 +266,10 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		V v2 = valueFactory.instance();
 		V v3 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, v1).block();
-		geoOperations.geoAdd(key, POINT_CATANIA, v2).block();
+		geoOperations.add(key, POINT_PALERMO, v1).block();
+		geoOperations.add(key, POINT_CATANIA, v2).block();
 
-		StepVerifier.create(geoOperations.geoPos(key, v1, v3, v2)) //
+		StepVerifier.create(geoOperations.position(key, v1, v3, v2)) //
 				.consumeNextWith(actual -> {
 
 					assertThat(actual.get(0).getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.005));
@@ -281,33 +281,33 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-438
+	@Test // DATAREDIS-438, DATAREDIS-614
 	public void geoRadius() {
 
 		K key = keyFactory.instance();
 		V member1 = valueFactory.instance();
 		V member2 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
-		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
+		geoOperations.add(key, POINT_PALERMO, member1).block();
+		geoOperations.add(key, POINT_CATANIA, member2).block();
 
-		StepVerifier.create(geoOperations.geoRadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)))) //
+		StepVerifier.create(geoOperations.radius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)))) //
 				.expectNextCount(2) //
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoRadiusShouldReturnLocationsWithDistance() {
 
 		K key = keyFactory.instance();
 		V member1 = valueFactory.instance();
 		V member2 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
-		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
+		geoOperations.add(key, POINT_PALERMO, member1).block();
+		geoOperations.add(key, POINT_CATANIA, member2).block();
 
 		StepVerifier
-				.create(geoOperations.geoRadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)),
+				.create(geoOperations.radius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)),
 						newGeoRadiusArgs().includeDistance().sortDescending())) //
 				.consumeNextWith(actual -> {
 
@@ -322,22 +322,22 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-438
+	@Test // DATAREDIS-438, DATAREDIS-614
 	public void geoRadiusByMemberShouldReturnMembersCorrectly() {
 
 		K key = keyFactory.instance();
 		V member1 = valueFactory.instance();
 		V member2 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
-		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
+		geoOperations.add(key, POINT_PALERMO, member1).block();
+		geoOperations.add(key, POINT_CATANIA, member2).block();
 
-		StepVerifier.create(geoOperations.geoRadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)))) //
+		StepVerifier.create(geoOperations.radius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)))) //
 				.expectNextCount(2) //
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoRadiusByMemberWithin100_000MetersShouldReturnLocations() {
 
 		K key = keyFactory.instance();
@@ -345,11 +345,11 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		V member2 = valueFactory.instance();
 		V member3 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
-		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
-		geoOperations.geoAdd(key, POINT_ARIGENTO, member3).block();
+		geoOperations.add(key, POINT_PALERMO, member1).block();
+		geoOperations.add(key, POINT_CATANIA, member2).block();
+		geoOperations.add(key, POINT_ARIGENTO, member3).block();
 
-		StepVerifier.create(geoOperations.geoRadiusByMember(key, member3, 100_000)) //
+		StepVerifier.create(geoOperations.radius(key, member3, 100_000)) //
 				.consumeNextWith(actual -> {
 					assertThat(actual.getContent().getName()).isEqualTo(member3);
 				}) //
@@ -359,7 +359,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoRadiusByMemberWithin100KMShouldReturnLocations() {
 
 		K key = keyFactory.instance();
@@ -367,11 +367,11 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		V member2 = valueFactory.instance();
 		V member3 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
-		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
-		geoOperations.geoAdd(key, POINT_ARIGENTO, member3).block();
+		geoOperations.add(key, POINT_PALERMO, member1).block();
+		geoOperations.add(key, POINT_CATANIA, member2).block();
+		geoOperations.add(key, POINT_ARIGENTO, member3).block();
 
-		StepVerifier.create(geoOperations.geoRadiusByMember(key, member3, new Distance(100D, KILOMETERS))) //
+		StepVerifier.create(geoOperations.radius(key, member3, new Distance(100D, KILOMETERS))) //
 				.consumeNextWith(actual -> {
 					assertThat(actual.getContent().getName()).isEqualTo(member3);
 				}) //
@@ -381,7 +381,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoRadiusByMemberShouldReturnLocationsWithDistance() {
 
 		K key = keyFactory.instance();
@@ -389,12 +389,12 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		V member2 = valueFactory.instance();
 		V member3 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
-		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
-		geoOperations.geoAdd(key, POINT_ARIGENTO, member3).block();
+		geoOperations.add(key, POINT_PALERMO, member1).block();
+		geoOperations.add(key, POINT_CATANIA, member2).block();
+		geoOperations.add(key, POINT_ARIGENTO, member3).block();
 
 		StepVerifier
-				.create(geoOperations.geoRadiusByMember(key, member3, new Distance(100D, KILOMETERS),
+				.create(geoOperations.radius(key, member3, new Distance(100D, KILOMETERS),
 						newGeoRadiusArgs().includeDistance().sortDescending())) //
 				.consumeNextWith(actual -> {
 
@@ -409,35 +409,35 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void geoRemove() {
 
 		K key = keyFactory.instance();
 		V member1 = valueFactory.instance();
 		V member2 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
-		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
+		geoOperations.add(key, POINT_PALERMO, member1).block();
+		geoOperations.add(key, POINT_CATANIA, member2).block();
 
-		StepVerifier.create(geoOperations.geoRemove(key, member1)) //
+		StepVerifier.create(geoOperations.remove(key, member1)) //
 				.expectNext(1L) //
 				.verifyComplete();
-		StepVerifier.create(geoOperations.geoPos(key, member1)) //
+		StepVerifier.create(geoOperations.position(key, member1)) //
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-614
 	public void delete() {
 
 		K key = keyFactory.instance();
 		V member1 = valueFactory.instance();
 
-		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
+		geoOperations.add(key, POINT_PALERMO, member1).block();
 
 		StepVerifier.create(geoOperations.delete(key)) //
 				.expectNext(true) //
 				.verifyComplete();
-		StepVerifier.create(geoOperations.geoPos(key, member1)) //
+		StepVerifier.create(geoOperations.position(key, member1)) //
 				.verifyComplete();
 	}
 }
