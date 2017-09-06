@@ -50,7 +50,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return Number of elements added.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	Mono<Long> geoAdd(K key, Point point, M member);
+	Mono<Long> add(K key, Point point, M member);
 
 	/**
 	 * Add {@link GeoLocation} to {@literal key}.
@@ -60,7 +60,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return Number of elements added.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	Mono<Long> geoAdd(K key, GeoLocation<M> location);
+	Mono<Long> add(K key, GeoLocation<M> location);
 
 	/**
 	 * Add {@link Map} of member / {@link Point} pairs to {@literal key}.
@@ -70,7 +70,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return Number of elements added.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	Mono<Long> geoAdd(K key, Map<M, Point> memberCoordinateMap);
+	Mono<Long> add(K key, Map<M, Point> memberCoordinateMap);
 
 	/**
 	 * Add {@link GeoLocation}s to {@literal key}
@@ -80,7 +80,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return Number of elements added.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	Mono<Long> geoAdd(K key, Iterable<GeoLocation<M>> locations);
+	Mono<Long> add(K key, Iterable<GeoLocation<M>> locations);
 
 	/**
 	 * Add {@link GeoLocation}s to {@literal key}
@@ -90,7 +90,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return Number of elements added.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	Flux<Long> geoAdd(K key, Publisher<? extends Collection<GeoLocation<M>>> locations);
+	Flux<Long> add(K key, Publisher<? extends Collection<GeoLocation<M>>> locations);
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2}.
@@ -101,7 +101,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return can be {@literal null}.
 	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
-	Mono<Distance> geoDist(K key, M member1, M member2);
+	Mono<Distance> distance(K key, M member1, M member2);
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2} in the given {@link Metric}.
@@ -113,7 +113,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return can be {@literal null}.
 	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
-	Mono<Distance> geoDist(K key, M member1, M member2, Metric metric);
+	Mono<Distance> distance(K key, M member1, M member2, Metric metric);
 
 	/**
 	 * Get Geohash representation of the position for one or more {@literal member}s.
@@ -123,7 +123,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 */
-	Mono<String> geoHash(K key, M member);
+	Mono<String> hash(K key, M member);
 
 	/**
 	 * Get Geohash representation of the position for one or more {@literal member}s.
@@ -133,7 +133,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 */
-	Mono<List<String>> geoHash(K key, M... members);
+	Mono<List<String>> hash(K key, M... members);
 
 	/**
 	 * Get the {@link Point} representation of positions for one or more {@literal member}s.
@@ -143,7 +143,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 */
-	Mono<Point> geoPos(K key, M member);
+	Mono<Point> position(K key, M member);
 
 	/**
 	 * Get the {@link Point} representation of positions for one or more {@literal member}s.
@@ -153,7 +153,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 */
-	Mono<List<Point>> geoPos(K key, M... members);
+	Mono<List<Point>> position(K key, M... members);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle}.
@@ -163,7 +163,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
-	Flux<GeoResult<GeoLocation<M>>> geoRadius(K key, Circle within);
+	Flux<GeoResult<GeoLocation<M>>> radius(K key, Circle within);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
@@ -174,7 +174,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
-	Flux<GeoResult<GeoLocation<M>>> geoRadius(K key, Circle within, GeoRadiusCommandArgs args);
+	Flux<GeoResult<GeoLocation<M>>> radius(K key, Circle within, GeoRadiusCommandArgs args);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -186,7 +186,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	Flux<GeoResult<GeoLocation<M>>> geoRadiusByMember(K key, M member, double radius);
+	Flux<GeoResult<GeoLocation<M>>> radius(K key, M member, double radius);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -198,7 +198,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	Flux<GeoResult<GeoLocation<M>>> geoRadiusByMember(K key, M member, Distance distance);
+	Flux<GeoResult<GeoLocation<M>>> radius(K key, M member, Distance distance);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -211,7 +211,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	Flux<GeoResult<GeoLocation<M>>> geoRadiusByMember(K key, M member, Distance distance, GeoRadiusCommandArgs args);
+	Flux<GeoResult<GeoLocation<M>>> radius(K key, M member, Distance distance, GeoRadiusCommandArgs args);
 
 	/**
 	 * Remove the {@literal member}s.
@@ -220,7 +220,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param members must not be {@literal null}.
 	 * @return Number of elements removed.
 	 */
-	Mono<Long> geoRemove(K key, M... members);
+	Mono<Long> remove(K key, M... members);
 
 	/**
 	 * Removes the given {@literal key}.

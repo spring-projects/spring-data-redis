@@ -31,6 +31,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
  *
  * @author Ninad Divadkar
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.8
  */
 public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
@@ -41,9 +42,34 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param point must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @return Number of elements added.
+	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	Long geoAdd(Point point, M member);
+	Long add(Point point, M member);
+
+	/**
+	 * Add {@link Point} with given member {@literal name} to {@literal key}.
+	 * 
+	 * @param point must not be {@literal null}.
+	 * @param member must not be {@literal null}.
+	 * @return Number of elements added.
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @deprecated since 2.0, use {@link #add(Point, Object)}.
+	 */
+	@Deprecated
+	default Long geoAdd(Point point, M member) {
+		return add(point, member);
+	}
+
+	/**
+	 * Add {@link GeoLocation} to {@literal key}.
+	 * 
+	 * @param location must not be {@literal null}.
+	 * @return Number of elements added.
+	 * @since 2.0
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 */
+	Long add(GeoLocation<M> location);
 
 	/**
 	 * Add {@link GeoLocation} to {@literal key}.
@@ -51,8 +77,22 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param location must not be {@literal null}.
 	 * @return Number of elements added.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @deprecated since 2.0, use {@link #add(GeoLocation)}.
 	 */
-	Long geoAdd(GeoLocation<M> location);
+	@Deprecated
+	default Long geoAdd(GeoLocation<M> location) {
+		return add(location);
+	}
+
+	/**
+	 * Add {@link Map} of member / {@link Point} pairs to {@literal key}.
+	 * 
+	 * @param memberCoordinateMap must not be {@literal null}.
+	 * @return Number of elements added.
+	 * @since 2.0
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 */
+	Long add(Map<M, Point> memberCoordinateMap);
 
 	/**
 	 * Add {@link Map} of member / {@link Point} pairs to {@literal key}.
@@ -60,8 +100,22 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param memberCoordinateMap must not be {@literal null}.
 	 * @return Number of elements added.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @deprecated since 2.0, use {@link #add(Map)}.
 	 */
-	Long geoAdd(Map<M, Point> memberCoordinateMap);
+	@Deprecated
+	default Long geoAdd(Map<M, Point> memberCoordinateMap) {
+		return add(memberCoordinateMap);
+	}
+
+	/**
+	 * Add {@link GeoLocation}s to {@literal key}
+	 * 
+	 * @param locations must not be {@literal null}.
+	 * @return Number of elements added.
+	 * @since 2.0
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 */
+	Long add(Iterable<GeoLocation<M>> locations);
 
 	/**
 	 * Add {@link GeoLocation}s to {@literal key}
@@ -69,8 +123,23 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param locations must not be {@literal null}.
 	 * @return Number of elements added.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @deprecated since 2.0, use {@link #add(Iterable)}.
 	 */
-	Long geoAdd(Iterable<GeoLocation<M>> locations);
+	@Deprecated
+	default Long geoAdd(Iterable<GeoLocation<M>> locations) {
+		return add(locations);
+	}
+
+	/**
+	 * Get the {@link Distance} between {@literal member1} and {@literal member2}.
+	 * 
+	 * @param member1 must not be {@literal null}.
+	 * @param member2 must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @since 2.0
+	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
+	 */
+	Distance distance(M member1, M member2);
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2}.
@@ -79,8 +148,24 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param member2 must not be {@literal null}.
 	 * @return can be {@literal null}.
 	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
+	 * @deprecated since 2.0, use {@link #distance(Object, Object)}.
 	 */
-	Distance geoDist(M member1, M member2);
+	@Deprecated
+	default Distance geoDist(M member1, M member2) {
+		return distance(member1, member2);
+	}
+
+	/**
+	 * Get the {@link Distance} between {@literal member1} and {@literal member2} in the given {@link Metric}.
+	 * 
+	 * @param member1 must not be {@literal null}.
+	 * @param member2 must not be {@literal null}.
+	 * @param metric must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @since 2.0
+	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
+	 */
+	Distance distance(M member1, M member2, Metric metric);
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2} in the given {@link Metric}.
@@ -90,8 +175,22 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param metric must not be {@literal null}.
 	 * @return can be {@literal null}.
 	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
+	 * @deprecated since 2.0, use {@link #distance(Object, Object, Metric)}.
 	 */
-	Distance geoDist(M member1, M member2, Metric metric);
+	@Deprecated
+	default Distance geoDist(M member1, M member2, Metric metric) {
+		return distance(member1, member2, metric);
+	}
+
+	/**
+	 * Get Geohash representation of the position for one or more {@literal member}s.
+	 * 
+	 * @param members must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
+	 */
+	List<String> hash(M... members);
 
 	/**
 	 * Get Geohash representation of the position for one or more {@literal member}s.
@@ -99,8 +198,22 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
+	 * @deprecated since 2.0, use {@link #hash(Object[])}.
 	 */
-	List<String> geoHash(M... members);
+	@Deprecated
+	default List<String> geoHash(M... members) {
+		return hash(members);
+	}
+
+	/**
+	 * Get the {@link Point} representation of positions for one or more {@literal member}s.
+	 * 
+	 * @param members must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
+	 */
+	List<Point> position(M... members);
 
 	/**
 	 * Get the {@link Point} representation of positions for one or more {@literal member}s.
@@ -108,8 +221,22 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
+	 * @deprecated since 2.0, use {@link #position(Object[])}.
 	 */
-	List<Point> geoPos(M... members);
+	@Deprecated
+	default List<Point> geoPos(M... members) {
+		return position(members);
+	}
+
+	/**
+	 * Get the {@literal member}s within the boundaries of a given {@link Circle}.
+	 * 
+	 * @param within must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
+	 */
+	GeoResults<GeoLocation<M>> radius(Circle within);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle}.
@@ -117,8 +244,23 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param within must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
+	 * @deprecated since 2.0, use {@link #radius(Circle)}.
 	 */
-	GeoResults<GeoLocation<M>> geoRadius(Circle within);
+	@Deprecated
+	default GeoResults<GeoLocation<M>> geoRadius(Circle within) {
+		return radius(within);
+	}
+
+	/**
+	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
+	 * 
+	 * @param within must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
+	 */
+	GeoResults<GeoLocation<M>> radius(Circle within, GeoRadiusCommandArgs args);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
@@ -127,8 +269,24 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param args must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
+	 * @deprecated since 2.0, use {@link #radius(Circle, GeoRadiusCommandArgs)}.
 	 */
-	GeoResults<GeoLocation<M>> geoRadius(Circle within, GeoRadiusCommandArgs args);
+	@Deprecated
+	default GeoResults<GeoLocation<M>> geoRadius(Circle within, GeoRadiusCommandArgs args) {
+		return radius(within, args);
+	}
+
+	/**
+	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
+	 * {@literal radius}.
+	 * 
+	 * @param member must not be {@literal null}.
+	 * @param radius
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
+	 */
+	GeoResults<GeoLocation<M>> radius(K key, M member, double radius);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -138,8 +296,24 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param radius
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
+	 * @deprecated since 2.0, use {@link #radius(Object, Object, double)}.
 	 */
-	GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, double radius);
+	@Deprecated
+	default GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, double radius) {
+		return radius(key, member, radius);
+	}
+
+	/**
+	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
+	 * {@literal radius} applying {@link Metric}.
+	 * 
+	 * @param member must not be {@literal null}.
+	 * @param distance must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
+	 */
+	GeoResults<GeoLocation<M>> radius(M member, Distance distance);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -149,8 +323,25 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param distance must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
+	 * @deprecated since 2.0, use {@link #radius(Object, Distance)}.
 	 */
-	GeoResults<GeoLocation<M>> geoRadiusByMember(M member, Distance distance);
+	@Deprecated
+	default GeoResults<GeoLocation<M>> geoRadiusByMember(M member, Distance distance) {
+		return radius(member, distance);
+	}
+
+	/**
+	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
+	 * {@literal radius} applying {@link Metric} and {@link GeoRadiusCommandArgs}.
+	 * 
+	 * @param member must not be {@literal null}.
+	 * @param distance must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.0
+	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
+	 */
+	GeoResults<GeoLocation<M>> radius(M member, Distance distance, GeoRadiusCommandArgs args);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -161,14 +352,31 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param args must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
+	 * @deprecated since 2.0, use {@link #radius(Object, Distance, GeoRadiusCommandArgs)}.
 	 */
-	GeoResults<GeoLocation<M>> geoRadiusByMember(M member, Distance distance, GeoRadiusCommandArgs args);
+	@Deprecated
+	default GeoResults<GeoLocation<M>> geoRadiusByMember(M member, Distance distance, GeoRadiusCommandArgs args) {
+		return radius(member, distance, args);
+	}
 
 	/**
 	 * Remove the {@literal member}s.
 	 * 
 	 * @param members must not be {@literal null}.
 	 * @return Number of elements removed.
+	 * @since 2.0
 	 */
-	Long geoRemove(M... members);
+	Long remove(M... members);
+
+	/**
+	 * Remove the {@literal member}s.
+	 * 
+	 * @param members must not be {@literal null}.
+	 * @return Number of elements removed.
+	 * @deprecated since 2.0, use {@link #remove(Object[])}.
+	 */
+	@Deprecated
+	default Long geoRemove(M... members) {
+		return remove(members);
+	}
 }
