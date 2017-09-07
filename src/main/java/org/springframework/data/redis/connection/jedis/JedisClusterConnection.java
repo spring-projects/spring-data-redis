@@ -4107,8 +4107,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			this.topologyProvider = topologyProvider;
 
 			if (cluster != null) {
-				PropertyAccessor accessor = new DirectFieldAccessFallbackBeanWrapper(cluster);
 
+				PropertyAccessor accessor = new DirectFieldAccessFallbackBeanWrapper(cluster);
 				this.connectionHandler = accessor.isReadableProperty("connectionHandler")
 						? (JedisClusterConnectionHandler) accessor.getPropertyValue("connectionHandler") : null;
 			} else {
@@ -4137,7 +4137,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 				return connection;
 			}
 
-			throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node));
+			throw new IllegalStateException(String.format("Node %s is unknown to cluster", node));
 		}
 
 		private JedisPool getResourcePoolForSpecificNode(RedisClusterNode node) {
@@ -4153,7 +4153,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		private Jedis getConnectionForSpecificNode(RedisClusterNode node) {
 
 			RedisClusterNode member = topologyProvider.getTopology().lookup(node);
-			if (connectionHandler != null && member != null) {
+
+			if (member != null && connectionHandler != null) {
 				return connectionHandler.getConnectionFromNode(new HostAndPort(member.getHost(), member.getPort()));
 			}
 

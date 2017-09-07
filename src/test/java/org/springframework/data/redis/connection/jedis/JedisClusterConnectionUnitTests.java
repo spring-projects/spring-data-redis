@@ -272,12 +272,10 @@ public class JedisClusterConnectionUnitTests {
 
 		nodes.remove(CLUSTER_HOST + ":" + MASTER_NODE_3_PORT);
 
-		try {
-			connection.dbSize(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT));
-		} catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(),
-					containsString("Node " + CLUSTER_HOST + ":" + MASTER_NODE_3_PORT + " is unknown to cluster"));
-		}
+		expectedException.expect(IllegalStateException.class);
+		expectedException.expectMessage("Node " + CLUSTER_HOST + ":" + MASTER_NODE_3_PORT + " is unknown to cluster");
+
+		connection.dbSize(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT));
 	}
 
 	@Test // DATAREDIS-679
@@ -288,6 +286,7 @@ public class JedisClusterConnectionUnitTests {
 		when(connectionHandlerMock.getConnectionFromNode(new HostAndPort(CLUSTER_HOST, MASTER_NODE_3_PORT)))
 				.thenReturn(con3Mock);
 		when(con3Mock.dbSize()).thenAnswer(new Answer<Long>() {
+
 			@Override
 			public Long answer(InvocationOnMock invocation) throws Throwable {
 
