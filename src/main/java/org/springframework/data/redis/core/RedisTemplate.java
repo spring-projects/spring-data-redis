@@ -692,14 +692,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#delete(java.lang.Object)
 	 */
 	@Override
-	public void delete(K key) {
+	public Boolean delete(K key) {
 
 		byte[] rawKey = rawKey(key);
 
-		execute(connection -> {
-			connection.del(rawKey);
-			return null;
-		}, true);
+		Long result = execute(connection -> connection.del(rawKey), true);
+
+		return result != null && result.intValue() == 1;
 	}
 
 	/*
@@ -707,18 +706,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#delete(java.util.Collection)
 	 */
 	@Override
-	public void delete(Collection<K> keys) {
+	public Long delete(Collection<K> keys) {
 
 		if (CollectionUtils.isEmpty(keys)) {
-			return;
+			return 0L;
 		}
 
 		byte[][] rawKeys = rawKeys(keys);
 
-		execute(connection -> {
-			connection.del(rawKeys);
-			return null;
-		}, true);
+		return execute(connection -> connection.del(rawKeys), true);
 	}
 
 	/*
