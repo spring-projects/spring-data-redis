@@ -159,10 +159,10 @@ public interface RedisOperations<K, V> {
 	 * Delete given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return The number of keys that were removed.
+	 * @return {@literal true} if the key was removed.
 	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
-	void delete(K key);
+	Boolean delete(K key);
 
 	/**
 	 * Delete given {@code keys}.
@@ -171,7 +171,7 @@ public interface RedisOperations<K, V> {
 	 * @return The number of keys that were removed.
 	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
-	void delete(Collection<K> keys);
+	Long delete(Collection<K> keys);
 
 	/**
 	 * Determine the type stored at {@code key}.

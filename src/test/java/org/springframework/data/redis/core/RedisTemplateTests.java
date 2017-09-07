@@ -387,7 +387,7 @@ public class RedisTemplateTests<K, V> {
 		V value1 = valueFactory.instance();
 		redisTemplate.opsForValue().set(key1, value1);
 		assertTrue(redisTemplate.hasKey(key1));
-		redisTemplate.delete(key1);
+		assertTrue(redisTemplate.delete(key1));
 		assertFalse(redisTemplate.hasKey(key1));
 	}
 
@@ -402,7 +402,7 @@ public class RedisTemplateTests<K, V> {
 		List<K> keys = new ArrayList<>();
 		keys.add(key1);
 		keys.add(key2);
-		redisTemplate.delete(keys);
+		assertEquals(2L, redisTemplate.delete(keys).longValue());
 		assertFalse(redisTemplate.hasKey(key1));
 		assertFalse(redisTemplate.hasKey(key2));
 	}
