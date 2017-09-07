@@ -63,7 +63,9 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	public @Rule MinimumRedisVersionRule minimumVersionRule = new MinimumRedisVersionRule();
 
 	public LettuceSentinelIntegrationTests(LettuceConnectionFactory connectionFactory, String displayName) {
+
 		this.connectionFactory = connectionFactory;
+		ConnectionFactoryTracker.add(connectionFactory);
 	}
 
 	@Parameters(name = "{1}")
@@ -79,11 +81,9 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 
 		LettuceConnectionFactory pooledConnectionFactory = new LettuceConnectionFactory(SENTINEL_CONFIG,
 				LettucePoolingClientConfiguration.builder().build());
+		pooledConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pooledConnectionFactory.setShareNativeConnection(false);
 		pooledConnectionFactory.afterPropertiesSet();
-
-		ConnectionFactoryTracker.add(lettuceConnectionFactory);
-		ConnectionFactoryTracker.add(pooledConnectionFactory);
 
 		parameters.add(new Object[] { lettuceConnectionFactory, "Sentinel" });
 		parameters.add(new Object[] { pooledConnectionFactory, "Sentinel/Pooled" });

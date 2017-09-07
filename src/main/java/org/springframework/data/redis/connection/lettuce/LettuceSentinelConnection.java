@@ -234,7 +234,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	private void init() {
 
 		if (connection == null) {
-			connection = (StatefulRedisSentinelConnection) provider.getConnection(StatefulRedisSentinelConnection.class);
+			connection = provider.getConnection(StatefulRedisSentinelConnection.class);
 		}
 	}
 

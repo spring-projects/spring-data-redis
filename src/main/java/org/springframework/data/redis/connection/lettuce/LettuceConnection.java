@@ -820,7 +820,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	protected StatefulRedisPubSubConnection<byte[], byte[]> switchToPubSub() {
 
 		close();
-		return (StatefulRedisPubSubConnection) connectionProvider.getConnection(StatefulRedisPubSubConnection.class);
+		return connectionProvider.getConnection(StatefulRedisPubSubConnection.class);
 	}
 
 	void pipeline(LettuceResult result) {
@@ -910,7 +910,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	protected StatefulConnection<byte[], byte[]> doGetAsyncDedicatedConnection() {
-		return connectionProvider.getConnection();
+		return connectionProvider.getConnection(StatefulConnection.class);
 	}
 
 	io.lettuce.core.ScanCursor getScanCursor(long cursorId) {

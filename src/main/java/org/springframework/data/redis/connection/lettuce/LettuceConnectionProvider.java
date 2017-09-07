@@ -50,17 +50,6 @@ public interface LettuceConnectionProvider {
 	<T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType);
 
 	/**
-	 * Request a connection.
-	 *
-	 * @return the requested connection. Must be {@link #release(StatefulConnection) released} if the connection is no
-	 *         longer in use.
-	 */
-	@SuppressWarnings("unchecked")
-	default StatefulConnection getConnection() {
-		return getConnection(StatefulConnection.class);
-	}
-
-	/**
 	 * Release the {@link StatefulConnection connection}. Closes connection {@link StatefulConnection#close()} by default.
 	 * Implementations may choose whether they override this method and return the connection to a pool.
 	 *
