@@ -383,9 +383,12 @@ public class RedisTemplateTests<K, V> {
 
 	@Test
 	public void testDelete() {
+		
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
+		
 		redisTemplate.opsForValue().set(key1, value1);
+		
 		assertTrue(redisTemplate.hasKey(key1));
 		assertTrue(redisTemplate.delete(key1));
 		assertFalse(redisTemplate.hasKey(key1));
@@ -393,26 +396,30 @@ public class RedisTemplateTests<K, V> {
 
 	@Test
 	public void testDeleteMultiple() {
+		
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
+		
 		redisTemplate.opsForValue().set(key1, value1);
 		redisTemplate.opsForValue().set(key2, value2);
-		List<K> keys = new ArrayList<>();
-		keys.add(key1);
-		keys.add(key2);
-		assertEquals(2L, redisTemplate.delete(keys).longValue());
+
+		assertEquals(2L, redisTemplate.delete(Arrays.asList(key1, key2)).longValue());
 		assertFalse(redisTemplate.hasKey(key1));
 		assertFalse(redisTemplate.hasKey(key2));
 	}
 
 	@Test
 	public void testSort() {
+		
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
+		
 		assumeTrue(value1 instanceof Number);
+		
 		redisTemplate.opsForList().rightPush(key1, value1);
+		
 		List<V> results = redisTemplate.sort(SortQueryBuilder.sort(key1).build());
 		assertEquals(Collections.singletonList(value1), results);
 	}
