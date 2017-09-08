@@ -558,7 +558,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForZSet().score("persons:address:location", "1"), is(nullValue()));
 	}
 
-	@Test // DATAREDIS-533
+	@Test // DATAREDIS-533, DATAREDIS-614
 	public void updateShouldAlterGeoIndexCorrectlyOnUpdate() {
 
 		Person tam = new Person();
@@ -575,7 +575,7 @@ public class RedisKeyValueAdapterTests {
 		adapter.update(update);
 
 		assertThat(template.opsForZSet().score("persons:address:location", "1"), is(notNullValue()));
-		Point updatedLocation = template.opsForGeo().geoPos("persons:address:location", "1").iterator().next();
+		Point updatedLocation = template.opsForGeo().position("persons:address:location", "1").iterator().next();
 
 		assertThat(updatedLocation.getX(), is(closeTo(17D, 0.005)));
 		assertThat(updatedLocation.getY(), is(closeTo(18D, 0.005)));

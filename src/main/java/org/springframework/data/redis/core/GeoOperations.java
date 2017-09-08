@@ -39,7 +39,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Add {@link Point} with given member {@literal name} to {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param point must not be {@literal null}.
 	 * @param member must not be {@literal null}.
@@ -51,7 +51,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Add {@link Point} with given member {@literal name} to {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param point must not be {@literal null}.
 	 * @param member must not be {@literal null}.
@@ -66,7 +66,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Add {@link GeoLocation} to {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param location must not be {@literal null}.
 	 * @return Number of elements added.
@@ -77,7 +77,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Add {@link GeoLocation} to {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param location must not be {@literal null}.
 	 * @return Number of elements added.
@@ -91,7 +91,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Add {@link Map} of member / {@link Point} pairs to {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param memberCoordinateMap must not be {@literal null}.
 	 * @return Number of elements added.
@@ -102,7 +102,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Add {@link Map} of member / {@link Point} pairs to {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param memberCoordinateMap must not be {@literal null}.
 	 * @return Number of elements added.
@@ -116,7 +116,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Add {@link GeoLocation}s to {@literal key}
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param locations must not be {@literal null}.
 	 * @return Number of elements added.
@@ -127,7 +127,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Add {@link GeoLocation}s to {@literal key}
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param locations must not be {@literal null}.
 	 * @return Number of elements added.
@@ -141,7 +141,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member1 must not be {@literal null}.
 	 * @param member2 must not be {@literal null}.
@@ -153,7 +153,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member1 must not be {@literal null}.
 	 * @param member2 must not be {@literal null}.
@@ -168,7 +168,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2} in the given {@link Metric}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member1 must not be {@literal null}.
 	 * @param member2 must not be {@literal null}.
@@ -181,7 +181,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2} in the given {@link Metric}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member1 must not be {@literal null}.
 	 * @param member2 must not be {@literal null}.
@@ -197,7 +197,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Get Geohash representation of the position for one or more {@literal member}s.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -208,7 +208,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Get Geohash representation of the position for one or more {@literal member}s.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -222,7 +222,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Get the {@link Point} representation of positions for one or more {@literal member}s.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -233,7 +233,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Get the {@link Point} representation of positions for one or more {@literal member}s.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -247,7 +247,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -258,7 +258,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -272,7 +272,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
 	 * @param args must not be {@literal null}.
@@ -284,7 +284,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
 	 * @param args must not be {@literal null}.
@@ -300,7 +300,7 @@ public interface GeoOperations<K, M> {
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
 	 * {@literal radius}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param radius
@@ -313,7 +313,7 @@ public interface GeoOperations<K, M> {
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
 	 * {@literal radius}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param radius
@@ -329,7 +329,7 @@ public interface GeoOperations<K, M> {
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
 	 * {@literal radius} applying {@link Metric}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param distance must not be {@literal null}.
@@ -342,7 +342,7 @@ public interface GeoOperations<K, M> {
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
 	 * {@literal radius} applying {@link Metric}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param distance must not be {@literal null}.
@@ -358,7 +358,7 @@ public interface GeoOperations<K, M> {
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
 	 * {@literal radius} applying {@link Metric} and {@link GeoRadiusCommandArgs}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param distance must not be {@literal null}.
@@ -372,7 +372,7 @@ public interface GeoOperations<K, M> {
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
 	 * {@literal radius} applying {@link Metric} and {@link GeoRadiusCommandArgs}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param distance must not be {@literal null}.
@@ -388,7 +388,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Remove the {@literal member}s.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return Number of elements removed.
@@ -398,7 +398,7 @@ public interface GeoOperations<K, M> {
 
 	/**
 	 * Remove the {@literal member}s.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return Number of elements removed.
