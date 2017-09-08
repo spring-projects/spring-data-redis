@@ -72,6 +72,7 @@ public class RedisTemplateTests<K, V> {
 
 	public RedisTemplateTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<V> valueFactory) {
+
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
@@ -381,27 +382,27 @@ public class RedisTemplateTests<K, V> {
 		});
 	}
 
-	@Test
+	@Test // DATAREDIS-688
 	public void testDelete() {
-		
+
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
-		
+
 		redisTemplate.opsForValue().set(key1, value1);
-		
+
 		assertTrue(redisTemplate.hasKey(key1));
 		assertTrue(redisTemplate.delete(key1));
 		assertFalse(redisTemplate.hasKey(key1));
 	}
 
-	@Test
+	@Test // DATAREDIS-688
 	public void testDeleteMultiple() {
-		
+
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
-		
+
 		redisTemplate.opsForValue().set(key1, value1);
 		redisTemplate.opsForValue().set(key2, value2);
 
@@ -412,14 +413,14 @@ public class RedisTemplateTests<K, V> {
 
 	@Test
 	public void testSort() {
-		
+
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
-		
+
 		assumeTrue(value1 instanceof Number);
-		
+
 		redisTemplate.opsForList().rightPush(key1, value1);
-		
+
 		List<V> results = redisTemplate.sort(SortQueryBuilder.sort(key1).build());
 		assertEquals(Collections.singletonList(value1), results);
 	}
@@ -441,8 +442,7 @@ public class RedisTemplateTests<K, V> {
 		V value1 = valueFactory.instance();
 		assumeTrue(value1 instanceof Number);
 		redisTemplate.opsForList().rightPush(key1, value1);
-		List<String> results = redisTemplate.sort(SortQueryBuilder.sort(key1).get("#").build(),
-				tuple -> "FOO");
+		List<String> results = redisTemplate.sort(SortQueryBuilder.sort(key1).get("#").build(), tuple -> "FOO");
 		assertEquals(Collections.singletonList("FOO"), results);
 	}
 
