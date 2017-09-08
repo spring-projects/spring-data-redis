@@ -152,8 +152,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 	/**
 	 * Lookup node from the topology.
 	 *
-	 * @param node
-	 * @return
+	 * @param node must not be {@literal null}.
+	 * @return never {@literal null}.
 	 * @throws IllegalArgumentException in case the node could not be resolved to a topology-known node
 	 */
 	private RedisClusterNode lookupNode(RedisClusterNode node) {
@@ -167,8 +167,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 	/**
 	 * Run {@link ClusterCommandCallback} on all reachable master nodes.
 	 *
-	 * @param cmd
-	 * @return
+	 * @param cmd must not be {@literal null}.
+	 * @return never {@literal null}.
 	 * @throws ClusterCommandExecutionFailureException
 	 */
 	public <S, T> MultiNodeResult<T> executeCommandOnAllNodes(final ClusterCommandCallback<S, T> cmd) {
@@ -176,9 +176,9 @@ public class ClusterCommandExecutor implements DisposableBean {
 	}
 
 	/**
-	 * @param callback
-	 * @param nodes
-	 * @return
+	 * @param callback must not be {@literal null}.
+	 * @param nodes must not be {@literal null}.
+	 * @return never {@literal null}.
 	 * @throws ClusterCommandExecutionFailureException
 	 * @throws IllegalArgumentException in case the node could not be resolved to a topology-known node
 	 */
@@ -263,8 +263,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 	/**
 	 * Run {@link MultiKeyClusterCommandCallback} with on a curated set of nodes serving one or more keys.
 	 *
-	 * @param cmd
-	 * @return
+	 * @param cmd must not be {@literal null}.
+	 * @return never {@literal null}.
 	 * @throws ClusterCommandExecutionFailureException
 	 */
 	public <S, T> MultiNodeResult<T> executeMultiKeyCommand(MultiKeyClusterCommandCallback<S, T> cmd,
@@ -390,7 +390,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		private RedisClusterNode node;
 		private Object[] args;
 
-		public NodeExecution(RedisClusterNode node, Object... args) {
+		NodeExecution(RedisClusterNode node, Object... args) {
 
 			this.node = node;
 			this.args = args;
@@ -399,7 +399,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		/**
 		 * Get the {@link RedisClusterNode} the execution happens on.
 		 */
-		public RedisClusterNode getNode() {
+		RedisClusterNode getNode() {
 			return node;
 		}
 
@@ -556,7 +556,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		}
 
 		/**
-		 * @param returnValue
+		 * @param returnValue can be {@literal null}.
 		 * @return
 		 */
 		public T getFirstNonNullNotEmptyOrDefault(T returnValue) {

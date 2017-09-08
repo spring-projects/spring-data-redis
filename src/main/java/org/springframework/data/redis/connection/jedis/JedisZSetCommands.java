@@ -38,7 +38,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 	private final JedisConnection connection;
 
-	public JedisZSetCommands(JedisConnection connection) {
+	JedisZSetCommands(JedisConnection connection) {
 		this.connection = connection;
 	}
 

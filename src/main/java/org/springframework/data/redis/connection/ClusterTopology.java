@@ -40,7 +40,7 @@ public class ClusterTopology {
 	 * @param nodes can be {@literal null}.
 	 */
 	public ClusterTopology(Set<RedisClusterNode> nodes) {
-		this.nodes = nodes != null ? nodes : Collections.<RedisClusterNode> emptySet();
+		this.nodes = nodes != null ? nodes : Collections.emptySet();
 	}
 
 	/**
@@ -123,7 +123,7 @@ public class ClusterTopology {
 	 * Get the {@link RedisClusterNode} that is the current master serving the given key.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return never {@literal null}.
 	 * @throws ClusterStateFailureException
 	 */
 	public RedisClusterNode getKeyServingMasterNode(byte[] key) {
@@ -131,13 +131,15 @@ public class ClusterTopology {
 		Assert.notNull(key, "Key for node lookup must not be null!");
 
 		int slot = ClusterSlotHashUtil.calculateSlot(key);
+
 		for (RedisClusterNode node : nodes) {
 			if (node.isMaster() && node.servesSlot(slot)) {
 				return node;
 			}
 		}
-		throw new ClusterStateFailureException(String.format("Could not find master node serving slot %s for key '%s',",
-				slot, key));
+
+		throw new ClusterStateFailureException(
+				String.format("Could not find master node serving slot %s for key '%s',", slot, key));
 	}
 
 	/**
@@ -145,7 +147,7 @@ public class ClusterTopology {
 	 *
 	 * @param host must not be {@literal null}.
 	 * @param port
-	 * @return
+	 * @return never {@literal null}.
 	 * @throws ClusterStateFailureException
 	 */
 	public RedisClusterNode lookup(String host, int port) {
@@ -155,15 +157,16 @@ public class ClusterTopology {
 				return node;
 			}
 		}
-		throw new ClusterStateFailureException(String.format(
-				"Could not find node at %s:%s. Is your cluster info up to date?", host, port));
+
+		throw new ClusterStateFailureException(
+				String.format("Could not find node at %s:%s. Is your cluster info up to date?", host, port));
 	}
 
 	/**
 	 * Get the {@link RedisClusterNode} matching given {@literal nodeId}.
 	 *
 	 * @param nodeId must not be {@literal null}.
-	 * @return
+	 * @return never {@literal null}.
 	 * @throws ClusterStateFailureException
 	 */
 	public RedisClusterNode lookup(String nodeId) {
@@ -175,23 +178,24 @@ public class ClusterTopology {
 				return node;
 			}
 		}
-		throw new ClusterStateFailureException(String.format(
-				"Could not find node at %s. Is your cluster info up to date?", nodeId));
+
+		throw new ClusterStateFailureException(
+				String.format("Could not find node at %s. Is your cluster info up to date?", nodeId));
 	}
 
 	/**
-	 * Get the {@link RedisClusterNode} matching matching either {@link RedisClusterNode#getHost() host} and {@link RedisClusterNode#getPort() port}
-	 * or {@link RedisClusterNode#getId() nodeId}
+	 * Get the {@link RedisClusterNode} matching matching either {@link RedisClusterNode#getHost() host} and
+	 * {@link RedisClusterNode#getPort() port} or {@link RedisClusterNode#getId() nodeId}
 	 *
 	 * @param node must not be {@literal null}
-	 * @return
- 	 * @throws ClusterStateFailureException
+	 * @return never {@literal null}.
+	 * @throws ClusterStateFailureException
 	 */
 	public RedisClusterNode lookup(RedisClusterNode node) {
 
 		Assert.notNull(node, "RedisClusterNode must not be null!");
 
-		if(nodes.contains(node) && StringUtils.hasText(node.getHost()) && StringUtils.hasText(node.getId())){
+		if (nodes.contains(node) && StringUtils.hasText(node.getHost()) && StringUtils.hasText(node.getId())) {
 			return node;
 		}
 
