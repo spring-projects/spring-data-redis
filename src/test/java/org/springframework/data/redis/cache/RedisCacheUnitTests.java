@@ -16,9 +16,9 @@
 package org.springframework.data.redis.cache;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
@@ -44,6 +44,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.util.Version;
 
 /**
  * @author Christoph Strobl
@@ -52,6 +53,9 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 @SuppressWarnings("rawtypes")
 @RunWith(MockitoJUnitRunner.class)
 public class RedisCacheUnitTests {
+
+	private static final Version SPRING_FRAMEWORK_VERSION = Version.parse(SpringVersion.getVersion());
+	private static final Version SPRING_5 = Version.parse("5.0.0");
 
 	private static final String CACHE_NAME = "foo";
 	private static final String PREFIX = "prefix:";
@@ -212,7 +216,7 @@ public class RedisCacheUnitTests {
 
 	@Test // DATAREDIS-553, DATAREDIS-687
 	@SuppressWarnings("unchecked")
-	public void getWithCallableShouldStoreNullNotAllowingNull() throws ClassNotFoundException {
+	public void getWithCallableShouldStoreNullNotAllowingNull() {
 
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L, false);
 
@@ -232,7 +236,7 @@ public class RedisCacheUnitTests {
 
 		} catch (ValueRetrievalException e) {
 
-			if (!SpringVersion.getVersion().startsWith("5")) {
+			if (SPRING_FRAMEWORK_VERSION.isLessThan(SPRING_5)) {
 				throw e;
 			}
 		}
@@ -240,7 +244,7 @@ public class RedisCacheUnitTests {
 
 	@Test // DATAREDIS-553
 	@SuppressWarnings("unchecked")
-	public void getWithCallableShouldStoreNullAllowingNull() throws ClassNotFoundException {
+	public void getWithCallableShouldStoreNullAllowingNull() {
 
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L, true);
 
