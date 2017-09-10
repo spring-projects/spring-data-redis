@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.cache;
 
 import static edu.umd.cs.mtc.TestFramework.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsInstanceOf.*;
-import static org.hamcrest.core.IsNot.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.hamcrest.core.IsSame.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
+
+import edu.umd.cs.mtc.MultithreadedTestCase;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,8 +50,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-
-import edu.umd.cs.mtc.MultithreadedTestCase;
+import org.springframework.data.util.Version;
 
 /**
  * @author Costin Leau
@@ -66,6 +61,9 @@ import edu.umd.cs.mtc.MultithreadedTestCase;
 @SuppressWarnings("rawtypes")
 @RunWith(Parameterized.class)
 public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
+
+	private static final Version SPRING_FRAMEWORK_VERSION = Version.parse(SpringVersion.getVersion());
+	private static final Version SPRING_5 = Version.parse("5.0.0");
 
 	private ObjectFactory<Object> keyFactory;
 	private ObjectFactory<Object> valueFactory;
@@ -232,13 +230,14 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 	@Test // DATAREDIS-243
 	public void testCacheGetShouldReturnCachedInstance() {
+
 		assumeThat(cache, instanceOf(RedisCache.class));
 
 		Object key = getKey();
 		Object value = getValue();
 		cache.put(key, value);
 
-		assertThat(value, isEqual(((RedisCache) cache).get(key, Object.class)));
+		assertThat(value, isEqual(cache.get(key, Object.class)));
 	}
 
 	@Test // DATAREDIS-243
@@ -309,7 +308,6 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assumeThat(getAllowCacheNullValues(), is(false));
 
 		Object key = getKey();
-		Object value = getValue();
 
 		try {
 
@@ -317,13 +315,13 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 			assertThat(cache.get(key), is(nullValue()));
 		} catch (IllegalArgumentException e) {
 
-			if (!SpringVersion.getVersion().startsWith("5")) {
+			if (SPRING_FRAMEWORK_VERSION.isLessThan(SPRING_5)) {
 				throw e;
 			}
 		}
 	}
 
-	@Test // DATAREDIS-510
+	@Test // DATAREDIS-510, DATAREDIS-687
 	public void cachePutWithNullShouldRemoveKeyIfExists() {
 
 		assumeThat(getAllowCacheNullValues(), is(false));
@@ -341,7 +339,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 			assertThat(cache.get(key), is(nullValue()));
 		} catch (IllegalArgumentException e) {
 
-			if (!SpringVersion.getVersion().startsWith("5")) {
+			if (SPRING_FRAMEWORK_VERSION.isLessThan(SPRING_5)) {
 				throw e;
 			}
 		}
@@ -362,7 +360,6 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assumeThat(getAllowCacheNullValues(), is(true));
 
 		Object key = getKey();
-		Object value = getValue();
 
 		cache.put(key, null);
 
@@ -409,7 +406,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 			assertThat(cache.get(key), is(nullValue()));
 		} catch (ValueRetrievalException e) {
 
-			if (!SpringVersion.getVersion().startsWith("5")) {
+			if (SPRING_FRAMEWORK_VERSION.isLessThan(SPRING_5)) {
 				throw e;
 			}
 		}
@@ -440,7 +437,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		RedisCache redisCache;
 		TestCacheLoader<String> cacheLoader;
 
-		public CacheGetWithValueLoaderIsThreadSafe(RedisCache redisCache) {
+		CacheGetWithValueLoaderIsThreadSafe(RedisCache redisCache) {
 
 			this.redisCache = redisCache;
 
@@ -473,7 +470,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 		private final T value;
 
-		public TestCacheLoader(T value) {
+		TestCacheLoader(T value) {
 			this.value = value;
 		}
 
