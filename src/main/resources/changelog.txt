@@ -6,6 +6,25 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 2.0.0.RC3 (2017-09-11)
+-----------------------------------------
+* DATAREDIS-690 - Upgrade to Lettuce 5.0 RC2.
+* DATAREDIS-688 - Return delete result via RedisOperations.delete(…).
+* DATAREDIS-685 - Upgrade Redis version in Makefile to 4.0.1.
+* DATAREDIS-684 - Broken jedis connection returned to jedis pool, cause many strange exceptions.
+* DATAREDIS-683 - Provide reactive Lua scripting commands.
+* DATAREDIS-681 - Typos in MulitNodeResult and ResultByReferenceKeyPositionComperator.
+* DATAREDIS-680 - Sorted Set score method documentations point to zrem documentation.
+* DATAREDIS-679 - Cluster command execution fails after adding a Redis cluster node.
+* DATAREDIS-676 - LettuceClusterConnection disregards the configuration and has hard-coded timeout of 100ms.
+* DATAREDIS-674 - Support zAdd with a Set of Tuples using Jedis Cluster connections.
+* DATAREDIS-671 - Release 2.0 RC3 (Kay).
+* DATAREDIS-668 - Add count option to RedisSetCommands#sPop.
+* DATAREDIS-667 - Align Lettuce connection-pooling with LettuceClientConfiguration.
+* DATAREDIS-614 - Refactor GeoOperations and remove geo prefix from method names.
+* DATAREDIS-578 - Reduce visibility of default Template API implementation fragments.
+
+
 Changes in version 1.8.7.RELEASE (2017-09-11)
 ---------------------------------------------
 * DATAREDIS-687 - Assert RedisCache compatibility with Spring5.
