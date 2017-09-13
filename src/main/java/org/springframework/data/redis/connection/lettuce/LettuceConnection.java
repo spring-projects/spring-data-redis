@@ -66,6 +66,7 @@ import org.springframework.data.redis.connection.convert.TransactionResultConver
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
 import org.springframework.data.redis.core.RedisCommand;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -95,7 +96,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	private final LettuceConnectionProvider connectionProvider;
 	private final StatefulConnection<byte[], byte[]> asyncSharedConn;
-	private StatefulConnection<byte[], byte[]> asyncDedicatedConn;
+	private @Nullable StatefulConnection<byte[], byte[]> asyncDedicatedConn;
 
 	private final long timeout;
 
@@ -103,9 +104,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private boolean isClosed = false;
 	private boolean isMulti = false;
 	private boolean isPipelined = false;
-	private List<LettuceResult> ppline;
+	private @Nullable List<LettuceResult> ppline;
 	private Queue<FutureResult<?>> txResults = new LinkedList<>();
-	private volatile LettuceSubscription subscription;
+	private volatile @Nullable LettuceSubscription subscription;
 	/** flag indicating whether the connection needs to be dropped or not */
 	private boolean convertPipelineAndTxResults = true;
 

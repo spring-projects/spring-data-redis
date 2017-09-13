@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,20 +22,21 @@ import java.util.Collection;
  * threads. Note that once a subscription died, it cannot accept any more subscriptions.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public interface Subscription {
 
 	/**
 	 * Adds the given channels to the current subscription.
-	 * 
-	 * @param channels channel names
+	 *
+	 * @param channels channel names. Must not be empty.
 	 */
 	void subscribe(byte[]... channels) throws RedisInvalidSubscriptionException;
 
 	/**
 	 * Adds the given channel patterns to the current subscription.
-	 * 
-	 * @param patterns channel patterns
+	 *
+	 * @param patterns channel patterns. Must not be empty.
 	 */
 	void pSubscribe(byte[]... patterns) throws RedisInvalidSubscriptionException;
 
@@ -46,8 +47,8 @@ public interface Subscription {
 
 	/**
 	 * Cancels the current subscription for all given channels.
-	 * 
-	 * @param channels channel names
+	 *
+	 * @param channels channel names. Must not be empty.
 	 */
 	void unsubscribe(byte[]... channels);
 
@@ -58,35 +59,35 @@ public interface Subscription {
 
 	/**
 	 * Cancels the subscription for all channels matching the given patterns.
-	 * 
-	 * @param patterns
+	 *
+	 * @param patterns must not be empty.
 	 */
 	void pUnsubscribe(byte[]... patterns);
 
 	/**
 	 * Returns the (named) channels for this subscription.
-	 * 
+	 *
 	 * @return collection of named channels
 	 */
 	Collection<byte[]> getChannels();
 
 	/**
 	 * Returns the channel patters for this subscription.
-	 * 
+	 *
 	 * @return collection of channel patterns
 	 */
 	Collection<byte[]> getPatterns();
 
 	/**
 	 * Returns the listener used for this subscription.
-	 * 
+	 *
 	 * @return the listener used for this subscription.
 	 */
 	MessageListener getListener();
 
 	/**
 	 * Indicates whether this subscription is still 'alive' or not.
-	 * 
+	 *
 	 * @return true if the subscription still applies, false otherwise.
 	 */
 	boolean isAlive();

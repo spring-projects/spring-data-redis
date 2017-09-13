@@ -26,6 +26,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -129,7 +130,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @see org.springframework.cache.Cache#put(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void put(Object key, Object value) {
+	public void put(Object key, @Nullable Object value) {
 
 		Object cacheValue = preProcessCacheValue(value);
 
@@ -148,7 +149,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @see org.springframework.cache.Cache#putIfAbsent(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public ValueWrapper putIfAbsent(Object key, Object value) {
+	public ValueWrapper putIfAbsent(Object key, @Nullable Object value) {
 
 		Object cacheValue = preProcessCacheValue(value);
 
@@ -202,7 +203,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @param value can be {@literal null}.
 	 * @return preprocessed value. Can be {@literal null}.
 	 */
-	protected Object preProcessCacheValue(Object value) {
+	@Nullable
+	protected Object preProcessCacheValue(@Nullable Object value) {
 
 		if (value != null) {
 			return value;
@@ -242,6 +244,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @param value must not be {@literal null}.
 	 * @return can be {@literal null}.
 	 */
+	@Nullable
 	protected Object deserializeCacheValue(byte[] value) {
 
 		if (isAllowNullValues() && ObjectUtils.nullSafeEquals(value, BINARY_NULL_VALUE)) {

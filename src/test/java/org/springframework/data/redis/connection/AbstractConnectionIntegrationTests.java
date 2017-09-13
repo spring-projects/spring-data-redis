@@ -643,7 +643,6 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		MessageListener listener = (message, pattern) -> {
 			messages.add(message);
-			System.out.println("Received message '" + new String(message.getBody()) + "'");
 		};
 
 		Thread th = new Thread(() -> {
@@ -1354,8 +1353,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sMembers("myset"));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 1l, new HashSet<>(Arrays.asList(new String[] { "foo", "bar" })) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, new HashSet<>(Arrays.asList(new String[] { "foo", "bar" })) }));
 	}
 
 	@Test
@@ -1363,8 +1361,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo", "bar"));
 		actual.add(connection.sAdd("myset", "baz"));
 		actual.add(connection.sMembers("myset"));
-		verifyResults(Arrays
-				.asList(new Object[] { 2l, 1l, new HashSet<>(Arrays.asList(new String[] { "foo", "bar", "baz" })) }));
+		verifyResults(
+				Arrays.asList(new Object[] { 2l, 1l, new HashSet<>(Arrays.asList(new String[] { "foo", "bar", "baz" })) }));
 	}
 
 	@Test
@@ -1391,8 +1389,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("otherset", "bar"));
 		actual.add(connection.sDiffStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 1l, 1l, 1l, new HashSet<>(Collections.singletonList("foo")) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, 1l, new HashSet<>(Collections.singletonList("foo")) }));
 	}
 
 	@Test
@@ -1411,8 +1408,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("otherset", "bar"));
 		actual.add(connection.sInterStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 1l, 1l, 1l, new HashSet<>(Collections.singletonList("bar")) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, 1l, new HashSet<>(Collections.singletonList("bar")) }));
 	}
 
 	@Test
@@ -1438,8 +1434,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sPop("myset"));
-		assertTrue(
-				new HashSet<>(Arrays.asList(new String[] { "foo", "bar" })).contains((String) getResults().get(2)));
+		assertTrue(new HashSet<>(Arrays.asList(new String[] { "foo", "bar" })).contains((String) getResults().get(2)));
 	}
 
 	@Test // DATAREDIS-688
@@ -2212,19 +2207,12 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(values, not(hasItems("a", "b", "c", "d")));
 	}
 
-	@Test // DATAREDIS-316
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-316, DATAREDIS-692
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
-	public void setWithExpirationAndNullOpionShouldSetTtlWhenKeyDoesNotExist() {
+	public void setWithExpirationAndNullOpionShouldThrowException() {
 
 		String key = "exp-" + UUID.randomUUID();
 		connection.set(key, "foo", Expiration.milliseconds(500), null);
-
-		actual.add(connection.exists(key));
-		actual.add(connection.pTtl(key));
-
-		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(500d, 499d)));
 	}
 
 	@Test // DATAREDIS-316
@@ -2329,19 +2317,12 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-2, 0)));
 	}
 
-	@Test // DATAREDIS-316
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-316, DATAREDIS-692
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
-	public void setWithNullExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesNotExist() {
+	public void setWithNullExpirationAndUpsertOpionShouldThrowException() {
 
 		String key = "exp-" + UUID.randomUUID();
 		connection.set(key, "foo", null, SetOption.upsert());
-
-		actual.add(connection.exists(key));
-		actual.add(connection.pTtl(key));
-
-		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-1, 0)));
 	}
 
 	@Test // DATAREDIS-316

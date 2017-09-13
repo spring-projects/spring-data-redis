@@ -20,6 +20,7 @@ import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -71,7 +72,8 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 		this.deserializer = deserializer;
 	}
 
-	public Object deserialize(byte[] bytes) {
+	public Object deserialize(@Nullable byte[] bytes) {
+
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
 		}
@@ -83,7 +85,8 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 		}
 	}
 
-	public byte[] serialize(Object object) {
+	@Override
+	public byte[] serialize(@Nullable Object object) {
 		if (object == null) {
 			return SerializationUtils.EMPTY_ARRAY;
 		}

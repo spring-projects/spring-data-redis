@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.lang.Nullable;
 
 /**
  * Default implementation for {@link RedisList}. Suitable for not just lists, but also queues (FIFO ordering) or stacks
@@ -34,6 +35,7 @@ import org.springframework.data.redis.core.RedisOperations;
  * not - the list will always accept new items (trimming the tail after each insert in case of capped collections).
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements RedisList<E> {
 
@@ -220,6 +222,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	public E set(int index, E e) {
+
 		E object = get(index);
 		listOps.set(index, e);
 		return object;
@@ -235,8 +238,9 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	public E element() {
 		E value = peek();
-		if (value == null)
+		if (value == null) {
 			throw new NoSuchElementException();
+		}
 
 		return value;
 	}
@@ -247,18 +251,22 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return true;
 	}
 
+	@Nullable
 	public E peek() {
 		return listOps.index(0);
 	}
 
+	@Nullable
 	public E poll() {
 		return listOps.leftPop();
 	}
 
 	public E remove() {
+
 		E value = poll();
-		if (value == null)
+		if (value == null) {
 			throw new NoSuchElementException();
+		}
 
 		return value;
 	}
@@ -304,23 +312,28 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return true;
 	}
 
+	@Nullable
 	public E peekFirst() {
 		return peek();
 	}
 
+	@Nullable
 	public E peekLast() {
 		return listOps.index(-1);
 	}
 
+	@Nullable
 	public E pollFirst() {
 		return poll();
 	}
 
+	@Nullable
 	public E pollLast() {
 		return listOps.rightPop();
 	}
 
 	public E pop() {
+
 		E e = poll();
 		if (e == null) {
 			throw new NoSuchElementException();
@@ -356,7 +369,6 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	//
 	// BlockingQueue
 	//
-
 	public int drainTo(Collection<? super E> c, int maxElements) {
 		if (this.equals(c)) {
 			throw new IllegalArgumentException("Cannot drain a queue to itself");
@@ -380,6 +392,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return offer(e);
 	}
 
+	@Nullable
 	public E poll(long timeout, TimeUnit unit) throws InterruptedException {
 		E element = listOps.leftPop(timeout, unit);
 		return (element == null ? null : element);
@@ -393,6 +406,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return Integer.MAX_VALUE;
 	}
 
+	@Nullable
 	public E take() throws InterruptedException {
 		return poll(0, TimeUnit.SECONDS);
 	}
@@ -409,10 +423,12 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return offerLast(e);
 	}
 
+	@Nullable
 	public E pollFirst(long timeout, TimeUnit unit) throws InterruptedException {
 		return poll(timeout, unit);
 	}
 
+	@Nullable
 	public E pollLast(long timeout, TimeUnit unit) throws InterruptedException {
 		E element = listOps.rightPop(timeout, unit);
 		return (element == null ? null : element);
@@ -426,10 +442,12 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		put(e);
 	}
 
+	@Nullable
 	public E takeFirst() throws InterruptedException {
 		return take();
 	}
 
+	@Nullable
 	public E takeLast() throws InterruptedException {
 		return pollLast(0, TimeUnit.SECONDS);
 	}

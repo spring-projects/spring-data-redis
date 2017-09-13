@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisInvalidSubscriptionException;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -30,6 +31,7 @@ import org.springframework.util.ObjectUtils;
  * the actual registration/unregistration.
  *
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public abstract class AbstractSubscription implements Subscription {
 
@@ -47,12 +49,14 @@ public abstract class AbstractSubscription implements Subscription {
 	 * subscription w/o triggering a subscription action (as some clients (Jedis) require an initial call before entering
 	 * into listening mode).
 	 *
-	 * @param listener
-	 * @param channels
-	 * @param patterns
+	 * @param listener must not be {@literal null}.
+	 * @param channels can be {@literal null}.
+	 * @param patterns can be {@literal null}.
 	 */
-	protected AbstractSubscription(MessageListener listener, byte[][] channels, byte[][] patterns) {
+	protected AbstractSubscription(MessageListener listener, @Nullable byte[][] channels, @Nullable byte[][] patterns) {
+
 		Assert.notNull(listener, "MessageListener must not be null!");
+
 		this.listener = listener;
 
 		synchronized (this.channels) {
@@ -146,7 +150,7 @@ public abstract class AbstractSubscription implements Subscription {
 		unsubscribe((byte[][]) null);
 	}
 
-	public void pUnsubscribe(byte[]... patts) {
+	public void pUnsubscribe(@Nullable byte[]... patts) {
 		if (!isAlive()) {
 			return;
 		}
@@ -173,7 +177,7 @@ public abstract class AbstractSubscription implements Subscription {
 		closeIfUnsubscribed();
 	}
 
-	public void unsubscribe(byte[]... chans) {
+	public void unsubscribe(@Nullable byte[]... chans) {
 		if (!isAlive()) {
 			return;
 		}
@@ -225,7 +229,7 @@ public abstract class AbstractSubscription implements Subscription {
 		return list;
 	}
 
-	private static void add(Collection<ByteArrayWrapper> col, byte[]... bytes) {
+	private static void add(Collection<ByteArrayWrapper> col, @Nullable byte[]... bytes) {
 		if (!ObjectUtils.isEmpty(bytes)) {
 			for (byte[] bs : bytes) {
 				col.add(new ByteArrayWrapper(bs));
@@ -233,7 +237,7 @@ public abstract class AbstractSubscription implements Subscription {
 		}
 	}
 
-	private static void remove(Collection<ByteArrayWrapper> col, byte[]... bytes) {
+	private static void remove(Collection<ByteArrayWrapper> col, @Nullable byte[]... bytes) {
 		if (!ObjectUtils.isEmpty(bytes)) {
 			for (byte[] bs : bytes) {
 				col.remove(new ByteArrayWrapper(bs));

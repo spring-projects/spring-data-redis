@@ -49,6 +49,7 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -88,8 +89,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private boolean exposeConnection = false;
 	private boolean initialized = false;
 	private boolean enableDefaultSerializer = true;
-	private RedisSerializer<?> defaultSerializer;
-	private ClassLoader classLoader;
+	private @Nullable RedisSerializer<?> defaultSerializer;
+	private @Nullable ClassLoader classLoader;
 
 	@SuppressWarnings("rawtypes") private RedisSerializer keySerializer = null;
 	@SuppressWarnings("rawtypes") private RedisSerializer valueSerializer = null;
@@ -97,15 +98,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	@SuppressWarnings("rawtypes") private RedisSerializer hashValueSerializer = null;
 	private RedisSerializer<String> stringSerializer = new StringRedisSerializer();
 
-	private ScriptExecutor<K> scriptExecutor;
+	private @Nullable ScriptExecutor<K> scriptExecutor;
 
 	// cache singleton objects (where possible)
-	private ValueOperations<K, V> valueOps;
-	private ListOperations<K, V> listOps;
-	private SetOperations<K, V> setOps;
-	private ZSetOperations<K, V> zSetOps;
-	private GeoOperations<K, V> geoOps;
-	private HyperLogLogOperations<K, V> hllOps;
+	private @Nullable ValueOperations<K, V> valueOps;
+	private @Nullable ListOperations<K, V> listOps;
+	private @Nullable SetOperations<K, V> setOps;
+	private @Nullable ZSetOperations<K, V> zSetOps;
+	private @Nullable GeoOperations<K, V> geoOps;
+	private @Nullable HyperLogLogOperations<K, V> hllOps;
 
 	/**
 	 * Constructs a new <code>RedisTemplate</code> instance.
@@ -165,6 +166,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#execute(org.springframework.data.redis.core.RedisCallback)
 	 */
 	@Override
+	@Nullable
 	public <T> T execute(RedisCallback<T> action) {
 		return execute(action, isExposeConnection());
 	}
@@ -177,6 +179,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
 	 * @return object returned by the action
 	 */
+	@Nullable
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection) {
 		return execute(action, exposeConnection, false);
 	}
@@ -191,6 +194,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @param pipeline whether to pipeline or not the connection for the execution
 	 * @return object returned by the action
 	 */
+	@Nullable
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
 
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
@@ -435,6 +439,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 *
 	 * @return template default serializer
 	 */
+	@Nullable
 	public RedisSerializer<?> getDefaultSerializer() {
 		return defaultSerializer;
 	}
@@ -684,7 +689,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	protected List<Object> execRaw() {
-		return execute(RedisTxCommands::exec);
+
+		List<Object> raw = execute(RedisTxCommands::exec);
+		return raw == null ? Collections.emptyList() : raw;
 	}
 
 	/*

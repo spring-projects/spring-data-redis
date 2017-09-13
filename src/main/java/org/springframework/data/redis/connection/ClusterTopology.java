@@ -20,6 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.springframework.data.redis.ClusterStateFailureException;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -39,7 +40,7 @@ public class ClusterTopology {
 	 *
 	 * @param nodes can be {@literal null}.
 	 */
-	public ClusterTopology(Set<RedisClusterNode> nodes) {
+	public ClusterTopology(@Nullable Set<RedisClusterNode> nodes) {
 		this.nodes = nodes != null ? nodes : Collections.emptySet();
 	}
 
@@ -153,7 +154,7 @@ public class ClusterTopology {
 	public RedisClusterNode lookup(String host, int port) {
 
 		for (RedisClusterNode node : nodes) {
-			if (host.equals(node.getHost()) && port == node.getPort()) {
+			if (host.equals(node.getHost()) && (node.getPort() != null && port == node.getPort())) {
 				return node;
 			}
 		}
@@ -199,7 +200,7 @@ public class ClusterTopology {
 			return node;
 		}
 
-		if (StringUtils.hasText(node.getHost())) {
+		if (StringUtils.hasText(node.getHost()) && node.getPort() != null) {
 			return lookup(node.getHost(), node.getPort());
 		}
 

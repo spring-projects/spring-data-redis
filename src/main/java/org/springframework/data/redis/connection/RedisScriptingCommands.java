@@ -17,9 +17,11 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Scripting commands.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author David Liu
@@ -46,18 +48,21 @@ public interface RedisScriptingCommands {
 	 * Execute the script by calling {@link #evalSha(byte[], ReturnType, int, byte[]...)}.
 	 *
 	 * @param script must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/script-load">Redis Documentation: SCRIPT LOAD</a>
 	 */
+	@Nullable
 	String scriptLoad(byte[] script);
 
 	/**
 	 * Check if given {@code scriptShas} exist in script cache.
 	 *
 	 * @param scriptShas
-	 * @return one entry per given scriptSha in returned list.
+	 * @return one entry per given scriptSha in returned {@link List} or {@literal null} when used in pipeline /
+	 *         transaction.
 	 * @see <a href="http://redis.io/commands/script-exists">Redis Documentation: SCRIPT EXISTS</a>
 	 */
+	@Nullable
 	List<Boolean> scriptExists(String... scriptShas);
 
 	/**
@@ -67,9 +72,10 @@ public interface RedisScriptingCommands {
 	 * @param returnType must not be {@literal null}.
 	 * @param numKeys
 	 * @param keysAndArgs must not be {@literal null}.
-	 * @return
+	 * @return script result. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/eval">Redis Documentation: EVAL</a>
 	 */
+	@Nullable
 	<T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs);
 
 	/**
@@ -79,9 +85,10 @@ public interface RedisScriptingCommands {
 	 * @param returnType must not be {@literal null}.
 	 * @param numKeys
 	 * @param keysAndArgs must not be {@literal null}.
-	 * @return
+	 * @return script result. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/evalsha">Redis Documentation: EVALSHA</a>
 	 */
+	@Nullable
 	<T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs);
 
 	/**
@@ -91,9 +98,10 @@ public interface RedisScriptingCommands {
 	 * @param returnType must not be {@literal null}.
 	 * @param numKeys
 	 * @param keysAndArgs must not be {@literal null}.
-	 * @return
+	 * @return script result. {@literal null} when used in pipeline / transaction.
 	 * @since 1.5
 	 * @see <a href="http://redis.io/commands/evalsha">Redis Documentation: EVALSHA</a>
 	 */
+	@Nullable
 	<T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs);
 }

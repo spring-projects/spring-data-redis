@@ -17,6 +17,7 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.charset.Charset;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -43,11 +44,11 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 		this.charset = charset;
 	}
 
-	public String deserialize(byte[] bytes) {
+	public String deserialize(@Nullable byte[] bytes) {
 		return (bytes == null ? null : new String(bytes, charset));
 	}
 
-	public byte[] serialize(String string) {
+	public byte[] serialize(@Nullable String string) {
 		return (string == null ? null : string.getBytes(charset));
 	}
 }

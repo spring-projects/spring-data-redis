@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.lang.Nullable;
 
 /**
  * Server-specific commands supported by Redis.
@@ -30,14 +31,14 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
  */
 public interface RedisServerCommands {
 
-	public enum ShutdownOption {
+	enum ShutdownOption {
 		SAVE, NOSAVE;
 	}
 
 	/**
 	 * @since 1.7
 	 */
-	public enum MigrateOption {
+	enum MigrateOption {
 		COPY, REPLACE
 	}
 
@@ -70,9 +71,10 @@ public interface RedisServerCommands {
 	/**
 	 * Get time of last {@link #bgSave()} operation in seconds.
 	 *
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/lastsave">Redis Documentation: LASTSAVE</a>
 	 */
+	@Nullable
 	Long lastSave();
 
 	/**
@@ -85,9 +87,10 @@ public interface RedisServerCommands {
 	/**
 	 * Get the total number of available keys in currently selected database.
 	 *
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/dbsize">Redis Documentation: DBSIZE</a>
 	 */
+	@Nullable
 	Long dbSize();
 
 	/**
@@ -113,17 +116,19 @@ public interface RedisServerCommands {
 	 * </ul>
 	 * <p>
 	 *
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/info">Redis Documentation: INFO</a>
 	 */
+	@Nullable
 	Properties info();
 
 	/**
 	 * Load server information for given {@code selection}.
 	 *
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/info">Redis Documentation: INFO</a>
 	 */
+	@Nullable
 	Properties info(String section);
 
 	/**
@@ -145,16 +150,17 @@ public interface RedisServerCommands {
 	 * Load configuration parameters for given {@code pattern} from server.
 	 *
 	 * @param pattern must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/config-get">Redis Documentation: CONFIG GET</a>
 	 */
+	@Nullable
 	Properties getConfig(String pattern);
 
 	/**
 	 * Set server configuration for {@code param} to {@code value}.
 	 *
-	 * @param param
-	 * @param value
+	 * @param param must not be {@literal null}.
+	 * @param value must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/config-set">Redis Documentation: CONFIG SET</a>
 	 */
 	void setConfig(String param, String value);
@@ -170,10 +176,11 @@ public interface RedisServerCommands {
 	/**
 	 * Request server timestamp using {@code TIME} command.
 	 *
-	 * @return current server time in milliseconds.
+	 * @return current server time in milliseconds or {@literal null} when used in pipeline / transaction.
 	 * @since 1.1
 	 * @see <a href="http://redis.io/commands/time">Redis Documentation: TIME</a>
 	 */
+	@Nullable
 	Long time();
 
 	/**
@@ -199,18 +206,20 @@ public interface RedisServerCommands {
 	 * Returns the name of the current connection.
 	 *
 	 * @see <a href="http://redis.io/commands/client-getname">Redis Documentation: CLIENT GETNAME</a>
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.3
 	 */
+	@Nullable
 	String getClientName();
 
 	/**
 	 * Request information and statistics about connected clients.
 	 *
-	 * @return {@link List} of {@link RedisClientInfo} objects.
+	 * @return {@link List} of {@link RedisClientInfo} objects or {@literal null} when used in pipeline / transaction.
 	 * @since 1.3
 	 * @see <a href="http://redis.io/commands/client-list">Redis Documentation: CLIENT LIST</a>
 	 */
+	@Nullable
 	List<RedisClientInfo> getClientList();
 
 	/**
@@ -242,7 +251,7 @@ public interface RedisServerCommands {
 	 * @since 1.7
 	 * @see <a href="http://redis.io/commands/migrate">Redis Documentation: MIGRATE</a>
 	 */
-	void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option);
+	void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option);
 
 	/**
 	 * Atomically transfer a key from a source Redis instance to a destination Redis instance. On success the key is
@@ -256,5 +265,5 @@ public interface RedisServerCommands {
 	 * @since 1.7
 	 * @see <a href="http://redis.io/commands/migrate">Redis Documentation: MIGRATE</a>
 	 */
-	void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout);
+	void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout);
 }

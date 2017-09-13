@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.lang.Nullable;
 
 /**
  * Base implementation for {@link RedisCollection}. Provides a skeletal implementation. Note that the collection support
@@ -124,7 +125,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		key = newKey;
 	}
 
-	protected void checkResult(Object obj) {
+	protected void checkResult(@Nullable Object obj) {
 		if (obj == null) {
 			throw new IllegalStateException("Cannot read collection with Redis connection in pipeline/multi-exec mode");
 		}

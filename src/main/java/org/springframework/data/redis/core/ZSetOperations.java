@@ -21,6 +21,7 @@ import java.util.Set;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.lang.Nullable;
 
 /**
  * Redis ZSet/sorted set specific operations.
@@ -36,8 +37,11 @@ public interface ZSetOperations<K, V> {
 	 * Typed ZSet tuple.
 	 */
 	interface TypedTuple<V> extends Comparable<TypedTuple<V>> {
+
+		@Nullable
 		V getValue();
 
+		@Nullable
 		Double getScore();
 	}
 
@@ -47,9 +51,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param score the score.
 	 * @param value the value.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
+	@Nullable
 	Boolean add(K key, V value, double score);
 
 	/**
@@ -57,9 +62,10 @@ public interface ZSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param tuples must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
+	@Nullable
 	Long add(K key, Set<TypedTuple<V>> tuples);
 
 	/**
@@ -67,9 +73,10 @@ public interface ZSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 */
+	@Nullable
 	Long remove(K key, Object... values);
 
 	/**
@@ -78,9 +85,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param delta
 	 * @param value the value.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
 	 */
+	@Nullable
 	Double incrementScore(K key, V value, double delta);
 
 	/**
@@ -88,9 +96,10 @@ public interface ZSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param o the value.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
 	 */
+	@Nullable
 	Long rank(K key, Object o);
 
 	/**
@@ -98,9 +107,10 @@ public interface ZSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param o the value.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
 	 */
+	@Nullable
 	Long reverseRank(K key, Object o);
 
 	/**
@@ -109,9 +119,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
+	@Nullable
 	Set<V> range(K key, long start, long end);
 
 	/**
@@ -120,9 +131,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
+	@Nullable
 	Set<TypedTuple<V>> rangeWithScores(K key, long start, long end);
 
 	/**
@@ -131,9 +143,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param min
 	 * @param max
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
+	@Nullable
 	Set<V> rangeByScore(K key, double min, double max);
 
 	/**
@@ -142,9 +155,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param min
 	 * @param max
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
+	@Nullable
 	Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max);
 
 	/**
@@ -156,9 +170,10 @@ public interface ZSetOperations<K, V> {
 	 * @param max
 	 * @param offset
 	 * @param count
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
+	@Nullable
 	Set<V> rangeByScore(K key, double min, double max, long offset, long count);
 
 	/**
@@ -170,9 +185,10 @@ public interface ZSetOperations<K, V> {
 	 * @param max
 	 * @param offset
 	 * @param count
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
+	@Nullable
 	Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max, long offset, long count);
 
 	/**
@@ -181,9 +197,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
+	@Nullable
 	Set<V> reverseRange(K key, long start, long end);
 
 	/**
@@ -192,9 +209,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
+	@Nullable
 	Set<TypedTuple<V>> reverseRangeWithScores(K key, long start, long end);
 
 	/**
@@ -203,9 +221,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param min
 	 * @param max
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
+	@Nullable
 	Set<V> reverseRangeByScore(K key, double min, double max);
 
 	/**
@@ -215,9 +234,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param min
 	 * @param max
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
+	@Nullable
 	Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max);
 
 	/**
@@ -229,9 +249,10 @@ public interface ZSetOperations<K, V> {
 	 * @param max
 	 * @param offset
 	 * @param count
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
+	@Nullable
 	Set<V> reverseRangeByScore(K key, double min, double max, long offset, long count);
 
 	/**
@@ -243,9 +264,10 @@ public interface ZSetOperations<K, V> {
 	 * @param max
 	 * @param offset
 	 * @param count
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
+	@Nullable
 	Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max, long offset, long count);
 
 	/**
@@ -254,9 +276,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param min
 	 * @param max
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zcount">Redis Documentation: ZCOUNT</a>
 	 */
+	@Nullable
 	Long count(K key, double min, double max);
 
 	/**
@@ -264,19 +287,21 @@ public interface ZSetOperations<K, V> {
 	 *
 	 * @see #zCard(Object)
 	 * @param key
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
 	 */
+	@Nullable
 	Long size(K key);
 
 	/**
 	 * Get the size of sorted set with {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.3
 	 * @see <a href="http://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
 	 */
+	@Nullable
 	Long zCard(K key);
 
 	/**
@@ -284,9 +309,10 @@ public interface ZSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param o the value.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 */
+	@Nullable
 	Double score(K key, Object o);
 
 	/**
@@ -295,9 +321,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zremrangebyrank">Redis Documentation: ZREMRANGEBYRANK</a>
 	 */
+	@Nullable
 	Long removeRange(K key, long start, long end);
 
 	/**
@@ -306,9 +333,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param min
 	 * @param max
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
 	 */
+	@Nullable
 	Long removeRangeByScore(K key, double min, double max);
 
 	/**
@@ -317,9 +345,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
+	@Nullable
 	Long unionAndStore(K key, K otherKey, K destKey);
 
 	/**
@@ -328,9 +357,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
+	@Nullable
 	Long unionAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	/**
@@ -339,9 +369,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
+	@Nullable
 	Long intersectAndStore(K key, K otherKey, K destKey);
 
 	/**
@@ -350,9 +381,10 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
+	@Nullable
 	Long intersectAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	/**
@@ -361,7 +393,7 @@ public interface ZSetOperations<K, V> {
 	 *
 	 * @param key
 	 * @param options
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
 	 * @since 1.4
 	 */
@@ -373,9 +405,11 @@ public interface ZSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.7
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
+	@Nullable
 	Set<V> rangeByLex(K key, Range range);
 
 	/**
@@ -386,11 +420,15 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.7
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
+	@Nullable
 	Set<V> rangeByLex(K key, Range range, Limit limit);
 
+	/**
+	 * @return never {@literal null}.
+	 */
 	RedisOperations<K, V> getOperations();
 }

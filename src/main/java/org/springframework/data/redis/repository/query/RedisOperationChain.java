@@ -24,6 +24,8 @@ import java.util.Set;
 
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Point;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -36,7 +38,7 @@ public class RedisOperationChain {
 
 	private Set<PathAndValue> sismember = new LinkedHashSet<>();
 	private Set<PathAndValue> orSismember = new LinkedHashSet<>();
-	private NearPath near;
+	private @Nullable NearPath near;
 
 	public void sismember(String path, Object value) {
 		sismember(new PathAndValue(path, value));
@@ -67,9 +69,12 @@ public class RedisOperationChain {
 	}
 
 	public void near(NearPath near) {
+
+		Assert.notNull(near, "Near must not be null!");
 		this.near = near;
 	}
 
+	@Nullable
 	public NearPath getNear() {
 		return near;
 	}
@@ -85,7 +90,7 @@ public class RedisOperationChain {
 			this.values = Collections.singleton(singleValue);
 		}
 
-		public PathAndValue(String path, Collection<Object> values) {
+		public PathAndValue(String path, @Nullable Collection<Object> values) {
 
 			this.path = path;
 			this.values = values != null ? values : Collections.emptySet();
@@ -148,7 +153,7 @@ public class RedisOperationChain {
 	public static class NearPath extends PathAndValue {
 
 		public NearPath(String path, Point point, Distance distance) {
-			super(path, Arrays.<Object> asList(point, distance));
+			super(path, Arrays.asList(point, distance));
 		}
 
 		public Point getPoint() {

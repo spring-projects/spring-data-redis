@@ -29,6 +29,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Command
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -125,9 +126,9 @@ public interface ReactiveKeyCommands {
 	 */
 	class RenameCommand extends KeyCommand {
 
-		private ByteBuffer newName;
+		private @Nullable ByteBuffer newName;
 
-		private RenameCommand(ByteBuffer key, ByteBuffer newName) {
+		private RenameCommand(ByteBuffer key, @Nullable ByteBuffer newName) {
 
 			super(key);
 
@@ -161,8 +162,9 @@ public interface ReactiveKeyCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getNewName() {
 			return newName;
 		}
@@ -271,9 +273,9 @@ public interface ReactiveKeyCommands {
 	 */
 	class ExpireCommand extends KeyCommand {
 
-		private Duration timeout;
+		private @Nullable Duration timeout;
 
-		private ExpireCommand(ByteBuffer key, Duration timeout) {
+		private ExpireCommand(ByteBuffer key, @Nullable Duration timeout) {
 
 			super(key);
 
@@ -307,8 +309,9 @@ public interface ReactiveKeyCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public Duration getTimeout() {
 			return timeout;
 		}
@@ -375,9 +378,9 @@ public interface ReactiveKeyCommands {
 	 */
 	class ExpireAtCommand extends KeyCommand {
 
-		private Instant expireAt;
+		private @Nullable Instant expireAt;
 
-		private ExpireAtCommand(ByteBuffer key, Instant expireAt) {
+		private ExpireAtCommand(ByteBuffer key, @Nullable Instant expireAt) {
 
 			super(key);
 
@@ -411,8 +414,9 @@ public interface ReactiveKeyCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public Instant getExpireAt() {
 			return expireAt;
 		}
@@ -547,9 +551,9 @@ public interface ReactiveKeyCommands {
 	 */
 	class MoveCommand extends KeyCommand {
 
-		private Integer database;
+		private @Nullable Integer database;
 
-		private MoveCommand(ByteBuffer key, Integer database) {
+		private MoveCommand(ByteBuffer key, @Nullable Integer database) {
 
 			super(key);
 
@@ -581,8 +585,9 @@ public interface ReactiveKeyCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public Integer getDatabase() {
 			return database;
 		}

@@ -156,11 +156,11 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
 		try {
-			if (limit != null) {
-				return JedisConverters.toTupleSet(
-						connection.getCluster().zrangeByScoreWithScores(key, min, max, limit.getOffset(), limit.getCount()));
+			if (limit.isUnlimited()) {
+				return JedisConverters.toTupleSet(connection.getCluster().zrangeByScoreWithScores(key, min, max));
 			}
-			return JedisConverters.toTupleSet(connection.getCluster().zrangeByScoreWithScores(key, min, max));
+			return JedisConverters.toTupleSet(
+					connection.getCluster().zrangeByScoreWithScores(key, min, max, limit.getOffset(), limit.getCount()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -178,10 +178,10 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
 		try {
-			if (limit != null) {
-				return connection.getCluster().zrevrangeByScore(key, max, min, limit.getOffset(), limit.getCount());
+			if (limit.isUnlimited()) {
+				return connection.getCluster().zrevrangeByScore(key, max, min);
 			}
-			return connection.getCluster().zrevrangeByScore(key, max, min);
+			return connection.getCluster().zrevrangeByScore(key, max, min, limit.getOffset(), limit.getCount());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -200,11 +200,11 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
 		try {
-			if (limit != null) {
-				return JedisConverters.toTupleSet(
-						connection.getCluster().zrevrangeByScoreWithScores(key, max, min, limit.getOffset(), limit.getCount()));
+			if (limit.isUnlimited()) {
+				return JedisConverters.toTupleSet(connection.getCluster().zrevrangeByScoreWithScores(key, max, min));
 			}
-			return JedisConverters.toTupleSet(connection.getCluster().zrevrangeByScoreWithScores(key, max, min));
+			return JedisConverters.toTupleSet(
+					connection.getCluster().zrevrangeByScoreWithScores(key, max, min, limit.getOffset(), limit.getCount()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -262,10 +262,10 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
 		try {
-			if (limit != null) {
-				return connection.getCluster().zrangeByScore(key, min, max, limit.getOffset(), limit.getCount());
+			if (limit.isUnlimited()) {
+				return connection.getCluster().zrangeByScore(key, min, max);
 			}
-			return connection.getCluster().zrangeByScore(key, min, max);
+			return connection.getCluster().zrangeByScore(key, min, max, limit.getOffset(), limit.getCount());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -279,15 +279,16 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
 
 		Assert.notNull(range, "Range cannot be null for ZRANGEBYLEX.");
+		Assert.notNull(limit, "Limit must not be null!");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.toBytes("-"));
 		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.toBytes("+"));
 
 		try {
-			if (limit != null) {
-				return connection.getCluster().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount());
+			if (limit.isUnlimited()) {
+				return connection.getCluster().zrangeByLex(key, min, max);
 			}
-			return connection.getCluster().zrangeByLex(key, min, max);
+			return connection.getCluster().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,6 +39,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCo
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -57,11 +59,12 @@ public interface ReactiveStringCommands {
 	 */
 	class SetCommand extends KeyCommand {
 
-		private ByteBuffer value;
+		private @Nullable ByteBuffer value;
 		private Expiration expiration;
 		private SetOption option;
 
-		private SetCommand(ByteBuffer key, ByteBuffer value, Expiration expiration, SetOption option) {
+		private SetCommand(ByteBuffer key, @Nullable ByteBuffer value, @Nullable Expiration expiration,
+				@Nullable SetOption option) {
 
 			super(key);
 
@@ -125,6 +128,7 @@ public interface ReactiveStringCommands {
 		/**
 		 * @return
 		 */
+		@Nullable
 		public ByteBuffer getValue() {
 			return value;
 		}
@@ -358,10 +362,12 @@ public interface ReactiveStringCommands {
 			this.keyValuePairs = keyValuePairs;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
 		 */
 		@Override
+		@Nullable
 		public ByteBuffer getKey() {
 			return null;
 		}
@@ -443,9 +449,9 @@ public interface ReactiveStringCommands {
 	 */
 	class AppendCommand extends KeyCommand {
 
-		private ByteBuffer value;
+		private @Nullable ByteBuffer value;
 
-		private AppendCommand(ByteBuffer key, ByteBuffer value) {
+		private AppendCommand(ByteBuffer key, @Nullable ByteBuffer value) {
 
 			super(key);
 			this.value = value;
@@ -479,8 +485,9 @@ public interface ReactiveStringCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getValue() {
 			return value;
 		}
@@ -546,10 +553,10 @@ public interface ReactiveStringCommands {
 	 */
 	class SetRangeCommand extends KeyCommand {
 
-		private ByteBuffer value;
-		private Long offset;
+		private @Nullable ByteBuffer value;
+		private @Nullable Long offset;
 
-		private SetRangeCommand(ByteBuffer key, ByteBuffer value, Long offset) {
+		private SetRangeCommand(ByteBuffer key, @Nullable ByteBuffer value, @Nullable Long offset) {
 
 			super(key);
 			this.value = value;
@@ -593,15 +600,17 @@ public interface ReactiveStringCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getValue() {
 			return value;
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public Long getOffset() {
 			return offset;
 		}
@@ -643,9 +652,9 @@ public interface ReactiveStringCommands {
 	 */
 	class GetBitCommand extends KeyCommand {
 
-		private Long offset;
+		private @Nullable Long offset;
 
-		private GetBitCommand(ByteBuffer key, Long offset) {
+		private GetBitCommand(ByteBuffer key, @Nullable Long offset) {
 
 			super(key);
 
@@ -676,8 +685,9 @@ public interface ReactiveStringCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public Long getOffset() {
 			return offset;
 		}
@@ -715,7 +725,7 @@ public interface ReactiveStringCommands {
 	 */
 	class SetBitCommand extends KeyCommand {
 
-		private Long offset;
+		private @Nullable Long offset;
 		private boolean value;
 
 		private SetBitCommand(ByteBuffer key, Long offset, boolean value) {
@@ -760,14 +770,15 @@ public interface ReactiveStringCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public Long getOffset() {
 			return offset;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public boolean getValue() {
 			return value;
@@ -825,7 +836,7 @@ public interface ReactiveStringCommands {
 
 			Assert.notNull(key, "Key must not be null!");
 
-			return new BitCountCommand(key, null);
+			return new BitCountCommand(key, Range.unbounded());
 		}
 
 		/**
@@ -901,9 +912,9 @@ public interface ReactiveStringCommands {
 
 		private List<ByteBuffer> keys;
 		private BitOperation bitOp;
-		private ByteBuffer destinationKey;
+		private @Nullable ByteBuffer destinationKey;
 
-		private BitOpCommand(List<ByteBuffer> keys, BitOperation bitOp, ByteBuffer destinationKey) {
+		private BitOpCommand(List<ByteBuffer> keys, BitOperation bitOp, @Nullable ByteBuffer destinationKey) {
 
 			this.keys = keys;
 			this.bitOp = bitOp;
@@ -920,7 +931,7 @@ public interface ReactiveStringCommands {
 
 			Assert.notNull(bitOp, "BitOperation must not be null!");
 
-			return new BitOpCommand(null, bitOp, null);
+			return new BitOpCommand(Collections.emptyList(), bitOp, null);
 		}
 
 		/**
@@ -952,22 +963,23 @@ public interface ReactiveStringCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public BitOperation getBitOp() {
 			return bitOp;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public List<ByteBuffer> getKeys() {
 			return keys;
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getDestinationKey() {
 			return destinationKey;
 		}

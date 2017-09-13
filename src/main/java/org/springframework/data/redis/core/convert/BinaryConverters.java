@@ -25,6 +25,7 @@ import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.util.NumberUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Set of {@link ReadingConverter} and {@link WritingConverter} used to convert Objects into binary format.
@@ -49,11 +50,6 @@ final class BinaryConverters {
 	static class StringBasedConverter {
 
 		byte[] fromString(String source) {
-
-			if (source == null) {
-				return new byte[] {};
-			}
-
 			return source.getBytes(CHARSET);
 		}
 
@@ -98,11 +94,6 @@ final class BinaryConverters {
 
 		@Override
 		public byte[] convert(Number source) {
-
-			if (source == null) {
-				return new byte[] {};
-			}
-
 			return fromString(source.toString());
 		}
 	}
@@ -117,11 +108,6 @@ final class BinaryConverters {
 
 		@Override
 		public byte[] convert(Enum<?> source) {
-
-			if (source == null) {
-				return new byte[] {};
-			}
-
 			return fromString(source.name());
 		}
 	}
@@ -162,12 +148,11 @@ final class BinaryConverters {
 			@Override
 			public T convert(byte[] source) {
 
-				String value = toString(source);
-
-				if (value == null || value.length() == 0) {
+				if (ObjectUtils.isEmpty(source)) {
 					return null;
 				}
-				return Enum.valueOf(this.enumType, value.trim());
+
+				return Enum.valueOf(this.enumType, toString(source).trim());
 			}
 		}
 	}
@@ -196,7 +181,7 @@ final class BinaryConverters {
 			@Override
 			public T convert(byte[] source) {
 
-				if (source == null || source.length == 0) {
+				if (ObjectUtils.isEmpty(source)) {
 					return null;
 				}
 
@@ -217,11 +202,6 @@ final class BinaryConverters {
 
 		@Override
 		public byte[] convert(Boolean source) {
-
-			if (source == null) {
-				return new byte[] {};
-			}
-
 			return source.booleanValue() ? _true : _false;
 		}
 	}
@@ -236,7 +216,7 @@ final class BinaryConverters {
 		@Override
 		public Boolean convert(byte[] source) {
 
-			if (source == null || source.length == 0) {
+			if (ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
@@ -254,11 +234,6 @@ final class BinaryConverters {
 
 		@Override
 		public byte[] convert(Date source) {
-
-			if (source == null) {
-				return new byte[] {};
-			}
-
 			return fromString(Long.toString(source.getTime()));
 		}
 	}
@@ -273,7 +248,7 @@ final class BinaryConverters {
 		@Override
 		public Date convert(byte[] source) {
 
-			if (source == null || source.length == 0) {
+			if (ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 

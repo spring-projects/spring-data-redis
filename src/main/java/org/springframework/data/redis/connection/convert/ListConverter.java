@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.core.convert.converter.Converter;
  *
  * @author Jennifer Hickey
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @param <S> The type of elements in the List to convert
  * @param <T> The type of elements in the converted List
  */
@@ -39,11 +40,12 @@ public class ListConverter<S, T> implements Converter<List<S>, List<T>> {
 		this.itemConverter = itemConverter;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
+	 */
+	@Override
 	public List<T> convert(List<S> source) {
-
-		if (source == null) {
-			return null;
-		}
 
 		List<T> results = new ArrayList<>();
 		for (S result : source) {

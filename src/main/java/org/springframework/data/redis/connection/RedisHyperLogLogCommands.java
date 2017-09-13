@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.springframework.lang.Nullable;
+
 /**
  * {@literal HyperLogLog} specific commands supported by Redis.
  * 
@@ -29,18 +31,20 @@ public interface RedisHyperLogLogCommands {
 	 * 
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
 	 */
+	@Nullable
 	Long pfAdd(byte[] key, byte[]... values);
 
 	/**
 	 * Return the approximated cardinality of the structures observed by the HyperLogLog at {@literal key(s)}.
 	 * 
 	 * @param keys must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
 	 */
+	@Nullable
 	Long pfCount(byte[]... keys);
 
 	/**

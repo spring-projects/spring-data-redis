@@ -18,13 +18,16 @@ package org.springframework.data.redis.connection.convert;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.util.Assert;
 
 /**
  * Converts a Set of values of one type to a Set of values of another type
  *
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  * @param <S> The type of elements in the Set to convert
  * @param <T> The type of elements in the converted Set
  */
@@ -33,31 +36,23 @@ public class SetConverter<S, T> implements Converter<Set<S>, Set<T>> {
 	private Converter<S, T> itemConverter;
 
 	/**
-	 * @param itemConverter The {@link Converter} to use for converting individual Set items
+	 * @param itemConverter The {@link Converter} to use for converting individual Set items. Must not be {@literal null}.
 	 */
 	public SetConverter(Converter<S, T> itemConverter) {
+
+		Assert.notNull(itemConverter, "ItemConverter must not be null!");
 		this.itemConverter = itemConverter;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
+	 */
+	@Override
 	public Set<T> convert(Set<S> source) {
 
-		if (source == null) {
-			return null;
-		}
-
-		Set<T> results;
-
-		if (source instanceof LinkedHashSet) {
-			results = new LinkedHashSet<>();
-		} else {
-			results = new HashSet<>();
-		}
-
-		for (S result : source) {
-			results.add(itemConverter.convert(result));
-		}
-
-		return results;
+		return source.stream().map(itemConverter::convert)
+				.collect(Collectors.toCollection(source instanceof LinkedHashSet ? LinkedHashSet::new : HashSet::new));
 	}
 
 }

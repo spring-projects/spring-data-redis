@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,14 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Represents a data type returned from Redis, currently used to denote the expected return type of Redis scripting
  * commands
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 public enum ReturnType {
 
@@ -50,7 +53,12 @@ public enum ReturnType {
 	 */
 	VALUE;
 
-	public static ReturnType fromJavaType(Class<?> javaType) {
+	/**
+	 * @param javaType can be {@literal null} which translates to {@link ReturnType#STATUS}.
+	 * @return never {@literal null}.
+	 */
+	public static ReturnType fromJavaType(@Nullable Class<?> javaType) {
+
 		if (javaType == null) {
 			return ReturnType.STATUS;
 		}

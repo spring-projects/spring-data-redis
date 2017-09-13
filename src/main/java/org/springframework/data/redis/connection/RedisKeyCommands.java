@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 
 /**
  * Key-specific commands supported by Redis.
@@ -35,43 +36,47 @@ public interface RedisKeyCommands {
 	 * Determine if given {@code key} exists.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal true} if key exists. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
+	@Nullable
 	Boolean exists(byte[] key);
 
 	/**
 	 * Delete given {@code keys}.
 	 *
 	 * @param keys must not be {@literal null}.
-	 * @return The number of keys that were removed.
+	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
+	@Nullable
 	Long del(byte[]... keys);
 
 	/**
 	 * Determine the type stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/type">Redis Documentation: TYPE</a>
 	 */
+	@Nullable
 	DataType type(byte[] key);
 
 	/**
 	 * Find all keys matching the given {@code pattern}.
 	 *
 	 * @param pattern must not be {@literal null}.
-	 * @return
+	 * @return empty {@link Set} if no match found. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
 	 */
+	@Nullable
 	Set<byte[]> keys(byte[] pattern);
 
 	/**
 	 * Use a {@link Cursor} to iterate over keys.
 	 *
 	 * @param options must not be {@literal null}.
-	 * @return
+	 * @return never {@literal null}.
 	 * @since 1.4
 	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 */
@@ -80,9 +85,10 @@ public interface RedisKeyCommands {
 	/**
 	 * Return a random key from the keyspace.
 	 *
-	 * @return
+	 * @return {@literal null} if no keys available or when used in pipeline or transaction.
 	 * @see <a href="http://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
 	 */
+	@Nullable
 	byte[] randomKey();
 
 	/**
@@ -99,9 +105,10 @@ public interface RedisKeyCommands {
 	 *
 	 * @param oldName must not be {@literal null}.
 	 * @param newName must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
+	@Nullable
 	Boolean renameNX(byte[] oldName, byte[] newName);
 
 	/**
@@ -109,9 +116,10 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param seconds
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 */
+	@Nullable
 	Boolean expire(byte[] key, long seconds);
 
 	/**
@@ -119,9 +127,10 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param millis
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 */
+	@Nullable
 	Boolean pExpire(byte[] key, long millis);
 
 	/**
@@ -129,9 +138,10 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param unixTime
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
 	 */
+	@Nullable
 	Boolean expireAt(byte[] key, long unixTime);
 
 	/**
@@ -139,18 +149,20 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param unixTimeInMillis
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
 	 */
+	@Nullable
 	Boolean pExpireAt(byte[] key, long unixTimeInMillis);
 
 	/**
 	 * Remove the expiration from given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 */
+	@Nullable
 	Boolean persist(byte[] key);
 
 	/**
@@ -158,18 +170,20 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param dbIndex
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 */
+	@Nullable
 	Boolean move(byte[] key, int dbIndex);
 
 	/**
 	 * Get the time to live for {@code key} in seconds.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
 	 */
+	@Nullable
 	Long ttl(byte[] key);
 
 	/**
@@ -177,19 +191,21 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeUnit must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.8
 	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
 	 */
+	@Nullable
 	Long ttl(byte[] key, TimeUnit timeUnit);
 
 	/**
 	 * Get the precise time to live for {@code key} in milliseconds.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/pttl">Redis Documentation: PTTL</a>
 	 */
+	@Nullable
 	Long pTtl(byte[] key);
 
 	/**
@@ -197,10 +213,11 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeUnit must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.8
 	 * @see <a href="http://redis.io/commands/pttl">Redis Documentation: PTTL</a>
 	 */
+	@Nullable
 	Long pTtl(byte[] key, TimeUnit timeUnit);
 
 	/**
@@ -208,9 +225,10 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param params must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
+	@Nullable
 	List<byte[]> sort(byte[] key, SortParameters params);
 
 	/**
@@ -219,18 +237,20 @@ public interface RedisKeyCommands {
 	 * @param key must not be {@literal null}.
 	 * @param params must not be {@literal null}.
 	 * @param storeKey must not be {@literal null}.
-	 * @return number of values.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
+	@Nullable
 	Long sort(byte[] key, SortParameters params, byte[] storeKey);
 
 	/**
 	 * Retrieve serialized version of the value stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/dump">Redis Documentation: DUMP</a>
 	 */
+	@Nullable
 	byte[] dump(byte[] key);
 
 	/**

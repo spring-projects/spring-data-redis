@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Hash operations bound to a certain key.
  *
@@ -34,32 +36,36 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * Delete given hash {@code keys} at the bound key.
 	 *
 	 * @param keys must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Long delete(Object... keys);
 
 	/**
 	 * Determine if given hash {@code key} exists at the bound key.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Boolean hasKey(Object key);
 
 	/**
 	 * Get value for given {@code key} from the hash at the bound key.
 	 *
-	 * @param key must not be {@literal null}.
-	 * @return
+	 * @param member must not be {@literal null}.
+	 * @return {@literal null} when member does not exist or when used in pipeline / transaction.
 	 */
-	HV get(Object key);
+	@Nullable
+	HV get(Object member);
 
 	/**
 	 * Get values for given {@code keys} from the hash at the bound key.
 	 *
 	 * @param keys must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	List<HV> multiGet(Collection<HK> keys);
 
 	/**
@@ -67,8 +73,9 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param delta
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Long increment(HK key, long delta);
 
 	/**
@@ -76,22 +83,25 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param delta
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Double increment(HK key, double delta);
 
 	/**
 	 * Get key set (fields) of hash at the bound key.
 	 *
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Set<HK> keys();
 
 	/**
 	 * Get size of hash at the bound key.
 	 *
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Long size();
 
 	/**
@@ -114,22 +124,25 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Boolean putIfAbsent(HK key, HV value);
 
 	/**
 	 * Get entry set (values) of hash at the bound key.
 	 *
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	List<HV> values();
 
 	/**
 	 * Get entire hash at the bound key.
 	 *
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Map<HK, HV> entries();
 
 	/**
@@ -142,7 +155,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	Cursor<Map.Entry<HK, HV>> scan(ScanOptions options);
 
 	/**
-	 * @return
+	 * @return never {@literal null}.
 	 */
 	RedisOperations<H, ?> getOperations();
 }

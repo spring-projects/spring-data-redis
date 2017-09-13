@@ -17,6 +17,8 @@ package org.springframework.data.redis.support.collections;
 
 import java.util.Iterator;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Iterator extension for Redis collection removal.
  * 
@@ -26,7 +28,7 @@ abstract class RedisIterator<E> implements Iterator<E> {
 
 	private final Iterator<E> delegate;
 
-	private E item;
+	private @Nullable E item;
 
 	/**
 	 * Constructs a new <code>RedisIterator</code> instance.

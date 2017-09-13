@@ -2,6 +2,8 @@ package org.springframework.data.redis.connection.util;
 
 import java.util.Arrays;
 
+import org.springframework.lang.Nullable;
+
 /**
  * A very fast and memory efficient class to encode and decode to and from BASE64 in full accordance with RFC 2045.<br>
  * <br>
@@ -12,7 +14,8 @@ import java.util.Arrays;
  * On byte arrays the encoder is about 20% faster than Jakarta Commons Base64 Codec for encode and about 50% faster for
  * decoding large arrays. This implementation is about twice as fast on very small arrays (&lt 30 bytes). If
  * source/destination is a <code>String</code> this version is about three times as fast due to the fact that the
- * Commons Codec result has to be recoded to a <code>String</code> from <code>byte[]</code>, which is very expensive.<br>
+ * Commons Codec result has to be recoded to a <code>String</code> from <code>byte[]</code>, which is very
+ * expensive.<br>
  * <br>
  * This encode/decode algorithm doesn't create any temporary arrays as many other codecs do, it only allocates the
  * resulting array. This produces less garbage and it is possible to handle arrays twice as large as algorithms that
@@ -76,7 +79,7 @@ class Base64 {
 	 *          faster.
 	 * @return A BASE64 encoded array. Never <code>null</code>.
 	 */
-	public final static char[] encodeToChar(byte[] sArr, boolean lineSep) {
+	public final static char[] encodeToChar(@Nullable byte[] sArr, boolean lineSep) {
 		// Check special case
 		int sLen = sArr != null ? sArr.length : 0;
 		if (sLen == 0)
@@ -129,7 +132,8 @@ class Base64 {
 	 * @return The decoded array of bytes. May be of length 0. Will be <code>null</code> if the legal characters
 	 *         (including '=') isn't divideable by 4. (I.e. definitely corrupted).
 	 */
-	public final static byte[] decode(char[] sArr) {
+	@Nullable
+	public final static byte[] decode(@Nullable char[] sArr) {
 		// Check special case
 		int sLen = sArr != null ? sArr.length : 0;
 		if (sLen == 0)
@@ -256,7 +260,7 @@ class Base64 {
 	 *          faster.
 	 * @return A BASE64 encoded array. Never <code>null</code>.
 	 */
-	public final static byte[] encodeToByte(byte[] sArr, boolean lineSep) {
+	public final static byte[] encodeToByte(@Nullable byte[] sArr, boolean lineSep) {
 		// Check special case
 		int sLen = sArr != null ? sArr.length : 0;
 		if (sLen == 0)
@@ -309,6 +313,7 @@ class Base64 {
 	 * @return The decoded array of bytes. May be of length 0. Will be <code>null</code> if the legal characters
 	 *         (including '=') isn't divideable by 4. (I.e. definitely corrupted).
 	 */
+	@Nullable
 	public final static byte[] decode(byte[] sArr) {
 		// Check special case
 		int sLen = sArr.length;
@@ -451,7 +456,8 @@ class Base64 {
 	 * @return The decoded array of bytes. May be of length 0. Will be <code>null</code> if the legal characters
 	 *         (including '=') isn't divideable by 4. (I.e. definitely corrupted).
 	 */
-	public final static byte[] decode(String str) {
+	@Nullable
+	public final static byte[] decode(@Nullable String str) {
 		// Check special case
 		int sLen = str != null ? str.length() : 0;
 		if (sLen == 0)

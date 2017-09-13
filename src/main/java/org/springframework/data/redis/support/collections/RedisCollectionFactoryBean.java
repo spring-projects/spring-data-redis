@@ -20,6 +20,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -72,11 +73,11 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 		abstract DataType dataType();
 	}
 
-	private RedisStore store;
-	private CollectionType type = null;
-	private RedisTemplate<String, ?> template;
-	private String key;
-	private String beanName;
+	private @Nullable RedisStore store;
+	private @Nullable CollectionType type = null;
+	private @Nullable RedisTemplate<String, ?> template;
+	private @Nullable String key;
+	private @Nullable String beanName;
 
 	public void afterPropertiesSet() {
 		if (!StringUtils.hasText(key)) {

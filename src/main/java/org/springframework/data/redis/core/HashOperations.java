@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Redis map specific operations working on a hash.
  *
@@ -34,7 +36,7 @@ public interface HashOperations<H, HK, HV> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	Long delete(H key, Object... hashKeys);
 
@@ -43,7 +45,7 @@ public interface HashOperations<H, HK, HV> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKey must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	Boolean hasKey(H key, Object hashKey);
 
@@ -52,8 +54,9 @@ public interface HashOperations<H, HK, HV> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKey must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when key or hashKey does not exist or used in pipeline / transaction.
 	 */
+	@Nullable
 	HV get(H key, Object hashKey);
 
 	/**
@@ -61,7 +64,7 @@ public interface HashOperations<H, HK, HV> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	List<HV> multiGet(H key, Collection<HK> hashKeys);
 
@@ -71,7 +74,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @param key must not be {@literal null}.
 	 * @param hashKey must not be {@literal null}.
 	 * @param delta
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	Long increment(H key, HK hashKey, long delta);
 
@@ -81,7 +84,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @param key must not be {@literal null}.
 	 * @param hashKey must not be {@literal null}.
 	 * @param delta
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	Double increment(H key, HK hashKey, double delta);
 
@@ -89,7 +92,7 @@ public interface HashOperations<H, HK, HV> {
 	 * Get key set (fields) of hash at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	Set<HK> keys(H key);
 
@@ -97,7 +100,7 @@ public interface HashOperations<H, HK, HV> {
 	 * Get size of hash at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	Long size(H key);
 
@@ -124,7 +127,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @param key must not be {@literal null}.
 	 * @param hashKey must not be {@literal null}.
 	 * @param value
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	Boolean putIfAbsent(H key, HK hashKey, HV value);
 
@@ -132,7 +135,7 @@ public interface HashOperations<H, HK, HV> {
 	 * Get entry set (values) of hash at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	List<HV> values(H key);
 
@@ -140,7 +143,7 @@ public interface HashOperations<H, HK, HV> {
 	 * Get entire hash stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	Map<HK, HV> entries(H key);
 
@@ -150,13 +153,13 @@ public interface HashOperations<H, HK, HV> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param options
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.4
 	 */
 	Cursor<Map.Entry<HK, HV>> scan(H key, ScanOptions options);
 
 	/**
-	 * @return
+	 * @return never {@literal null}.
 	 */
 	RedisOperations<H, ?> getOperations();
 }

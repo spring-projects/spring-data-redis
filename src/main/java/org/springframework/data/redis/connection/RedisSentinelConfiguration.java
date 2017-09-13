@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -45,7 +46,7 @@ public class RedisSentinelConfiguration {
 	private static final String REDIS_SENTINEL_MASTER_CONFIG_PROPERTY = "spring.redis.sentinel.master";
 	private static final String REDIS_SENTINEL_NODES_CONFIG_PROPERTY = "spring.redis.sentinel.nodes";
 
-	private NamedNode master;
+	private @Nullable NamedNode master;
 	private Set<RedisNode> sentinels;
 	private int database;
 	private RedisPassword password = RedisPassword.none();
@@ -162,8 +163,9 @@ public class RedisSentinelConfiguration {
 	/**
 	 * Get the {@literal Sentinel} master node.
 	 *
-	 * @return get the master node.
+	 * @return get the master node or {@literal null} if not set.
 	 */
+	@Nullable
 	public NamedNode getMaster() {
 		return master;
 	}

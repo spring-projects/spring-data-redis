@@ -17,6 +17,8 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 
+import org.springframework.lang.Nullable;
+
 /**
  * List-specific commands supported by Redis.
  * 
@@ -29,7 +31,7 @@ public interface RedisListCommands {
 	/**
 	 * List insertion position.
 	 */
-	public enum Position {
+	enum Position {
 		BEFORE, AFTER
 	}
 
@@ -37,49 +39,54 @@ public interface RedisListCommands {
 	 * Append {@code values} to {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param values
-	 * @return
+	 * @param values must not be empty.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
+	@Nullable
 	Long rPush(byte[] key, byte[]... values);
 
 	/**
 	 * Prepend {@code values} to {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param values
-	 * @return
+	 * @param values must not be empty.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
+	@Nullable
 	Long lPush(byte[] key, byte[]... values);
 
 	/**
 	 * Append {@code values} to {@code key} only if the list exists.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
-	 * @return
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
 	 */
+	@Nullable
 	Long rPushX(byte[] key, byte[] value);
 
 	/**
 	 * Prepend {@code values} to {@code key} only if the list exists.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
-	 * @return
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
 	 */
+	@Nullable
 	Long lPushX(byte[] key, byte[] value);
 
 	/**
 	 * Get the size of list stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/llen">Redis Documentation: LLEN</a>
 	 */
+	@Nullable
 	Long lLen(byte[] key);
 
 	/**
@@ -88,9 +95,11 @@ public interface RedisListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @return
+	 * @return empty {@link List} if key does not exists or range does not contain values. {@literal null} when used in
+	 *         pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
+	@Nullable
 	List<byte[]> lRange(byte[] key, long start, long end);
 
 	/**
@@ -107,10 +116,11 @@ public interface RedisListCommands {
 	 * Get element at {@code index} form list at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param index
-	 * @return
+	 * @param index zero based index value. Use negative number to designate elements starting at the tail.
+	 * @return {@literal null} when index is out of range or when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 */
+	@Nullable
 	byte[] lIndex(byte[] key, long index);
 
 	/**
@@ -118,11 +128,12 @@ public interface RedisListCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param where must not be {@literal null}.
-	 * @param pivot
-	 * @param value
-	 * @return
+	 * @param pivot must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
+	@Nullable
 	Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value);
 
 	/**
@@ -141,51 +152,58 @@ public interface RedisListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param count
 	 * @param value
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
+	@Nullable
 	Long lRem(byte[] key, long count, byte[] value);
 
 	/**
 	 * Removes and returns first element in list stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 */
+	@Nullable
 	byte[] lPop(byte[] key);
 
 	/**
 	 * Removes and returns last element in list stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 */
+	@Nullable
 	byte[] rPop(byte[] key);
 
 	/**
 	 * Removes and returns first element from lists stored at {@code keys}. <br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
-	 * @param timeout
+	 * @param timeout seconds to block.
 	 * @param keys must not be {@literal null}.
-	 * @return
+	 * @return empty {@link List} when no element could be popped and the timeout was reached. {@literal null} when used
+	 *         in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 * @see #lPop(byte[])
 	 */
+	@Nullable
 	List<byte[]> bLPop(int timeout, byte[]... keys);
 
 	/**
 	 * Removes and returns last element from lists stored at {@code keys}. <br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
-	 * @param timeout
+	 * @param timeout seconds to block.
 	 * @param keys must not be {@literal null}.
-	 * @return
+	 * @return empty {@link List} when no element could be popped and the timeout was reached. {@literal null} when used
+	 *         in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 * @see #rPop(byte[])
 	 */
+	@Nullable
 	List<byte[]> bRPop(int timeout, byte[]... keys);
 
 	/**
@@ -193,22 +211,23 @@ public interface RedisListCommands {
 	 *
 	 * @param srcKey must not be {@literal null}.
 	 * @param dstKey must not be {@literal null}.
-	 * @return
+	 * @return can be {@literal null}.
 	 * @see <a href="http://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
 	 */
+	@Nullable
 	byte[] rPopLPush(byte[] srcKey, byte[] dstKey);
 
 	/**
-	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value.
-	 * <br>
+	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value. <br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
-	 * @param timeout
+	 * @param timeout seconds to block.
 	 * @param srcKey must not be {@literal null}.
 	 * @param dstKey must not be {@literal null}.
-	 * @return
+	 * @return can be {@literal null}.
 	 * @see <a href="http://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 * @see #rPopLPush(byte[], byte[])
 	 */
+	@Nullable
 	byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey);
 }

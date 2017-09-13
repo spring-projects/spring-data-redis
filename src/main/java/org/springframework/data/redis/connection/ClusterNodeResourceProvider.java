@@ -28,7 +28,8 @@ public interface ClusterNodeResourceProvider {
 	 * Get the client resource for the given node.
 	 * 
 	 * @param node must not be {@literal null}.
-	 * @return
+	 * @return never {@literal null}.
+	 * @throws org.springframework.dao.DataAccessResourceFailureException if node is not known to the cluster.
 	 */
 	<S> S getResourceForSpecificNode(RedisClusterNode node);
 

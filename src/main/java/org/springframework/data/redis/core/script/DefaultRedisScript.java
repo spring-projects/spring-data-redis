@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
+import org.springframework.lang.Nullable;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.scripting.support.StaticScriptSource;
@@ -36,9 +37,9 @@ import org.springframework.util.Assert;
  */
 public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 
-	private ScriptSource scriptSource;
-	private String sha1;
-	private Class<T> resultType;
+	private @Nullable ScriptSource scriptSource;
+	private @Nullable String sha1;
+	private @Nullable Class<T> resultType;
 	private final Object shaModifiedMonitor = new Object();
 
 	/**
@@ -96,6 +97,7 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.script.RedisScript#getResultType()
 	 */
+	@Nullable
 	public Class<T> getResultType() {
 		return this.resultType;
 	}

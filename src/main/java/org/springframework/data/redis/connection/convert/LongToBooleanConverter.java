@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,17 @@ import org.springframework.core.convert.converter.Converter;
  * Converts Longs to Booleans
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 public class LongToBooleanConverter implements Converter<Long, Boolean> {
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
+	 */
+	@Override
 	public Boolean convert(Long result) {
-		return result != null ? result == 1 : null;
+		return result == 1;
 	}
 
 }

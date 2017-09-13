@@ -36,6 +36,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
@@ -45,6 +46,7 @@ import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKey
 import org.springframework.data.redis.connection.ClusterCommandExecutor.NodeResult;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -608,7 +610,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	static class LettuceClusterNodeResourceProvider implements ClusterNodeResourceProvider, DisposableBean {
 
 		private final LettuceConnectionProvider connectionProvider;
-		private volatile StatefulRedisClusterConnection<byte[], byte[]> connection;
+		private volatile @Nullable StatefulRedisClusterConnection<byte[], byte[]> connection;
 
 		@Override
 		@SuppressWarnings("unchecked")
@@ -627,12 +629,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 			try {
 				return connection.getConnection(node.getHost(), node.getPort()).sync();
 			} catch (RedisException e) {
-
-				// unwrap cause when cluster node not known in cluster
-				if (e.getCause() instanceof IllegalArgumentException) {
-					throw (IllegalArgumentException) e.getCause();
-				}
-				throw e;
+				throw new DataAccessResourceFailureException(e.getMessage(), e);
 			}
 		}
 

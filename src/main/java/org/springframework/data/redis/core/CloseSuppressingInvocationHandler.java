@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.lang.Nullable;
 
 /**
  * Invocation handler that suppresses close calls on {@link RedisConnection}.
  * 
  * @see RedisConnection#close()
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 class CloseSuppressingInvocationHandler implements InvocationHandler {
 
@@ -39,6 +41,8 @@ class CloseSuppressingInvocationHandler implements InvocationHandler {
 		this.target = target;
 	}
 
+	@Override
+	@Nullable
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
 		if (method.getName().equals(EQUALS)) {

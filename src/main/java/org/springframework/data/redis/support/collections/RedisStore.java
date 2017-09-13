@@ -29,7 +29,7 @@ public interface RedisStore extends BoundKeyOperations<String> {
 	/**
 	 * Returns the underlying Redis operations used by the backing implementation.
 	 * 
-	 * @return operations
+	 * @return operations never {@literal null}.
 	 */
 	RedisOperations<String, ?> getOperations();
 }

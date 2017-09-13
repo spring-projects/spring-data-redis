@@ -19,6 +19,7 @@ import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
+import org.springframework.lang.Nullable;
 
 /**
  * Redis specific {@link PersistentEntity}.
@@ -48,6 +49,7 @@ public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T, Re
 	 * @return can be {@null}.
 	 * @since 1.8
 	 */
+	@Nullable
 	RedisPersistentProperty getExplicitTimeToLiveProperty();
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package org.springframework.data.redis.connection;
 
 import java.util.Set;
 
+import org.springframework.lang.Nullable;
+
 /**
  * {@link RedisClusterConnection} allows sending commands to dedicated nodes within the cluster. A
  * {@link RedisClusterNode} can be obtained from {@link #clusterGetNodes()} or it can be constructed using either
@@ -31,24 +33,27 @@ public interface RedisClusterConnection extends RedisConnection, RedisClusterCom
 
 	/**
 	 * @param node must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see RedisConnectionCommands#ping()
 	 */
+	@Nullable
 	String ping(RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @param pattern must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see RedisKeyCommands#keys(byte[])
 	 */
+	@Nullable
 	Set<byte[]> keys(RedisClusterNode node, byte[] pattern);
 
 	/**
 	 * @param node must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when no keys stored at node or when used in pipeline / transaction.
 	 * @see RedisKeyCommands#randomKey()
 	 */
+	@Nullable
 	byte[] randomKey(RedisClusterNode node);
 
 	/**

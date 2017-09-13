@@ -229,7 +229,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
 
-			boolean isLimited = command.getLimit().isPresent();
+			boolean isLimited = command.getLimit().isPresent() && !command.getLimit().get().isUnlimited();
 
 			Publisher<Tuple> result;
 
@@ -445,7 +445,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 			Flux<ByteBuffer> result;
 
-			if (command.getLimit() != null) {
+			if (!command.getLimit().isUnlimited()) {
 
 				if (ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)) {
 					result = cmd.zrangebylex(command.getKey(), ArgumentConverters.toRange(command.getRange()),

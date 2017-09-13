@@ -31,6 +31,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.PoolException;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -46,16 +47,16 @@ import org.springframework.util.StringUtils;
 public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	@SuppressWarnings("rawtypes") //
-	private GenericObjectPool<StatefulConnection<byte[], byte[]>> internalPool;
-	private RedisClient client;
+	private @Nullable GenericObjectPool<StatefulConnection<byte[], byte[]>> internalPool;
+	private @Nullable RedisClient client;
 	private int dbIndex = 0;
 	private GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 	private String hostName = "localhost";
 	private int port = 6379;
-	private String password;
+	private @Nullable String password;
 	private long timeout = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
-	private RedisSentinelConfiguration sentinelConfiguration;
-	private ClientResources clientResources;
+	private @Nullable RedisSentinelConfiguration sentinelConfiguration;
+	private @Nullable ClientResources clientResources;
 
 	/**
 	 * Constructs a new <code>DefaultLettucePool</code> instance with default settings.
@@ -128,8 +129,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	private RedisURI getRedisURI() {
 
 		RedisURI redisUri = isRedisSentinelAware()
-				? LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration)
-				: createSimpleHostRedisURI();
+				? LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration) : createSimpleHostRedisURI();
 
 		if (StringUtils.hasText(password)) {
 			redisUri.setPassword(password);
@@ -202,6 +202,8 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	/**
 	 * @return The Redis client
 	 */
+	@Override
+	@Nullable
 	public RedisClient getClient() {
 		return client;
 	}
@@ -244,6 +246,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	 *
 	 * @return password for authentication
 	 */
+	@Nullable
 	public String getPassword() {
 		return password;
 	}
@@ -317,6 +320,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	 * @return {@literal null} if not set.
 	 * @since 1.7
 	 */
+	@Nullable
 	public ClientResources getClientResources() {
 		return clientResources;
 	}

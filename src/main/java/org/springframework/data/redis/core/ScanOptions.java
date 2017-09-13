@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -28,8 +29,8 @@ public class ScanOptions {
 
 	public static ScanOptions NONE = new ScanOptions();
 
-	private Long count;
-	private String pattern;
+	private @Nullable Long count;
+	private @Nullable String pattern;
 
 	private ScanOptions() {}
 
@@ -42,10 +43,12 @@ public class ScanOptions {
 		return new ScanOptionsBuilder();
 	}
 
+	@Nullable
 	public Long getCount() {
 		return count;
 	}
 
+	@Nullable
 	public String getPattern() {
 		return pattern;
 	}

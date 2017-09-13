@@ -78,7 +78,7 @@ public class ClusterCommandExecutorUnitTests {
 	static final RedisClusterNode CLUSTER_NODE_2_LOOKUP = RedisClusterNode.newRedisClusterNode()
 			.withId("0f2ee5df45d18c50aca07228cc18b1da96fd5e84").build();
 
-	static final RedisClusterNode UNKNOWN_CLUSTER_NODE = new RedisClusterNode("8.8.8.8", 7379, null);
+	static final RedisClusterNode UNKNOWN_CLUSTER_NODE = new RedisClusterNode("8.8.8.8", 7379, SlotRange.empty());
 
 	private ClusterCommandExecutor executor;
 

@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -198,9 +199,6 @@ public class Bucket {
 	public static Bucket newBucketFromRawMap(Map<byte[], byte[]> source) {
 
 		Bucket bucket = new Bucket();
-		if (source == null) {
-			return bucket;
-		}
 
 		for (Map.Entry<byte[], byte[]> entry : source.entrySet()) {
 			bucket.put(new String(entry.getKey(), CHARSET), entry.getValue());
@@ -217,13 +215,10 @@ public class Bucket {
 	public static Bucket newBucketFromStringMap(Map<String, String> source) {
 
 		Bucket bucket = new Bucket();
-		if (source == null) {
-			return bucket;
-		}
 
 		for (Map.Entry<String, String> entry : source.entrySet()) {
-			bucket.put(entry.getKey(), StringUtils.hasText(entry.getValue()) ? entry.getValue().getBytes(CHARSET)
-					: new byte[] {});
+			bucket.put(entry.getKey(),
+					StringUtils.hasText(entry.getValue()) ? entry.getValue().getBytes(CHARSET) : new byte[] {});
 		}
 		return bucket;
 	}
@@ -251,6 +246,7 @@ public class Bucket {
 
 	}
 
+	@Nullable
 	private String toUtf8String(byte[] raw) {
 
 		try {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,30 @@
 package org.springframework.data.redis.connection;
 
 import org.springframework.core.NestedRuntimeException;
+import org.springframework.lang.Nullable;
 
 /**
  * Exception thrown when there are issues with a resource pool
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 @SuppressWarnings("serial")
 public class PoolException extends NestedRuntimeException {
+
 	/**
 	 * Constructs a new <code>PoolException</code> instance.
-	 * 
+	 *
 	 * @param msg
 	 * @param cause
 	 */
-	public PoolException(String msg, Throwable cause) {
+	public PoolException(@Nullable String msg, @Nullable Throwable cause) {
 		super(msg, cause);
 	}
 
 	/**
 	 * Constructs a new <code>PoolException</code> instance.
-	 * 
+	 *
 	 * @param msg
 	 */
 	public PoolException(String msg) {

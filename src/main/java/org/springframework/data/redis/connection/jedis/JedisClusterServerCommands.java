@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.lang.Nullable;
 import redis.clients.jedis.BinaryJedis;
 
 import java.util.ArrayList;
@@ -477,7 +478,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption)
 	 */
 	@Override
-	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option) {
+	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option) {
 		migrate(key, target, dbIndex, option, Long.MAX_VALUE);
 	}
 
@@ -486,7 +487,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption, long)
 	 */
 	@Override
-	public void migrate(final byte[] key, final RedisNode target, final int dbIndex, final MigrateOption option,
+	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option,
 			final long timeout) {
 
 		final int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;

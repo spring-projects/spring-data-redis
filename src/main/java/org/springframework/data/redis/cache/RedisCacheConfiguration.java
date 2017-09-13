@@ -27,6 +27,7 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.format.support.DefaultFormattingConversionService;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -43,7 +44,7 @@ public class RedisCacheConfiguration {
 
 	private final Duration ttl;
 	private final boolean cacheNullValues;
-	private final String keyPrefix;
+	private final @Nullable String keyPrefix;
 	private final boolean usePrefix;
 
 	private final SerializationPair<String> keySerializationPair;
@@ -52,7 +53,7 @@ public class RedisCacheConfiguration {
 	private final ConversionService conversionService;
 
 	@SuppressWarnings("unchecked")
-	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix, String keyPrefix,
+	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix, @Nullable String keyPrefix,
 			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
 			ConversionService conversionService) {
 

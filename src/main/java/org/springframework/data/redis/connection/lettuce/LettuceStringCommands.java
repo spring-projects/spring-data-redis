@@ -27,6 +27,7 @@ import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceResult;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceTxResult;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
@@ -79,6 +80,9 @@ class LettuceStringCommands implements RedisStringCommands {
 	 */
 	@Override
 	public void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+
+		Assert.notNull(expiration, "Expiration must not be null!");
+		Assert.notNull(option, "Option must not be null!");
 
 		try {
 			if (isPipelined()) {

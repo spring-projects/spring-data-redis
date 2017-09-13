@@ -51,7 +51,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[] rawHashKey = rawHashKey(hashKey);
 		byte[] rawHashValue = execute(connection -> connection.hGet(rawKey, rawHashKey), true);
 
-		return (HV) deserializeHashValue(rawHashValue);
+		return (HV) rawHashValue != null ? deserializeHashValue(rawHashValue) : null;
 	}
 
 	/*
@@ -100,7 +100,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[] rawKey = rawKey(key);
 		Set<byte[]> rawValues = execute(connection -> connection.hKeys(rawKey), true);
 
-		return deserializeHashKeys(rawValues);
+		return rawValues != null ? deserializeHashKeys(rawValues) : Collections.emptySet();
 	}
 
 	/*
@@ -204,7 +204,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[] rawKey = rawKey(key);
 		List<byte[]> rawValues = execute(connection -> connection.hVals(rawKey), true);
 
-		return deserializeHashValues(rawValues);
+		return rawValues != null ? deserializeHashValues(rawValues) : Collections.emptyList();
 	}
 
 	/*
@@ -230,7 +230,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[] rawKey = rawKey(key);
 		Map<byte[], byte[]> entries = execute(connection -> connection.hGetAll(rawKey), true);
 
-		return deserializeHashMap(entries);
+		return entries != null ? deserializeHashMap(entries) : Collections.emptyMap();
 	}
 
 	/*

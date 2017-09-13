@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 package org.springframework.data.redis.connection;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.Nullable;
 
 /**
  * The result of an asynchronous operation
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  * @param <T> The data type of the object that holds the future result (usually of type Future)
  */
 abstract public class FutureResult<T> {
@@ -29,7 +31,8 @@ abstract public class FutureResult<T> {
 
 	protected boolean status = false;
 
-	@SuppressWarnings("rawtypes") protected Converter converter;
+	@SuppressWarnings("rawtypes") //
+	protected @Nullable Converter converter;
 
 	public FutureResult(T resultHolder) {
 		this.resultHolder = resultHolder;
@@ -48,18 +51,22 @@ abstract public class FutureResult<T> {
 	/**
 	 * Converts the given result if a converter is specified, else returns the result
 	 * 
-	 * @param result The result to convert
-	 * @return The converted result
+	 * @param result The result to convert. Can be {@literal null}.
+	 * @return The converted result or {@literal null}.
 	 */
 	@SuppressWarnings("unchecked")
-	public Object convert(Object result) {
-		if (converter != null) {
-			return converter.convert(result);
+	@Nullable
+	public Object convert(@Nullable Object result) {
+
+		if (result == null) {
+			return null;
 		}
-		return result;
+
+		return (converter != null) ? converter.convert(result) : result;
 	}
 
 	@SuppressWarnings("rawtypes")
+	@Nullable
 	public Converter getConverter() {
 		return converter;
 	}
@@ -81,7 +88,8 @@ abstract public class FutureResult<T> {
 	}
 
 	/**
-	 * @return The result of the operation
+	 * @return The result of the operation. Can be {@literal null}.
 	 */
+	@Nullable
 	abstract public Object get();
 }

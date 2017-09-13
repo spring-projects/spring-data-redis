@@ -73,10 +73,10 @@ public class KeyExpirationEventMessageListenerUnitTests {
 		verifyZeroInteractions(publisherMock);
 	}
 
-	@Test // DATAREDIS-425
+	@Test // DATAREDIS-425, DATAREDIS-692
 	public void handleMessageShouldNotRespondToEmptyMessage() {
 
-		listener.onMessage(new DefaultMessage(null, null), "*".getBytes());
+		listener.onMessage(new DefaultMessage(new byte[] {}, new byte[] {}), "*".getBytes());
 
 		verifyZeroInteractions(publisherMock);
 	}

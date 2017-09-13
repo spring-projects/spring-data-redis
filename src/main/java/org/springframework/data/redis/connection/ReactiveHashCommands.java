@@ -33,6 +33,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Command
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -56,7 +57,7 @@ public interface ReactiveHashCommands {
 		private final Map<ByteBuffer, ByteBuffer> fieldValueMap;
 		private final boolean upsert;
 
-		private HSetCommand(ByteBuffer key, Map<ByteBuffer, ByteBuffer> keyValueMap, boolean upsert) {
+		private HSetCommand(@Nullable ByteBuffer key, Map<ByteBuffer, ByteBuffer> keyValueMap, boolean upsert) {
 
 			super(key);
 
@@ -137,7 +138,7 @@ public interface ReactiveHashCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Map<ByteBuffer, ByteBuffer> getFieldValueMap() {
 			return fieldValueMap;
@@ -217,7 +218,7 @@ public interface ReactiveHashCommands {
 
 		private List<ByteBuffer> fields;
 
-		private HGetCommand(ByteBuffer key, List<ByteBuffer> fields) {
+		private HGetCommand(@Nullable ByteBuffer key, List<ByteBuffer> fields) {
 
 			super(key);
 
@@ -264,7 +265,7 @@ public interface ReactiveHashCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public List<ByteBuffer> getFields() {
 			return fields;
@@ -318,7 +319,7 @@ public interface ReactiveHashCommands {
 
 		private final ByteBuffer field;
 
-		private HExistsCommand(ByteBuffer key, ByteBuffer field) {
+		private HExistsCommand(@Nullable ByteBuffer key, ByteBuffer field) {
 
 			super(key);
 
@@ -352,7 +353,7 @@ public interface ReactiveHashCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public ByteBuffer getField() {
 			return field;
@@ -392,7 +393,7 @@ public interface ReactiveHashCommands {
 
 		private final List<ByteBuffer> fields;
 
-		private HDelCommand(ByteBuffer key, List<ByteBuffer> fields) {
+		private HDelCommand(@Nullable ByteBuffer key, List<ByteBuffer> fields) {
 
 			super(key);
 
@@ -439,7 +440,7 @@ public interface ReactiveHashCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public List<ByteBuffer> getFields() {
 			return fields;

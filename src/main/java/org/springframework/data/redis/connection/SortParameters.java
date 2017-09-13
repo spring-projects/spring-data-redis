@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,28 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Entity containing the parameters for the SORT operation.
- * 
+ *
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public interface SortParameters {
 
 	/**
 	 * Sorting order.
 	 */
-	public enum Order {
+	enum Order {
 		ASC, DESC
 	}
 
 	/**
 	 * Utility class wrapping the 'LIMIT' setting.
 	 */
-	static class Range {
+	class Range {
+
 		private final long start;
 		private final long count;
 
@@ -52,37 +56,42 @@ public interface SortParameters {
 
 	/**
 	 * Returns the sorting order. Can be null if nothing is specified.
-	 * 
-	 * @return sorting order
+	 *
+	 * @return sorting order. {@literal null} if not set.
 	 */
+	@Nullable
 	Order getOrder();
 
 	/**
 	 * Indicates if the sorting is numeric (default) or alphabetical (lexicographical). Can be null if nothing is
 	 * specified.
-	 * 
-	 * @return the type of sorting
+	 *
+	 * @return the type of sorting. {@literal null} if not set.
 	 */
+	@Nullable
 	Boolean isAlphabetic();
 
 	/**
 	 * Returns the pattern (if set) for sorting by external keys (<tt>BY</tt>). Can be null if nothing is specified.
-	 * 
-	 * @return <tt>BY</tt> pattern.
+	 *
+	 * @return <tt>BY</tt> pattern. {@literal null} if not set.
 	 */
+	@Nullable
 	byte[] getByPattern();
 
 	/**
 	 * Returns the pattern (if set) for retrieving external keys (<tt>GET</tt>). Can be null if nothing is specified.
-	 * 
-	 * @return <tt>GET</tt> pattern.
+	 *
+	 * @return <tt>GET</tt> pattern. {@literal null} if not set.
 	 */
+	@Nullable
 	byte[][] getGetPattern();
 
 	/**
 	 * Returns the sorting limit (range or pagination). Can be null if nothing is specified.
-	 * 
-	 * @return sorting limit/range
+	 *
+	 * @return sorting limit/range. {@literal null} if not set.
 	 */
+	@Nullable
 	Range getLimit();
 }

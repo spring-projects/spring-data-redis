@@ -317,7 +317,8 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
 			Range<Long> range = command.getRange();
-			return (range != null ? cmd.bitcount(command.getKey(), range.getLowerBound().getValue().orElse(null),
+
+			return (!Range.unbounded().equals(range) ? cmd.bitcount(command.getKey(), range.getLowerBound().getValue().orElse(null),
 					range.getUpperBound().getValue().orElse(null)) : cmd.bitcount(command.getKey()))
 							.map(responseValue -> new NumericResponse<>(command, responseValue));
 		}));

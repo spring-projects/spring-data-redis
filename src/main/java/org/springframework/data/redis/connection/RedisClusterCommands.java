@@ -179,7 +179,7 @@ public interface RedisClusterCommands {
 	 */
 	void clusterReplicate(RedisClusterNode master, RedisClusterNode slave);
 
-	public enum AddSlots {
+	enum AddSlots {
 		MIGRATING, IMPORTING, STABLE, NODE
 	}
 

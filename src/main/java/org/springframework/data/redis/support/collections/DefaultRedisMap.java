@@ -30,12 +30,14 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.lang.Nullable;
 
 /**
  * Default implementation for {@link RedisMap}. Note that the current implementation doesn't provide the same locking
  * semantics across all methods. In highly concurrent environments, race conditions might appear.
  *
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
@@ -44,9 +46,10 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	private class DefaultRedisMapEntry implements Map.Entry<K, V> {
 
 		private K key;
-		private V value;
+		private @Nullable V value;
 
-		public DefaultRedisMapEntry(K key, V value) {
+		public DefaultRedisMapEntry(K key, @Nullable V value) {
+
 			this.key = key;
 			this.value = value;
 		}
@@ -55,11 +58,12 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 			return key;
 		}
 
+		@Nullable
 		public V getValue() {
 			return value;
 		}
 
-		public V setValue(V value) {
+		public V setValue(@Nullable V value) {
 			throw new UnsupportedOperationException();
 		}
 	}
@@ -125,6 +129,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return entries;
 	}
 
+	@Nullable
 	public V get(Object key) {
 		return hashOps.get(key);
 	}
@@ -147,6 +152,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		hashOps.putAll(m);
 	}
 
+	@Nullable
 	public V remove(Object key) {
 		V v = get(key);
 		hashOps.delete(key);
@@ -186,6 +192,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return sb.toString();
 	}
 
+	@Nullable
 	public V putIfAbsent(K key, V value) {
 		return (hashOps.putIfAbsent(key, value) ? null : get(key));
 	}
@@ -214,7 +221,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		});
 	}
 
-	public boolean replace(final K key, final V oldValue, final V newValue) {
+	public boolean replace(final K key, V oldValue, V newValue) {
 		if (oldValue == null || newValue == null) {
 			throw new NullPointerException();
 		}
@@ -238,6 +245,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		});
 	}
 
+	@Nullable
 	public V replace(final K key, final V value) {
 		if (value == null) {
 			throw new NullPointerException();
@@ -290,7 +298,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return hashOps.getType();
 	}
 
-	private void checkResult(Object obj) {
+	private void checkResult(@Nullable Object obj) {
 		if (obj == null) {
 			throw new IllegalStateException("Cannot read collection with Redis connection in pipeline/multi-exec mode");
 		}

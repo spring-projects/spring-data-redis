@@ -36,7 +36,7 @@ public interface RedisSentinelCommands {
 
 	/**
 	 * Get a {@link Collection} of monitored masters and their state.
-	 * 
+	 *
 	 * @return Collection of {@link RedisServer}s. Never {@literal null}.
 	 */
 	Collection<RedisServer> masters();

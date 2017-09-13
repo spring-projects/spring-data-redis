@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -205,7 +206,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * @param cacheConfig can be {@literal null}.
 	 * @return never {@literal null}.
 	 */
-	protected RedisCache createRedisCache(String name, RedisCacheConfiguration cacheConfig) {
+	protected RedisCache createRedisCache(String name, @Nullable RedisCacheConfiguration cacheConfig) {
 		return new RedisCache(name, cacheWriter, cacheConfig != null ? cacheConfig : defaultCacheConfig);
 	}
 

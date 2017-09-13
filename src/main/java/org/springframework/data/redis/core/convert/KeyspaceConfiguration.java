@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -153,8 +154,8 @@ public class KeyspaceConfiguration {
 		private final String keyspace;
 		private final Class<?> type;
 		private final boolean inherit;
-		private Long timeToLive;
-		private String timeToLivePropertyName;
+		private @Nullable Long timeToLive;
+		private @Nullable String timeToLivePropertyName;
 
 		public KeyspaceSettings(Class<?> type, String keyspace) {
 			this(type, keyspace, true);
@@ -183,6 +184,7 @@ public class KeyspaceConfiguration {
 			this.timeToLive = timeToLive;
 		}
 
+		@Nullable
 		public Long getTimeToLive() {
 			return timeToLive;
 		}
@@ -191,6 +193,7 @@ public class KeyspaceConfiguration {
 			timeToLivePropertyName = propertyName;
 		}
 
+		@Nullable
 		public String getTimeToLivePropertyName() {
 			return timeToLivePropertyName;
 		}

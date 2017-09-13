@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.convert;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.springframework.core.convert.converter.Converter;
@@ -36,19 +35,19 @@ import org.springframework.data.redis.core.types.RedisClientInfo.RedisClientInfo
  */
 public class StringToRedisClientInfoConverter implements Converter<String[], List<RedisClientInfo>> {
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
+	 */
 	@Override
 	public List<RedisClientInfo> convert(String[] lines) {
 
-		if (lines == null) {
-			return Collections.emptyList();
-		}
-
-		List<RedisClientInfo> infos = new ArrayList<>(lines.length);
+		List<RedisClientInfo> clientInfoList = new ArrayList<>(lines.length);
 		for (String line : lines) {
-			infos.add(RedisClientInfoBuilder.fromString(line));
+			clientInfoList.add(RedisClientInfoBuilder.fromString(line));
 		}
 
-		return infos;
+		return clientInfoList;
 	}
 
 }

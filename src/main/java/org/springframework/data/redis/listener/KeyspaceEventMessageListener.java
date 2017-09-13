@@ -22,7 +22,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -54,9 +56,9 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 	 * @see org.springframework.data.redis.connection.MessageListener#onMessage(org.springframework.data.redis.connection.Message, byte[])
 	 */
 	@Override
-	public void onMessage(Message message, byte[] pattern) {
+	public void onMessage(Message message, @Nullable byte[] pattern) {
 
-		if (message == null || message.getChannel() == null || message.getBody() == null) {
+		if (message == null || ObjectUtils.isEmpty(message.getChannel()) || ObjectUtils.isEmpty(message.getBody())) {
 			return;
 		}
 

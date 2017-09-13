@@ -24,6 +24,7 @@ import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisServerCommands.MigrateOption;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -257,9 +258,10 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	/**
 	 * Executed wrapped command upon {@link RedisClusterConnection}.
 	 *
-	 * @param callback
-	 * @return
+	 * @param callback must not be {@literal null}.
+	 * @return execution result. Can be {@literal null}.
 	 */
+	@Nullable
 	public <T> T execute(RedisClusterCallback<T> callback) {
 
 		Assert.notNull(callback, "ClusterCallback must not be null!");

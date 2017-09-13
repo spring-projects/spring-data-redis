@@ -17,6 +17,8 @@ package org.springframework.data.redis.cache;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -26,6 +28,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -70,17 +73,16 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		this.sleepTime = sleepTime;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.cache.RedisCacheWriter#put(java.lang.String, byte[], byte[], java.time.Duration)
 	 */
 	@Override
-	public void put(String name, byte[] key, byte[] value, Duration ttl) {
+	public void put(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
 
 		Assert.notNull(name, "Name must not be null!");
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
-		Assert.notNull(ttl, "Ttl must not be null!");
 
 		execute(name, connection -> {
 
@@ -94,7 +96,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		});
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.cache.RedisCacheWriter#get(java.lang.String, byte[])
 	 */
@@ -107,17 +109,16 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		return execute(name, connection -> connection.get(key));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.cache.RedisCacheWriter#putIfAbsent(java.lang.String, byte[], byte[], java.time.Duration)
 	 */
 	@Override
-	public byte[] putIfAbsent(String name, byte[] key, byte[] value, Duration ttl) {
+	public byte[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
 
 		Assert.notNull(name, "Name must not be null!");
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
-		Assert.notNull(ttl, "Ttl must not be null!");
 
 		return execute(name, connection -> {
 
@@ -178,7 +179,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 					wasLocked = true;
 				}
 
-				byte[][] keys = connection.keys(pattern).toArray(new byte[0][]);
+				byte[][] keys = Optional.ofNullable(connection.keys(pattern)).orElse(Collections.emptySet())
+						.toArray(new byte[0][]);
 
 				if (keys.length > 0) {
 					connection.del(keys);
@@ -275,7 +277,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 	}
 
-	private static boolean shouldExpireWithin(Duration ttl) {
+	private static boolean shouldExpireWithin(@Nullable Duration ttl) {
 		return ttl != null && !ttl.isZero() && !ttl.isNegative();
 	}
 

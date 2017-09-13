@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
 import org.springframework.util.StringUtils;
@@ -46,7 +47,7 @@ public class RedisClusterConfiguration {
 	private static final String REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY = "spring.redis.cluster.max-redirects";
 
 	private Set<RedisNode> clusterNodes;
-	private Integer maxRedirects;
+	private @Nullable Integer maxRedirects;
 	private RedisPassword password = RedisPassword.none();
 
 	/**
@@ -213,7 +214,6 @@ public class RedisClusterConfiguration {
 	/**
 	 * @param clusterHostAndPorts must not be {@literal null} or empty.
 	 * @param redirects the max number of redirects to follow.
-	 * @param password can be {@literal null} or empty.
 	 * @return cluster config map with properties.
 	 */
 	private static Map<String, Object> asMap(Collection<String> clusterHostAndPorts, int redirects) {

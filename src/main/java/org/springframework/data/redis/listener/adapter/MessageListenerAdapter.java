@@ -31,6 +31,7 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -95,7 +96,7 @@ import org.springframework.util.StringUtils;
  */
 public class MessageListenerAdapter implements InitializingBean, MessageListener {
 
-
+	// TODO move this down.
 	private class MethodInvoker {
 
 		private final Object delegate;
@@ -129,9 +130,9 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 
 				Class<?>[] types = m.getParameterTypes();
 				Object[] args = //
-				types.length == 2 //
-						&& types[0].isInstance(arguments[0]) //
-						&& types[1].isInstance(arguments[1]) ? arguments : message;
+						types.length == 2 //
+								&& types[0].isInstance(arguments[0]) //
+								&& types[1].isInstance(arguments[1]) ? arguments : message;
 
 				if (!types[0].isInstance(args[0])) {
 					continue;
@@ -161,15 +162,15 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	/** Logger available to subclasses */
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private volatile Object delegate;
+	private volatile @Nullable Object delegate;
 
-	private volatile MethodInvoker invoker;
+	private volatile @Nullable MethodInvoker invoker;
 
 	private String defaultListenerMethod = ORIGINAL_DEFAULT_LISTENER_METHOD;
 
-	private RedisSerializer<?> serializer;
+	private @Nullable RedisSerializer<?> serializer;
 
-	private RedisSerializer<String> stringSerializer;
+	private @Nullable RedisSerializer<String> stringSerializer;
 
 	/**
 	 * Create a new {@link MessageListenerAdapter} with default settings.
@@ -220,6 +221,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 *
 	 * @return message listening delegation
 	 */
+	@Nullable
 	public Object getDelegate() {
 		return this.delegate;
 	}
@@ -284,8 +286,8 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 * @param message the incoming Redis message
 	 * @see #handleListenerException
 	 */
-
-	public void onMessage(Message message, byte[] pattern) {
+	@Override
+	public void onMessage(Message message, @Nullable byte[] pattern) {
 		try {
 			// Check whether the delegate is a MessageListener impl itself.
 			// In that case, the adapter will simply act as a pass-through.
