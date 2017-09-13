@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,9 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 
 /**
  * Default implementation for {@link Tuple} interface.
- * 
+ *
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public class DefaultTuple implements Tuple {
 
@@ -36,14 +37,23 @@ public class DefaultTuple implements Tuple {
 	 * @param score
 	 */
 	public DefaultTuple(byte[] value, Double score) {
+
 		this.score = score;
 		this.value = value;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands.Tuple#getScore()
+	 */
 	public Double getScore() {
 		return score;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands.Tuple#getValue()
+	 */
 	public byte[] getValue() {
 		return value;
 	}

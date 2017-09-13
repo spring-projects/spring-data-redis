@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.lang.Nullable;
 
 /**
  * Exception thrown when executing/closing a pipeline that contains one or multiple invalid/incorrect statements. The
@@ -41,7 +42,7 @@ public class RedisPipelineException extends InvalidDataAccessResourceUsageExcept
 	 * @param cause the cause
 	 * @param pipelineResult the pipeline result
 	 */
-	public RedisPipelineException(String msg, Throwable cause, List<Object> pipelineResult) {
+	public RedisPipelineException(@Nullable String msg, @Nullable Throwable cause, List<Object> pipelineResult) {
 		super(msg, cause);
 		results = Collections.unmodifiableList(pipelineResult);
 	}

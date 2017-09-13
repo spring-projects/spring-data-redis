@@ -19,16 +19,19 @@ import lombok.RequiredArgsConstructor;
 
 import java.nio.ByteBuffer;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Default implementation of {@link RedisElementWriter}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 @RequiredArgsConstructor
 class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 
-	private final RedisSerializer<T> serializer;
+	private final @Nullable RedisSerializer<T> serializer;
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.serializer.RedisElementWriter#write(java.lang.Object)
@@ -36,19 +39,19 @@ class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 	@Override
 	public ByteBuffer write(T value) {
 
-		if (serializer == null) {
-
-			if (value instanceof byte[]) {
-				return ByteBuffer.wrap((byte[]) value);
-			}
-
-			if (value instanceof ByteBuffer) {
-				return (ByteBuffer) value;
-			}
-
-			throw new IllegalStateException("Cannot serialize value without a serializer");
+		if (serializer != null) {
+			return ByteBuffer.wrap(serializer.serialize((T) value));
 		}
 
-		return ByteBuffer.wrap(serializer.serialize((T) value));
+		if (value instanceof byte[]) {
+			return ByteBuffer.wrap((byte[]) value);
+		}
+
+		if (value instanceof ByteBuffer) {
+			return (ByteBuffer) value;
+		}
+
+		throw new IllegalStateException("Cannot serialize value without a serializer");
+
 	}
 }

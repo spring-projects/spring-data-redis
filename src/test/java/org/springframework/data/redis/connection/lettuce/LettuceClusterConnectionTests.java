@@ -56,6 +56,7 @@ import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.DefaultSortParameters;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisClusterNode;
+import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
@@ -198,7 +199,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.set(KEY_2, VALUE_2);
 
-		Set<byte[]> keysOnNode = clusterConnection.keys(new RedisClusterNode("127.0.0.1", 7379, null),
+		Set<byte[]> keysOnNode = clusterConnection.keys(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()),
 				JedisConverters.toBytes("*"));
 
 		assertThat(keysOnNode, hasItems(KEY_2_BYTES));
@@ -344,9 +345,9 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.set(KEY_2, VALUE_2);
 
-		assertThat(clusterConnection.dbSize(new RedisClusterNode("127.0.0.1", 7379, null)), is(1L));
-		assertThat(clusterConnection.dbSize(new RedisClusterNode("127.0.0.1", 7380, null)), is(1L));
-		assertThat(clusterConnection.dbSize(new RedisClusterNode("127.0.0.1", 7381, null)), is(0L));
+		assertThat(clusterConnection.dbSize(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty())), is(1L));
+		assertThat(clusterConnection.dbSize(new RedisClusterNode("127.0.0.1", 7380, SlotRange.empty())), is(1L));
+		assertThat(clusterConnection.dbSize(new RedisClusterNode("127.0.0.1", 7381, SlotRange.empty())), is(0L));
 	}
 
 	@Test // DATAREDIS-315
@@ -1658,7 +1659,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-315
 	public void pingShouldRetrunPongForExistingNode() {
-		assertThat(clusterConnection.ping(new RedisClusterNode("127.0.0.1", 7379, null)), is("PONG"));
+		assertThat(clusterConnection.ping(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty())), is("PONG"));
 	}
 
 	@Test // DATAREDIS-315
@@ -1668,7 +1669,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void pingShouldThrowExceptionWhenNodeNotKnownToCluster() {
-		clusterConnection.ping(new RedisClusterNode("127.0.0.1", 1234, null));
+		clusterConnection.ping(new RedisClusterNode("127.0.0.1", 1234, SlotRange.empty()));
 	}
 
 	@Test // DATAREDIS-315
@@ -1689,7 +1690,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.set(KEY_2, VALUE_2);
 
-		clusterConnection.flushDb(new RedisClusterNode("127.0.0.1", 7379, null));
+		clusterConnection.flushDb(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()));
 
 		assertThat(nativeConnection.get(KEY_1), notNullValue());
 		assertThat(nativeConnection.get(KEY_2), nullValue());
@@ -1733,7 +1734,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	public void infoShouldCollectionInfoFromAllClusterNodes() {
 
 		Properties singleNodeInfo = clusterConnection.serverCommands().info(new RedisClusterNode("127.0.0.1", 7380));
-		assertThat(Double.valueOf(clusterConnection.serverCommands().info().size()), closeTo(singleNodeInfo.size() * 3, 12d));
+		assertThat(Double.valueOf(clusterConnection.serverCommands().info().size()),
+				closeTo(singleNodeInfo.size() * 3, 12d));
 	}
 
 	@Test // DATAREDIS-315

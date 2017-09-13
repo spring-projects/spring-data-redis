@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.lang.Nullable;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.HostAndPort;
@@ -74,7 +76,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	private ClusterCommandExecutor clusterCommandExecutor;
 	private final boolean disposeClusterCommandExecutorOnClose;
 
-	private volatile JedisSubscription subscription;
+	private volatile @Nullable JedisSubscription subscription;
 
 	/**
 	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link JedisCluster}.
@@ -810,7 +812,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 				return connection;
 			}
 
-			throw new IllegalStateException(String.format("Node %s is unknown to cluster", node));
+			throw new DataAccessResourceFailureException(String.format("Node %s is unknown to cluster", node));
 		}
 
 		private JedisPool getResourcePoolForSpecificNode(RedisClusterNode node) {
@@ -855,7 +857,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		private final Object lock = new Object();
 		private final JedisCluster cluster;
 		private long time = 0;
-		private ClusterTopology cached;
+		private @Nullable ClusterTopology cached;
 
 		/**
 		 * Create new {@link JedisClusterTopologyProvider}.s

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +15,44 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+
 /**
  * Default message implementation.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public class DefaultMessage implements Message {
 
 	private final byte[] channel;
 	private final byte[] body;
-	private String toString;
+	private @Nullable String toString;
 
 	public DefaultMessage(byte[] channel, byte[] body) {
+
+		Assert.notNull(channel, "Channel must not be null!");
+		Assert.notNull(body, "Body must not be null!");
+
 		this.body = body;
 		this.channel = channel;
 	}
 
+	/**
+	 * @return
+	 */
 	public byte[] getChannel() {
-		return (channel != null ? channel.clone() : null);
+		return channel.clone();
 	}
 
 	public byte[] getBody() {
-		return (body != null ? body.clone() : null);
+		return body.clone();
 	}
 
+	@Override
 	public String toString() {
+
 		if (toString == null) {
 			toString = new String(body);
 		}

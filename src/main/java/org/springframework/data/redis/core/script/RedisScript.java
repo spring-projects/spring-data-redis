@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.script;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -37,6 +38,7 @@ public interface RedisScript<T> {
 	 * @return The script result type. Should be one of Long, Boolean, List, or deserialized value type. {@literal null}
 	 *         if the script returns a throw-away status (i.e "OK").
 	 */
+	@Nullable
 	Class<T> getResultType();
 
 	/**

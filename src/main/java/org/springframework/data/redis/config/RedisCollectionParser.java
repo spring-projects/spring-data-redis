@@ -33,6 +33,7 @@ class RedisCollectionParser extends AbstractSimpleBeanDefinitionParser {
 	}
 
 	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
+
 		String template = element.getAttribute("template");
 		if (StringUtils.hasText(template)) {
 			beanDefinition.addPropertyReference("template", template);

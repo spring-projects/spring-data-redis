@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import java.util.Arrays;
 
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.lang.Nullable;
 
 /**
  * Default implementation of TypedTuple.
@@ -26,24 +27,26 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  */
 public class DefaultTypedTuple<V> implements TypedTuple<V> {
 
-	private final Double score;
-	private final V value;
+	private final @Nullable Double score;
+	private final @Nullable V value;
 
 	/**
 	 * Constructs a new <code>DefaultTypedTuple</code> instance.
 	 * 
-	 * @param value
-	 * @param score
+	 * @param value can be {@literal null}.
+	 * @param score can be {@literal null}.
 	 */
-	public DefaultTypedTuple(V value, Double score) {
+	public DefaultTypedTuple(@Nullable V value, @Nullable Double score) {
 		this.score = score;
 		this.value = value;
 	}
 
+	@Nullable
 	public Double getScore() {
 		return score;
 	}
 
+	@Nullable
 	public V getValue() {
 		return value;
 	}

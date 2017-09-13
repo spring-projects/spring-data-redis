@@ -1,5 +1,5 @@
 /**
- * Connection package for <a href="https://github.com/mp911de/lettuce">Lettuce</a> Redis client.
+ * Connection package for <a href="https://lettuce.io">Lettuce</a> Redis client.
  */
+@org.springframework.lang.NonNullApi
 package org.springframework.data.redis.connection.lettuce;
-

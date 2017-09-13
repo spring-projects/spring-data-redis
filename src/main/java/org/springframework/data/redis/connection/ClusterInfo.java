@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import java.util.Properties;
 
 import org.springframework.data.redis.core.types.RedisClientInfo.INFO;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -32,8 +33,8 @@ public class ClusterInfo {
 	public static enum Info {
 		STATE("cluster_state"), SLOTS_ASSIGNED("cluster_slots_assigned"), SLOTS_OK("cluster_slots_ok"), SLOTS_PFAIL(
 				"cluster_slots_pfail"), SLOTS_FAIL("cluster_slots_fail"), KNOWN_NODES("cluster_known_nodes"), SIZE(
-				"cluster_size"), CURRENT_EPOCH("cluster_current_epoch"), MY_EPOCH("cluster_my_epoch"), MESSAGES_SENT(
-				"cluster_stats_messages_sent"), MESSAGES_RECEIVED("cluster_stats_messages_received");
+						"cluster_size"), CURRENT_EPOCH("cluster_current_epoch"), MY_EPOCH("cluster_my_epoch"), MESSAGES_SENT(
+								"cluster_stats_messages_sent"), MESSAGES_RECEIVED("cluster_stats_messages_received");
 
 		String key;
 
@@ -57,80 +58,90 @@ public class ClusterInfo {
 
 	/**
 	 * @see Info#STATE
-	 * @return
+	 * @return {@literal null} if no entry found for requested {@link Info#STATE}.
 	 */
+	@Nullable
 	public String getState() {
 		return get(Info.STATE);
 	}
 
 	/**
 	 * @see Info#SLOTS_ASSIGNED
-	 * @return
+	 * @return {@literal null} if no entry found for requested {@link Info#SLOTS_ASSIGNED}.
 	 */
+	@Nullable
 	public Long getSlotsAssigned() {
 		return getLongValueOf(Info.SLOTS_ASSIGNED);
 	}
 
 	/**
 	 * @see Info#SLOTS_OK
-	 * @return
+	 * @return {@literal null} if no entry found for requested {@link Info#SLOTS_OK}.
 	 */
+	@Nullable
 	public Long getSlotsOk() {
 		return getLongValueOf(Info.SLOTS_OK);
 	}
 
 	/**
 	 * @see Info#SLOTS_PFAIL
-	 * @return
+	 * @return {@literal null} if no entry found for requested {@link Info#SLOTS_PFAIL}.
 	 */
+	@Nullable
 	public Long getSlotsPfail() {
 		return getLongValueOf(Info.SLOTS_PFAIL);
 	}
 
 	/**
 	 * @see Info#SLOTS_FAIL
-	 * @return
+	 * @return {@literal null} if no entry found for requested {@link Info#SLOTS_FAIL}.
 	 */
+	@Nullable
 	public Long getSlotsFail() {
 		return getLongValueOf(Info.SLOTS_FAIL);
 	}
 
 	/**
 	 * @see Info#KNOWN_NODES
-	 * @return
+	 * @return {@literal null} if no entry found for requested {@link Info#KNOWN_NODES}.
 	 */
+	@Nullable
 	public Long getKnownNodes() {
 		return getLongValueOf(Info.KNOWN_NODES);
 	}
 
 	/**
 	 * @see Info#SIZE
-	 * @return
+	 * @return {@literal null} if no entry found for requested {@link Info#SIZE}.
 	 */
+	@Nullable
 	public Long getClusterSize() {
 		return getLongValueOf(Info.SIZE);
 	}
 
 	/**
 	 * @see Info#CURRENT_EPOCH
-	 * @return
+	 * @return {@literal null} if no entry found for requested {@link Info#CURRENT_EPOCH}.
 	 */
+	@Nullable
 	public Long getCurrentEpoch() {
 		return getLongValueOf(Info.CURRENT_EPOCH);
 	}
 
 	/**
 	 * @see Info#MESSAGES_SENT
-	 * @return
+	 * @return {@literal null} if no entry found for requested {@link Info#MESSAGES_SENT}.
 	 */
+	@Nullable
 	public Long getMessagesSent() {
 		return getLongValueOf(Info.MESSAGES_SENT);
 	}
 
 	/**
 	 * @see Info#MESSAGES_RECEIVED
-	 * @return
+	 * @return {@literal null} if no entry found for requested {@link Info#MESSAGES_RECEIVED}.
 	 */
+	@Nullable
 	public Long getMessagesReceived() {
 		return getLongValueOf(Info.MESSAGES_RECEIVED);
 	}
@@ -139,6 +150,7 @@ public class ClusterInfo {
 	 * @param info must not be null
 	 * @return {@literal null} if no entry found for requested {@link INFO}.
 	 */
+	@Nullable
 	public String get(Info info) {
 
 		Assert.notNull(info, "Cannot retrieve cluster information for 'null'.");
@@ -149,12 +161,14 @@ public class ClusterInfo {
 	 * @param key must not be {@literal null} or {@literal empty}.
 	 * @return {@literal null} if no entry found for requested {@code key}.
 	 */
+	@Nullable
 	public String get(String key) {
 
 		Assert.hasText(key, "Cannot get cluster information for 'empty' / 'null' key.");
 		return this.clusterProperties.getProperty(key);
 	}
 
+	@Nullable
 	private Long getLongValueOf(Info info) {
 
 		String value = get(info);

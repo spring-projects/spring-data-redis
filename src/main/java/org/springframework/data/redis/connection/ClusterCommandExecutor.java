@@ -29,6 +29,7 @@ import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.TooManyClusterRedirectionsException;
 import org.springframework.data.redis.connection.util.ByteArraySet;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
+import org.springframework.lang.Nullable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -73,10 +74,10 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @param topologyProvider must not be {@literal null}.
 	 * @param resourceProvider must not be {@literal null}.
 	 * @param exceptionTranslation must not be {@literal null}.
-	 * @param executor can be {@literal null}.
+	 * @param executor can be {@literal null}. Defaulted to {@link ThreadPoolTaskExecutor}.
 	 */
 	public ClusterCommandExecutor(ClusterTopologyProvider topologyProvider, ClusterNodeResourceProvider resourceProvider,
-			ExceptionTranslationStrategy exceptionTranslation, AsyncTaskExecutor executor) {
+			ExceptionTranslationStrategy exceptionTranslation, @Nullable AsyncTaskExecutor executor) {
 
 		this(topologyProvider, resourceProvider, exceptionTranslation);
 		this.executor = executor;
@@ -94,7 +95,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * Run {@link ClusterCommandCallback} on a random node.
 	 *
 	 * @param cmd must not be {@literal null}.
-	 * @return
+	 * @return never {@literal null}.
 	 */
 	public <T> NodeResult<T> executeCommandOnArbitraryNode(ClusterCommandCallback<?, T> cmd) {
 
@@ -325,6 +326,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		return this.topologyProvider.getTopology();
 	}
 
+	@Nullable
 	private DataAccessException convertToDataAccessExeption(Exception e) {
 		return exceptionTranslationStrategy.translate(e);
 	}
@@ -455,27 +457,27 @@ public class ClusterCommandExecutor implements DisposableBean {
 	public static class NodeResult<T> {
 
 		private RedisClusterNode node;
-		private T value;
+		private @Nullable T value;
 		private ByteArrayWrapper key;
 
 		/**
 		 * Create new {@link NodeResult}.
 		 *
-		 * @param node
-		 * @param value
+		 * @param node must not be {@literal null}.
+		 * @param value can be {@literal null}.
 		 */
-		public NodeResult(RedisClusterNode node, T value) {
+		public NodeResult(RedisClusterNode node, @Nullable T value) {
 			this(node, value, new byte[] {});
 		}
 
 		/**
 		 * Create new {@link NodeResult}.
 		 *
-		 * @param node
-		 * @param value
-		 * @parm key
+		 * @param node must not be {@literal null}.
+		 * @param value can be {@literal null}.
+		 * @param key must not be {@literal null}.
 		 */
-		public NodeResult(RedisClusterNode node, T value, byte[] key) {
+		public NodeResult(RedisClusterNode node, @Nullable T value, byte[] key) {
 
 			this.node = node;
 			this.value = value;
@@ -488,6 +490,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 *
 		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public T getValue() {
 			return value;
 		}
@@ -557,9 +560,10 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		/**
 		 * @param returnValue can be {@literal null}.
-		 * @return
+		 * @return can be {@litearl null}.
 		 */
-		public T getFirstNonNullNotEmptyOrDefault(T returnValue) {
+		@Nullable
+		public T getFirstNonNullNotEmptyOrDefault(@Nullable T returnValue) {
 
 			for (NodeResult<T> nodeResult : nodeResults) {
 				if (nodeResult.getValue() != null) {

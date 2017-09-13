@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -88,6 +89,7 @@ abstract class AbstractOperations<K, V> {
 		return template.getStringSerializer();
 	}
 
+	@Nullable
 	<T> T execute(RedisCallback<T> callback, boolean b) {
 		return template.execute(callback, b);
 	}
@@ -282,8 +284,9 @@ abstract class AbstractOperations<K, V> {
 	}
 
 	@SuppressWarnings("unchecked")
-	<HK, HV> Map<HK, HV> deserializeHashMap(Map<byte[], byte[]> entries) {
+	<HK, HV> Map<HK, HV> deserializeHashMap(@Nullable Map<byte[], byte[]> entries) {
 		// connection in pipeline/multi mode
+		
 		if (entries == null) {
 			return null;
 		}

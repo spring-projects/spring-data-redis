@@ -48,6 +48,7 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -3242,8 +3243,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Cursor<Entry<String, String>> hScan(String key, ScanOptions options) {
 
-		return new ConvertingCursor<>(
-				this.delegate.hScan(this.serialize(key), options),
+		return new ConvertingCursor<>(this.delegate.hScan(this.serialize(key), options),
 				source -> new Entry<String, String>() {
 
 					@Override
@@ -3278,8 +3278,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Cursor<StringTuple> zScan(String key, ScanOptions options) {
-		return new ConvertingCursor<>(delegate.zScan(this.serialize(key), options),
-				new TupleConverter());
+		return new ConvertingCursor<>(delegate.zScan(this.serialize(key), options), new TupleConverter());
 	}
 
 	/*
@@ -3440,7 +3439,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption)
 	 */
 	@Override
-	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option) {
+	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option) {
 		delegate.migrate(key, target, dbIndex, option);
 	}
 
@@ -3449,7 +3448,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption, long)
 	 */
 	@Override
-	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout) {
+	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout) {
 		delegate.migrate(key, target, dbIndex, option, timeout);
 	}
 
@@ -3467,10 +3466,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	private <T> T convertAndReturn(Object value, Converter converter) {
 
 		if (isFutureConversion()) {
+
 			addResultConverter(converter);
+			return null;
 		}
 
-		return ObjectUtils.nullSafeEquals(converter, identityConverter) ? (T) value : (T) converter.convert(value);
+
+		return value == null ? null : ObjectUtils.nullSafeEquals(converter, identityConverter) ? (T) value : (T) converter.convert(value);
 	}
 
 	private void addResultConverter(Converter<?, ?> converter) {
@@ -3497,7 +3499,9 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		}
 		List<Object> convertedResults = new ArrayList<>(results.size());
 		for (Object result : results) {
-			convertedResults.add(converters.remove().convert(result));
+
+			Converter converter = converters.remove();
+			convertedResults.add(result == null ? null : converter.convert(result));
 		}
 		return convertedResults;
 	}

@@ -21,6 +21,8 @@ import io.lettuce.core.resource.ClientResources;
 import java.time.Duration;
 import java.util.Optional;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Default implementation of {@literal LettuceClientConfiguration}.
  *
@@ -39,7 +41,8 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	private final Duration shutdownTimeout;
 
 	DefaultLettuceClientConfiguration(boolean useSsl, boolean verifyPeer, boolean startTls,
-			ClientResources clientResources, ClientOptions clientOptions, Duration timeout, Duration shutdownTimeout) {
+			@Nullable ClientResources clientResources, @Nullable ClientOptions clientOptions, Duration timeout,
+			Duration shutdownTimeout) {
 
 		this.useSsl = useSsl;
 		this.verifyPeer = verifyPeer;

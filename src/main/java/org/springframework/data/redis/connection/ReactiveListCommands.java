@@ -33,6 +33,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyComm
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -65,7 +66,7 @@ public interface ReactiveListCommands {
 		private boolean upsert;
 		private Direction direction;
 
-		private PushCommand(ByteBuffer key, List<ByteBuffer> values, Direction direction, boolean upsert) {
+		private PushCommand(@Nullable ByteBuffer key, List<ByteBuffer> values, Direction direction, boolean upsert) {
 
 			super(key);
 
@@ -80,7 +81,7 @@ public interface ReactiveListCommands {
 		 * @return a new {@link PushCommand} for right push ({@literal RPUSH}).
 		 */
 		public static PushCommand right() {
-			return new PushCommand(null, null, Direction.RIGHT, true);
+			return new PushCommand(null, Collections.emptyList(), Direction.RIGHT, true);
 		}
 
 		/**
@@ -89,7 +90,7 @@ public interface ReactiveListCommands {
 		 * @return a new {@link PushCommand} for left push ({@literal LPUSH}).
 		 */
 		public static PushCommand left() {
-			return new PushCommand(null, null, Direction.LEFT, true);
+			return new PushCommand(null, Collections.emptyList(), Direction.LEFT, true);
 		}
 
 		/**
@@ -141,7 +142,7 @@ public interface ReactiveListCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public List<ByteBuffer> getValues() {
 			return values;
@@ -155,7 +156,7 @@ public interface ReactiveListCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Direction getDirection() {
 			return direction;
@@ -321,7 +322,7 @@ public interface ReactiveListCommands {
 
 		private final Long index;
 
-		private LIndexCommand(ByteBuffer key, Long index) {
+		private LIndexCommand(@Nullable ByteBuffer key, Long index) {
 
 			super(key);
 			this.index = index;
@@ -390,11 +391,12 @@ public interface ReactiveListCommands {
 	 */
 	class LInsertCommand extends KeyCommand {
 
-		private final Position position;
-		private final ByteBuffer pivot;
+		private final @Nullable Position position;
+		private final @Nullable ByteBuffer pivot;
 		private final ByteBuffer value;
 
-		private LInsertCommand(ByteBuffer key, Position position, ByteBuffer pivot, ByteBuffer value) {
+		private LInsertCommand(@Nullable ByteBuffer key, @Nullable Position position, @Nullable ByteBuffer pivot,
+				ByteBuffer value) {
 
 			super(key);
 
@@ -456,22 +458,24 @@ public interface ReactiveListCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public ByteBuffer getValue() {
 			return value;
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public Position getPosition() {
 			return position;
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getPivot() {
 			return pivot;
 		}
@@ -520,9 +524,9 @@ public interface ReactiveListCommands {
 	class LSetCommand extends KeyCommand {
 
 		private final Long index;
-		private final ByteBuffer value;
+		private final @Nullable ByteBuffer value;
 
-		private LSetCommand(ByteBuffer key, Long index, ByteBuffer value) {
+		private LSetCommand(@Nullable ByteBuffer key, Long index, @Nullable ByteBuffer value) {
 
 			super(key);
 			this.index = index;
@@ -566,14 +570,15 @@ public interface ReactiveListCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getValue() {
 			return value;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Long getIndex() {
 			return index;
@@ -615,9 +620,9 @@ public interface ReactiveListCommands {
 	class LRemCommand extends KeyCommand {
 
 		private final Long count;
-		private final ByteBuffer value;
+		private final @Nullable ByteBuffer value;
 
-		private LRemCommand(ByteBuffer key, Long count, ByteBuffer value) {
+		private LRemCommand(@Nullable ByteBuffer key, Long count, @Nullable ByteBuffer value) {
 
 			super(key);
 
@@ -681,15 +686,16 @@ public interface ReactiveListCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Long getCount() {
 			return count;
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getValue() {
 			return value;
 		}
@@ -751,7 +757,7 @@ public interface ReactiveListCommands {
 
 		private final Direction direction;
 
-		private PopCommand(ByteBuffer key, Direction direction) {
+		private PopCommand(@Nullable ByteBuffer key, Direction direction) {
 
 			super(key);
 
@@ -790,7 +796,7 @@ public interface ReactiveListCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Direction getDirection() {
 			return direction;
@@ -859,7 +865,7 @@ public interface ReactiveListCommands {
 		 * @return a new {@link BPopCommand} for right push ({@literal BRPOP}).
 		 */
 		public static BPopCommand right() {
-			return new BPopCommand(null, Duration.ZERO, Direction.RIGHT);
+			return new BPopCommand(Collections.emptyList(), Duration.ZERO, Direction.RIGHT);
 		}
 
 		/**
@@ -868,7 +874,7 @@ public interface ReactiveListCommands {
 		 * @return a new {@link BPopCommand} for right push ({@literal BLPOP}).
 		 */
 		public static BPopCommand left() {
-			return new BPopCommand(null, Duration.ZERO, Direction.LEFT);
+			return new BPopCommand(Collections.emptyList(), Duration.ZERO, Direction.LEFT);
 		}
 
 		/**
@@ -959,7 +965,6 @@ public interface ReactiveListCommands {
 	 * @author Christoph Strobl
 	 */
 	class PopResponse extends CommandResponse<BPopCommand, PopResult> {
-
 		public PopResponse(BPopCommand input, PopResult output) {
 			super(input, output);
 		}
@@ -1019,9 +1024,9 @@ public interface ReactiveListCommands {
 	 */
 	class RPopLPushCommand extends KeyCommand {
 
-		private final ByteBuffer destination;
+		private final @Nullable ByteBuffer destination;
 
-		private RPopLPushCommand(ByteBuffer key, ByteBuffer destination) {
+		private RPopLPushCommand(ByteBuffer key, @Nullable ByteBuffer destination) {
 
 			super(key);
 			this.destination = destination;
@@ -1055,8 +1060,9 @@ public interface ReactiveListCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getDestination() {
 			return destination;
 		}
@@ -1098,10 +1104,10 @@ public interface ReactiveListCommands {
 	 */
 	class BRPopLPushCommand extends KeyCommand {
 
-		private final ByteBuffer destination;
+		private final @Nullable ByteBuffer destination;
 		private final Duration timeout;
 
-		private BRPopLPushCommand(ByteBuffer key, ByteBuffer destination, Duration timeout) {
+		private BRPopLPushCommand(ByteBuffer key, @Nullable ByteBuffer destination, Duration timeout) {
 
 			super(key);
 
@@ -1119,7 +1125,7 @@ public interface ReactiveListCommands {
 
 			Assert.notNull(sourceKey, "Source key must not be null!");
 
-			return new BRPopLPushCommand(sourceKey, null, null);
+			return new BRPopLPushCommand(sourceKey, null, Duration.ZERO);
 		}
 
 		/**
@@ -1150,14 +1156,15 @@ public interface ReactiveListCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getDestination() {
 			return destination;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Duration getTimeout() {
 			return timeout;

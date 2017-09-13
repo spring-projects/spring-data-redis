@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -26,12 +27,12 @@ import org.springframework.util.ObjectUtils;
  */
 public class RedisNode implements NamedNode {
 
-	String id;
-	String name;
-	String host;
+	@Nullable String id;
+	@Nullable String name;
+	@Nullable String host;
 	int port;
-	NodeType type;
-	String masterId;
+	@Nullable NodeType type;
+	@Nullable String masterId;
 
 	/**
 	 * Creates a new {@link RedisNode} with the given {@code host}, {@code port}.
@@ -49,10 +50,18 @@ public class RedisNode implements NamedNode {
 
 	protected RedisNode() {}
 
+	/**
+	 * @return can be {@literal null}.
+	 */
+	@Nullable
 	public String getHost() {
 		return host;
 	}
 
+	/**
+	 * @return can be {@literal null}.
+	 */
+	@Nullable
 	public Integer getPort() {
 		return port;
 	}
@@ -62,6 +71,7 @@ public class RedisNode implements NamedNode {
 	}
 
 	@Override
+	@Nullable
 	public String getName() {
 		return this.name;
 	}
@@ -71,23 +81,24 @@ public class RedisNode implements NamedNode {
 	}
 
 	/**
-	 * @return
+	 * @return can be {@literal null}.
 	 * @since 1.7
 	 */
+	@Nullable
 	public String getMasterId() {
 		return masterId;
 	}
 
 	/**
-	 * @return
+	 * @return can be {@literal null}.
 	 * @since 1.7
 	 */
+	@Nullable
 	public String getId() {
 		return id;
 	}
 
 	/**
-	 *
 	 * @param id
 	 * @since 1.7
 	 */
@@ -96,9 +107,10 @@ public class RedisNode implements NamedNode {
 	}
 
 	/**
-	 * @return
+	 * @return can be {@literal null}.
 	 * @since 1.7
 	 */
+	@Nullable
 	public NodeType getType() {
 		return type;
 	}

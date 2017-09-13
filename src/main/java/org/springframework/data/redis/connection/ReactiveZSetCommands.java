@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -59,7 +60,8 @@ public interface ReactiveZSetCommands {
 		private final boolean returnTotalChanged;
 		private final boolean incr;
 
-		private ZAddCommand(ByteBuffer key, List<Tuple> tuples, boolean upsert, boolean returnTotalChanged, boolean incr) {
+		private ZAddCommand(@Nullable ByteBuffer key, List<Tuple> tuples, boolean upsert, boolean returnTotalChanged,
+				boolean incr) {
 
 			super(key);
 
@@ -232,7 +234,7 @@ public interface ReactiveZSetCommands {
 
 		private final List<ByteBuffer> values;
 
-		private ZRemCommand(ByteBuffer key, List<ByteBuffer> values) {
+		private ZRemCommand(@Nullable ByteBuffer key, List<ByteBuffer> values) {
 
 			super(key);
 
@@ -335,9 +337,9 @@ public interface ReactiveZSetCommands {
 	class ZIncrByCommand extends KeyCommand {
 
 		private final ByteBuffer value;
-		private final Number increment;
+		private final @Nullable Number increment;
 
-		private ZIncrByCommand(ByteBuffer key, ByteBuffer value, Number increment) {
+		private ZIncrByCommand(@Nullable ByteBuffer key, ByteBuffer value, @Nullable Number increment) {
 
 			super(key);
 
@@ -386,15 +388,16 @@ public interface ReactiveZSetCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public ByteBuffer getValue() {
 			return value;
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public Number getIncrement() {
 			return increment;
 		}
@@ -441,7 +444,7 @@ public interface ReactiveZSetCommands {
 		private final ByteBuffer value;
 		private final Direction direction;
 
-		private ZRankCommand(ByteBuffer key, ByteBuffer value, Direction direction) {
+		private ZRankCommand(@Nullable ByteBuffer key, ByteBuffer value, Direction direction) {
 
 			super(key);
 
@@ -561,7 +564,7 @@ public interface ReactiveZSetCommands {
 		private final boolean withScores;
 		private final Direction direction;
 
-		private ZRangeCommand(ByteBuffer key, Range<Long> range, Direction direction, boolean withScores) {
+		private ZRangeCommand(@Nullable ByteBuffer key, Range<Long> range, Direction direction, boolean withScores) {
 
 			super(key);
 
@@ -730,10 +733,10 @@ public interface ReactiveZSetCommands {
 		private final Range<Double> range;
 		private final boolean withScores;
 		private final Direction direction;
-		private final Limit limit;
+		private final @Nullable Limit limit;
 
-		private ZRangeByScoreCommand(ByteBuffer key, Range<Double> range, Direction direction, boolean withScores,
-				Limit limit) {
+		private ZRangeByScoreCommand(@Nullable ByteBuffer key, Range<Double> range, Direction direction, boolean withScores,
+				@Nullable Limit limit) {
 
 			super(key);
 
@@ -797,10 +800,12 @@ public interface ReactiveZSetCommands {
 		/**
 		 * Applies the {@link Limit}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param limit can be {@literal null}.
+		 * @param limit must not be {@literal null}.
 		 * @return a new {@link ZRangeByScoreCommand} with {@link Limit} applied.
 		 */
 		public ZRangeByScoreCommand limitTo(Limit limit) {
+
+			Assert.notNull(limit, "Limit must not be null!");
 			return new ZRangeByScoreCommand(getKey(), range, direction, withScores, limit);
 		}
 
@@ -856,7 +861,7 @@ public interface ReactiveZSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
-	 * @param limit can be {@literal null}.
+	 * @param limit must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
@@ -864,6 +869,7 @@ public interface ReactiveZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
+		Assert.notNull(limit, "Limit must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.scoresWithin(range).from(key).limitTo(limit))) //
 				.flatMap(CommandResponse::getOutput) //
@@ -892,7 +898,7 @@ public interface ReactiveZSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
-	 * @param limit can be {@literal null}.
+	 * @param limit must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
@@ -900,6 +906,7 @@ public interface ReactiveZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
+		Assert.notNull(limit, "Limit must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.scoresWithin(range).withScores().from(key).limitTo(limit)))
 				.flatMap(CommandResponse::getOutput);
@@ -927,7 +934,7 @@ public interface ReactiveZSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
-	 * @param limit can be {@literal null}.
+	 * @param limit must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
@@ -935,6 +942,7 @@ public interface ReactiveZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
+		Assert.notNull(limit, "Limit must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).from(key).limitTo(limit))) //
 				.flatMap(CommandResponse::getOutput) //
@@ -963,7 +971,7 @@ public interface ReactiveZSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
-	 * @param limit can be {@literal null}.
+	 * @param limit must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
@@ -971,6 +979,7 @@ public interface ReactiveZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
+		Assert.notNull(limit, "Limit must not be null!");
 
 		return zRangeByScore(
 				Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).withScores().from(key).limitTo(limit)))
@@ -997,7 +1006,7 @@ public interface ReactiveZSetCommands {
 
 		private final Range<Double> range;
 
-		private ZCountCommand(ByteBuffer key, Range<Double> range) {
+		private ZCountCommand(@Nullable ByteBuffer key, Range<Double> range) {
 
 			super(key);
 			this.range = range;
@@ -1099,7 +1108,7 @@ public interface ReactiveZSetCommands {
 
 		private final ByteBuffer value;
 
-		private ZScoreCommand(ByteBuffer key, ByteBuffer value) {
+		private ZScoreCommand(@Nullable ByteBuffer key, ByteBuffer value) {
 
 			super(key);
 			this.value = value;
@@ -1250,7 +1259,7 @@ public interface ReactiveZSetCommands {
 
 		private final Range<Double> range;
 
-		private ZRemRangeByScoreCommand(ByteBuffer key, Range<Double> range) {
+		private ZRemRangeByScoreCommand(@Nullable ByteBuffer key, Range<Double> range) {
 
 			super(key);
 			this.range = range;
@@ -1323,9 +1332,10 @@ public interface ReactiveZSetCommands {
 
 		private final List<ByteBuffer> sourceKeys;
 		private final List<Double> weights;
-		private final Aggregate aggregateFunction;
+		private final @Nullable Aggregate aggregateFunction;
 
-		private ZUnionStoreCommand(ByteBuffer key, List<ByteBuffer> sourceKeys, List<Double> weights, Aggregate aggregate) {
+		private ZUnionStoreCommand(@Nullable ByteBuffer key, List<ByteBuffer> sourceKeys, List<Double> weights,
+				@Nullable Aggregate aggregate) {
 
 			super(key);
 			this.sourceKeys = sourceKeys;
@@ -1343,7 +1353,7 @@ public interface ReactiveZSetCommands {
 
 			Assert.notNull(keys, "Keys must not be null!");
 
-			return new ZUnionStoreCommand(null, new ArrayList<>(keys), null, null);
+			return new ZUnionStoreCommand(null, new ArrayList<>(keys), Collections.emptyList(), null);
 		}
 
 		/**
@@ -1363,7 +1373,8 @@ public interface ReactiveZSetCommands {
 		 * @param aggregateFunction can be {@literal null}.
 		 * @return a new {@link ZUnionStoreCommand} with {@link Aggregate} applied.
 		 */
-		public ZUnionStoreCommand aggregateUsing(Aggregate aggregateFunction) {
+		public ZUnionStoreCommand aggregateUsing(@Nullable Aggregate aggregateFunction) {
+
 			return new ZUnionStoreCommand(getKey(), sourceKeys, weights, aggregateFunction);
 		}
 
@@ -1382,21 +1393,21 @@ public interface ReactiveZSetCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public List<ByteBuffer> getSourceKeys() {
 			return sourceKeys;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public List<Double> getWeights() {
-			return weights == null ? Collections.emptyList() : weights;
+			return weights;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Optional<Aggregate> getAggregateFunction() {
 			return Optional.ofNullable(aggregateFunction);
@@ -1412,7 +1423,7 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets) {
-		return zUnionStore(destinationKey, sets, null);
+		return zUnionStore(destinationKey, sets, Collections.emptyList());
 	}
 
 	/**
@@ -1421,7 +1432,7 @@ public interface ReactiveZSetCommands {
 	 *
 	 * @param destinationKey must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
-	 * @param weights can be {@literal null}.
+	 * @param weights must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
@@ -1441,7 +1452,7 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets, List<Double> weights,
-			Aggregate aggregateFunction) {
+			@Nullable Aggregate aggregateFunction) {
 
 		Assert.notNull(destinationKey, "DestinationKey must not be null!");
 		Assert.notNull(sets, "Sets must not be null!");
@@ -1471,9 +1482,10 @@ public interface ReactiveZSetCommands {
 
 		private final List<ByteBuffer> sourceKeys;
 		private final List<Double> weights;
-		private final Aggregate aggregateFunction;
+		private final @Nullable Aggregate aggregateFunction;
 
-		private ZInterStoreCommand(ByteBuffer key, List<ByteBuffer> sourceKeys, List<Double> weights, Aggregate aggregate) {
+		private ZInterStoreCommand(ByteBuffer key, List<ByteBuffer> sourceKeys, List<Double> weights,
+				@Nullable Aggregate aggregate) {
 
 			super(key);
 			this.sourceKeys = sourceKeys;
@@ -1491,7 +1503,7 @@ public interface ReactiveZSetCommands {
 
 			Assert.notNull(keys, "Keys must not be null!");
 
-			return new ZInterStoreCommand(null, new ArrayList<>(keys), null, null);
+			return new ZInterStoreCommand(null, new ArrayList<>(keys), Collections.emptyList(), null);
 		}
 
 		/**
@@ -1512,7 +1524,8 @@ public interface ReactiveZSetCommands {
 		 * @param aggregateFunction can be {@literal null}.
 		 * @return a new {@link ZInterStoreCommand} with {@link Aggregate} applied.
 		 */
-		public ZInterStoreCommand aggregateUsing(Aggregate aggregateFunction) {
+		public ZInterStoreCommand aggregateUsing(@Nullable Aggregate aggregateFunction) {
+
 			return new ZInterStoreCommand(getKey(), sourceKeys, weights, aggregateFunction);
 		}
 
@@ -1531,21 +1544,21 @@ public interface ReactiveZSetCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public List<ByteBuffer> getSourceKeys() {
 			return sourceKeys;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public List<Double> getWeights() {
-			return weights == null ? Collections.emptyList() : weights;
+			return weights;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.ø
 		 */
 		public Optional<Aggregate> getAggregateFunction() {
 			return Optional.ofNullable(aggregateFunction);
@@ -1561,7 +1574,7 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	default Mono<Long> zInterStore(ByteBuffer destinationKey, List<ByteBuffer> sets) {
-		return zInterStore(destinationKey, sets, null);
+		return zInterStore(destinationKey, sets, Collections.emptyList());
 	}
 
 	/**
@@ -1570,7 +1583,7 @@ public interface ReactiveZSetCommands {
 	 *
 	 * @param destinationKey must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
-	 * @param weights can be {@literal null}.
+	 * @param weights must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
@@ -1584,13 +1597,13 @@ public interface ReactiveZSetCommands {
 	 *
 	 * @param destinationKey must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
-	 * @param weights can be {@literal null}.
+	 * @param weights must not be {@literal null}.
 	 * @param aggregateFunction can be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	default Mono<Long> zInterStore(ByteBuffer destinationKey, List<ByteBuffer> sets, List<Double> weights,
-			Aggregate aggregateFunction) {
+			@Nullable Aggregate aggregateFunction) {
 
 		Assert.notNull(destinationKey, "DestinationKey must not be null!");
 		Assert.notNull(sets, "Sets must not be null!");
@@ -1623,7 +1636,7 @@ public interface ReactiveZSetCommands {
 		private final Direction direction;
 		private final Limit limit;
 
-		private ZRangeByLexCommand(ByteBuffer key, Range<String> range, Direction direction, Limit limit) {
+		private ZRangeByLexCommand(@Nullable ByteBuffer key, Range<String> range, Direction direction, Limit limit) {
 
 			super(key);
 			this.range = range;
@@ -1642,7 +1655,7 @@ public interface ReactiveZSetCommands {
 
 			Assert.notNull(range, "Range must not be null!");
 
-			return new ZRangeByLexCommand(null, range, Direction.ASC, null);
+			return new ZRangeByLexCommand(null, range, Direction.ASC, Limit.unlimited());
 		}
 
 		/**
@@ -1656,7 +1669,7 @@ public interface ReactiveZSetCommands {
 
 			Assert.notNull(range, "Range must not be null!");
 
-			return new ZRangeByLexCommand(null, range, Direction.DESC, null);
+			return new ZRangeByLexCommand(null, range, Direction.DESC, Limit.unlimited());
 		}
 
 		/**
@@ -1675,10 +1688,12 @@ public interface ReactiveZSetCommands {
 		/**
 		 * Applies the {@link Limit}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param limit can be {@literal null}.
+		 * @param limit must not be {@literal null}.
 		 * @return a new {@link ZRangeByLexCommand} with {@link Limit} applied.
 		 */
 		public ZRangeByLexCommand limitTo(Limit limit) {
+
+			Assert.notNull(limit, "Limit must not be null!");
 			return new ZRangeByLexCommand(getKey(), range, direction, limit);
 		}
 
@@ -1713,7 +1728,7 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	default Flux<ByteBuffer> zRangeByLex(ByteBuffer key, Range<String> range) {
-		return zRangeByLex(key, range, null);
+		return zRangeByLex(key, range, Limit.unlimited());
 	}
 
 	/**
@@ -1744,7 +1759,7 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="http://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
 	default Flux<ByteBuffer> zRevRangeByLex(ByteBuffer key, Range<String> range) {
-		return zRevRangeByLex(key, range, null);
+		return zRevRangeByLex(key, range, Limit.unlimited());
 	}
 
 	/**
@@ -1753,7 +1768,7 @@ public interface ReactiveZSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
-	 * @param limit can be {@literal null}.
+	 * @param limit must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
@@ -1761,6 +1776,7 @@ public interface ReactiveZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
+		Assert.notNull(limit, "Limit must not be null!");
 
 		return zRangeByLex(Mono.just(ZRangeByLexCommand.reverseStringsWithin(range).from(key).limitTo(limit)))
 				.flatMap(CommandResponse::getOutput);

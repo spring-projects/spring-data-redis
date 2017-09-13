@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -148,6 +149,7 @@ public interface ReactiveRedisConnection extends Closeable {
 		/**
 		 * @return the key related to this command.
 		 */
+		@Nullable
 		ByteBuffer getKey();
 
 		/**
@@ -165,18 +167,19 @@ public interface ReactiveRedisConnection extends Closeable {
 	 */
 	class KeyCommand implements Command {
 
-		private ByteBuffer key;
+		private @Nullable ByteBuffer key;
 
 		/**
 		 * Creates a new {@link KeyCommand} given a {@code key}.
 		 *
-		 * @param key must not be {@literal null}.
+		 * @param key can be {@literal null}.
 		 */
-		public KeyCommand(ByteBuffer key) {
+		public KeyCommand(@Nullable ByteBuffer key) {
 			this.key = key;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
 		 */
 		@Override
@@ -196,12 +199,12 @@ public interface ReactiveRedisConnection extends Closeable {
 		 * Creates a new {@link RangeCommand} given a {@code key} and {@link Range}.
 		 *
 		 * @param key must not be {@literal null}.
-		 * @param range may be {@literal null} if unbounded.
+		 * @param range must not be {@literal null}.
 		 */
 		private RangeCommand(ByteBuffer key, Range<Long> range) {
 
 			super(key);
-			this.range = range != null ? range : new Range<>(0L, Long.MAX_VALUE);
+			this.range = range;
 		}
 
 		/**
@@ -211,7 +214,7 @@ public interface ReactiveRedisConnection extends Closeable {
 		 * @return a new {@link RangeCommand} for {@code key}.
 		 */
 		public static RangeCommand key(ByteBuffer key) {
-			return new RangeCommand(key, null);
+			return new RangeCommand(key, Range.unbounded());
 		}
 
 		/**
@@ -267,7 +270,7 @@ public interface ReactiveRedisConnection extends Closeable {
 	class CommandResponse<I, O> {
 
 		private final I input;
-		private final O output;
+		private final @Nullable O output;
 
 		/**
 		 * @return {@literal true} if the response is present. An absent {@link CommandResponse} maps to Redis
@@ -293,7 +296,7 @@ public interface ReactiveRedisConnection extends Closeable {
 	 */
 	class ByteBufferResponse<I> extends CommandResponse<I, ByteBuffer> {
 
-		public ByteBufferResponse(I input, ByteBuffer output) {
+		public ByteBufferResponse(I input, @Nullable ByteBuffer output) {
 			super(input, output);
 		}
 	}

@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link IndexResolver} extracts secondary index structures to be applied on a given path, {@link PersistentProperty}
@@ -36,7 +37,7 @@ public interface IndexResolver {
 	 * @param value the actual value. Can be {@literal null}.
 	 * @return never {@literal null}.
 	 */
-	Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, Object value);
+	Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, @Nullable Object value);
 
 	/**
 	 * Resolves all indexes for given type information / value combination.
@@ -47,6 +48,7 @@ public interface IndexResolver {
 	 * @param value the actual value. Can be {@literal null}.
 	 * @return never {@literal null}.
 	 */
-	Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation, Object value);
+	Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
+			@Nullable Object value);
 
 }

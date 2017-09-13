@@ -17,6 +17,7 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.charset.Charset;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -62,7 +63,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public T deserialize(byte[] bytes) throws SerializationException {
+	public T deserialize(@Nullable byte[] bytes) throws SerializationException {
 
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
@@ -74,7 +75,8 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 		}
 	}
 
-	public byte[] serialize(Object t) throws SerializationException {
+	@Override
+	public byte[] serialize(@Nullable Object t) throws SerializationException {
 
 		if (t == null) {
 			return SerializationUtils.EMPTY_ARRAY;

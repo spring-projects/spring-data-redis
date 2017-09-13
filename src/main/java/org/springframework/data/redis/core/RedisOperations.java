@@ -28,6 +28,7 @@ import org.springframework.data.redis.core.query.SortQuery;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.lang.Nullable;
 
 /**
  * Interface that specified a basic set of Redis operations, implemented by {@link RedisTemplate}. Not often used but a
@@ -50,9 +51,10 @@ public interface RedisOperations<K, V> {
 	 * the template do its work.
 	 * 
 	 * @param <T> return type
-	 * @param action callback object that specifies the Redis action
+	 * @param action callback object that specifies the Redis action. Must not be {@literal null}.
 	 * @return a result object returned by the action or <tt>null</tt>
 	 */
+	@Nullable
 	<T> T execute(RedisCallback<T> action);
 
 	/**
@@ -60,9 +62,10 @@ public interface RedisOperations<K, V> {
 	 * capabilities through {@link #multi()} and {@link #watch(Collection)} operations.
 	 * 
 	 * @param <T> return type
-	 * @param session session callback
+	 * @param session session callback. Must not be {@literal null}.
 	 * @return result object returned by the action or <tt>null</tt>
 	 */
+	@Nullable
 	<T> T execute(SessionCallback<T> session);
 
 	/**
@@ -115,6 +118,7 @@ public interface RedisOperations<K, V> {
 	 * @return The return value of the script or null if {@link RedisScript#getResultType()} is null, likely indicating a
 	 *         throw-away status reply (i.e. "OK")
 	 */
+	@Nullable
 	<T> T execute(RedisScript<T> script, List<K> keys, Object... args);
 
 	/**
@@ -129,6 +133,7 @@ public interface RedisOperations<K, V> {
 	 * @return The return value of the script or null if {@link RedisScript#getResultType()} is null, likely indicating a
 	 *         throw-away status reply (i.e. "OK")
 	 */
+	@Nullable
 	<T> T execute(RedisScript<T> script, RedisSerializer<?> argsSerializer, RedisSerializer<T> resultSerializer,
 			List<K> keys, Object... args);
 
@@ -140,6 +145,7 @@ public interface RedisOperations<K, V> {
 	 * @return
 	 * @since 1.8
 	 */
+	@Nullable
 	<T extends Closeable> T executeWithStickyConnection(RedisCallback<T> callback);
 
 	// -------------------------------------------------------------------------
@@ -162,41 +168,46 @@ public interface RedisOperations<K, V> {
 	 * @return {@literal true} if the key was removed.
 	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
+	@Nullable
 	Boolean delete(K key);
 
 	/**
 	 * Delete given {@code keys}.
 	 *
 	 * @param keys must not be {@literal null}.
-	 * @return The number of keys that were removed.
+	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
+	@Nullable
 	Long delete(Collection<K> keys);
 
 	/**
 	 * Determine the type stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/type">Redis Documentation: TYPE</a>
 	 */
+	@Nullable
 	DataType type(K key);
 
 	/**
 	 * Find all keys matching the given {@code pattern}.
 	 *
 	 * @param pattern must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
 	 */
+	@Nullable
 	Set<K> keys(K pattern);
 
 	/**
 	 * Return a random key from the keyspace.
 	 *
-	 * @return
+	 * @return {@literal null} no keys exist or when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
 	 */
+	@Nullable
 	K randomKey();
 
 	/**
@@ -213,9 +224,10 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param oldKey must not be {@literal null}.
 	 * @param newKey must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
+	@Nullable
 	Boolean renameIfAbsent(K oldKey, K newKey);
 
 	/**
@@ -224,8 +236,9 @@ public interface RedisOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param timeout
 	 * @param unit must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Boolean expire(K key, long timeout, TimeUnit unit);
 
 	/**
@@ -233,17 +246,19 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param date must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Boolean expireAt(K key, Date date);
 
 	/**
 	 * Remove the expiration from given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 */
+	@Nullable
 	Boolean persist(K key);
 
 	/**
@@ -251,18 +266,20 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param dbIndex
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 */
+	@Nullable
 	Boolean move(K key, int dbIndex);
 
 	/**
 	 * Retrieve serialized version of the value stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/dump">Redis Documentation: DUMP</a>
 	 */
+	@Nullable
 	byte[] dump(K key);
 
 	/**
@@ -280,9 +297,10 @@ public interface RedisOperations<K, V> {
 	 * Get the time to live for {@code key} in seconds.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
 	 */
+	@Nullable
 	Long getExpire(K key);
 
 	/**
@@ -290,45 +308,50 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeUnit must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.8
 	 */
+	@Nullable
 	Long getExpire(K key, TimeUnit timeUnit);
 
 	/**
 	 * Sort the elements for {@code query}.
 	 *
 	 * @param query must not be {@literal null}.
-	 * @return the results of sort.
+	 * @return the results of sort. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
+	@Nullable
 	List<V> sort(SortQuery<K> query);
 
 	/**
 	 * Sort the elements for {@code query} applying {@link RedisSerializer}.
 	 *
 	 * @param query must not be {@literal null}.
-	 * @return the deserialized results of sort.
+	 * @return the deserialized results of sort. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
+	@Nullable
 	<T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer);
 
 	/**
 	 * Sort the elements for {@code query} applying {@link BulkMapper}.
 	 *
 	 * @param query must not be {@literal null}.
-	 * @return the deserialized results of sort.
+	 * @return the deserialized results of sort. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
+	@Nullable
 	<T> List<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper);
 
 	/**
 	 * Sort the elements for {@code query} applying {@link BulkMapper} and {@link RedisSerializer}.
 	 *
 	 * @param query must not be {@literal null}.
-	 * @return the deserialized results of sort.
+	 * @return the deserialized results of sort. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
+	@Nullable
 	<T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer);
 
 	/**
@@ -336,9 +359,10 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param query must not be {@literal null}.
 	 * @param storeKey must not be {@literal null}.
-	 * @return number of values.
+	 * @return number of values. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
+	@Nullable
 	Long sort(SortQuery<K> query, K storeKey);
 
 	// -------------------------------------------------------------------------
@@ -414,6 +438,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@link List} of {@link RedisClientInfo} objects.
 	 * @since 1.3
 	 */
+	@Nullable
 	List<RedisClientInfo> getClientList();
 
 	/**

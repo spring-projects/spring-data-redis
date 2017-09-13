@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Command
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -53,7 +54,7 @@ public interface ReactiveSetCommands {
 
 		private List<ByteBuffer> values;
 
-		private SAddCommand(ByteBuffer key, List<ByteBuffer> values) {
+		private SAddCommand(@Nullable ByteBuffer key, List<ByteBuffer> values) {
 
 			super(key);
 
@@ -157,7 +158,7 @@ public interface ReactiveSetCommands {
 
 		private final List<ByteBuffer> values;
 
-		private SRemCommand(ByteBuffer key, List<ByteBuffer> values) {
+		private SRemCommand(@Nullable ByteBuffer key, List<ByteBuffer> values) {
 
 			super(key);
 
@@ -204,7 +205,7 @@ public interface ReactiveSetCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public List<ByteBuffer> getValues() {
 			return values;
@@ -261,7 +262,7 @@ public interface ReactiveSetCommands {
 
 		private final long count;
 
-		private SPopCommand(ByteBuffer key, long count) {
+		private SPopCommand(@Nullable ByteBuffer key, long count) {
 
 			super(key);
 			this.count = count;
@@ -358,10 +359,10 @@ public interface ReactiveSetCommands {
 	 */
 	class SMoveCommand extends KeyCommand {
 
-		private final ByteBuffer destination;
+		private final @Nullable ByteBuffer destination;
 		private final ByteBuffer value;
 
-		private SMoveCommand(ByteBuffer key, ByteBuffer destination, ByteBuffer value) {
+		private SMoveCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer destination, ByteBuffer value) {
 
 			super(key);
 			this.destination = destination;
@@ -409,14 +410,15 @@ public interface ReactiveSetCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getDestination() {
 			return destination;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public ByteBuffer getValue() {
 			return value;
@@ -484,7 +486,7 @@ public interface ReactiveSetCommands {
 
 		private final ByteBuffer value;
 
-		private SIsMemberCommand(ByteBuffer key, ByteBuffer value) {
+		private SIsMemberCommand(@Nullable ByteBuffer key, ByteBuffer value) {
 
 			super(key);
 
@@ -577,10 +579,12 @@ public interface ReactiveSetCommands {
 			return new SInterCommand(new ArrayList<>(keys));
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
 		 */
 		@Override
+		@Nullable
 		public ByteBuffer getKey() {
 			return null;
 		}
@@ -626,7 +630,7 @@ public interface ReactiveSetCommands {
 
 		private final List<ByteBuffer> keys;
 
-		private SInterStoreCommand(ByteBuffer key, List<ByteBuffer> keys) {
+		private SInterStoreCommand(@Nullable ByteBuffer key, List<ByteBuffer> keys) {
 
 			super(key);
 
@@ -721,10 +725,12 @@ public interface ReactiveSetCommands {
 			return new SUnionCommand(new ArrayList<>(keys));
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
 		 */
 		@Override
+		@Nullable
 		public ByteBuffer getKey() {
 			return null;
 		}
@@ -770,7 +776,7 @@ public interface ReactiveSetCommands {
 
 		private final List<ByteBuffer> keys;
 
-		private SUnionStoreCommand(ByteBuffer key, List<ByteBuffer> keys) {
+		private SUnionStoreCommand(@Nullable ByteBuffer key, List<ByteBuffer> keys) {
 
 			super(key);
 
@@ -865,10 +871,12 @@ public interface ReactiveSetCommands {
 			return new SDiffCommand(new ArrayList<>(keys));
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
 		 */
 		@Override
+		@Nullable
 		public ByteBuffer getKey() {
 			return null;
 		}
@@ -914,7 +922,7 @@ public interface ReactiveSetCommands {
 
 		private final List<ByteBuffer> keys;
 
-		private SDiffStoreCommand(ByteBuffer key, List<ByteBuffer> keys) {
+		private SDiffStoreCommand(@Nullable ByteBuffer key, List<ByteBuffer> keys) {
 
 			super(key);
 
@@ -1013,9 +1021,9 @@ public interface ReactiveSetCommands {
 	 */
 	class SRandMembersCommand extends KeyCommand {
 
-		private final Long count;
+		private final @Nullable Long count;
 
-		private SRandMembersCommand(ByteBuffer key, Long count) {
+		private SRandMembersCommand(@Nullable ByteBuffer key, @Nullable Long count) {
 
 			super(key);
 			this.count = count;

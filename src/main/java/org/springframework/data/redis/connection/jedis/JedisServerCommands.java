@@ -24,6 +24,7 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.jedis.JedisConnection.JedisResult;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -453,7 +454,7 @@ class JedisServerCommands implements RedisServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption)
 	 */
 	@Override
-	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option) {
+	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option) {
 		migrate(key, target, dbIndex, option, Long.MAX_VALUE);
 	}
 
@@ -462,7 +463,7 @@ class JedisServerCommands implements RedisServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption, long)
 	 */
 	@Override
-	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout) {
+	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout) {
 
 		final int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 

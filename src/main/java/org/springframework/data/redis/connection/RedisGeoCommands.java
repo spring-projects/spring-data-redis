@@ -29,6 +29,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -47,9 +48,10 @@ public interface RedisGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param point must not be {@literal null}.
 	 * @param member must not be {@literal null}.
-	 * @return Number of elements added.
+	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
+	@Nullable
 	Long geoAdd(byte[] key, Point point, byte[] member);
 
 	/**
@@ -57,9 +59,10 @@ public interface RedisGeoCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param location must not be {@literal null}.
-	 * @return Number of elements added.
+	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
+	@Nullable
 	default Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
 
 		Assert.notNull(key, "Key must not be null!");
@@ -73,9 +76,10 @@ public interface RedisGeoCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param memberCoordinateMap must not be {@literal null}.
-	 * @return Number of elements added.
+	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
+	@Nullable
 	Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap);
 
 	/**
@@ -83,9 +87,10 @@ public interface RedisGeoCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param locations must not be {@literal null}.
-	 * @return Number of elements added.
+	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
+	@Nullable
 	Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations);
 
 	/**
@@ -94,9 +99,10 @@ public interface RedisGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param member1 must not be {@literal null}.
 	 * @param member2 must not be {@literal null}.
-	 * @return can be {@literal null}.
+	 * @return can be {@literal null}. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
+	@Nullable
 	Distance geoDist(byte[] key, byte[] member1, byte[] member2);
 
 	/**
@@ -106,9 +112,10 @@ public interface RedisGeoCommands {
 	 * @param member1 must not be {@literal null}.
 	 * @param member2 must not be {@literal null}.
 	 * @param metric must not be {@literal null}.
-	 * @return can be {@literal null}.
+	 * @return can be {@literal null}. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
+	@Nullable
 	Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric);
 
 	/**
@@ -116,9 +123,10 @@ public interface RedisGeoCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return empty list when key or members do not exists. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 */
+	@Nullable
 	List<String> geoHash(byte[] key, byte[]... members);
 
 	/**
@@ -126,9 +134,10 @@ public interface RedisGeoCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return empty {@link List} when key of members do not exist. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 */
+	@Nullable
 	List<Point> geoPos(byte[] key, byte[]... members);
 
 	/**
@@ -136,9 +145,10 @@ public interface RedisGeoCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
+	@Nullable
 	GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within);
 
 	/**
@@ -147,9 +157,10 @@ public interface RedisGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
 	 * @param args must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
+	@Nullable
 	GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args);
 
 	/**
@@ -159,9 +170,10 @@ public interface RedisGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param radius
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
+	@Nullable
 	default GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
 		return geoRadiusByMember(key, member, new Distance(radius, DistanceUnit.METERS));
 	}
@@ -173,9 +185,10 @@ public interface RedisGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param radius must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction..
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
+	@Nullable
 	GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius);
 
 	/**
@@ -186,9 +199,10 @@ public interface RedisGeoCommands {
 	 * @param member must not be {@literal null}.
 	 * @param radius must not be {@literal null}.
 	 * @param args must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
+	@Nullable
 	GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
 			GeoRadiusCommandArgs args);
 
@@ -197,9 +211,10 @@ public interface RedisGeoCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
-	 * @return Number of elements removed.
+	 * @return Number of elements removed. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 */
+	@Nullable
 	Long geoRemove(byte[] key, byte[]... members);
 
 	/**
@@ -212,8 +227,8 @@ public interface RedisGeoCommands {
 	class GeoRadiusCommandArgs implements Cloneable {
 
 		Set<Flag> flags = new LinkedHashSet<>(2, 1);
-		Long limit;
-		Direction sortDirection;
+		@Nullable Long limit;
+		@Nullable Direction sortDirection;
 
 		private GeoRadiusCommandArgs() {}
 
@@ -293,6 +308,7 @@ public interface RedisGeoCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public Long getLimit() {
 			return limit;
 		}
@@ -300,6 +316,7 @@ public interface RedisGeoCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public Direction getSortDirection() {
 			return sortDirection;
 		}
@@ -316,7 +333,7 @@ public interface RedisGeoCommands {
 			return limit != null;
 		}
 
-		public static enum Flag {
+		public enum Flag {
 			WITHCOORD, WITHDIST
 		}
 

@@ -46,6 +46,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.NumberUtils;
@@ -95,11 +96,13 @@ abstract public class Converters {
 				String[] args = source.split(" ");
 				String[] hostAndPort = StringUtils.split(args[HOST_PORT_INDEX], ":");
 
+				Assert.notNull(hostAndPort, "CusterNode information does not define host and port!");
+
 				SlotRange range = parseSlotRange(args);
 				Set<Flag> flags = parseFlags(args);
 
 				String portPart = hostAndPort[1];
-				if (portPart.contains("@")) {
+				if (portPart != null && portPart.contains("@")) {
 					portPart = portPart.substring(0, portPart.indexOf('@'));
 				}
 
@@ -211,7 +214,9 @@ abstract public class Converters {
 	}
 
 	public static Properties toProperties(Map<?, ?> source) {
-		return MAP_TO_PROPERTIES.convert(source);
+
+		Properties properties = MAP_TO_PROPERTIES.convert(source);
+		return properties != null ? properties : new Properties();
 	}
 
 	public static Boolean toBoolean(Long source) {
@@ -424,7 +429,11 @@ abstract public class Converters {
 
 		INSTANCE;
 
-		DistanceConverter forMetric(Metric metric) {
+		/**
+		 * @param metric can be {@literal null}. Defaults to {@link DistanceUnit#METERS}.
+		 * @return never {@literal null}.
+		 */
+		DistanceConverter forMetric(@Nullable Metric metric) {
 			return new DistanceConverter(
 					metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
 		}
@@ -433,14 +442,22 @@ abstract public class Converters {
 
 			private Metric metric;
 
-			public DistanceConverter(Metric metric) {
+			/**
+			 * @param metric can be {@literal null}. Defaults to {@link DistanceUnit#METERS}.
+			 * @return never {@literal null}.
+			 */
+			DistanceConverter(@Nullable Metric metric) {
 				this.metric = metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS
 						: metric;
 			}
 
+			/*
+			 * (non-Javadoc)
+			 * @see org.springframework.core.convert.converter.Converter#convert(Object)
+			 */
 			@Override
 			public Distance convert(Double source) {
-				return source == null ? null : new Distance(source, metric);
+				return new Distance(source, metric);
 			}
 		}
 	}
@@ -456,12 +473,12 @@ abstract public class Converters {
 
 		final RedisSerializer<V> serializer;
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.core.convert.converter.Converter#convert(Object)
+		 */
 		@Override
 		public GeoResults<GeoLocation<V>> convert(GeoResults<GeoLocation<byte[]>> source) {
-
-			if (source == null) {
-				return new GeoResults<>(Collections.<GeoResult<GeoLocation<V>>> emptyList());
-			}
 
 			List<GeoResult<GeoLocation<V>>> values = new ArrayList<>(source.getContent().size());
 			for (GeoResult<GeoLocation<byte[]>> value : source.getContent()) {

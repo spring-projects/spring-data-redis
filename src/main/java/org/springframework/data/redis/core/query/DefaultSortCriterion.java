@@ -20,21 +20,23 @@ import java.util.List;
 
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
+import org.springframework.lang.Nullable;
 
 /**
  * Default implementation for {@link SortCriterion}.
  *
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 class DefaultSortCriterion<K> implements SortCriterion<K> {
 
 	private final K key;
-	private String by;
+	private @Nullable String by;
 	private final List<String> getKeys = new ArrayList<>(4);
 
-	private Range limit;
-	private Order order;
-	private Boolean alpha;
+	private @Nullable Range limit;
+	private @Nullable Order order;
+	private @Nullable Boolean alpha;
 
 	DefaultSortCriterion(K key) {
 		this.key = key;
@@ -53,6 +55,8 @@ class DefaultSortCriterion<K> implements SortCriterion<K> {
 		this.limit = new Range(offset, count);
 		return this;
 	}
+
+	// TODO: check if we can use differnt range from SD commons here??
 
 	public SortCriterion<K> limit(Range range) {
 		this.limit = range;

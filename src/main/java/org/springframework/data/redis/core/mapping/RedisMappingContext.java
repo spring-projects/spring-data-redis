@@ -41,6 +41,7 @@ import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.NumberUtils;
@@ -61,7 +62,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 	private final MappingConfiguration mappingConfiguration;
 	private final TimeToLiveAccessor timeToLiveAccessor;
 
-	private KeySpaceResolver fallbackKeySpaceResolver;
+	private @Nullable KeySpaceResolver fallbackKeySpaceResolver;
 
 	/**
 	 * Creates new {@link RedisMappingContext} with empty {@link MappingConfiguration}.
@@ -91,7 +92,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 	 *
 	 * @param fallbackKeySpaceResolver can be {@literal null}.
 	 */
-	public void setFallbackKeySpaceResolver(KeySpaceResolver fallbackKeySpaceResolver) {
+	public void setFallbackKeySpaceResolver(@Nullable KeySpaceResolver fallbackKeySpaceResolver) {
 		this.fallbackKeySpaceResolver = fallbackKeySpaceResolver;
 	}
 

@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.jedis.JedisConnection.JedisResult;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -114,9 +115,12 @@ class JedisStringCommands implements RedisStringCommands {
 	@Override
 	public void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
 
-		if (expiration == null || expiration.isPersistent()) {
+		Assert.notNull(expiration, "Expiration must not be null!");
+		Assert.notNull(option, "Option must not be null!");
 
-			if (option == null || ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
+		if (expiration.isPersistent()) {
+
+			if (ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
 				set(key, value);
 			} else {
 
@@ -143,7 +147,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		} else {
 
-			if (option == null || ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
+			if (ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
 
 				if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
 					pSetEx(key, expiration.getExpirationTime(), value);

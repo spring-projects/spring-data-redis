@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -65,9 +66,10 @@ public interface ReactiveNumberCommands {
 	 */
 	class IncrByCommand<T extends Number> extends KeyCommand {
 
-		private T value;
+		private @Nullable T value;
 
-		private IncrByCommand(ByteBuffer key, T value) {
+		private IncrByCommand(ByteBuffer key, @Nullable T value) {
+
 			super(key);
 			this.value = value;
 		}
@@ -100,8 +102,9 @@ public interface ReactiveNumberCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public T getValue() {
 			return value;
 		}
@@ -141,9 +144,9 @@ public interface ReactiveNumberCommands {
 	 */
 	class DecrByCommand<T extends Number> extends KeyCommand {
 
-		private T value;
+		private @Nullable T value;
 
-		private DecrByCommand(ByteBuffer key, T value) {
+		private DecrByCommand(ByteBuffer key, @Nullable T value) {
 			super(key);
 			this.value = value;
 		}
@@ -176,8 +179,9 @@ public interface ReactiveNumberCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public T getValue() {
 			return value;
 		}
@@ -239,9 +243,9 @@ public interface ReactiveNumberCommands {
 	class HIncrByCommand<T extends Number> extends KeyCommand {
 
 		private final ByteBuffer field;
-		private final T value;
+		private final @Nullable T value;
 
-		private HIncrByCommand(ByteBuffer key, ByteBuffer field, T value) {
+		private HIncrByCommand(@Nullable ByteBuffer key, ByteBuffer field, @Nullable T value) {
 
 			super(key);
 
@@ -290,14 +294,15 @@ public interface ReactiveNumberCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public T getValue() {
 			return value;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public ByteBuffer getField() {
 			return field;

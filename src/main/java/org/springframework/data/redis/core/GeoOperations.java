@@ -25,6 +25,7 @@ import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.lang.Nullable;
 
 /**
  * Redis operations for geo commands.
@@ -43,10 +44,11 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param point must not be {@literal null}.
 	 * @param member must not be {@literal null}.
-	 * @return Number of elements added.
+	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
+	@Nullable
 	Long add(K key, Point point, M member);
 
 	/**
@@ -55,11 +57,12 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param point must not be {@literal null}.
 	 * @param member must not be {@literal null}.
-	 * @return Number of elements added.
+	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @deprecated since 2.0, use {@link #add(Object, Point, Object)}.
 	 */
 	@Deprecated
+	@Nullable
 	default Long geoAdd(K key, Point point, M member) {
 		return add(key, point, member);
 	}
@@ -69,10 +72,11 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param location must not be {@literal null}.
-	 * @return Number of elements added.
+	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
+	@Nullable
 	Long add(K key, GeoLocation<M> location);
 
 	/**
@@ -80,11 +84,12 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param location must not be {@literal null}.
-	 * @return Number of elements added.
+	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @deprecated since 2.0, use {@link #add(Object, GeoLocation)}.
 	 */
 	@Deprecated
+	@Nullable
 	default Long geoAdd(K key, GeoLocation<M> location) {
 		return add(key, location);
 	}
@@ -94,10 +99,11 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param memberCoordinateMap must not be {@literal null}.
-	 * @return Number of elements added.
+	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
+	@Nullable
 	Long add(K key, Map<M, Point> memberCoordinateMap);
 
 	/**
@@ -105,11 +111,12 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param memberCoordinateMap must not be {@literal null}.
-	 * @return Number of elements added.
+	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @deprecated since 2.0, use {@link #add(Object, Map)}.
 	 */
 	@Deprecated
+	@Nullable
 	default Long geoAdd(K key, Map<M, Point> memberCoordinateMap) {
 		return add(key, memberCoordinateMap);
 	}
@@ -119,10 +126,11 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param locations must not be {@literal null}.
-	 * @return Number of elements added.
+	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
+	@Nullable
 	Long add(K key, Iterable<GeoLocation<M>> locations);
 
 	/**
@@ -130,11 +138,12 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param locations must not be {@literal null}.
-	 * @return Number of elements added.
+	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @deprecated since 2.0, use {@link #add(Object, Iterable)}.
 	 */
 	@Deprecated
+	@Nullable
 	default Long geoAdd(K key, Iterable<GeoLocation<M>> locations) {
 		return add(key, locations);
 	}
@@ -149,6 +158,7 @@ public interface GeoOperations<K, M> {
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
+	@Nullable
 	Distance distance(K key, M member1, M member2);
 
 	/**
@@ -162,6 +172,7 @@ public interface GeoOperations<K, M> {
 	 * @deprecated since 2.0, use {@link #distance(Object, Object, Object)}.
 	 */
 	@Deprecated
+	@Nullable
 	default Distance geoDist(K key, M member1, M member2) {
 		return distance(key, member1, member2);
 	}
@@ -177,6 +188,7 @@ public interface GeoOperations<K, M> {
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
+	@Nullable
 	Distance distance(K key, M member1, M member2, Metric metric);
 
 	/**
@@ -191,6 +203,7 @@ public interface GeoOperations<K, M> {
 	 * @deprecated since 2.0, use {@link #distance(Object, Object, Object, Metric)}.
 	 */
 	@Deprecated
+	@Nullable
 	default Distance geoDist(K key, M member1, M member2, Metric metric) {
 		return distance(key, member1, member2, metric);
 	}
@@ -200,10 +213,11 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 */
+	@Nullable
 	List<String> hash(K key, M... members);
 
 	/**
@@ -211,11 +225,12 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 * @deprecated since 2.0, use {@link #hash(Object, Object[])}.
 	 */
 	@Deprecated
+	@Nullable
 	default List<String> geoHash(K key, M... members) {
 		return hash(key, members);
 	}
@@ -225,10 +240,11 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 */
+	@Nullable
 	List<Point> position(K key, M... members);
 
 	/**
@@ -236,11 +252,12 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 * @deprecated since 2.0, use {@link #position(Object, Object[])}.
 	 */
 	@Deprecated
+	@Nullable
 	default List<Point> geoPos(K key, M... members) {
 		return position(key, members);
 	}
@@ -250,10 +267,11 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
+	@Nullable
 	GeoResults<GeoLocation<M>> radius(K key, Circle within);
 
 	/**
@@ -261,11 +279,12 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 * @deprecated since 2.0, use {@link #radius(Object, Circle)}.
 	 */
 	@Deprecated
+	@Nullable
 	default GeoResults<GeoLocation<M>> geoRadius(K key, Circle within) {
 		return radius(key, within);
 	}
@@ -276,10 +295,11 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
 	 * @param args must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
+	@Nullable
 	GeoResults<GeoLocation<M>> radius(K key, Circle within, GeoRadiusCommandArgs args);
 
 	/**
@@ -288,11 +308,12 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
 	 * @param args must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 * @deprecated since 2.0, use {@link #radius(Object, Circle, GeoRadiusCommandArgs)}.
 	 */
 	@Deprecated
+	@Nullable
 	default GeoResults<GeoLocation<M>> geoRadius(K key, Circle within, GeoRadiusCommandArgs args) {
 		return radius(key, within, args);
 	}
@@ -304,10 +325,11 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param radius
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
+	@Nullable
 	GeoResults<GeoLocation<M>> radius(K key, M member, double radius);
 
 	/**
@@ -317,11 +339,12 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param radius
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 * @deprecated since 2.0, use {@link #radius(Object, Object, double)}.
 	 */
 	@Deprecated
+	@Nullable
 	default GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, double radius) {
 		return radius(key, member, radius);
 	}
@@ -333,10 +356,11 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param distance must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
+	@Nullable
 	GeoResults<GeoLocation<M>> radius(K key, M member, Distance distance);
 
 	/**
@@ -346,11 +370,12 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @param distance must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 * @deprecated since 2.0, use {@link #radius(Object, Object, Distance)}.
 	 */
 	@Deprecated
+	@Nullable
 	default GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, Distance distance) {
 		return radius(key, member, distance);
 	}
@@ -363,10 +388,11 @@ public interface GeoOperations<K, M> {
 	 * @param member must not be {@literal null}.
 	 * @param distance must not be {@literal null}.
 	 * @param args must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @since 2.0
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
+	@Nullable
 	GeoResults<GeoLocation<M>> radius(K key, M member, Distance distance, GeoRadiusCommandArgs args);
 
 	/**
@@ -377,11 +403,12 @@ public interface GeoOperations<K, M> {
 	 * @param member must not be {@literal null}.
 	 * @param distance must not be {@literal null}.
 	 * @param args must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 * @deprecated since 2.0, use {@link #radius(Object, Object, Distance, GeoRadiusCommandArgs)}.
 	 */
 	@Deprecated
+	@Nullable
 	default GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, Distance distance, GeoRadiusCommandArgs args) {
 		return radius(key, member, distance, args);
 	}
@@ -391,9 +418,10 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
-	 * @return Number of elements removed.
+	 * @return Number of elements removed. {@literal null} when used in pipeline / transaction.
 	 * @since 2.0
 	 */
+	@Nullable
 	Long remove(K key, M... members);
 
 	/**
@@ -401,10 +429,11 @@ public interface GeoOperations<K, M> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
-	 * @return Number of elements removed.
+	 * @return Number of elements removed. {@literal null} when used in pipeline / transaction.
 	 * @deprecated since 2.0, use {@link #remove(Object, Object[])}.
 	 */
 	@Deprecated
+	@Nullable
 	default Long geoRemove(K key, M... members) {
 		return remove(key, members);
 	}

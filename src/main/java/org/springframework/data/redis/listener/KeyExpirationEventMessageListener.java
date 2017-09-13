@@ -20,6 +20,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.RedisKeyExpiredEvent;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link MessageListener} publishing {@link RedisKeyExpiredEvent}s via {@link ApplicationEventPublisher} by listening
@@ -31,7 +32,7 @@ import org.springframework.data.redis.core.RedisKeyExpiredEvent;
 public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListener implements
 		ApplicationEventPublisherAware {
 
-	private ApplicationEventPublisher publisher;
+	private @Nullable ApplicationEventPublisher publisher;
 	private static final Topic KEYEVENT_EXPIRED_TOPIC = new PatternTopic("__keyevent@*__:expired");
 
 	/**

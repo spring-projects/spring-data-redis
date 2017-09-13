@@ -32,6 +32,7 @@ import org.springframework.expression.BeanResolver;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -47,7 +48,7 @@ public class SpelIndexResolver implements IndexResolver {
 	private final SpelExpressionParser parser;
 	private final RedisMappingContext mappingContext;
 
-	private BeanResolver beanResolver;
+	private @Nullable BeanResolver beanResolver;
 
 	private Map<SpelIndexDefinition, Expression> expressionCache;
 
@@ -79,7 +80,7 @@ public class SpelIndexResolver implements IndexResolver {
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.convert.IndexResolver#resolveIndexesFor(org.springframework.data.util.TypeInformation, java.lang.Object)
 	 */
-	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, Object value) {
+	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, @Nullable Object value) {
 
 		if (value == null) {
 			return Collections.emptySet();

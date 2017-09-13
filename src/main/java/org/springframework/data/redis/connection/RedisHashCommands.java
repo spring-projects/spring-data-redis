@@ -21,6 +21,7 @@ import java.util.Set;
 
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 
 /**
  * Hash-specific commands supported by Redis.
@@ -36,10 +37,11 @@ public interface RedisHashCommands {
 	 * 
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
-	 * @param value
-	 * @return
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hset">Redis Documentation: HSET</a>
 	 */
+	@Nullable
 	Boolean hSet(byte[] key, byte[] field, byte[] value);
 
 	/**
@@ -47,10 +49,11 @@ public interface RedisHashCommands {
 	 * 
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
-	 * @param value
-	 * @return
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hsetnx">Redis Documentation: HSETNX</a>
 	 */
+	@Nullable
 	Boolean hSetNX(byte[] key, byte[] field, byte[] value);
 
 	/**
@@ -58,19 +61,21 @@ public interface RedisHashCommands {
 	 * 
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when key or field do not exists or when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hget">Redis Documentation: HGET</a>
 	 */
+	@Nullable
 	byte[] hGet(byte[] key, byte[] field);
 
 	/**
 	 * Get values for given {@code fields} from hash at {@code key}.
 	 * 
 	 * @param key must not be {@literal null}.
-	 * @param fields must not be {@literal null}.
-	 * @return
+	 * @param fields must not be {@literal empty}.
+	 * @return empty {@link List} if key or fields do not exists. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hmget">Redis Documentation: HMGET</a>
 	 */
+	@Nullable
 	List<byte[]> hMGet(byte[] key, byte[]... fields);
 
 	/**
@@ -88,20 +93,22 @@ public interface RedisHashCommands {
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
 	 * @param delta
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hincrby">Redis Documentation: HINCRBY</a>
 	 */
+	@Nullable
 	Long hIncrBy(byte[] key, byte[] field, long delta);
 
 	/**
 	 * Increment {@code value} of a hash {@code field} by the given {@code delta}.
 	 * 
 	 * @param key must not be {@literal null}.
-	 * @param field
+	 * @param field must not be {@literal null}.
 	 * @param delta
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hincrbyfloat">Redis Documentation: HINCRBYFLOAT</a>
 	 */
+	@Nullable
 	Double hIncrBy(byte[] key, byte[] field, double delta);
 
 	/**
@@ -109,55 +116,61 @@ public interface RedisHashCommands {
 	 * 
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hexits">Redis Documentation: HEXISTS</a>
 	 */
+	@Nullable
 	Boolean hExists(byte[] key, byte[] field);
 
 	/**
 	 * Delete given hash {@code fields}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param fields must not be {@literal null}.
-	 * @return
+	 * @param fields must not be {@literal empty}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hdel">Redis Documentation: HDEL</a>
 	 */
+	@Nullable
 	Long hDel(byte[] key, byte[]... fields);
 
 	/**
 	 * Get size of hash at {@code key}.
 	 * 
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hlen">Redis Documentation: HLEN</a>
 	 */
+	@Nullable
 	Long hLen(byte[] key);
 
 	/**
 	 * Get key set (fields) of hash at {@code key}.
 	 * 
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hkeys">Redis Documentation: HKEYS</a>?
 	 */
+	@Nullable
 	Set<byte[]> hKeys(byte[] key);
 
 	/**
 	 * Get entry set (values) of hash at {@code field}.
 	 * 
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hvals">Redis Documentation: HVALS</a>
 	 */
+	@Nullable
 	List<byte[]> hVals(byte[] key);
 
 	/**
 	 * Get entire hash stored at {@code key}.
 	 * 
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return empty {@link Map} if key does not exist or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hgetall">Redis Documentation: HGETALL</a>
 	 */
+	@Nullable
 	Map<byte[], byte[]> hGetAll(byte[] key);
 
 	/**

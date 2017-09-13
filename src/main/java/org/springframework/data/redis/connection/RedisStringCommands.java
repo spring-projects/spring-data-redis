@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.lang.Nullable;
 
 /**
  * String/Value-specific commands supported by Redis.
@@ -37,28 +38,31 @@ public interface RedisStringCommands {
 	 * Get the value of {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
+	@Nullable
 	byte[] get(byte[] key);
 
 	/**
 	 * Set {@code value} of {@code key} and return its old value.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
-	 * @return
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} if key did not exist before or when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
+	@Nullable
 	byte[] getSet(byte[] key, byte[] value);
 
 	/**
 	 * Get multiple {@code keys}. Values are returned in the order of the requested keys.
 	 *
-	 * @param keys  must not be {@literal null}.
-	 * @return
+	 * @param keys must not be {@literal null}.
+	 * @return empty {@link List} if keys do not exist or when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 */
+	@Nullable
 	List<byte[]> mGet(byte[]... keys);
 
 	/**
@@ -76,8 +80,8 @@ public interface RedisStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}.
-	 * @param option can be {@literal null}. Defaulted to {@link SetOption#UPSERT}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl.
+	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non existing.
 	 * @since 1.7
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
@@ -117,7 +121,7 @@ public interface RedisStringCommands {
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
 	 *
-	 * @param tuple  must not be {@literal null}.
+	 * @param tuple must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 */
 	void mSet(Map<byte[], byte[]> tuple);
@@ -164,7 +168,7 @@ public interface RedisStringCommands {
 	 * Decrement an integer value stored as string value of {@code key} by 1.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/decr">Redis Documentation: DECR</a>
 	 */
 	Long decr(byte[] key);
@@ -174,7 +178,7 @@ public interface RedisStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
-	 * @return
+	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
 	 */
 	Long decrBy(byte[] key, long value);
@@ -183,8 +187,8 @@ public interface RedisStringCommands {
 	 * Append a {@code value} to {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
-	 * @return
+	 * @param value must not be {@literal null}.
+	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 */
 	Long append(byte[] key, byte[] value);
@@ -215,7 +219,7 @@ public interface RedisStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param offset
-	 * @return
+	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
 	 */
 	Boolean getBit(byte[] key, long offset);
@@ -235,7 +239,7 @@ public interface RedisStringCommands {
 	 * Count the number of set bits (population counting) in value stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 */
 	Long bitCount(byte[] key);
@@ -247,7 +251,7 @@ public interface RedisStringCommands {
 	 * @param key must not be {@literal null}.
 	 * @param begin
 	 * @param end
-	 * @return
+	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 */
 	Long bitCount(byte[] key, long begin, long end);
@@ -255,10 +259,10 @@ public interface RedisStringCommands {
 	/**
 	 * Perform bitwise operations between strings.
 	 *
-	 * @param op  must not be {@literal null}.
+	 * @param op must not be {@literal null}.
 	 * @param destination must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
-	 * @return
+	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/bitop">Redis Documentation: BITOP</a>
 	 */
 	Long bitOp(BitOperation op, byte[] destination, byte[]... keys);

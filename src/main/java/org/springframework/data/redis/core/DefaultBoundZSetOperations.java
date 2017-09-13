@@ -170,7 +170,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 */
 	@Override
 	public Set<V> rangeByLex(Range range) {
-		return rangeByLex(range, null);
+		return rangeByLex(range, Limit.unlimited());
 	}
 
 	/*

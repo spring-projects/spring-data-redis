@@ -41,6 +41,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -62,7 +63,7 @@ public interface ReactiveGeoCommands {
 
 		private final List<GeoLocation<ByteBuffer>> geoLocations;
 
-		private GeoAddCommand(ByteBuffer key, List<GeoLocation<ByteBuffer>> geoLocations) {
+		private GeoAddCommand(@Nullable ByteBuffer key, List<GeoLocation<ByteBuffer>> geoLocations) {
 
 			super(key);
 
@@ -184,7 +185,8 @@ public interface ReactiveGeoCommands {
 		private final ByteBuffer to;
 		private final Metric metric;
 
-		private GeoDistCommand(ByteBuffer key, ByteBuffer from, ByteBuffer to, Metric metric) {
+		private GeoDistCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer from, @Nullable ByteBuffer to,
+				Metric metric) {
 
 			super(key);
 
@@ -274,21 +276,23 @@ public interface ReactiveGeoCommands {
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getFrom() {
 			return from;
 		}
 
 		/**
-		 * @return
+		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getTo() {
 			return to;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Optional<Metric> getMetric() {
 			return Optional.ofNullable(metric);
@@ -305,7 +309,7 @@ public interface ReactiveGeoCommands {
 	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
 	default Mono<Distance> geoDist(ByteBuffer key, ByteBuffer from, ByteBuffer to) {
-		return geoDist(key, from, to, null);
+		return geoDist(key, from, to, DistanceUnit.METERS);
 	}
 
 	/**
@@ -314,7 +318,7 @@ public interface ReactiveGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param from must not be {@literal null}.
 	 * @param to must not be {@literal null}.
-	 * @param metric can be {@literal null} and defaults to {@link DistanceUnit#METERS}.
+	 * @param metric must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
@@ -323,6 +327,7 @@ public interface ReactiveGeoCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(from, "From must not be null!");
 		Assert.notNull(to, "To must not be null!");
+		Assert.notNull(metric, "Metric must not be null!");
 
 		return geoDist(Mono.just(GeoDistCommand.units(metric).between(from).and(to).forKey(key))) //
 				.next() //
@@ -348,7 +353,7 @@ public interface ReactiveGeoCommands {
 
 		private final List<ByteBuffer> members;
 
-		private GeoHashCommand(ByteBuffer key, List<ByteBuffer> members) {
+		private GeoHashCommand(@Nullable ByteBuffer key, List<ByteBuffer> members) {
 
 			super(key);
 
@@ -395,7 +400,7 @@ public interface ReactiveGeoCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public List<ByteBuffer> getMembers() {
 			return members;
@@ -455,7 +460,7 @@ public interface ReactiveGeoCommands {
 
 		private final List<ByteBuffer> members;
 
-		private GeoPosCommand(ByteBuffer key, List<ByteBuffer> members) {
+		private GeoPosCommand(@Nullable ByteBuffer key, List<ByteBuffer> members) {
 
 			super(key);
 
@@ -502,7 +507,7 @@ public interface ReactiveGeoCommands {
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public List<ByteBuffer> getMembers() {
 			return members;
@@ -559,19 +564,19 @@ public interface ReactiveGeoCommands {
 	class GeoRadiusCommand extends KeyCommand {
 
 		private final Distance distance;
-		private final Point point;
+		private final @Nullable Point point;
 		private final GeoRadiusCommandArgs args;
-		private final ByteBuffer store;
-		private final ByteBuffer storeDist;
+		private final @Nullable ByteBuffer store;
+		private final @Nullable ByteBuffer storeDist;
 
-		private GeoRadiusCommand(ByteBuffer key, Point point, Distance distance, GeoRadiusCommandArgs args,
-				ByteBuffer store, ByteBuffer storeDist) {
+		private GeoRadiusCommand(@Nullable ByteBuffer key, @Nullable Point point, Distance distance,
+				GeoRadiusCommandArgs args, @Nullable ByteBuffer store, @Nullable ByteBuffer storeDist) {
 
 			super(key);
 
 			this.distance = distance;
 			this.point = point;
-			this.args = args == null ? GeoRadiusCommandArgs.newGeoRadiusArgs() : args;
+			this.args = args;
 			this.store = store;
 			this.storeDist = storeDist;
 		}
@@ -586,7 +591,7 @@ public interface ReactiveGeoCommands {
 
 			Assert.notNull(distance, "Distance must not be null!");
 
-			return new GeoRadiusCommand(null, null, distance, null, null, null);
+			return new GeoRadiusCommand(null, null, distance, GeoRadiusCommandArgs.newGeoRadiusArgs(), null, null);
 		}
 
 		/**
@@ -694,11 +699,14 @@ public interface ReactiveGeoCommands {
 		 * Applies command {@link GeoRadiusCommandArgs}. Constructs a new command instance with all previously configured
 		 * properties.
 		 *
-		 * @param args can be {@literal null}.
+		 * @param args must not be {@literal null}.
 		 * @return a new {@link GeoRadiusCommand} with {@link GeoRadiusCommandArgs} applied.
 		 */
 		public GeoRadiusCommand withArgs(GeoRadiusCommandArgs args) {
-			return new GeoRadiusCommand(getKey(), point, distance, args, store, storeDist);
+
+			Assert.notNull(args, "Args must not be null!");
+			return new GeoRadiusCommand(getKey(), point, distance,
+					args == null ? GeoRadiusCommandArgs.newGeoRadiusArgs() : args, store, storeDist);
 		}
 
 		/**
@@ -766,74 +774,79 @@ public interface ReactiveGeoCommands {
 		/**
 		 * <b>NOTE:</b> STORE option is not compatible with WITHDIST, WITHHASH and WITHCOORDS options.
 		 *
-		 * @param key
-		 * @return
+		 * @param key must not be {@literal null}.
+		 * @return new instance of {@link GeoRadiusCommand}.
 		 */
 		public GeoRadiusCommand storeAt(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
 			return new GeoRadiusCommand(getKey(), point, distance, args, key, storeDist);
 		}
 
 		/**
 		 * <b>NOTE:</b> STOREDIST option is not compatible with WITHDIST, WITHHASH and WITHCOORDS options.
 		 *
-		 * @param key
-		 * @return
+		 * @param key must not be {@literal null}.
+		 * @return new instance of {@link GeoRadiusCommand}.
 		 */
-		public GeoRadiusCommand storeDistAt(ByteBuffer key) {
+		public GeoRadiusCommand storeDistAt(@Nullable ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
 			return new GeoRadiusCommand(getKey(), point, distance, args, store, key);
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Optional<Direction> getDirection() {
 			return Optional.ofNullable(args.getSortDirection());
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Distance getDistance() {
 			return distance;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Set<Flag> getFlags() {
 			return args.getFlags();
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Optional<Long> getLimit() {
 			return Optional.ofNullable(args.getLimit());
 		}
 
 		/**
-		 * @return
+		 * @return  can be {@literal null}.
 		 */
+		@Nullable
 		public Point getPoint() {
 			return point;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Optional<ByteBuffer> getStore() {
 			return Optional.ofNullable(store);
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Optional<ByteBuffer> getStoreDist() {
 			return Optional.ofNullable(storeDist);
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Optional<GeoRadiusCommandArgs> getArgs() {
 			return Optional.ofNullable(args);
@@ -858,7 +871,7 @@ public interface ReactiveGeoCommands {
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
 	default Flux<GeoResult<GeoLocation<ByteBuffer>>> geoRadius(ByteBuffer key, Circle circle) {
-		return geoRadius(key, circle, null);
+		return geoRadius(key, circle, GeoRadiusCommandArgs.newGeoRadiusArgs());
 	}
 
 	/**
@@ -866,7 +879,7 @@ public interface ReactiveGeoCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param circle must not be {@literal null}.
-	 * @param geoRadiusArgs can be {@literal null}.
+	 * @param geoRadiusArgs must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
@@ -875,6 +888,7 @@ public interface ReactiveGeoCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(circle, "Circle must not be null!");
+		Assert.notNull(geoRadiusArgs, "GeoRadiusArgs must not be null!");
 
 		return geoRadius(Mono.just(GeoRadiusCommand.within(circle).withArgs(geoRadiusArgs).forKey(key)))
 				.flatMap(CommandResponse::getOutput);
@@ -899,19 +913,19 @@ public interface ReactiveGeoCommands {
 	class GeoRadiusByMemberCommand extends KeyCommand {
 
 		private final Distance distance;
-		private final ByteBuffer member;
+		private final @Nullable ByteBuffer member;
 		private final GeoRadiusCommandArgs args;
-		private final ByteBuffer store;
-		private final ByteBuffer storeDist;
+		private final @Nullable ByteBuffer store;
+		private final @Nullable ByteBuffer storeDist;
 
-		private GeoRadiusByMemberCommand(ByteBuffer key, ByteBuffer member, Distance distance, GeoRadiusCommandArgs args,
-				ByteBuffer store, ByteBuffer storeDist) {
+		private GeoRadiusByMemberCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer member, Distance distance,
+				GeoRadiusCommandArgs args, @Nullable ByteBuffer store, @Nullable ByteBuffer storeDist) {
 
 			super(key);
 
 			this.distance = distance;
 			this.member = member;
-			this.args = args == null ? GeoRadiusCommandArgs.newGeoRadiusArgs() : args;
+			this.args = args;
 			this.store = store;
 			this.storeDist = storeDist;
 		}
@@ -1020,11 +1034,12 @@ public interface ReactiveGeoCommands {
 		 * Applies command {@link GeoRadiusCommandArgs}. Constructs a new command instance with all previously configured
 		 * properties.
 		 *
-		 * @param args can be {@literal null}.
+		 * @param args must not be {@literal null}.
 		 * @return a new {@link GeoRadiusByMemberCommand} with {@link GeoRadiusCommandArgs} applied.
 		 */
 		public GeoRadiusByMemberCommand withArgs(GeoRadiusCommandArgs args) {
 
+			Assert.notNull(args, "Args must not be null!");
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
 		}
 
@@ -1084,80 +1099,87 @@ public interface ReactiveGeoCommands {
 		 * @return a new {@link GeoRadiusByMemberCommand} with {@literal key} applied.
 		 */
 		public GeoRadiusByMemberCommand forKey(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
 			return new GeoRadiusByMemberCommand(key, member, distance, args, store, storeDist);
 		}
 
 		/**
 		 * <b>NOTE:</b> STORE option is not compatible with WITHDIST, WITHHASH and WITHCOORDS options.
 		 *
-		 * @param key
-		 * @return
+		 * @param key must not be {@literal null}.
+		 * @return new instance of {@link GeoRadiusByMemberCommand}.
 		 */
 		public GeoRadiusByMemberCommand storeAt(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, key, storeDist);
 		}
 
 		/**
 		 * <b>NOTE:</b> STOREDIST option is not compatible with WITHDIST, WITHHASH and WITHCOORDS options.
 		 *
-		 * @param key
-		 * @return
+		 * @param key must not be {@literal null}.
+		 * @return new instance of {@link GeoRadiusByMemberCommand}.
 		 */
 		public GeoRadiusByMemberCommand storeDistAt(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, key);
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Optional<Direction> getDirection() {
 			return Optional.ofNullable(args.getSortDirection());
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Distance getDistance() {
 			return distance;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Set<Flag> getFlags() {
 			return args.getFlags();
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Optional<Long> getLimit() {
 			return Optional.ofNullable(args.getLimit());
 		}
 
 		/**
-		 * @return
+		 * @return  can be {@literal null}.
 		 */
+		@Nullable
 		public ByteBuffer getMember() {
 			return member;
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Optional<ByteBuffer> getStore() {
 			return Optional.ofNullable(store);
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Optional<ByteBuffer> getStoreDist() {
 			return Optional.ofNullable(storeDist);
 		}
 
 		/**
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		public Optional<GeoRadiusCommandArgs> getArgs() {
 			return Optional.ofNullable(args);
@@ -1183,7 +1205,7 @@ public interface ReactiveGeoCommands {
 	 */
 	default Flux<GeoResult<GeoLocation<ByteBuffer>>> geoRadiusByMember(ByteBuffer key, ByteBuffer member,
 			Distance distance) {
-		return geoRadiusByMember(key, member, distance, null);
+		return geoRadiusByMember(key, member, distance, GeoRadiusCommandArgs.newGeoRadiusArgs());
 	}
 
 	/**
@@ -1191,7 +1213,7 @@ public interface ReactiveGeoCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
-	 * @param geoRadiusArgs can be {@literal null}.
+	 * @param geoRadiusArgs must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
@@ -1201,6 +1223,7 @@ public interface ReactiveGeoCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(member, "Member must not be null!");
 		Assert.notNull(distance, "Distance must not be null!");
+		Assert.notNull(geoRadiusArgs, "GeoRadiusArgs must not be null!");
 
 		return geoRadiusByMember(
 				Mono.just(GeoRadiusByMemberCommand.within(distance).from(member).forKey(key).withArgs(geoRadiusArgs)))

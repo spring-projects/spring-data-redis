@@ -19,6 +19,7 @@ import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.api.StatefulConnection;
 
 import org.springframework.data.redis.connection.Pool;
+import org.springframework.lang.Nullable;
 
 /**
  * Pool of Lettuce {@link StatefulConnection}s
@@ -34,6 +35,7 @@ public interface LettucePool extends Pool<StatefulConnection<byte[], byte[]>> {
 	/**
 	 * @return The {@link AbstractRedisClient} used to create pooled connections
 	 */
+	@Nullable
 	AbstractRedisClient getClient();
 
 }

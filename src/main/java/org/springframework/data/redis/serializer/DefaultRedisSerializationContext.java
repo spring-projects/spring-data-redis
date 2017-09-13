@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -93,10 +94,10 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 	 */
 	static class DefaultRedisSerializationContextBuilder<K, V> implements RedisSerializationContextBuilder<K, V> {
 
-		private SerializationPair<K> keyTuple;
-		private SerializationPair<V> valueTuple;
-		private SerializationPair<?> hashKeyTuple;
-		private SerializationPair<?> hashValueTuple;
+		private @Nullable SerializationPair<K> keyTuple;
+		private @Nullable SerializationPair<V> valueTuple;
+		private @Nullable SerializationPair<?> hashKeyTuple;
+		private @Nullable SerializationPair<?> hashValueTuple;
 		private SerializationPair<String> stringTuple = SerializationPair.fromSerializer(new StringRedisSerializer());
 
 		/* (non-Javadoc)

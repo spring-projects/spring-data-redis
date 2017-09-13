@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
  * Default {@link BoundKeyOperations} implementation. Meant for internal usage.
  *
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 abstract class DefaultBoundKeyOperations<K> implements BoundKeyOperations<K> {
 
@@ -30,7 +31,7 @@ abstract class DefaultBoundKeyOperations<K> implements BoundKeyOperations<K> {
 
 	DefaultBoundKeyOperations(K key, RedisOperations<K, ?> operations) {
 
-		setKey(key);
+		this.key = key;
 		this.ops = operations;
 	}
 
@@ -41,10 +42,6 @@ abstract class DefaultBoundKeyOperations<K> implements BoundKeyOperations<K> {
 	@Override
 	public K getKey() {
 		return key;
-	}
-
-	protected void setKey(K key) {
-		this.key = key;
 	}
 
 	/*

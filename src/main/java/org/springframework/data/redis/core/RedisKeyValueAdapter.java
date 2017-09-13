@@ -60,6 +60,7 @@ import org.springframework.data.redis.listener.KeyExpirationEventMessageListener
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.CloseableIterator;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -103,13 +104,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	private RedisOperations<?, ?> redisOps;
 	private RedisConverter converter;
-	private RedisMessageListenerContainer messageListenerContainer;
-	private final AtomicReference<KeyExpirationEventMessageListener> expirationListener = new AtomicReference<>(
-			null);
-	private ApplicationEventPublisher eventPublisher;
+	private @Nullable RedisMessageListenerContainer messageListenerContainer;
+	private final AtomicReference<KeyExpirationEventMessageListener> expirationListener = new AtomicReference<>(null);
+	private @Nullable ApplicationEventPublisher eventPublisher;
 
 	private EnableKeyspaceEvents enableKeyspaceEvents = EnableKeyspaceEvents.OFF;
-	private String keyspaceNotificationsConfigParameter = null;
+	private @Nullable String keyspaceNotificationsConfigParameter = null;
 
 	/**
 	 * Creates new {@link RedisKeyValueAdapter} with default {@link RedisMappingContext} and default
@@ -751,7 +751,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		 * @see org.springframework.data.redis.listener.KeyspaceEventMessageListener#onMessage(org.springframework.data.redis.connection.Message, byte[])
 		 */
 		@Override
-		public void onMessage(Message message, byte[] pattern) {
+		public void onMessage(Message message, @Nullable byte[] pattern) {
 
 			if (!isKeyExpirationMessage(message)) {
 				return;
@@ -775,8 +775,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			Object value = converter.read(Object.class, new RedisData(hash));
 
 			String channel = !ObjectUtils.isEmpty(message.getChannel())
-					? converter.getConversionService().convert(message.getChannel(), String.class)
-					: null;
+					? converter.getConversionService().convert(message.getChannel(), String.class) : null;
 
 			RedisKeyExpiredEvent event = new RedisKeyExpiredEvent(channel, key, value);
 

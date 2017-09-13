@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.lang.Nullable;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
@@ -91,16 +92,16 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			JedisConverters.exceptionConverter());
 
 	private final JedisClientConfiguration clientConfiguration;
-	private JedisShardInfo shardInfo;
+	private @Nullable JedisShardInfo shardInfo;
 	private boolean providedShardInfo = false;
-	private Pool<Jedis> pool;
+	private @Nullable Pool<Jedis> pool;
 	private boolean convertPipelineAndTxResults = true;
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost",
 			Protocol.DEFAULT_PORT);
-	private RedisSentinelConfiguration sentinelConfig;
-	private RedisClusterConfiguration clusterConfig;
-	private JedisCluster cluster;
-	private ClusterCommandExecutor clusterCommandExecutor;
+	private @Nullable RedisSentinelConfiguration sentinelConfig;
+	private @Nullable RedisClusterConfiguration clusterConfig;
+	private @Nullable JedisCluster cluster;
+	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
 
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance with default settings (default connection pooling, no
@@ -609,6 +610,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @deprecated since 2.0.
 	 */
 	@Deprecated
+	@Nullable
 	public JedisShardInfo getShardInfo() {
 		return shardInfo;
 	}
@@ -896,12 +898,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	static class MutableJedisClientConfiguration implements JedisClientConfiguration {
 
 		private boolean useSsl;
-		private SSLSocketFactory sslSocketFactory;
-		private SSLParameters sslParameters;
-		private HostnameVerifier hostnameVerifier;
+		private @Nullable SSLSocketFactory sslSocketFactory;
+		private @Nullable SSLParameters sslParameters;
+		private @Nullable HostnameVerifier hostnameVerifier;
 		private boolean usePooling = true;
 		private GenericObjectPoolConfig poolConfig = new JedisPoolConfig();
-		private String clientName;
+		private @Nullable String clientName;
 		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 

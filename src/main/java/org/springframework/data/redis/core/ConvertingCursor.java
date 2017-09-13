@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import java.io.IOException;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -61,6 +62,7 @@ public class ConvertingCursor<S, T> implements Cursor<T> {
 	 * @see java.util.Iterator#next()
 	 */
 	@Override
+	@Nullable
 	public T next() {
 		return converter.convert(delegate.next());
 	}

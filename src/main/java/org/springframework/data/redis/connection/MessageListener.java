@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,21 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Listener of messages published in Redis.
- * 
+ *
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public interface MessageListener {
 
 	/**
 	 * Callback for processing received objects through Redis.
-	 * 
-	 * @param message message
-	 * @param pattern pattern matching the channel (if specified) - can be null
+	 *
+	 * @param message message must not be {@literal null}.
+	 * @param pattern pattern matching the channel (if specified) - can be {@literal null}.
 	 */
-	void onMessage(Message message, byte[] pattern);
+	void onMessage(Message message, @Nullable byte[] pattern);
 }

@@ -60,6 +60,7 @@ import org.springframework.data.redis.connection.convert.StringToRedisClientInfo
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -721,7 +722,7 @@ abstract public class LettuceConverters extends Converters {
 	 * @param option can be {@literal null}.
 	 * @since 1.7
 	 */
-	public static SetArgs toSetArgs(Expiration expiration, SetOption option) {
+	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
 
 		SetArgs args = new SetArgs();
 		if (expiration != null && !expiration.isPersistent()) {

@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -33,11 +34,13 @@ import org.springframework.util.CollectionUtils;
 public class RedisClusterNode extends RedisNode {
 
 	private SlotRange slotRange;
-	private LinkState linkState;
+	private @Nullable LinkState linkState;
 	private Set<Flag> flags;
 
 	protected RedisClusterNode() {
+
 		super();
+		flags = Collections.emptySet();
 	}
 
 	/**
@@ -47,7 +50,7 @@ public class RedisClusterNode extends RedisNode {
 	 * @param port
 	 */
 	public RedisClusterNode(String host, int port) {
-		this(host, port, new SlotRange(Collections.<Integer> emptySet()));
+		this(host, port, SlotRange.empty());
 	}
 
 	/**
@@ -57,7 +60,7 @@ public class RedisClusterNode extends RedisNode {
 	 */
 	public RedisClusterNode(String id) {
 
-		this(new SlotRange(Collections.<Integer> emptySet()));
+		this(SlotRange.empty());
 		Assert.notNull(id, "Id must not be null!");
 		this.id = id;
 	}
@@ -67,23 +70,34 @@ public class RedisClusterNode extends RedisNode {
 	 *
 	 * @param host must not be {@literal null}.
 	 * @param port
-	 * @param slotRange can be {@literal null}.
+	 * @param slotRange must not be {@literal null}.
 	 */
 	public RedisClusterNode(String host, int port, SlotRange slotRange) {
 
 		super(host, port);
-		this.slotRange = slotRange != null ? slotRange : new SlotRange(Collections.<Integer> emptySet());
+
+		Assert.notNull(slotRange, "SlotRange must not be null!");
+		this.slotRange = slotRange;
 	}
 
 	/**
 	 * Creates new {@link RedisClusterNode} with given {@link SlotRange}.
 	 *
-	 * @param slotRange can be {@literal null}.
+	 * @param slotRange must not be {@literal null}.
 	 */
 	public RedisClusterNode(SlotRange slotRange) {
 
 		super();
-		this.slotRange = slotRange != null ? slotRange : new SlotRange(Collections.<Integer> emptySet());
+
+		Assert.notNull(slotRange, "SlotRange must not be null!");
+
+		this.slotRange = slotRange;
+	}
+
+	{
+		if (flags == null) {
+			flags = Collections.emptySet();
+		}
 	}
 
 	/**
@@ -104,8 +118,9 @@ public class RedisClusterNode extends RedisNode {
 	}
 
 	/**
-	 * @return
+	 * @return can be {@literal null}
 	 */
+	@Nullable
 	public LinkState getLinkState() {
 		return linkState;
 	}
@@ -121,7 +136,7 @@ public class RedisClusterNode extends RedisNode {
 	 * @return never {@literal null}.
 	 */
 	public Set<Flag> getFlags() {
-		return flags == null ? Collections.<Flag> emptySet() : flags;
+		return flags == null ? Collections.emptySet() : flags;
 	}
 
 	/**
@@ -177,8 +192,7 @@ public class RedisClusterNode extends RedisNode {
 		}
 
 		public SlotRange(Collection<Integer> range) {
-			this.range = CollectionUtils.isEmpty(range) ? Collections.<Integer> emptySet()
-					: new LinkedHashSet<>(range);
+			this.range = CollectionUtils.isEmpty(range) ? Collections.emptySet() : new LinkedHashSet<>(range);
 		}
 
 		@Override
@@ -212,13 +226,17 @@ public class RedisClusterNode extends RedisNode {
 
 			return slots;
 		}
+
+		public static SlotRange empty() {
+			return new SlotRange(Collections.emptySet());
+		}
 	}
 
 	/**
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	public static enum LinkState {
+	public enum LinkState {
 		CONNECTED, DISCONNECTED
 	}
 
@@ -251,12 +269,12 @@ public class RedisClusterNode extends RedisNode {
 	 */
 	public static class RedisClusterNodeBuilder extends RedisNodeBuilder {
 
-		Set<Flag> flags;
-		LinkState linkState;
+		@Nullable Set<Flag> flags;
+		@Nullable LinkState linkState;
 		SlotRange slotRange;
 
 		public RedisClusterNodeBuilder() {
-
+			this.slotRange = SlotRange.empty();
 		}
 
 		/*

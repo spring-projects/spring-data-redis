@@ -22,6 +22,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.lang.Nullable;
 
 /**
  * ZSet (or SortedSet) operations bound to a certain key.
@@ -37,27 +38,30 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param score the score.
 	 * @param value the value.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
+	@Nullable
 	Boolean add(V value, double score);
 
 	/**
 	 * Add {@code tuples} to a sorted set at the bound key, or update its {@code score} if it already exists.
 	 *
 	 * @param tuples must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
+	@Nullable
 	Long add(Set<TypedTuple<V>> tuples);
 
 	/**
 	 * Remove {@code values} from sorted set. Return number of removed elements.
 	 *
 	 * @param values must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 */
+	@Nullable
 	Long remove(Object... values);
 
 	/**
@@ -65,27 +69,30 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param delta
 	 * @param value the value.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
 	 */
+	@Nullable
 	Double incrementScore(V value, double delta);
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set.
 	 *
 	 * @param o the value.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
 	 */
+	@Nullable
 	Long rank(Object o);
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set when scored high to low.
 	 *
 	 * @param o the value.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
 	 */
+	@Nullable
 	Long reverseRank(Object o);
 
 	/**
@@ -93,9 +100,10 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param start
 	 * @param end
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
+	@Nullable
 	Set<V> range(long start, long end);
 
 	/**
@@ -103,9 +111,10 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param start
 	 * @param end
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
+	@Nullable
 	Set<TypedTuple<V>> rangeWithScores(long start, long end);
 
 	/**
@@ -113,9 +122,10 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param min
 	 * @param max
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
+	@Nullable
 	Set<V> rangeByScore(double min, double max);
 
 	/**
@@ -123,9 +133,10 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param min
 	 * @param max
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
+	@Nullable
 	Set<TypedTuple<V>> rangeByScoreWithScores(double min, double max);
 
 	/**
@@ -133,9 +144,10 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param start
 	 * @param end
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
+	@Nullable
 	Set<V> reverseRange(long start, long end);
 
 	/**
@@ -143,9 +155,10 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param start
 	 * @param end
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
+	@Nullable
 	Set<TypedTuple<V>> reverseRangeWithScores(long start, long end);
 
 	/**
@@ -153,9 +166,10 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param min
 	 * @param max
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
+	@Nullable
 	Set<V> reverseRangeByScore(double min, double max);
 
 	/**
@@ -164,9 +178,10 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param min
 	 * @param max
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
+	@Nullable
 	Set<TypedTuple<V>> reverseRangeByScoreWithScores(double min, double max);
 
 	/**
@@ -174,36 +189,40 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param min
 	 * @param max
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zcount">Redis Documentation: ZCOUNT</a>
 	 */
+	@Nullable
 	Long count(double min, double max);
 
 	/**
 	 * Returns the number of elements of the sorted set stored with given the bound key.
 	 *
 	 * @see #zCard()
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
 	 */
+	@Nullable
 	Long size();
 
 	/**
 	 * Get the size of sorted set with the bound key.
 	 *
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.3
 	 * @see <a href="http://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
 	 */
+	@Nullable
 	Long zCard();
 
 	/**
 	 * Get the score of element with {@code value} from sorted set with key the bound key.
 	 *
 	 * @param o the value.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 */
+	@Nullable
 	Double score(Object o);
 
 	/**
@@ -211,7 +230,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param start
 	 * @param end
-	 * @return
 	 * @see <a href="http://redis.io/commands/zremrangebyrank">Redis Documentation: ZREMRANGEBYRANK</a>
 	 */
 	void removeRange(long start, long end);
@@ -221,7 +239,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param min
 	 * @param max
-	 * @return
 	 * @see <a href="http://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
 	 */
 	void removeRangeByScore(double min, double max);
@@ -231,7 +248,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
-	 * @return
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	void unionAndStore(K otherKey, K destKey);
@@ -241,7 +257,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
-	 * @return
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	void unionAndStore(Collection<K> otherKeys, K destKey);
@@ -251,7 +266,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
-	 * @return
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	void intersectAndStore(K otherKey, K destKey);
@@ -261,7 +275,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
-	 * @return
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	void intersectAndStore(Collection<K> otherKeys, K destKey);
@@ -281,9 +294,11 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * {@link Range#getMax()}.
 	 *
 	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.7
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
+	@Nullable
 	Set<V> rangeByLex(Range range);
 
 	/**
@@ -293,11 +308,15 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.7
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
+	@Nullable
 	Set<V> rangeByLex(Range range, Limit limit);
 
+	/**
+	 * @return never {@literal null}.
+	 */
 	RedisOperations<K, V> getOperations();
 }

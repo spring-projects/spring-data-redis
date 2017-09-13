@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.data.redis;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.lang.Nullable;
 
 /**
  * Potentially translates an {@link Exception} into appropriate {@link DataAccessException}.
@@ -28,10 +29,11 @@ public interface ExceptionTranslationStrategy {
 
 	/**
 	 * Potentially translate the given {@link Exception} into {@link DataAccessException}.
-	 * 
-	 * @param e
-	 * @return
+	 *
+	 * @param e must not be {@literal null}.
+	 * @return can be {@literal null} if given {@link Exception} cannot be translated.
 	 */
+	@Nullable
 	DataAccessException translate(Exception e);
 
 }

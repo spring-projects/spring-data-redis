@@ -225,8 +225,9 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		checkResult(members);
 		Iterator<E> iterator = members.iterator();
 
-		if (iterator.hasNext())
+		if (iterator.hasNext()) {
 			return iterator.next();
+		}
 		throw new NoSuchElementException();
 	}
 
@@ -234,8 +235,9 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		Set<E> members = boundZSetOps.reverseRange(0, 0);
 		checkResult(members);
 		Iterator<E> iterator = members.iterator();
-		if (iterator.hasNext())
+		if (iterator.hasNext()) {
 			return iterator.next();
+		}
 		throw new NoSuchElementException();
 	}
 

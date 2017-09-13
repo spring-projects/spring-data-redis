@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.lang.Nullable;
 
 /**
  * Operations over a Redis key. Useful for executing common key-'bound' operations to all implementations.
@@ -35,54 +36,59 @@ public interface BoundKeyOperations<K> {
 
 	/**
 	 * Returns the key associated with this entity.
-	 * 
+	 *
 	 * @return key associated with the implementing entity
 	 */
 	K getKey();
 
 	/**
 	 * Returns the associated Redis type.
-	 * 
-	 * @return key type
+	 *
+	 * @return key type. {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	DataType getType();
 
 	/**
 	 * Returns the expiration of this key.
-	 * 
-	 * @return expiration value (in seconds)
+	 *
+	 * @return expiration value (in seconds). {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Long getExpire();
 
 	/**
 	 * Sets the key time-to-live/expiration.
-	 * 
+	 *
 	 * @param timeout expiration value
 	 * @param unit expiration unit
-	 * @return true if expiration was set, false otherwise
+	 * @return true if expiration was set, false otherwise. {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Boolean expire(long timeout, TimeUnit unit);
 
 	/**
 	 * Sets the key time-to-live/expiration.
-	 * 
+	 *
 	 * @param date expiration date
-	 * @return true if expiration was set, false otherwise
+	 * @return true if expiration was set, false otherwise. {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Boolean expireAt(Date date);
 
 	/**
 	 * Removes the expiration (if any) of the key.
-	 * 
-	 * @return true if expiration was removed, false otherwise
+	 *
+	 * @return true if expiration was removed, false otherwise. {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	Boolean persist();
 
 	/**
 	 * Renames the key. <br>
 	 * <b>Note:</b> The new name for empty collections will be propagated on add of first element.
-	 * 
-	 * @param newKey new key
+	 *
+	 * @param newKey new key. Must not be {@literal null}.
 	 */
 	void rename(K newKey);
 }

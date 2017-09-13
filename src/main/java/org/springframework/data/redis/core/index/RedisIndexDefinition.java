@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -36,7 +37,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 	private final String indexName;
 	private final String path;
 	private List<Condition<?>> conditions;
-	private IndexValueTransformer valueTransformer;
+	private @Nullable IndexValueTransformer valueTransformer;
 
 	/**
 	 * Creates new {@link RedisIndexDefinition}.

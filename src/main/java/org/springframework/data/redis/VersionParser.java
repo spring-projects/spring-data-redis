@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.data.redis;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Central class for reading version string (eg. {@literal 1.3.1}) into {@link Version}.
  * 
@@ -31,10 +33,11 @@ public class VersionParser {
 	/**
 	 * Parse version string {@literal eg. 1.1.1} to {@link Version}.
 	 * 
-	 * @param version
-	 * @return
+	 * @param version can be {@literal null}.
+	 * @return never {@literal null}.
 	 */
-	public static Version parseVersion(String version) {
+	public static Version parseVersion(@Nullable String version) {
+
 		if (version == null) {
 			return Version.UNKNOWN;
 		}
@@ -47,6 +50,7 @@ public class VersionParser {
 			return new Version(Integer.parseInt(major), minor != null ? Integer.parseInt(minor) : 0,
 					patch != null ? Integer.parseInt(patch) : 0);
 		}
+
 		return Version.UNKNOWN;
 	}
 

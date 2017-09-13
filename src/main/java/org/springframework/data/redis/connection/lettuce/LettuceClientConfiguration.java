@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -129,8 +130,8 @@ public interface LettuceClientConfiguration {
 		boolean useSsl;
 		boolean verifyPeer = true;
 		boolean startTls;
-		ClientResources clientResources;
-		ClientOptions clientOptions;
+		@Nullable ClientResources clientResources;
+		@Nullable ClientOptions clientOptions;
 		Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 		Duration shutdownTimeout = Duration.ofMillis(100);
 

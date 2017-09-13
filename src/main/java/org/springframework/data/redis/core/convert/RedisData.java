@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -33,13 +34,13 @@ import org.springframework.util.Assert;
  */
 public class RedisData {
 
-	private String keyspace;
-	private String id;
+	private @Nullable String keyspace;
+	private @Nullable String id;
 
 	private Bucket bucket;
 	private Set<IndexedData> indexedData;
 
-	private Long timeToLive;
+	private @Nullable Long timeToLive;
 
 	/**
 	 * Creates new {@link RedisData} with empty {@link Bucket}.
@@ -81,6 +82,7 @@ public class RedisData {
 	/**
 	 * @return
 	 */
+	@Nullable
 	public String getId() {
 		return this.id;
 	}
@@ -90,6 +92,7 @@ public class RedisData {
 	 *
 	 * @return {@literal null} if not set.
 	 */
+	@Nullable
 	public Long getTimeToLive() {
 		return timeToLive;
 	}
@@ -122,6 +125,7 @@ public class RedisData {
 	/**
 	 * @return
 	 */
+	@Nullable
 	public String getKeyspace() {
 		return keyspace;
 	}

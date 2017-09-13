@@ -23,11 +23,13 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.springframework.lang.Nullable;
 
 /**
  * Default implementation of {@literal JedisClientConfiguration}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 class DefaultJedisClientConfiguration implements JedisClientConfiguration {
@@ -42,9 +44,10 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	private final Duration readTimeout;
 	private final Duration connectTimeout;
 
-	DefaultJedisClientConfiguration(boolean useSsl, SSLSocketFactory sslSocketFactory, SSLParameters sslParameters,
-			HostnameVerifier hostnameVerifier, boolean usePooling, GenericObjectPoolConfig poolConfig, String clientName,
-			Duration readTimeout, Duration connectTimeout) {
+	DefaultJedisClientConfiguration(boolean useSsl, @Nullable SSLSocketFactory sslSocketFactory,
+			@Nullable SSLParameters sslParameters, @Nullable HostnameVerifier hostnameVerifier, boolean usePooling,
+			@Nullable GenericObjectPoolConfig poolConfig, @Nullable String clientName, Duration readTimeout,
+			Duration connectTimeout) {
 
 		this.useSsl = useSsl;
 		this.sslSocketFactory = Optional.ofNullable(sslSocketFactory);
@@ -57,7 +60,8 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		this.connectTimeout = connectTimeout;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#useSsl()
 	 */
 	@Override
@@ -65,7 +69,8 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		return useSsl;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getSslSocketFactory()
 	 */
 	@Override
@@ -73,7 +78,8 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		return sslSocketFactory;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getSslParameters()
 	 */
 	@Override
@@ -81,7 +87,8 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		return sslParameters;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getHostnameVerifier()
 	 */
 	@Override
@@ -89,7 +96,8 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		return hostnameVerifier;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#usePooling()
 	 */
 	@Override
@@ -97,7 +105,8 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		return usePooling;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getPoolConfig()
 	 */
 	@Override
@@ -105,7 +114,8 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		return poolConfig;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getClientName()
 	 */
 	@Override
@@ -113,7 +123,8 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		return clientName;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getReadTimeout()
 	 */
 	@Override
@@ -121,7 +132,8 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		return readTimeout;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getConnectTimeout()
 	 */
 	@Override

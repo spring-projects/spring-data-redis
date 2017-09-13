@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.nio.ByteBuffer;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Default implementation of {@link RedisElementReader}.
  *
@@ -29,7 +31,7 @@ import java.nio.ByteBuffer;
 @RequiredArgsConstructor
 class DefaultRedisElementReader<T> implements RedisElementReader<T> {
 
-	private final RedisSerializer<T> serializer;
+	private final @Nullable RedisSerializer<T> serializer;
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.serializer.RedisElementReader#read(java.nio.ByteBuffer)

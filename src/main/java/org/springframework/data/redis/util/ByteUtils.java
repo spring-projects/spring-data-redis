@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Some handy methods for dealing with byte arrays.
@@ -59,7 +60,7 @@ public final class ByteUtils {
 
 	public static byte[][] split(byte[] source, int c) {
 
-		if (source == null || source.length == 0) {
+		if (ObjectUtils.isEmpty(source)) {
 			return new byte[][] {};
 		}
 

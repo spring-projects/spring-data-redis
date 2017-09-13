@@ -42,6 +42,7 @@ import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.*;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -81,20 +82,20 @@ public class LettuceConnectionFactory
 	private final Log log = LogFactory.getLog(getClass());
 	private final LettuceClientConfiguration clientConfiguration;
 
-	private AbstractRedisClient client;
-	private LettuceConnectionProvider connectionProvider;
-	private LettuceConnectionProvider reactiveConnectionProvider;
+	private @Nullable AbstractRedisClient client;
+	private @Nullable LettuceConnectionProvider connectionProvider;
+	private @Nullable LettuceConnectionProvider reactiveConnectionProvider;
 	private boolean validateConnection = false;
 	private boolean shareNativeConnection = true;
-	private StatefulRedisConnection<byte[], byte[]> connection;
-	private LettucePool pool;
+	private @Nullable StatefulRedisConnection<byte[], byte[]> connection;
+	private @Nullable LettucePool pool;
 	/** Synchronization monitor for the shared Connection */
 	private final Object connectionMonitor = new Object();
 	private boolean convertPipelineAndTxResults = true;
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost", 6379);
-	private RedisSentinelConfiguration sentinelConfiguration;
-	private RedisClusterConfiguration clusterConfiguration;
-	private ClusterCommandExecutor clusterCommandExecutor;
+	private @Nullable RedisSentinelConfiguration sentinelConfiguration;
+	private @Nullable RedisClusterConfiguration clusterConfiguration;
+	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
 
 	/**
 	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
@@ -697,6 +698,7 @@ public class LettuceConnectionFactory
 	 * @return the {@link RedisStandaloneConfiguration}, may be {@literal null}.
 	 * @since 2.0
 	 */
+	@Nullable
 	public RedisSentinelConfiguration getSentinelConfiguration() {
 		return sentinelConfiguration;
 	}
@@ -705,6 +707,7 @@ public class LettuceConnectionFactory
 	 * @return the {@link RedisClusterConfiguration}, may be {@literal null}.
 	 * @since 2.0
 	 */
+	@Nullable
 	public RedisClusterConfiguration getClusterConfiguration() {
 		return clusterConfiguration;
 	}
@@ -893,7 +896,7 @@ public class LettuceConnectionFactory
 		private boolean useSsl;
 		private boolean verifyPeer = true;
 		private boolean startTls;
-		private ClientResources clientResources;
+		private @Nullable ClientResources clientResources;
 		private Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 		private Duration shutdownTimeout = Duration.ofMillis(100);
 

@@ -31,6 +31,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link DefaultedRedisConnection} provides method delegates to {@code Redis*Command} interfaces accessible via
@@ -1184,14 +1185,14 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
-	default void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option) {
+	default void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option) {
 		serverCommands().migrate(key, target, dbIndex, option);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
-	default void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout) {
+	default void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout) {
 		serverCommands().migrate(key, target, dbIndex, option, timeout);
 	}
 
