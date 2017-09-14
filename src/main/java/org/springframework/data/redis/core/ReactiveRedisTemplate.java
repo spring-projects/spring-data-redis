@@ -102,119 +102,6 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return connectionFactory;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForValue()
-	 */
-	@Override
-	public ReactiveValueOperations<K, V> opsForValue() {
-		return opsForValue(serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForValue(org.springframework.data.redis.serializer.RedisSerializationContext)
-	 */
-	@Override
-	public <K1, V1> ReactiveValueOperations<K1, V1> opsForValue(RedisSerializationContext<K1, V1> serializationContext) {
-		return new DefaultReactiveValueOperations<>(this, serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForList()
-	 */
-	@Override
-	public ReactiveListOperations<K, V> opsForList() {
-		return opsForList(serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForList(org.springframework.data.redis.serializer.RedisSerializationContext)
-	 */
-	@Override
-	public <K1, V1> ReactiveListOperations<K1, V1> opsForList(RedisSerializationContext<K1, V1> serializationContext) {
-		return new DefaultReactiveListOperations<>(this, serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForSet()
-	 */
-	@Override
-	public ReactiveSetOperations<K, V> opsForSet() {
-		return opsForSet(serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForSet(org.springframework.data.redis.serializer.RedisSerializationContext)
-	 */
-	@Override
-	public <K1, V1> ReactiveSetOperations<K1, V1> opsForSet(RedisSerializationContext<K1, V1> serializationContext) {
-		return new DefaultReactiveSetOperations<>(this, serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForZSet()
-	 */
-	@Override
-	public ReactiveZSetOperations<K, V> opsForZSet() {
-		return opsForZSet(serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForZSet(org.springframework.data.redis.serializer.RedisSerializationContext)
-	 */
-	@Override
-	public <K1, V1> ReactiveZSetOperations<K1, V1> opsForZSet(RedisSerializationContext<K1, V1> serializationContext) {
-		return new DefaultReactiveZSetOperations<>(this, serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHyperLogLog()
-	 */
-	@Override
-	public ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog() {
-		return opsForHyperLogLog(serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHyperLogLog(org.springframework.data.redis.serializer.RedisSerializationContext)
-	 */
-	@Override
-	public <K1, V1> ReactiveHyperLogLogOperations<K1, V1> opsForHyperLogLog(
-			RedisSerializationContext<K1, V1> serializationContext) {
-		return new DefaultReactiveHyperLogLogOperations<>(this, serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHash()
-	 */
-	@Override
-	public <HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash() {
-		return opsForHash(serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHash(org.springframework.data.redis.serializer.RedisSerializationContext)
-	 */
-	@Override
-	public <K1, HK, HV> ReactiveHashOperations<K1, HK, HV> opsForHash(
-			RedisSerializationContext<K1, ?> serializationContext) {
-		return new DefaultReactiveHashOperations<>(this, serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForGeo()
-	 */
-	@Override
-	public ReactiveGeoOperations<K, V> opsForGeo() {
-		return opsForGeo(serializationContext);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForGeo(org.springframework.data.redis.serializer.RedisSerializationContext)
-	 */
-	@Override
-	public <K1, V1> ReactiveGeoOperations<K1, V1> opsForGeo(RedisSerializationContext<K1, V1> serializationContext) {
-		return new DefaultReactiveGeoOperations<>(this, serializationContext);
-	}
 
 	// -------------------------------------------------------------------------
 	// Execution methods
@@ -546,6 +433,120 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 				getClass().getClassLoader());
 		return (ReactiveRedisConnection) Proxy.newProxyInstance(reactiveRedisConnection.getClass().getClassLoader(), ifcs,
 				new CloseSuppressingInvocationHandler(reactiveRedisConnection));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForGeo()
+	 */
+	@Override
+	public ReactiveGeoOperations<K, V> opsForGeo() {
+		return opsForGeo(serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForGeo(org.springframework.data.redis.serializer.RedisSerializationContext)
+	 */
+	@Override
+	public <K1, V1> ReactiveGeoOperations<K1, V1> opsForGeo(RedisSerializationContext<K1, V1> serializationContext) {
+		return new DefaultReactiveGeoOperations<>(this, serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHash()
+	 */
+	@Override
+	public <HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash() {
+		return opsForHash(serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHash(org.springframework.data.redis.serializer.RedisSerializationContext)
+	 */
+	@Override
+	public <K1, HK, HV> ReactiveHashOperations<K1, HK, HV> opsForHash(
+			RedisSerializationContext<K1, ?> serializationContext) {
+		return new DefaultReactiveHashOperations<>(this, serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHyperLogLog()
+	 */
+	@Override
+	public ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog() {
+		return opsForHyperLogLog(serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHyperLogLog(org.springframework.data.redis.serializer.RedisSerializationContext)
+	 */
+	@Override
+	public <K1, V1> ReactiveHyperLogLogOperations<K1, V1> opsForHyperLogLog(
+			RedisSerializationContext<K1, V1> serializationContext) {
+		return new DefaultReactiveHyperLogLogOperations<>(this, serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForList()
+	 */
+	@Override
+	public ReactiveListOperations<K, V> opsForList() {
+		return opsForList(serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForList(org.springframework.data.redis.serializer.RedisSerializationContext)
+	 */
+	@Override
+	public <K1, V1> ReactiveListOperations<K1, V1> opsForList(RedisSerializationContext<K1, V1> serializationContext) {
+		return new DefaultReactiveListOperations<>(this, serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForSet()
+	 */
+	@Override
+	public ReactiveSetOperations<K, V> opsForSet() {
+		return opsForSet(serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForSet(org.springframework.data.redis.serializer.RedisSerializationContext)
+	 */
+	@Override
+	public <K1, V1> ReactiveSetOperations<K1, V1> opsForSet(RedisSerializationContext<K1, V1> serializationContext) {
+		return new DefaultReactiveSetOperations<>(this, serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForValue()
+	 */
+	@Override
+	public ReactiveValueOperations<K, V> opsForValue() {
+		return opsForValue(serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForValue(org.springframework.data.redis.serializer.RedisSerializationContext)
+	 */
+	@Override
+	public <K1, V1> ReactiveValueOperations<K1, V1> opsForValue(RedisSerializationContext<K1, V1> serializationContext) {
+		return new DefaultReactiveValueOperations<>(this, serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForZSet()
+	 */
+	@Override
+	public ReactiveZSetOperations<K, V> opsForZSet() {
+		return opsForZSet(serializationContext);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForZSet(org.springframework.data.redis.serializer.RedisSerializationContext)
+	 */
+	@Override
+	public <K1, V1> ReactiveZSetOperations<K1, V1> opsForZSet(RedisSerializationContext<K1, V1> serializationContext) {
+		return new DefaultReactiveZSetOperations<>(this, serializationContext);
 	}
 
 	/* (non-Javadoc)

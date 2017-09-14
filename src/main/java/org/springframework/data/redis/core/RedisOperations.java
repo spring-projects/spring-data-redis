@@ -484,20 +484,55 @@ public interface RedisOperations<K, V> {
 	// -------------------------------------------------------------------------
 
 	// operation types
-	/**
-	 * Returns the operations performed on simple values (or Strings in Redis terminology).
-	 *
-	 * @return value operations
-	 */
-	ValueOperations<K, V> opsForValue();
 
 	/**
-	 * Returns the operations performed on simple values (or Strings in Redis terminology) bound to the given key.
+	 * Returns the cluster specific operations interface.
 	 *
-	 * @param key Redis key
-	 * @return value operations bound to the given key
+	 * @return never {@literal null}.
+	 * @since 1.7
 	 */
-	BoundValueOperations<K, V> boundValueOps(K key);
+	ClusterOperations<K, V> opsForCluster();
+
+	/**
+	 * Returns geospatial specific operations interface.
+	 *
+	 * @return never {@literal null}.
+	 * @since 1.8
+	 */
+	GeoOperations<K, V> opsForGeo();
+
+	/**
+	 * Returns geospatial specific operations interface bound to the given key.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 1.8
+	 */
+	BoundGeoOperations<K, V> boundGeoOps(K key);
+
+	/**
+	 *Returns the operations performed on hash values.
+	 *
+	 * @param <HK> hash key (or field) type
+	 * @param <HV> hash value type
+	 * @return hash operations
+	 */
+	<HK, HV> HashOperations<K, HK, HV> opsForHash();
+
+	/**
+	 * Returns the operations performed on hash values bound to the given key.
+	 * * @param <HK> hash key (or field) type
+	 * @param <HV> hash value type
+	 * @param key Redis key
+	 * @return hash operations bound to the given key.
+	 */
+	<HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key);
+
+	/**
+	 * @return
+	 * @since 1.5
+	 */
+	HyperLogLogOperations<K, V> opsForHyperLogLog();
 
 	/**
 	 * Returns the operations performed on list values.
@@ -530,17 +565,26 @@ public interface RedisOperations<K, V> {
 	BoundSetOperations<K, V> boundSetOps(K key);
 
 	/**
+	 * Returns the operations performed on simple values (or Strings in Redis terminology).
+	 *
+	 * @return value operations
+	 */
+	ValueOperations<K, V> opsForValue();
+
+	/**
+	 * Returns the operations performed on simple values (or Strings in Redis terminology) bound to the given key.
+	 *
+	 * @param key Redis key
+	 * @return value operations bound to the given key
+	 */
+	BoundValueOperations<K, V> boundValueOps(K key);
+
+	/**
 	 * Returns the operations performed on zset values (also known as sorted sets).
 	 *
 	 * @return zset operations
 	 */
 	ZSetOperations<K, V> opsForZSet();
-
-	/**
-	 * @return
-	 * @since 1.5
-	 */
-	HyperLogLogOperations<K, V> opsForHyperLogLog();
 
 	/**
 	 * Returns the operations performed on zset values (also known as sorted sets) bound to the given key.
@@ -549,50 +593,6 @@ public interface RedisOperations<K, V> {
 	 * @return zset operations bound to the given key.
 	 */
 	BoundZSetOperations<K, V> boundZSetOps(K key);
-
-	/**
-	 * Returns the operations performed on hash values.
-	 *
-	 * @param <HK> hash key (or field) type
-	 * @param <HV> hash value type
-	 * @return hash operations
-	 */
-	<HK, HV> HashOperations<K, HK, HV> opsForHash();
-
-	/**
-	 * Returns the operations performed on hash values bound to the given key.
-	 *
-	 * @param <HK> hash key (or field) type
-	 * @param <HV> hash value type
-	 * @param key Redis key
-	 * @return hash operations bound to the given key.
-	 */
-	<HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key);
-
-	/**
-	 * Returns geospatial specific operations interface.
-	 *
-	 * @return never {@literal null}.
-	 * @since 1.8
-	 */
-	GeoOperations<K, V> opsForGeo();
-
-	/**
-	 * Returns geospatial specific operations interface bound to the given key.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @return never {@literal null}.
-	 * @since 1.8
-	 */
-	BoundGeoOperations<K, V> boundGeoOps(K key);
-
-	/**
-	 * Returns the cluster specific operations interface.
-	 *
-	 * @return never {@literal null}.
-	 * @since 1.7
-	 */
-	ClusterOperations<K, V> opsForCluster();
 
 	/**
 	 * @return the key {@link RedisSerializer}.
