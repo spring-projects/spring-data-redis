@@ -155,17 +155,8 @@ Moreover, the template provides operations views (following the grouping from Re
 
 2+^|_Key Type Operations_
 
-|ValueOperations
-|Redis string (or value) operations
-
-|ListOperations
-|Redis list operations
-
-|SetOperations
-|Redis set operations
-
-|ZSetOperations
-|Redis zset (or sorted set) operations
+|GeoOperations
+|Redis geospatial operations like `GEOADD`, `GEORADIUS`,...)
 
 |HashOperations
 |Redis hash operations
@@ -173,13 +164,28 @@ Moreover, the template provides operations views (following the grouping from Re
 |HyperLogLogOperations
 |Redis HyperLogLog operations like (`PFADD`, `PFCOUNT`,...)
 
-|GeoOperations
-|Redis geospatial operations like `GEOADD`, `GEORADIUS`,...)
+|ListOperations
+|Redis list operations
+
+|SetOperations
+|Redis set operations
+
+|ValueOperations
+|Redis string (or value) operations
+
+|ZSetOperations
+|Redis zset (or sorted set) operations
 
 2+^|_Key Bound Operations_
 
-|BoundValueOperations
-|Redis string (or value) key bound operations
+|BoundGeoOperations
+|Redis key bound geospatial operations.
+
+|BoundHashOperations
+|Redis hash key bound operations
+
+|BoundKeyOperations
+|Redis key bound operations
 
 |BoundListOperations
 |Redis list key bound operations
@@ -187,14 +193,12 @@ Moreover, the template provides operations views (following the grouping from Re
 |BoundSetOperations
 |Redis set key bound operations
 
+|BoundValueOperations
+|Redis string (or value) key bound operations
+
 |BoundZSetOperations
 |Redis zset (or sorted set) key bound operations
 
-|BoundHashOperations
-|Redis hash key bound operations
-
-|BoundGeoOperations
-|Redis key bound geospatial operations.
 |====
 
 Once configured, the template is thread-safe and can be reused across multiple instances.
@@ -291,9 +295,21 @@ public void useCallback() {
 
 From the framework perspective, the data stored in Redis is just bytes. While Redis itself supports various types, for the most part these refer to the way the data is stored rather than what it represents. It is up to the user to decide whether the information gets translated into Strings or any other objects.
 
-The conversion between the user (custom) types and raw data (and vice-versa) is handled in Spring Data Redis through the `RedisSerializer` interface (package `org.springframework.data.redis.serializer`) which as the name implies, takes care of the serialization process.
+The conversion between the user (custom) types and raw data (and vice-versa) is handled in Spring Data Redis in the `org.springframework.data.redis.serializer` package.
 
-Multiple implementations are available out of the box, two of which have been already mentioned before in this documentation: the `StringRedisSerializer` and the `JdkSerializationRedisSerializer`. However one can use `OxmSerializer` for Object/XML mapping through Spring 3 http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#oxm[OXM] support or either `Jackson2JsonRedisSerializer` or `GenericJackson2JsonRedisSerializer` for storing data in http://en.wikipedia.org/wiki/JSON[JSON] format.
+This package contains two types of serializers which as the name implies, takes care of the serialization process:
+
+* Two-way serializers based on`RedisSerializer`.
+* Element readers and writers using `RedisElementReader` and `RedisElementWriter`.
+
+The main difference between these variants is that `RedisSerializer` primarily serializes to `byte[]` while readers and writers use `ByteBuffer`.
+
+Multiple implementations are available out of the box, two of which have been already mentioned before in this documentation:
+
+* the `StringRedisSerializer`
+* `JdkSerializationRedisSerializer`
+
+However one can use `OxmSerializer` for Object/XML mapping through Spring http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#oxm[OXM] support or either `Jackson2JsonRedisSerializer` or `GenericJackson2JsonRedisSerializer` for storing data in http://en.wikipedia.org/wiki/JSON[JSON] format.
 
 Do note that the storage format is not limited only to values - it can be used for keys, values or hashes without any restrictions.
 
