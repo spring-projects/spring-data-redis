@@ -18,7 +18,7 @@ To publish a message, one can use, as with the other operations, either the low-
 byte[] msg = ...
 byte[] channel = ...
 con.publish(msg, channel); // send message through RedisTemplate
-RedisTemplate template = ... 
+RedisTemplate template = ...
 template.convertAndSend("hello!", "world");
 ----
 
@@ -29,7 +29,7 @@ On the receiving side, one can subscribe to one or multiple channels either by n
 
 At the low-level, `RedisConnection` offers `subscribe` and `pSubscribe` methods that map the Redis commands for subscribing by channel respectively by pattern. Note that multiple channels or patterns can be used as arguments. To change the subscription of a connection or simply query  whether it is listening or not, `RedisConnection` provides `getSubscription` and `isSubscribed` method.
 
-NOTE: Subscription commands in Spring Data Redis are blocking. That is, calling subscribe on a connection will cause the current thread to block as it will start waiting for messages - the thread will be released only if the subscription is canceled, that is an additional thread invokes `unsubscribe` or `pUnsubscribe` on the *same* connection. See <<null,message listener container>> below for a solution to this problem.
+NOTE: Subscription commands in Spring Data Redis are blocking. That is, calling subscribe on a connection will cause the current thread to block as it will start waiting for messages - the thread will be released only if the subscription is canceled, that is an additional thread invokes `unsubscribe` or `pUnsubscribe` on the *same* connection. See <<redis:pubsub:subscribe:containers,message listener container>> below for a solution to this problem.
 
 As mentioned above, once subscribed a connection starts waiting for messages. No other commands can be invoked on it except for adding new subscriptions or modifying/canceling the existing ones. That is, invoking anything other then `subscribe`, `pSubscribe`, `unsubscribe`, or `pUnsubscribe` is illegal and will throw an exception.
 
@@ -55,18 +55,18 @@ Consider the following interface definition. Notice that although the interface 
 
 [source,java]
 ----
-public interface MessageDelegate { 
+public interface MessageDelegate {
   void handleMessage(String message);
-  void handleMessage(Map message); void handleMessage(byte[] message); 
+  void handleMessage(Map message); void handleMessage(byte[] message);
   void handleMessage(Serializable message);
-  // pass the channel/pattern as well 
-  void handleMessage(Serializable message, String channel); 
+  // pass the channel/pattern as well
+  void handleMessage(Serializable message, String channel);
  }
 ----
 
 [source,java]
 ----
-public class DefaultMessageDelegate implements MessageDelegate { 
+public class DefaultMessageDelegate implements MessageDelegate {
   // implementation elided for clarity...
 }
 ----
@@ -76,20 +76,20 @@ In particular, note how the above implementation of the `MessageDelegate` interf
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
- <beans xmlns="http://www.springframework.org/schema/beans" 
-   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ <beans xmlns="http://www.springframework.org/schema/beans"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xmlns:redis="http://www.springframework.org/schema/redis"
    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
    http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd">
- 
+
 <!-- the default ConnectionFactory -->
 <redis:listener-container>
   <!-- the method attribute can be skipped as the default method name is "handleMessage" -->
   <redis:listener ref="listener" method="handleMessage" topic="chatroom" />
 </redis:listener-container>
- 
+
 <bean id="listener" class="redisexample.DefaultMessageDelegate"/>
- ... 
+ ...
 <beans>
 ----
 
@@ -99,23 +99,23 @@ The example above uses the Redis namespace to declare the message listener conta
 
 [source,xml]
 ----
-<bean id="messageListener" class="org.springframework.data.redis.listener.adapter.MessageListenerAdapter"> 
+<bean id="messageListener" class="org.springframework.data.redis.listener.adapter.MessageListenerAdapter">
   <constructor-arg>
     <bean class="redisexample.DefaultMessageDelegate"/>
   </constructor-arg>
 </bean>
- 
+
 <bean id="redisContainer" class="org.springframework.data.redis.listener.RedisMessageListenerContainer">
   <property name="connectionFactory" ref="connectionFactory"/>
   <property name="messageListeners">
     <map>
       <entry key-ref="messageListener">
-        <bean class="org.springframework.data.redis.listener.ChannelTopic"> 
+        <bean class="org.springframework.data.redis.listener.ChannelTopic">
           <constructor-arg value="chatroom">
         </bean>
       </entry>
     </map>
-  </property>     
+  </property>
 </bean>
 ----
 

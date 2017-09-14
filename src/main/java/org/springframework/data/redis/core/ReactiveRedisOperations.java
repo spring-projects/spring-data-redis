@@ -239,20 +239,53 @@ public interface ReactiveRedisOperations<K, V> {
 	// operation types
 
 	/**
-	 * Returns the operations performed on simple values (or Strings in Redis terminology).
+	 * Returns geospatial specific operations interface.
 	 *
-	 * @return value operations
+	 * @return geospatial specific operations.
 	 */
-	ReactiveValueOperations<K, V> opsForValue();
+	ReactiveGeoOperations<K, V> opsForGeo();
 
 	/**
-	 * Returns the operations performed on simple values (or Strings in Redis terminology) given a
-	 * {@link RedisSerializationContext}.
+	 * Returns geospatial specific operations interface.
 	 *
 	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
-	 * @return value operations.
+	 * @return geospatial specific operations.
 	 */
-	<K, V> ReactiveValueOperations<K, V> opsForValue(RedisSerializationContext<K, V> serializationContext);
+	<K, V> ReactiveGeoOperations<K, V> opsForGeo(RedisSerializationContext<K, V> serializationContext);
+
+	/**
+	 * Returns the operations performed on hash values.
+	 *
+	 * @param <HK> hash key (or field) type.
+	 * @param <HV> hash value type.
+	 * @return hash operations.
+	 */
+	<HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash();
+
+	/**
+	 * Returns the operations performed on hash values given a {@link RedisSerializationContext}.
+	 *
+	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
+	 * @param <HK> hash key (or field) type.
+	 * @param <HV> hash value type.
+	 * @return hash operations.
+	 */
+	<K, HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash(RedisSerializationContext<K, ?> serializationContext);
+
+	/**
+	 * Returns the operations performed on multisets using HyperLogLog.
+	 *
+	 * @return never {@literal null}.
+	 */
+	ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog();
+
+	/**
+	 * Returns the operations performed on multisets using HyperLogLog given a {@link RedisSerializationContext}.
+	 *
+	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	<K, V> ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog(RedisSerializationContext<K, V> serializationContext);
 
 	/**
 	 * Returns the operations performed on list values.
@@ -285,6 +318,22 @@ public interface ReactiveRedisOperations<K, V> {
 	<K, V> ReactiveSetOperations<K, V> opsForSet(RedisSerializationContext<K, V> serializationContext);
 
 	/**
+	 * Returns the operations performed on simple values (or Strings in Redis terminology).
+	 *
+	 * @return value operations
+	 */
+	ReactiveValueOperations<K, V> opsForValue();
+
+	/**
+	 * Returns the operations performed on simple values (or Strings in Redis terminology) given a
+	 * {@link RedisSerializationContext}.
+	 *
+	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
+	 * @return value operations.
+	 */
+	<K, V> ReactiveValueOperations<K, V> opsForValue(RedisSerializationContext<K, V> serializationContext);
+
+	/**
 	 * Returns the operations performed on zset values (also known as sorted sets).
 	 *
 	 * @return zset operations.
@@ -299,55 +348,6 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @return zset operations.
 	 */
 	<K, V> ReactiveZSetOperations<K, V> opsForZSet(RedisSerializationContext<K, V> serializationContext);
-
-	/**
-	 * Returns the operations performed on multisets using HyperLogLog.
-	 *
-	 * @return never {@literal null}.
-	 */
-	ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog();
-
-	/**
-	 * Returns the operations performed on multisets using HyperLogLog given a {@link RedisSerializationContext}.
-	 *
-	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
-	 * @return never {@literal null}.
-	 */
-	<K, V> ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog(RedisSerializationContext<K, V> serializationContext);
-
-	/**
-	 * Returns the operations performed on hash values.
-	 *
-	 * @param <HK> hash key (or field) type.
-	 * @param <HV> hash value type.
-	 * @return hash operations.
-	 */
-	<HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash();
-
-	/**
-	 * Returns the operations performed on hash values given a {@link RedisSerializationContext}.
-	 *
-	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
-	 * @param <HK> hash key (or field) type.
-	 * @param <HV> hash value type.
-	 * @return hash operations.
-	 */
-	<K, HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash(RedisSerializationContext<K, ?> serializationContext);
-
-	/**
-	 * Returns geospatial specific operations interface.
-	 *
-	 * @return geospatial specific operations.
-	 */
-	ReactiveGeoOperations<K, V> opsForGeo();
-
-	/**
-	 * Returns geospatial specific operations interface.
-	 *
-	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
-	 * @return geospatial specific operations.
-	 */
-	<K, V> ReactiveGeoOperations<K, V> opsForGeo(RedisSerializationContext<K, V> serializationContext);
 
 	/**
 	 * @return the {@link RedisSerializationContext}.

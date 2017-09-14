@@ -1116,24 +1116,112 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#boundValueOps(java.lang.Object)
+	 * @see org.springframework.data.redis.core.RedisOperations#killClient(java.lang.Object)
 	 */
 	@Override
-	public BoundValueOperations<K, V> boundValueOps(K key) {
-		return new DefaultBoundValueOperations<>(key, this);
+	public void killClient(final String host, final int port) {
+
+		execute((RedisCallback<Void>) connection -> {
+			connection.killClient(host, port);
+			return null;
+		});
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForValue()
+	 * @see org.springframework.data.redis.core.RedisOperations#getClientList()
 	 */
 	@Override
-	public ValueOperations<K, V> opsForValue() {
+	public List<RedisClientInfo> getClientList() {
+		return execute(RedisServerCommands::getClientList);
+	}
 
-		if (valueOps == null) {
-			valueOps = new DefaultValueOperations<>(this);
+	/*
+	 * @see org.springframework.data.redis.core.RedisOperations#slaveOf(java.lang.String, int)
+	 */
+	@Override
+	public void slaveOf(final String host, final int port) {
+
+		execute((RedisCallback<Void>) connection -> {
+
+			connection.slaveOf(host, port);
+			return null;
+		});
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#slaveOfNoOne()
+	 */
+	@Override
+	public void slaveOfNoOne() {
+
+		execute((RedisCallback<Void>) connection -> {
+			connection.slaveOfNoOne();
+			return null;
+		});
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#opsForCluster()
+	 */
+	@Override
+	public ClusterOperations<K, V> opsForCluster() {
+		return new DefaultClusterOperations<>(this);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#opsForGeo()
+	 */
+	@Override
+	public GeoOperations<K, V> opsForGeo() {
+
+		if (geoOps == null) {
+			geoOps = new DefaultGeoOperations<>(this);
 		}
-		return valueOps;
+		return geoOps;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#boundGeoOps(java.lang.Object)
+	 */
+	@Override
+	public BoundGeoOperations<K, V> boundGeoOps(K key) {
+		return new DefaultBoundGeoOperations<>(key, this);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#boundHashOps(java.lang.Object)
+	 */
+	@Override
+	public <HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key) {
+		return new DefaultBoundHashOperations<>(key, this);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#opsForHash()
+	 */
+	@Override
+	public <HK, HV> HashOperations<K, HK, HV> opsForHash() {
+		return new DefaultHashOperations<>(this);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#opsForHyperLogLog()
+	 */
+	@Override
+	public HyperLogLogOperations<K, V> opsForHyperLogLog() {
+
+		if (hllOps == null) {
+			hllOps = new DefaultHyperLogLogOperations<>(this);
+		}
+		return hllOps;
 	}
 
 	/*
@@ -1182,6 +1270,28 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#boundValueOps(java.lang.Object)
+	 */
+	@Override
+	public BoundValueOperations<K, V> boundValueOps(K key) {
+		return new DefaultBoundValueOperations<>(key, this);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#opsForValue()
+	 */
+	@Override
+	public ValueOperations<K, V> opsForValue() {
+
+		if (valueOps == null) {
+			valueOps = new DefaultValueOperations<>(this);
+		}
+		return valueOps;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.RedisOperations#boundZSetOps(java.lang.Object)
 	 */
 	@Override
@@ -1200,116 +1310,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			zSetOps = new DefaultZSetOperations<>(this);
 		}
 		return zSetOps;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForGeo()
-	 */
-	@Override
-	public GeoOperations<K, V> opsForGeo() {
-
-		if (geoOps == null) {
-			geoOps = new DefaultGeoOperations<>(this);
-		}
-		return geoOps;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#boundGeoOps(java.lang.Object)
-	 */
-	@Override
-	public BoundGeoOperations<K, V> boundGeoOps(K key) {
-		return new DefaultBoundGeoOperations<>(key, this);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForHyperLogLog()
-	 */
-	@Override
-	public HyperLogLogOperations<K, V> opsForHyperLogLog() {
-
-		if (hllOps == null) {
-			hllOps = new DefaultHyperLogLogOperations<>(this);
-		}
-		return hllOps;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#boundHashOps(java.lang.Object)
-	 */
-	@Override
-	public <HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key) {
-		return new DefaultBoundHashOperations<>(key, this);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForHash()
-	 */
-	@Override
-	public <HK, HV> HashOperations<K, HK, HV> opsForHash() {
-		return new DefaultHashOperations<>(this);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForCluster()
-	 */
-	@Override
-	public ClusterOperations<K, V> opsForCluster() {
-		return new DefaultClusterOperations<>(this);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#killClient(java.lang.Object)
-	 */
-	@Override
-	public void killClient(final String host, final int port) {
-
-		execute((RedisCallback<Void>) connection -> {
-			connection.killClient(host, port);
-			return null;
-		});
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#getClientList()
-	 */
-	@Override
-	public List<RedisClientInfo> getClientList() {
-		return execute(RedisServerCommands::getClientList);
-	}
-
-	/*
-	 * @see org.springframework.data.redis.core.RedisOperations#slaveOf(java.lang.String, int)
-	 */
-	@Override
-	public void slaveOf(final String host, final int port) {
-
-		execute((RedisCallback<Void>) connection -> {
-
-			connection.slaveOf(host, port);
-			return null;
-		});
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#slaveOfNoOne()
-	 */
-	@Override
-	public void slaveOfNoOne() {
-
-		execute((RedisCallback<Void>) connection -> {
-			connection.slaveOfNoOne();
-			return null;
-		});
 	}
 
 	/**
