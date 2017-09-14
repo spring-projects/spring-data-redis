@@ -12,7 +12,7 @@ Spring Data Redis provides easy configuration and access to Redis from Spring ap
 [[redis:requirements]]
 == Redis Requirements
 
-Spring Redis requires Redis 2.6 or above and Java SE 6.0 or above . In terms of language bindings (or connectors), Spring Redis integrates with http://github.com/xetorthio/jedis[Jedis] and http://github.com/mp911de/lettuce[Lettuce], four popular open source Java libraries for Redis. If you are aware of any other connector that we should be integrating with please send us feedback.
+Spring Redis requires Redis 2.6 or above and Java SE 8.0 or above. In terms of language bindings (or connectors), Spring Redis integrates with http://github.com/xetorthio/jedis[Jedis] and http://github.com/lettuce-io/lettuce-core[Lettuce], two popular open source Java libraries for Redis.
 
 [[redis:architecture]]
 == Redis Support High Level View
@@ -29,11 +29,11 @@ One of the first tasks when using Redis and Spring is to connect to the store th
 [[redis:connectors:connection]]
 === RedisConnection and RedisConnectionFactory
 
-`RedisConnection` provides the building block for Redis communication as it handles the communication with the Redis back-end. It also automatically translates the underlying connecting library exceptions to Spring's consistent DAO exception http://docs.spring.io/spring/docs/current/spring-framework-reference/html/dao.html#dao-exceptions[hierarchy] so one can switch the connectors without any code changes as the operation semantics remain the same.
+`RedisConnection` provides the building block for Redis communication as it handles the communication with the Redis back-end. It also automatically translates the underlying connecting library exceptions to Spring's consistent DAO exception http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#dao-exceptions[hierarchy] so one can switch the connectors without any code changes as the operation semantics remain the same.
 
 NOTE: For the corner cases where the native library API is required, `RedisConnection` provides a dedicated method `getNativeConnection` which returns the raw, underlying object used for communication.
 
-Active `RedisConnection` s are created through `RedisConnectionFactory`. In addition, the factories act as `PersistenceExceptionTranslator` s, meaning once declared, they allow one to do transparent exception translation. For example, exception translation through the use of the `@Repository` annotation and AOP. For more information see the dedicated http://docs.spring.io/spring/docs/current/spring-framework-reference/html/orm.html#orm-exception-translation[section] in Spring Framework documentation.
+Active `RedisConnection` s are created through `RedisConnectionFactory`. In addition, the factories act as `PersistenceExceptionTranslator` s, meaning once declared, they allow one to do transparent exception translation. For example, exception translation through the use of the `@Repository` annotation and AOP. For more information see the dedicated http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#orm-exception-translation[section] in Spring Framework documentation.
 
 NOTE: Depending on the underlying configuration, the factory can return a new connection or an existing connection (in case a pool or shared native connection is used).
 
@@ -78,7 +78,7 @@ For production use however, one might want to tweak the settings such as the hos
 [[redis:connectors:lettuce]]
 === Configuring Lettuce connector
 
-https://github.com/mp911de/lettuce[Lettuce] is the fourth open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.lettuce` package.
+https://github.com/mp911de/lettuce[Lettuce] is a http://netty.io/[netty]-based open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.lettuce` package.
 
 Its configuration is probably easy to guess:
 
@@ -102,8 +102,6 @@ There are also a few Lettuce-specific connection parameters that can be tweaked.
 
 For dealing with high available Redis there is support for http://redis.io/topics/sentinel[Redis Sentinel] using `RedisSentinelConfiguration`.
 
-NOTE: Please note that currently only http://github.com/xetorthio/jedis[Jedis] and lettuce http://github.com/mp911de/lettuce[Lettuce] support Redis Sentinel.
-
 [source,java]
 ----
 /**
@@ -111,18 +109,22 @@ NOTE: Please note that currently only http://github.com/xetorthio/jedis[Jedis] a
  */
 @Bean
 public RedisConnectionFactory jedisConnectionFactory() {
-  RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration() .master("mymaster")
-  .sentinel("127.0.0.1", 26379) .sentinel("127.0.0.1", 26380);
+  RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration()
+  .master("mymaster")
+  .sentinel("127.0.0.1", 26379)
+  .sentinel("127.0.0.1", 26380);
   return new JedisConnectionFactory(sentinelConfig);
 }
 
 /**
- * lettuce
+ * Lettuce
  */
 @Bean
 public RedisConnectionFactory lettuceConnectionFactory() {
-  RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration().master("mymaster")
-  .sentinel("127.0.0.1", 26379) .sentinel("127.0.0.1", 26380);
+  RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration()
+  .master("mymaster")
+  .sentinel("127.0.0.1", 26379)
+  .sentinel("127.0.0.1", 26380);
   return new LettuceConnectionFactory(sentinelConfig);
 }
 ----
@@ -138,11 +140,10 @@ public RedisConnectionFactory lettuceConnectionFactory() {
 
 Sometimes direct interaction with the one of the Sentinels is required. Using `RedisConnectionFactory.getSentinelConnection()` or `RedisConnection.getSentinelCommands()` gives you access to the first active Sentinel configured.
 
-
 [[redis:template]]
 == Working with Objects through RedisTemplate
 
-Most users are likely to use `RedisTemplate` and its coresponding package `org.springframework.data.redis.core` - the template is in fact the central class of the Redis module due to its rich feature set. The template offers a high-level abstraction for Redis interactions. While `RedisConnection` offers low level methods that accept and return binary values (`byte` arrays), the template takes care of serialization and connection management, freeing the user from dealing with such details.
+Most users are likely to use `RedisTemplate` and its corresponding package `org.springframework.data.redis.core` - the template is in fact the central class of the Redis module due to its rich feature set. The template offers a high-level abstraction for Redis interactions. While `RedisConnection` offers low level methods that accept and return binary values (`byte` arrays), the template takes care of serialization and connection management, freeing the user from dealing with such details.
 
 Moreover, the template provides operations views (following the grouping from Redis command http://redis.io/commands[reference]) that offer rich, generified interfaces for working against a certain type or certain key (through the `KeyBound` interfaces) as described below:
 
@@ -170,7 +171,7 @@ Moreover, the template provides operations views (following the grouping from Re
 |Redis hash operations
 
 |HyperLogLogOperations
-|Redis HyperLogLog operations like (pfadd, pfcount,...)
+|Redis HyperLogLog operations like (`PFADD`, `PFCOUNT`,...)
 
 |GeoOperations
 |Redis geospatial operations like `GEOADD`, `GEORADIUS`,...)
@@ -292,7 +293,7 @@ From the framework perspective, the data stored in Redis is just bytes. While Re
 
 The conversion between the user (custom) types and raw data (and vice-versa) is handled in Spring Data Redis through the `RedisSerializer` interface (package `org.springframework.data.redis.serializer`) which as the name implies, takes care of the serialization process.
 
-Multiple implementations are available out of the box, two of which have been already mentioned before in this documentation: the `StringRedisSerializer` and the `JdkSerializationRedisSerializer`. However one can use `OxmSerializer` for Object/XML mapping through Spring 3 http://docs.spring.io/spring/docs/current/spring-framework-reference/html/oxm.html[OXM] support or either `Jackson2JsonRedisSerializer` or `GenericJackson2JsonRedisSerializer` for storing data in http://en.wikipedia.org/wiki/JSON[JSON] format.
+Multiple implementations are available out of the box, two of which have been already mentioned before in this documentation: the `StringRedisSerializer` and the `JdkSerializationRedisSerializer`. However one can use `OxmSerializer` for Object/XML mapping through Spring 3 http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#oxm[OXM] support or either `Jackson2JsonRedisSerializer` or `GenericJackson2JsonRedisSerializer` for storing data in http://en.wikipedia.org/wiki/JSON[JSON] format.
 
 Do note that the storage format is not limited only to values - it can be used for keys, values or hashes without any restrictions.
 
@@ -313,7 +314,7 @@ Hash mappers are converters to map objects to a `Map<K, V>` and back. `HashMappe
 
 Multiple implementations are available out of the box:
 
-1. `BeanUtilsHashMapper` using Spring's http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/beans/BeanUtils.html[BeanUtils].
+1. `BeanUtilsHashMapper` using Spring's http://docs.spring.io/spring/docs/{springVersion}/javadoc-api/org/springframework/beans/BeanUtils.html[BeanUtils].
 2. `ObjectHashMapper` using <<redis.repositories.mapping>>.
 3. <<redis.hashmappers.jackson2,`Jackson2HashMapper`>> using https://github.com/FasterXML/jackson[FasterXML Jackson].
 
@@ -423,8 +424,8 @@ include::{referenceDir}/redis-scripting.adoc[]
 == Support Classes
 
 Package `org.springframework.data.redis.support` offers various reusable components that rely on Redis as a backing store. Currently the package contains various JDK-based
-interface implementations on top of Redis such as http://download.oracle.com/javase/6/docs/api/java/util/concurrent/atomic/package-summary.html[atomic] counters and JDK
-http://download.oracle.com/javase/6/docs/api/java/util/Collection.html[Collections].
+interface implementations on top of Redis such as http://download.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/package-summary.html[atomic] counters and JDK
+http://download.oracle.com/javase/8/docs/api/java/util/Collection.html[Collections].
 
 The atomic counters make it easy to wrap Redis key incrementation while the collections allow easy management of Redis keys with minimal storage exposure or API
 leakage: in particular the `RedisSet` and `RedisZSet` interfaces offer easy access to the *set* operations supported by Redis such as `intersection` and `union`
@@ -467,7 +468,7 @@ As shown in the example above, the consuming code is decoupled from the actual s
 
 NOTE: Changed in 2.0
 
-Spring Redis provides an implementation for Spring http://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html[cache abstraction] through the `org.springframework.data.redis.cache` package. To use Redis as a backing implementation, simply add `RedisCacheManager` to your configuration:
+Spring Redis provides an implementation for Spring http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/integration.html#cache[cache abstraction] through the `org.springframework.data.redis.cache` package. To use Redis as a backing implementation, simply add `RedisCacheManager` to your configuration:
 
 [source,java]
 ----
