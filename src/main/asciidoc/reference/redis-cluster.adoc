@@ -3,8 +3,6 @@
 
 Working with http://redis.io/topics/cluster-spec[Redis Cluster] requires a Redis Server version 3.0+ and provides a very own set of features and capabilities. Please refer to the http://redis.io/topics/cluster-tutorial[Cluster Tutorial] for more information.
 
-TIP: Redis Cluster is only supported by <<redis:connectors:jedis,jedis>> and <<redis:connectors:lettuce,lettuce>>.
-
 == Enabling Redis Cluster
 
 Cluster support is based on the very same building blocks as non clustered communication. `RedisClusterConnection` an extension to `RedisConnection` handles the communication with the Redis Cluster and translates errors into the Spring DAO exception hierarchy.
@@ -65,7 +63,7 @@ public class AppConfig {
 - `spring.redis.cluster.max-redirects`: Number of allowed cluster redirections.
 ====
 
-NOTE: The initial configuration points driver libraries to an initial set of cluster nodes. Changes resulting from live cluster reconfiguration will only be kept in the native driver and not be written back to the configuration. 
+NOTE: The initial configuration points driver libraries to an initial set of cluster nodes. Changes resulting from live cluster reconfiguration will only be kept in the native driver and not be written back to the configuration.
 
 == Working With Redis Cluster Connection
 
@@ -146,13 +144,13 @@ connection.mGet("foo", "bar");                                                 <
  -> 127.0.0.1:7381 GET foo
 ====
 
-TIP: The above provided simple examples to demonstrate the general strategy followed by Spring Data Redis. Be aware that some operations might require loading huge amounts of data into memory in order to compute the desired command. Additionally not all cross slot requests can safely be ported to multiple single slot requests and will error if misused (eg. `PFCOUNT` ).
+TIP: The above provided simple examples to demonstrate the general strategy followed by Spring Data Redis. Be aware that some operations might require loading huge amounts of data into memory in order to compute the desired command. Additionally not all cross slot requests can safely be ported to multiple single slot requests and will error if misused (eg. ``PFCOUNT``).
 
 == Working With RedisTemplate and ClusterOperations
 
 Please refer to the section <<redis:template>> to read about general purpose, configuration and usage of `RedisTemplate`.
 
-WARNING: Please be careful when setting up `RedisTemplate#keySerializer` using any of the Json `RedisSerializers` as changing json structure has immediate influence on hash slot calculation.
+WARNING: Please be careful when setting up `RedisTemplate#keySerializer` using any of the JSON `RedisSerializers` as changing json structure has immediate influence on hash slot calculation.
 
 `RedisTemplate` provides access to cluster specific operations via the `ClusterOperations` interface that can be obtained via `RedisTemplate.opsForCluster()`. This allows to execute commands explicitly on a single node within the cluster while retaining de-/serialization features configured for the template and provides administrative commands such as `CLUSTER MEET` or more high level operations for eg. resharding.
 

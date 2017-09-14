@@ -7,13 +7,13 @@ New and noteworthy in the latest releases.
 == New in Spring Data Redis 2.0
 
 * Upgrade to Java 8.
+* Upgrade to Lettuce 5.0.
 * Removed support for SRP and JRedis drivers.
-* Upgrade to `Lettuce` 5.0.
-* Reactive connection support using https://github.com/lettuce-io/lettuce-core[lettuce-io/lettuce-core].
+* <<redis:reactive,Reactive connection support using Lettuce>>.
 * Introduce Redis feature-specific interfaces for `RedisConnection`.
+* Improved `RedisConnectionFactory` configuration via `JedisClientConfiguration` and `LettuceClientConfiguration`.
 * Revised `RedisCache` implementation.
 * Add `SPOP` with count command for Redis 3.2.
-
 
 [[new-in-1.8.0]]
 == New in Spring Data Redis 1.8
