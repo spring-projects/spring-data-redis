@@ -22,10 +22,11 @@ import java.util.List;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.se.SeContainer;
+import javax.enterprise.inject.se.SeContainerInitializer;
 import javax.enterprise.inject.spi.Bean;
 
-import org.apache.webbeans.cditest.CdiTestContainer;
-import org.apache.webbeans.cditest.CdiTestContainerLoader;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -40,18 +41,25 @@ public class CdiExtensionIntegrationTests {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(CdiExtensionIntegrationTests.class);
 
-	static CdiTestContainer container;
+	static SeContainer container;
 
 	@BeforeClass
-	public static void setUp() throws Exception {
+	public static void setUp() {
 
-		container = CdiTestContainerLoader.getCdiContainer();
-		container.bootContainer();
+		container = SeContainerInitializer.newInstance() //
+				.disableDiscovery() //
+				.addPackages(RepositoryConsumer.class) //
+				.initialize();
 
 		LOGGER.debug("CDI container bootstrapped!");
 	}
 
-	@Test // DATAREDIS-425
+	@AfterClass
+	public static void cleanUp() {
+		container.close();
+	}
+
+	@Test // DATAREDIS-425, DATAREDIS-700
 	@SuppressWarnings("rawtypes")
 	public void beanShouldBeRegistered() {
 
@@ -61,10 +69,10 @@ public class CdiExtensionIntegrationTests {
 		assertThat(beans.iterator().next().getScope(), is(equalTo((Class) ApplicationScoped.class)));
 	}
 
-	@Test // DATAREDIS-425
+	@Test // DATAREDIS-425, DATAREDIS-700
 	public void saveAndFindUnqualified() {
 
-		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
+		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 		repositoryConsumer.deleteAll();
 
 		Person person = new Person();
@@ -75,10 +83,10 @@ public class CdiExtensionIntegrationTests {
 		assertThat(result, contains(person));
 	}
 
-	@Test // DATAREDIS-425
+	@Test // DATAREDIS-425, DATAREDIS-700
 	public void saveAndFindQualified() {
 
-		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
+		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 		repositoryConsumer.deleteAll();
 
 		Person person = new Person();
@@ -88,15 +96,13 @@ public class CdiExtensionIntegrationTests {
 
 		assertThat(result, contains(person));
 	}
-	
-	
-	@Test // DATAREDIS-425
+
+	@Test // DATAREDIS-425, DATAREDIS-700
 	public void callMethodOnCustomRepositoryShouldSuceed() {
 
-		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
+		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 
 		int result = repositoryConsumer.getUnqualifiedRepo().returnOne();
 		assertThat(result, is(1));
 	}
-
 }
