@@ -27,7 +27,6 @@ import javax.enterprise.inject.spi.BeanManager;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
-import org.springframework.data.redis.core.RedisKeyValueTemplate;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.util.Assert;
 
@@ -65,10 +64,7 @@ public class RedisKeyValueAdapterBean extends CdiBean<RedisKeyValueAdapter> {
 
 		Type beanType = getBeanType();
 
-		RedisOperations<?, ?> redisOperations = getDependencyInstance(this.redisOperations, beanType);
-		RedisKeyValueAdapter redisKeyValueAdapter = new RedisKeyValueAdapter(redisOperations);
-
-		return redisKeyValueAdapter;
+		return new RedisKeyValueAdapter(getDependencyInstance(this.redisOperations, beanType));
 	}
 
 	private Type getBeanType() {

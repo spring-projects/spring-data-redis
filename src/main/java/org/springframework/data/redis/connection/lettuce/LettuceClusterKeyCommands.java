@@ -28,6 +28,7 @@ import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.lettuce.LettuceClusterConnection.LettuceClusterCommandCallback;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -88,7 +89,7 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#keys(byte[])
 	 */
 	@Override
-	public Set<byte[]> keys(final byte[] pattern) {
+	public Set<byte[]> keys(byte[] pattern) {
 
 		Assert.notNull(pattern, "Pattern must not be null!");
 
@@ -109,19 +110,22 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#rename(byte[], byte[])
 	 */
 	@Override
-	public void rename(byte[] oldName, byte[] newName) {
+	public void rename(byte[] sourceKey, byte[] targetKey) {
 
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(oldName, newName)) {
-			super.rename(oldName, newName);
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(targetKey, "Target key must not be null!");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sourceKey, targetKey)) {
+			super.rename(sourceKey, targetKey);
 			return;
 		}
 
-		byte[] value = dump(oldName);
+		byte[] value = dump(sourceKey);
 
 		if (value != null && value.length > 0) {
 
-			restore(newName, 0, value);
-			del(oldName);
+			restore(targetKey, 0, value);
+			del(sourceKey);
 		}
 	}
 
@@ -130,18 +134,21 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#renameNX(byte[], byte[])
 	 */
 	@Override
-	public Boolean renameNX(byte[] oldName, byte[] newName) {
+	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
 
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(oldName, newName)) {
-			return super.renameNX(oldName, newName);
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(targetKey, "Target key must not be null!");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sourceKey, targetKey)) {
+			return super.renameNX(sourceKey, targetKey);
 		}
 
-		byte[] value = dump(oldName);
+		byte[] value = dump(sourceKey);
 
-		if (value != null && value.length > 0 && !exists(newName)) {
+		if (value != null && value.length > 0 && !exists(targetKey)) {
 
-			restore(newName, 0, value);
-			del(oldName);
+			restore(targetKey, 0, value);
+			del(sourceKey);
 			return Boolean.TRUE;
 		}
 		return Boolean.FALSE;
@@ -158,21 +165,9 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 
 	/*
 	* (non-Javadoc)
-	* @see org.springframework.data.redis.connection.lettuce.LettuceConnection#del(byte[][])
-	*/
-	@Override
-	public Long del(byte[]... keys) {
-
-		Assert.noNullElements(keys, "Keys must not be null or contain null key!");
-
-		// Routing for mget is handled by lettuce.
-		return super.del(keys);
-	}
-
-	/*
-	* (non-Javadoc)
 	* @see org.springframework.data.redis.connection.RedisClusterConnection#randomKey(org.springframework.data.redis.connection.RedisClusterNode)
 	*/
+	@Nullable
 	public byte[] randomKey(RedisClusterNode node) {
 
 		return connection.getClusterCommandExecutor()
@@ -184,7 +179,10 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisClusterConnection#keys(org.springframework.data.redis.connection.RedisClusterNode, byte[])
 	 */
-	public Set<byte[]> keys(RedisClusterNode node, final byte[] pattern) {
+	@Nullable
+	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
+
+		Assert.notNull(pattern, "Pattern must not be null!");
 
 		return LettuceConverters.toBytesSet(connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((LettuceClusterCommandCallback<List<byte[]>>) client -> client.keys(pattern), node)
@@ -197,6 +195,8 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	 */
 	@Override
 	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
+
+		Assert.notNull(key, "Key must not be null!");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(key, storeKey)) {
 			return super.sort(key, params, storeKey);
@@ -220,5 +220,4 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 		}
 		return 0L;
 	}
-
 }

@@ -12,4 +12,5 @@
  * Map-like abstraction on top of a Redis hash.
  */
 @org.springframework.lang.NonNullApi
+@org.springframework.lang.NonNullFields
 package org.springframework.data.redis.support.collections;

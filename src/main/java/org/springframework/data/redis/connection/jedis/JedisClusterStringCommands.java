@@ -51,6 +51,8 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	@Override
 	public byte[] get(byte[] key) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			return connection.getCluster().get(key);
 		} catch (Exception ex) {
@@ -64,6 +66,9 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 */
 	@Override
 	public byte[] getSet(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		try {
 			return connection.getCluster().getSet(key, value);
@@ -79,6 +84,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	@Override
 	public List<byte[]> mGet(byte[]... keys) {
 
+		Assert.notNull(keys, "Keys must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
@@ -98,6 +104,9 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	@Override
 	public void set(byte[] key, byte[] value) {
 
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			connection.getCluster().set(key, value);
 		} catch (Exception ex) {
@@ -111,6 +120,11 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 */
 	@Override
 	public void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(expiration, "Expiration must not be null!");
+		Assert.notNull(option, "Option must not be null!");
 
 		if (expiration == null || expiration.isPersistent()) {
 
@@ -155,6 +169,9 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	@Override
 	public Boolean setNX(byte[] key, byte[] value) {
 
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			return JedisConverters.toBoolean(connection.getCluster().setnx(key, value));
 		} catch (Exception ex) {
@@ -168,6 +185,9 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 */
 	@Override
 	public void setEx(byte[] key, long seconds, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		if (seconds > Integer.MAX_VALUE) {
 			throw new IllegalArgumentException("Seconds have cannot exceed Integer.MAX_VALUE!");
@@ -185,11 +205,10 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
 	 */
 	@Override
-	public void pSetEx(final byte[] key, final long milliseconds, final byte[] value) {
+	public void pSetEx(byte[] key, long milliseconds, byte[] value) {
 
-		if (milliseconds > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("Milliseconds have cannot exceed Integer.MAX_VALUE!");
-		}
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		connection.getClusterCommandExecutor().executeCommandOnSingleNode(
 				(JedisClusterCommandCallback<String>) client -> client.psetex(key, milliseconds, value),
@@ -226,7 +245,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	@Override
 	public Boolean mSetNX(Map<byte[], byte[]> tuples) {
 
-		Assert.notNull(tuples, "Tuple must not be null!");
+		Assert.notNull(tuples, "Tuples must not be null!");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(tuples.keySet().toArray(new byte[tuples.keySet().size()][]))) {
 			try {
@@ -252,6 +271,8 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	@Override
 	public Long incr(byte[] key) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			return connection.getCluster().incr(key);
 		} catch (Exception ex) {
@@ -265,6 +286,8 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 */
 	@Override
 	public Long incrBy(byte[] key, long value) {
+
+		Assert.notNull(key, "Key must not be null!");
 
 		try {
 			return connection.getCluster().incrBy(key, value);
@@ -280,6 +303,8 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	@Override
 	public Double incrBy(byte[] key, double value) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			return connection.getCluster().incrByFloat(key, value);
 		} catch (Exception ex) {
@@ -293,6 +318,8 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 */
 	@Override
 	public Long decr(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
 
 		try {
 			return connection.getCluster().decr(key);
@@ -308,6 +335,8 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	@Override
 	public Long decrBy(byte[] key, long value) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			return connection.getCluster().decrBy(key, value);
 		} catch (Exception ex) {
@@ -322,6 +351,9 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	@Override
 	public Long append(byte[] key, byte[] value) {
 
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			return connection.getCluster().append(key, value);
 		} catch (Exception ex) {
@@ -334,10 +366,12 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#getRange(byte[], long, long)
 	 */
 	@Override
-	public byte[] getRange(byte[] key, long begin, long end) {
+	public byte[] getRange(byte[] key, long start, long end) {
+
+		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			return connection.getCluster().getrange(key, begin, end);
+			return connection.getCluster().getrange(key, start, end);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -349,6 +383,9 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 */
 	@Override
 	public void setRange(byte[] key, byte[] value, long offset) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		try {
 			connection.getCluster().setrange(key, offset, value);
@@ -364,6 +401,8 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	@Override
 	public Boolean getBit(byte[] key, long offset) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			return connection.getCluster().getbit(key, offset);
 		} catch (Exception ex) {
@@ -377,6 +416,8 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 */
 	@Override
 	public Boolean setBit(byte[] key, long offset, boolean value) {
+
+		Assert.notNull(key, "Key must not be null!");
 
 		try {
 			return connection.getCluster().setbit(key, offset, value);
@@ -392,6 +433,8 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	@Override
 	public Long bitCount(byte[] key) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			return connection.getCluster().bitcount(key);
 		} catch (Exception ex) {
@@ -404,10 +447,12 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitCount(byte[], long, long)
 	 */
 	@Override
-	public Long bitCount(byte[] key, long begin, long end) {
+	public Long bitCount(byte[] key, long start, long end) {
+
+		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			return connection.getCluster().bitcount(key, begin, end);
+			return connection.getCluster().bitcount(key, start, end);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -419,6 +464,9 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 */
 	@Override
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
+
+		Assert.notNull(op, "BitOperation must not be null!");
+		Assert.notNull(destination, "Destination key must not be null!");
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destination, keys);
 
@@ -439,6 +487,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 */
 	@Override
 	public Long strLen(byte[] key) {
+		Assert.notNull(key, "Key must not be null!");
 
 		try {
 			return connection.getCluster().strlen(key);

@@ -65,7 +65,7 @@ class ScriptUtils {
 
 	/**
 	 * Deserialize {@code result} using {@link RedisElementReader} to the reader type. Collection types and intermediate
-	 * collection elements are deserialized recursivly.
+	 * collection elements are deserialized recursively.
 	 *
 	 * @param reader must not be {@literal null}.
 	 * @param result must not be {@literal null}.
@@ -75,7 +75,6 @@ class ScriptUtils {
 	static <T> T deserializeResult(RedisElementReader<T> reader, Object result) {
 
 		if (result instanceof ByteBuffer) {
-
 			return reader.read((ByteBuffer) result);
 		}
 

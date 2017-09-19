@@ -15,27 +15,33 @@
  */
 package org.springframework.data.redis.core.types;
 
+import lombok.EqualsAndHashCode;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Properties;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * {@link RedisClientInfo} provides general and statistical information about client connections.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.3
  */
+@EqualsAndHashCode
 public class RedisClientInfo {
 
-	public static enum INFO {
-		ADDRESS_PORT("addr"), FILE_DESCRIPTOR("fd"), CONNECTION_NAME("name"), CONNECTION_AGE("age"), CONNECTION_IDLE("idle"), FLAGS(
-				"flags"), DATABSE_ID("db"), CHANNEL_SUBSCRIBTIONS("sub"), PATTERN_SUBSCRIBTIONS("psub"), MULIT_COMMAND_CONTEXT(
-				"multi"), BUFFER_LENGTH("qbuf"), BUFFER_FREE_SPACE("qbuf-free"), OUTPUT_BUFFER_LENGTH("obl"), OUTPUT_LIST_LENGTH(
-				"oll"), OUTPUT_BUFFER_MEMORY_USAGE("omem"), EVENTS("events"), LAST_COMMAND("cmd");
+	public enum INFO {
 
-		String key;
+		ADDRESS_PORT("addr"), FILE_DESCRIPTOR("fd"), CONNECTION_NAME("name"), CONNECTION_AGE("age"), //
+		CONNECTION_IDLE("idle"), FLAGS("flags"), DATABSE_ID("db"), CHANNEL_SUBSCRIBTIONS("sub"), //
+		PATTERN_SUBSCRIBTIONS("psub"), MULIT_COMMAND_CONTEXT("multi"), BUFFER_LENGTH("qbuf"), //
+		BUFFER_FREE_SPACE("qbuf-free"), OUTPUT_BUFFER_LENGTH("obl"), OUTPUT_LIST_LENGTH("oll"), //
+		OUTPUT_BUFFER_MEMORY_USAGE("omem"), EVENTS("events"), LAST_COMMAND("cmd");
+
+		final String key;
 
 		INFO(String key) {
 			this.key = key;
@@ -45,16 +51,22 @@ public class RedisClientInfo {
 
 	private final Properties clientProperties;
 
+	/**
+	 * Create {@link RedisClientInfo} from {@link Properties}.
+	 *
+	 * @param properties must not be {@literal null}.
+	 */
 	public RedisClientInfo(Properties properties) {
 
 		Assert.notNull(properties, "Cannot initialize client information for given 'null' properties.");
+
 		this.clientProperties = new Properties();
 		this.clientProperties.putAll(properties);
 	}
 
 	/**
 	 * Get address/port of the client.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getAddressPort() {
@@ -63,7 +75,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get file descriptor corresponding to the socket
-	 * 
+	 *
 	 * @return
 	 */
 	public String getFileDescriptor() {
@@ -72,7 +84,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get the clients name.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getName() {
@@ -81,7 +93,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get total duration of the connection in seconds.
-	 * 
+	 *
 	 * @return
 	 */
 	public Long getAge() {
@@ -90,7 +102,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get idle time of the connection in seconds.
-	 * 
+	 *
 	 * @return
 	 */
 	public Long getIdle() {
@@ -99,7 +111,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get client flags.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getFlags() {
@@ -108,7 +120,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get current database index.
-	 * 
+	 *
 	 * @return
 	 */
 	public Long getDatabaseId() {
@@ -117,7 +129,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get number of channel subscriptions.
-	 * 
+	 *
 	 * @return
 	 */
 	public Long getChannelSubscribtions() {
@@ -126,7 +138,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get number of pattern subscriptions.
-	 * 
+	 *
 	 * @return
 	 */
 	public Long getPatternSubscrbtions() {
@@ -135,7 +147,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get the number of commands in a MULTI/EXEC context.
-	 * 
+	 *
 	 * @return
 	 */
 	public Long getMultiCommandContext() {
@@ -144,7 +156,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get the query buffer length.
-	 * 
+	 *
 	 * @return
 	 */
 	public Long getBufferLength() {
@@ -153,7 +165,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get the free space of the query buffer.
-	 * 
+	 *
 	 * @return
 	 */
 	public Long getBufferFreeSpace() {
@@ -162,7 +174,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get the output buffer length.
-	 * 
+	 *
 	 * @return
 	 */
 	public Long getOutputBufferLength() {
@@ -171,7 +183,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get number queued replies in output buffer.
-	 * 
+	 *
 	 * @return
 	 */
 	public Long getOutputListLength() {
@@ -180,7 +192,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get output buffer memory usage.
-	 * 
+	 *
 	 * @return
 	 */
 	public Long getOutputBufferMemoryUsage() {
@@ -189,7 +201,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get file descriptor events.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getEvents() {
@@ -198,7 +210,7 @@ public class RedisClientInfo {
 
 	/**
 	 * Get last command played.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getLastCommand() {
@@ -212,13 +224,14 @@ public class RedisClientInfo {
 	public String get(INFO info) {
 
 		Assert.notNull(info, "Cannot retrieve client information for 'null'.");
-		return get(info.key);
+		return this.clientProperties.getProperty(info.key);
 	}
 
 	/**
 	 * @param key must not be {@literal null} or {@literal empty}.
 	 * @return {@literal null} if no entry found for requested {@code key}.
 	 */
+	@Nullable
 	public String get(String key) {
 
 		Assert.hasText(key, "Cannot get client information for 'empty' / 'null' key.");
@@ -231,6 +244,10 @@ public class RedisClientInfo {
 		return value == null ? null : Long.valueOf(value);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return this.clientProperties.toString();
@@ -245,41 +262,10 @@ public class RedisClientInfo {
 			try {
 				properties.load(new StringReader(source.replace(' ', '\n')));
 			} catch (IOException e) {
-				throw new IllegalArgumentException(String.format("Properties could not be loaded from String '%s'.", source), e);
+				throw new IllegalArgumentException(String.format("Properties could not be loaded from String '%s'.", source),
+						e);
 			}
 			return new RedisClientInfo(properties);
 		}
-
 	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((clientProperties == null) ? 0 : clientProperties.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (!(obj instanceof RedisClientInfo)) {
-			return false;
-		}
-		RedisClientInfo other = (RedisClientInfo) obj;
-		if (clientProperties == null) {
-			if (other.clientProperties != null) {
-				return false;
-			}
-		} else if (!clientProperties.equals(other.clientProperties)) {
-			return false;
-		}
-		return true;
-	}
-
 }

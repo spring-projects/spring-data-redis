@@ -19,7 +19,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 
 /**
  * {@link DataRetrievalFailureException} thrown when following cluster redirects exceeds the max number of edges.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -29,8 +29,8 @@ public class TooManyClusterRedirectionsException extends DataRetrievalFailureExc
 
 	/**
 	 * Creates new {@link TooManyClusterRedirectionsException}.
-	 * 
-	 * @param msg
+	 *
+	 * @param msg the detail message.
 	 */
 	public TooManyClusterRedirectionsException(String msg) {
 		super(msg);
@@ -38,9 +38,9 @@ public class TooManyClusterRedirectionsException extends DataRetrievalFailureExc
 
 	/**
 	 * Creates new {@link TooManyClusterRedirectionsException}.
-	 * 
-	 * @param msg
-	 * @param cause
+	 *
+	 * @param msg the detail message.
+	 * @param cause the root cause from the data access API in use.
 	 */
 	public TooManyClusterRedirectionsException(String msg, Throwable cause) {
 		super(msg, cause);

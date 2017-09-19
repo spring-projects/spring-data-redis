@@ -21,6 +21,7 @@ import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
 
@@ -29,23 +30,20 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvid
  * @author Christoph Strobl
  * @since 2.0
  */
+@RequiredArgsConstructor
 class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetAware {
 
 	private final RedisClient client;
 	private final RedisCodec<?, ?> codec;
 
-	StandaloneConnectionProvider(RedisClient client, RedisCodec<?, ?> codec) {
-
-		this.client = client;
-		this.codec = codec;
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
 	 */
+	@SuppressWarnings("null")
 	@Override
 	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
+
 		if (connectionType.equals(StatefulRedisSentinelConnection.class)) {
 			return connectionType.cast(client.connectSentinel());
 		}
@@ -65,6 +63,7 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware#getConnection(java.lang.Class, io.lettuce.core.RedisURI)
 	 */
+	@SuppressWarnings("null")
 	@Override
 	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType, RedisURI redisURI) {
 

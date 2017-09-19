@@ -104,14 +104,14 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 		private Set<Method> methods;
 		private boolean lenient;
 
-		MethodInvoker(Object delegate, final String methodName) {
+		MethodInvoker(Object delegate, String methodName) {
 
 			this.delegate = delegate;
 			this.methodName = methodName;
 			this.lenient = delegate instanceof MessageListener;
 			this.methods = new HashSet<>();
 
-			final Class<?> c = delegate.getClass();
+			Class<?> c = delegate.getClass();
 
 			ReflectionUtils.doWithMethods(c, method -> {
 				ReflectionUtils.makeAccessible(method);

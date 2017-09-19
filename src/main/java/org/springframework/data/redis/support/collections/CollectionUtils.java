@@ -70,33 +70,4 @@ abstract class CollectionUtils {
 			}
 		});
 	}
-
-	static <K> Boolean renameIfAbsent(final K key, final K newKey, RedisOperations<K, ?> operations) {
-		return operations.execute(new SessionCallback<Boolean>() {
-			@SuppressWarnings("unchecked")
-			public Boolean execute(RedisOperations operations) throws DataAccessException {
-				List<Object> exec = null;
-				do {
-					operations.watch(key);
-
-					if (operations.hasKey(key)) {
-						operations.multi();
-						operations.renameIfAbsent(key, newKey);
-					} else {
-						operations.watch(newKey);
-						operations.multi();
-						operations.hasKey(newKey);
-						operations.hasKey(newKey);
-					}
-					exec = operations.exec();
-				} while (exec == null);
-
-				boolean result = ((Long) exec.get(0) == 1);
-				if (exec.size() > 1) {
-					result = !result;
-				}
-				return result;
-			}
-		});
-	}
 }

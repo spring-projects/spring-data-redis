@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.repository.cdi;
 
 import java.lang.annotation.Annotation;
@@ -29,6 +28,7 @@ import org.springframework.data.redis.repository.query.RedisQueryCreator;
 import org.springframework.data.redis.repository.support.RedisRepositoryFactory;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
 import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -43,7 +43,7 @@ public class RedisRepositoryBean<T> extends CdiRepositoryBean<T> {
 
 	/**
 	 * Creates a new {@link CdiRepositoryBean}.
-	 * 
+	 *
 	 * @param keyValueTemplate must not be {@literal null}.
 	 * @param qualifiers must not be {@literal null}.
 	 * @param repositoryType must not be {@literal null}.
@@ -52,7 +52,7 @@ public class RedisRepositoryBean<T> extends CdiRepositoryBean<T> {
 	 *          {@link CustomRepositoryImplementationDetector}, can be {@literal null}.
 	 */
 	public RedisRepositoryBean(Bean<KeyValueOperations> keyValueTemplate, Set<Annotation> qualifiers,
-			Class<T> repositoryType, BeanManager beanManager, CustomRepositoryImplementationDetector detector) {
+			Class<T> repositoryType, BeanManager beanManager, @Nullable CustomRepositoryImplementationDetector detector) {
 
 		super(qualifiers, repositoryType, beanManager, Optional.ofNullable(detector));
 		Assert.notNull(keyValueTemplate, "Bean holding keyvalue template must not be null!");
@@ -65,7 +65,8 @@ public class RedisRepositoryBean<T> extends CdiRepositoryBean<T> {
 		KeyValueOperations keyValueTemplate = getDependencyInstance(this.keyValueTemplate, KeyValueOperations.class);
 		RedisRepositoryFactory factory = new RedisRepositoryFactory(keyValueTemplate, RedisQueryCreator.class);
 
-		return customImplementation.isPresent() ? factory.getRepository(repositoryType, customImplementation.get()) : factory.getRepository(repositoryType);
+		return customImplementation.map(o -> factory.getRepository(repositoryType, o))
+				.orElseGet(() -> factory.getRepository(repositoryType));
 	}
 
 }

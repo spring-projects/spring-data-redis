@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import org.springframework.dao.DataRetrievalFailureException;
 /**
  * {@link ClusterRedirectException} indicates that a requested slot is not served by the targeted server but can be
  * obtained on another one.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class ClusterRedirectException extends DataRetrievalFailureException {
@@ -34,11 +35,11 @@ public class ClusterRedirectException extends DataRetrievalFailureException {
 
 	/**
 	 * Creates new {@link ClusterRedirectException}.
-	 * 
+	 *
 	 * @param slot the slot to redirect to.
 	 * @param targetHost the host to redirect to.
 	 * @param targetPort the port on the host.
-	 * @param e the root cause from the data access API in use
+	 * @param e the root cause from the data access API in use.
 	 */
 	public ClusterRedirectException(int slot, String targetHost, int targetPort, Throwable e) {
 
@@ -50,27 +51,21 @@ public class ClusterRedirectException extends DataRetrievalFailureException {
 	}
 
 	/**
-	 * Get slot to go for.
-	 * 
-	 * @return
+	 * @return the slot to go for.
 	 */
 	public int getSlot() {
 		return slot;
 	}
 
 	/**
-	 * Get host serving the slot.
-	 * 
-	 * @return
+	 * @return host serving the slot.
 	 */
 	public String getTargetHost() {
 		return host;
 	}
 
 	/**
-	 * Get port on host serving the slot.
-	 * 
-	 * @return
+	 * @return port on host serving the slot.
 	 */
 	public int getTargetPort() {
 		return port;

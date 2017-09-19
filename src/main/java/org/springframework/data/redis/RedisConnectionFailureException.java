@@ -13,23 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis;
 
 import org.springframework.dao.DataAccessResourceFailureException;
 
 /**
  * Fatal exception thrown when the Redis connection fails completely.
- * 
+ *
  * @author Mark Pollack
  */
 public class RedisConnectionFailureException extends DataAccessResourceFailureException {
 
+	/**
+	 * @param msg the detail message.
+	 */
 	public RedisConnectionFailureException(String msg) {
 		super(msg);
 	}
 
+	/**
+	 * @param msg the detail message.
+	 * @param cause the nested exception.
+	 */
 	public RedisConnectionFailureException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
+
 }

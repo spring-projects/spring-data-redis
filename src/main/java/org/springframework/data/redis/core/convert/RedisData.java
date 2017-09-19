@@ -30,23 +30,23 @@ import org.springframework.util.Assert;
  * points to additional structures holding the objects is for searching.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisData {
 
+	private final Bucket bucket;
+	private final Set<IndexedData> indexedData;
+
 	private @Nullable String keyspace;
 	private @Nullable String id;
-
-	private Bucket bucket;
-	private Set<IndexedData> indexedData;
-
 	private @Nullable Long timeToLive;
 
 	/**
 	 * Creates new {@link RedisData} with empty {@link Bucket}.
 	 */
 	public RedisData() {
-		this(Collections.<byte[], byte[]> emptyMap());
+		this(Collections.emptyMap());
 	}
 
 	/**
@@ -66,6 +66,7 @@ public class RedisData {
 	public RedisData(Bucket bucket) {
 
 		Assert.notNull(bucket, "Bucket must not be null!");
+
 		this.bucket = bucket;
 		this.indexedData = new HashSet<>();
 	}

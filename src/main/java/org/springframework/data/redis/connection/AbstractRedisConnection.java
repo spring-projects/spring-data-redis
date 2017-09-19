@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.dao.DataAccessException;
@@ -33,7 +34,7 @@ import org.springframework.util.Assert;
 public abstract class AbstractRedisConnection implements DefaultedRedisConnection {
 
 	private @Nullable RedisSentinelConfiguration sentinelConfiguration;
-	private ConcurrentHashMap<RedisNode, RedisSentinelConnection> connectionCache = new ConcurrentHashMap<>();
+	private final Map<RedisNode, RedisSentinelConnection> connectionCache = new ConcurrentHashMap<>();
 
 	/*
 	 * (non-Javadoc)

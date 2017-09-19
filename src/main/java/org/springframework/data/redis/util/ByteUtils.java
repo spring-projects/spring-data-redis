@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Some handy methods for dealing with byte arrays.
+ * Some handy methods for dealing with {@code byte} arrays.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -34,30 +34,55 @@ public final class ByteUtils {
 
 	private ByteUtils() {}
 
-	public static byte[] concat(byte[] arg1, byte[] arg2) {
+	/**
+	 * Concatenate the given {@code byte} arrays into one, with overlapping array elements included twice.
+	 * <p />
+	 * The order of elements in the original arrays is preserved.
+	 *
+	 * @param array1 the first array.
+	 * @param array2 the second array.
+	 * @return the new array.
+	 */
+	public static byte[] concat(byte[] array1, byte[] array2) {
 
-		byte[] result = Arrays.copyOf(arg1, arg1.length + arg2.length);
-		System.arraycopy(arg2, 0, result, arg1.length, arg2.length);
+		byte[] result = Arrays.copyOf(array1, array1.length + array2.length);
+		System.arraycopy(array2, 0, result, array1.length, array2.length);
 
 		return result;
 	}
 
-	public static byte[] concatAll(byte[]... args) {
+	/**
+	 * Concatenate the given {@code byte} arrays into one, with overlapping array elements included twice. Returns a new,
+	 * empty array if {@code arrays} was empty and returns the first array if {@code arrays} contains only a single array.
+	 * <p />
+	 * The order of elements in the original arrays is preserved.
+	 *
+	 * @param arrays the arrays.
+	 * @return the new array.
+	 */
+	public static byte[] concatAll(byte[]... arrays) {
 
-		if (args.length == 0) {
+		if (arrays.length == 0) {
 			return new byte[] {};
 		}
-		if (args.length == 1) {
-			return args[0];
+		if (arrays.length == 1) {
+			return arrays[0];
 		}
 
-		byte[] cur = concat(args[0], args[1]);
-		for (int i = 2; i < args.length; i++) {
-			cur = concat(cur, args[i]);
+		byte[] cur = concat(arrays[0], arrays[1]);
+		for (int i = 2; i < arrays.length; i++) {
+			cur = concat(cur, arrays[i]);
 		}
 		return cur;
 	}
 
+	/**
+	 * Split {@code source} into partitioned arrays using delimiter {@code c}.
+	 *
+	 * @param source the source array.
+	 * @param c delimiter.
+	 * @return the partitioned arrays.
+	 */
 	public static byte[][] split(byte[] source, int c) {
 
 		if (ObjectUtils.isEmpty(source)) {

@@ -49,6 +49,7 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 
 	@SuppressWarnings("unchecked")
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+
 		// parse attributes (but replace the value assignment with references)
 		NamedNodeMap attributes = element.getAttributes();
 
@@ -73,8 +74,7 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 		List<Element> listDefs = DomUtils.getChildElementsByTagName(element, "listener");
 
 		if (!listDefs.isEmpty()) {
-			ManagedMap<BeanDefinition, Collection<? extends BeanDefinition>> listeners = new ManagedMap<>(
-					listDefs.size());
+			ManagedMap<BeanDefinition, Collection<? extends BeanDefinition>> listeners = new ManagedMap<>(listDefs.size());
 			for (Element listElement : listDefs) {
 				Object[] listenerDefinition = parseListener(listElement);
 				listeners.put((BeanDefinition) listenerDefinition[0],
@@ -97,6 +97,7 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 	 * @return
 	 */
 	private Object[] parseListener(Element element) {
+
 		Object[] ret = new Object[2];
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageListenerAdapter.class);

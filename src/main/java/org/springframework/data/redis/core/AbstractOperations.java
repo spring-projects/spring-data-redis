@@ -60,6 +60,7 @@ abstract class AbstractOperations<K, V> {
 			return deserializeValue(result);
 		}
 
+		@Nullable
 		protected abstract byte[] inRedis(byte[] rawKey, RedisConnection connection);
 	}
 
@@ -286,7 +287,7 @@ abstract class AbstractOperations<K, V> {
 	@SuppressWarnings("unchecked")
 	<HK, HV> Map<HK, HV> deserializeHashMap(@Nullable Map<byte[], byte[]> entries) {
 		// connection in pipeline/multi mode
-		
+
 		if (entries == null) {
 			return null;
 		}

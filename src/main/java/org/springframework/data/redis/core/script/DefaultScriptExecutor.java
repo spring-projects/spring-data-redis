@@ -37,7 +37,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  */
 public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 
-	private RedisTemplate<K, ?> template;
+	private final RedisTemplate<K, ?> template;
 
 	/**
 	 * @param template The {@link RedisTemplate} to use

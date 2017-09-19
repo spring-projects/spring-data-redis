@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis;
 
 import org.springframework.dao.UncategorizedDataAccessException;
 
 /**
  * Exception thrown when we can't classify a Redis exception into one of Spring generic data access exceptions.
- * 
+ *
  * @author Costin Leau
  */
 public class RedisSystemException extends UncategorizedDataAccessException {
 
+	/**
+	 * @param msg the detail message.
+	 * @param cause the root cause from the data access API in use.
+	 */
 	public RedisSystemException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
+
 }

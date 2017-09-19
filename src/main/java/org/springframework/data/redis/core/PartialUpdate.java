@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -35,12 +36,13 @@ public class PartialUpdate<T> {
 
 	private final Object id;
 	private final Class<T> target;
-	private final T value;
+	private final @Nullable T value;
 	private boolean refreshTtl = false;
 
 	private final List<PropertyUpdate> propertyUpdates = new ArrayList<>();
 
-	private PartialUpdate(Object id, Class<T> target, T value, boolean refreshTtl, List<PropertyUpdate> propertyUpdates) {
+	private PartialUpdate(Object id, Class<T> target, @Nullable T value, boolean refreshTtl,
+			List<PropertyUpdate> propertyUpdates) {
 
 		this.id = id;
 		this.target = target;
@@ -96,6 +98,7 @@ public class PartialUpdate<T> {
 	/**
 	 * @return can be {@literal null}.
 	 */
+	@Nullable
 	public T getValue() {
 		return value;
 	}
@@ -187,13 +190,13 @@ public class PartialUpdate<T> {
 
 		private final UpdateCommand cmd;
 		private final String propertyPath;
-		private final Object value;
+		private final @Nullable Object value;
 
 		private PropertyUpdate(UpdateCommand cmd, String propertyPath) {
 			this(cmd, propertyPath, null);
 		}
 
-		private PropertyUpdate(UpdateCommand cmd, String propertyPath, Object value) {
+		private PropertyUpdate(UpdateCommand cmd, String propertyPath, @Nullable Object value) {
 
 			this.cmd = cmd;
 			this.propertyPath = propertyPath;
@@ -223,6 +226,7 @@ public class PartialUpdate<T> {
 		 *
 		 * @return can be {@literal null}.
 		 */
+		@Nullable
 		public Object getValue() {
 			return value;
 		}
@@ -232,7 +236,7 @@ public class PartialUpdate<T> {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	public static enum UpdateCommand {
+	public enum UpdateCommand {
 		SET, DEL
 	}
 }

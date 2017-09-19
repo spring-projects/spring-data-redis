@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.repository.query;
 
+import lombok.EqualsAndHashCode;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,7 +28,6 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Point;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * Simple set of operations required to run queries against Redis.
@@ -36,8 +37,9 @@ import org.springframework.util.ObjectUtils;
  */
 public class RedisOperationChain {
 
-	private Set<PathAndValue> sismember = new LinkedHashSet<>();
-	private Set<PathAndValue> orSismember = new LinkedHashSet<>();
+	private final Set<PathAndValue> sismember = new LinkedHashSet<>();
+	private final Set<PathAndValue> orSismember = new LinkedHashSet<>();
+
 	private @Nullable NearPath near;
 
 	public void sismember(String path, Object value) {
@@ -79,6 +81,7 @@ public class RedisOperationChain {
 		return near;
 	}
 
+	@EqualsAndHashCode
 	public static class PathAndValue {
 
 		private final String path;
@@ -108,6 +111,7 @@ public class RedisOperationChain {
 			return values;
 		}
 
+		@Nullable
 		public Object getFirstValue() {
 			return values.isEmpty() ? null : values.iterator().next();
 		}
@@ -116,34 +120,6 @@ public class RedisOperationChain {
 		public String toString() {
 			return path + ":" + (isSingleValue() ? getFirstValue() : values);
 		}
-
-		@Override
-		public int hashCode() {
-
-			int result = ObjectUtils.nullSafeHashCode(path);
-			result += ObjectUtils.nullSafeHashCode(values);
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (!(obj instanceof PathAndValue)) {
-				return false;
-			}
-			PathAndValue that = (PathAndValue) obj;
-			if (!ObjectUtils.nullSafeEquals(this.path, that.path)) {
-				return false;
-			}
-
-			return ObjectUtils.nullSafeEquals(this.values, that.values);
-		}
-
 	}
 
 	/**

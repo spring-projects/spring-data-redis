@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,7 @@
 package org.springframework.data.redis.serializer;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.TypeConverter;
@@ -32,32 +33,38 @@ import org.springframework.util.Assert;
  * into String and vice versa. The Strings are convert into bytes and vice-versa using the specified charset (by default
  * UTF-8). <b>Note:</b> The conversion service initialization happens automatically if the class is defined as a Spring
  * bean. <b>Note:</b> Does not handle nulls in any special way delegating everything to the container.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFactoryAware {
 
+	private final Class<T> type;
 	private final Charset charset;
+
 	private Converter converter = new Converter(new DefaultConversionService());
-	private Class<T> type;
 
 	public GenericToStringSerializer(Class<T> type) {
-		this(type, Charset.forName("UTF8"));
+		this(type, StandardCharsets.UTF_8);
 	}
 
 	public GenericToStringSerializer(Class<T> type, Charset charset) {
-		Assert.notNull(type, "tyoe must not be null!");
+
+		Assert.notNull(type, "Type must not be null!");
+
 		this.type = type;
 		this.charset = charset;
 	}
 
 	public void setConversionService(ConversionService conversionService) {
+
 		Assert.notNull(conversionService, "non null conversion service required");
 		converter = new Converter(conversionService);
 	}
 
 	public void setTypeConverter(TypeConverter typeConverter) {
+
 		Assert.notNull(typeConverter, "non null type converter required");
 		converter = new Converter(typeConverter);
 	}
@@ -83,6 +90,8 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+
+		// TODO: This code can never happen...
 		if (converter == null && beanFactory instanceof ConfigurableBeanFactory) {
 			ConfigurableBeanFactory cFB = (ConfigurableBeanFactory) beanFactory;
 			ConversionService conversionService = cFB.getConversionService();

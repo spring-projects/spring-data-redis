@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,7 +25,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Key-specific commands supported by Redis.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -92,24 +92,24 @@ public interface RedisKeyCommands {
 	byte[] randomKey();
 
 	/**
-	 * Rename key {@code oldName} to {@code newName}.
+	 * Rename key {@code sourceKey} to {@code targetKey}.
 	 *
-	 * @param oldName must not be {@literal null}.
-	 * @param newName must not be {@literal null}.
+	 * @param sourceKey must not be {@literal null}.
+	 * @param targetKey must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
-	void rename(byte[] oldName, byte[] newName);
+	void rename(byte[] sourceKey, byte[] targetKey);
 
 	/**
-	 * Rename key {@code oldName} to {@code newName} only if {@code newName} does not exist.
+	 * Rename key {@code sourceKey} to {@code targetKey} only if {@code targetKey} does not exist.
 	 *
-	 * @param oldName must not be {@literal null}.
-	 * @param newName must not be {@literal null}.
+	 * @param sourceKey must not be {@literal null}.
+	 * @param targetKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
 	@Nullable
-	Boolean renameNX(byte[] oldName, byte[] newName);
+	Boolean renameNX(byte[] sourceKey, byte[] targetKey);
 
 	/**
 	 * Set time to live for given {@code key} in seconds.

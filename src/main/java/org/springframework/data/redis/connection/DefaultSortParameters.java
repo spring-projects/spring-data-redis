@@ -16,7 +16,10 @@
 package org.springframework.data.redis.connection;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import org.springframework.lang.Nullable;
 
 /**
  * Default implementation for {@link SortParameters}.
@@ -25,11 +28,11 @@ import java.util.List;
  */
 public class DefaultSortParameters implements SortParameters {
 
-	private byte[] byPattern;
-	private Range limit;
+	private @Nullable byte[] byPattern;
+	private @Nullable Range limit;
 	private final List<byte[]> getPattern = new ArrayList<>(4);
-	private Order order;
-	private Boolean alphabetic;
+	private @Nullable Order order;
+	private @Nullable Boolean alphabetic;
 
 	/**
 	 * Constructs a new <code>DefaultSortParameters</code> instance.
@@ -45,7 +48,7 @@ public class DefaultSortParameters implements SortParameters {
 	 * @param order
 	 * @param alphabetic
 	 */
-	public DefaultSortParameters(Range limit, Order order, Boolean alphabetic) {
+	public DefaultSortParameters(@Nullable Range limit, @Nullable Order order, @Nullable Boolean alphabetic) {
 		this(null, limit, null, order, alphabetic);
 	}
 
@@ -58,7 +61,8 @@ public class DefaultSortParameters implements SortParameters {
 	 * @param order
 	 * @param alphabetic
 	 */
-	public DefaultSortParameters(byte[] byPattern, Range limit, byte[][] getPattern, Order order, Boolean alphabetic) {
+	public DefaultSortParameters(@Nullable byte[] byPattern, @Nullable Range limit, @Nullable byte[][] getPattern,
+			@Nullable Order order, @Nullable Boolean alphabetic) {
 		super();
 		this.byPattern = byPattern;
 		this.limit = limit;
@@ -67,6 +71,7 @@ public class DefaultSortParameters implements SortParameters {
 		setGetPattern(getPattern);
 	}
 
+	@Nullable
 	public byte[] getByPattern() {
 		return byPattern;
 	}
@@ -87,22 +92,22 @@ public class DefaultSortParameters implements SortParameters {
 		return getPattern.toArray(new byte[getPattern.size()][]);
 	}
 
+	@Nullable
 	public void addGetPattern(byte[] gPattern) {
 		getPattern.add(gPattern);
 	}
 
-	public void setGetPattern(byte[][] gPattern) {
+	public void setGetPattern(@Nullable byte[][] gPattern) {
 		getPattern.clear();
 
 		if (gPattern == null) {
 			return;
 		}
 
-		for (byte[] bs : gPattern) {
-			getPattern.add(bs);
-		}
+		Collections.addAll(getPattern, gPattern);
 	}
 
+	@Nullable
 	public Order getOrder() {
 		return order;
 	}
@@ -111,6 +116,7 @@ public class DefaultSortParameters implements SortParameters {
 		this.order = order;
 	}
 
+	@Nullable
 	public Boolean isAlphabetic() {
 		return alphabetic;
 	}

@@ -37,6 +37,7 @@ import org.springframework.data.redis.repository.query.RedisOperationChain;
 import org.springframework.data.redis.repository.query.RedisOperationChain.NearPath;
 import org.springframework.data.redis.repository.query.RedisOperationChain.PathAndValue;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -63,7 +64,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	 * @see QueryEngine#QueryEngine(CriteriaAccessor, SortAccessor)
 	 */
 	private RedisQueryEngine(CriteriaAccessor<RedisOperationChain> criteriaAccessor,
-			SortAccessor<Comparator<?>> sortAccessor) {
+			@Nullable SortAccessor<Comparator<?>> sortAccessor) {
 		super(criteriaAccessor, sortAccessor);
 	}
 

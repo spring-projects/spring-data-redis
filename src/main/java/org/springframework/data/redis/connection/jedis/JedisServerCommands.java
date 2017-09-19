@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 import java.util.Properties;
 
@@ -31,15 +34,12 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class JedisServerCommands implements RedisServerCommands {
 
 	private static final String SHUTDOWN_SCRIPT = "return redis.call('SHUTDOWN','%s')";
 
-	private final JedisConnection connection;
-
-	JedisServerCommands(JedisConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull JedisConnection connection;
 
 	/*
 	 * (non-Javadoc)
@@ -47,13 +47,14 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void bgReWriteAof() {
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getPipeline().bgrewriteaof()));
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().bgrewriteaof()));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getTransaction().bgrewriteaof()));
+				transaction(connection.newStatusResult(connection.getRequiredTransaction().bgrewriteaof()));
 				return;
 			}
 			connection.getJedis().bgrewriteaof();
@@ -68,13 +69,14 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void bgSave() {
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getPipeline().bgsave()));
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().bgsave()));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getTransaction().bgsave()));
+				transaction(connection.newStatusResult(connection.getRequiredTransaction().bgsave()));
 				return;
 			}
 			connection.getJedis().bgsave();
@@ -89,13 +91,14 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Long lastSave() {
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().lastsave()));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().lastsave()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().lastsave()));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().lastsave()));
 				return null;
 			}
 			return connection.getJedis().lastsave();
@@ -110,13 +113,14 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void save() {
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getPipeline().save()));
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().save()));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getTransaction().save()));
+				transaction(connection.newStatusResult(connection.getRequiredTransaction().save()));
 				return;
 			}
 			connection.getJedis().save();
@@ -131,13 +135,14 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Long dbSize() {
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().dbSize()));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().dbSize()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().dbSize()));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().dbSize()));
 				return null;
 			}
 			return connection.getJedis().dbSize();
@@ -152,13 +157,14 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void flushDb() {
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getPipeline().flushDB()));
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().flushDB()));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getTransaction().flushDB()));
+				transaction(connection.newStatusResult(connection.getRequiredTransaction().flushDB()));
 				return;
 			}
 			connection.getJedis().flushDB();
@@ -173,13 +179,14 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void flushAll() {
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getPipeline().flushAll()));
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().flushAll()));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().flushAll()));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().flushAll()));
 				return;
 			}
 			connection.getJedis().flushAll();
@@ -194,13 +201,15 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Properties info() {
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().info(), JedisConverters.stringToProps()));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().info(), JedisConverters.stringToProps()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().info(), JedisConverters.stringToProps()));
+				transaction(
+						connection.newJedisResult(connection.getRequiredTransaction().info(), JedisConverters.stringToProps()));
 				return null;
 			}
 			return JedisConverters.toProperties(connection.getJedis().info());
@@ -215,12 +224,13 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Properties info(String section) {
-		if (isPipelined()) {
+
+		Assert.notNull(section, "Section must not be null!");
+
+		if (isPipelined() || isQueueing()) {
 			throw new UnsupportedOperationException();
 		}
-		if (isQueueing()) {
-			throw new UnsupportedOperationException();
-		}
+
 		try {
 			return JedisConverters.toProperties(connection.getJedis().info(section));
 		} catch (Exception ex) {
@@ -234,13 +244,14 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void shutdown() {
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getPipeline().shutdown()));
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().shutdown()));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getTransaction().shutdown()));
+				transaction(connection.newStatusResult(connection.getRequiredTransaction().shutdown()));
 				return;
 			}
 			connection.getJedis().shutdown();
@@ -269,19 +280,22 @@ class JedisServerCommands implements RedisServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#getConfig(java.lang.String)
 	 */
 	@Override
-	public Properties getConfig(String param) {
+	public Properties getConfig(String pattern) {
+
+		Assert.notNull(pattern, "Pattern must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().configGet(param),
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().configGet(pattern),
 						Converters.listToPropertiesConverter()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().configGet(param),
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().configGet(pattern),
 						Converters.listToPropertiesConverter()));
 				return null;
 			}
-			return Converters.toProperties(connection.getJedis().configGet(param));
+			return Converters.toProperties(connection.getJedis().configGet(pattern));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -293,13 +307,17 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void setConfig(String param, String value) {
+
+		Assert.notNull(param, "Parameter must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getPipeline().configSet(param, value)));
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().configSet(param, value)));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getTransaction().configSet(param, value)));
+				transaction(connection.newStatusResult(connection.getRequiredTransaction().configSet(param, value)));
 				return;
 			}
 			connection.getJedis().configSet(param, value);
@@ -314,13 +332,14 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void resetConfigStats() {
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getPipeline().configResetStat()));
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().configResetStat()));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getTransaction().configResetStat()));
+				transaction(connection.newStatusResult(connection.getRequiredTransaction().configResetStat()));
 				return;
 			}
 			connection.getJedis().configResetStat();
@@ -337,14 +356,13 @@ class JedisServerCommands implements RedisServerCommands {
 	public Long time() {
 
 		try {
-
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().time(), JedisConverters.toTimeConverter()));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().time(), JedisConverters.toTimeConverter()));
 				return null;
 			}
-
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().time(), JedisConverters.toTimeConverter()));
+				transaction(
+						connection.newJedisResult(connection.getRequiredTransaction().time(), JedisConverters.toTimeConverter()));
 				return null;
 			}
 			return JedisConverters.toTimeConverter().convert(connection.getJedis().time());
@@ -379,6 +397,8 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void setClientName(byte[] name) {
+
+		Assert.notNull(name, "Name must not be null!");
 
 		if (isPipelined() || isQueueing()) {
 			throw new UnsupportedOperationException("'CLIENT SETNAME' is not suppored in transacton / pipeline mode.");
@@ -422,6 +442,7 @@ class JedisServerCommands implements RedisServerCommands {
 	public void slaveOf(String host, int port) {
 
 		Assert.hasText(host, "Host must not be null for 'SLAVEOF' command.");
+
 		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException("'SLAVEOF' cannot be called in pipline / transaction mode.");
 		}
@@ -442,6 +463,7 @@ class JedisServerCommands implements RedisServerCommands {
 		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException("'SLAVEOF' cannot be called in pipline / transaction mode.");
 		}
+
 		try {
 			this.connection.getJedis().slaveofNoOne();
 		} catch (Exception e) {
@@ -465,17 +487,20 @@ class JedisServerCommands implements RedisServerCommands {
 	@Override
 	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout) {
 
-		final int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(target, "Target node must not be null!");
+
+		int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 
 		try {
 			if (isPipelined()) {
 
-				pipeline(connection.newJedisResult(connection.getPipeline().migrate(JedisConverters.toBytes(target.getHost()),
-						target.getPort(), key, dbIndex, timeoutToUse)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline()
+						.migrate(JedisConverters.toBytes(target.getHost()), target.getPort(), key, dbIndex, timeoutToUse)));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction()
+				transaction(connection.newJedisResult(connection.getRequiredTransaction()
 						.migrate(JedisConverters.toBytes(target.getHost()), target.getPort(), key, dbIndex, timeoutToUse)));
 				return;
 			}

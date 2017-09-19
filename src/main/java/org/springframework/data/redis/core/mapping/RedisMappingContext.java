@@ -76,7 +76,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 	 *
 	 * @param mappingConfiguration can be {@literal null}.
 	 */
-	public RedisMappingContext(MappingConfiguration mappingConfiguration) {
+	public RedisMappingContext(@Nullable MappingConfiguration mappingConfiguration) {
 
 		this.mappingConfiguration = mappingConfiguration != null ? mappingConfiguration
 				: new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration());

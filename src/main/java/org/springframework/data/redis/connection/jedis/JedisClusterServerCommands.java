@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.lang.Nullable;
 import redis.clients.jedis.BinaryJedis;
 
 import java.util.ArrayList;
@@ -34,6 +33,7 @@ import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterCommandCallback;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -234,7 +234,9 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#info(java.lang.String)
 	 */
 	@Override
-	public Properties info(final String section) {
+	public Properties info(String section) {
+
+		Assert.notNull(section, "Section must not be null!");
 
 		Properties infos = new Properties();
 
@@ -257,7 +259,9 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#info(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String)
 	 */
 	@Override
-	public Properties info(RedisClusterNode node, final String section) {
+	public Properties info(RedisClusterNode node, String section) {
+
+		Assert.notNull(section, "Section must not be null!");
 
 		return JedisConverters.toProperties(executeCommandOnSingleNode(client -> client.info(section), node).getValue());
 	}
@@ -301,7 +305,9 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#getConfig(java.lang.String)
 	 */
 	@Override
-	public Properties getConfig(final String pattern) {
+	public Properties getConfig(String pattern) {
+
+		Assert.notNull(pattern, "Pattern must not be null!");
 
 		List<NodeResult<List<String>>> mapResult = connection.getClusterCommandExecutor()
 				.executeCommandOnAllNodes((JedisClusterCommandCallback<List<String>>) client -> client.configGet(pattern))
@@ -325,7 +331,9 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#getConfig(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String)
 	 */
 	@Override
-	public Properties getConfig(RedisClusterNode node, final String pattern) {
+	public Properties getConfig(RedisClusterNode node, String pattern) {
+
+		Assert.notNull(pattern, "Pattern must not be null!");
 
 		return connection.getClusterCommandExecutor().executeCommandOnSingleNode(
 				(JedisClusterCommandCallback<Properties>) client -> Converters.toProperties(client.configGet(pattern)), node)
@@ -337,7 +345,10 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#setConfig(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void setConfig(final String param, final String value) {
+	public void setConfig(String param, String value) {
+
+		Assert.notNull(param, "Parameter must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		connection.getClusterCommandExecutor()
 				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) client -> client.configSet(param, value));
@@ -348,7 +359,10 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#setConfig(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void setConfig(RedisClusterNode node, final String param, final String value) {
+	public void setConfig(RedisClusterNode node, String param, String value) {
+
+		Assert.notNull(param, "Parameter must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		executeCommandOnSingleNode(client -> client.configSet(param, value), node);
 	}
@@ -401,7 +415,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public void killClient(String host, int port) {
 
-		final String hostAndPort = String.format("%s:%s", host, port);
+		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'.");
+		String hostAndPort = String.format("%s:%s", host, port);
 
 		connection.getClusterCommandExecutor()
 				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) client -> client.clientKill(hostAndPort));
@@ -488,9 +503,11 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	 */
 	@Override
 	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option,
-			final long timeout) {
+			long timeout) {
 
-		final int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(target, "Target node must not be null!");
+		int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 
 		RedisClusterNode node = connection.getTopologyProvider().getTopology().lookup(target.getHost(), target.getPort());
 

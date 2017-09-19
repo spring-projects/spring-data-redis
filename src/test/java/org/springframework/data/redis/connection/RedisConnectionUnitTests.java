@@ -436,8 +436,8 @@ public class RedisConnectionUnitTests {
 			delegate.pSubscribe(listener, patterns);
 		}
 
-		public void rename(byte[] oldName, byte[] newName) {
-			delegate.rename(oldName, newName);
+		public void rename(byte[] sourceKey, byte[] targetKey) {
+			delegate.rename(sourceKey, targetKey);
 		}
 
 		public boolean isPipelined() {
@@ -464,8 +464,8 @@ public class RedisConnectionUnitTests {
 			return delegate.sInter(keys);
 		}
 
-		public Boolean renameNX(byte[] oldName, byte[] newName) {
-			return delegate.renameNX(oldName, newName);
+		public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
+			return delegate.renameNX(sourceKey, targetKey);
 		}
 
 		public Long zRank(byte[] key, byte[] value) {
@@ -696,8 +696,8 @@ public class RedisConnectionUnitTests {
 			return delegate.zRangeByScore(key, min, max, offset, count);
 		}
 
-		public byte[] getRange(byte[] key, long begin, long end) {
-			return delegate.getRange(key, begin, end);
+		public byte[] getRange(byte[] key, long start, long end) {
+			return delegate.getRange(key, start, end);
 		}
 
 		public void setClientName(byte[] name) {

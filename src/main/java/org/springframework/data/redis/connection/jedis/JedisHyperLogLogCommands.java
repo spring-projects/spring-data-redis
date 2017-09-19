@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
 import org.springframework.data.redis.connection.jedis.JedisConnection.JedisResult;
 import org.springframework.util.Assert;
@@ -24,13 +27,10 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 
-	private final JedisConnection connection;
-
-	JedisHyperLogLogCommands(JedisConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull JedisConnection connection;
 
 	/*
 	 * (non-Javadoc)
@@ -44,11 +44,11 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().pfadd(key, values)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().pfadd(key, values)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().pfadd(key, values)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().pfadd(key, values)));
 				return null;
 			}
 			return connection.getJedis().pfadd(key, values);
@@ -65,15 +65,15 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 	public Long pfCount(byte[]... keys) {
 
 		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key.");
-		Assert.noNullElements(keys, "Keys for PFOUNT must not contain 'null'.");
+		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'.");
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().pfcount(keys)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().pfcount(keys)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().pfcount(keys)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().pfcount(keys)));
 				return null;
 			}
 			return connection.getJedis().pfcount(keys);
@@ -89,13 +89,17 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
 
+		Assert.notNull(destinationKey, "Destination key must not be null");
+		Assert.notNull(sourceKeys, "Source keys must not be null");
+		Assert.noNullElements(sourceKeys, "Keys for PFMERGE must not contain 'null'.");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().pfmerge(destinationKey, sourceKeys)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().pfmerge(destinationKey, sourceKeys)));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().pfmerge(destinationKey, sourceKeys)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().pfmerge(destinationKey, sourceKeys)));
 				return;
 			}
 			connection.getJedis().pfmerge(destinationKey, sourceKeys);

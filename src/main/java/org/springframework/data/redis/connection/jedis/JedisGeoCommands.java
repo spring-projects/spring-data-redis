@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.GeoUnit;
 
@@ -38,13 +40,10 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class JedisGeoCommands implements RedisGeoCommands {
 
-	private final JedisConnection connection;
-
-	JedisGeoCommands(JedisConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull JedisConnection connection;
 
 	/*
 	 * (non-Javadoc)
@@ -59,12 +58,14 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().geoadd(key, point.getX(), point.getY(), member)));
+				pipeline(connection
+						.newJedisResult(connection.getRequiredPipeline().geoadd(key, point.getX(), point.getY(), member)));
 				return null;
 			}
 			if (isQueueing()) {
 				transaction(
-						connection.newJedisResult(connection.getTransaction().geoadd(key, point.getX(), point.getY(), member)));
+						connection
+								.newJedisResult(connection.getRequiredTransaction().geoadd(key, point.getX(), point.getY(), member)));
 				return null;
 			}
 
@@ -92,11 +93,11 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().geoadd(key, redisGeoCoordinateMap)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().geoadd(key, redisGeoCoordinateMap)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().geoadd(key, redisGeoCoordinateMap)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().geoadd(key, redisGeoCoordinateMap)));
 				return null;
 			}
 
@@ -124,11 +125,11 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().geoadd(key, redisGeoCoordinateMap)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().geoadd(key, redisGeoCoordinateMap)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().geoadd(key, redisGeoCoordinateMap)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().geoadd(key, redisGeoCoordinateMap)));
 				return null;
 			}
 
@@ -153,12 +154,14 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().geodist(key, member1, member2), distanceConverter));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().geodist(key, member1, member2),
+						distanceConverter));
 				return null;
 			}
 			if (isQueueing()) {
 				transaction(
-						connection.newJedisResult(connection.getTransaction().geodist(key, member1, member2), distanceConverter));
+						connection.newJedisResult(connection.getRequiredTransaction().geodist(key, member1, member2),
+								distanceConverter));
 				return null;
 			}
 
@@ -185,12 +188,13 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().geodist(key, member1, member2, geoUnit),
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().geodist(key, member1, member2, geoUnit),
 						distanceConverter));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().geodist(key, member1, member2, geoUnit),
+				transaction(connection.newJedisResult(
+						connection.getRequiredTransaction().geodist(key, member1, member2, geoUnit),
 						distanceConverter));
 				return null;
 			}
@@ -214,12 +218,12 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().geohash(key, members),
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().geohash(key, members),
 						JedisConverters.bytesListToStringListConverter()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().geohash(key, members),
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().geohash(key, members),
 						JedisConverters.bytesListToStringListConverter()));
 				return null;
 			}
@@ -244,11 +248,11 @@ class JedisGeoCommands implements RedisGeoCommands {
 		ListConverter<GeoCoordinate, Point> converter = JedisConverters.geoCoordinateToPointConverter();
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().geopos(key, members), converter));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().geopos(key, members), converter));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().geopos(key, members), converter));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().geopos(key, members), converter));
 				return null;
 			}
 			return converter.convert(connection.getJedis().geopos(key, members));
@@ -273,7 +277,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 			if (isPipelined()) {
 				pipeline(
 						connection.newJedisResult(
-								connection.getPipeline().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
+								connection.getRequiredPipeline().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
 										within.getRadius().getValue(), JedisConverters.toGeoUnit(within.getRadius().getMetric())),
 								converter));
 				return null;
@@ -281,7 +285,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 			if (isQueueing()) {
 				transaction(
 						connection.newJedisResult(
-								connection.getTransaction().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
+								connection.getRequiredTransaction().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
 										within.getRadius().getValue(), JedisConverters.toGeoUnit(within.getRadius().getMetric())),
 								converter));
 				return null;
@@ -312,13 +316,14 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().georadius(key, within.getCenter().getX(),
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().georadius(key, within.getCenter().getX(),
 						within.getCenter().getY(), within.getRadius().getValue(),
 						JedisConverters.toGeoUnit(within.getRadius().getMetric()), geoRadiusParam), converter));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().georadius(key, within.getCenter().getX(),
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().georadius(key,
+						within.getCenter().getX(),
 						within.getCenter().getY(), within.getRadius().getValue(),
 						JedisConverters.toGeoUnit(within.getRadius().getMetric()), geoRadiusParam), converter));
 				return null;
@@ -350,12 +355,12 @@ class JedisGeoCommands implements RedisGeoCommands {
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newJedisResult(
-						connection.getPipeline().georadiusByMember(key, member, radius.getValue(), geoUnit), converter));
+						connection.getRequiredPipeline().georadiusByMember(key, member, radius.getValue(), geoUnit), converter));
 				return null;
 			}
 			if (isQueueing()) {
 				transaction(connection.newJedisResult(
-						connection.getTransaction().georadiusByMember(key, member, radius.getValue(), geoUnit), converter));
+						connection.getRequiredTransaction().georadiusByMember(key, member, radius.getValue(), geoUnit), converter));
 				return null;
 			}
 
@@ -386,13 +391,14 @@ class JedisGeoCommands implements RedisGeoCommands {
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newJedisResult(
-						connection.getPipeline().georadiusByMember(key, member, radius.getValue(), geoUnit, geoRadiusParam),
+						connection.getRequiredPipeline().georadiusByMember(key, member, radius.getValue(), geoUnit, geoRadiusParam),
 						converter));
 				return null;
 			}
 			if (isQueueing()) {
 				transaction(connection.newJedisResult(
-						connection.getTransaction().georadiusByMember(key, member, radius.getValue(), geoUnit, geoRadiusParam),
+						connection.getRequiredTransaction().georadiusByMember(key, member, radius.getValue(), geoUnit,
+								geoRadiusParam),
 						converter));
 				return null;
 			}

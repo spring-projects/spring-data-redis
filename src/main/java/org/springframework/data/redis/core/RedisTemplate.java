@@ -92,10 +92,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private @Nullable RedisSerializer<?> defaultSerializer;
 	private @Nullable ClassLoader classLoader;
 
-	@SuppressWarnings("rawtypes") private RedisSerializer keySerializer = null;
-	@SuppressWarnings("rawtypes") private RedisSerializer valueSerializer = null;
-	@SuppressWarnings("rawtypes") private RedisSerializer hashKeySerializer = null;
-	@SuppressWarnings("rawtypes") private RedisSerializer hashValueSerializer = null;
+	@SuppressWarnings("rawtypes") private @Nullable RedisSerializer keySerializer = null;
+	@SuppressWarnings("rawtypes") private @Nullable RedisSerializer valueSerializer = null;
+	@SuppressWarnings("rawtypes") private @Nullable RedisSerializer hashKeySerializer = null;
+	@SuppressWarnings("rawtypes") private @Nullable RedisSerializer hashValueSerializer = null;
 	private RedisSerializer<String> stringSerializer = new StringRedisSerializer();
 
 	private @Nullable ScriptExecutor<K> scriptExecutor;
@@ -200,7 +200,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(action, "Callback object must not be null");
 
-		RedisConnectionFactory factory = getConnectionFactory();
+		RedisConnectionFactory factory = getRequiredConnectionFactory();
 		RedisConnection conn = null;
 		try {
 
@@ -245,7 +245,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(session, "Callback object must not be null");
 
-		RedisConnectionFactory factory = getConnectionFactory();
+		RedisConnectionFactory factory = getRequiredConnectionFactory();
 		// bind connection
 		RedisConnectionUtils.bindConnection(factory, enableTransactionSupport);
 		try {
@@ -260,7 +260,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#executePipelined(org.springframework.data.redis.core.SessionCallback)
 	 */
 	@Override
-	public List<Object> executePipelined(final SessionCallback<?> session) {
+	public List<Object> executePipelined(SessionCallback<?> session) {
 		return executePipelined(session, valueSerializer);
 	}
 
@@ -269,12 +269,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#executePipelined(org.springframework.data.redis.core.SessionCallback, org.springframework.data.redis.serializer.RedisSerializer)
 	 */
 	@Override
-	public List<Object> executePipelined(final SessionCallback<?> session, final RedisSerializer<?> resultSerializer) {
+	public List<Object> executePipelined(SessionCallback<?> session, @Nullable RedisSerializer<?> resultSerializer) {
 
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(session, "Callback object must not be null");
 
-		RedisConnectionFactory factory = getConnectionFactory();
+		RedisConnectionFactory factory = getRequiredConnectionFactory();
 		// bind connection
 		RedisConnectionUtils.bindConnection(factory, enableTransactionSupport);
 		try {
@@ -306,7 +306,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#executePipelined(org.springframework.data.redis.core.RedisCallback)
 	 */
 	@Override
-	public List<Object> executePipelined(final RedisCallback<?> action) {
+	public List<Object> executePipelined(RedisCallback<?> action) {
 		return executePipelined(action, valueSerializer);
 	}
 
@@ -315,7 +315,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#executePipelined(org.springframework.data.redis.core.RedisCallback, org.springframework.data.redis.serializer.RedisSerializer)
 	 */
 	@Override
-	public List<Object> executePipelined(final RedisCallback<?> action, final RedisSerializer<?> resultSerializer) {
+	public List<Object> executePipelined(RedisCallback<?> action, @Nullable RedisSerializer<?> resultSerializer) {
 
 		return execute((RedisCallback<List<Object>>) connection -> {
 			connection.openPipeline();
@@ -366,7 +366,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(callback, "Callback object must not be null");
 
-		RedisConnectionFactory factory = getConnectionFactory();
+		RedisConnectionFactory factory = getRequiredConnectionFactory();
 
 		RedisConnection connection = preProcessConnection(RedisConnectionUtils.doGetConnection(factory, true, false, false),
 				false);
@@ -394,7 +394,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return connection;
 	}
 
-	protected <T> T postProcessResult(T result, RedisConnection conn, boolean existingConnection) {
+	@Nullable
+	protected <T> T postProcessResult(@Nullable T result, RedisConnection conn, boolean existingConnection) {
 		return result;
 	}
 
@@ -419,7 +420,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * @return Whether or not the default serializer should be used. If not, any serializers not explicilty set will
+	 * @return Whether or not the default serializer should be used. If not, any serializers not explicitly set will
 	 *         remain null and values will not be serialized or deserialized.
 	 */
 	public boolean isEnableDefaultSerializer() {
@@ -428,7 +429,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	/**
 	 * @param enableDefaultSerializer Whether or not the default serializer should be used. If not, any serializers not
-	 *          explicilty set will remain null and values will not be serialized or deserialized.
+	 *          explicitly set will remain null and values will not be serialized or deserialized.
 	 */
 	public void setEnableDefaultSerializer(boolean enableDefaultSerializer) {
 		this.enableDefaultSerializer = enableDefaultSerializer;
@@ -596,8 +597,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private List<Object> deserializeMixedResults(List<Object> rawValues, RedisSerializer valueSerializer,
-			RedisSerializer hashKeySerializer, RedisSerializer hashValueSerializer) {
+	@Nullable
+	private List<Object> deserializeMixedResults(@Nullable List<Object> rawValues,
+			@Nullable RedisSerializer valueSerializer, @Nullable RedisSerializer hashKeySerializer,
+			@Nullable RedisSerializer hashValueSerializer) {
 
 		if (rawValues == null) {
 			return null;
@@ -625,7 +628,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Set<?> deserializeSet(Set rawSet, RedisSerializer valueSerializer) {
+	private Set<?> deserializeSet(Set rawSet, @Nullable RedisSerializer valueSerializer) {
 
 		if (rawSet.isEmpty()) {
 			return rawSet;
@@ -643,7 +646,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Set<TypedTuple<V>> convertTupleValues(Set<Tuple> rawValues, RedisSerializer valueSerializer) {
+	private Set<TypedTuple<V>> convertTupleValues(Set<Tuple> rawValues, @Nullable RedisSerializer valueSerializer) {
 
 		Set<TypedTuple<V>> set = new LinkedHashSet<>(rawValues.size());
 		for (Tuple rawValue : rawValues) {
@@ -672,7 +675,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public List<Object> exec() {
 
 		List<Object> results = execRaw();
-		if (getConnectionFactory().getConvertPipelineAndTxResults()) {
+		if (getRequiredConnectionFactory().getConvertPipelineAndTxResults()) {
 			return deserializeMixedResults(results, valueSerializer, hashKeySerializer, hashValueSerializer);
 		} else {
 			return results;
@@ -1033,7 +1036,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#sort(org.springframework.data.redis.core.query.SortQuery, org.springframework.data.redis.serializer.RedisSerializer)
 	 */
 	@Override
-	public <T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer) {
+	public <T> List<T> sort(SortQuery<K> query, @Nullable RedisSerializer<T> resultSerializer) {
 
 		byte[] rawKey = rawKey(query.getKey());
 		SortParameters params = QueryUtils.convertQuery(query, stringSerializer);
@@ -1058,7 +1061,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#sort(org.springframework.data.redis.core.query.SortQuery, org.springframework.data.redis.core.BulkMapper, org.springframework.data.redis.serializer.RedisSerializer)
 	 */
 	@Override
-	public <T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer) {
+	public <T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper,
+			@Nullable RedisSerializer<S> resultSerializer) {
 
 		List<S> values = sort(query, resultSerializer);
 

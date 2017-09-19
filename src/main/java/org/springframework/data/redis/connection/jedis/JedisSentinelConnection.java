@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.Jedis;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -24,8 +26,6 @@ import org.springframework.data.redis.connection.RedisSentinelCommands;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.util.Assert;
-
-import redis.clients.jedis.Jedis;
 
 /**
  * @author Christoph Strobl
@@ -126,8 +126,8 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 		Assert.hasText(server.getHost(), "Host must not be 'null' for server to monitor.");
 		Assert.notNull(server.getPort(), "Port must not be 'null' for server to monitor.");
 		Assert.notNull(server.getQuorum(), "Quorum must not be 'null' for server to monitor.");
-		jedis.sentinelMonitor(server.getName(), server.getHost(), server.getPort().intValue(), server.getQuorum()
-				.intValue());
+		jedis.sentinelMonitor(server.getName(), server.getHost(), server.getPort().intValue(),
+				server.getQuorum().intValue());
 	}
 
 	/*
@@ -147,7 +147,7 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 
 	/**
 	 * Do what ever is required to establish the connection to redis.
-	 * 
+	 *
 	 * @param jedis
 	 */
 	protected void doInit(Jedis jedis) {
@@ -156,7 +156,7 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 
 	@Override
 	public boolean isOpen() {
-		return jedis != null && jedis.isConnected();
+		return jedis.isConnected();
 	}
 
 }

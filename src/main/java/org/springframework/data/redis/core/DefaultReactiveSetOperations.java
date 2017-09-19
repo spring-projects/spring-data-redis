@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -37,26 +39,11 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.0
  */
+@RequiredArgsConstructor
 class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> {
 
-	private final ReactiveRedisTemplate<?, ?> template;
-	private final RedisSerializationContext<K, V> serializationContext;
-
-	/**
-	 * Creates new {@link DefaultReactiveSetOperations}.
-	 *
-	 * @param template must not be {@literal null}.
-	 * @param serializationContext must not be {@literal null}.
-	 */
-	DefaultReactiveSetOperations(ReactiveRedisTemplate<?, ?> template,
-			RedisSerializationContext<K, V> serializationContext) {
-
-		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
-		Assert.notNull(serializationContext, "RedisSerializationContext must not be null!");
-
-		this.template = template;
-		this.serializationContext = serializationContext;
-	}
+	private final @NonNull ReactiveRedisTemplate<?, ?> template;
+	private final @NonNull RedisSerializationContext<K, V> serializationContext;
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveSetOperations#add(java.lang.Object, java.lang.Object[])

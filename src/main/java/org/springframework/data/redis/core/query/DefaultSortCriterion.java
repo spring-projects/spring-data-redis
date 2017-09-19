@@ -48,7 +48,7 @@ class DefaultSortCriterion<K> implements SortCriterion<K> {
 	}
 
 	public SortQuery<K> build() {
-		return new DefaultSortQuery<>(key, by, limit, order, alpha, getKeys);
+		return new DefaultSortQuery<>(key, order, alpha, limit, by, getKeys);
 	}
 
 	public SortCriterion<K> limit(long offset, long count) {

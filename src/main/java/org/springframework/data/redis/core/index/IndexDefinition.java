@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core.index;
 
+import lombok.Value;
+
 import java.util.Collection;
 
 import org.springframework.data.util.TypeInformation;
@@ -24,8 +26,9 @@ import org.springframework.data.util.TypeInformation;
  * conditions allows to define {@link Condition} that have to be passed in order to add a value to the index. This
  * allows to fine grained tune the index structure. {@link IndexValueTransformer} gets applied to the raw value for
  * creating the actual index entry.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public interface IndexDefinition {
@@ -55,40 +58,21 @@ public interface IndexDefinition {
 	 * @since 1.7
 	 * @param <T>
 	 */
-	public static interface Condition<T> {
+	interface Condition<T> {
 		boolean matches(T value, IndexingContext context);
 	}
 
 	/**
 	 * Context in which a particular value is about to get indexed.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
+	@Value
 	public class IndexingContext {
 
 		private final String keyspace;
 		private final String path;
 		private final TypeInformation<?> typeInformation;
-
-		public IndexingContext(String keyspace, String path, TypeInformation<?> typeInformation) {
-
-			this.keyspace = keyspace;
-			this.path = path;
-			this.typeInformation = typeInformation;
-		}
-
-		public String getKeyspace() {
-			return keyspace;
-		}
-
-		public String getPath() {
-			return path;
-		}
-
-		public TypeInformation<?> getTypeInformation() {
-			return typeInformation;
-		}
 	}
-
 }

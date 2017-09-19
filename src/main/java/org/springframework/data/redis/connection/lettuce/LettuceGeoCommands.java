@@ -20,6 +20,8 @@ import io.lettuce.core.GeoCoordinates;
 import io.lettuce.core.GeoWithin;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,19 +42,18 @@ import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceResult;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceTxResult;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class LettuceGeoCommands implements RedisGeoCommands {
 
-	private final LettuceConnection connection;
-
-	public LettuceGeoCommands(LettuceConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull LettuceConnection connection;
 
 	/*
 	 * (non-Javadoc)
@@ -75,33 +76,6 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			return getConnection().geoadd(key, point.getX(), point.getY(), member);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
-	 */
-	@Override
-	public Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
-
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(location, "Location must not be null!");
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().geoadd(key, location.getPoint().getX(),
-						location.getPoint().getY(), location.getName())));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(
-						getConnection().geoadd(key, location.getPoint().getX(), location.getPoint().getY(), location.getName())));
-				return null;
-			}
-			return getConnection().geoadd(key, location.getPoint().getX(), location.getPoint().getY(), location.getName());
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -149,6 +123,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 		return geoAdd(key, values);
 	}
 
+	@Nullable
 	private Long geoAdd(byte[] key, Collection<Object> values) {
 
 		try {

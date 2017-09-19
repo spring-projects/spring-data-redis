@@ -16,6 +16,7 @@
 package org.springframework.data.redis.serializer;
 
 import lombok.Getter;
+
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 
 /**
@@ -32,7 +33,7 @@ class DefaultSerializationPair<T> implements SerializationPair<T> {
 	private final RedisElementWriter<T> writer;
 
 	@SuppressWarnings("unchecked")
-	protected DefaultSerializationPair(RedisElementReader<? extends T> reader, RedisElementWriter<? extends T> writer) {
+	DefaultSerializationPair(RedisElementReader<? extends T> reader, RedisElementWriter<? extends T> writer) {
 
 		this.reader = (RedisElementReader) reader;
 		this.writer = (RedisElementWriter) writer;

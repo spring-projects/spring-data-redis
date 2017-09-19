@@ -124,6 +124,7 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 		return script.returnsRawValue() ? result : deserializeResult(resultReader, result);
 	}
 
+	@SuppressWarnings("Convert2MethodRef")
 	protected ByteBuffer[] keysAndArgs(RedisElementWriter argsWriter, List<K> keys, List<?> args) {
 
 		return Stream.concat(keys.stream().map(t -> keySerializer().getWriter().write(t)),

@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  * Default implementation of {@link RedisScript}. Delegates to an underlying {@link ScriptSource} to retrieve script
  * text and detect if script has been modified (and thus should have SHA1 re-calculated). This class is best used as a
  * Singleton to avoid re-calculation of SHA1 on every script execution.
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @param <T> The script result type. Should be one of Long, Boolean, List, or deserialized value type. Can be null if
@@ -37,16 +37,16 @@ import org.springframework.util.Assert;
  */
 public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 
+	private final Object shaModifiedMonitor = new Object();
+
 	private @Nullable ScriptSource scriptSource;
 	private @Nullable String sha1;
 	private @Nullable Class<T> resultType;
-	private final Object shaModifiedMonitor = new Object();
 
 	/**
 	 * Creates a new {@link DefaultRedisScript}
 	 */
 	public DefaultRedisScript() {
-
 	}
 
 	/**
@@ -61,11 +61,11 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 
 	/**
 	 * Creates a new {@link DefaultRedisScript}
-	 * 
+	 *
 	 * @param script must not be {@literal null}.
 	 * @param resultType can be {@literal null}.
 	 */
-	public DefaultRedisScript(String script, Class<T> resultType) {
+	public DefaultRedisScript(String script, @Nullable Class<T> resultType) {
 
 		this.setScriptText(script);
 		this.resultType = resultType;

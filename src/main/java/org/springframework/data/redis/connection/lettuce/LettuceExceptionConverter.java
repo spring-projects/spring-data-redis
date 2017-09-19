@@ -33,12 +33,17 @@ import org.springframework.data.redis.RedisSystemException;
 
 /**
  * Converts Lettuce Exceptions to {@link DataAccessException}s
- * 
+ *
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public class LettuceExceptionConverter implements Converter<Exception, DataAccessException> {
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
+	 */
 	public DataAccessException convert(Exception ex) {
 
 		if (ex instanceof ExecutionException || ex instanceof RedisCommandExecutionException) {

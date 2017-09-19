@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@ import org.springframework.dao.DataAccessException;
 
 /**
  * {@link FallbackExceptionTranslationStrategy} returns {@link RedisSystemException} for unknown {@link Exception}s.
- * 
+ *
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  * @since 1.4
  */
 public class FallbackExceptionTranslationStrategy extends PassThroughExceptionTranslationStrategy {
@@ -31,6 +32,10 @@ public class FallbackExceptionTranslationStrategy extends PassThroughExceptionTr
 		super(converter);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.PassThroughExceptionTranslationStrategy#translate(java.lang.Exception)
+	 */
 	@Override
 	public DataAccessException translate(Exception e) {
 
@@ -40,11 +45,12 @@ public class FallbackExceptionTranslationStrategy extends PassThroughExceptionTr
 
 	/**
 	 * Returns a new {@link RedisSystemException} wrapping the given {@link Exception}.
-	 * 
-	 * @param e
-	 * @return
+	 *
+	 * @param e causing exception.
+	 * @return the fallback exception.
 	 */
 	protected RedisSystemException getFallback(Exception e) {
 		return new RedisSystemException("Unknown redis exception", e);
 	}
+
 }

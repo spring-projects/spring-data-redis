@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,32 +23,34 @@ public interface HyperLogLogOperations<K, V> {
 
 	/**
 	 * Adds the given {@literal values} to the {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
-	 * @return 1 of at least one of the values was added to the key; 0 otherwise.
+	 * @return 1 of at least one of the values was added to the key; 0 otherwise. {@literal null} when used in pipeline /
+	 *         transaction.
 	 */
 	Long add(K key, V... values);
 
 	/**
 	 * Gets the current number of elements within the {@literal key}.
-	 * 
+	 *
 	 * @param keys must not be {@literal null} or {@literal empty}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	Long size(K... keys);
 
 	/**
 	 * Merges all values of given {@literal sourceKeys} into {@literal destination} key.
-	 * 
+	 *
 	 * @param destination key of HyperLogLog to move source keys into.
 	 * @param sourceKeys must not be {@literal null} or {@literal empty}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	Long union(K destination, K... sourceKeys);
 
 	/**
 	 * Removes the given {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 */
 	void delete(K key);

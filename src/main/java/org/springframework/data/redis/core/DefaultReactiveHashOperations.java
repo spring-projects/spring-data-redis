@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -38,26 +40,11 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.0
  */
+@RequiredArgsConstructor
 class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations<H, HK, HV> {
 
-	private final ReactiveRedisTemplate<?, ?> template;
-	private final RedisSerializationContext<H, ?> serializationContext;
-
-	/**
-	 * Creates new instance of {@link DefaultReactiveHashOperations}.
-	 *
-	 * @param template must not be {@literal null}.
-	 * @param serializationContext must not be {@literal null}.
-	 */
-	DefaultReactiveHashOperations(ReactiveRedisTemplate<?, ?> template,
-			RedisSerializationContext<H, ?> serializationContext) {
-
-		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
-		Assert.notNull(serializationContext, "RedisSerializationContext must not be null!");
-
-		this.template = template;
-		this.serializationContext = serializationContext;
-	}
+	private final @NonNull ReactiveRedisTemplate<?, ?> template;
+	private final @NonNull RedisSerializationContext<H, ?> serializationContext;
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#delete(java.lang.Object, java.lang.Object[])

@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2013 the original author or authors.
- * 
+ * Copyright 2011-2017 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,35 +29,41 @@ import org.springframework.util.Assert;
 
 /**
  * Serializer adapter on top of Spring's O/X Mapping. Delegates serialization/deserialization to OXM {@link Marshaller}
- * and {@link Unmarshaller}. <b>Note:</b>Null objects are serialized as empty arrays and vice versa.
- * 
+ * and {@link Unmarshaller}. <b>Note:</b> {@literal null} objects are serialized as empty arrays and vice versa.
+ *
  * @author Costin Leau
+ * @author Mark Paluch
  */
 public class OxmSerializer implements InitializingBean, RedisSerializer<Object> {
 
 	private @Nullable Marshaller marshaller;
 	private @Nullable Unmarshaller unmarshaller;
 
+	/**
+	 * Creates a new, uninitialized {@link OxmSerializer}. Requires {@link #setMarshaller(Marshaller)} and
+	 * {@link #setUnmarshaller(Unmarshaller)} to be set before this serializer can be used.
+	 */
 	public OxmSerializer() {}
 
+	/**
+	 * Creates a new {@link OxmSerializer} given {@link Marshaller} and {@link Unmarshaller}.
+	 *
+	 * @param marshaller must not be {@literal null}.
+	 * @param unmarshaller must not be {@literal null}.
+	 */
 	public OxmSerializer(Marshaller marshaller, Unmarshaller unmarshaller) {
 
-		this.marshaller = marshaller;
-		this.unmarshaller = unmarshaller;
-
-		afterPropertiesSet();
-	}
-
-	public void afterPropertiesSet() {
-
-		Assert.notNull(marshaller, "non-null marshaller required"); // TODO: use Illegal state exception
-		Assert.notNull(unmarshaller, "non-null unmarshaller required");
+		setMarshaller(marshaller);
+		setUnmarshaller(unmarshaller);
 	}
 
 	/**
 	 * @param marshaller The marshaller to set.
 	 */
 	public void setMarshaller(Marshaller marshaller) {
+
+		Assert.notNull(marshaller, "Marshaller must not be null!");
+
 		this.marshaller = marshaller;
 	}
 
@@ -65,11 +71,30 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 	 * @param unmarshaller The unmarshaller to set.
 	 */
 	public void setUnmarshaller(Unmarshaller unmarshaller) {
+
+		Assert.notNull(unmarshaller, "Unmarshaller must not be null!");
+
 		this.unmarshaller = unmarshaller;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+	 */
+	@Override
+	public void afterPropertiesSet() {
+
+		Assert.state(marshaller != null, "non-null marshaller required");
+		Assert.state(unmarshaller != null, "non-null unmarshaller required");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.serializer.RedisSerializer#deserialize(byte[])
+	 */
 	@Override
 	public Object deserialize(@Nullable byte[] bytes) throws SerializationException {
+
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
 		}
@@ -81,8 +106,13 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.serializer.RedisSerializer#serialize(java.lang.Object)
+	 */
 	@Override
 	public byte[] serialize(@Nullable Object t) throws SerializationException {
+
 		if (t == null) {
 			return SerializationUtils.EMPTY_ARRAY;
 		}

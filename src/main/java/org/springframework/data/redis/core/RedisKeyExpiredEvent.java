@@ -16,14 +16,16 @@
 package org.springframework.data.redis.core;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link RedisKeyExpiredEvent} is Redis specific {@link ApplicationEvent} published when a specific key in Redis
  * expires. It might but must not hold the expired value itself next to the key.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -32,14 +34,14 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	/**
 	 * Use {@literal UTF-8} as default charset.
 	 */
-	public static final Charset CHARSET = Charset.forName("UTF-8");
+	public static final Charset CHARSET = StandardCharsets.UTF_8;
 
 	private final byte[][] args;
-	private final Object value;
+	private final @Nullable Object value;
 
 	/**
 	 * Creates new {@link RedisKeyExpiredEvent}.
-	 * 
+	 *
 	 * @param key
 	 */
 	public RedisKeyExpiredEvent(byte[] key) {
@@ -52,7 +54,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	 * @param key
 	 * @param value
 	 */
-	public RedisKeyExpiredEvent(byte[] key, Object value) {
+	public RedisKeyExpiredEvent(byte[] key, @Nullable Object value) {
 		this(null, key, value);
 	}
 
@@ -64,7 +66,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	 * @param value
 	 * @since 1.8
 	 */
-	public RedisKeyExpiredEvent(String channel, byte[] key, Object value) {
+	public RedisKeyExpiredEvent(@Nullable String channel, byte[] key, @Nullable Object value) {
 		super(channel, key);
 
 		args = ByteUtils.split(key, ':');
@@ -73,7 +75,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 
 	/**
 	 * Gets the keyspace in which the expiration occured.
-	 * 
+	 *
 	 * @return {@literal null} if it could not be determined.
 	 */
 	public String getKeyspace() {
@@ -87,7 +89,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 
 	/**
 	 * Get the expired objects id;
-	 * 
+	 *
 	 * @return
 	 */
 	public byte[] getId() {
@@ -96,9 +98,10 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 
 	/**
 	 * Get the expired Object
-	 * 
+	 *
 	 * @return {@literal null} if not present.
 	 */
+	@Nullable
 	public Object getValue() {
 		return value;
 	}
@@ -109,7 +112,9 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	 */
 	@Override
 	public String toString() {
-		return "RedisKeyExpiredEvent [keyspace=" + getKeyspace() + ", id=" + getId() + "]";
+
+		byte[] id = getId();
+		return "RedisKeyExpiredEvent [keyspace=" + getKeyspace() + ", id=" + (id == null ? null : new String(id)) + "]";
 	}
 
 }

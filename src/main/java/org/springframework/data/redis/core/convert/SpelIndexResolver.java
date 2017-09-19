@@ -50,7 +50,7 @@ public class SpelIndexResolver implements IndexResolver {
 
 	private @Nullable BeanResolver beanResolver;
 
-	private Map<SpelIndexDefinition, Expression> expressionCache;
+	private final Map<SpelIndexDefinition, Expression> expressionCache;
 
 	/**
 	 * Creates a new instance using a default {@link SpelExpressionParser}.

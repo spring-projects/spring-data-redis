@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import lombok.RequiredArgsConstructor;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,6 +63,7 @@ import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -124,8 +127,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	private final Comparator<String> listKeyComparator = new NullSafeComparator<>(NaturalOrderingKeyComparator.INSTANCE,
 			true);
 
-	private ReferenceResolver referenceResolver;
 	private IndexResolver indexResolver;
+	private @Nullable ReferenceResolver referenceResolver;
 	private CustomConversions customConversions;
 
 	/**
@@ -144,21 +147,18 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param indexResolver can be {@literal null}.
 	 * @param referenceResolver must not be {@literal null}.
 	 */
-	public MappingRedisConverter(RedisMappingContext mappingContext, IndexResolver indexResolver,
-			ReferenceResolver referenceResolver) {
+	public MappingRedisConverter(@Nullable RedisMappingContext mappingContext, @Nullable IndexResolver indexResolver,
+			@Nullable ReferenceResolver referenceResolver) {
 
 		this.mappingContext = mappingContext != null ? mappingContext : new RedisMappingContext();
 
-		entityInstantiators = new EntityInstantiators();
-
+		this.entityInstantiators = new EntityInstantiators();
 		this.conversionService = new DefaultConversionService();
 		this.customConversions = new RedisCustomConversions();
-
-		typeMapper = new DefaultTypeMapper<>(new RedisTypeAliasAccessor(this.conversionService));
-
-		this.referenceResolver = referenceResolver;
+		this.typeMapper = new DefaultTypeMapper<>(new RedisTypeAliasAccessor(this.conversionService));
 
 		this.indexResolver = indexResolver != null ? indexResolver : new PathIndexResolver(this.mappingContext);
+		this.referenceResolver = referenceResolver;
 	}
 
 	/*
@@ -171,6 +171,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	}
 
 	@SuppressWarnings("unchecked")
+	@Nullable
 	private <R> R readInternal(String path, Class<R> type, RedisData source) {
 
 		if (source.getBucket() == null || source.getBucket().isEmpty()) {
@@ -404,7 +405,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		write(update.getValue(), sink);
 		if (sink.getBucket().keySet().contains(TYPE_HINT_ALIAS)) {
-			sink.getBucket().put(TYPE_HINT_ALIAS, null); // overwrite stuff in here
+			sink.getBucket().remove(TYPE_HINT_ALIAS); // overwrite stuff in here
 		}
 
 		if (update.isRefreshTtl() && !update.getPropertyUpdates().isEmpty()) {
@@ -515,6 +516,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 	}
 
+	@Nullable
 	RedisPersistentProperty getTargetPropertyOrNullForPath(String path, Class<?> type) {
 
 		try {
@@ -536,7 +538,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param typeHint
 	 * @param sink
 	 */
-	private void writeInternal(String keyspace, String path, Object value, TypeInformation<?> typeHint, RedisData sink) {
+	private void writeInternal(String keyspace, String path, @Nullable Object value, TypeInformation<?> typeHint,
+			RedisData sink) {
 
 		if (value == null) {
 			return;
@@ -586,7 +589,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			} else if (persistentProperty.isCollectionLike()) {
 
 				if (propertyValue == null) {
-					writeCollection(keyspace, propertyStringPath, (Iterable<?>) null,
+					writeCollection(keyspace, propertyStringPath, null,
 							persistentProperty.getTypeInformation().getRequiredComponentType(), sink);
 				} else {
 
@@ -677,7 +680,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param typeHint
 	 * @param sink
 	 */
-	private void writeCollection(String keyspace, String path, Iterable<?> values, TypeInformation<?> typeHint,
+	private void writeCollection(String keyspace, String path, @Nullable Iterable<?> values, TypeInformation<?> typeHint,
 			RedisData sink) {
 
 		if (values == null) {
@@ -707,7 +710,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 	}
 
-	private void writeToBucket(String path, Object value, RedisData sink, Class<?> propertyType) {
+	private void writeToBucket(String path, @Nullable Object value, RedisData sink, Class<?> propertyType) {
 
 		if (value == null || (value instanceof Optional && !((Optional<?>) value).isPresent())) {
 			return;
@@ -743,7 +746,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	private Object readCollectionOrArray(String path, Class<?> collectionType, Class<?> valueType, Bucket bucket) {
 
 		List<String> keys = new ArrayList<>(bucket.extractAllKeysFor(path));
-		Collections.sort(keys, listKeyComparator);
+		keys.sort(listKeyComparator);
 
 		boolean isArray = collectionType.isArray();
 		Class<?> collectionTypeToUse = isArray ? ArrayList.class : collectionType;
@@ -815,6 +818,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param source
 	 * @return
 	 */
+	@Nullable
 	private Map<?, ?> readMapOfSimpleTypes(String path, Class<?> mapType, Class<?> keyType, Class<?> valueType,
 			RedisData source) {
 
@@ -853,6 +857,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param source
 	 * @return
 	 */
+	@Nullable
 	private Map<?, ?> readMapOfComplexTypes(String path, Class<?> mapType, Class<?> keyType, Class<?> valueType,
 			RedisData source) {
 
@@ -897,9 +902,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		String typeName = fromBytes(typeInfo, String.class);
 		try {
 			return ClassUtils.forName(typeName, this.getClass().getClassLoader());
-		} catch (ClassNotFoundException e) {
-			throw new MappingException(String.format("Cannot find class for type %s. ", typeName), e);
-		} catch (LinkageError e) {
+		} catch (ClassNotFoundException | LinkageError e) {
 			throw new MappingException(String.format("Cannot find class for type %s. ", typeName), e);
 		}
 	}
@@ -940,6 +943,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param valueType to be used for conversion before setting the actual value.
 	 * @return
 	 */
+	@Nullable
 	private Object toArray(Collection<Object> source, Class<?> arrayType, Class<?> valueType) {
 
 		if (source.isEmpty()) {
@@ -960,21 +964,21 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		return i > 0 ? targetArray : null;
 	}
 
-	/**
-	 * Set {@link CustomConversions} to be applied.
-	 *
-	 * @param customConversions
-	 */
-	public void setCustomConversions(CustomConversions customConversions) {
-		this.customConversions = customConversions != null ? customConversions : new RedisCustomConversions();
+	public void setIndexResolver(IndexResolver indexResolver) {
+		this.indexResolver = indexResolver;
 	}
 
 	public void setReferenceResolver(ReferenceResolver referenceResolver) {
 		this.referenceResolver = referenceResolver;
 	}
 
-	public void setIndexResolver(IndexResolver indexResolver) {
-		this.indexResolver = indexResolver;
+	/**
+	 * Set {@link CustomConversions} to be applied.
+	 *
+	 * @param customConversions
+	 */
+	public void setCustomConversions(@Nullable CustomConversions customConversions) {
+		this.customConversions = customConversions != null ? customConversions : new RedisCustomConversions();
 	}
 
 	/*
@@ -1007,18 +1011,12 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	/**
 	 * @author Christoph Strobl
 	 */
+	@RequiredArgsConstructor
 	private static class ConverterAwareParameterValueProvider implements PropertyValueProvider<RedisPersistentProperty> {
 
 		private final String path;
 		private final RedisData source;
 		private final ConversionService conversionService;
-
-		public ConverterAwareParameterValueProvider(String path, RedisData source, ConversionService conversionService) {
-
-			this.path = path;
-			this.source = source;
-			this.conversionService = conversionService;
-		}
 
 		@Override
 		@SuppressWarnings("unchecked")
@@ -1129,7 +1127,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		private static class Part implements Comparable<Part> {
 
 			private final String rawValue;
-			private final Long longValue;
+			private final @Nullable Long longValue;
 
 			Part(String value, boolean isDigit) {
 

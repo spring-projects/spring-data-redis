@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -59,7 +60,7 @@ public class CompositeIndexResolver implements IndexResolver {
 	 * @see org.springframework.data.redis.core.convert.IndexResolver#resolveIndexesFor(org.springframework.data.util.TypeInformation, java.lang.Object)
 	 */
 	@Override
-	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, Object value) {
+	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, @Nullable Object value) {
 
 		if (resolvers.isEmpty()) {
 			return Collections.emptySet();
@@ -77,7 +78,7 @@ public class CompositeIndexResolver implements IndexResolver {
 	 */
 	@Override
 	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
-			Object value) {
+			@Nullable Object value) {
 
 		Set<IndexedData> data = new LinkedHashSet<>();
 		for (IndexResolver resolver : resolvers) {

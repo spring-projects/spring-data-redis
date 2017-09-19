@@ -102,7 +102,7 @@ abstract public class Converters {
 				Set<Flag> flags = parseFlags(args);
 
 				String portPart = hostAndPort[1];
-				if (portPart != null && portPart.contains("@")) {
+				if (portPart.contains("@")) {
 					portPart = portPart.substring(0, portPart.indexOf('@'));
 				}
 
@@ -171,8 +171,7 @@ abstract public class Converters {
 					}
 				}
 
-				SlotRange range = new SlotRange(slots);
-				return range;
+				return new SlotRange(slots);
 			}
 
 		};

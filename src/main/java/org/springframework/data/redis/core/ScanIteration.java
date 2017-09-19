@@ -20,11 +20,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 
+import org.springframework.lang.Nullable;
+
 /**
  * {@link ScanIteration} holds the values contained in Redis {@literal Multibulk reply} on exectuting {@literal SCAN}
  * command.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.4
  */
 public class ScanIteration<T> implements Iterable<T> {
@@ -36,10 +39,10 @@ public class ScanIteration<T> implements Iterable<T> {
 	 * @param cursorId
 	 * @param items
 	 */
-	public ScanIteration(long cursorId, Collection<T> items) {
+	public ScanIteration(long cursorId, @Nullable Collection<T> items) {
 
 		this.cursorId = cursorId;
-		this.items = (items != null ? new ArrayList<>(items) : Collections.<T> emptyList());
+		this.items = (items != null ? new ArrayList<>(items) : Collections.emptyList());
 	}
 
 	/**

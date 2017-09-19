@@ -32,18 +32,29 @@ public class DecoratingStringHashMapper<T> implements HashMapper<T, String, Stri
 		this.delegate = mapper;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.hash.HashMapper#fromHash(java.util.Map)
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public T fromHash(Map hash) {
 		return (T) delegate.fromHash(hash);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.hash.HashMapper#toHash(java.lang.Object)
+	 */
+	@Override
 	public Map<String, String> toHash(T object) {
+
 		Map<?, ?> hash = delegate.toHash(object);
 		Map<String, String> flatten = new LinkedHashMap<>(hash.size());
 		for (Map.Entry<?, ?> entry : hash.entrySet()) {
 			flatten.put(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
 		}
+
 		return flatten;
 	}
 }

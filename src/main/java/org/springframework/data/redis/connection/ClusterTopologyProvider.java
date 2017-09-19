@@ -26,7 +26,7 @@ public interface ClusterTopologyProvider {
 	/**
 	 * Get the current known {@link ClusterTopology}.
 	 *
-	 * @return never {@null}.
+	 * @return never {@literal null}.
 	 */
 	ClusterTopology getTopology();
 

@@ -19,6 +19,8 @@ import io.lettuce.core.MapScanCursor;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -33,18 +35,17 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class LettuceHashCommands implements RedisHashCommands {
 
-	private final LettuceConnection connection;
-
-	public LettuceHashCommands(LettuceConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull LettuceConnection connection;
 
 	/*
 	 * (non-Javadoc)
@@ -52,6 +53,11 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	@Override
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(field, "Field must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().hset(key, field, value)));
@@ -73,6 +79,11 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	@Override
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(field, "Field must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().hsetnx(key, field, value)));
@@ -94,6 +105,10 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	@Override
 	public Long hDel(byte[] key, byte[]... fields) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(fields, "Fields must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().hdel(key, fields)));
@@ -115,6 +130,10 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	@Override
 	public Boolean hExists(byte[] key, byte[] field) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(field, "Fields must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().hexists(key, field)));
@@ -136,6 +155,10 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	@Override
 	public byte[] hGet(byte[] key, byte[] field) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(field, "Field must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().hget(key, field)));
@@ -157,6 +180,9 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	@Override
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().hgetall(key)));
@@ -178,6 +204,10 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	@Override
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(field, "Field must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().hincrby(key, field, delta)));
@@ -199,6 +229,10 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	@Override
 	public Double hIncrBy(byte[] key, byte[] field, double delta) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(field, "Field must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().hincrbyfloat(key, field, delta)));
@@ -220,6 +254,9 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	@Override
 	public Set<byte[]> hKeys(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().hkeys(key), LettuceConverters.bytesListToBytesSet()));
@@ -241,6 +278,9 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	@Override
 	public Long hLen(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().hlen(key)));
@@ -262,6 +302,10 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	@Override
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(fields, "Fields must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().hmget(key, fields),
@@ -284,17 +328,21 @@ class LettuceHashCommands implements RedisHashCommands {
 	 * @see org.springframework.data.redis.connection.RedisHashCommands#hMSet(byte[], java.util.Map)
 	 */
 	@Override
-	public void hMSet(byte[] key, Map<byte[], byte[]> tuple) {
+	public void hMSet(byte[] key, Map<byte[], byte[]> hashes) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(hashes, "Hashes must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().hmset(key, tuple)));
+				pipeline(connection.newLettuceStatusResult(getAsyncConnection().hmset(key, hashes)));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().hmset(key, tuple)));
+				transaction(connection.newLettuceTxStatusResult(getConnection().hmset(key, hashes)));
 				return;
 			}
-			getConnection().hmset(key, tuple);
+			getConnection().hmset(key, hashes);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -306,6 +354,9 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	@Override
 	public List<byte[]> hVals(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().hvals(key)));
@@ -338,6 +389,8 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, long cursorId, ScanOptions options) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		return new KeyBoundCursor<Entry<byte[], byte[]>>(key, cursorId, options) {
 
 			@Override
@@ -357,6 +410,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return new ScanIteration<>(Long.valueOf(nextCursorId), values.entrySet());
 			}
 
+			@Override
 			protected void doClose() {
 				LettuceHashCommands.this.connection.close();
 			}

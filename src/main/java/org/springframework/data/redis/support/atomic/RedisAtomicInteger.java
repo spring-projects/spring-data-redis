@@ -31,52 +31,54 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * Atomic integer backed by Redis. Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS
  * operations.
  *
- * @see java.util.concurrent.atomic.AtomicInteger
  * @author Costin Leau
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @see java.util.concurrent.atomic.AtomicInteger
  */
 public class RedisAtomicInteger extends Number implements Serializable, BoundKeyOperations<String> {
 
 	private static final long serialVersionUID = 1L;
 
 	private volatile String key;
-	private ValueOperations<String, Integer> operations;
-	private RedisOperations<String, Integer> generalOps;
+
+	private final ValueOperations<String, Integer> operations;
+	private final RedisOperations<String, Integer> generalOps;
 
 	/**
-	 * Constructs a new <code>RedisAtomicInteger</code> instance. Uses the value existing in Redis or 0 if none is found.
+	 * Constructs a new {@link RedisAtomicInteger} instance. Uses the value existing in Redis or 0 if none is found.
 	 *
-	 * @param redisCounter redis counter
-	 * @param factory connection factory
+	 * @param redisCounter Redis key of this counter.
+	 * @param factory connection factory.
 	 */
 	public RedisAtomicInteger(String redisCounter, RedisConnectionFactory factory) {
 		this(redisCounter, factory, null);
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicInteger</code> instance.
+	 * Constructs a new {@link RedisAtomicInteger} instance.
 	 *
-	 * @param redisCounter the redis counter
-	 * @param factory the factory
-	 * @param initialValue the initial value
+	 * @param redisCounter Redis key of this counter.
+	 * @param factory connection factory.
+	 * @param initialValue initial value to set if the Redis key is absent.
 	 */
 	public RedisAtomicInteger(String redisCounter, RedisConnectionFactory factory, int initialValue) {
 		this(redisCounter, factory, Integer.valueOf(initialValue));
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicInteger</code> instance. Uses the value existing in Redis or 0 if none is found.
+	 * Constructs a new {@link RedisAtomicInteger} instance. Uses the value existing in Redis or 0 if none is found.
 	 *
-	 * @param redisCounter the redis counter
-	 * @param template the template
+	 * @param redisCounter Redis key of this counter.
+	 * @param template the template.
 	 * @see #RedisAtomicInteger(String, RedisConnectionFactory, int)
 	 */
 	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> template) {
@@ -84,20 +86,21 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicInteger</code> instance. Note: You need to configure the given {@code template}
-	 * with appropriate {@link RedisSerializer} for the key and value. As an alternative one could use the
+	 * Constructs a new {@link RedisAtomicInteger} instance. Note: You need to configure the given {@code template} with
+	 * appropriate {@link RedisSerializer} for the key and value. As an alternative one could use the
 	 * {@link #RedisAtomicInteger(String, RedisConnectionFactory, Integer)} constructor which uses appropriate default
 	 * serializers.
 	 *
-	 * @param redisCounter the redis counter
-	 * @param template the template
-	 * @param initialValue the initial value
+	 * @param redisCounter Redis key of this counter.
+	 * @param template the template.
+	 * @param initialValue initial value to set if the Redis key is absent.
 	 */
 	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> template, int initialValue) {
 		this(redisCounter, template, Integer.valueOf(initialValue));
 	}
 
-	private RedisAtomicInteger(String redisCounter, RedisConnectionFactory factory, Integer initialValue) {
+	private RedisAtomicInteger(String redisCounter, RedisConnectionFactory factory, @Nullable Integer initialValue) {
+
 		RedisTemplate<String, Integer> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new GenericToStringSerializer<>(Integer.class));
@@ -118,7 +121,8 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 		}
 	}
 
-	private RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> template, Integer initialValue) {
+	private RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> template,
+			@Nullable Integer initialValue) {
 
 		Assert.hasText(redisCounter, "a valid counter name is required");
 		Assert.notNull(template, "a valid template is required");
@@ -141,7 +145,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	/**
 	 * Get the current value.
 	 *
-	 * @return the current value
+	 * @return the current value.
 	 */
 	public int get() {
 
@@ -156,7 +160,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	/**
 	 * Set to the given value.
 	 *
-	 * @param newValue the new value
+	 * @param newValue the new value.
 	 */
 	public void set(int newValue) {
 		operations.set(key, newValue);
@@ -165,29 +169,29 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	/**
 	 * Set to the give value and return the old value.
 	 *
-	 * @param newValue the new value
-	 * @return the previous value
+	 * @param newValue the new value.
+	 * @return the previous value.
 	 */
 	public int getAndSet(int newValue) {
 
 		Integer value = operations.getAndSet(key, newValue);
-		if (value != null) {
-			return value.intValue();
-		}
 
-		return 0;
+		return value != null ? value.intValue() : 0;
 	}
 
 	/**
 	 * Atomically set the value to the given updated value if the current value <tt>==</tt> the expected value.
 	 *
-	 * @param expect the expected value
-	 * @param update the new value
-	 * @return true if successful. False return indicates that the actual value was not equal to the expected value.
+	 * @param expect the expected value.
+	 * @param update the new value.
+	 * @return {@literal true} if successful. {@literal false} indicates that the actual value was not equal to the
+	 *         expected value.
 	 */
-	public boolean compareAndSet(final int expect, final int update) {
+	public boolean compareAndSet(int expect, int update) {
+
 		return generalOps.execute(new SessionCallback<Boolean>() {
 
+			@Override
 			@SuppressWarnings("unchecked")
 			public Boolean execute(RedisOperations operations) {
 				for (;;) {
@@ -210,7 +214,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	/**
 	 * Atomically increment by one the current value.
 	 *
-	 * @return the previous value
+	 * @return the previous value.
 	 */
 	public int getAndIncrement() {
 		return incrementAndGet() - 1;
@@ -219,7 +223,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	/**
 	 * Atomically decrement by one the current value.
 	 *
-	 * @return the previous value
+	 * @return the previous value.
 	 */
 	public int getAndDecrement() {
 		return decrementAndGet() + 1;
@@ -228,8 +232,8 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	/**
 	 * Atomically add the given value to current value.
 	 *
-	 * @param delta the value to add
-	 * @return the previous value
+	 * @param delta the value to add.
+	 * @return the previous value.
 	 */
 	public int getAndAdd(final int delta) {
 		return addAndGet(delta) - delta;
@@ -238,7 +242,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	/**
 	 * Atomically increment by one the current value.
 	 *
-	 * @return the updated value
+	 * @return the updated value.
 	 */
 	public int incrementAndGet() {
 		return operations.increment(key, 1).intValue();
@@ -247,7 +251,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	/**
 	 * Atomically decrement by one the current value.
 	 *
-	 * @return the updated value
+	 * @return the updated value.
 	 */
 	public int decrementAndGet() {
 		return operations.increment(key, -1).intValue();
@@ -256,64 +260,119 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	/**
 	 * Atomically add the given value to current value.
 	 *
-	 * @param delta the value to add
-	 * @return the updated value
+	 * @param delta the value to add.
+	 * @return the updated value.
 	 */
 	public int addAndGet(int delta) {
 		return operations.increment(key, delta).intValue();
 	}
 
 	/**
-	 * Returns the String representation of the current value.
-	 *
 	 * @return the String representation of the current value.
 	 */
+	@Override
 	public String toString() {
 		return Integer.toString(get());
 	}
 
-	public int intValue() {
-		return get();
-	}
-
-	public long longValue() {
-		return (long) get();
-	}
-
-	public float floatValue() {
-		return (float) get();
-	}
-
-	public double doubleValue() {
-		return (double) get();
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#getKey()
+	 */
+	@Override
 	public String getKey() {
 		return key;
 	}
 
-	public Boolean expire(long timeout, TimeUnit unit) {
-		return generalOps.expire(key, timeout, unit);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#getType()
+	 */
+	@Override
+	public DataType getType() {
+		return DataType.STRING;
 	}
 
-	public Boolean expireAt(Date date) {
-		return generalOps.expireAt(key, date);
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#getExpire()
+	 */
+	@Override
 	public Long getExpire() {
 		return generalOps.getExpire(key);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#expire(long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Boolean expire(long timeout, TimeUnit unit) {
+		return generalOps.expire(key, timeout, unit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#expireAt(java.util.Date)
+	 */
+	@Override
+	public Boolean expireAt(Date date) {
+		return generalOps.expireAt(key, date);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#persist()
+	 */
+	@Override
 	public Boolean persist() {
 		return generalOps.persist(key);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#rename(java.lang.Object)
+	 */
+	@Override
 	public void rename(String newKey) {
+
 		generalOps.rename(key, newKey);
 		key = newKey;
 	}
 
-	public DataType getType() {
-		return DataType.STRING;
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Number#intValue()
+	 */
+	@Override
+	public int intValue() {
+		return get();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Number#longValue()
+	 */
+	@Override
+	public long longValue() {
+		return get();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Number#floatValue()
+	 */
+	@Override
+	public float floatValue() {
+		return get();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Number#doubleValue()
+	 */
+	@Override
+	public double doubleValue() {
+		return get();
 	}
 }

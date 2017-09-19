@@ -90,7 +90,7 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 	@Override
 	public Flux<Boolean> scriptExists(List<String> scriptShas) {
 
-		Assert.notEmpty(scriptShas, "Script SHAs must not be empty!");
+		Assert.notEmpty(scriptShas, "Script digests must not be empty!");
 
 		return connection.execute(cmd -> cmd.scriptExists(scriptShas.toArray(new String[scriptShas.size()])));
 	}
@@ -123,7 +123,7 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 	@Override
 	public <T> Flux<T> evalSha(String scriptSha, ReturnType returnType, int numKeys, ByteBuffer... keysAndArgs) {
 
-		Assert.notNull(scriptSha, "Script SHA1 must not be null!");
+		Assert.notNull(scriptSha, "Script digest must not be null!");
 		Assert.notNull(returnType, "ReturnType must not be null!");
 		Assert.notNull(keysAndArgs, "Keys and args must not be null!");
 

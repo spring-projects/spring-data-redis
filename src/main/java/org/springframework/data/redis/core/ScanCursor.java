@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,25 +21,27 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
  * Redis client agnostic {@link Cursor} implementation continuously loading additional results from Redis server until
  * reaching its starting point {@code zero}. <br />
  * <strong>Note:</strong> Please note that the {@link ScanCursor} has to be initialized ({@link #open()} prior to usage.
- * 
+ *
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Duobiao Ou
+ * @author Marl Paluch
  * @param <T>
  * @since 1.4
  */
 public abstract class ScanCursor<T> implements Cursor<T> {
 
-	private CursorState state;
+	private @Nullable CursorState state;
 	private long cursorId;
-	private Iterator<T> delegate;
-	private final ScanOptions scanOptions;
+	private @Nullable Iterator<T> delegate;
+	private @Nullable final ScanOptions scanOptions;
 	private long position;
 
 	/**
@@ -51,7 +53,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	/**
 	 * Crates new {@link ScanCursor} with {@code id=0}.
-	 * 
+	 *
 	 * @param options
 	 */
 	public ScanCursor(ScanOptions options) {
@@ -60,7 +62,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	/**
 	 * Crates new {@link ScanCursor} with {@link ScanOptions#NONE}
-	 * 
+	 *
 	 * @param cursorId
 	 */
 	public ScanCursor(long cursorId) {
@@ -69,7 +71,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	/**
 	 * Crates new {@link ScanCursor}
-	 * 
+	 *
 	 * @param cursorId
 	 * @param options Defaulted to {@link ScanOptions#NONE} if nulled.
 	 */
@@ -90,7 +92,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	/**
 	 * Performs the actual scan command using the native client implementation. The given {@literal options} are never
 	 * {@code null}.
-	 * 
+	 *
 	 * @param cursorId
 	 * @param options
 	 * @return
@@ -114,7 +116,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	/**
 	 * Customization hook when calling {@link #open()}.
-	 * 
+	 *
 	 * @param cursorId
 	 */
 	protected void doOpen(long cursorId) {
@@ -208,7 +210,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	/**
 	 * Fetch the next item from the underlying {@link Iterable}.
-	 * 
+	 *
 	 * @param source
 	 * @return
 	 */
