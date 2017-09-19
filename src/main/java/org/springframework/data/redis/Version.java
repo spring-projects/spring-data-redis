@@ -17,9 +17,10 @@ package org.springframework.data.redis;
 
 /**
  * A {@link Comparable} software version
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @deprecated since 2.0, use {@link org.springframework.data.util.Version}.
  */
 public class Version implements Comparable<Version> {
 
