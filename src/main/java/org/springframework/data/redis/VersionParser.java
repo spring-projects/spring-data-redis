@@ -22,9 +22,10 @@ import org.springframework.lang.Nullable;
 
 /**
  * Central class for reading version string (eg. {@literal 1.3.1}) into {@link Version}.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.3
+ * @deprecated since 2.0, use {@link org.springframework.data.util.Version}.
  */
 public class VersionParser {
 
@@ -32,7 +33,7 @@ public class VersionParser {
 
 	/**
 	 * Parse version string {@literal eg. 1.1.1} to {@link Version}.
-	 * 
+	 *
 	 * @param version can be {@literal null}.
 	 * @return never {@literal null}.
 	 */
