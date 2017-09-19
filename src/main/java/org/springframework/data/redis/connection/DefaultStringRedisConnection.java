@@ -3463,7 +3463,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> T convertAndReturn(Object value, Converter converter) {
+	@Nullable
+	private <T> T convertAndReturn(@Nullable Object value, Converter converter) {
 
 		if (isFutureConversion()) {
 
@@ -3488,7 +3489,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private List<Object> convertResults(List<Object> results, Queue<Converter> converters) {
+	private List<Object> convertResults(@Nullable List<Object> results, Queue<Converter> converters) {
 		if (!deserializePipelineAndTxResults || results == null) {
 			return results;
 		}

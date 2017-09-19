@@ -67,8 +67,7 @@ public class RedisKeyValueTemplateBean extends CdiBean<KeyValueOperations> {
 		RedisMappingContext redisMappingContext = new RedisMappingContext();
 		redisMappingContext.afterPropertiesSet();
 
-		RedisKeyValueTemplate redisKeyValueTemplate = new RedisKeyValueTemplate(keyValueAdapter, redisMappingContext);
-		return redisKeyValueTemplate;
+		return new RedisKeyValueTemplate(keyValueAdapter, redisMappingContext);
 	}
 
 	@Override

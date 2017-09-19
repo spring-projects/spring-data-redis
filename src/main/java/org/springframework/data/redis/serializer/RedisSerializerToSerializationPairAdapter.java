@@ -16,6 +16,7 @@
 package org.springframework.data.redis.serializer;
 
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -32,7 +33,7 @@ class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<
 
 	private final DefaultSerializationPair pair;
 
-	protected RedisSerializerToSerializationPairAdapter(RedisSerializer<T> serializer) {
+	protected RedisSerializerToSerializationPairAdapter(@Nullable RedisSerializer<T> serializer) {
 		pair = new DefaultSerializationPair(new DefaultRedisElementReader<>(serializer),
 				new DefaultRedisElementWriter<>(serializer));
 	}

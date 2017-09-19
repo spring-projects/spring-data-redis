@@ -33,9 +33,7 @@ import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
@@ -154,10 +152,6 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 			return typingMapper.treeToValue(untypedMapper.valueToTree(hash), Object.class);
 
-		} catch (JsonParseException e) {
-			throw new MappingException(e.getMessage(), e);
-		} catch (JsonMappingException e) {
-			throw new MappingException(e.getMessage(), e);
 		} catch (IOException e) {
 			throw new MappingException(e.getMessage(), e);
 		}
@@ -280,7 +274,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	@SuppressWarnings("unchecked")
 	private void appendValueToTypedList(String key, Object value, List<Object> destination) {
 
-		int index = Integer.valueOf(key.substring(key.indexOf('[') + 1, key.length() - 1)).intValue();
+		int index = Integer.valueOf(key.substring(key.indexOf('[') + 1, key.length() - 1));
 		List<Object> resultList = ((List<Object>) destination.get(1));
 		if (resultList.size() < index) {
 			resultList.add(value);

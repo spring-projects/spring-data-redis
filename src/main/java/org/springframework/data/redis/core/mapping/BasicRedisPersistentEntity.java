@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
 public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity<T, RedisPersistentProperty>
 		implements RedisPersistentEntity<T> {
 
-	private TimeToLiveAccessor timeToLiveAccessor;
+	private final TimeToLiveAccessor timeToLiveAccessor;
 
 	/**
 	 * Creates new {@link BasicRedisPersistentEntity}.
@@ -44,7 +44,7 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	 * @param fallbackKeySpaceResolver can be {@literal null}.
 	 * @param timeToLiveAccessor can be {@literal null}.
 	 */
-	public BasicRedisPersistentEntity(TypeInformation<T> information, KeySpaceResolver fallbackKeySpaceResolver,
+	public BasicRedisPersistentEntity(TypeInformation<T> information, @Nullable KeySpaceResolver fallbackKeySpaceResolver,
 			TimeToLiveAccessor timeToLiveAccessor) {
 		super(information, fallbackKeySpaceResolver);
 

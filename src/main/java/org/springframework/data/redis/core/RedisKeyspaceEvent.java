@@ -16,16 +16,17 @@
 package org.springframework.data.redis.core;
 
 import org.springframework.context.ApplicationEvent;
+import org.springframework.lang.Nullable;
 
 /**
  * Redis specific {@link ApplicationEvent} published when a key expires in Redis.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
 public class RedisKeyspaceEvent extends ApplicationEvent {
 
-	private final String channel;
+	private final @Nullable String channel;
 
 	/**
 	 * Creates new {@link RedisKeyspaceEvent}.
@@ -43,7 +44,7 @@ public class RedisKeyspaceEvent extends ApplicationEvent {
 	 * @param key The key that expired. Must not be {@literal null}.
 	 * @since 1.8
 	 */
-	public RedisKeyspaceEvent(String channel, byte[] key) {
+	public RedisKeyspaceEvent(@Nullable String channel, byte[] key) {
 
 		super(key);
 		this.channel = channel;
@@ -58,10 +59,10 @@ public class RedisKeyspaceEvent extends ApplicationEvent {
 	}
 
 	/**
-	 *
 	 * @return can be {@literal null}.
 	 * @since 1.8
 	 */
+	@Nullable
 	public String getChannel() {
 		return this.channel;
 	}

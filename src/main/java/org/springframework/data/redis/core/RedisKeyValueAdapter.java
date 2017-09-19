@@ -155,7 +155,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @since 2.0
 	 */
 	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisMappingContext mappingContext,
-			org.springframework.data.convert.CustomConversions customConversions) {
+			@Nullable org.springframework.data.convert.CustomConversions customConversions) {
 
 		super(new RedisQueryEngine());
 
@@ -277,6 +277,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * (non-Javadoc)
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#get(java.lang.Object, java.lang.String)
 	 */
+	@Nullable
 	@Override
 	public Object get(Object id, String keyspace) {
 		return get(id, keyspace, Object.class);
@@ -286,6 +287,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * (non-Javadoc)
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#get(java.lang.Object, java.lang.String, java.lang.Class)
 	 */
+	@Nullable
 	@Override
 	public <T> T get(Object id, String keyspace, Class<T> type) {
 
@@ -365,7 +367,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 
 		offset = Math.max(0, offset);
-		if (offset >= 0 && rows > 0) {
+		if (rows > 0) {
 			keys = keys.subList((int) offset, Math.min((int) offset + rows, keys.size()));
 		}
 
@@ -542,6 +544,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @see RedisOperations#execute(RedisCallback)
 	 * @return
 	 */
+	@Nullable
 	public <T> T execute(RedisCallback<T> callback) {
 		return redisOps.execute(callback);
 	}
@@ -591,8 +594,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @param target
 	 * @return
 	 */
+	@Nullable
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private <T> T readBackTimeToLiveIfSet(byte[] key, T target) {
+	private <T> T readBackTimeToLiveIfSet(@Nullable byte[] key, @Nullable T target) {
 
 		if (target == null || key == null) {
 			return target;

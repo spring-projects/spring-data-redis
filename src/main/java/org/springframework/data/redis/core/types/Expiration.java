@@ -18,6 +18,7 @@ package org.springframework.data.redis.core.types;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -39,7 +40,7 @@ public class Expiration {
 	 * @param expirationTime can be {@literal null}. Defaulted to {@link TimeUnit#SECONDS}
 	 * @param timeUnit
 	 */
-	protected Expiration(long expirationTime, TimeUnit timeUnit) {
+	protected Expiration(long expirationTime, @Nullable TimeUnit timeUnit) {
 
 		this.expirationTime = expirationTime;
 		this.timeUnit = timeUnit != null ? timeUnit : TimeUnit.SECONDS;
@@ -124,7 +125,7 @@ public class Expiration {
 	 * @param timeUnit can be {@literal null}. Defaulted to {@link TimeUnit#SECONDS}
 	 * @return
 	 */
-	public static Expiration from(long expirationTime, TimeUnit timeUnit) {
+	public static Expiration from(long expirationTime, @Nullable TimeUnit timeUnit) {
 
 		if (ObjectUtils.nullSafeEquals(timeUnit, TimeUnit.MICROSECONDS)
 				|| ObjectUtils.nullSafeEquals(timeUnit, TimeUnit.NANOSECONDS)

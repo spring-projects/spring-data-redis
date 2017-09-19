@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@ package org.springframework.data.redis.core;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.lang.Nullable;
 
 /**
  * Callback interface for low level operations executed against a clustered Redis environment.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  * @param <T>
@@ -30,10 +31,11 @@ public interface RedisClusterCallback<T> {
 	/**
 	 * Gets called by {@link RedisClusterTemplate} with an active Redis connection. Does not need to care about activating
 	 * or closing the connection or handling exceptions.
-	 * 
+	 *
 	 * @param connection never {@literal null}.
 	 * @return
 	 * @throws DataAccessException
 	 */
+	@Nullable
 	T doInRedis(RedisClusterConnection connection) throws DataAccessException;
 }

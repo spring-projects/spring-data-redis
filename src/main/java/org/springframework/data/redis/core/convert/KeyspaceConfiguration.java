@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
-import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -43,33 +42,6 @@ public class KeyspaceConfiguration {
 		this.settingsMap = new ConcurrentHashMap<>();
 		for (KeyspaceSettings initial : initialConfiguration()) {
 			settingsMap.put(initial.type, initial);
-		}
-	}
-
-	@EnableRedisRepositories(keyspaceConfiguration = MyKeyspaceConfiguration.class)
-	static class MyConfig {
-
-	}
-
-	static class MyKeyspaceConfiguration extends KeyspaceConfiguration {
-
-		@Override
-		protected Iterable<KeyspaceSettings> initialConfiguration() {
-			return super.initialConfiguration();
-		}
-
-		@Override
-		public boolean hasSettingsFor(Class<?> type) {
-			return true;
-		}
-
-		@Override
-		public KeyspaceSettings getKeyspaceSettings(Class<?> type) {
-
-			KeyspaceSettings keyspaceSettings = new KeyspaceSettings(type, "my-keyspace");
-			keyspaceSettings.setTimeToLive(3600L);
-
-			return keyspaceSettings;
 		}
 	}
 
@@ -154,6 +126,7 @@ public class KeyspaceConfiguration {
 		private final String keyspace;
 		private final Class<?> type;
 		private final boolean inherit;
+
 		private @Nullable Long timeToLive;
 		private @Nullable String timeToLivePropertyName;
 
@@ -197,7 +170,6 @@ public class KeyspaceConfiguration {
 		public String getTimeToLivePropertyName() {
 			return timeToLivePropertyName;
 		}
-
 	}
 
 	/**
@@ -211,7 +183,5 @@ public class KeyspaceConfiguration {
 		public DefaultKeyspaceSetting(Class<?> type) {
 			super(type, "#default#", false);
 		}
-
 	}
-
 }

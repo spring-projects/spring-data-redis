@@ -31,48 +31,50 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * Atomic long backed by Redis. Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS
  * operations.
  *
- * @see java.util.concurrent.atomic.AtomicLong
  * @author Costin Leau
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @see java.util.concurrent.atomic.AtomicLong
  */
 public class RedisAtomicLong extends Number implements Serializable, BoundKeyOperations<String> {
 
 	private static final long serialVersionUID = 1L;
 
 	private volatile String key;
-	private ValueOperations<String, Long> operations;
-	private RedisOperations<String, Long> generalOps;
+
+	private final ValueOperations<String, Long> operations;
+	private final RedisOperations<String, Long> generalOps;
 
 	/**
-	 * Constructs a new <code>RedisAtomicLong</code> instance. Uses the value existing in Redis or 0 if none is found.
+	 * Constructs a new {@link RedisAtomicLong} instance. Uses the value existing in Redis or 0 if none is found.
 	 *
-	 * @param redisCounter redis counter
-	 * @param factory connection factory
+	 * @param redisCounter Redis key of this counter.
+	 * @param factory connection factory.
 	 */
 	public RedisAtomicLong(String redisCounter, RedisConnectionFactory factory) {
 		this(redisCounter, factory, null);
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicLong</code> instance.
+	 * Constructs a new {@link RedisAtomicLong} instance.
 	 *
-	 * @param redisCounter
-	 * @param factory
-	 * @param initialValue
+	 * @param redisCounter Redis key of this counter.
+	 * @param factory connection factory.
+	 * @param initialValue initial value to set if the Redis key is absent.
 	 */
 	public RedisAtomicLong(String redisCounter, RedisConnectionFactory factory, long initialValue) {
 		this(redisCounter, factory, Long.valueOf(initialValue));
 	}
 
-	private RedisAtomicLong(String redisCounter, RedisConnectionFactory factory, Long initialValue) {
+	private RedisAtomicLong(String redisCounter, RedisConnectionFactory factory, @Nullable Long initialValue) {
 		Assert.hasText(redisCounter, "a valid counter name is required");
 		Assert.notNull(factory, "a valid factory is required");
 
@@ -97,10 +99,10 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicLong</code> instance. Uses the value existing in Redis or 0 if none is found.
+	 * Constructs a new {@link RedisAtomicLong} instance. Uses the value existing in Redis or 0 if none is found.
 	 *
-	 * @param redisCounter the redis counter
-	 * @param template the template
+	 * @param redisCounter Redis key of this counter.
+	 * @param template the template.
 	 * @see #RedisAtomicLong(String, RedisConnectionFactory, long)
 	 */
 	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> template) {
@@ -108,7 +110,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicLong</code> instance.
+	 * Constructs a new {@link RedisAtomicLong} instance.
 	 * <p>
 	 * Note: You need to configure the given {@code template} with appropriate {@link RedisSerializer} for the key and
 	 * value. The key serializer must be able to deserialize to a {@link String} and the value serializer must be able to
@@ -118,15 +120,15 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	 * which uses appropriate default serializers, in this case {@link StringRedisSerializer} for the key and
 	 * {@link GenericToStringSerializer} for the value.
 	 *
-	 * @param redisCounter the redis counter
+	 * @param redisCounter Redis key of this counter.
 	 * @param template the template
-	 * @param initialValue the initial value
+	 * @param initialValue initial value to set if the Redis key is absent.
 	 */
 	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> template, long initialValue) {
 		this(redisCounter, template, Long.valueOf(initialValue));
 	}
 
-	private RedisAtomicLong(String redisCounter, RedisOperations<String, Long> template, Long initialValue) {
+	private RedisAtomicLong(String redisCounter, RedisOperations<String, Long> template, @Nullable Long initialValue) {
 
 		Assert.hasText(redisCounter, "a valid counter name is required");
 		Assert.notNull(template, "a valid template is required");
@@ -149,7 +151,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	/**
 	 * Gets the current value.
 	 *
-	 * @return the current value
+	 * @return the current value.
 	 */
 	public long get() {
 
@@ -173,29 +175,29 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	/**
 	 * Atomically sets to the given value and returns the old value.
 	 *
-	 * @param newValue the new value
-	 * @return the previous value
+	 * @param newValue the new value.
+	 * @return the previous value.
 	 */
 	public long getAndSet(long newValue) {
 
 		Long value = operations.getAndSet(key, newValue);
-		if (value != null) {
-			return value.longValue();
-		}
 
-		return 0;
+		return value != null ? value.longValue() : 0;
 	}
 
 	/**
 	 * Atomically sets the value to the given updated value if the current value {@code ==} the expected value.
 	 *
-	 * @param expect the expected value
-	 * @param update the new value
-	 * @return true if successful. False return indicates that the actual value was not equal to the expected value.
+	 * @param expect the expected value.
+	 * @param update the new value.
+	 * @return {@literal true} if successful. {@literal false} indicates that the actual value was not equal to the
+	 *         expected value.
 	 */
-	public boolean compareAndSet(final long expect, final long update) {
+	public boolean compareAndSet(long expect, long update) {
+
 		return generalOps.execute(new SessionCallback<Boolean>() {
 
+			@Override
 			@SuppressWarnings("unchecked")
 			public Boolean execute(RedisOperations operations) {
 				for (;;) {
@@ -218,7 +220,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	/**
 	 * Atomically increments by one the current value.
 	 *
-	 * @return the previous value
+	 * @return the previous value.
 	 */
 	public long getAndIncrement() {
 		return incrementAndGet() - 1;
@@ -227,7 +229,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	/**
 	 * Atomically decrements by one the current value.
 	 *
-	 * @return the previous value
+	 * @return the previous value.
 	 */
 	public long getAndDecrement() {
 		return decrementAndGet() + 1;
@@ -236,8 +238,8 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	/**
 	 * Atomically adds the given value to the current value.
 	 *
-	 * @param delta the value to add
-	 * @return the previous value
+	 * @param delta the value to add.
+	 * @return the previous value.
 	 */
 	public long getAndAdd(final long delta) {
 		return addAndGet(delta) - delta;
@@ -246,7 +248,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	/**
 	 * Atomically increments by one the current value.
 	 *
-	 * @return the updated value
+	 * @return the updated value.
 	 */
 	public long incrementAndGet() {
 		return operations.increment(key, 1);
@@ -255,7 +257,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	/**
 	 * Atomically decrements by one the current value.
 	 *
-	 * @return the updated value
+	 * @return the updated value.
 	 */
 	public long decrementAndGet() {
 		return operations.increment(key, -1);
@@ -264,64 +266,119 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	/**
 	 * Atomically adds the given value to the current value.
 	 *
-	 * @param delta the value to add
-	 * @return the updated value
+	 * @param delta the value to add.
+	 * @return the updated value.
 	 */
 	public long addAndGet(long delta) {
 		return operations.increment(key, delta);
 	}
 
 	/**
-	 * Returns the String representation of the current value.
-	 *
 	 * @return the String representation of the current value.
 	 */
+	@Override
 	public String toString() {
 		return Long.toString(get());
 	}
 
-	public int intValue() {
-		return (int) get();
-	}
-
-	public long longValue() {
-		return get();
-	}
-
-	public float floatValue() {
-		return (float) get();
-	}
-
-	public double doubleValue() {
-		return (double) get();
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#getKey()
+	 */
+	@Override
 	public String getKey() {
 		return key;
 	}
 
-	public Boolean expire(long timeout, TimeUnit unit) {
-		return generalOps.expire(key, timeout, unit);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#getType()
+	 */
+	@Override
+	public DataType getType() {
+		return DataType.STRING;
 	}
 
-	public Boolean expireAt(Date date) {
-		return generalOps.expireAt(key, date);
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#getExpire()
+	 */
+	@Override
 	public Long getExpire() {
 		return generalOps.getExpire(key);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#expire(long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Boolean expire(long timeout, TimeUnit unit) {
+		return generalOps.expire(key, timeout, unit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#expireAt(java.util.Date)
+	 */
+	@Override
+	public Boolean expireAt(Date date) {
+		return generalOps.expireAt(key, date);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#persist()
+	 */
+	@Override
 	public Boolean persist() {
 		return generalOps.persist(key);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#rename(java.lang.Object)
+	 */
+	@Override
 	public void rename(String newKey) {
+
 		generalOps.rename(key, newKey);
 		key = newKey;
 	}
 
-	public DataType getType() {
-		return DataType.STRING;
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Number#intValue()
+	 */
+	@Override
+	public int intValue() {
+		return (int) get();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Number#longValue()
+	 */
+	@Override
+	public long longValue() {
+		return get();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Number#floatValue()
+	 */
+	@Override
+	public float floatValue() {
+		return get();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Number#doubleValue()
+	 */
+	@Override
+	public double doubleValue() {
+		return get();
 	}
 }

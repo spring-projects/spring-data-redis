@@ -153,7 +153,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 */
 	@Override
 	public Set<V> rangeByLex(K key, Range range) {
-		return rangeByLex(key, range, null);
+		return rangeByLex(key, range, Limit.unlimited());
 	}
 
 	/*

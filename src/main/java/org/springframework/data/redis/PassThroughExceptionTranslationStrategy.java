@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,31 @@ package org.springframework.data.redis;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link PassThroughExceptionTranslationStrategy} returns {@literal null} for unknown {@link Exception}s.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.4
  */
 public class PassThroughExceptionTranslationStrategy implements ExceptionTranslationStrategy {
 
-	private Converter<Exception, DataAccessException> converter;
+	private final Converter<Exception, DataAccessException> converter;
 
 	public PassThroughExceptionTranslationStrategy(Converter<Exception, DataAccessException> converter) {
 		this.converter = converter;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.ExceptionTranslationStrategy#translate(java.lang.Exception)
+	 */
+	@Nullable
 	@Override
 	public DataAccessException translate(Exception e) {
 		return this.converter.convert(e);
 	}
+
 }

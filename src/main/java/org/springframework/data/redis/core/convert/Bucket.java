@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core.convert;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -42,7 +43,7 @@ public class Bucket {
 	/**
 	 * Encoding used for converting {@link Byte} to and from {@link String}.
 	 */
-	public static final Charset CHARSET = Charset.forName("UTF-8");
+	public static final Charset CHARSET = StandardCharsets.UTF_8;
 
 	private final Map<String, byte[]> data;
 
@@ -73,11 +74,23 @@ public class Bucket {
 	}
 
 	/**
+	 * Remove the property at property dot {@code path}.
+	 *
+	 * @param path must not be {@literal null} or {@link String#isEmpty()}.
+	 */
+	public void remove(String path) {
+
+		Assert.hasText(path, "Path to property must not be null or empty.");
+		data.remove(path);
+	}
+
+	/**
 	 * Get value assigned with path.
 	 *
 	 * @param path path must not be {@literal null} or {@link String#isEmpty()}.
 	 * @return {@literal null} if not set.
 	 */
+	@Nullable
 	public byte[] get(String path) {
 
 		Assert.hasText(path, "Path to property must not be null or empty.");

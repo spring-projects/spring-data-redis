@@ -21,7 +21,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
  * {@link DataAccessResourceFailureException} indicating the current local snapshot of cluster state does no longer
  * represent the actual remote state. This can happen nodes are removed from cluster, slots get migrated to other nodes
  * and so on.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.7
@@ -32,8 +32,8 @@ public class ClusterStateFailureException extends DataAccessResourceFailureExcep
 
 	/**
 	 * Creates new {@link ClusterStateFailureException}.
-	 * 
-	 * @param msg
+	 *
+	 * @param msg the detail message.
 	 */
 	public ClusterStateFailureException(String msg) {
 		super(msg);
@@ -41,9 +41,9 @@ public class ClusterStateFailureException extends DataAccessResourceFailureExcep
 
 	/**
 	 * Creates new {@link ClusterStateFailureException}.
-	 * 
-	 * @param msg
-	 * @param cause
+	 *
+	 * @param msg the detail message.
+	 * @param cause the nested exception.
 	 */
 	public ClusterStateFailureException(String msg, Throwable cause) {
 		super(msg, cause);

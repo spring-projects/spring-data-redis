@@ -36,8 +36,10 @@ import org.springframework.util.StringUtils;
  */
 public abstract class KeyspaceEventMessageListener implements MessageListener, InitializingBean, DisposableBean {
 
-	private final RedisMessageListenerContainer listenerContainer;
 	private static final Topic TOPIC_ALL_KEYEVENTS = new PatternTopic("__keyevent@*");
+
+	private final RedisMessageListenerContainer listenerContainer;
+
 	private String keyspaceNotificationsConfigParameter = "EA";
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,28 +19,29 @@ import org.springframework.core.NestedRuntimeException;
 
 /**
  * {@link RuntimeException} thrown when issues occur with {@link RedisScript}s
- * 
+ *
  * @author Jennifer Hickey
+ * @author Mark Paluch
  */
 @SuppressWarnings("serial")
 public class ScriptingException extends NestedRuntimeException {
 
 	/**
-	 * Constructs a new <code>ScriptingException</code> instance.
-	 * 
-	 * @param msg
-	 * @param cause
-	 */
-	public ScriptingException(String msg, Throwable cause) {
-		super(msg, cause);
-	}
-
-	/**
-	 * Constructs a new <code>ScriptingException</code> instance.
-	 * 
-	 * @param msg
+	 * Constructs a new {@link ScriptingException} instance.
+	 *
+	 * @param msg the detail message.
 	 */
 	public ScriptingException(String msg) {
 		super(msg);
+	}
+
+	/**
+	 * Constructs a new {@link ScriptingException} instance.
+	 *
+	 * @param msg the detail message.
+	 * @param cause the nested exception.
+	 */
+	public ScriptingException(String msg, Throwable cause) {
+		super(msg, cause);
 	}
 }

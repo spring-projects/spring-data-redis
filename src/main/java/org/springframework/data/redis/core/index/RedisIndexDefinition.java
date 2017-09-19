@@ -35,8 +35,9 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 
 	private final String keyspace;
 	private final String indexName;
-	private final String path;
-	private List<Condition<?>> conditions;
+	private final @Nullable String path;
+	private final List<Condition<?>> conditions;
+
 	private @Nullable IndexValueTransformer valueTransformer;
 
 	/**
@@ -46,7 +47,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 	 * @param path
 	 * @param indexName
 	 */
-	protected RedisIndexDefinition(String keyspace, String path, String indexName) {
+	protected RedisIndexDefinition(String keyspace, @Nullable String path, String indexName) {
 
 		this.keyspace = keyspace;
 		this.indexName = indexName;
@@ -90,6 +91,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 		return indexName;
 	}
 
+	@Nullable
 	public String getPath() {
 		return this.path;
 	}

@@ -239,11 +239,11 @@ public enum RedisCommand {
 		return Collections.unmodifiableMap(map);
 	}
 
-	private RedisCommand(String mode, int minArgs) {
+	RedisCommand(String mode, int minArgs) {
 		this(mode, minArgs, -1);
 	}
 
-	private RedisCommand(String mode, int minArgs, int maxArgs) {
+	RedisCommand(String mode, int minArgs, int maxArgs) {
 
 		if (StringUtils.hasText(mode)) {
 			this.read = mode.toLowerCase().indexOf('r') > -1;
@@ -262,11 +262,11 @@ public enum RedisCommand {
 	 * @param maxArgs
 	 * @param alias
 	 */
-	private RedisCommand(String mode, int minArgs, int maxArgs, String... alias) {
+	RedisCommand(String mode, int minArgs, int maxArgs, String... alias) {
 
 		this(mode, minArgs, maxArgs);
 
-		if (alias != null && alias.length > 0) {
+		if (alias.length > 0) {
 			this.alias.addAll(Arrays.asList(alias));
 		}
 	}

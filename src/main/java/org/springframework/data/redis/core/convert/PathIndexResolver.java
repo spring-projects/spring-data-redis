@@ -41,6 +41,7 @@ import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -57,9 +58,9 @@ public class PathIndexResolver implements IndexResolver {
 
 	private final Set<Class<?>> VALUE_TYPES = new HashSet<>(Arrays.<Class<?>> asList(Point.class, GeoLocation.class));
 
-	private ConfigurableIndexDefinitionProvider indexConfiguration;
-	private RedisMappingContext mappingContext;
-	private IndexedDataFactoryProvider indexedDataFactoryProvider;
+	private final ConfigurableIndexDefinitionProvider indexConfiguration;
+	private final RedisMappingContext mappingContext;
+	private final IndexedDataFactoryProvider indexedDataFactoryProvider;
 
 	/**
 	 * Creates new {@link PathIndexResolver} with empty {@link IndexConfiguration}.
@@ -76,6 +77,7 @@ public class PathIndexResolver implements IndexResolver {
 	public PathIndexResolver(RedisMappingContext mappingContext) {
 
 		Assert.notNull(mappingContext, "MappingContext must not be null!");
+
 		this.mappingContext = mappingContext;
 		this.indexConfiguration = mappingContext.getMappingConfiguration().getIndexConfiguration();
 		this.indexedDataFactoryProvider = new IndexedDataFactoryProvider();
@@ -85,7 +87,7 @@ public class PathIndexResolver implements IndexResolver {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.convert.IndexResolver#resolveIndexesFor(org.springframework.data.util.TypeInformation, java.lang.Object)
 	 */
-	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, Object value) {
+	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, @Nullable Object value) {
 		return doResolveIndexesFor(mappingContext.getRequiredPersistentEntity(typeInformation).getKeySpace(), "",
 				typeInformation, null, value);
 	}
@@ -100,7 +102,7 @@ public class PathIndexResolver implements IndexResolver {
 	}
 
 	private Set<IndexedData> doResolveIndexesFor(final String keyspace, final String path,
-			TypeInformation<?> typeInformation, PersistentProperty<?> fallback, Object value) {
+			TypeInformation<?> typeInformation, @Nullable PersistentProperty<?> fallback, @Nullable Object value) {
 
 		RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(typeInformation);
 
@@ -196,8 +198,8 @@ public class PathIndexResolver implements IndexResolver {
 		return indexes;
 	}
 
-	protected Set<IndexedData> resolveIndex(String keyspace, String propertyPath, PersistentProperty<?> property,
-			Object value) {
+	protected Set<IndexedData> resolveIndex(String keyspace, String propertyPath,
+			@Nullable PersistentProperty<?> property, @Nullable Object value) {
 
 		String path = normalizeIndexPath(propertyPath, property);
 
@@ -257,7 +259,7 @@ public class PathIndexResolver implements IndexResolver {
 		return true;
 	}
 
-	private String normalizeIndexPath(String path, PersistentProperty<?> property) {
+	private String normalizeIndexPath(String path, @Nullable PersistentProperty<?> property) {
 
 		if (property == null) {
 			return path;

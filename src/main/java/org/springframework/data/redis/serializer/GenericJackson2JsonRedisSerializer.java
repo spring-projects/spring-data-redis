@@ -52,10 +52,10 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * Creates {@link GenericJackson2JsonRedisSerializer} and configures {@link ObjectMapper} for default typing using the
 	 * given {@literal name}. In case of an {@literal empty} or {@literal null} String the default
 	 * {@link JsonTypeInfo.Id#CLASS} will be used.
-	 * 
+	 *
 	 * @param classPropertyTypeName Name of the JSON property holding type information. Can be {@literal null}.
 	 */
-	public GenericJackson2JsonRedisSerializer(String classPropertyTypeName) {
+	public GenericJackson2JsonRedisSerializer(@Nullable String classPropertyTypeName) {
 
 		this(new ObjectMapper());
 
@@ -74,7 +74,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * Setting a custom-configured {@link ObjectMapper} is one way to take further control of the JSON serialization
 	 * process. For example, an extended {@link SerializerFactory} can be configured that provides custom serializers for
 	 * specific types.
-	 * 
+	 *
 	 * @param mapper must not be {@literal null}.
 	 */
 	public GenericJackson2JsonRedisSerializer(ObjectMapper mapper) {
@@ -116,6 +116,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * @return {@literal null} for empty source.
 	 * @throws SerializationException
 	 */
+	@Nullable
 	public <T> T deserialize(@Nullable byte[] source, Class<T> type) throws SerializationException {
 
 		Assert.notNull(type,
@@ -147,7 +148,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		/**
 		 * @param classIdentifier can be {@literal null} and will be defaulted to {@code @class}.
 		 */
-		NullValueSerializer(String classIdentifier) {
+		NullValueSerializer(@Nullable String classIdentifier) {
 
 			super(NullValue.class);
 			this.classIdentifier = StringUtils.hasText(classIdentifier) ? classIdentifier : "@class";

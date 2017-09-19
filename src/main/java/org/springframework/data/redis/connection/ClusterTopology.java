@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -140,7 +141,7 @@ public class ClusterTopology {
 		}
 
 		throw new ClusterStateFailureException(
-				String.format("Could not find master node serving slot %s for key '%s',", slot, key));
+				String.format("Could not find master node serving slot %s for key '%s',", slot, Arrays.toString(key)));
 	}
 
 	/**

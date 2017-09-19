@@ -23,8 +23,9 @@ import org.springframework.dao.UncategorizedDataAccessException;
 
 /**
  * Exception thrown when at least one call to a clustered redis environment fails.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class ClusterCommandExecutionFailureException extends UncategorizedDataAccessException {
@@ -35,7 +36,7 @@ public class ClusterCommandExecutionFailureException extends UncategorizedDataAc
 
 	/**
 	 * Creates new {@link ClusterCommandExecutionFailureException}.
-	 * 
+	 *
 	 * @param cause must not be {@literal null}.
 	 */
 	public ClusterCommandExecutionFailureException(Throwable cause) {
@@ -44,19 +45,22 @@ public class ClusterCommandExecutionFailureException extends UncategorizedDataAc
 
 	/**
 	 * Creates new {@link ClusterCommandExecutionFailureException}.
-	 * 
+	 *
 	 * @param causes must not be {@literal empty}.
 	 */
 	public ClusterCommandExecutionFailureException(List<? extends Throwable> causes) {
 
 		super(causes.get(0).getMessage(), causes.get(0));
 		this.causes = causes;
+
+		causes.forEach(this::addSuppressed);
 	}
 
 	/**
 	 * Get the collected errors.
-	 * 
+	 *
 	 * @return never {@literal null}.
+	 * @deprecated since 2.0, use {@link #getSuppressed()}.
 	 */
 	public Collection<? extends Throwable> getCauses() {
 		return causes;

@@ -15,70 +15,44 @@
  */
 package org.springframework.data.redis.core.index;
 
+import lombok.EqualsAndHashCode;
+
 import org.springframework.data.redis.core.convert.SpelIndexResolver;
 import org.springframework.expression.spel.standard.SpelExpression;
-import org.springframework.util.ObjectUtils;
 
 /**
  * {@link SpelIndexDefinition} defines index that is evaluated based on a {@link SpelExpression} requires the
  * {@link SpelIndexResolver} to be evaluated.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
+@EqualsAndHashCode(callSuper = true)
 public class SpelIndexDefinition extends RedisIndexDefinition {
 
 	private final String expression;
 
 	/**
 	 * Creates new {@link SpelIndexDefinition}.
-	 * 
+	 *
 	 * @param keyspace must not be {@literal null}.
 	 * @param expression must not be {@literal null}.
 	 * @param indexName must not be {@literal null}.
 	 */
 	public SpelIndexDefinition(String keyspace, String expression, String indexName) {
+
 		super(keyspace, null, indexName);
+
 		this.expression = expression;
 	}
 
 	/**
 	 * Get the raw expression.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getExpression() {
 		return expression;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.index.RedisIndexDefinition#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		int result = super.hashCode();
-		result += ObjectUtils.nullSafeHashCode(expression);
-		return result;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.index.RedisIndexDefinition#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (!super.equals(obj)) {
-			return false;
-		}
-		if (!(obj instanceof SpelIndexDefinition)) {
-			return false;
-		}
-		SpelIndexDefinition that = (SpelIndexDefinition) obj;
-		return ObjectUtils.nullSafeEquals(this.expression, that.expression);
 	}
 
 }

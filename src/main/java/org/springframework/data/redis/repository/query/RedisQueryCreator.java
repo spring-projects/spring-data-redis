@@ -106,7 +106,7 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 				query.getCriteria().getSismember().clear();
 			}
 
-		if (sort != null) {
+		if (sort.isSorted()) {
 			query.setSort(sort);
 		}
 
@@ -117,8 +117,8 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 
 		Object o = iterator.next();
 
-		Point point = null;
-		Distance distance = null;
+		Point point;
+		Distance distance;
 
 		if (o instanceof Circle) {
 

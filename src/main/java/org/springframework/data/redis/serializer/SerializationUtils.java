@@ -42,7 +42,7 @@ public abstract class SerializationUtils {
 
 	@SuppressWarnings("unchecked")
 	static <T extends Collection<?>> T deserializeValues(@Nullable Collection<byte[]> rawValues, Class<T> type,
-			RedisSerializer<?> redisSerializer) {
+			@Nullable RedisSerializer<?> redisSerializer) {
 		// connection in pipeline/multi mode
 		if (rawValues == null) {
 			return (T) CollectionFactory.createCollection(type, 0);
@@ -58,12 +58,13 @@ public abstract class SerializationUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> Set<T> deserialize(@Nullable Set<byte[]> rawValues, RedisSerializer<T> redisSerializer) {
+	public static <T> Set<T> deserialize(@Nullable Set<byte[]> rawValues, @Nullable RedisSerializer<T> redisSerializer) {
 		return deserializeValues(rawValues, Set.class, redisSerializer);
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> List<T> deserialize(@Nullable List<byte[]> rawValues, RedisSerializer<T> redisSerializer) {
+	public static <T> List<T> deserialize(@Nullable List<byte[]> rawValues,
+			@Nullable RedisSerializer<T> redisSerializer) {
 		return deserializeValues(rawValues, List.class, redisSerializer);
 	}
 
@@ -87,7 +88,7 @@ public abstract class SerializationUtils {
 
 	@SuppressWarnings("unchecked")
 	public static <HK, HV> Map<HK, HV> deserialize(@Nullable Map<byte[], byte[]> rawValues,
-			RedisSerializer<HK> hashKeySerializer, RedisSerializer<HV> hashValueSerializer) {
+			@Nullable RedisSerializer<HK> hashKeySerializer, @Nullable RedisSerializer<HV> hashValueSerializer) {
 
 		if (rawValues == null) {
 			return Collections.emptyMap();
@@ -95,8 +96,8 @@ public abstract class SerializationUtils {
 		Map<HK, HV> map = new LinkedHashMap<>(rawValues.size());
 		for (Map.Entry<byte[], byte[]> entry : rawValues.entrySet()) {
 			// May want to deserialize only key or value
-			HK key = hashKeySerializer != null ? (HK) hashKeySerializer.deserialize(entry.getKey()) : (HK) entry.getKey();
-			HV value = hashValueSerializer != null ? (HV) hashValueSerializer.deserialize(entry.getValue())
+			HK key = hashKeySerializer != null ? hashKeySerializer.deserialize(entry.getKey()) : (HK) entry.getKey();
+			HV value = hashValueSerializer != null ? hashValueSerializer.deserialize(entry.getValue())
 					: (HV) entry.getValue();
 			map.put(key, value);
 		}

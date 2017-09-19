@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,9 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Redis operations for simple (or in Redis terminology 'string') values.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -54,8 +56,10 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
+	@Nullable
 	Boolean setIfAbsent(K key, V value);
 
 	/**
@@ -71,50 +75,62 @@ public interface ValueOperations<K, V> {
 	 * not exist.
 	 *
 	 * @param map must not be {@literal null}.
+	 * @param {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 */
+	@Nullable
 	Boolean multiSetIfAbsent(Map<? extends K, ? extends V> map);
 
 	/**
 	 * Get the value of {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
+	@Nullable
 	V get(Object key);
 
 	/**
 	 * Set {@code value} of {@code key} and return its old value.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
+	@Nullable
 	V getAndSet(K key, V value);
 
 	/**
 	 * Get multiple {@code keys}. Values are returned in the order of the requested keys.
-	 * 
+	 *
 	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 */
+	@Nullable
 	List<V> multiGet(Collection<K> keys);
 
 	/**
 	 * Increment an integer value stored as string value under {@code key} by {@code delta}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param delta
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
 	 */
+	@Nullable
 	Long increment(K key, long delta);
 
 	/**
 	 * Increment a floating point number value stored as string value under {@code key} by {@code delta}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param delta
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/incrbyfloar">Redis Documentation: INCRBYFLOAT</a>
 	 */
+	@Nullable
 	Double increment(K key, double delta);
 
 	/**
@@ -122,8 +138,10 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 */
+	@Nullable
 	Integer append(K key, String value);
 
 	/**
@@ -132,8 +150,10 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
 	 */
+	@Nullable
 	String get(K key, long start, long end);
 
 	/**
@@ -150,8 +170,10 @@ public interface ValueOperations<K, V> {
 	 * Get the length of the value stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
 	 */
+	@Nullable
 	Long size(K key);
 
 	/**
@@ -160,9 +182,11 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param offset
 	 * @param value
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.5
 	 * @see <a href="http://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
 	 */
+	@Nullable
 	Boolean setBit(K key, long offset, boolean value);
 
 	/**
@@ -170,9 +194,11 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param offset
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.5
 	 * @see <a href="http://redis.io/commands/setbit">Redis Documentation: GETBIT</a>
 	 */
+	@Nullable
 	Boolean getBit(K key, long offset);
 
 	RedisOperations<K, V> getOperations();

@@ -15,9 +15,11 @@
  */
 package org.springframework.data.redis.core.index;
 
+import org.springframework.lang.Nullable;
+
 /**
  * {@link IndexDefinition} that is based on a property paths.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -26,6 +28,7 @@ public interface PathBasedRedisIndexDefinition extends IndexDefinition {
 	/**
 	 * @return can be {@literal null}.
 	 */
+	@Nullable
 	String getPath();
 
 }

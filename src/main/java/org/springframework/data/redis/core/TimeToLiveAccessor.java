@@ -15,9 +15,11 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.lang.Nullable;
+
 /**
  * {@link TimeToLiveAccessor} extracts the objects time to live used for {@code EXPIRE}.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -27,5 +29,6 @@ public interface TimeToLiveAccessor {
 	 * @param source must not be {@literal null}.
 	 * @return {@literal null} if not configured.
 	 */
+	@Nullable
 	Long getTimeToLive(Object source);
 }

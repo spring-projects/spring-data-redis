@@ -20,9 +20,10 @@ import org.springframework.lang.Nullable;
 
 /**
  * Exception thrown when there are issues with a resource pool
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @SuppressWarnings("serial")
 public class PoolException extends NestedRuntimeException {
@@ -30,19 +31,19 @@ public class PoolException extends NestedRuntimeException {
 	/**
 	 * Constructs a new <code>PoolException</code> instance.
 	 *
-	 * @param msg
-	 * @param cause
+	 * @param msg the detail message.
 	 */
-	public PoolException(@Nullable String msg, @Nullable Throwable cause) {
-		super(msg, cause);
+	public PoolException(String msg) {
+		super(msg);
 	}
 
 	/**
 	 * Constructs a new <code>PoolException</code> instance.
 	 *
-	 * @param msg
+	 * @param msg the detail message.
+	 * @param cause the nested exception.
 	 */
-	public PoolException(String msg) {
-		super(msg);
+	public PoolException(@Nullable String msg, @Nullable Throwable cause) {
+		super(msg, cause);
 	}
 }

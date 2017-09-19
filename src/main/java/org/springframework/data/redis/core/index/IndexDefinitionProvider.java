@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@ import java.util.Set;
 
 /**
  * {@link IndexDefinitionProvider} give access to {@link IndexDefinition}s for creating secondary index structures.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
 public interface IndexDefinitionProvider {
 
 	/**
-	 * Gets all of the {@link RedisIndexSetting} for a given keyspace.
+	 * Checks if an index is defined for a given {@code keyspace}.
 	 *
 	 * @param keyspace the keyspace to get
 	 * @return never {@literal null}
@@ -35,7 +35,7 @@ public interface IndexDefinitionProvider {
 	boolean hasIndexFor(Serializable keyspace);
 
 	/**
-	 * Checks if an index is defined for a given keyspace and property path.
+	 * Checks if an index is defined for a given {@code keyspace} and property {@code path}.
 	 *
 	 * @param keyspace
 	 * @param path
@@ -44,7 +44,7 @@ public interface IndexDefinitionProvider {
 	boolean hasIndexFor(Serializable keyspace, String path);
 
 	/**
-	 * Get the list of {@link IndexDefinition} for a given keyspace.
+	 * Get the list of {@link IndexDefinition} for a given {@code keyspace}.
 	 *
 	 * @param keyspace
 	 * @return never {@literal null}.
@@ -52,7 +52,7 @@ public interface IndexDefinitionProvider {
 	Set<IndexDefinition> getIndexDefinitionsFor(Serializable keyspace);
 
 	/**
-	 * Get the list of {@link IndexDefinition} for a given keyspace and property path.
+	 * Get the list of {@link IndexDefinition} for a given {@code keyspace} and property {@code path}.
 	 *
 	 * @param keyspace
 	 * @param path

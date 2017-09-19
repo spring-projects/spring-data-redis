@@ -25,19 +25,20 @@ import org.springframework.lang.Nullable;
 /**
  * {@link MessageListener} publishing {@link RedisKeyExpiredEvent}s via {@link ApplicationEventPublisher} by listening
  * to Redis keyspace notifications for key expirations.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
 public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListener implements
 		ApplicationEventPublisherAware {
 
-	private @Nullable ApplicationEventPublisher publisher;
 	private static final Topic KEYEVENT_EXPIRED_TOPIC = new PatternTopic("__keyevent@*__:expired");
+
+	private @Nullable ApplicationEventPublisher publisher;
 
 	/**
 	 * Creates new {@link MessageListener} for {@code __keyevent@*__:expired} messages.
-	 * 
+	 *
 	 * @param listenerContainer must not be {@literal null}.
 	 */
 	public KeyExpirationEventMessageListener(RedisMessageListenerContainer listenerContainer) {
@@ -64,12 +65,12 @@ public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListe
 
 	/**
 	 * Publish the event in case an {@link ApplicationEventPublisher} is set.
-	 * 
+	 *
 	 * @param event can be {@literal null}.
 	 */
 	protected void publishEvent(RedisKeyExpiredEvent event) {
 
-		if (publisher != null && event != null) {
+		if (publisher != null) {
 			this.publisher.publishEvent(event);
 		}
 	}

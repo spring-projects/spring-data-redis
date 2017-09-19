@@ -26,24 +26,37 @@ import org.apache.commons.beanutils.BeanUtils;
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class BeanUtilsHashMapper<T> implements HashMapper<T, String, String> {
 
-	private Class<T> type;
+	private final Class<T> type;
 
+	/**
+	 * Create a new {@link BeanUtilsHashMapper} for the given {@code type}.
+	 *
+	 * @param type must not be {@literal null}.
+	 */
 	public BeanUtilsHashMapper(Class<T> type) {
 		this.type = type;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.hash.HashMapper#fromHash(java.util.Map)
+	 */
+	@Override
 	public T fromHash(Map<String, String> hash) {
 
-		T instance = org.springframework.beans.BeanUtils.instantiate(type);
+		T instance = org.springframework.beans.BeanUtils.instantiateClass(type);
+
 		try {
+
 			BeanUtils.populate(instance, hash);
+			return instance;
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}
-		return instance;
 	}
 
 	/*
@@ -52,11 +65,12 @@ public class BeanUtilsHashMapper<T> implements HashMapper<T, String, String> {
 	 */
 	@Override
 	public Map<String, String> toHash(T object) {
+
 		try {
 
 			Map<String, String> map = BeanUtils.describe(object);
-
 			Map<String, String> result = new LinkedHashMap<>();
+
 			for (Entry<String, String> entry : map.entrySet()) {
 				if (entry.getValue() != null) {
 					result.put(entry.getKey(), entry.getValue());
@@ -64,7 +78,6 @@ public class BeanUtilsHashMapper<T> implements HashMapper<T, String, String> {
 			}
 
 			return result;
-
 		} catch (Exception ex) {
 			throw new IllegalArgumentException("Cannot describe object " + object, ex);
 		}

@@ -26,6 +26,7 @@ import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RemoveIndexedData;
 import org.springframework.data.redis.core.convert.SimpleIndexedPropertyValue;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -87,11 +88,12 @@ class IndexWriter {
 	 * @param key must not be {@literal null}.
 	 * @param indexValues can be {@literal null}.
 	 */
-	public void deleteAndUpdateIndexes(Object key, Iterable<IndexedData> indexValues) {
+	public void deleteAndUpdateIndexes(Object key, @Nullable Iterable<IndexedData> indexValues) {
 		createOrUpdateIndexes(key, indexValues, IndexWriteMode.UPDATE);
 	}
 
-	private void createOrUpdateIndexes(Object key, Iterable<IndexedData> indexValues, IndexWriteMode writeMode) {
+	private void createOrUpdateIndexes(Object key, @Nullable Iterable<IndexedData> indexValues,
+			IndexWriteMode writeMode) {
 
 		Assert.notNull(key, "Key must not be null!");
 		if (indexValues == null) {
@@ -104,7 +106,7 @@ class IndexWriter {
 
 			if (indexValues.iterator().hasNext()) {
 				IndexedData data = indexValues.iterator().next();
-				if (data != null && data.getKeyspace() != null) {
+				if (data != null) {
 					removeKeyFromIndexes(data.getKeyspace(), binKey);
 				}
 			}
@@ -240,7 +242,7 @@ class IndexWriter {
 		}
 	}
 
-	private byte[] toBytes(Object source) {
+	private byte[] toBytes(@Nullable Object source) {
 
 		if (source == null) {
 			return new byte[] {};

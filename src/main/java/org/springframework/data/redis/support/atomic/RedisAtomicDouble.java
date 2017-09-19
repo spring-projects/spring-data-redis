@@ -31,6 +31,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -47,31 +48,33 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	private static final long serialVersionUID = 1L;
 
 	private volatile String key;
-	private ValueOperations<String, Double> operations;
-	private RedisOperations<String, Double> generalOps;
+
+	private final ValueOperations<String, Double> operations;
+	private final RedisOperations<String, Double> generalOps;
 
 	/**
-	 * Constructs a new <code>RedisAtomicDouble</code> instance. Uses the value existing in Redis or 0 if none is found.
+	 * Constructs a new {@link RedisAtomicDouble} instance. Uses the value existing in Redis or 0 if none is found.
 	 *
-	 * @param redisCounter redis counter
-	 * @param factory connection factory
+	 * @param redisCounter Redis key of this counter.
+	 * @param factory connection factory.
 	 */
 	public RedisAtomicDouble(String redisCounter, RedisConnectionFactory factory) {
 		this(redisCounter, factory, null);
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicDouble</code> instance.
+	 * Constructs a new {@link RedisAtomicDouble} instance.
 	 *
-	 * @param redisCounter
-	 * @param factory
-	 * @param initialValue
+	 * @param redisCounter Redis key of this counter.
+	 * @param factory connection factory.
+	 * @param initialValue initial value to set if the Redis key is absent.
 	 */
 	public RedisAtomicDouble(String redisCounter, RedisConnectionFactory factory, double initialValue) {
 		this(redisCounter, factory, Double.valueOf(initialValue));
 	}
 
-	private RedisAtomicDouble(String redisCounter, RedisConnectionFactory factory, Double initialValue) {
+	private RedisAtomicDouble(String redisCounter, RedisConnectionFactory factory, @Nullable Double initialValue) {
+
 		Assert.hasText(redisCounter, "a valid counter name is required");
 		Assert.notNull(factory, "a valid factory is required");
 
@@ -96,10 +99,10 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicDouble</code> instance. Uses the value existing in Redis or 0 if none is found.
+	 * Constructs a new {@link RedisAtomicDouble} instance. Uses the value existing in Redis or 0 if none is found.
 	 *
-	 * @param redisCounter the redis counter
-	 * @param template the template
+	 * @param redisCounter Redis key of this counter.
+	 * @param template the template.
 	 * @see #RedisAtomicDouble(String, RedisConnectionFactory, double)
 	 */
 	public RedisAtomicDouble(String redisCounter, RedisOperations<String, Double> template) {
@@ -107,20 +110,21 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicDouble</code> instance. Note: You need to configure the given {@code template}
-	 * with appropriate {@link RedisSerializer} for the key and value. As an alternative one could use the
+	 * Constructs a new {@link RedisAtomicDouble} instance. Note: You need to configure the given {@code template} with
+	 * appropriate {@link RedisSerializer} for the key and value. As an alternative one could use the
 	 * {@link #RedisAtomicDouble(String, RedisConnectionFactory, Double)} constructor which uses appropriate default
 	 * serializers.
 	 *
-	 * @param redisCounter the redis counter
+	 * @param redisCounter Redis key of this counter.
 	 * @param template the template
-	 * @param initialValue the initial value
+	 * @param initialValue initial value to set if the Redis key is absent.
 	 */
 	public RedisAtomicDouble(String redisCounter, RedisOperations<String, Double> template, double initialValue) {
 		this(redisCounter, template, Double.valueOf(initialValue));
 	}
 
-	private RedisAtomicDouble(String redisCounter, RedisOperations<String, Double> template, Double initialValue) {
+	private RedisAtomicDouble(String redisCounter, RedisOperations<String, Double> template,
+			@Nullable Double initialValue) {
 
 		Assert.hasText(redisCounter, "a valid counter name is required");
 		Assert.notNull(template, "a valid template is required");
@@ -143,7 +147,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	/**
 	 * Gets the current value.
 	 *
-	 * @return the current value
+	 * @return the current value.
 	 */
 	public double get() {
 
@@ -158,7 +162,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	/**
 	 * Sets to the given value.
 	 *
-	 * @param newValue the new value
+	 * @param newValue the new value.
 	 */
 	public void set(double newValue) {
 		operations.set(key, newValue);
@@ -167,29 +171,29 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	/**
 	 * Atomically sets to the given value and returns the old value.
 	 *
-	 * @param newValue the new value
-	 * @return the previous value
+	 * @param newValue the new value.
+	 * @return the previous value.
 	 */
 	public double getAndSet(double newValue) {
 
 		Double value = operations.getAndSet(key, newValue);
-		if (value != null) {
-			return value.doubleValue();
-		}
 
-		return 0;
+		return value != null ? value.doubleValue() : 0;
 	}
 
 	/**
 	 * Atomically sets the value to the given updated value if the current value {@code ==} the expected value.
 	 *
-	 * @param expect the expected value
-	 * @param update the new value
-	 * @return true if successful. False return indicates that the actual value was not equal to the expected value.
+	 * @param expect the expected value.
+	 * @param update the new value.
+	 * @return {@literal true} if successful. {@literal false} indicates that the actual value was not equal to the
+	 *         expected value.
 	 */
 	public boolean compareAndSet(final double expect, final double update) {
+
 		return generalOps.execute(new SessionCallback<Boolean>() {
 
+			@Override
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public Boolean execute(RedisOperations operations) {
 				for (;;) {
@@ -266,60 +270,111 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Returns the String representation of the current value.
-	 *
 	 * @return the String representation of the current value.
 	 */
+	@Override
 	public String toString() {
 		return Double.toString(get());
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#getKey()
+	 */
+	@Override
 	public String getKey() {
 		return key;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#getType()
+	 */
+	@Override
 	public DataType getType() {
 		return DataType.STRING;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#getExpire()
+	 */
+	@Override
 	public Long getExpire() {
 		return generalOps.getExpire(key);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#expire(long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return generalOps.expire(key, timeout, unit);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#expireAt(java.util.Date)
+	 */
+	@Override
 	public Boolean expireAt(Date date) {
 		return generalOps.expireAt(key, date);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#persist()
+	 */
+	@Override
 	public Boolean persist() {
 		return generalOps.persist(key);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#rename(java.lang.Object)
+	 */
+	@Override
 	public void rename(String newKey) {
+
 		generalOps.rename(key, newKey);
 		key = newKey;
 	}
 
-	@Override
-	public double doubleValue() {
-		return get();
-	}
-
-	@Override
-	public float floatValue() {
-		return (float) get();
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Number#intValue()
+	 */
 	@Override
 	public int intValue() {
 		return (int) get();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Number#longValue()
+	 */
 	@Override
 	public long longValue() {
 		return (long) get();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Number#floatValue()
+	 */
+	@Override
+	public float floatValue() {
+		return (float) get();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Number#doubleValue()
+	 */
+	@Override
+	public double doubleValue() {
+		return get();
 	}
 }

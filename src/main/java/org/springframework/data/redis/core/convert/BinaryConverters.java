@@ -16,8 +16,10 @@
 package org.springframework.data.redis.core.convert;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Date;
 
 import org.springframework.core.convert.converter.Converter;
@@ -39,7 +41,7 @@ final class BinaryConverters {
 	/**
 	 * Use {@literal UTF-8} as default charset.
 	 */
-	public static final Charset CHARSET = Charset.forName("UTF-8");
+	public static final Charset CHARSET = StandardCharsets.UTF_8;
 
 	private BinaryConverters() {}
 
@@ -265,7 +267,7 @@ final class BinaryConverters {
 				// ignore
 			}
 
-			throw new IllegalArgumentException("Cannot parse date out of " + source);
+			throw new IllegalArgumentException(String.format("Cannot parse date out of %s", Arrays.toString(source)));
 		}
 	}
 }

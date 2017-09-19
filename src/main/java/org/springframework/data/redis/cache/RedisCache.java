@@ -292,7 +292,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		throw new IllegalStateException(
-				"Cannot convert " + source + " to String. Register a Converter or override toString().");
+				String.format("Cannot convert %s to String. Register a Converter or override toString().", source));
 	}
 
 	private byte[] createAndConvertCacheKey(Object key) {
@@ -303,7 +303,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		return cacheConfig.getKeyPrefix().orElseGet(() -> name + "::") + key;
 	}
 
-	private <T> T valueFromLoader(Object key, Callable<T> valueLoader) {
+	private static <T> T valueFromLoader(Object key, Callable<T> valueLoader) {
 
 		try {
 			return valueLoader.call();

@@ -28,6 +28,7 @@ import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolver;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link HashMapper} based on {@link MappingRedisConverter}. Supports nested properties and simple types like
@@ -94,7 +95,7 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 	 * @param customConversions can be {@literal null}.
 	 * @since 2.0
 	 */
-	public ObjectHashMapper(org.springframework.data.convert.CustomConversions customConversions) {
+	public ObjectHashMapper(@Nullable org.springframework.data.convert.CustomConversions customConversions) {
 
 		MappingRedisConverter mappingConverter = new MappingRedisConverter(new RedisMappingContext(),
 				new NoOpIndexResolver(), new NoOpReferenceResolver());
