@@ -185,7 +185,9 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#info(java.lang.String)
 	 */
 	@Override
-	public Properties info(final String section) {
+	public Properties info(String section) {
+
+		Assert.hasText(section, "Section must not be null or empty!");
 
 		Properties infos = new Properties();
 		List<NodeResult<Properties>> nodeResults = executeCommandOnAllNodes(
@@ -205,7 +207,10 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#info(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String)
 	 */
 	@Override
-	public Properties info(RedisClusterNode node, final String section) {
+	public Properties info(RedisClusterNode node, String section) {
+
+		Assert.hasText(section, "Section must not be null or empty!");
+
 		return LettuceConverters.toProperties(executeCommandOnSingleNode(client -> client.info(section), node).getValue());
 	}
 
@@ -227,7 +232,9 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#getConfig(java.lang.String)
 	 */
 	@Override
-	public Properties getConfig(final String pattern) {
+	public Properties getConfig(String pattern) {
+
+		Assert.hasText(pattern, "Pattern must not be null or empty!");
 
 		List<NodeResult<Map<String, String>>> mapResult = executeCommandOnAllNodes(client -> client.configGet(pattern))
 				.getResults();
@@ -248,7 +255,10 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#getConfig(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String)
 	 */
 	@Override
-	public Properties getConfig(RedisClusterNode node, final String pattern) {
+	public Properties getConfig(RedisClusterNode node, String pattern) {
+
+		Assert.hasText(pattern, "Pattern must not be null or empty!");
+
 		return executeCommandOnSingleNode(client -> Converters.toProperties(client.configGet(pattern)), node).getValue();
 	}
 
@@ -257,7 +267,11 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#setConfig(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void setConfig(final String param, final String value) {
+	public void setConfig(String param, String value) {
+
+		Assert.hasText(param, "Parameter must not be null or empty!");
+		Assert.hasText(value, "Value must not be null or empty!");
+
 		executeCommandOnAllNodes(client -> client.configSet(param, value));
 	}
 
@@ -266,7 +280,11 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#setConfig(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void setConfig(RedisClusterNode node, final String param, final String value) {
+	public void setConfig(RedisClusterNode node, String param, String value) {
+
+		Assert.hasText(param, "Parameter must not be null or empty!");
+		Assert.hasText(value, "Value must not be null or empty!");
+
 		executeCommandOnSingleNode(client -> client.configSet(param, value), node);
 	}
 

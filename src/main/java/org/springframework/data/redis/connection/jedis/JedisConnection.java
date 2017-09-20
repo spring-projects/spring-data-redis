@@ -102,7 +102,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	private final Jedis jedis;
 	private final Client client;
 	private @Nullable Transaction transaction;
-	private final Pool<Jedis> pool;
+	private final @Nullable Pool<Jedis> pool;
 	/**
 	 * flag indicating whether the connection needs to be dropped or not
 	 */
@@ -172,7 +172,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @param clientName the client name, can be {@literal null}.
 	 * @since 1.8
 	 */
-	protected JedisConnection(Jedis jedis, Pool<Jedis> pool, int dbIndex, String clientName) {
+	protected JedisConnection(Jedis jedis, @Nullable Pool<Jedis> pool, int dbIndex, String clientName) {
 
 		// extract underlying connection for batch operations
 		client = (Client) ReflectionUtils.getField(CLIENT_FIELD, jedis);
@@ -469,7 +469,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	private List<Object> convertPipelineResults() {
 		List<Object> results = new ArrayList<>();
-		pipeline.sync();
+		getRequiredPipeline().sync();
 		Exception cause = null;
 		for (FutureResult<Response<?>> result : pipelinedResults) {
 			try {
@@ -516,11 +516,11 @@ public class JedisConnection extends AbstractRedisConnection {
 	public byte[] echo(byte[] message) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.echo(message)));
+				pipeline(new JedisResult(getRequiredPipeline().echo(message)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new JedisResult(transaction.echo(message)));
+				transaction(new JedisResult(getRequiredTransaction().echo(message)));
 				return null;
 			}
 			return jedis.echo(message);
@@ -537,11 +537,11 @@ public class JedisConnection extends AbstractRedisConnection {
 	public String ping() {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.ping()));
+				pipeline(new JedisResult(getRequiredPipeline().ping()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new JedisResult(transaction.ping()));
+				transaction(new JedisResult(getRequiredTransaction().ping()));
 				return null;
 			}
 			return jedis.ping();
@@ -558,10 +558,10 @@ public class JedisConnection extends AbstractRedisConnection {
 	public void discard() {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisStatusResult(pipeline.discard()));
+				pipeline(new JedisStatusResult(getRequiredPipeline().discard()));
 				return;
 			}
-			transaction.discard();
+			getRequiredTransaction().discard();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		} finally {
@@ -578,7 +578,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	public List<Object> exec() {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.exec(),
+				pipeline(new JedisResult(getRequiredPipeline().exec(),
 						new TransactionResultConverter<>(new LinkedList<>(txResults), JedisConverters.exceptionConverter())));
 				return null;
 			}
@@ -603,8 +603,30 @@ public class JedisConnection extends AbstractRedisConnection {
 		return pipeline;
 	}
 
+	public Pipeline getRequiredPipeline() {
+
+		Pipeline pipeline = getPipeline();
+
+		if (pipeline == null) {
+			throw new IllegalStateException("Connection has no active pipeline");
+		}
+
+		return pipeline;
+	}
+
 	@Nullable
 	public Transaction getTransaction() {
+		return transaction;
+	}
+
+	public Transaction getRequiredTransaction() {
+
+		Transaction transaction = getTransaction();
+
+		if (transaction == null) {
+			throw new IllegalStateException("Connection has no active transaction");
+		}
+
 		return transaction;
 	}
 
@@ -635,7 +657,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 		try {
 			if (isPipelined()) {
-				pipeline.multi();
+				getRequiredPipeline().multi();
 				return;
 			}
 			this.transaction = jedis.multi();
@@ -652,11 +674,11 @@ public class JedisConnection extends AbstractRedisConnection {
 	public void select(int dbIndex) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisStatusResult(pipeline.select(dbIndex)));
+				pipeline(new JedisStatusResult(getRequiredPipeline().select(dbIndex)));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(new JedisStatusResult(transaction.select(dbIndex)));
+				transaction(new JedisStatusResult(getRequiredTransaction().select(dbIndex)));
 				return;
 			}
 			jedis.select(dbIndex);
@@ -690,7 +712,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		try {
 			for (byte[] key : keys) {
 				if (isPipelined()) {
-					pipeline(new JedisStatusResult(pipeline.watch(key)));
+					pipeline(new JedisStatusResult(getRequiredPipeline().watch(key)));
 				} else {
 					jedis.watch(key);
 				}
@@ -712,11 +734,11 @@ public class JedisConnection extends AbstractRedisConnection {
 	public Long publish(byte[] channel, byte[] message) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.publish(channel, message)));
+				pipeline(new JedisResult(getRequiredPipeline().publish(channel, message)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new JedisResult(transaction.publish(channel, message)));
+				transaction(new JedisResult(getRequiredTransaction().publish(channel, message)));
 				return null;
 			}
 			return jedis.publish(channel, message);
@@ -816,10 +838,6 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	protected boolean isActive(RedisNode node) {
-
-		if (node == null) {
-			return false;
-		}
 
 		Jedis temp = null;
 		try {

@@ -20,6 +20,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
@@ -41,6 +42,9 @@ class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 	@Override
 	public Long pfAdd(byte[] key, byte[]... values) {
 
+		Assert.notEmpty(values, "PFADD requires at least one non 'null' value.");
+		Assert.noNullElements(values, "Values for PFADD must not contain 'null'.");
+
 		try {
 			return connection.getCluster().pfadd(key, values);
 		} catch (Exception ex) {
@@ -54,6 +58,9 @@ class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 	 */
 	@Override
 	public Long pfCount(byte[]... keys) {
+
+		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key.");
+		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'.");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 
@@ -73,6 +80,10 @@ class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 	 */
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
+
+		Assert.notNull(destinationKey, "Destination key must not be null");
+		Assert.notNull(sourceKeys, "Source keys must not be null");
+		Assert.noNullElements(sourceKeys, "Keys for PFMERGE must not contain 'null'.");
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destinationKey, sourceKeys);
 

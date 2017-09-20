@@ -21,6 +21,8 @@ import io.lettuce.core.ScoredValueScanCursor;
 import io.lettuce.core.ZStoreArgs;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Set;
@@ -40,13 +42,10 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class LettuceZSetCommands implements RedisZSetCommands {
 
-	private final LettuceConnection connection;
-
-	LettuceZSetCommands(LettuceConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull LettuceConnection connection;
 
 	/*
 	 * (non-Javadoc)
@@ -54,6 +53,10 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	 */
 	@Override
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().zadd(key, score, value),
@@ -77,6 +80,10 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	 */
 	@Override
 	public Long zAdd(byte[] key, Set<Tuple> tuples) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(tuples, "Tuples must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(
@@ -96,44 +103,25 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zCard(byte[])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRem(byte[], byte[][])
 	 */
 	@Override
-	public Long zCard(byte[] key) {
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zcard(key)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zcard(key)));
-				return null;
-			}
-			return getConnection().zcard(key);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
+	public Long zRem(byte[] key, byte[]... values) {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
-	@Override
-	public Long zCount(byte[] key, Range range) {
-
-		Assert.notNull(range, "Range for ZCOUNT must not be null!");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Values must not be null!");
+		Assert.noNullElements(values, "Values must not contain null elements!");
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zcount(key, LettuceConverters.toRange(range))));
+				pipeline(connection.newLettuceResult(getAsyncConnection().zrem(key, values)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zcount(key, LettuceConverters.toRange(range))));
+				transaction(connection.newLettuceTxResult(getConnection().zrem(key, values)));
 				return null;
 			}
-			return getConnection().zcount(key, LettuceConverters.toRange(range));
+			return getConnection().zrem(key, values);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -145,6 +133,10 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	 */
 	@Override
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().zincrby(key, increment, value)));
@@ -162,23 +154,24 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], byte[][])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRank(byte[], byte[])
 	 */
 	@Override
-	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	public Long zRank(byte[] key, byte[] value) {
 
-		ZStoreArgs storeArgs = zStoreArgs(aggregate, weights);
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zinterstore(destKey, storeArgs, sets)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().zrank(key, value)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zinterstore(destKey, storeArgs, sets)));
+				transaction(connection.newLettuceTxResult(getConnection().zrank(key, value)));
 				return null;
 			}
-			return getConnection().zinterstore(destKey, storeArgs, sets);
+			return getConnection().zrank(key, value);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -186,20 +179,23 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], byte[][])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRank(byte[], byte[])
 	 */
 	@Override
-	public Long zInterStore(byte[] destKey, byte[]... sets) {
+	public Long zRevRank(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zinterstore(destKey, sets)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().zrevrank(key, value)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zinterstore(destKey, sets)));
+				transaction(connection.newLettuceTxResult(getConnection().zrevrank(key, value)));
 				return null;
 			}
-			return getConnection().zinterstore(destKey, sets);
+			return getConnection().zrevrank(key, value);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -211,6 +207,9 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	 */
 	@Override
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().zrange(key, start, end),
@@ -234,6 +233,9 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	 */
 	@Override
 	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().zrangeWithScores(key, start, end),
@@ -253,55 +255,12 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
-	@Override
-	public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
-
-		Assert.notNull(range, "Range for ZRANGEBYSCORE must not be null!");
-		Assert.notNull(limit, "Limit must not be null!");
-
-		try {
-			if (isPipelined()) {
-				if (limit.isUnlimited()) {
-					pipeline(
-							connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, LettuceConverters.toRange(range)),
-									LettuceConverters.bytesListToBytesSet()));
-				} else {
-					pipeline(connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, LettuceConverters.toRange(range),
-							LettuceConverters.toLimit(limit)), LettuceConverters.bytesListToBytesSet()));
-				}
-				return null;
-			}
-			if (isQueueing()) {
-				if (limit.isUnlimited()) {
-					transaction(
-							connection.newLettuceTxResult(getConnection().zrangebyscore(key, LettuceConverters.toRange(range)),
-									LettuceConverters.bytesListToBytesSet()));
-				} else {
-					transaction(connection.newLettuceTxResult(
-							getConnection().zrangebyscore(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
-							LettuceConverters.bytesListToBytesSet()));
-				}
-				return null;
-			}
-			if (limit.isUnlimited()) {
-				return LettuceConverters.toBytesSet(getConnection().zrangebyscore(key, LettuceConverters.toRange(range)));
-			}
-			return LettuceConverters.toBytesSet(
-					getConnection().zrangebyscore(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
 
+		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range for ZRANGEBYSCOREWITHSCORES must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
@@ -343,10 +302,39 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRange(byte[], long, long)
+	 */
+	@Override
+	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().zrevrange(key, start, end),
+						LettuceConverters.bytesListToBytesSet()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().zrevrange(key, start, end),
+						LettuceConverters.bytesListToBytesSet()));
+				return null;
+			}
+			return LettuceConverters.toBytesSet(getConnection().zrevrange(key, start, end));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeWithScores(byte[], long, long)
 	 */
 	@Override
 	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().zrevrangeWithScores(key, start, end),
@@ -371,6 +359,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
 
+		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range for ZREVRANGEBYSCORE must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
@@ -416,6 +405,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
 
+		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range for ZREVRANGEBYSCOREWITHSCORES must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
@@ -432,6 +422,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				}
 				return null;
 			}
+
 			if (isQueueing()) {
 				if (limit.isUnlimited()) {
 					transaction(connection.newLettuceTxResult(
@@ -457,20 +448,23 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRank(byte[], byte[])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
 	 */
 	@Override
-	public Long zRank(byte[] key, byte[] value) {
+	public Long zCount(byte[] key, Range range) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrank(key, value)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().zcount(key, LettuceConverters.toRange(range))));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrank(key, value)));
+				transaction(connection.newLettuceTxResult(getConnection().zcount(key, LettuceConverters.toRange(range))));
 				return null;
 			}
-			return getConnection().zrank(key, value);
+			return getConnection().zcount(key, LettuceConverters.toRange(range));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -478,20 +472,48 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRem(byte[], byte[][])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zCard(byte[])
 	 */
 	@Override
-	public Long zRem(byte[] key, byte[]... values) {
+	public Long zCard(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrem(key, values)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().zcard(key)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrem(key, values)));
+				transaction(connection.newLettuceTxResult(getConnection().zcard(key)));
 				return null;
 			}
-			return getConnection().zrem(key, values);
+			return getConnection().zcard(key);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zScore(byte[], byte[])
+	 */
+	@Override
+	public Double zScore(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().zscore(key, value)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().zscore(key, value)));
+				return null;
+			}
+			return getConnection().zscore(key, value);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -503,6 +525,9 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	 */
 	@Override
 	public Long zRemRange(byte[] key, long start, long end) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().zremrangebyrank(key, start, end)));
@@ -525,6 +550,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	@Override
 	public Long zRemRangeByScore(byte[] key, Range range) {
 
+		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range for ZREMRANGEBYSCORE must not be null!");
 
 		try {
@@ -546,75 +572,15 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRange(byte[], long, long)
-	 */
-	@Override
-	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrevrange(key, start, end),
-						LettuceConverters.bytesListToBytesSet()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrevrange(key, start, end),
-						LettuceConverters.bytesListToBytesSet()));
-				return null;
-			}
-			return LettuceConverters.toBytesSet(getConnection().zrevrange(key, start, end));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRank(byte[], byte[])
-	 */
-	@Override
-	public Long zRevRank(byte[] key, byte[] value) {
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrevrank(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrevrank(key, value)));
-				return null;
-			}
-			return getConnection().zrevrank(key, value);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zScore(byte[], byte[])
-	 */
-	@Override
-	public Double zScore(byte[] key, byte[] value) {
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zscore(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zscore(key, value)));
-				return null;
-			}
-			return getConnection().zscore(key, value);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], byte[][])
 	 */
 	@Override
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(sets, "Source sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+
 		ZStoreArgs storeArgs = zStoreArgs(aggregate, weights);
 
 		try {
@@ -638,6 +604,11 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	 */
 	@Override
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(sets, "Source sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().zunionstore(destKey, sets)));
@@ -648,6 +619,60 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			return getConnection().zunionstore(destKey, sets);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], byte[][])
+	 */
+	@Override
+	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(sets, "Source sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+
+		ZStoreArgs storeArgs = zStoreArgs(aggregate, weights);
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().zinterstore(destKey, storeArgs, sets)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().zinterstore(destKey, storeArgs, sets)));
+				return null;
+			}
+			return getConnection().zinterstore(destKey, storeArgs, sets);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], byte[][])
+	 */
+	@Override
+	public Long zInterStore(byte[] destKey, byte[]... sets) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(sets, "Source sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().zinterstore(destKey, sets)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().zinterstore(destKey, sets)));
+				return null;
+			}
+			return getConnection().zinterstore(destKey, sets);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -671,6 +696,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	 */
 	public Cursor<Tuple> zScan(byte[] key, long cursorId, ScanOptions options) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		return new KeyBoundCursor<Tuple>(key, cursorId, options) {
 
 			@Override
@@ -692,6 +719,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return new ScanIteration<>(Long.valueOf(nextCursorId), values);
 			}
 
+			@Override
 			protected void doClose() {
 				LettuceZSetCommands.this.connection.close();
 			}
@@ -705,6 +733,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+
+		Assert.notNull(key, "Key must not be null!");
 
 		try {
 			if (isPipelined()) {
@@ -730,6 +760,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, min, max, offset, count),
@@ -749,12 +781,58 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range for ZRANGEBYSCORE must not be null!");
+		Assert.notNull(limit, "Limit must not be null!");
+
+		try {
+			if (isPipelined()) {
+				if (limit.isUnlimited()) {
+					pipeline(
+							connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, LettuceConverters.toRange(range)),
+									LettuceConverters.bytesListToBytesSet()));
+				} else {
+					pipeline(connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, LettuceConverters.toRange(range),
+							LettuceConverters.toLimit(limit)), LettuceConverters.bytesListToBytesSet()));
+				}
+				return null;
+			}
+			if (isQueueing()) {
+				if (limit.isUnlimited()) {
+					transaction(
+							connection.newLettuceTxResult(getConnection().zrangebyscore(key, LettuceConverters.toRange(range)),
+									LettuceConverters.bytesListToBytesSet()));
+				} else {
+					transaction(connection.newLettuceTxResult(
+							getConnection().zrangebyscore(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
+							LettuceConverters.bytesListToBytesSet()));
+				}
+				return null;
+			}
+			if (limit.isUnlimited()) {
+				return LettuceConverters.toBytesSet(getConnection().zrangebyscore(key, LettuceConverters.toRange(range)));
+			}
+			return LettuceConverters.toBytesSet(
+					getConnection().zrangebyscore(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
 	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
 
-		Assert.notNull(range, "Range cannot be null for ZRANGEBYLEX.");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range for ZRANGEBYLEX must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
 		try {

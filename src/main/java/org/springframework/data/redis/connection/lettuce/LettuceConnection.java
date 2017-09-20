@@ -95,7 +95,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private int dbIndex;
 
 	private final LettuceConnectionProvider connectionProvider;
-	private final StatefulConnection<byte[], byte[]> asyncSharedConn;
+	private final @Nullable StatefulConnection<byte[], byte[]> asyncSharedConn;
 	private @Nullable StatefulConnection<byte[], byte[]> asyncDedicatedConn;
 
 	private final long timeout;
@@ -105,7 +105,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private boolean isMulti = false;
 	private boolean isPipelined = false;
 	private @Nullable List<LettuceResult> ppline;
-	private Queue<FutureResult<?>> txResults = new LinkedList<>();
+	private final Queue<FutureResult<?>> txResults = new LinkedList<>();
 	private volatile @Nullable LettuceSubscription subscription;
 	/** flag indicating whether the connection needs to be dropped or not */
 	private boolean convertPipelineAndTxResults = true;
@@ -129,7 +129,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 				}
 				return resultHolder.getOutput().get();
 			} catch (Exception e) {
-				throw EXCEPTION_TRANSLATION.translate(e);
+				throw LettuceConnection.this.convertLettuceAccessException(e);
 			}
 		}
 	}
@@ -239,7 +239,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param timeout The connection timeout (in milliseconds)
 	 * @param client The {@link RedisClient} to use when making pub/sub, blocking, and tx connections
 	 */
-	public LettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout, RedisClient client) {
+	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
+			RedisClient client) {
 		this(sharedConnection, timeout, client, null);
 	}
 
@@ -255,8 +256,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 *             {@link #LettuceConnection(StatefulRedisConnection, LettuceConnectionProvider, long, int)}
 	 */
 	@Deprecated
-	public LettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout, RedisClient client,
-			LettucePool pool) {
+	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
+			RedisClient client, @Nullable LettucePool pool) {
 
 		this(sharedConnection, timeout, client, pool, 0);
 	}
@@ -273,8 +274,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 *             {@link #LettuceConnection(StatefulRedisConnection, LettuceConnectionProvider, long, int)}
 	 */
 	@Deprecated
-	public LettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
-			AbstractRedisClient client, LettucePool pool, int defaultDbIndex) {
+	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
+			@Nullable AbstractRedisClient client, @Nullable LettucePool pool, int defaultDbIndex) {
 
 		if (pool != null) {
 			this.connectionProvider = new LettucePoolConnectionProvider(pool);
@@ -402,6 +403,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return new LettuceZSetCommands(this);
 	}
 
+	@Nullable
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Object await(RedisFuture<?> cmd) {
 
@@ -425,8 +427,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param args Possible command arguments (may be {@literal null})
 	 * @return execution result.
 	 */
+	@Nullable
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public Object execute(String command, CommandOutput commandOutputTypeHint, byte[]... args) {
+	public Object execute(String command, @Nullable CommandOutput commandOutputTypeHint, byte[]... args) {
 
 		Assert.hasText(command, "a valid command needs to be specified");
 		try {
@@ -461,6 +464,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
 	public void close() throws DataAccessException {
 
 		super.close();
@@ -489,22 +493,27 @@ public class LettuceConnection extends AbstractRedisConnection {
 		this.dbIndex = defaultDbIndex;
 	}
 
+	@Override
 	public boolean isClosed() {
 		return isClosed && !isSubscribed();
 	}
 
+	@Override
 	public RedisClusterAsyncCommands<byte[], byte[]> getNativeConnection() {
 		return (subscription != null ? subscription.pubsub.async() : getAsyncConnection());
 	}
 
+	@Override
 	public boolean isQueueing() {
 		return isMulti;
 	}
 
+	@Override
 	public boolean isPipelined() {
 		return isPipelined;
 	}
 
+	@Override
 	public void openPipeline() {
 		if (!isPipelined) {
 			isPipelined = true;
@@ -512,6 +521,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
 	public List<Object> closePipeline() {
 
 		if (isPipelined) {
@@ -593,6 +603,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
 	public String ping() {
 		try {
 			if (isPipelined()) {
@@ -609,6 +620,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
 	public void discard() {
 		isMulti = false;
 		try {
@@ -624,6 +636,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public List<Object> exec() {
 		isMulti = false;
@@ -632,7 +645,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 				RedisFuture<TransactionResult> exec = ((RedisAsyncCommands) getAsyncDedicatedConnection()).exec();
 
 				LettuceTransactionResultConverter resultConverter = new LettuceTransactionResultConverter(
-						new LinkedList<FutureResult<?>>(txResults), LettuceConverters.exceptionConverter());
+						new LinkedList<>(txResults), LettuceConverters.exceptionConverter());
 
 				pipeline(new LettuceResult(exec,
 						source -> resultConverter.convert(LettuceConverters.transactionResultUnwrapper().convert(source))));
@@ -651,6 +664,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
 	public void multi() {
 		if (isQueueing()) {
 			return;
@@ -667,6 +681,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
 	public void select(int dbIndex) {
 
 		if (asyncSharedConn != null) {
@@ -689,6 +704,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
 	public void unwatch() {
 		try {
 			if (isPipelined()) {
@@ -705,6 +721,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
 	public void watch(byte[]... keys) {
 		if (isQueueing()) {
 			throw new UnsupportedOperationException();
@@ -728,6 +745,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	// Pub/Sub functionality
 	//
 
+	@Override
 	public Long publish(byte[] channel, byte[] message) {
 		try {
 			if (isPipelined()) {
@@ -744,14 +762,17 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
 	public Subscription getSubscription() {
 		return subscription;
 	}
 
+	@Override
 	public boolean isSubscribed() {
 		return (subscription != null && subscription.isAlive());
 	}
 
+	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
 		checkSubscription();
 
@@ -769,6 +790,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		checkSubscription();
 
@@ -918,7 +940,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return io.lettuce.core.ScanCursor.of(Long.toString(cursorId));
 	}
 
-	ScanArgs getScanArgs(ScanOptions options) {
+	@Nullable
+	ScanArgs getScanArgs(@Nullable ScanOptions options) {
+
 		if (options == null) {
 			return null;
 		}
@@ -943,7 +967,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	private void validateCommand(CommandType cmd, byte[]... args) {
+	private void validateCommand(CommandType cmd, @Nullable byte[]... args) {
 
 		RedisCommand redisCommand = RedisCommand.failsafeCommandLookup(cmd.name());
 		if (!RedisCommand.UNKNOWN.equals(redisCommand) && redisCommand.requiresArguments()) {
@@ -957,10 +981,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	@Override
 	protected boolean isActive(RedisNode node) {
-
-		if (node == null) {
-			return false;
-		}
 
 		StatefulRedisSentinelConnection<String, String> connection = null;
 		try {
@@ -992,8 +1012,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	@SuppressWarnings("unchecked")
 	private StatefulRedisSentinelConnection<String, String> getConnection(RedisNode sentinel) {
-		return (StatefulRedisSentinelConnection) ((TargetAware) connectionProvider)
-				.getConnection(StatefulRedisSentinelConnection.class, getRedisURI(sentinel));
+		return ((TargetAware) connectionProvider).getConnection(StatefulRedisSentinelConnection.class,
+				getRedisURI(sentinel));
 	}
 
 	LettuceConnectionProvider getConnectionProvider() {

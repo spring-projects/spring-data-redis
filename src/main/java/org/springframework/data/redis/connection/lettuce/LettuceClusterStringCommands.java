@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import java.util.Map;
 
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
+import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
@@ -36,6 +37,8 @@ class LettuceClusterStringCommands extends LettuceStringCommands {
 	 */
 	@Override
 	public Boolean mSetNX(Map<byte[], byte[]> tuples) {
+
+		Assert.notNull(tuples, "Tuples must not be null!");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(tuples.keySet().toArray(new byte[tuples.keySet().size()][]))) {
 			return super.mSetNX(tuples);

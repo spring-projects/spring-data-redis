@@ -15,22 +15,23 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 
 import org.springframework.data.redis.connection.RedisScriptingCommands;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.util.Assert;
 
 /**
  * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class JedisScriptingCommands implements RedisScriptingCommands {
 
-	private final JedisConnection connection;
-
-	JedisScriptingCommands(JedisConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull JedisConnection connection;
 
 	/*
 	 * (non-Javadoc)
@@ -38,12 +39,11 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public void scriptFlush() {
-		if (isQueueing()) {
+
+		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException();
 		}
-		if (isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
+
 		try {
 			connection.getJedis().scriptFlush();
 		} catch (Exception ex) {
@@ -57,12 +57,11 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public void scriptKill() {
-		if (isQueueing()) {
+
+		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException();
 		}
-		if (isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
+
 		try {
 			connection.getJedis().scriptKill();
 		} catch (Exception ex) {
@@ -76,12 +75,13 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public String scriptLoad(byte[] script) {
-		if (isQueueing()) {
+
+		Assert.notNull(script, "Script must not be null!");
+
+		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException();
 		}
-		if (isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
+
 		try {
 			return JedisConverters.toString(connection.getJedis().scriptLoad(script));
 		} catch (Exception ex) {
@@ -95,12 +95,14 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public List<Boolean> scriptExists(String... scriptSha1) {
-		if (isQueueing()) {
+
+		Assert.notNull(scriptSha1, "Script digests must not be null!");
+		Assert.noNullElements(scriptSha1, "Script digests must not contain null elements!");
+
+		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException();
 		}
-		if (isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
+
 		try {
 			return connection.getJedis().scriptExists(scriptSha1);
 		} catch (Exception ex) {
@@ -115,12 +117,13 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		if (isQueueing()) {
+
+		Assert.notNull(script, "Script must not be null!");
+
+		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException();
 		}
-		if (isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
+
 		try {
 			return (T) new JedisScriptReturnConverter(returnType)
 					.convert(connection.getJedis().eval(script, JedisConverters.toBytes(numKeys), keysAndArgs));
@@ -146,12 +149,12 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	@SuppressWarnings("unchecked")
 	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
-		if (isQueueing()) {
+		Assert.notNull(scriptSha1, "Script digest must not be null!");
+
+		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException();
 		}
-		if (isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
+
 		try {
 			return (T) new JedisScriptReturnConverter(returnType)
 					.convert(connection.getJedis().evalsha(scriptSha1, numKeys, keysAndArgs));

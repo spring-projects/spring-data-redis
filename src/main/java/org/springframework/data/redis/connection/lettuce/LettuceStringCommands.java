@@ -17,6 +17,8 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -34,15 +36,20 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class LettuceStringCommands implements RedisStringCommands {
 
-	private final LettuceConnection connection;
+	private final @NonNull LettuceConnection connection;
 
-	LettuceStringCommands(LettuceConnection connection) {
-		this.connection = connection;
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#get(byte[])
+	 */
+	@Override
 	public byte[] get(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().get(key)));
@@ -58,7 +65,69 @@ class LettuceStringCommands implements RedisStringCommands {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#getSet(byte[], byte[])
+	 */
+	@Override
+	public byte[] getSet(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().getset(key, value)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().getset(key, value)));
+				return null;
+			}
+			return getConnection().getset(key, value);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#mGet(byte[][])
+	 */
+	@Override
+	public List<byte[]> mGet(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(
+						connection.newLettuceResult(getAsyncConnection().mget(keys), LettuceConverters.keyValueListUnwrapper()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(
+						connection.newLettuceTxResult(getConnection().mget(keys), LettuceConverters.keyValueListUnwrapper()));
+				return null;
+			}
+
+			return LettuceConverters.<byte[], byte[]> keyValueListUnwrapper().convert(getConnection().mget(keys));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[])
+	 */
+	@Override
 	public void set(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceStatusResult(getAsyncConnection().set(key, value)));
@@ -81,6 +150,8 @@ class LettuceStringCommands implements RedisStringCommands {
 	@Override
 	public void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
 
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 		Assert.notNull(expiration, "Expiration must not be null!");
 		Assert.notNull(option, "Option must not be null!");
 
@@ -101,111 +172,65 @@ class LettuceStringCommands implements RedisStringCommands {
 		}
 	}
 
-	public byte[] getSet(byte[] key, byte[] value) {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#setNX(byte[], byte[])
+	 */
+	@Override
+	public Boolean setNX(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().getset(key, value)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().setnx(key, value)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().getset(key, value)));
+				transaction(connection.newLettuceTxResult(getConnection().setnx(key, value)));
 				return null;
 			}
-			return getConnection().getset(key, value);
+			return getConnection().setnx(key, value);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
-	public Long append(byte[] key, byte[] value) {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#setEx(byte[], long, byte[])
+	 */
+	@Override
+	public void setEx(byte[] key, long seconds, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().append(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().append(key, value)));
-				return null;
-			}
-			return getConnection().append(key, value);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public List<byte[]> mGet(byte[]... keys) {
-		try {
-			if (isPipelined()) {
-				pipeline(
-						connection.newLettuceResult(getAsyncConnection().mget(keys), LettuceConverters.keyValueListUnwrapper()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(
-						connection.newLettuceTxResult(getConnection().mget(keys), LettuceConverters.keyValueListUnwrapper()));
-				return null;
-			}
-
-			return LettuceConverters.<byte[], byte[]> keyValueListUnwrapper().convert(getConnection().mget(keys));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public void mSet(Map<byte[], byte[]> tuples) {
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().mset(tuples)));
+				pipeline(connection.newLettuceStatusResult(getAsyncConnection().setex(key, seconds, value)));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().mset(tuples)));
+				transaction(connection.newLettuceTxStatusResult(getConnection().setex(key, seconds, value)));
 				return;
 			}
-			getConnection().mset(tuples);
+			getConnection().setex(key, seconds, value);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
-	public Boolean mSetNX(Map<byte[], byte[]> tuples) {
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().msetnx(tuples)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().msetnx(tuples)));
-				return null;
-			}
-			return getConnection().msetnx(tuples);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public void setEx(byte[] key, long time, byte[] value) {
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().setex(key, time, value)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().setex(key, time, value)));
-				return;
-			}
-			getConnection().setex(key, time, value);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	/**
-	 * @since 1.3
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
 	 */
 	@Override
 	public void pSetEx(byte[] key, long milliseconds, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		try {
 			if (isPipelined()) {
@@ -222,71 +247,63 @@ class LettuceStringCommands implements RedisStringCommands {
 		}
 	}
 
-	public Boolean setNX(byte[] key, byte[] value) {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#mSet(java.util.Map)
+	 */
+	@Override
+	public void mSet(Map<byte[], byte[]> tuples) {
+
+		Assert.notNull(tuples, "Tuples must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().setnx(key, value)));
-				return null;
+				pipeline(connection.newLettuceStatusResult(getAsyncConnection().mset(tuples)));
+				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().setnx(key, value)));
-				return null;
+				transaction(connection.newLettuceTxStatusResult(getConnection().mset(tuples)));
+				return;
 			}
-			return getConnection().setnx(key, value);
+			getConnection().mset(tuples);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
-	public byte[] getRange(byte[] key, long start, long end) {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#mSetNX(java.util.Map)
+	 */
+	@Override
+	public Boolean mSetNX(Map<byte[], byte[]> tuples) {
+
+		Assert.notNull(tuples, "Tuples must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().getrange(key, start, end)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().msetnx(tuples)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().getrange(key, start, end)));
+				transaction(connection.newLettuceTxResult(getConnection().msetnx(tuples)));
 				return null;
 			}
-			return getConnection().getrange(key, start, end);
+			return getConnection().msetnx(tuples);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
-	public Long decr(byte[] key) {
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().decr(key)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().decr(key)));
-				return null;
-			}
-			return getConnection().decr(key);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public Long decrBy(byte[] key, long value) {
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().decrby(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().decrby(key, value)));
-				return null;
-			}
-			return getConnection().decrby(key, value);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#incr(byte[])
+	 */
+	@Override
 	public Long incr(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().incr(key)));
@@ -302,7 +319,15 @@ class LettuceStringCommands implements RedisStringCommands {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#incrBy(byte[], long)
+	 */
+	@Override
 	public Long incrBy(byte[] key, long value) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().incrby(key, value)));
@@ -318,7 +343,15 @@ class LettuceStringCommands implements RedisStringCommands {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#incrBy(byte[], double)
+	 */
+	@Override
 	public Double incrBy(byte[] key, double value) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().incrbyfloat(key, value)));
@@ -334,7 +367,137 @@ class LettuceStringCommands implements RedisStringCommands {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#decr(byte[])
+	 */
+	@Override
+	public Long decr(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().decr(key)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().decr(key)));
+				return null;
+			}
+			return getConnection().decr(key);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#decrBy(byte[], long)
+	 */
+	@Override
+	public Long decrBy(byte[] key, long value) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().decrby(key, value)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().decrby(key, value)));
+				return null;
+			}
+			return getConnection().decrby(key, value);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#append(byte[], byte[])
+	 */
+	@Override
+	public Long append(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().append(key, value)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().append(key, value)));
+				return null;
+			}
+			return getConnection().append(key, value);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#getRange(byte[], long, long)
+	 */
+	@Override
+	public byte[] getRange(byte[] key, long start, long end) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().getrange(key, start, end)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().getrange(key, start, end)));
+				return null;
+			}
+			return getConnection().getrange(key, start, end);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#setRange(byte[], byte[], long)
+	 */
+	@Override
+	public void setRange(byte[] key, byte[] value, long offset) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceStatusResult(getAsyncConnection().setrange(key, offset, value)));
+				return;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxStatusResult(getConnection().setrange(key, offset, value)));
+				return;
+			}
+			getConnection().setrange(key, offset, value);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#getBit(byte[], long)
+	 */
+	@Override
 	public Boolean getBit(byte[] key, long offset) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(
@@ -352,7 +515,15 @@ class LettuceStringCommands implements RedisStringCommands {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#setBit(byte[], long, boolean)
+	 */
+	@Override
 	public Boolean setBit(byte[] key, long offset, boolean value) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().setbit(key, offset, LettuceConverters.toInt(value)),
@@ -371,39 +542,15 @@ class LettuceStringCommands implements RedisStringCommands {
 		}
 	}
 
-	public void setRange(byte[] key, byte[] value, long start) {
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().setrange(key, start, value)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().setrange(key, start, value)));
-				return;
-			}
-			getConnection().setrange(key, start, value);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	public Long strLen(byte[] key) {
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().strlen(key)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().strlen(key)));
-				return null;
-			}
-			return getConnection().strlen(key);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitCount(byte[])
+	 */
+	@Override
 	public Long bitCount(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().bitcount(key)));
@@ -419,23 +566,43 @@ class LettuceStringCommands implements RedisStringCommands {
 		}
 	}
 
-	public Long bitCount(byte[] key, long begin, long end) {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitCount(byte[], long, long)
+	 */
+	@Override
+	public Long bitCount(byte[] key, long start, long end) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().bitcount(key, begin, end)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().bitcount(key, start, end)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().bitcount(key, begin, end)));
+				transaction(connection.newLettuceTxResult(getConnection().bitcount(key, start, end)));
 				return null;
 			}
-			return getConnection().bitcount(key, begin, end);
+			return getConnection().bitcount(key, start, end);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitOp(org.springframework.data.redis.connection.RedisStringCommands.BitOperation, byte[], byte[][])
+	 */
+	@Override
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
+
+		Assert.notNull(op, "BitOperation must not be null!");
+		Assert.notNull(destination, "Destination key must not be null!");
+
+		if (op == BitOperation.NOT && keys.length > 1) {
+			throw new UnsupportedOperationException("Bitop NOT should only be performed against one key");
+		}
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(asyncBitOp(op, destination, keys)));
@@ -486,6 +653,30 @@ class LettuceStringCommands implements RedisStringCommands {
 				return getConnection().bitopNot(destination, keys[0]);
 			default:
 				throw new UnsupportedOperationException("Bit operation " + op + " is not supported");
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#strLen(byte[])
+	 */
+	@Override
+	public Long strLen(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().strlen(key)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().strlen(key)));
+				return null;
+			}
+			return getConnection().strlen(key);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
 		}
 	}
 

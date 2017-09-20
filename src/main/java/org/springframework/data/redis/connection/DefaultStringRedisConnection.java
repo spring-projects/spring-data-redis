@@ -796,8 +796,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#rename(byte[], byte[])
 	 */
 	@Override
-	public void rename(byte[] oldName, byte[] newName) {
-		delegate.rename(oldName, newName);
+	public void rename(byte[] sourceKey, byte[] targetKey) {
+		delegate.rename(sourceKey, targetKey);
 	}
 
 	/*
@@ -805,8 +805,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#renameNX(byte[], byte[])
 	 */
 	@Override
-	public Boolean renameNX(byte[] oldName, byte[] newName) {
-		return convertAndReturn(delegate.renameNX(oldName, newName), identityConverter);
+	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
+		return convertAndReturn(delegate.renameNX(sourceKey, targetKey), identityConverter);
 	}
 
 	/*
@@ -1129,8 +1129,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitCount(byte[], long, long)
 	 */
 	@Override
-	public Long bitCount(byte[] key, long begin, long end) {
-		return convertAndReturn(delegate.bitCount(key, begin, end), identityConverter);
+	public Long bitCount(byte[] key, long start, long end) {
+		return convertAndReturn(delegate.bitCount(key, start, end), identityConverter);
 	}
 
 	/*
@@ -2420,8 +2420,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#bitCount(java.lang.String, long, long)
 	 */
 	@Override
-	public Long bitCount(String key, long begin, long end) {
-		return bitCount(serialize(key), begin, end);
+	public Long bitCount(String key, long start, long end) {
+		return bitCount(serialize(key), start, end);
 	}
 
 	/*

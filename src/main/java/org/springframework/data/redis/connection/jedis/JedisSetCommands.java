@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.ScanParams;
 
 import java.util.ArrayList;
@@ -27,19 +29,17 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class JedisSetCommands implements RedisSetCommands {
 
-	private final JedisConnection connection;
-
-	JedisSetCommands(JedisConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull JedisConnection connection;
 
 	/*
 	 * (non-Javadoc)
@@ -47,13 +47,18 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public Long sAdd(byte[] key, byte[]... values) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Values must not be null!");
+		Assert.noNullElements(values, "Values must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().sadd(key, values)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().sadd(key, values)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().sadd(key, values)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().sadd(key, values)));
 				return null;
 			}
 			return connection.getJedis().sadd(key, values);
@@ -68,13 +73,16 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public Long sCard(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().scard(key)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().scard(key)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().scard(key)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().scard(key)));
 				return null;
 			}
 			return connection.getJedis().scard(key);
@@ -89,13 +97,17 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().sdiff(keys)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().sdiff(keys)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().sdiff(keys)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().sdiff(keys)));
 				return null;
 			}
 			return connection.getJedis().sdiff(keys);
@@ -110,13 +122,18 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(keys, "Source keys must not be null!");
+		Assert.noNullElements(keys, "Source keys must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().sdiffstore(destKey, keys)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().sdiffstore(destKey, keys)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().sdiffstore(destKey, keys)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().sdiffstore(destKey, keys)));
 				return null;
 			}
 			return connection.getJedis().sdiffstore(destKey, keys);
@@ -131,13 +148,17 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().sinter(keys)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().sinter(keys)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().sinter(keys)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().sinter(keys)));
 				return null;
 			}
 			return connection.getJedis().sinter(keys);
@@ -152,13 +173,18 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(keys, "Source keys must not be null!");
+		Assert.noNullElements(keys, "Source keys must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().sinterstore(destKey, keys)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().sinterstore(destKey, keys)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().sinterstore(destKey, keys)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().sinterstore(destKey, keys)));
 				return null;
 			}
 			return connection.getJedis().sinterstore(destKey, keys);
@@ -173,13 +199,17 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public Boolean sIsMember(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().sismember(key, value)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().sismember(key, value)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().sismember(key, value)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().sismember(key, value)));
 				return null;
 			}
 			return connection.getJedis().sismember(key, value);
@@ -194,13 +224,16 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public Set<byte[]> sMembers(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().smembers(key)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().smembers(key)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().smembers(key)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().smembers(key)));
 				return null;
 			}
 			return connection.getJedis().smembers(key);
@@ -215,14 +248,19 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
+
+		Assert.notNull(srcKey, "Source key must not be null!");
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().smove(srcKey, destKey, value),
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().smove(srcKey, destKey, value),
 						JedisConverters.longToBoolean()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().smove(srcKey, destKey, value),
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().smove(srcKey, destKey, value),
 						JedisConverters.longToBoolean()));
 				return null;
 			}
@@ -238,13 +276,16 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public byte[] sPop(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().spop(key)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().spop(key)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().spop(key)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().spop(key)));
 				return null;
 			}
 			return connection.getJedis().spop(key);
@@ -260,13 +301,15 @@ class JedisSetCommands implements RedisSetCommands {
 	@Override
 	public List<byte[]> sPop(byte[] key, long count) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().spop(key, count), ArrayList::new));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().spop(key, count), ArrayList::new));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().spop(key, count), ArrayList::new));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().spop(key, count), ArrayList::new));
 				return null;
 			}
 			return new ArrayList<>(connection.getJedis().spop(key, count));
@@ -281,13 +324,16 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public byte[] sRandMember(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().srandmember(key)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().srandmember(key)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().srandmember(key)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().srandmember(key)));
 				return null;
 			}
 			return connection.getJedis().srandmember(key);
@@ -303,17 +349,19 @@ class JedisSetCommands implements RedisSetCommands {
 	@Override
 	public List<byte[]> sRandMember(byte[] key, long count) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		if (count > Integer.MAX_VALUE) {
 			throw new IllegalArgumentException("Count must be less than Integer.MAX_VALUE for sRandMember in Jedis.");
 		}
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().srandmember(key, (int) count)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().srandmember(key, (int) count)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().srandmember(key, (int) count)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().srandmember(key, (int) count)));
 				return null;
 			}
 			return connection.getJedis().srandmember(key, (int) count);
@@ -328,13 +376,18 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public Long sRem(byte[] key, byte[]... values) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Values must not be null!");
+		Assert.noNullElements(values, "Values must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().srem(key, values)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().srem(key, values)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().srem(key, values)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().srem(key, values)));
 				return null;
 			}
 			return connection.getJedis().srem(key, values);
@@ -349,13 +402,17 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().sunion(keys)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().sunion(keys)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().sunion(keys)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().sunion(keys)));
 				return null;
 			}
 			return connection.getJedis().sunion(keys);
@@ -370,13 +427,18 @@ class JedisSetCommands implements RedisSetCommands {
 	 */
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(keys, "Source keys must not be null!");
+		Assert.noNullElements(keys, "Source keys must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().sunionstore(destKey, keys)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().sunionstore(destKey, keys)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().sunionstore(destKey, keys)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().sunionstore(destKey, keys)));
 				return null;
 			}
 			return connection.getJedis().sunionstore(destKey, keys);
@@ -402,6 +464,8 @@ class JedisSetCommands implements RedisSetCommands {
 	 * @return
 	 */
 	public Cursor<byte[]> sScan(byte[] key, long cursorId, ScanOptions options) {
+
+		Assert.notNull(key, "Key must not be null!");
 
 		return new KeyBoundCursor<byte[]>(key, cursorId, options) {
 

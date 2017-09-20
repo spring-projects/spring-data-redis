@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.Protocol;
 
 import java.util.ArrayList;
@@ -22,19 +24,17 @@ import java.util.List;
 
 import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.data.redis.connection.jedis.JedisConnection.JedisResult;
+import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class JedisListCommands implements RedisListCommands {
 
-	private final JedisConnection connection;
-
-	JedisListCommands(JedisConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull JedisConnection connection;
 
 	/*
 	 * (non-Javadoc)
@@ -43,13 +43,15 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public Long rPush(byte[] key, byte[]... values) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().rpush(key, values)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().rpush(key, values)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().rpush(key, values)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().rpush(key, values)));
 				return null;
 			}
 			return connection.getJedis().rpush(key, values);
@@ -65,13 +67,17 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public Long lPush(byte[] key, byte[]... values) {
 
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Values must not be null!");
+		Assert.noNullElements(values, "Values must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().lpush(key, values)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().lpush(key, values)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().lpush(key, values)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().lpush(key, values)));
 				return null;
 			}
 			return connection.getJedis().lpush(key, values);
@@ -86,13 +92,17 @@ class JedisListCommands implements RedisListCommands {
 	 */
 	@Override
 	public Long rPushX(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().rpushx(key, value)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().rpushx(key, value)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().rpushx(key, value)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().rpushx(key, value)));
 				return null;
 			}
 			return connection.getJedis().rpushx(key, value);
@@ -108,13 +118,16 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public Long lPushX(byte[] key, byte[] value) {
 
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().lpushx(key, value)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().lpushx(key, value)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().lpushx(key, value)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().lpushx(key, value)));
 				return null;
 			}
 			return connection.getJedis().lpushx(key, value);
@@ -130,13 +143,15 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public Long lLen(byte[] key) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().llen(key)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().llen(key)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().llen(key)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().llen(key)));
 				return null;
 			}
 			return connection.getJedis().llen(key);
@@ -152,13 +167,15 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public List<byte[]> lRange(byte[] key, long start, long end) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().lrange(key, start, end)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().lrange(key, start, end)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().lrange(key, start, end)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().lrange(key, start, end)));
 				return null;
 			}
 			return connection.getJedis().lrange(key, start, end);
@@ -174,13 +191,15 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public void lTrim(byte[] key, long start, long end) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getPipeline().ltrim(key, start, end)));
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().ltrim(key, start, end)));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getTransaction().ltrim(key, start, end)));
+				transaction(connection.newStatusResult(connection.getRequiredTransaction().ltrim(key, start, end)));
 				return;
 			}
 			connection.getJedis().ltrim(key, start, end);
@@ -196,13 +215,15 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public byte[] lIndex(byte[] key, long index) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().lindex(key, index)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().lindex(key, index)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().lindex(key, index)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().lindex(key, index)));
 				return null;
 			}
 			return connection.getJedis().lindex(key, index);
@@ -218,15 +239,17 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newJedisResult(
-						connection.getPipeline().linsert(key, JedisConverters.toListPosition(where), pivot, value)));
+						connection.getRequiredPipeline().linsert(key, JedisConverters.toListPosition(where), pivot, value)));
 				return null;
 			}
 			if (isQueueing()) {
 				transaction(connection.newJedisResult(
-						connection.getTransaction().linsert(key, JedisConverters.toListPosition(where), pivot, value)));
+						connection.getRequiredTransaction().linsert(key, JedisConverters.toListPosition(where), pivot, value)));
 				return null;
 			}
 			return connection.getJedis().linsert(key, JedisConverters.toListPosition(where), pivot, value);
@@ -242,13 +265,16 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public void lSet(byte[] key, long index, byte[] value) {
 
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getPipeline().lset(key, index, value)));
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().lset(key, index, value)));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getTransaction().lset(key, index, value)));
+				transaction(connection.newStatusResult(connection.getRequiredTransaction().lset(key, index, value)));
 				return;
 			}
 			connection.getJedis().lset(key, index, value);
@@ -264,13 +290,16 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public Long lRem(byte[] key, long count, byte[] value) {
 
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().lrem(key, count, value)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().lrem(key, count, value)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().lrem(key, count, value)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().lrem(key, count, value)));
 				return null;
 			}
 			return connection.getJedis().lrem(key, count, value);
@@ -286,13 +315,15 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public byte[] lPop(byte[] key) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().lpop(key)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().lpop(key)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().lpop(key)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().lpop(key)));
 				return null;
 			}
 			return connection.getJedis().lpop(key);
@@ -308,13 +339,15 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public byte[] rPop(byte[] key) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().rpop(key)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().rpop(key)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().rpop(key)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().rpop(key)));
 				return null;
 			}
 			return connection.getJedis().rpop(key);
@@ -331,13 +364,16 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 
+		Assert.notNull(keys, "Key must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().blpop(bXPopArgs(timeout, keys))));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().blpop(bXPopArgs(timeout, keys))));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().blpop(bXPopArgs(timeout, keys))));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().blpop(bXPopArgs(timeout, keys))));
 				return null;
 			}
 			return connection.getJedis().blpop(timeout, keys);
@@ -353,13 +389,16 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 
+		Assert.notNull(keys, "Key must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().brpop(bXPopArgs(timeout, keys))));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().brpop(bXPopArgs(timeout, keys))));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().brpop(bXPopArgs(timeout, keys))));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().brpop(bXPopArgs(timeout, keys))));
 				return null;
 			}
 			return connection.getJedis().brpop(timeout, keys);
@@ -375,13 +414,16 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
 
+		Assert.notNull(srcKey, "Source key must not be null!");
+		Assert.notNull(dstKey, "Destination key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().rpoplpush(srcKey, dstKey)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().rpoplpush(srcKey, dstKey)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().rpoplpush(srcKey, dstKey)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().rpoplpush(srcKey, dstKey)));
 				return null;
 			}
 			return connection.getJedis().rpoplpush(srcKey, dstKey);
@@ -397,13 +439,16 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
 
+		Assert.notNull(srcKey, "Source key must not be null!");
+		Assert.notNull(dstKey, "Destination key must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getPipeline().brpoplpush(srcKey, dstKey, timeout)));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().brpoplpush(srcKey, dstKey, timeout)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getTransaction().brpoplpush(srcKey, dstKey, timeout)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().brpoplpush(srcKey, dstKey, timeout)));
 				return null;
 			}
 			return connection.getJedis().brpoplpush(srcKey, dstKey, timeout);
@@ -414,8 +459,8 @@ class JedisListCommands implements RedisListCommands {
 
 	private byte[][] bXPopArgs(int timeout, byte[]... keys) {
 
-		final List<byte[]> args = new ArrayList<>();
-		for (final byte[] arg : keys) {
+		List<byte[]> args = new ArrayList<>();
+		for (byte[] arg : keys) {
 			args.add(arg);
 		}
 		args.add(Protocol.toByteArray(timeout));

@@ -23,6 +23,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -45,6 +46,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public Long rPush(byte[] key, byte[]... values) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			return connection.getCluster().rpush(key, values);
 		} catch (Exception ex) {
@@ -58,6 +61,10 @@ class JedisClusterListCommands implements RedisListCommands {
 	 */
 	@Override
 	public Long lPush(byte[] key, byte[]... values) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Values must not be null!");
+		Assert.noNullElements(values, "Values must not contain null elements!");
 
 		try {
 			return connection.getCluster().lpush(key, values);
@@ -73,6 +80,9 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public Long rPushX(byte[] key, byte[] value) {
 
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			return connection.getCluster().rpushx(key, value);
 		} catch (Exception ex) {
@@ -86,6 +96,9 @@ class JedisClusterListCommands implements RedisListCommands {
 	 */
 	@Override
 	public Long lPushX(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		try {
 			return connection.getCluster().lpushx(key, value);
@@ -101,6 +114,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public Long lLen(byte[] key) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			return connection.getCluster().llen(key);
 		} catch (Exception ex) {
@@ -113,10 +128,12 @@ class JedisClusterListCommands implements RedisListCommands {
 	 * @see org.springframework.data.redis.connection.RedisListCommands#lRange(byte[], long, long)
 	 */
 	@Override
-	public List<byte[]> lRange(byte[] key, long begin, long end) {
+	public List<byte[]> lRange(byte[] key, long start, long end) {
+
+		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			return connection.getCluster().lrange(key, begin, end);
+			return connection.getCluster().lrange(key, start, end);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -127,10 +144,12 @@ class JedisClusterListCommands implements RedisListCommands {
 	 * @see org.springframework.data.redis.connection.RedisListCommands#lTrim(byte[], long, long)
 	 */
 	@Override
-	public void lTrim(final byte[] key, final long begin, final long end) {
+	public void lTrim(byte[] key, long start, long end) {
+
+		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			connection.getCluster().ltrim(key, begin, end);
+			connection.getCluster().ltrim(key, start, end);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -142,6 +161,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	 */
 	@Override
 	public byte[] lIndex(byte[] key, long index) {
+
+		Assert.notNull(key, "Key must not be null!");
 
 		try {
 			return connection.getCluster().lindex(key, index);
@@ -157,6 +178,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			return connection.getCluster().linsert(key, JedisConverters.toListPosition(where), pivot, value);
 		} catch (Exception ex) {
@@ -170,6 +193,9 @@ class JedisClusterListCommands implements RedisListCommands {
 	 */
 	@Override
 	public void lSet(byte[] key, long index, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		try {
 			connection.getCluster().lset(key, index, value);
@@ -185,6 +211,9 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public Long lRem(byte[] key, long count, byte[] value) {
 
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+
 		try {
 			return connection.getCluster().lrem(key, count, value);
 		} catch (Exception ex) {
@@ -198,6 +227,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	 */
 	@Override
 	public byte[] lPop(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
 
 		try {
 			return connection.getCluster().lpop(key);
@@ -213,6 +244,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public byte[] rPop(byte[] key) {
 
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			return connection.getCluster().rpop(key);
 		} catch (Exception ex) {
@@ -225,7 +258,10 @@ class JedisClusterListCommands implements RedisListCommands {
 	 * @see org.springframework.data.redis.connection.RedisListCommands#bLPop(int, byte[][])
 	 */
 	@Override
-	public List<byte[]> bLPop(final int timeout, final byte[]... keys) {
+	public List<byte[]> bLPop(int timeout, byte[]... keys) {
+
+		Assert.notNull(keys, "Key must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
@@ -247,7 +283,10 @@ class JedisClusterListCommands implements RedisListCommands {
 	 * @see org.springframework.data.redis.connection.RedisListCommands#bRPop(int, byte[][])
 	 */
 	@Override
-	public List<byte[]> bRPop(final int timeout, byte[]... keys) {
+	public List<byte[]> bRPop(int timeout, byte[]... keys) {
+
+		Assert.notNull(keys, "Key must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		return connection.getClusterCommandExecutor()
 				.executeMultiKeyCommand(
@@ -262,6 +301,9 @@ class JedisClusterListCommands implements RedisListCommands {
 	 */
 	@Override
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
+
+		Assert.notNull(srcKey, "Source key must not be null!");
+		Assert.notNull(dstKey, "Destination key must not be null!");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, dstKey)) {
 			try {
@@ -282,6 +324,9 @@ class JedisClusterListCommands implements RedisListCommands {
 	 */
 	@Override
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
+
+		Assert.notNull(srcKey, "Source key must not be null!");
+		Assert.notNull(dstKey, "Destination key must not be null!");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, dstKey)) {
 			try {

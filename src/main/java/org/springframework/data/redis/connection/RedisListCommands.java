@@ -21,7 +21,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * List-specific commands supported by Redis.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch

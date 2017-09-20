@@ -20,12 +20,13 @@ import org.springframework.lang.Nullable;
 
 /**
  * The result of an asynchronous operation
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @param <T> The data type of the object that holds the future result (usually of type Future)
  */
-abstract public class FutureResult<T> {
+public abstract class FutureResult<T> {
 
 	protected T resultHolder;
 
@@ -50,7 +51,7 @@ abstract public class FutureResult<T> {
 
 	/**
 	 * Converts the given result if a converter is specified, else returns the result
-	 * 
+	 *
 	 * @param result The result to convert. Can be {@literal null}.
 	 * @return The converted result or {@literal null}.
 	 */
@@ -73,7 +74,7 @@ abstract public class FutureResult<T> {
 
 	/**
 	 * Indicates if this result is the status of an operation. Typically status results will be discarded on conversion.
-	 * 
+	 *
 	 * @return true if this is a status result (i.e. OK)
 	 */
 	public boolean isStatus() {
@@ -91,5 +92,5 @@ abstract public class FutureResult<T> {
 	 * @return The result of the operation. Can be {@literal null}.
 	 */
 	@Nullable
-	abstract public Object get();
+	public abstract Object get();
 }

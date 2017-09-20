@@ -519,25 +519,25 @@ public interface ReactiveStringCommands {
 	Flux<NumericResponse<AppendCommand, Long>> append(Publisher<AppendCommand> commands);
 
 	/**
-	 * Get a substring of value of {@literal key} between {@literal begin} and {@literal end}.
+	 * Get a substring of value of {@literal key} between {@literal start} and {@literal end}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param begin
+	 * @param start
 	 * @param end
 	 * @return
 	 * @see <a href="http://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
 	 */
-	default Mono<ByteBuffer> getRange(ByteBuffer key, long begin, long end) {
+	default Mono<ByteBuffer> getRange(ByteBuffer key, long start, long end) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return getRange(Mono.just(RangeCommand.key(key).fromIndex(begin).toIndex(end))) //
+		return getRange(Mono.just(RangeCommand.key(key).fromIndex(start).toIndex(end))) //
 				.next() //
 				.map(ByteBufferResponse::getOutput);
 	}
 
 	/**
-	 * Get a substring of value of {@literal key} between {@literal begin} and {@literal end}.
+	 * Get a substring of value of {@literal key} between {@literal start} and {@literal end}.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
@@ -875,25 +875,25 @@ public interface ReactiveStringCommands {
 	}
 
 	/**
-	 * Count the number of set bits (population counting) of value stored at {@literal key} between {@literal begin} and
+	 * Count the number of set bits (population counting) of value stored at {@literal key} between {@literal start} and
 	 * {@literal end}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param begin
+	 * @param start
 	 * @param end
 	 * @return
 	 * @see <a href="http://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 */
-	default Mono<Long> bitCount(ByteBuffer key, long begin, long end) {
+	default Mono<Long> bitCount(ByteBuffer key, long start, long end) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return bitCount(Mono.just(BitCountCommand.bitCount(key).within(new Range<>(begin, end)))).next()
+		return bitCount(Mono.just(BitCountCommand.bitCount(key).within(new Range<>(start, end)))).next()
 				.map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Count the number of set bits (population counting) of value stored at {@literal key} between {@literal begin} and
+	 * Count the number of set bits (population counting) of value stored at {@literal key} between {@literal start} and
 	 * {@literal end}.
 	 *
 	 * @param commands must not be {@literal null}.

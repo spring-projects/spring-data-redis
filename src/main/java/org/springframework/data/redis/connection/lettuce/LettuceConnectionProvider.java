@@ -46,7 +46,6 @@ public interface LettuceConnectionProvider {
 	 * @return the requested connection. Must be {@link #release(StatefulConnection) released} if the connection is no
 	 *         longer in use.
 	 */
-	@SuppressWarnings("rawtypes")
 	<T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType);
 
 	/**
@@ -72,7 +71,6 @@ public interface LettuceConnectionProvider {
 		 * @param redisURI must not be {@literal null}.
 		 * @return the requested connection.
 		 */
-		@SuppressWarnings("rawtypes")
 		<T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType, RedisURI redisURI);
 	}
 }

@@ -23,7 +23,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * String/Value-specific commands supported by Redis.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -92,9 +92,10 @@ public interface RedisStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
+	@Nullable
 	Boolean setNX(byte[] key, byte[] value);
 
 	/**
@@ -131,17 +132,20 @@ public interface RedisStringCommands {
 	 * not exist.
 	 *
 	 * @param tuple must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
+	@Nullable
 	Boolean mSetNX(Map<byte[], byte[]> tuple);
 
 	/**
 	 * Increment an integer value stored as string value of {@code key} by 1.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
 	 */
+	@Nullable
 	Long incr(byte[] key);
 
 	/**
@@ -149,9 +153,10 @@ public interface RedisStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 */
+	@Nullable
 	Long incrBy(byte[] key, long value);
 
 	/**
@@ -159,18 +164,20 @@ public interface RedisStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
 	 */
+	@Nullable
 	Double incrBy(byte[] key, double value);
 
 	/**
 	 * Decrement an integer value stored as string value of {@code key} by 1.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/decr">Redis Documentation: DECR</a>
 	 */
+	@Nullable
 	Long decr(byte[] key);
 
 	/**
@@ -178,9 +185,10 @@ public interface RedisStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
 	 */
+	@Nullable
 	Long decrBy(byte[] key, long value);
 
 	/**
@@ -188,21 +196,23 @@ public interface RedisStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 */
+	@Nullable
 	Long append(byte[] key, byte[] value);
 
 	/**
-	 * Get a substring of value of {@code key} between {@code begin} and {@code end}.
+	 * Get a substring of value of {@code key} between {@code start} and {@code end}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param begin
+	 * @param start
 	 * @param end
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
 	 */
-	byte[] getRange(byte[] key, long begin, long end);
+	@Nullable
+	byte[] getRange(byte[] key, long start, long end);
 
 	/**
 	 * Overwrite parts of {@code key} starting at the specified {@code offset} with given {@code value}.
@@ -219,9 +229,10 @@ public interface RedisStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param offset
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
 	 */
+	@Nullable
 	Boolean getBit(byte[] key, long offset);
 
 	/**
@@ -230,31 +241,34 @@ public interface RedisStringCommands {
 	 * @param key must not be {@literal null}.
 	 * @param offset
 	 * @param value
-	 * @return the original bit value stored at {@code offset}.
+	 * @return the original bit value stored at {@code offset} or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
 	 */
+	@Nullable
 	Boolean setBit(byte[] key, long offset, boolean value);
 
 	/**
 	 * Count the number of set bits (population counting) in value stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 */
+	@Nullable
 	Long bitCount(byte[] key);
 
 	/**
-	 * Count the number of set bits (population counting) of value stored at {@code key} between {@code begin} and
+	 * Count the number of set bits (population counting) of value stored at {@code key} between {@code start} and
 	 * {@code end}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param begin
+	 * @param start
 	 * @param end
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 */
-	Long bitCount(byte[] key, long begin, long end);
+	@Nullable
+	Long bitCount(byte[] key, long start, long end);
 
 	/**
 	 * Perform bitwise operations between strings.
@@ -262,23 +276,25 @@ public interface RedisStringCommands {
 	 * @param op must not be {@literal null}.
 	 * @param destination must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/bitop">Redis Documentation: BITOP</a>
 	 */
+	@Nullable
 	Long bitOp(BitOperation op, byte[] destination, byte[]... keys);
 
 	/**
 	 * Get the length of the value stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
 	 */
+	@Nullable
 	Long strLen(byte[] key);
 
 	/**
 	 * {@code SET} command arguments for {@code NX}, {@code XX}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
@@ -286,28 +302,28 @@ public interface RedisStringCommands {
 
 		/**
 		 * Do not set any additional command argument.
-		 * 
+		 *
 		 * @return
 		 */
 		UPSERT,
 
 		/**
 		 * {@code NX}
-		 * 
+		 *
 		 * @return
 		 */
 		SET_IF_ABSENT,
 
 		/**
 		 * {@code XX}
-		 * 
+		 *
 		 * @return
 		 */
 		SET_IF_PRESENT;
 
 		/**
 		 * Do not set any additional command argument.
-		 * 
+		 *
 		 * @return
 		 */
 		public static SetOption upsert() {
@@ -316,7 +332,7 @@ public interface RedisStringCommands {
 
 		/**
 		 * {@code XX}
-		 * 
+		 *
 		 * @return
 		 */
 		public static SetOption ifPresent() {
@@ -325,7 +341,7 @@ public interface RedisStringCommands {
 
 		/**
 		 * {@code NX}
-		 * 
+		 *
 		 * @return
 		 */
 		public static SetOption ifAbsent() {

@@ -27,6 +27,7 @@ import org.springframework.data.redis.connection.RedisScriptingCommands;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceResult;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceTxResult;
+import org.springframework.util.Assert;
 
 /**
  * @author Mark Paluch
@@ -46,6 +47,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public void scriptFlush() {
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceStatusResult(getAsyncConnection().scriptFlush()));
@@ -67,16 +69,14 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public void scriptKill() {
+
 		if (isQueueing()) {
 			throw new UnsupportedOperationException("Script kill not permitted in a transaction");
 		}
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceStatusResult(getAsyncConnection().scriptKill()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().scriptKill()));
 				return;
 			}
 			getConnection().scriptKill();
@@ -91,6 +91,9 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public String scriptLoad(byte[] script) {
+
+		Assert.notNull(script, "Script must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().scriptLoad(script)));
@@ -112,6 +115,10 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public List<Boolean> scriptExists(String... scriptSha1) {
+
+		Assert.notNull(scriptSha1, "Script digests must not be null!");
+		Assert.noNullElements(scriptSha1, "Script digests must not contain null elements!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().scriptExists(scriptSha1)));
@@ -133,6 +140,9 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+
+		Assert.notNull(script, "Script must not be null!");
+
 		try {
 			byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
 			byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
@@ -162,6 +172,9 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+
+		Assert.notNull(scriptSha1, "Script digest must not be null!");
+
 		try {
 			byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
 			byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
@@ -191,6 +204,9 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+
+		Assert.notNull(scriptSha1, "Script digest must not be null!");
+
 		return evalSha(LettuceConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
 	}
 

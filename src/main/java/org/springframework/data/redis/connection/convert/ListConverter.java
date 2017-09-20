@@ -47,7 +47,8 @@ public class ListConverter<S, T> implements Converter<List<S>, List<T>> {
 	@Override
 	public List<T> convert(List<S> source) {
 
-		List<T> results = new ArrayList<>();
+		List<T> results = new ArrayList<>(source.size());
+
 		for (S result : source) {
 			results.add(itemConverter.convert(result));
 		}

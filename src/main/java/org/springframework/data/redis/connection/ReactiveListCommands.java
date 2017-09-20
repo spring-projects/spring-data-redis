@@ -261,7 +261,7 @@ public interface ReactiveListCommands {
 	Flux<NumericResponse<KeyCommand, Long>> lLen(Publisher<KeyCommand> commands);
 
 	/**
-	 * Get elements between {@literal begin} and {@literal end} from list at {@literal key}.
+	 * Get elements between {@literal start} and {@literal end} from list at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param start
@@ -286,7 +286,7 @@ public interface ReactiveListCommands {
 	Flux<CommandResponse<RangeCommand, Flux<ByteBuffer>>> lRange(Publisher<RangeCommand> commands);
 
 	/**
-	 * Trim list at {@literal key} to elements between {@literal begin} and {@literal end}.
+	 * Trim list at {@literal key} to elements between {@literal start} and {@literal end}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param start

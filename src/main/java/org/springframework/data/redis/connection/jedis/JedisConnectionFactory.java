@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.lang.Nullable;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
@@ -61,6 +60,7 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterTopologyProvider;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -680,6 +680,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 *
 	 * @return the poolConfig
 	 */
+	@Nullable
 	public GenericObjectPoolConfig getPoolConfig() {
 		return clientConfiguration.getPoolConfig().orElse(null);
 	}
@@ -736,6 +737,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @return the client name.
 	 * @since 1.8
 	 */
+	@Nullable
 	public String getClientName() {
 		return clientConfiguration.getClientName().orElse(null);
 	}
@@ -765,6 +767,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @return the {@link RedisStandaloneConfiguration}.
 	 * @since 2.0
 	 */
+	@Nullable
 	public RedisStandaloneConfiguration getStandaloneConfiguration() {
 		return standaloneConfig;
 	}
@@ -773,6 +776,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @return the {@link RedisStandaloneConfiguration}, may be {@literal null}.
 	 * @since 2.0
 	 */
+	@Nullable
 	public RedisSentinelConfiguration getSentinelConfiguration() {
 		return sentinelConfig;
 	}
@@ -781,6 +785,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @return the {@link RedisClusterConfiguration}, may be {@literal null}.
 	 * @since 2.0
 	 */
+	@Nullable
 	public RedisClusterConfiguration getClusterConfiguration() {
 		return clusterConfig;
 	}

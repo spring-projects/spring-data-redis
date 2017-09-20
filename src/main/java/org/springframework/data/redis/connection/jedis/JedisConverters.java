@@ -67,6 +67,7 @@ import org.springframework.data.redis.connection.convert.StringToRedisClientInfo
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -354,7 +355,9 @@ abstract public class JedisConverters extends Converters {
 		return result;
 	}
 
-	public static SortingParams toSortingParams(SortParameters params) {
+	@Nullable
+	public static SortingParams toSortingParams(@Nullable SortParameters params) {
+
 		SortingParams jedisParams = null;
 		if (params != null) {
 			jedisParams = new SortingParams();
@@ -406,7 +409,7 @@ abstract public class JedisConverters extends Converters {
 	 * @return
 	 * @since 1.6
 	 */
-	public static byte[] boundaryToBytesForZRange(Boundary boundary, byte[] defaultValue) {
+	public static byte[] boundaryToBytesForZRange(@Nullable Boundary boundary, byte[] defaultValue) {
 
 		if (boundary == null || boundary.getValue() == null) {
 			return defaultValue;
@@ -422,7 +425,7 @@ abstract public class JedisConverters extends Converters {
 	 * @return
 	 * @since 1.6
 	 */
-	public static byte[] boundaryToBytesForZRangeByLex(Boundary boundary, byte[] defaultValue) {
+	public static byte[] boundaryToBytesForZRangeByLex(@Nullable Boundary boundary, byte[] defaultValue) {
 
 		if (boundary == null || boundary.getValue() == null) {
 			return defaultValue;

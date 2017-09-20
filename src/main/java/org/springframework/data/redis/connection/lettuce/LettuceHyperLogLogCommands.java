@@ -19,6 +19,8 @@ import io.lettuce.core.api.async.RedisHLLAsyncCommands;
 import io.lettuce.core.api.sync.RedisHLLCommands;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
@@ -28,15 +30,13 @@ import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 
-	private final LettuceConnection connection;
-
-	public LettuceHyperLogLogCommands(LettuceConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull LettuceConnection connection;
 
 	/*
 	* (non-Javadoc)
@@ -77,6 +77,7 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 
 		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key.");
 		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'.");
+
 		try {
 			if (isPipelined()) {
 				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
@@ -104,8 +105,9 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
 
-		Assert.notEmpty(sourceKeys, "PFMERGE requires at least one non 'null' source key.");
-		Assert.noNullElements(sourceKeys, "source key for PFMERGE must not contain 'null'.");
+		Assert.notNull(destinationKey, "Destination key must not be null");
+		Assert.notNull(sourceKeys, "Source keys must not be null");
+		Assert.noNullElements(sourceKeys, "Keys for PFMERGE must not contain 'null'.");
 
 		try {
 			if (isPipelined()) {

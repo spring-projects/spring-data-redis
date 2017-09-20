@@ -92,15 +92,15 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
-	default void rename(byte[] oldName, byte[] newName) {
-		keyCommands().rename(oldName, newName);
+	default void rename(byte[] sourceKey, byte[] targetKey) {
+		keyCommands().rename(sourceKey, targetKey);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
-	default Boolean renameNX(byte[] oldName, byte[] newName) {
-		return keyCommands().renameNX(oldName, newName);
+	default Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
+		return keyCommands().renameNX(sourceKey, targetKey);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
@@ -318,8 +318,8 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
-	default byte[] getRange(byte[] key, long begin, long end) {
-		return stringCommands().getRange(key, begin, end);
+	default byte[] getRange(byte[] key, long start, long end) {
+		return stringCommands().getRange(key, start, end);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
@@ -353,8 +353,8 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
-	default Long bitCount(byte[] key, long begin, long end) {
-		return stringCommands().bitCount(key, begin, end);
+	default Long bitCount(byte[] key, long start, long end) {
+		return stringCommands().bitCount(key, start, end);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */

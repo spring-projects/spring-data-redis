@@ -54,7 +54,7 @@ import org.springframework.util.Assert;
 /**
  * Helper class featuring methods for Jedis connection handling, providing support for exception translation. Deprecated
  * in favor of {@link JedisConverters}
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  */
@@ -68,7 +68,7 @@ public abstract class JedisUtils {
 
 	/**
 	 * Converts the given, native Jedis exception to Spring's DAO hierarchy.
-	 * 
+	 *
 	 * @param ex Jedis exception
 	 * @return converted exception
 	 */
@@ -86,7 +86,7 @@ public abstract class JedisUtils {
 
 	/**
 	 * Converts the given, native, runtime Jedis exception to Spring's DAO hierarchy.
-	 * 
+	 *
 	 * @param ex Jedis runtime/unchecked exception
 	 * @return converted exception
 	 */
@@ -256,8 +256,8 @@ public abstract class JedisUtils {
 	}
 
 	static byte[][] bXPopArgs(int timeout, byte[]... keys) {
-		final List<byte[]> args = new ArrayList<>();
-		for (final byte[] arg : keys) {
+		List<byte[]> args = new ArrayList<>();
+		for (byte[] arg : keys) {
 			args.add(arg);
 		}
 		args.add(Protocol.toByteArray(timeout));
