@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.util;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -30,11 +31,12 @@ import org.springframework.lang.Nullable;
  *
  * @author Costin Leau
  * @auhtor Christoph Strobl
+ * @auhtor Mark Paluch
  */
 public abstract class DecodeUtils {
 
 	public static String decode(byte[] bytes) {
-		return Base64.encodeToString(bytes, false);
+		return new String(Base64.getDecoder().decode(bytes));
 	}
 
 	public static String[] decodeMultiple(byte[]... bytes) {
@@ -47,7 +49,7 @@ public abstract class DecodeUtils {
 
 	@Nullable
 	public static byte[] encode(@Nullable String string) {
-		return (string == null ? null : Base64.decode(string));
+		return (string == null ? null : Base64.getEncoder().encode(string.getBytes()));
 	}
 
 	public static Map<byte[], byte[]> encodeMap(Map<String, byte[]> map) {
