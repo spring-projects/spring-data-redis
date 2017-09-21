@@ -36,7 +36,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
-import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
+import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.ClusterCommandCallback;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKeyClusterCommandCallback;
@@ -79,7 +79,7 @@ import com.lambdaworks.redis.codec.RedisCodec;
 public class LettuceClusterConnection extends LettuceConnection
 		implements org.springframework.data.redis.connection.RedisClusterConnection {
 
-	static final ExceptionTranslationStrategy exceptionConverter = new PassThroughExceptionTranslationStrategy(
+	static final ExceptionTranslationStrategy exceptionConverter = new FallbackExceptionTranslationStrategy(
 			new LettuceExceptionConverter());
 	static final RedisCodec<byte[], byte[]> CODEC = ByteArrayCodec.INSTANCE;
 

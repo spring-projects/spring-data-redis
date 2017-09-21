@@ -48,6 +48,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.data.redis.ClusterStateFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ClusterInfo;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -108,7 +109,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void thowsExceptionWhenClusterCommandExecturorIsNull() {
+	public void throwsExceptionWhenClusterCommandExecutorIsNull() {
 
 		expectedException.expect(IllegalArgumentException.class);
 
@@ -351,6 +352,20 @@ public class JedisClusterConnectionUnitTests {
 		when(con3Mock.clusterNodes()).thenThrow(new JedisConnectionException("o.2"));
 
 		new JedisClusterTopologyProvider(clusterMock).getTopology();
+	}
+
+	@Test // DATAREDIS-603
+	public void translatesUnknownExceptions() {
+
+		IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
+
+		expectedException.expect(RedisSystemException.class);
+		expectedException.expectMessage(exception.getMessage());
+		expectedException.expectCause(is(exception));
+
+		doThrow(exception).when(clusterMock).set("foo".getBytes(), "bar".getBytes());
+
+		connection.set("foo".getBytes(), "bar".getBytes());
 	}
 
 	static class StubJedisCluster extends JedisCluster {

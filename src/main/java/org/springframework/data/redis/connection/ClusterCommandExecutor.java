@@ -149,7 +149,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 			return new NodeResult<T>(node, cmd.doInCluster(client));
 		} catch (RuntimeException ex) {
 
-			RuntimeException translatedException = convertToDataAccessExeption(ex);
+			RuntimeException translatedException = convertToDataAccessException(ex);
 			if (translatedException instanceof ClusterRedirectException) {
 				ClusterRedirectException cre = (ClusterRedirectException) translatedException;
 				return executeCommandOnSingleNode(cmd,
@@ -252,13 +252,13 @@ public class ClusterCommandExecutor implements DisposableBean {
 						}
 					} catch (ExecutionException e) {
 
-						RuntimeException ex = convertToDataAccessExeption((Exception) e.getCause());
+						RuntimeException ex = convertToDataAccessException((Exception) e.getCause());
 						exceptions.put(entry.getKey().getNode(), ex != null ? ex : e.getCause());
 					} catch (InterruptedException e) {
 
 						Thread.currentThread().interrupt();
 
-						RuntimeException ex = convertToDataAccessExeption((Exception) e.getCause());
+						RuntimeException ex = convertToDataAccessException((Exception) e.getCause());
 						exceptions.put(entry.getKey().getNode(), ex != null ? ex : e.getCause());
 						break;
 					}
@@ -338,7 +338,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 			return new NodeResult<T>(node, cmd.doInCluster(client, key), key);
 		} catch (RuntimeException ex) {
 
-			RuntimeException translatedException = convertToDataAccessExeption(ex);
+			RuntimeException translatedException = convertToDataAccessException(ex);
 			throw translatedException != null ? translatedException : ex;
 		} finally {
 			this.resourceProvider.returnResourceForSpecificNode(node, client);
@@ -349,7 +349,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		return this.topologyProvider.getTopology();
 	}
 
-	private DataAccessException convertToDataAccessExeption(Exception e) {
+	private DataAccessException convertToDataAccessException(Exception e) {
 		return exceptionTranslationStrategy.translate(e);
 	}
 
