@@ -24,6 +24,7 @@
 		<lettuce>5.0.0.RC2</lettuce>
 		<jedis>2.9.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
+		<java-module-name>spring.data.redis</java-module-name>
 	</properties>
 
 	<dependencyManagement>
