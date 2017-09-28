@@ -364,7 +364,7 @@ public class JedisClusterConnectionUnitTests {
 		expectedException.expectMessage(exception.getMessage());
 		expectedException.expectCause(is(exception));
 
-		when(clusterMock.set("foo".getBytes(), "bar".getBytes())).thenThrow(exception);
+		doThrow(exception).when(clusterMock).set("foo".getBytes(), "bar".getBytes());
 
 		connection.set("foo".getBytes(), "bar".getBytes());
 	}
