@@ -64,7 +64,7 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 	 * <dt>Connect Timeout</dt>
 	 * <dd>60 Seconds</dd>
 	 * <dt>Shutdown Timeout</dt>
-	 * <dd>2 Seconds</dd>
+	 * <dd>100 Milliseconds</dd>
 	 * <dt>pool config</dt>
 	 * <dd>default {@link GenericObjectPoolConfig}</dd>
 	 * </dl>
