@@ -913,8 +913,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[])
 	 */
 	@Override
-	public void set(byte[] key, byte[] value) {
-		delegate.set(key, value);
+	public Boolean set(byte[] key, byte[] value) {
+		return delegate.set(key, value);
 	}
 
 	/*
@@ -922,8 +922,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[], org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOptions)
 	 */
 	@Override
-	public void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
-		delegate.set(key, value, expiration, option);
+	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+		return delegate.set(key, value, expiration, option);
 	}
 
 	/*
@@ -949,8 +949,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#setEx(byte[], long, byte[])
 	 */
 	@Override
-	public void setEx(byte[] key, long seconds, byte[] value) {
-		delegate.setEx(key, seconds, value);
+	public Boolean setEx(byte[] key, long seconds, byte[] value) {
+		return delegate.setEx(key, seconds, value);
 	}
 
 	/*
@@ -958,8 +958,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
 	 */
 	@Override
-	public void pSetEx(byte[] key, long milliseconds, byte[] value) {
-		delegate.pSetEx(key, milliseconds, value);
+	public Boolean pSetEx(byte[] key, long milliseconds, byte[] value) {
+		return delegate.pSetEx(key, milliseconds, value);
 	}
 
 	/*

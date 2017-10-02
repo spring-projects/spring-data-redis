@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.jedis.JedisConnection.JedisResult;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
@@ -118,21 +119,23 @@ class JedisStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[])
 	 */
 	@Override
-	public void set(byte[] key, byte[] value) {
+	public Boolean set(byte[] key, byte[] value) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().set(key, value)));
-				return;
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().set(key, value),
+						Converters.stringToBooleanConverter()));
+				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().set(key, value)));
-				return;
+				transaction(connection.newStatusResult(connection.getRequiredTransaction().set(key, value),
+						Converters.stringToBooleanConverter()));
+				return null;
 			}
-			connection.getJedis().set(key, value);
+			return Converters.stringToBoolean(connection.getJedis().set(key, value));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -143,7 +146,7 @@ class JedisStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[], org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOption)
 	 */
 	@Override
-	public void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
@@ -153,7 +156,7 @@ class JedisStringCommands implements RedisStringCommands {
 		if (expiration.isPersistent()) {
 
 			if (ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
-				set(key, value);
+				return set(key, value);
 			} else {
 
 				try {
@@ -162,16 +165,18 @@ class JedisStringCommands implements RedisStringCommands {
 
 					if (isPipelined()) {
 
-						pipeline(connection.newStatusResult(connection.getRequiredPipeline().set(key, value, nxxx)));
-						return;
+						pipeline(connection.newStatusResult(connection.getRequiredPipeline().set(key, value, nxxx),
+								Converters.stringToBooleanConverter()));
+						return null;
 					}
 					if (isQueueing()) {
 
-						transaction(connection.newStatusResult(connection.getRequiredTransaction().set(key, value, nxxx)));
-						return;
+						transaction(connection.newStatusResult(connection.getRequiredTransaction().set(key, value, nxxx),
+								Converters.stringToBooleanConverter()));
+						return null;
 					}
 
-					connection.getJedis().set(key, value, nxxx);
+					return Converters.stringToBoolean(connection.getJedis().set(key, value, nxxx));
 				} catch (Exception ex) {
 					throw convertJedisAccessException(ex);
 				}
@@ -182,9 +187,9 @@ class JedisStringCommands implements RedisStringCommands {
 			if (ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
 
 				if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
-					pSetEx(key, expiration.getExpirationTime(), value);
+					return pSetEx(key, expiration.getExpirationTime(), value);
 				} else {
-					setEx(key, expiration.getExpirationTime(), value);
+					return setEx(key, expiration.getExpirationTime(), value);
 				}
 			} else {
 
@@ -201,8 +206,9 @@ class JedisStringCommands implements RedisStringCommands {
 						}
 
 						pipeline(connection.newStatusResult(
-								connection.getRequiredPipeline().set(key, value, nxxx, expx, (int) expiration.getExpirationTime())));
-						return;
+								connection.getRequiredPipeline().set(key, value, nxxx, expx, (int) expiration.getExpirationTime()),
+								Converters.stringToBooleanConverter()));
+						return null;
 					}
 					if (isQueueing()) {
 
@@ -212,11 +218,13 @@ class JedisStringCommands implements RedisStringCommands {
 						}
 
 						transaction(connection.newStatusResult(
-								connection.getRequiredTransaction().set(key, value, nxxx, expx, (int) expiration.getExpirationTime())));
-						return;
+								connection.getRequiredTransaction().set(key, value, nxxx, expx, (int) expiration.getExpirationTime()),
+								Converters.stringToBooleanConverter()));
+						return null;
 					}
 
-					connection.getJedis().set(key, value, nxxx, expx, expiration.getExpirationTime());
+					return Converters
+							.stringToBoolean(connection.getJedis().set(key, value, nxxx, expx, expiration.getExpirationTime()));
 
 				} catch (Exception ex) {
 					throw convertJedisAccessException(ex);
@@ -258,7 +266,7 @@ class JedisStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#setEx(byte[], long, byte[])
 	 */
 	@Override
-	public void setEx(byte[] key, long seconds, byte[] value) {
+	public Boolean setEx(byte[] key, long seconds, byte[] value) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
@@ -269,14 +277,16 @@ class JedisStringCommands implements RedisStringCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().setex(key, (int) seconds, value)));
-				return;
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().setex(key, (int) seconds, value),
+						Converters.stringToBooleanConverter()));
+				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().setex(key, (int) seconds, value)));
-				return;
+				transaction(connection.newStatusResult(connection.getRequiredTransaction().setex(key, (int) seconds, value),
+						Converters.stringToBooleanConverter()));
+				return null;
 			}
-			connection.getJedis().setex(key, (int) seconds, value);
+			return Converters.stringToBoolean(connection.getJedis().setex(key, (int) seconds, value));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -287,21 +297,23 @@ class JedisStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
 	 */
 	@Override
-	public void pSetEx(byte[] key, long milliseconds, byte[] value) {
+	public Boolean pSetEx(byte[] key, long milliseconds, byte[] value) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().psetex(key, milliseconds, value)));
-				return;
+				pipeline(connection.newStatusResult(connection.getRequiredPipeline().psetex(key, milliseconds, value),
+						Converters.stringToBooleanConverter()));
+				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().psetex(key, milliseconds, value)));
-				return;
+				transaction(connection.newStatusResult(connection.getRequiredTransaction().psetex(key, milliseconds, value),
+						Converters.stringToBooleanConverter()));
+				return null;
 			}
-			connection.getJedis().psetex(key, milliseconds, value);
+			return Converters.stringToBoolean(connection.getJedis().psetex(key, milliseconds, value));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

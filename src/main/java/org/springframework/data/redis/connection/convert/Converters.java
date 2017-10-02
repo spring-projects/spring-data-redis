@@ -193,7 +193,11 @@ abstract public class Converters {
 	}
 
 	public static Boolean stringToBoolean(String s) {
-		return ObjectUtils.nullSafeEquals("OK", s);
+		return stringToBooleanConverter().convert(s);
+	}
+
+	public static Converter<String, Boolean> stringToBooleanConverter() {
+		return (source) -> ObjectUtils.nullSafeEquals("OK", source);
 	}
 
 	public static Converter<String, Properties> stringToProps() {

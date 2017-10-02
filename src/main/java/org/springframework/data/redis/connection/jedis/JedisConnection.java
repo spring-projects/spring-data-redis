@@ -141,6 +141,11 @@ public class JedisConnection extends AbstractRedisConnection {
 			super(resultHolder);
 			setStatus(true);
 		}
+
+		public <T> JedisStatusResult(Response<T> resultHolder, Converter<T, ?> converter) {
+			super(resultHolder, converter);
+			setStatus(true);
+		}
 	}
 
 	/**
@@ -644,6 +649,10 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	JedisStatusResult newStatusResult(Response<?> response) {
 		return new JedisStatusResult(response);
+	}
+
+	<T> JedisStatusResult newStatusResult(Response<T> response, Converter<T,?> converter) {
+		return new JedisStatusResult(response, converter);
 	}
 
 	/*

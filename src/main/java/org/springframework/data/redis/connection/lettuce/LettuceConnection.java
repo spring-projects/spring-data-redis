@@ -144,14 +144,23 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	private class LettuceStatusResult extends LettuceResult {
 		@SuppressWarnings("rawtypes")
-		public LettuceStatusResult(Future resultHolder) {
+		 LettuceStatusResult(Future resultHolder) {
 			super(resultHolder);
+			setStatus(true);
+		}
+
+		<T> LettuceStatusResult(Future<T> resultHolder, Converter<T, ?> converter) {
+			super(resultHolder, converter);
 			setStatus(true);
 		}
 	}
 
 	LettuceStatusResult newLettuceStatusResult(Future<?> resultHolder) {
 		return new LettuceStatusResult(resultHolder);
+	}
+
+	<T> LettuceStatusResult newLettuceStatusResult(Future<T> resultHolder, Converter<T, ?> converter) {
+		return new LettuceStatusResult(resultHolder, converter);
 	}
 
 	class LettuceTxResult extends FutureResult<Object> {
@@ -182,14 +191,23 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	private class LettuceTxStatusResult extends LettuceTxResult {
-		public LettuceTxStatusResult(Object resultHolder) {
+		LettuceTxStatusResult(Object resultHolder) {
 			super(resultHolder);
+			setStatus(true);
+		}
+
+		LettuceTxStatusResult(Object resultHolder, Converter converter) {
+			super(resultHolder, converter);
 			setStatus(true);
 		}
 	}
 
 	LettuceTxStatusResult newLettuceTxStatusResult(Object resultHolder) {
 		return new LettuceTxStatusResult(resultHolder);
+	}
+
+	LettuceTxStatusResult newLettuceTxStatusResult(Object resultHolder, Converter<?, ?> converter) {
+		return new LettuceTxStatusResult(resultHolder, converter);
 	}
 
 	private class LettuceTransactionResultConverter<T> extends TransactionResultConverter<T> {
