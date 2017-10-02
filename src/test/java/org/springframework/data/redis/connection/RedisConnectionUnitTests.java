@@ -480,8 +480,8 @@ public class RedisConnectionUnitTests {
 			delegate.openPipeline();
 		}
 
-		public void mSet(Map<byte[], byte[]> tuple) {
-			delegate.mSet(tuple);
+		public Boolean mSet(Map<byte[], byte[]> tuple) {
+			return delegate.mSet(tuple);
 		}
 
 		public byte[] lIndex(byte[] key, long index) {

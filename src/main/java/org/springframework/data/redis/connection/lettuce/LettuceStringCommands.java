@@ -253,20 +253,22 @@ class LettuceStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#mSet(java.util.Map)
 	 */
 	@Override
-	public void mSet(Map<byte[], byte[]> tuples) {
+	public Boolean mSet(Map<byte[], byte[]> tuples) {
 
 		Assert.notNull(tuples, "Tuples must not be null!");
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().mset(tuples)));
-				return;
+				pipeline(connection.newLettuceStatusResult(getAsyncConnection().mset(tuples),
+						Converters.stringToBooleanConverter()));
+				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().mset(tuples)));
-				return;
+				transaction(
+						connection.newLettuceTxStatusResult(getConnection().mset(tuples), Converters.stringToBooleanConverter()));
+				return null;
 			}
-			getConnection().mset(tuples);
+			return Converters.stringToBoolean(getConnection().mset(tuples));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

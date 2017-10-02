@@ -256,14 +256,14 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Override
 	@Deprecated
 	default Boolean pSetEx(byte[] key, long milliseconds, byte[] value) {
-		return  stringCommands().pSetEx(key, milliseconds, value);
+		return stringCommands().pSetEx(key, milliseconds, value);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
-	default void mSet(Map<byte[], byte[]> tuple) {
-		stringCommands().mSet(tuple);
+	default Boolean mSet(Map<byte[], byte[]> tuple) {
+		return stringCommands().mSet(tuple);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */

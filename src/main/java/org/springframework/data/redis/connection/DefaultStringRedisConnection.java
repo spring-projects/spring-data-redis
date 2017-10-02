@@ -715,8 +715,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#mSet(java.util.Map)
 	 */
 	@Override
-	public void mSet(Map<byte[], byte[]> tuple) {
-		delegate.mSet(tuple);
+	public Boolean mSet(Map<byte[], byte[]> tuple) {
+		return delegate.mSet(tuple);
 	}
 
 	/*
@@ -2096,8 +2096,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#mSetString(java.util.Map)
 	 */
 	@Override
-	public void mSetString(Map<String, String> tuple) {
-		delegate.mSet(serialize(tuple));
+	public Boolean mSetString(Map<String, String> tuple) {
+		return delegate.mSet(serialize(tuple));
 	}
 
 	/*
@@ -2231,8 +2231,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#set(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void set(String key, String value) {
-		delegate.set(serialize(key), serialize(value));
+	public Boolean set(String key, String value) {
+		return delegate.set(serialize(key), serialize(value));
 	}
 
 	/*
@@ -2240,8 +2240,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#set(java.lang.String, java.lang.String, org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOptions)
 	 */
 	@Override
-	public void set(String key, String value, Expiration expiration, SetOption option) {
-		set(serialize(key), serialize(value), expiration, option);
+	public Boolean set(String key, String value, Expiration expiration, SetOption option) {
+		return set(serialize(key), serialize(value), expiration, option);
 	}
 
 	/*
@@ -2258,8 +2258,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#setEx(java.lang.String, long, java.lang.String)
 	 */
 	@Override
-	public void setEx(String key, long seconds, String value) {
-		delegate.setEx(serialize(key), seconds, serialize(value));
+	public Boolean setEx(String key, long seconds, String value) {
+		return delegate.setEx(serialize(key), seconds, serialize(value));
 	}
 
 	/*
@@ -2267,8 +2267,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#pSetEx(java.lang.String, long, java.lang.String)
 	 */
 	@Override
-	public void pSetEx(String key, long seconds, String value) {
-		pSetEx(serialize(key), seconds, serialize(value));
+	public Boolean pSetEx(String key, long seconds, String value) {
+		return pSetEx(serialize(key), seconds, serialize(value));
 	}
 
 	/*

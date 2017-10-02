@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
+import org.junit.Ignore;
 import reactor.test.StepVerifier;
 
 import org.junit.Test;
@@ -34,11 +35,13 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 	}
 
 	@Test // DATAREDIS-659
+	@Ignore("DATAREDIS-708, Causes ERR Background append only file rewriting already")
 	public void bgReWriteAofShouldRespondCorrectly() {
 		StepVerifier.create(connection.serverCommands().bgReWriteAof()).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659, DATAREDIS-667
+	@Ignore("DATAREDIS-708, Causes ERR Background append only file rewriting already")
 	public void bgSaveShouldRespondCorrectly() {
 
 		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);

@@ -224,22 +224,25 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#mSet(java.util.Map)
 	 */
 	@Override
-	public void mSet(Map<byte[], byte[]> tuples) {
+	public Boolean mSet(Map<byte[], byte[]> tuples) {
 
 		Assert.notNull(tuples, "Tuples must not be null!");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(tuples.keySet().toArray(new byte[tuples.keySet().size()][]))) {
 			try {
-				connection.getCluster().mset(JedisConverters.toByteArrays(tuples));
-				return;
+				return Converters.stringToBoolean(connection.getCluster().mset(JedisConverters.toByteArrays(tuples)));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
 		}
 
+		boolean result = true;
 		for (Map.Entry<byte[], byte[]> entry : tuples.entrySet()) {
-			set(entry.getKey(), entry.getValue());
+			if (!set(entry.getKey(), entry.getValue())) {
+				result = false;
+			}
 		}
+		return result;
 	}
 
 	/*

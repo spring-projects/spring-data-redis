@@ -33,6 +33,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.lang.Nullable;
 
 /**
  * Convenience extension of {@link RedisConnection} that accepts and returns {@link String}s instead of byte arrays.
@@ -324,7 +325,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @see RedisStringCommands#set(byte[], byte[])
 	 */
-	void set(String key, String value);
+	@Nullable
+	Boolean set(String key, String value);
 
 	/**
 	 * Set {@code value} for {@code key} applying timeouts from {@code expiration} if set and inserting/updating values
@@ -338,7 +340,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @see RedisStringCommands#set(byte[], byte[], Expiration, SetOption)
 	 */
-	void set(String key, String value, Expiration expiration, SetOption option);
+	@Nullable
+	Boolean set(String key, String value, Expiration expiration, SetOption option);
 
 	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
@@ -349,6 +352,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 * @see RedisStringCommands#setNX(byte[], byte[])
 	 */
+	@Nullable
 	Boolean setNX(String key, String value);
 
 	/**
@@ -360,7 +364,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 * @see RedisStringCommands#setEx(byte[], long, byte[])
 	 */
-	void setEx(String key, long seconds, String value);
+	@Nullable
+	Boolean setEx(String key, long seconds, String value);
 
 	/**
 	 * Set the {@code value} and expiration in {@code milliseconds} for {@code key}.
@@ -372,7 +377,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/psetex">Redis Documentation: PSETEX</a>
 	 * @see RedisStringCommands#pSetEx(byte[], long, byte[])
 	 */
-	void pSetEx(String key, long milliseconds, String value);
+	@Nullable
+	Boolean pSetEx(String key, long milliseconds, String value);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
@@ -381,7 +387,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 * @see RedisStringCommands#mSet(Map)
 	 */
-	void mSetString(Map<String, String> tuple);
+	@Nullable
+	Boolean mSetString(Map<String, String> tuple);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple} only if the provided key does

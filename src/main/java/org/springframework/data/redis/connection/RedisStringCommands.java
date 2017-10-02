@@ -70,8 +70,10 @@ public interface RedisStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
+	@Nullable
 	Boolean set(byte[] key, byte[] value);
 
 	/**
@@ -82,9 +84,11 @@ public interface RedisStringCommands {
 	 * @param value must not be {@literal null}.
 	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl.
 	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non existing.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.7
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
+	@Nullable
 	Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option);
 
 	/**
@@ -104,8 +108,10 @@ public interface RedisStringCommands {
 	 * @param key must not be {@literal null}.
 	 * @param seconds
 	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
+	@Nullable
 	Boolean setEx(byte[] key, long seconds, byte[] value);
 
 	/**
@@ -114,18 +120,22 @@ public interface RedisStringCommands {
 	 * @param key must not be {@literal null}.
 	 * @param milliseconds
 	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.3
 	 * @see <a href="http://redis.io/commands/psetex">Redis Documentation: PSETEX</a>
 	 */
+	@Nullable
 	Boolean pSetEx(byte[] key, long milliseconds, byte[] value);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
 	 *
 	 * @param tuple must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 */
-	void mSet(Map<byte[], byte[]> tuple);
+	@Nullable
+	Boolean mSet(Map<byte[], byte[]> tuple);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple} only if the provided key does
