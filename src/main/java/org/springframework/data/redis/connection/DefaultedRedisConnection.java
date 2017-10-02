@@ -227,15 +227,15 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
-	default void set(byte[] key, byte[] value) {
-		stringCommands().set(key, value);
+	default Boolean set(byte[] key, byte[] value) {
+		return stringCommands().set(key, value);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
-	default void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
-		stringCommands().set(key, value, expiration, option);
+	default Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+		return stringCommands().set(key, value, expiration, option);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
@@ -248,15 +248,15 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
-	default void setEx(byte[] key, long seconds, byte[] value) {
-		stringCommands().setEx(key, seconds, value);
+	default Boolean setEx(byte[] key, long seconds, byte[] value) {
+		return stringCommands().setEx(key, seconds, value);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
-	default void pSetEx(byte[] key, long milliseconds, byte[] value) {
-		stringCommands().pSetEx(key, milliseconds, value);
+	default Boolean pSetEx(byte[] key, long milliseconds, byte[] value) {
+		return  stringCommands().pSetEx(key, milliseconds, value);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
