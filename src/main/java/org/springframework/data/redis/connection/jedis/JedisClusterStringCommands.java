@@ -24,6 +24,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterCommandCallback;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
 import org.springframework.data.redis.core.types.Expiration;
@@ -102,13 +103,13 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[])
 	 */
 	@Override
-	public void set(byte[] key, byte[] value) {
+	public Boolean set(byte[] key, byte[] value) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
 		try {
-			connection.getCluster().set(key, value);
+			return Converters.stringToBoolean(connection.getCluster().set(key, value));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -119,7 +120,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[], org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOptions)
 	 */
 	@Override
-	public void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
@@ -129,7 +130,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		if (expiration == null || expiration.isPersistent()) {
 
 			if (option == null || ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
-				set(key, value);
+				return set(key, value);
 			} else {
 
 				// BinaryCluster does not support set with nxxx and binary key/value pairs.
@@ -137,16 +138,16 @@ class JedisClusterStringCommands implements RedisStringCommands {
 					throw new UnsupportedOperationException("Jedis does not support SET XX without PX or EX on BinaryCluster.");
 				}
 
-				setNX(key, value);
+				return setNX(key, value);
 			}
 		} else {
 
 			if (option == null || ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
 
 				if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
-					pSetEx(key, expiration.getExpirationTime(), value);
+					return pSetEx(key, expiration.getExpirationTime(), value);
 				} else {
-					setEx(key, expiration.getExpirationTime(), value);
+					return setEx(key, expiration.getExpirationTime(), value);
 				}
 			} else {
 
@@ -154,7 +155,8 @@ class JedisClusterStringCommands implements RedisStringCommands {
 				byte[] expx = JedisConverters.toSetCommandExPxArgument(expiration);
 
 				try {
-					connection.getCluster().set(key, value, nxxx, expx, expiration.getExpirationTime());
+					return Converters
+							.stringToBoolean(connection.getCluster().set(key, value, nxxx, expx, expiration.getExpirationTime()));
 				} catch (Exception ex) {
 					throw convertJedisAccessException(ex);
 				}
@@ -184,7 +186,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#setEx(byte[], long, byte[])
 	 */
 	@Override
-	public void setEx(byte[] key, long seconds, byte[] value) {
+	public Boolean setEx(byte[] key, long seconds, byte[] value) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
@@ -194,7 +196,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		}
 
 		try {
-			connection.getCluster().setex(key, Long.valueOf(seconds).intValue(), value);
+			return Converters.stringToBoolean(connection.getCluster().setex(key, Long.valueOf(seconds).intValue(), value));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -205,14 +207,16 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
 	 */
 	@Override
-	public void pSetEx(byte[] key, long milliseconds, byte[] value) {
+	public Boolean pSetEx(byte[] key, long milliseconds, byte[] value) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		connection.getClusterCommandExecutor().executeCommandOnSingleNode(
-				(JedisClusterCommandCallback<String>) client -> client.psetex(key, milliseconds, value),
-				connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key));
+		return Converters.stringToBoolean(connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode(
+						(JedisClusterCommandCallback<String>) client -> client.psetex(key, milliseconds, value),
+						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
+				.getValue());
 	}
 
 	/*

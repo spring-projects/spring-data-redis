@@ -242,8 +242,8 @@ public class RedisConnectionUnitTests {
 			delegate.bgSave();
 		}
 
-		public void set(byte[] key, byte[] value) {
-			delegate.set(key, value);
+		public Boolean set(byte[] key, byte[] value) {
+			return delegate.set(key, value);
 		}
 
 		public void discard() {
@@ -396,8 +396,8 @@ public class RedisConnectionUnitTests {
 			return delegate.dbSize();
 		}
 
-		public void setEx(byte[] key, long seconds, byte[] value) {
-			delegate.setEx(key, seconds, value);
+		public Boolean setEx(byte[] key, long seconds, byte[] value) {
+			return delegate.setEx(key, seconds, value);
 		}
 
 		public Long sCard(byte[] key) {
@@ -444,8 +444,8 @@ public class RedisConnectionUnitTests {
 			return delegate.isPipelined();
 		}
 
-		public void pSetEx(byte[] key, long milliseconds, byte[] value) {
-			delegate.pSetEx(key, milliseconds, value);
+		public Boolean pSetEx(byte[] key, long milliseconds, byte[] value) {
+			return delegate.pSetEx(key, milliseconds, value);
 		}
 
 		public void flushAll() {
@@ -974,8 +974,8 @@ public class RedisConnectionUnitTests {
 		}
 
 		@Override
-		public void set(byte[] key, byte[] value, Expiration expiration, SetOption options) {
-			delegate.set(key, value, expiration, options);
+		public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption options) {
+			return delegate.set(key, value, expiration, options);
 		}
 	}
 }

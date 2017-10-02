@@ -72,7 +72,7 @@ public interface RedisStringCommands {
 	 * @param value must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	void set(byte[] key, byte[] value);
+	Boolean set(byte[] key, byte[] value);
 
 	/**
 	 * Set {@code value} for {@code key} applying timeouts from {@code expiration} if set and inserting/updating values
@@ -85,7 +85,7 @@ public interface RedisStringCommands {
 	 * @since 1.7
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	void set(byte[] key, byte[] value, Expiration expiration, SetOption option);
+	Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option);
 
 	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
@@ -106,7 +106,7 @@ public interface RedisStringCommands {
 	 * @param value must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
-	void setEx(byte[] key, long seconds, byte[] value);
+	Boolean setEx(byte[] key, long seconds, byte[] value);
 
 	/**
 	 * Set the {@code value} and expiration in {@code milliseconds} for {@code key}.
@@ -117,7 +117,7 @@ public interface RedisStringCommands {
 	 * @since 1.3
 	 * @see <a href="http://redis.io/commands/psetex">Redis Documentation: PSETEX</a>
 	 */
-	void pSetEx(byte[] key, long milliseconds, byte[] value);
+	Boolean pSetEx(byte[] key, long milliseconds, byte[] value);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
