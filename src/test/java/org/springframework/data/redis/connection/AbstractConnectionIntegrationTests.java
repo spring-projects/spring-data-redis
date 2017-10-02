@@ -908,6 +908,36 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { true, false }));
 	}
 
+	@Test // DATAREDIS-529
+	public void testExistsWithMultipleKeys() {
+
+		connection.set("exist-1", "true");
+		connection.set("exist-2", "true");
+		connection.set("exist-3", "true");
+
+		actual.add(connection.exists("exist-1", "exist-2", "exist-3", "nonexistent"));
+
+		verifyResults(Arrays.asList(new Object[] { 3L }));
+	}
+
+	@Test // DATAREDIS-529
+	public void testExistsWithMultipleKeysNoneExists() {
+
+		actual.add(connection.exists("no-exist-1", "no-exist-2"));
+
+		verifyResults(Arrays.asList(new Object[] { 0L }));
+	}
+
+	@Test // DATAREDIS-529
+	public void testExistsSameKeyMultipleTimes() {
+
+		connection.set("existent", "true");
+
+		actual.add(connection.exists("existent", "existent"));
+
+		verifyResults(Arrays.asList(new Object[] { 2L }));
+	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testKeys() throws Exception {

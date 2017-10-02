@@ -37,8 +37,10 @@ import org.springframework.data.redis.connection.jedis.JedisClusterConnection.Je
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
@@ -471,15 +473,23 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[])
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(java.util.Collection)
 	 */
+	@Nullable
 	@Override
-	public Boolean exists(byte[] key) {
+	public Long exists(Collection<byte[]> keys) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(keys, "Keys must not be null!");
 
 		try {
-			return connection.getCluster().exists(key);
+
+			return keys.stream() //
+					.parallel()
+					.map(key -> connection.getClusterCommandExecutor()
+							.executeCommandOnSingleNode((JedisClusterCommandCallback<Boolean>) client -> client.exists(key),
+									connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
+							.getValue())
+					.mapToLong(val -> ObjectUtils.nullSafeEquals(val, Boolean.TRUE) ? 1L : 0L).sum();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

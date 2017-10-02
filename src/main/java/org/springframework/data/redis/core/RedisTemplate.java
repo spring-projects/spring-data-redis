@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import java.io.Closeable;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -737,6 +738,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		byte[] rawKey = rawKey(key);
 
 		return execute(connection -> connection.exists(rawKey), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#countExistingKeys(java.util.Collection)
+	 */
+	@Override
+	public Long countExistingKeys(Collection<K> keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		byte[][] rawKeys = rawKeys(keys);
+		return execute(connection -> connection.exists(Arrays.asList(rawKeys)), true);
 	}
 
 	/*
