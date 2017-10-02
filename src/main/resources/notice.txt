@@ -1,4 +1,4 @@
-Spring Data Redis 2.0 RC3
+Spring Data Redis 2.0 GA
    Copyright (c) [$copyright] Pivotal Software, Inc.
 
    ========================================================================
