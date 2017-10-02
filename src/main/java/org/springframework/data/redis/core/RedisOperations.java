@@ -163,6 +163,18 @@ public interface RedisOperations<K, V> {
 	Boolean hasKey(K key);
 
 	/**
+	 * Count the number of {@code keys} that exists.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return The number of keys existing among the ones specified as arguments. Keys mentioned multiple times and
+	 *         existing are counted multiple times.
+	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Long countExistingKeys(Collection<K> keys);
+
+	/**
 	 * Delete given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.

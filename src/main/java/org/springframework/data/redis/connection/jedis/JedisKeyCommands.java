@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -65,6 +66,33 @@ class JedisKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			return connection.getJedis().exists(key);
+		} catch (Exception ex) {
+			throw connection.convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(java.util.Collection)
+	 */
+	@Nullable
+	@Override
+	public Long exists(Collection<byte[]> keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(
+						connection.newJedisResult(connection.getRequiredPipeline().exists(keys.toArray(new byte[keys.size()][]))));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection
+						.newJedisResult(connection.getRequiredTransaction().exists(keys.toArray(new byte[keys.size()][]))));
+				return null;
+			}
+			return connection.getJedis().exists(keys.toArray(new byte[keys.size()][]));
 		} catch (Exception ex) {
 			throw connection.convertJedisAccessException(ex);
 		}

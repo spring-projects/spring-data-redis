@@ -92,6 +92,18 @@ public interface StringRedisConnection extends RedisConnection {
 	Boolean exists(String key);
 
 	/**
+	 * Count how many of the if given {@code keys} exists.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
+	 * @see RedisKeyCommands#exists(java.util.Collection)
+	 * @since 2.1
+	 */
+	@Nullable
+	Long exists(String... keys);
+
+	/**
 	 * Delete given {@code keys}.
 	 *
 	 * @param keys must not be {@literal null}.

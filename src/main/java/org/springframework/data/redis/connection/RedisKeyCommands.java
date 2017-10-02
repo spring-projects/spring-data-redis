@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Key-specific commands supported by Redis.
@@ -40,7 +43,23 @@ public interface RedisKeyCommands {
 	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
 	@Nullable
-	Boolean exists(byte[] key);
+	default Boolean exists(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Long count = exists(Collections.singleton(key));
+		return count != null ? count > 0 : null;
+	}
+
+	/**
+	 * Count how many of the given {@code keys} exists. Providing the very same {@code key} more than once also counts
+	 * multiple times.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return the number of keys existing among the ones specified as arguments.
+	 * @since 2.1
+	 */
+	@Nullable
+	Long exists(Collection<byte[]> keys);
 
 	/**
 	 * Delete given {@code keys}.

@@ -2137,6 +2137,32 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.geoRemove(KEY_1_BYTES, ARIGENTO.getName()), is(1L));
 	}
 
+	@Test // DATAREDIS-529
+	public void testExistsWithMultipleKeys() {
+
+		nativeConnection.set(KEY_1, "true");
+		nativeConnection.set(KEY_2, "true");
+		nativeConnection.set(KEY_3, "true");
+
+		assertThat(clusterConnection.keyCommands()
+				.exists(Arrays.asList(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES, "nonexistent".getBytes())), is(3L));
+	}
+
+	@Test // DATAREDIS-529
+	public void testExistsWithMultipleKeysNoneExists() {
+
+		assertThat(clusterConnection.keyCommands().exists(Arrays.asList("no-exist-1".getBytes(), "no-exist-2".getBytes())),
+				is(0L));
+	}
+
+	@Test // DATAREDIS-529
+	public void testExistsSameKeyMultipleTimes() {
+
+		nativeConnection.set(KEY_1, "true");
+
+		assertThat(clusterConnection.keyCommands().exists(Arrays.asList(KEY_1_BYTES, KEY_1_BYTES)), is(2L));
+	}
+
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-689
 	public void executeWithNoKeyAndArgsThrowsException() {
 		clusterConnection.execute("KEYS", null, Collections.singletonList("*".getBytes()));

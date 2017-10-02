@@ -15,17 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -301,6 +292,24 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Boolean exists(byte[] key) {
 		return convertAndReturn(delegate.exists(key), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#exists(String[])
+	 */
+	@Override
+	public Long exists(String... keys) {
+		return convertAndReturn(delegate.exists(Arrays.asList(serializeMulti(keys))), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(java.util.Collection)
+	 */
+	@Override
+	public Long exists(Collection<byte[]> keys) {
+		return convertAndReturn(delegate.exists(keys), identityConverter);
 	}
 
 	/*

@@ -23,6 +23,7 @@ import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +39,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -71,6 +73,31 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			return LettuceConverters.longToBooleanConverter().convert(getConnection().exists(new byte[][] { key }));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(java.util.Collection)
+	 */
+	@Nullable
+	@Override
+	public Long exists(Collection<byte[]> keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().exists(keys.toArray(new byte[keys.size()][]))));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getAsyncConnection().exists(keys.toArray(new byte[keys.size()][]))));
+				return null;
+			}
+			return getConnection().exists(keys.toArray(new byte[keys.size()][]));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

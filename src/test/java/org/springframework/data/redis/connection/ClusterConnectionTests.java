@@ -23,9 +23,9 @@ import org.springframework.data.geo.Point;
  */
 public interface ClusterConnectionTests {
 
-	static final Point POINT_ARIGENTO = new Point(13.583333, 37.316667);
-	static final Point POINT_CATANIA = new Point(15.087269, 37.502669);
-	static final Point POINT_PALERMO = new Point(13.361389, 38.115556);
+	Point POINT_ARIGENTO = new Point(13.583333, 37.316667);
+	Point POINT_CATANIA = new Point(15.087269, 37.502669);
+	Point POINT_PALERMO = new Point(13.361389, 38.115556);
 
 	// DATAREDIS-315
 	void shouldAllowSettingAndGettingValues();
@@ -642,4 +642,14 @@ public interface ClusterConnectionTests {
 
 	// DATAREDIS-698
 	void hStrLenReturnsZeroWhenKeyDoesNotExist();
+
+	// DATAREDIS-529
+	void testExistsWithMultipleKeys();
+
+	// DATAREDIS-529
+	void testExistsWithMultipleKeysNoneExists();
+
+	// DATAREDIS-529
+	void testExistsSameKeyMultipleTimes();
+
 }
