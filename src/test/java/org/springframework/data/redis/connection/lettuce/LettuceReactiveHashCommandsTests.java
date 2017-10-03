@@ -205,6 +205,32 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 					assertTrue(list.containsAll(expected.entrySet()));
 				}) //
 				.verifyComplete();
+	}
 
+	@Test // DATAREDIS-698
+	public void hStrLenReturnsFieldLength() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
+
+		StepVerifier.create(connection.hashCommands().hStrLen(KEY_1_BBUFFER, FIELD_1_BBUFFER))
+				.expectNext(Long.valueOf(VALUE_1.length())) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-698
+	public void hStrLenReturnsZeroWhenFieldDoesNotExist() {
+
+		nativeCommands.hset(KEY_1, FIELD_2, VALUE_3);
+
+		StepVerifier.create(connection.hashCommands().hStrLen(KEY_1_BBUFFER, FIELD_1_BBUFFER)).expectNext(0L) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-698
+	public void hStrLenReturnsZeroWhenKeyDoesNotExist() {
+
+		StepVerifier.create(connection.hashCommands().hStrLen(KEY_1_BBUFFER, FIELD_1_BBUFFER)).expectNext(0L) //
+				.verifyComplete();
 	}
 }

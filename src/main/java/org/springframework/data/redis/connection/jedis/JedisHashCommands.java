@@ -31,6 +31,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -412,6 +413,20 @@ class JedisHashCommands implements RedisHashCommands {
 			};
 
 		}.open();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hStrLen(byte[], byte[])
+	 */
+	@Nullable
+	@Override
+	public Long hStrLen(byte[] key, byte[] field) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(field, "Field must not be null!");
+
+		return Long.class.cast(connection.execute("HSTRLEN", key, field));
 	}
 
 	private boolean isPipelined() {

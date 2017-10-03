@@ -97,6 +97,17 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	Set<HK> keys();
 
 	/**
+	 * Returns the length of the value associated with {@code hashKey}. If the {@code hashKey} do not exist, {@code 0} is
+	 * returned.
+	 *
+	 * @param hashKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 */
+	@Nullable
+	Long lengthOfValue(HK hashKey);
+
+	/**
 	 * Get size of hash at the bound key.
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.

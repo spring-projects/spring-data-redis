@@ -633,4 +633,13 @@ public interface ClusterConnectionTests {
 
 	// DATAREDIS-438
 	void geoRemoveDeletesMembers();
+
+	// DATAREDIS-698
+	void hStrLenReturnsFieldLength();
+
+	// DATAREDIS-698
+	void hStrLenReturnsZeroWhenFieldDoesNotExist();
+
+	// DATAREDIS-698
+	void hStrLenReturnsZeroWhenKeyDoesNotExist();
 }

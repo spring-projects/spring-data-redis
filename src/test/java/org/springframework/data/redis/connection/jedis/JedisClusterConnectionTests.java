@@ -22,7 +22,6 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.Distanc
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
-import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
@@ -57,6 +56,7 @@ import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.DefaultSortParameters;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisClusterNode;
+import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
@@ -1729,7 +1729,8 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	public void infoShouldCollectionInfoFromAllClusterNodes() {
 
 		Properties singleNodeInfo = clusterConnection.serverCommands().info(new RedisClusterNode("127.0.0.1", 7380));
-		assertThat(Double.valueOf(clusterConnection.serverCommands().info().size()), closeTo(singleNodeInfo.size() * 3, 12d));
+		assertThat(Double.valueOf(clusterConnection.serverCommands().info().size()),
+				closeTo(singleNodeInfo.size() * 3, 12d));
 	}
 
 	@Test // DATAREDIS-315
@@ -2134,5 +2135,48 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
 
 		assertThat(clusterConnection.geoRemove(KEY_1_BYTES, ARIGENTO.getName()), is(1L));
+	}
+
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-689
+	public void executeWithNoKeyAndArgsThrowsException() {
+		clusterConnection.execute("KEYS", null, Collections.singletonList("*".getBytes()));
+	}
+
+	@Test // DATAREDIS-689
+	public void executeWithArgs() {
+
+		assertThat(clusterConnection.execute("SET", KEY_1_BYTES, VALUE_1_BYTES), is("OK".getBytes()));
+
+		assertThat(nativeConnection.get(KEY_1), is(VALUE_1));
+	}
+
+	@Test // DATAREDIS-689
+	public void executeWithKeyAndArgs() {
+
+		assertThat(clusterConnection.execute("SET", KEY_1_BYTES, Collections.singletonList(VALUE_1_BYTES)),
+				is("OK".getBytes()));
+
+		assertThat(nativeConnection.get(KEY_1), is(VALUE_1));
+	}
+
+	@Test // DATAREDIS-698
+	public void hStrLenReturnsFieldLength() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
+
+		assertThat(clusterConnection.hashCommands().hStrLen(KEY_1_BYTES, KEY_2_BYTES), is(Long.valueOf(VALUE_3.length())));
+	}
+
+	@Test // DATAREDIS-698
+	public void hStrLenReturnsZeroWhenFieldDoesNotExist() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
+
+		assertThat(clusterConnection.hashCommands().hStrLen(KEY_1_BYTES, KEY_3_BYTES), is(0L));
+	}
+
+	@Test // DATAREDIS-698
+	public void hStrLenReturnsZeroWhenKeyDoesNotExist() {
+		assertThat(clusterConnection.hashCommands().hStrLen(KEY_1_BYTES, KEY_1_BYTES), is(0L));
 	}
 }

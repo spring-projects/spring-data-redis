@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -170,6 +171,24 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 
 		it.close();
 		assertThat(count, is(hashOps.size(key)));
+	}
+
+	@Test // DATAREDIS-698
+	@IfProfileValue(name = "redisVersion", value = "3.0.3+")
+	public void lengthOfValue() throws IOException {
+
+		assumeThat(hashValueFactory instanceof StringObjectFactory, is(true));
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+
+		assertThat(hashOps.lengthOfValue(key, key1), is(Long.valueOf(val1.toString().length())));
 	}
 
 }

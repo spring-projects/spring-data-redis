@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.lang.Nullable;
 
 /**
  * Default implementation for {@link HashOperations}.
@@ -116,6 +117,16 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	@Override
 	public Set<HK> keys() {
 		return ops.keys(getKey());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundHashOperations#lengthOfValue(java.lang.Object, java.lang.Object)
+	 */
+	@Nullable
+	@Override
+	public Long lengthOfValue(HK hashKey) {
+		return ops.lengthOfValue(getKey(), hashKey);
 	}
 
 	/*

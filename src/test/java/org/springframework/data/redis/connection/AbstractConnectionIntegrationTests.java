@@ -2648,6 +2648,36 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent(), hasSize(2));
 	}
 
+	@Test // DATAREDIS-698
+	public void hStrLenReturnsFieldLength() {
+
+		actual.add(connection.hSet("hash-hstrlen", "key-1", "value-1"));
+		actual.add(connection.hSet("hash-hstrlen", "key-2", "value-2"));
+		actual.add(connection.hStrLen("hash-hstrlen", "key-2"));
+
+		verifyResults(
+				Arrays.asList(new Object[] { Boolean.TRUE, Boolean.TRUE, Long.valueOf("value-2".length()) }));
+	}
+
+	@Test // DATAREDIS-698
+	public void hStrLenReturnsZeroWhenFieldDoesNotExist() {
+
+		actual.add(connection.hSet("hash-hstrlen", "key-1", "value-1"));
+		actual.add(connection.hStrLen("hash-hstrlen", "key-2"));
+
+		verifyResults(
+				Arrays.asList(new Object[] { Boolean.TRUE, 0L }));
+	}
+
+	@Test // DATAREDIS-698
+	public void hStrLenReturnsZeroWhenKeyDoesNotExist() {
+
+		actual.add(connection.hStrLen("hash-no-exist", "key-2"));
+
+		verifyResults(
+				Arrays.asList(new Object[] { 0L }));
+	}
+
 	protected void verifyResults(List<Object> expected) {
 		assertEquals(expected, getResults());
 	}

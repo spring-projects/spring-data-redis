@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.util.Collection;
 import java.util.Set;
 
 import org.springframework.lang.Nullable;
@@ -55,6 +56,27 @@ public interface RedisClusterConnection extends RedisConnection, RedisClusterCom
 	 */
 	@Nullable
 	byte[] randomKey(RedisClusterNode node);
+
+	/**
+	 * Execute the given command for the {@code key} provided potentially appending args. <br />
+	 * This method, other than {@link #execute(String, byte[]...)}, dispatches the command to the {@code key} serving
+	 * master node.
+	 *
+	 * <pre>
+	 * <code>
+	 * // SET foo bar EX 10 NX
+	 * execute("SET", "foo".getBytes(), asBinaryList("bar", "EX", 10, "NX")
+	 * </code>
+	 * </pre>
+	 *
+	 * @param command must not be {@literal null}.
+	 * @param key must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return command result as delivered by the underlying Redis driver. Can be {@literal null}.
+	 * @since 2.1
+	 */
+	@Nullable
+	<T> T execute(String command, byte[] key, Collection<byte[]> args);
 
 	/**
 	 * Get {@link RedisClusterServerCommands}.
