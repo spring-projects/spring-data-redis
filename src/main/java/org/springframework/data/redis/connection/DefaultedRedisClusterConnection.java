@@ -15,10 +15,14 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
@@ -130,5 +134,24 @@ public interface DefaultedRedisClusterConnection extends RedisClusterConnection,
 	@Deprecated
 	default List<RedisClientInfo> getClientList(RedisClusterNode node) {
 		return serverCommands().getClientList(node);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterConnection#execute(String, byte[], Collection)
+	 */
+	@Nullable
+	@Override
+	default <T> T execute(String command, byte[] key, Collection<byte[]> args) {
+
+		Assert.notNull(command, "Command must not be null!");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(args, "Args must not be null!");
+
+		ArrayList<byte[]> allArgs = new ArrayList();
+		allArgs.add(key);
+		allArgs.addAll(args);
+
+		return (T) execute(command, allArgs.toArray(new byte[allArgs.size()][]));
 	}
 }

@@ -23,7 +23,10 @@ import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisClusterConnectionHandler;
 import redis.clients.jedis.JedisPool;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -130,8 +133,34 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	@Override
 	public Object execute(String command, byte[]... args) {
 
-		// TODO: execute command on all nodes? or throw exception requiring to execute command on a specific node
-		throw new UnsupportedOperationException("Execute is currently not supported in cluster mode.");
+		Assert.notNull(command, "Command must not be null!");
+
+		return clusterCommandExecutor
+				.executeCommandOnArbitraryNode((JedisClusterCommandCallback<Object>) client -> JedisClientUtils.execute(command,
+						Collections.emptyList(), Arrays.asList(args), () -> client))
+				.getValue();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterConnection#execute(String, byte[], java.util.Collection)
+	 */
+	@Nullable
+	@Override
+	public <T> T execute(String command, byte[] key, Collection<byte[]> args) {
+
+		Assert.notNull(command, "Command must not be null!");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(args, "Args must not be null!");
+
+		Collection<byte[]> commandArgs = new ArrayList<>();
+		commandArgs.add(key);
+		commandArgs.addAll(args);
+
+		RedisClusterNode keyMaster = topologyProvider.getTopology().getKeyServingMasterNode(key);
+
+		return clusterCommandExecutor.executeCommandOnSingleNode((JedisClusterCommandCallback<T>) client -> JedisClientUtils
+				.execute(command, Collections.emptyList(), commandArgs, () -> client), keyMaster).getValue();
 	}
 
 	/*
@@ -787,8 +816,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 				PropertyAccessor accessor = new DirectFieldAccessFallbackBeanWrapper(cluster);
 				this.connectionHandler = accessor.isReadableProperty("connectionHandler")
-						? (JedisClusterConnectionHandler) accessor.getPropertyValue("connectionHandler")
-						: null;
+						? (JedisClusterConnectionHandler) accessor.getPropertyValue("connectionHandler") : null;
 			} else {
 				this.connectionHandler = null;
 			}

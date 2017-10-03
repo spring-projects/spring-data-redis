@@ -15,22 +15,15 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.BinaryJedisPubSub;
-import redis.clients.jedis.Builder;
 import redis.clients.jedis.Client;
-import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Protocol.Command;
-import redis.clients.jedis.Queable;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.util.Pool;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -48,10 +41,8 @@ import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -70,38 +61,10 @@ import org.springframework.util.StringUtils;
  */
 public class JedisConnection extends AbstractRedisConnection {
 
-	private static final Field CLIENT_FIELD;
-	private static final Method SEND_COMMAND;
-	private static final Method GET_RESPONSE;
-
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
 			JedisConverters.exceptionConverter());
 
-	static {
-
-		CLIENT_FIELD = ReflectionUtils.findField(BinaryJedis.class, "client", Client.class);
-		ReflectionUtils.makeAccessible(CLIENT_FIELD);
-
-		try {
-			Class<?> commandType = ClassUtils.isPresent("redis.clients.jedis.ProtocolCommand", null)
-					? ClassUtils.forName("redis.clients.jedis.ProtocolCommand", null)
-					: ClassUtils.forName("redis.clients.jedis.Protocol$Command", null);
-
-			SEND_COMMAND = ReflectionUtils.findMethod(Connection.class, "sendCommand",
-					new Class[] { commandType, byte[][].class });
-		} catch (Exception e) {
-			throw new NoClassDefFoundError(
-					"Could not find required flavor of command required by 'redis.clients.jedis.Connection#sendCommand'.");
-		}
-
-		ReflectionUtils.makeAccessible(SEND_COMMAND);
-
-		GET_RESPONSE = ReflectionUtils.findMethod(Queable.class, "getResponse", Builder.class);
-		ReflectionUtils.makeAccessible(GET_RESPONSE);
-	}
-
 	private final Jedis jedis;
-	private final Client client;
 	private @Nullable Transaction transaction;
 	private final @Nullable Pool<Jedis> pool;
 	/**
@@ -117,6 +80,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	private Queue<FutureResult<Response<?>>> txResults = new LinkedList<>();
 
 	class JedisResult extends FutureResult<Response<?>> {
+
 		public <T> JedisResult(Response<T> resultHolder, Converter<T, ?> converter) {
 			super(resultHolder, converter);
 		}
@@ -179,9 +143,6 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @since 1.8
 	 */
 	protected JedisConnection(Jedis jedis, @Nullable Pool<Jedis> pool, int dbIndex, String clientName) {
-
-		// extract underlying connection for batch operations
-		client = (Client) ReflectionUtils.getField(CLIENT_FIELD, jedis);
 
 		this.jedis = jedis;
 		this.pool = pool;
@@ -319,21 +280,13 @@ public class JedisConnection extends AbstractRedisConnection {
 				Collections.addAll(mArgs, args);
 			}
 
-			ReflectionUtils.invokeMethod(SEND_COMMAND, client, Command.valueOf(command.trim().toUpperCase()),
-					mArgs.toArray(new byte[mArgs.size()][]));
+			Client client = JedisClientUtils.sendCommand(this.jedis, command, mArgs.toArray(new byte[mArgs.size()][]));
+
 			if (isQueueing() || isPipelined()) {
 				Object target = (isPipelined() ? pipeline : transaction);
 				@SuppressWarnings("unchecked")
-				Response<Object> result = (Response<Object>) ReflectionUtils.invokeMethod(GET_RESPONSE, target,
-						new Builder<Object>() {
-							public Object build(Object data) {
-								return data;
-							}
 
-							public String toString() {
-								return "Object";
-							}
-						});
+				Response<Object> result = JedisClientUtils.getGetResponse(target);
 				if (isPipelined()) {
 					pipeline(new JedisResult(result));
 				} else {
@@ -378,19 +331,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 		// else close the connection normally (doing the try/catch dance)
 		Exception exc = null;
-		if (isQueueing()) {
-			try {
-				client.quit();
-			} catch (Exception o_O) {
-				// ignore exception
-			}
-			try {
-				client.disconnect();
-			} catch (Exception o_O) {
-				// ignore exception
-			}
-			return;
-		}
 		try {
 			jedis.quit();
 		} catch (Exception ex) {
@@ -433,7 +373,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public boolean isQueueing() {
-		return client.isInMulti();
+		return JedisClientUtils.isInMulti(jedis);
 	}
 
 	/*
@@ -652,7 +592,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		return new JedisStatusResult(response);
 	}
 
-	<T> JedisStatusResult newStatusResult(Response<T> response, Converter<T,?> converter) {
+	<T> JedisStatusResult newStatusResult(Response<T> response, Converter<T, ?> converter) {
 		return new JedisStatusResult(response, converter);
 	}
 

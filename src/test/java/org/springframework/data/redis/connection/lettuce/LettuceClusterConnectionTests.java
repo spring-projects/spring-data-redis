@@ -2145,4 +2145,25 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.geoRemove(KEY_1_BYTES, ARIGENTO_BYTES.getName()), is(1L));
 	}
+
+	@Test // DATAREDIS-698
+	public void hStrLenReturnsFieldLength() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
+
+		assertThat(clusterConnection.hashCommands().hStrLen(KEY_1_BYTES, KEY_2_BYTES), is(Long.valueOf(VALUE_3.length())));
+	}
+
+	@Test // DATAREDIS-698
+	public void hStrLenReturnsZeroWhenFieldDoesNotExist() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
+
+		assertThat(clusterConnection.hashCommands().hStrLen(KEY_1_BYTES, KEY_3_BYTES), is(0L));
+	}
+
+	@Test // DATAREDIS-698
+	public void hStrLenReturnsZeroWhenKeyDoesNotExist() {
+		assertThat(clusterConnection.hashCommands().hStrLen(KEY_1_BYTES, KEY_1_BYTES), is(0L));
+	}
 }

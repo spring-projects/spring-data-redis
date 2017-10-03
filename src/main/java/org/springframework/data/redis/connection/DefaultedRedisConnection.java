@@ -916,6 +916,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 		return hashCommands().hScan(key, options);
 	}
 
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}. */
+	@Override
+	@Deprecated
+	default Long hStrLen(byte[] key, byte[] field) {
+		return hashCommands().hStrLen(key, field);
+	}
+
 	// GEO COMMANDS
 
 	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */

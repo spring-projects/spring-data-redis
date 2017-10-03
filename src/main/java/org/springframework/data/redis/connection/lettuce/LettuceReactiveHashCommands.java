@@ -214,4 +214,20 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 			return Mono.just(new CommandResponse<>(command, result.flatMapMany(v -> Flux.fromStream(v.entrySet().stream()))));
 		}));
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveHashCommands#hstrlen(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<NumericResponse<HStrLenCommand, Long>> hStrLen(Publisher<HStrLenCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Command.getKey() must not be null!");
+			Assert.notNull(command.getField(), "Command.getField() must not be null!");
+
+			return cmd.hstrlen(command.getKey(), command.getField()).map(value -> new NumericResponse<>(command, value));
+		}));
+	}
 }

@@ -24,6 +24,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.Nullable;
 
 /**
  * Default implementation of {@link HashOperations}.
@@ -112,6 +113,19 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.hLen(rawKey), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#lengthOfValue(java.lang.Object, java.lang.Object)
+	 */
+	@Nullable
+	@Override
+	public Long lengthOfValue(K key, HK hashKey) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawHashKey = rawHashKey(hashKey);
+		return execute(connection -> connection.hStrLen(rawKey, rawHashKey), true);
 	}
 
 	/*

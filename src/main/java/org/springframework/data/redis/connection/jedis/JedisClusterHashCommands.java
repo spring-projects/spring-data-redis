@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.ScanParams;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -29,6 +30,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -286,7 +288,18 @@ class JedisClusterHashCommands implements RedisHashCommands {
 		}.open();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hStrLen(byte[], byte[])
+	 */
+	@Nullable
+	@Override
+	public Long hStrLen(byte[] key, byte[] field) {
+		return Long.class.cast(connection.execute("HSTRLEN", key, Collections.singleton(field)));
+	}
+
 	private DataAccessException convertJedisAccessException(Exception ex) {
+
 		return connection.convertJedisAccessException(ex);
 	}
 }

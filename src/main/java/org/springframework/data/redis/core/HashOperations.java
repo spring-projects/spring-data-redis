@@ -97,6 +97,18 @@ public interface HashOperations<H, HK, HV> {
 	Set<HK> keys(H key);
 
 	/**
+	 * Returns the length of the value associated with {@code hashKey}. If either the {@code key} or the {@code hashKey}
+	 * do not exist, {@code 0} is returned.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param hashKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 */
+	@Nullable
+	Long lengthOfValue(H key, HK hashKey);
+
+	/**
 	 * Get size of hash at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.

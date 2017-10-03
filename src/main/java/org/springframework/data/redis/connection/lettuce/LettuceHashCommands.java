@@ -35,6 +35,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -416,6 +417,31 @@ class LettuceHashCommands implements RedisHashCommands {
 			}
 
 		}.open();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hStrLen(byte[], byte[])
+	 */
+	@Nullable
+	@Override
+	public Long hStrLen(byte[] key, byte[] field) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(field, "Field must not be null!");
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().hstrlen(key, field)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().hstrlen(key, field)));
+				return null;
+			}
+			return getConnection().hstrlen(key, field);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
 	}
 
 	private boolean isPipelined() {

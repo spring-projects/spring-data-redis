@@ -578,4 +578,83 @@ public interface ReactiveHashCommands {
 	 * @see <a href="http://redis.io/commands/hgetall">Redis Documentation: HGETALL</a>
 	 */
 	Flux<CommandResponse<KeyCommand, Flux<Map.Entry<ByteBuffer, ByteBuffer>>>> hGetAll(Publisher<KeyCommand> commands);
+
+	/**
+	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/hstrlen">Redis Documentation: HSTRLEN</a>
+	 * @since 2.1
+	 */
+	class HStrLenCommand extends KeyCommand {
+
+		private ByteBuffer field;
+
+		/**
+		 * Creates a new {@link HStrLenCommand} given a {@code key}.
+		 *
+		 * @param key can be {@literal null}.
+		 * @param field must not be {@literal null}.
+		 */
+		private HStrLenCommand(@Nullable ByteBuffer key, ByteBuffer field) {
+
+			super(key);
+			this.field = field;
+		}
+
+		/**
+		 * Specify the {@code field} within the hash to get the length of the {@code value} of.ø
+		 *
+		 * @param field must not be {@literal null}.
+		 * @return new instance of {@link HStrLenCommand}.
+		 */
+		public static HStrLenCommand lengthOf(ByteBuffer field) {
+
+			Assert.notNull(field, "Field must not be null!");
+			return new HStrLenCommand(null, field);
+		}
+
+		/**
+		 * Define the {@code key} the hash is stored at.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return new instance of {@link HStrLenCommand}.
+		 */
+		public HStrLenCommand from(ByteBuffer key) {
+			return new HStrLenCommand(key, field);
+		}
+
+		/**
+		 * @return {@literal null} if not already set.
+		 */
+		@Nullable
+		public ByteBuffer getField() {
+			return field;
+		}
+	}
+
+	/**
+	 * Get the length of the value associated with {@code hashKey}. If either the {@code key} or the {@code hashKey} do
+	 * not exist, {@code 0} is emitted.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param field must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.1
+	 */
+	default Mono<Long> hStrLen(ByteBuffer key, ByteBuffer field) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(field, "Field must not be null!");
+
+		return hStrLen(Mono.just(HStrLenCommand.lengthOf(field).from(key))).next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Get the length of the value associated with {@code hashKey}. If either the {@code key} or the {@code hashKey} do
+	 * not exist, {@code 0} is emitted.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.1
+	 */
+	Flux<NumericResponse<HStrLenCommand, Long>> hStrLen(Publisher<HStrLenCommand> commands);
 }

@@ -3203,6 +3203,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#hStrLen(byte[], byte[])
+	 */
+	@Nullable
+	@Override
+	public Long hStrLen(byte[] key, byte[] field) {
+		return convertAndReturn(delegate.hStrLen(key, field), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#setClientName(java.lang.String)
 	 */
 	@Override
@@ -3261,6 +3271,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 						throw new UnsupportedOperationException("Cannot set value for entry in cursor");
 					}
 				});
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hStrLen(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public Long hStrLen(String key, String field) {
+		return hStrLen(serialize(key), serialize(field));
 	}
 
 	/*
@@ -3472,8 +3491,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 			return null;
 		}
 
-
-		return value == null ? null : ObjectUtils.nullSafeEquals(converter, identityConverter) ? (T) value : (T) converter.convert(value);
+		return value == null ? null
+				: ObjectUtils.nullSafeEquals(converter, identityConverter) ? (T) value : (T) converter.convert(value);
 	}
 
 	private void addResultConverter(Converter<?, ?> converter) {
