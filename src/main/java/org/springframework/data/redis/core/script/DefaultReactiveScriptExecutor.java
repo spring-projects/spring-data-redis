@@ -75,9 +75,10 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 		Assert.notNull(keys, "Keys must not be null!");
 		Assert.notNull(args, "Args must not be null!");
 
-		// use the Template's value serializer for args and result
-		return execute(script, keys, args, serializationContext.getKeySerializationPair().getWriter(),
-				(RedisElementReader<T>) serializationContext.getValueSerializationPair().getReader());
+		SerializationPair<?> serializationPair = serializationContext.getValueSerializationPair();
+
+		return execute(script, keys, args, serializationPair.getWriter(),
+				(RedisElementReader<T>) serializationPair.getReader());
 	}
 
 	/*
