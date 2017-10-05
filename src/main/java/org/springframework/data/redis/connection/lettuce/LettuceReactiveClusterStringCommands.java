@@ -51,7 +51,7 @@ class LettuceReactiveClusterStringCommands extends LettuceReactiveStringCommands
 	@Override
 	public Flux<ReactiveRedisConnection.NumericResponse<BitOpCommand, Long>> bitOp(Publisher<BitOpCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			List<ByteBuffer> keys = new ArrayList<>(command.getKeys());
 			keys.add(command.getDestinationKey());
@@ -71,7 +71,7 @@ class LettuceReactiveClusterStringCommands extends LettuceReactiveStringCommands
 	@Override
 	public Flux<ReactiveRedisConnection.BooleanResponse<MSetCommand>> mSetNX(Publisher<MSetCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKeyValuePairs().keySet())) {
 				return super.mSetNX(Mono.just(command));

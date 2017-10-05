@@ -49,7 +49,7 @@ class LettuceReactiveClusterListCommands extends LettuceReactiveListCommands imp
 	@Override
 	public Flux<PopResponse> bPop(Publisher<BPopCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 			Assert.notNull(command.getDirection(), "Direction must not be null!");
@@ -68,7 +68,7 @@ class LettuceReactiveClusterListCommands extends LettuceReactiveListCommands imp
 	@Override
 	public Flux<ByteBufferResponse<RPopLPushCommand>> rPopLPush(Publisher<RPopLPushCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getDestination(), "Destination key must not be null!");

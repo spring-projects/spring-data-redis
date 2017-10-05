@@ -53,7 +53,7 @@ class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHyperLogL
 	@Override
 	public Flux<BooleanResponse<PfMergeCommand>> pfMerge(Publisher<PfMergeCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null for PFMERGE");
 			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty for PFMERGE!");
@@ -76,7 +76,7 @@ class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHyperLogL
 	@Override
 	public Flux<NumericResponse<PfCountCommand, Long>> pfCount(Publisher<PfCountCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notEmpty(command.getKeys(), "Keys must be null or empty for PFCOUNT!");
 

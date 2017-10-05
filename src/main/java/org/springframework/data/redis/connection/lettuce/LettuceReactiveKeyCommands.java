@@ -61,7 +61,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<BooleanResponse<KeyCommand>> exists(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap((command) -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap((command) -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -77,7 +77,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<CommandResponse<KeyCommand, DataType>> type(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -93,7 +93,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<MultiValueResponse<ByteBuffer, ByteBuffer>> keys(Publisher<ByteBuffer> patterns) {
 
-		return connection.execute(cmd -> Flux.from(patterns).flatMap(pattern -> {
+		return connection.execute(cmd -> Flux.from(patterns).concatMap(pattern -> {
 
 			Assert.notNull(pattern, "Pattern must not be null!");
 			// TODO: stream elements instead of collection
@@ -117,7 +117,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<BooleanResponse<RenameCommand>> rename(Publisher<RenameCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getNewName(), "New name must not be null!");
@@ -134,7 +134,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<BooleanResponse<RenameCommand>> renameNX(Publisher<RenameCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getNewName(), "New name must not be null!");
@@ -150,7 +150,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> del(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap((command) -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap((command) -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -165,7 +165,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<NumericResponse<List<ByteBuffer>, Long>> mDel(Publisher<List<ByteBuffer>> keysCollection) {
 
-		return connection.execute(cmd -> Flux.from(keysCollection).flatMap((keys) -> {
+		return connection.execute(cmd -> Flux.from(keysCollection).concatMap((keys) -> {
 
 			Assert.notEmpty(keys, "Keys must not be null!");
 
@@ -180,7 +180,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<BooleanResponse<ExpireCommand>> expire(Publisher<ExpireCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getTimeout(), "Timeout must not be null!");
@@ -196,7 +196,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<BooleanResponse<ExpireCommand>> pExpire(Publisher<ExpireCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getTimeout(), "Timeout must not be null!");
@@ -212,7 +212,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<BooleanResponse<ExpireAtCommand>> expireAt(Publisher<ExpireAtCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getExpireAt(), "Expire at must not be null!");
@@ -228,7 +228,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<BooleanResponse<ExpireAtCommand>> pExpireAt(Publisher<ExpireAtCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getExpireAt(), "Expire at must not be null!");
@@ -244,7 +244,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<BooleanResponse<KeyCommand>> persist(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -258,7 +258,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> ttl(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -272,7 +272,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> pTtl(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -286,7 +286,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<BooleanResponse<MoveCommand>> move(Publisher<MoveCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getDatabase(), "Database must not be null!");

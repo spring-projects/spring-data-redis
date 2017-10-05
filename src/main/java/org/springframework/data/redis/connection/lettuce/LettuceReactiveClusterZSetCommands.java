@@ -47,7 +47,7 @@ class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetCommands imp
 	@Override
 	public Flux<NumericResponse<ZUnionStoreCommand, Long>> zUnionStore(Publisher<ZUnionStoreCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty.");
 
@@ -65,7 +65,7 @@ class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetCommands imp
 	 */
 	@Override
 	public Flux<NumericResponse<ZInterStoreCommand, Long>> zInterStore(Publisher<ZInterStoreCommand> commands) {
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty.");
 

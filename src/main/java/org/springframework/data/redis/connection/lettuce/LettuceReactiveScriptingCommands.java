@@ -140,7 +140,7 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 
 		if (returnType == ReturnType.MULTI) {
 
-			return eval.flatMap(t -> {
+			return eval.concatMap(t -> {
 				return t instanceof Exception ? Flux.error(connection.translateException().apply((Exception) t)) : Flux.just(t);
 			});
 		}

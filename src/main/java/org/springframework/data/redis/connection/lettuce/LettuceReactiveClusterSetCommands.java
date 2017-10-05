@@ -53,7 +53,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 	@Override
 	public Flux<CommandResponse<SUnionCommand, Flux<ByteBuffer>>> sUnion(Publisher<SUnionCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
@@ -74,7 +74,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 	@Override
 	public Flux<NumericResponse<SUnionStoreCommand, Long>> sUnionStore(Publisher<SUnionStoreCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Source keys must not be null!");
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
@@ -99,7 +99,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 	@Override
 	public Flux<CommandResponse<SInterCommand, Flux<ByteBuffer>>> sInter(Publisher<SInterCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
@@ -124,7 +124,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 				return source;
 			});
 
-			return Mono.just(new CommandResponse<>(command, result.flatMap(v -> Flux.fromStream(v.stream()))));
+			return Mono.just(new CommandResponse<>(command, result.concatMap(v -> Flux.fromStream(v.stream()))));
 		}));
 	}
 
@@ -134,7 +134,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 	@Override
 	public Flux<NumericResponse<SInterStoreCommand, Long>> sInterStore(Publisher<SInterStoreCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Source keys must not be null!");
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
@@ -159,7 +159,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 	@Override
 	public Flux<CommandResponse<SDiffCommand, Flux<ByteBuffer>>> sDiff(Publisher<SDiffCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
@@ -185,7 +185,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 				return source;
 			});
 
-			return Mono.just(new CommandResponse<>(command, result.flatMap(v -> Flux.fromStream(v.stream()))));
+			return Mono.just(new CommandResponse<>(command, result.concatMap(v -> Flux.fromStream(v.stream()))));
 
 		}));
 	}
@@ -196,7 +196,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 	@Override
 	public Flux<NumericResponse<SDiffStoreCommand, Long>> sDiffStore(Publisher<SDiffStoreCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Source keys must not be null!");
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
@@ -221,7 +221,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 	@Override
 	public Flux<BooleanResponse<SMoveCommand>> sMove(Publisher<SMoveCommand> commands) {
 
-		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Source key must not be null!");
 			Assert.notNull(command.getDestination(), "Destination key must not be null!");

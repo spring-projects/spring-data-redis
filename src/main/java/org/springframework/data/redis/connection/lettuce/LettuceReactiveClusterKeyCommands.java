@@ -76,7 +76,7 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 	@Override
 	public Flux<BooleanResponse<RenameCommand>> rename(Publisher<RenameCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "key must not be null.");
 			Assert.notNull(command.getNewName(), "NewName must not be null!");
@@ -102,7 +102,7 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 	@Override
 	public Flux<BooleanResponse<RenameCommand>> renameNX(Publisher<RenameCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null.");
 			Assert.notNull(command.getNewName(), "NewName must not be null!");
