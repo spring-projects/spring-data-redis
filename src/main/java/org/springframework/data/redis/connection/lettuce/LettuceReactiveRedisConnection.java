@@ -31,6 +31,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.*;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -44,7 +45,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 	private final LettuceConnectionProvider connectionProvider;
 
-	private StatefulConnection<ByteBuffer, ByteBuffer> connection;
+	private @Nullable StatefulConnection<ByteBuffer, ByteBuffer> connection;
 
 	/**
 	 * Creates new {@link LettuceReactiveRedisConnection}.
@@ -53,6 +54,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	 * @throws IllegalArgumentException when {@code client} is {@literal null}.
 	 * @throws InvalidDataAccessResourceUsageException when {@code client} is not suitable for connection.
 	 */
+	@SuppressWarnings("unchecked")
 	LettuceReactiveRedisConnection(LettuceConnectionProvider connectionProvider) {
 
 		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null!");
@@ -183,14 +185,21 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	@Override
 	public void close() {
 
-		synchronized (connectionProvider) {
-			connectionProvider.release(connection);
-			connection = null;
+		if (connection != null) {
+			synchronized (connectionProvider) {
+				connectionProvider.release(connection);
+				connection = null;
+			}
 		}
 	}
 
 	protected StatefulConnection<ByteBuffer, ByteBuffer> getConnection() {
-		return connection;
+
+		if (connection != null) {
+			return connection;
+		}
+
+		throw new IllegalStateException("Connection is closed");
 	}
 
 	protected RedisClusterReactiveCommands<ByteBuffer, ByteBuffer> getCommands() {
