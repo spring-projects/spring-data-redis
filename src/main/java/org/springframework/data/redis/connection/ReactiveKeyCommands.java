@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 
 import org.reactivestreams.Publisher;
@@ -86,6 +87,28 @@ public interface ReactiveKeyCommands {
 	 * @see <a href="http://redis.io/commands/type">Redis Documentation: TYPE</a>
 	 */
 	Flux<CommandResponse<KeyCommand, DataType>> type(Publisher<KeyCommand> keys);
+
+	/**
+	 * Alter the last access time of given {@code key(s)}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@link Mono} emitting the number of keys touched.
+	 * @see <a href="http://redis.io/commands/touch">Redis Documentation: TOUCH</a>
+	 * @since 2.1
+	 */
+	default Mono<Long> touch(Collection<ByteBuffer> keys) {
+		return touch(Mono.just(keys)).next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Alter the last access time of given {@code key(s)}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/touch">Redis Documentation: TOUCH</a>
+	 * @since 2.1
+	 */
+	Flux<NumericResponse<Collection<ByteBuffer>, Long>> touch(Publisher<Collection<ByteBuffer>> keys);
 
 	/**
 	 * Find all keys matching the given {@literal pattern}.

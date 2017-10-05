@@ -20,6 +20,7 @@ import redis.clients.jedis.BinaryJedis;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -95,6 +96,20 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#touch(byte[][])
+	 */
+	@Nullable
+	@Override
+	public Long touch(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		return connection.<Long> execute("TOUCH", Arrays.asList(keys), Collections.emptyList()).stream()
+				.mapToLong(val -> val).sum();
 	}
 
 	/*

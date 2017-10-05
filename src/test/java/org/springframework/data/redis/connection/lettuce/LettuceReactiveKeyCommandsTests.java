@@ -287,4 +287,23 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 				.verify();
 		assertThat(nativeCommands.exists(KEY_1), is(0L));
 	}
+
+	@Test // DATAREDIS-694
+	public void touchReturnsNrOfKeysTouched() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.set(KEY_2, VALUE_2);
+
+		StepVerifier.create(connection.keyCommands().touch(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER)))
+				.expectNext(2L) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-694
+	public void touchReturnsZeroIfNoKeysTouched() {
+
+		StepVerifier.create(connection.keyCommands().touch(Arrays.asList(KEY_1_BBUFFER))) //
+				.expectNext(0L) //
+				.verifyComplete();
+	}
 }

@@ -78,6 +78,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
+	default Long touch(byte[]... keys) {
+		return keyCommands().touch(keys);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
 	default Set<byte[]> keys(byte[] pattern) {
 		return keyCommands().keys(pattern);
 	}
