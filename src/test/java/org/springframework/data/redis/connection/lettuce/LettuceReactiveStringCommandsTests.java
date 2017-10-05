@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 
+import org.springframework.data.redis.util.ByteUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -116,8 +117,8 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		Stream<KeyCommand> stream = Stream.of(new KeyCommand(KEY_1_BBUFFER), new KeyCommand(KEY_2_BBUFFER));
 		Flux<ByteBufferResponse<KeyCommand>> result = connection.stringCommands().get(Flux.fromStream(stream));
 
-		StepVerifier.create(result.map(CommandResponse::getOutput)) //
-				.expectNext(VALUE_1_BBUFFER, VALUE_2_BBUFFER) //
+		StepVerifier.create(result.map(CommandResponse::getOutput).map(ByteUtils::getBytes).map(String::new)) //
+				.expectNext(new String(ByteUtils.getBytes(VALUE_1_BBUFFER)), new String(ByteUtils.getBytes(VALUE_2_BBUFFER))) //
 				.verifyComplete();
 	}
 

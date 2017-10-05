@@ -57,7 +57,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<NumericResponse<SAddCommand, Long>> sAdd(Publisher<SAddCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValues(), "Values must not be null!");
@@ -74,7 +74,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<NumericResponse<SRemCommand, Long>> sRem(Publisher<SRemCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValues(), "Values must not be null!");
@@ -91,7 +91,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<ByteBufferResponse<KeyCommand>> sPop(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -119,7 +119,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<BooleanResponse<SMoveCommand>> sMove(Publisher<SMoveCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getDestination(), "Destination key must not be null!");
@@ -137,7 +137,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> sCard(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -152,7 +152,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<BooleanResponse<SIsMemberCommand>> sIsMember(Publisher<SIsMemberCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValue(), "Value must not be null!");
@@ -168,7 +168,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<CommandResponse<SInterCommand, Flux<ByteBuffer>>> sInter(Publisher<SInterCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
@@ -184,7 +184,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<NumericResponse<SInterStoreCommand, Long>> sInterStore(Publisher<SInterStoreCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
@@ -201,7 +201,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<CommandResponse<SUnionCommand, Flux<ByteBuffer>>> sUnion(Publisher<SUnionCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
@@ -217,7 +217,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<NumericResponse<SUnionStoreCommand, Long>> sUnionStore(Publisher<SUnionStoreCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
@@ -234,7 +234,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<CommandResponse<SDiffCommand, Flux<ByteBuffer>>> sDiff(Publisher<SDiffCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
@@ -250,7 +250,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<NumericResponse<SDiffStoreCommand, Long>> sDiffStore(Publisher<SDiffStoreCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
@@ -267,7 +267,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	@Override
 	public Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> sMembers(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -284,7 +284,7 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	public Flux<CommandResponse<SRandMembersCommand, Flux<ByteBuffer>>> sRandMember(
 			Publisher<SRandMembersCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
