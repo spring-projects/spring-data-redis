@@ -82,7 +82,8 @@ public interface ReactiveScriptingCommands {
 	 * Evaluate given {@code script}.
 	 *
 	 * @param script must not be {@literal null}.
-	 * @param returnType must not be {@literal null}.
+	 * @param returnType must not be {@literal null}. Using {@link ReturnType#MULTI} emits a {@link List} as-is instead of
+	 *          emitting the individual elements from the array response.
 	 * @param numKeys
 	 * @param keysAndArgs must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -94,7 +95,8 @@ public interface ReactiveScriptingCommands {
 	 * Evaluate given {@code scriptSha}.
 	 *
 	 * @param scriptSha must not be {@literal null}.
-	 * @param returnType must not be {@literal null}.
+	 * @param returnType must not be {@literal null}. Using {@link ReturnType#MULTI} emits a {@link List} as-is instead of
+	 *          emitting the individual elements from the array response.
 	 * @param numKeys
 	 * @param keysAndArgs must not be {@literal null}.
 	 * @return never {@literal null}.

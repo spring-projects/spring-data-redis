@@ -17,8 +17,11 @@ package org.springframework.data.redis;
 
 import java.util.Properties;
 
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+
 /**
  * @author Costin Leau
+ * @author Mark Paluch
  */
 public abstract class SettingsUtils {
 	private final static Properties DEFAULTS = new Properties();
@@ -43,5 +46,9 @@ public abstract class SettingsUtils {
 
 	public static int getPort() {
 		return Integer.valueOf(SETTINGS.getProperty("port"));
+	}
+
+	public static RedisStandaloneConfiguration standaloneConfiguration() {
+		return new RedisStandaloneConfiguration(getHost(), getPort());
 	}
 }

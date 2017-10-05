@@ -86,7 +86,7 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-683
+	@Test // DATAREDIS-683, DATAREDIS-711
 	public void evalShaShouldReturnMulti() {
 
 		assumeFalse(connection instanceof ReactiveRedisClusterConnection);
@@ -96,8 +96,7 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 		StepVerifier
 				.create(connection.scriptingCommands().evalSha(sha1, ReturnType.MULTI, 1, SAME_SLOT_KEY_1_BBUFFER.duplicate(),
 						SAME_SLOT_KEY_2_BBUFFER.duplicate())) //
-				.expectNext(SAME_SLOT_KEY_1_BBUFFER) //
-				.expectNext(SAME_SLOT_KEY_2_BBUFFER) //
+				.expectNext(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER)) //
 				.verifyComplete();
 	}
 
@@ -133,14 +132,13 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-683
+	@Test // DATAREDIS-683, DATAREDIS-711
 	public void evalShouldReturnMultiNumbers() {
 
 		ByteBuffer script = wrap("return {1,2}");
 
 		StepVerifier.create(connection.scriptingCommands().eval(script, ReturnType.MULTI, 0)) //
-				.expectNext(1L) //
-				.expectNext(2L) //
+				.expectNext(Arrays.asList(1L, 2L)) //
 				.verifyComplete();
 	}
 
