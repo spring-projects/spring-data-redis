@@ -28,7 +28,16 @@ import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -375,7 +384,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-689
 	public void executeWithNoKeyAndArgsThrowsException() {
-		clusterConnection.execute("KEYS", null, Collections.singletonList("*".getBytes()));
+		clusterConnection.execute("KEYS", (byte[]) null, Collections.singletonList("*".getBytes()));
 	}
 
 	@Test // DATAREDIS-529
@@ -2195,4 +2204,19 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrange(SAME_SLOT_KEY_3_BYTES, 0, -1),
 				hasItems(VALUE_1_BYTES, VALUE_2_BYTES, VALUE_3_BYTES));
 	}
+
+	@Test // DATAREDIS-694
+	public void touchReturnsNrOfKeysTouched() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_1);
+
+		assertThat(clusterConnection.keyCommands().touch(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES), is(2L));
+	}
+
+	@Test // DATAREDIS-694
+	public void touchReturnsZeroIfNoKeysTouched() {
+		assertThat(clusterConnection.keyCommands().touch(KEY_1_BYTES), is(0L));
+	}
+
 }

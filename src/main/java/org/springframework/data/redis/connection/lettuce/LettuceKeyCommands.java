@@ -152,6 +152,30 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#touch(byte[][])
+	 */
+	@Override
+	public Long touch(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().touch(keys)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getConnection().touch(keys)));
+				return null;
+			}
+			return getConnection().touch(keys);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#keys(byte[])
 	 */
 	@Override

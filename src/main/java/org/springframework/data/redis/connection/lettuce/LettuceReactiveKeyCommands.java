@@ -20,6 +20,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -83,6 +84,22 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 			return cmd.type(command.getKey()).map(LettuceConverters::toDataType)
 					.map(respValue -> new CommandResponse<>(command, respValue));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#touch(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<NumericResponse<Collection<ByteBuffer>, Long>> touch(Publisher<Collection<ByteBuffer>> keysCollection) {
+
+		return connection.execute(cmd -> Flux.from(keysCollection).concatMap((keys) -> {
+
+			Assert.notEmpty(keys, "Keys must not be null!");
+
+			return cmd.touch(keys.toArray(new ByteBuffer[keys.size()]))
+					.map((value) -> new NumericResponse<>(keys, value));
 		}));
 	}
 

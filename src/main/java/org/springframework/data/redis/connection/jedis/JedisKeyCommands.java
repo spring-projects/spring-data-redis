@@ -148,6 +148,19 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#touch(byte[][])
+	 */
+	@Nullable
+	@Override
+	public Long touch(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		return Long.class.cast(connection.execute("TOUCH", keys));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#keys(byte[])
 	 */
 	@Override
