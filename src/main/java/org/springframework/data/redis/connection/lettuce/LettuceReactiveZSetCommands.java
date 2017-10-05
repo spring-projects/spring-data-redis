@@ -72,7 +72,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	@SuppressWarnings("unchecked")
 	public Flux<NumericResponse<ZAddCommand, Number>> zAdd(Publisher<ZAddCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notEmpty(command.getTuples(), "Tuples must not be empty or null!");
@@ -121,7 +121,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	@Override
 	public Flux<NumericResponse<ZRemCommand, Long>> zRem(Publisher<ZRemCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notEmpty(command.getValues(), "Values must not be null or empty!");
@@ -138,7 +138,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	@Override
 	public Flux<NumericResponse<ZIncrByCommand, Double>> zIncrBy(Publisher<ZIncrByCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValue(), "Member must not be null!");
@@ -156,7 +156,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	@Override
 	public Flux<NumericResponse<ZRankCommand, Long>> zRank(Publisher<ZRankCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValue(), "Value must not be null!");
@@ -175,7 +175,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	@Override
 	public Flux<CommandResponse<ZRangeCommand, Flux<Tuple>>> zRange(Publisher<ZRangeCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
@@ -224,7 +224,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	public Flux<CommandResponse<ZRangeByScoreCommand, Flux<Tuple>>> zRangeByScore(
 			Publisher<ZRangeByScoreCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
@@ -298,7 +298,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	@Override
 	public Flux<NumericResponse<ZCountCommand, Long>> zCount(Publisher<ZCountCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
@@ -317,7 +317,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> zCard(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -332,7 +332,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	@Override
 	public Flux<NumericResponse<ZScoreCommand, Double>> zScore(Publisher<ZScoreCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValue(), "Value must not be null!");
@@ -349,7 +349,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	public Flux<NumericResponse<ZRemRangeByRankCommand, Long>> zRemRangeByRank(
 			Publisher<ZRemRangeByRankCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
@@ -369,7 +369,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	public Flux<NumericResponse<ZRemRangeByScoreCommand, Long>> zRemRangeByScore(
 			Publisher<ZRemRangeByScoreCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
@@ -388,7 +388,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	@Override
 	public Flux<NumericResponse<ZUnionStoreCommand, Long>> zUnionStore(Publisher<ZUnionStoreCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
 			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty!");
@@ -413,7 +413,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	@Override
 	public Flux<NumericResponse<ZInterStoreCommand, Long>> zInterStore(Publisher<ZInterStoreCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
 			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty!");
@@ -439,7 +439,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	public Flux<CommandResponse<ZRangeByLexCommand, Flux<ByteBuffer>>> zRangeByLex(
 			Publisher<ZRangeByLexCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
 

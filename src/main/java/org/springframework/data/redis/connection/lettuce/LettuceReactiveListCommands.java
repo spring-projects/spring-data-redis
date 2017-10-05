@@ -63,7 +63,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 	@Override
 	public Flux<NumericResponse<PushCommand, Long>> push(Publisher<PushCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notEmpty(command.getValues(), "Values must not be null or empty!");
@@ -96,7 +96,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> lLen(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -111,7 +111,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 	@Override
 	public Flux<CommandResponse<RangeCommand, Flux<ByteBuffer>>> lRange(Publisher<RangeCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
@@ -129,7 +129,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 	@Override
 	public Flux<BooleanResponse<RangeCommand>> lTrim(Publisher<RangeCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
@@ -148,7 +148,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 	@Override
 	public Flux<ByteBufferResponse<LIndexCommand>> lIndex(Publisher<LIndexCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getIndex(), "Index value must not be null!");
@@ -164,7 +164,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 	@Override
 	public Flux<NumericResponse<LInsertCommand, Long>> lInsert(Publisher<LInsertCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValue(), "Value must not be null!");
@@ -185,7 +185,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 
 		return connection.execute(cmd -> {
 
-			return Flux.from(commands).flatMap(command -> {
+			return Flux.from(commands).concatMap(command -> {
 
 				Assert.notNull(command.getKey(), "Key must not be null!");
 				Assert.notNull(command.getValue(), "value must not be null!");
@@ -204,7 +204,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 	@Override
 	public Flux<NumericResponse<LRemCommand, Long>> lRem(Publisher<LRemCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValue(), "Value must not be null!");
@@ -222,7 +222,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 	@Override
 	public Flux<ByteBufferResponse<PopCommand>> pop(Publisher<PopCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getDirection(), "Direction must not be null!");
@@ -241,7 +241,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 	@Override
 	public Flux<PopResponse> bPop(Publisher<BPopCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 			Assert.notNull(command.getDirection(), "Direction must not be null!");
@@ -264,7 +264,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 	@Override
 	public Flux<ByteBufferResponse<RPopLPushCommand>> rPopLPush(Publisher<RPopLPushCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getDestination(), "Destination key must not be null!");
@@ -281,7 +281,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 	@Override
 	public Flux<ByteBufferResponse<BRPopLPushCommand>> bRPopLPush(Publisher<BRPopLPushCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getDestination(), "Destination key must not be null!");

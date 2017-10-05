@@ -63,7 +63,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	@Override
 	public Flux<BooleanResponse<HSetCommand>> hSet(Publisher<HSetCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getFieldValueMap(), "FieldValueMap must not be null!");
@@ -95,7 +95,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	@Override
 	public Flux<MultiValueResponse<HGetCommand, ByteBuffer>> hMGet(Publisher<HGetCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getFields(), "Fields must not be null!");
@@ -122,7 +122,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	@Override
 	public Flux<BooleanResponse<HExistsCommand>> hExists(Publisher<HExistsCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getName(), "Name must not be null!");
@@ -138,7 +138,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	@Override
 	public Flux<NumericResponse<HDelCommand, Long>> hDel(Publisher<HDelCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getFields(), "Fields must not be null!");
@@ -155,7 +155,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> hLen(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Command.getKey() must not be null!");
 
@@ -170,7 +170,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	@Override
 	public Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> hKeys(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -187,7 +187,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	@Override
 	public Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> hVals(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -205,7 +205,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	public Flux<CommandResponse<KeyCommand, Flux<Map.Entry<ByteBuffer, ByteBuffer>>>> hGetAll(
 			Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 

@@ -53,7 +53,7 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> incr(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -68,7 +68,7 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 	@Override
 	public <T extends Number> Flux<NumericResponse<IncrByCommand<T>, T>> incrBy(Publisher<IncrByCommand<T>> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValue(), "Value for INCRBY must not be null.");
@@ -94,7 +94,7 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> decr(Publisher<KeyCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
@@ -109,7 +109,7 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 	@Override
 	public <T extends Number> Flux<NumericResponse<DecrByCommand<T>, T>> decrBy(Publisher<DecrByCommand<T>> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValue(), "Value for DECRBY must not be null.");
@@ -135,7 +135,7 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 	@Override
 	public <T extends Number> Flux<NumericResponse<HIncrByCommand<T>, T>> hIncrBy(Publisher<HIncrByCommand<T>> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValue(), "Value must not be null!");

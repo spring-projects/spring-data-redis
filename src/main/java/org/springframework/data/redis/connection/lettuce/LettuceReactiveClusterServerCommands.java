@@ -280,7 +280,7 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 	public Flux<RedisClientInfo> getClientList(RedisClusterNode node) {
 
 		return connection.execute(node, RedisServerReactiveCommands::clientList)
-				.flatMapIterable(LettuceConverters.stringToRedisClientListConverter()::convert);
+				.concatMapIterable(LettuceConverters.stringToRedisClientListConverter()::convert);
 	}
 
 	private <T> Collection<Publisher<Tuple2<RedisClusterNode, T>>> executeOnAllNodes(

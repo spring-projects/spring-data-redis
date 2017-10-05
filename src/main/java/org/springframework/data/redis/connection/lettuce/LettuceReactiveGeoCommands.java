@@ -68,7 +68,7 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 	@Override
 	public Flux<NumericResponse<GeoAddCommand, Long>> geoAdd(Publisher<GeoAddCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getGeoLocations(), "Locations must not be null!");
@@ -95,7 +95,7 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 	@Override
 	public Flux<CommandResponse<GeoDistCommand, Distance>> geoDist(Publisher<GeoDistCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getFrom(), "From member must not be null!");
@@ -121,7 +121,7 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 	@Override
 	public Flux<MultiValueResponse<GeoHashCommand, String>> geoHash(Publisher<GeoHashCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getMembers(), "Members must not be null!");
@@ -139,7 +139,7 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 	@Override
 	public Flux<MultiValueResponse<GeoPosCommand, Point>> geoPos(Publisher<GeoPosCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getMembers(), "Members must not be null!");
@@ -160,7 +160,7 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 	public Flux<CommandResponse<GeoRadiusCommand, Flux<GeoResult<GeoLocation<ByteBuffer>>>>> geoRadius(
 			Publisher<GeoRadiusCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getPoint(), "Point must not be null!");
@@ -187,7 +187,7 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 	public Flux<CommandResponse<GeoRadiusByMemberCommand, Flux<GeoResult<GeoLocation<ByteBuffer>>>>> geoRadiusByMember(
 			Publisher<GeoRadiusByMemberCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getMember(), "Member must not be null!");
