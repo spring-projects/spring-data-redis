@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -142,16 +141,22 @@ public interface DefaultedRedisClusterConnection extends RedisClusterConnection,
 	 */
 	@Nullable
 	@Override
+	@SuppressWarnings("unchecked")
 	default <T> T execute(String command, byte[] key, Collection<byte[]> args) {
 
 		Assert.notNull(command, "Command must not be null!");
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(args, "Args must not be null!");
 
-		ArrayList<byte[]> allArgs = new ArrayList();
-		allArgs.add(key);
-		allArgs.addAll(args);
+		byte[][] commandArgs = new byte[args.size() + 1][];
 
-		return (T) execute(command, allArgs.toArray(new byte[allArgs.size()][]));
+		commandArgs[0] = key;
+		int targetIndex = 1;
+
+		for (byte[] binaryArgument : args) {
+			commandArgs[targetIndex++] = binaryArgument;
+		}
+
+		return (T) execute(command, commandArgs);
 	}
 }

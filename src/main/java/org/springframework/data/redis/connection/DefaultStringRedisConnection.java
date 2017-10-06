@@ -3047,7 +3047,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Object execute(String command) {
-		return execute(command, (byte[][]) null);
+		return execute(command, EMPTY_2D_BYTE_ARRAY);
 	}
 
 	/*

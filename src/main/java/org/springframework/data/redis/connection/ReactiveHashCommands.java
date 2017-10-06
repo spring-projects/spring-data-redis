@@ -623,17 +623,16 @@ public interface ReactiveHashCommands {
 		}
 
 		/**
-		 * @return {@literal null} if not already set.
+		 * @return the field.
 		 */
-		@Nullable
 		public ByteBuffer getField() {
 			return field;
 		}
 	}
 
 	/**
-	 * Get the length of the value associated with {@code hashKey}. If either the {@code key} or the {@code hashKey} do
-	 * not exist, {@code 0} is emitted.
+	 * Get the length of the value associated with {@code field}. If either the {@code key} or the {@code field} do not
+	 * exist, {@code 0} is emitted.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
@@ -649,8 +648,8 @@ public interface ReactiveHashCommands {
 	}
 
 	/**
-	 * Get the length of the value associated with {@code hashKey}. If either the {@code key} or the {@code hashKey} do
-	 * not exist, {@code 0} is emitted.
+	 * Get the length of the value associated with {@code field}. If either the {@code key} or the {@code field} do not
+	 * exist, {@code 0} is emitted.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return never {@literal null}.

@@ -42,7 +42,6 @@ import org.springframework.data.redis.connection.convert.TransactionResultConver
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -273,20 +272,18 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public Object execute(String command, byte[]... args) {
-		Assert.hasText(command, "a valid command needs to be specified");
-		try {
-			List<byte[]> mArgs = new ArrayList<>();
-			if (!ObjectUtils.isEmpty(args)) {
-				Collections.addAll(mArgs, args);
-			}
 
-			Client client = JedisClientUtils.sendCommand(this.jedis, command, mArgs.toArray(new byte[mArgs.size()][]));
+		Assert.hasText(command, "A valid command needs to be specified!");
+		Assert.notNull(args, "Arguments must not be null!");
+
+		try {
+
+			Client client = JedisClientUtils.sendCommand(command, args, this.jedis);
 
 			if (isQueueing() || isPipelined()) {
-				Object target = (isPipelined() ? pipeline : transaction);
-				@SuppressWarnings("unchecked")
 
-				Response<Object> result = JedisClientUtils.getGetResponse(target);
+				Response<Object> result = JedisClientUtils
+						.getResponse(isPipelined() ? getRequiredPipeline() : getRequiredTransaction());
 				if (isPipelined()) {
 					pipeline(new JedisResult(result));
 				} else {

@@ -18,16 +18,7 @@ package org.springframework.data.redis.connection;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
@@ -1702,7 +1693,7 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testExecute() {
-		doReturn("foo").when(nativeConnection).execute("something", (byte[][]) null);
+		doReturn("foo").when(nativeConnection).execute("something", new byte[0][]);
 		actual.add(connection.execute("something"));
 		verifyResults(Arrays.asList(new Object[] { "foo" }));
 	}
