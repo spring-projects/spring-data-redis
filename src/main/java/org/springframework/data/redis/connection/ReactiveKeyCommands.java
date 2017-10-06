@@ -265,6 +265,31 @@ public interface ReactiveKeyCommands {
 	Flux<NumericResponse<KeyCommand, Long>> del(Publisher<KeyCommand> keys);
 
 	/**
+	 * Unlink {@literal key}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @since 2.1
+	 */
+	default Mono<Long> unlink(List<ByteBuffer> keys) {
+
+		Assert.notNull(keys, "Key must not be null!");
+
+		return unlink(Mono.just(keys)).next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Unlink {@literal keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} removed along with the deletion result.
+	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @since 2.1
+	 */
+	Flux<NumericResponse<List<ByteBuffer>, Long>> unlink(Publisher<List<ByteBuffer>> keys);
+
+	/**
 	 * Delete multiple {@literal keys} one in one batch.
 	 *
 	 * @param keys must not be {@literal null}.

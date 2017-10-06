@@ -29,11 +29,14 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration tests for {@link LettuceReactiveKeyCommands}.
@@ -42,6 +45,8 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Numeric
  * @author Mark Paluch
  */
 public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTestsBase {
+
+	public @Rule MinimumRedisVersionRule versionRule = new MinimumRedisVersionRule();
 
 	@Test // DATAREDIS-525
 	public void existsShouldReturnTrueForExistingKeys() {
@@ -303,6 +308,28 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 	public void touchReturnsZeroIfNoKeysTouched() {
 
 		StepVerifier.create(connection.keyCommands().touch(Arrays.asList(KEY_1_BBUFFER))) //
+				.expectNext(0L) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
+	public void unlinkReturnsNrOfKeysRemoved() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.set(KEY_2, VALUE_2);
+
+		StepVerifier.create(connection.keyCommands().unlink(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER)))
+				.expectNext(2L) //
+				.verifyComplete();
+
+	}
+
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
+	public void unlinkReturnsZeroIfNoKeysRemoved() {
+
+		StepVerifier.create(connection.keyCommands().unlink(Arrays.asList(KEY_1_BBUFFER))) //
 				.expectNext(0L) //
 				.verifyComplete();
 	}

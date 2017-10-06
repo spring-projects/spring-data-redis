@@ -2219,4 +2219,18 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.keyCommands().touch(KEY_1_BYTES), is(0L));
 	}
 
+	@Test // DATAREDIS-693
+	public void unlinkReturnsNrOfKeysTouched() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_1);
+
+		assertThat(clusterConnection.keyCommands().unlink(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES), is(2L));
+	}
+
+	@Test // DATAREDIS-693
+	public void unlinkReturnsZeroIfNoKeysTouched() {
+		assertThat(clusterConnection.keyCommands().unlink(KEY_1_BYTES), is(0L));
+	}
+
 }

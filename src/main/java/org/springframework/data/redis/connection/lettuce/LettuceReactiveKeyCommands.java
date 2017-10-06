@@ -177,6 +177,22 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#unlink(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<NumericResponse<List<ByteBuffer>, Long>> unlink(Publisher<List<ByteBuffer>> keysCollection) {
+
+		return connection.execute(cmd -> Flux.from(keysCollection).flatMap((keys) -> {
+
+			Assert.notEmpty(keys, "Keys must not be null!");
+
+			return cmd.unlink(keys.stream().collect(Collectors.toList()).toArray(new ByteBuffer[keys.size()]))
+					.map((value) -> new NumericResponse<>(keys, value));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#mDel(org.reactivestreams.Publisher)
 	 */
 	@Override

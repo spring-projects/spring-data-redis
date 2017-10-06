@@ -71,6 +71,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
+	default Long unlink(byte[]... keys) {
+		return keyCommands().unlink(keys);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
 	default DataType type(byte[] pattern) {
 		return keyCommands().type(pattern);
 	}
