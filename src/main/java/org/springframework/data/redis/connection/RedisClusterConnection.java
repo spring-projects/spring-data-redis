@@ -65,7 +65,7 @@ public interface RedisClusterConnection extends RedisConnection, RedisClusterCom
 	 * <pre>
 	 * <code>
 	 * // SET foo bar EX 10 NX
-	 * execute("SET", "foo".getBytes(), asBinaryList("bar", "EX", 10, "NX")
+	 * execute("SET", "foo".getBytes(), asBinaryList("bar", "EX", 10, "NX"))
 	 * </code>
 	 * </pre>
 	 *

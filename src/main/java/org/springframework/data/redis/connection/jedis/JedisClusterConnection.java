@@ -23,10 +23,7 @@ import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisClusterConnectionHandler;
 import redis.clients.jedis.JedisPool;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -69,6 +66,8 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
 			JedisConverters.exceptionConverter());
+
+	private static final byte[][] EMPTY_2D_BYTE_ARRAY = new byte[0][];
 
 	private final Log log = LogFactory.getLog(getClass());
 
@@ -130,14 +129,16 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisCommands#execute(java.lang.String, byte[][])
 	 */
+	@Nullable
 	@Override
 	public Object execute(String command, byte[]... args) {
 
 		Assert.notNull(command, "Command must not be null!");
+		Assert.notNull(args, "Args must not be null!");
 
 		return clusterCommandExecutor
 				.executeCommandOnArbitraryNode((JedisClusterCommandCallback<Object>) client -> JedisClientUtils.execute(command,
-						Collections.emptyList(), Arrays.asList(args), () -> client))
+						EMPTY_2D_BYTE_ARRAY, args, () -> client))
 				.getValue();
 	}
 
@@ -153,14 +154,26 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(args, "Args must not be null!");
 
-		Collection<byte[]> commandArgs = new ArrayList<>();
-		commandArgs.add(key);
-		commandArgs.addAll(args);
+		byte[][] commandArgs = getCommandArguments(key, args);
 
 		RedisClusterNode keyMaster = topologyProvider.getTopology().getKeyServingMasterNode(key);
 
 		return clusterCommandExecutor.executeCommandOnSingleNode((JedisClusterCommandCallback<T>) client -> JedisClientUtils
-				.execute(command, Collections.emptyList(), commandArgs, () -> client), keyMaster).getValue();
+				.execute(command, EMPTY_2D_BYTE_ARRAY, commandArgs, () -> client), keyMaster).getValue();
+	}
+
+	private static byte[][] getCommandArguments(byte[] key, Collection<byte[]> args) {
+
+		byte[][] commandArgs = new byte[args.size() + 1][];
+
+		commandArgs[0] = key;
+		int targetIndex = 1;
+
+		for (byte[] binaryArgument : args) {
+			commandArgs[targetIndex++] = binaryArgument;
+		}
+
+		return commandArgs;
 	}
 
 	/*
@@ -816,7 +829,8 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 				PropertyAccessor accessor = new DirectFieldAccessFallbackBeanWrapper(cluster);
 				this.connectionHandler = accessor.isReadableProperty("connectionHandler")
-						? (JedisClusterConnectionHandler) accessor.getPropertyValue("connectionHandler") : null;
+						? (JedisClusterConnectionHandler) accessor.getPropertyValue("connectionHandler")
+						: null;
 			} else {
 				this.connectionHandler = null;
 			}

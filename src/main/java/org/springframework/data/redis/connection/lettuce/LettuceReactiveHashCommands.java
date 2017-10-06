@@ -224,8 +224,8 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Command.getKey() must not be null!");
-			Assert.notNull(command.getField(), "Command.getField() must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getField(), "Field must not be null!");
 
 			return cmd.hstrlen(command.getKey(), command.getField()).map(value -> new NumericResponse<>(command, value));
 		}));
