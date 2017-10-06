@@ -114,6 +114,18 @@ public interface StringRedisConnection extends RedisConnection {
 	Long del(String... keys);
 
 	/**
+	 * Unlinks the {@code keys} from the keyspace. Unlike with {@link #del(byte[]...)} the actual removal here happens
+	 * asynchronously.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Long unlink(String... keys);
+
+	/**
 	 * Determine the type stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.

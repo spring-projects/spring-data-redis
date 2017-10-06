@@ -254,6 +254,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#unlink(byte[][])
+	 */
+	@Override
+	public Long unlink(byte[]... keys) {
+		return convertAndReturn(delegate.unlink(keys), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisTxCommands#discard()
 	 */
 	@Override
@@ -1783,6 +1792,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long del(String... keys) {
 		return del(serializeMulti(keys));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#unlink(java.lang.String[])
+	 */
+	@Override
+	public Long unlink(String... keys) {
+		return unlink(serializeMulti(keys));
 	}
 
 	/*

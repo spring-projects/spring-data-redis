@@ -122,6 +122,19 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#unlink(byte[][])
+	 */
+	@Nullable
+	@Override
+	public Long unlink(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		return Long.class.cast(connection.execute("UNLINK", keys));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#type(byte[])
 	 */
 	@Override

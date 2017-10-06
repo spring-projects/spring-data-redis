@@ -2790,6 +2790,26 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 0L }));
 	}
 
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0+")
+	public void unlinkReturnsNrOfKeysRemoved() {
+
+		connection.set("unlink.this", "Can't track this!");
+
+		actual.add(connection.unlink("unlink.this", "unlink.that"));
+
+		verifyResults(Arrays.asList(new Object[] { 1L }));
+	}
+
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0+")
+	public void unlinkReturnsZeroIfNoKeysRemoved() {
+
+		actual.add(connection.unlink("unlink.this"));
+
+		verifyResults(Arrays.asList(new Object[] { 0L }));
+	}
+
 	protected void verifyResults(List<Object> expected) {
 		assertEquals(expected, getResults());
 	}

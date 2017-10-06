@@ -2182,4 +2182,32 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(nativeConnection.zrange(SAME_SLOT_KEY_3, 0, -1), hasItems(VALUE_1, VALUE_2, VALUE_3));
 	}
+
+	@Test // DATAREDIS-694
+	public void touchReturnsNrOfKeysTouched() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_1);
+
+		assertThat(clusterConnection.keyCommands().touch(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES), is(2L));
+	}
+
+	@Test // DATAREDIS-694
+	public void touchReturnsZeroIfNoKeysTouched() {
+		assertThat(clusterConnection.keyCommands().touch(KEY_1_BYTES), is(0L));
+	}
+
+	@Test // DATAREDIS-693
+	public void unlinkReturnsNrOfKeysTouched() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_1);
+
+		assertThat(clusterConnection.keyCommands().unlink(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES), is(2L));
+	}
+
+	@Test // DATAREDIS-693
+	public void unlinkReturnsZeroIfNoKeysTouched() {
+		assertThat(clusterConnection.keyCommands().unlink(KEY_1_BYTES), is(0L));
+	}
 }
