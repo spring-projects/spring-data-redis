@@ -24,8 +24,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientConfiguration;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
@@ -48,6 +49,7 @@ import org.springframework.scripting.support.StaticScriptSource;
 
 /**
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class DefaultReactiveScriptExecutorTests {
 
@@ -74,12 +76,16 @@ public class DefaultReactiveScriptExecutorTests {
 		}
 	}
 
-	@Before
-	public void before() {
+	@After
+	public void tearDown() {
 
 		RedisConnection connection = connectionFactory.getConnection();
-		connection.flushDb();
-		connection.close();
+		try {
+			connection.scriptingCommands().scriptFlush();
+			connection.flushDb();
+		} finally {
+			connection.close();
+		}
 	}
 
 	protected RedisConnectionFactory getConnectionFactory() {
@@ -217,15 +223,25 @@ public class DefaultReactiveScriptExecutorTests {
 	}
 
 	@Test // DATAREDIS-711
-	public void testExecuteCachedNullKeys() {
+	public void executeAddsScriptToScriptCache() {
 
 		DefaultRedisScript<String> script = new DefaultRedisScript<>();
 		script.setScriptText("return 'HELLO'");
 		script.setResultType(String.class);
 
 		// Execute script twice, second time should be from cache
+
+		assertThat(stringTemplate.execute(
+				(RedisCallback<List<Boolean>>) connection -> connection.scriptingCommands().scriptExists(script.getSha1())))
+						.containsExactly(false);
+
 		StepVerifier.create(stringScriptExecutor.execute(script, Collections.emptyList())).expectNext("HELLO")
 				.verifyComplete();
+
+		assertThat(stringTemplate.execute(
+				(RedisCallback<List<Boolean>>) connection -> connection.scriptingCommands().scriptExists(script.getSha1())))
+						.containsExactly(true);
+
 		StepVerifier.create(stringScriptExecutor.execute(script, Collections.emptyList())).expectNext("HELLO")
 				.verifyComplete();
 	}
