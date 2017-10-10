@@ -300,15 +300,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long exists(String... keys) {
-		return convertAndReturn(delegate.exists(Arrays.asList(serializeMulti(keys))), identityConverter);
+		return convertAndReturn(delegate.exists(serializeMulti(keys)), identityConverter);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(java.util.Collection)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[][])
 	 */
 	@Override
-	public Long exists(Collection<byte[]> keys) {
+	public Long exists(byte[]... keys) {
 		return convertAndReturn(delegate.exists(keys), identityConverter);
 	}
 

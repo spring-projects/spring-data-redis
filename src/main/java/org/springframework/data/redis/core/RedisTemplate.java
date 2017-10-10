@@ -18,7 +18,6 @@ package org.springframework.data.redis.core;
 import java.io.Closeable;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -750,7 +749,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		Assert.notNull(keys, "Keys must not be null!");
 
 		byte[][] rawKeys = rawKeys(keys);
-		return execute(connection -> connection.exists(Arrays.asList(rawKeys)), true);
+		return execute(connection -> connection.exists(rawKeys), true);
 	}
 
 	/*
@@ -1327,7 +1326,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * Set the {@link ClassLoader} to be used for the default {@link JdkSerializationRedisSerializer} in case no other
 	 * {@link RedisSerializer} is explicitly set as the default one.
 	 *
-	 * @param resourceLoader can be {@literal null}.
+	 * @param classLoader can be {@literal null}.
 	 * @see org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader
 	 * @since 1.8
 	 */
