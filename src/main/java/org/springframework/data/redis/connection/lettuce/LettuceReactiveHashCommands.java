@@ -222,7 +222,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	@Override
 	public Flux<NumericResponse<HStrLenCommand, Long>> hStrLen(Publisher<HStrLenCommand> commands) {
 
-		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getField(), "Field must not be null!");

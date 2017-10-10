@@ -23,7 +23,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceClientConfigurat
 
 /**
  * Creates a specific client configuration for Lettuce tests.
- * 
+ *
  * @author Mark Paluch
  */
 public class LettuceTestClientConfiguration {
