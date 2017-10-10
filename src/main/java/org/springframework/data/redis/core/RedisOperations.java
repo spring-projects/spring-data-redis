@@ -163,7 +163,7 @@ public interface RedisOperations<K, V> {
 	Boolean hasKey(K key);
 
 	/**
-	 * Count the number of {@code keys} that exists.
+	 * Count the number of {@code keys} that exist.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return The number of keys existing among the ones specified as arguments. Keys mentioned multiple times and

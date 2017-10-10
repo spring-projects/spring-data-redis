@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -58,7 +57,7 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
-	default Long exists(Collection<byte[]> keys) {
+	default Long exists(byte[]... keys) {
 		return keyCommands().exists(keys);
 	}
 

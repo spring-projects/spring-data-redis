@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BinaryJedis;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,7 +64,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long del(byte[]... keys) {
 
-		Assert.noNullElements(keys, "Keys must not be null or contain null key!");
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
@@ -473,26 +476,26 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(java.util.Collection)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[][])
 	 */
 	@Nullable
 	@Override
-	public Long exists(Collection<byte[]> keys) {
+	public Long exists(byte[]... keys) {
 
 		Assert.notNull(keys, "Keys must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		try {
-
-			return keys.stream() //
-					.parallel()
-					.map(key -> connection.getClusterCommandExecutor()
-							.executeCommandOnSingleNode((JedisClusterCommandCallback<Boolean>) client -> client.exists(key),
-									connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
-							.getValue())
-					.mapToLong(val -> ObjectUtils.nullSafeEquals(val, Boolean.TRUE) ? 1L : 0L).sum();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
+			try {
+				return connection.getCluster().exists(keys);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
 		}
+
+		return connection.getClusterCommandExecutor()
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Boolean>) BinaryJedis::exists, Arrays.asList(keys))
+				.resultsAsList().stream().mapToLong(val -> ObjectUtils.nullSafeEquals(val, Boolean.TRUE) ? 1 : 0).sum();
 	}
 
 	private DataAccessException convertJedisAccessException(Exception ex) {
