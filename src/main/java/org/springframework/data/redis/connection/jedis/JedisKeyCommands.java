@@ -72,6 +72,34 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[][])
+	 */
+	@Nullable
+	@Override
+	public Long exists(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(
+						connection.newJedisResult(connection.getRequiredPipeline().exists(keys)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection
+						.newJedisResult(connection.getRequiredTransaction().exists(keys)));
+				return null;
+			}
+			return connection.getJedis().exists(keys);
+		} catch (Exception ex) {
+			throw connection.convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#del(byte[][])
 	 */
 	@Override

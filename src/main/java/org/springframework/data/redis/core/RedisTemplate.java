@@ -741,6 +741,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#countExistingKeys(java.util.Collection)
+	 */
+	@Override
+	public Long countExistingKeys(Collection<K> keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		byte[][] rawKeys = rawKeys(keys);
+		return execute(connection -> connection.exists(rawKeys), true);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.RedisOperations#expire(java.lang.Object, long, java.util.concurrent.TimeUnit)
 	 */
 	@Override
@@ -1313,7 +1326,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * Set the {@link ClassLoader} to be used for the default {@link JdkSerializationRedisSerializer} in case no other
 	 * {@link RedisSerializer} is explicitly set as the default one.
 	 *
-	 * @param resourceLoader can be {@literal null}.
+	 * @param classLoader can be {@literal null}.
 	 * @see org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader
 	 * @since 1.8
 	 */

@@ -38,6 +38,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -71,6 +72,32 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			return LettuceConverters.longToBooleanConverter().convert(getConnection().exists(new byte[][] { key }));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[][])
+	 */
+	@Nullable
+	@Override
+	public Long exists(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().exists(keys)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceTxResult(getAsyncConnection().exists(keys)));
+				return null;
+			}
+			return getConnection().exists(keys);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

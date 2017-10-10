@@ -809,6 +809,19 @@ public class RedisTemplateTests<K, V> {
 		assertThat(redisTemplate.getClientList().size(), IsNot.not(0));
 	}
 
+	@Test // DATAREDIS-529
+	public void countExistingKeysReturnsNumberOfKeysCorrectly() {
+
+		Map<K, V> source = new LinkedHashMap<>(3, 1);
+		source.put(keyFactory.instance(), valueFactory.instance());
+		source.put(keyFactory.instance(), valueFactory.instance());
+		source.put(keyFactory.instance(), valueFactory.instance());
+
+		redisTemplate.opsForValue().multiSet(source);
+
+		assertThat(redisTemplate.countExistingKeys(source.keySet()), is(3L));
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private byte[] serialize(Object value, RedisSerializer serializer) {
 		if (serializer == null && value instanceof byte[]) {

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BinaryJedis;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,8 +39,10 @@ import org.springframework.data.redis.connection.jedis.JedisClusterConnection.Je
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
@@ -60,7 +64,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long del(byte[]... keys) {
 
-		Assert.noNullElements(keys, "Keys must not be null or contain null key!");
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
@@ -471,18 +476,26 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[])
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[][])
 	 */
+	@Nullable
 	@Override
-	public Boolean exists(byte[] key) {
+	public Long exists(byte[]... keys) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		try {
-			return connection.getCluster().exists(key);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
+			try {
+				return connection.getCluster().exists(keys);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
 		}
+
+		return connection.getClusterCommandExecutor()
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Boolean>) BinaryJedis::exists, Arrays.asList(keys))
+				.resultsAsList().stream().mapToLong(val -> ObjectUtils.nullSafeEquals(val, Boolean.TRUE) ? 1 : 0).sum();
 	}
 
 	private DataAccessException convertJedisAccessException(Exception ex) {

@@ -57,6 +57,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
+	default Long exists(byte[]... keys) {
+		return keyCommands().exists(keys);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
 	default Long del(byte[]... keys) {
 		return keyCommands().del(keys);
 	}
