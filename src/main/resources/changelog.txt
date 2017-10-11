@@ -6,6 +6,12 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.8.8.RELEASE (2017-10-11)
+---------------------------------------------
+* DATAREDIS-689 - Release 1.8.8 (Ingalls SR8).
+* DATAREDIS-603 - JedisCluster exception conversion produces NullPointerException on cache put operation.
+
+
 Changes in version 2.0.0.RELEASE (2017-10-02)
 ---------------------------------------------
 * DATAREDIS-705 - set(byte[] key, byte[] value, Expiration expiration, SetOption option) should have return value.
