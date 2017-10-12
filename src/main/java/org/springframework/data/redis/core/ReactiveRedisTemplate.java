@@ -102,7 +102,6 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return connectionFactory;
 	}
 
-
 	// -------------------------------------------------------------------------
 	// Execution methods
 	// -------------------------------------------------------------------------
@@ -198,7 +197,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	// Methods dealing with Redis keys
 	// -------------------------------------------------------------------------
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#hasKey(java.lang.Object)
 	 */
 	@Override
@@ -209,7 +209,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return createMono(connection -> connection.keyCommands().exists(rawKey(key)));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#type(java.lang.Object)
 	 */
 	@Override
@@ -220,7 +221,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return createMono(connection -> connection.keyCommands().type(rawKey(key)));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#keys(java.lang.Object)
 	 */
 	@Override
@@ -233,7 +235,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 				.map(this::readKey);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#randomKey()
 	 */
 	@Override
@@ -241,7 +244,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return createMono(connection -> connection.keyCommands().randomKey()).map(this::readKey);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#rename(java.lang.Object, java.lang.Object)
 	 */
 	@Override
@@ -253,7 +257,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return createMono(connection -> connection.keyCommands().rename(rawKey(oldKey), rawKey(newKey)));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#renameIfAbsent(java.lang.Object, java.lang.Object)
 	 */
 	@Override
@@ -265,7 +270,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return createMono(connection -> connection.keyCommands().renameNX(rawKey(oldKey), rawKey(newKey)));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#delete(java.lang.Object[])
 	 */
 	@Override
@@ -284,7 +290,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return createMono(connection -> listOfKeys.flatMap(rawKeys -> connection.keyCommands().mDel(rawKeys)));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#delete(org.reactivestreams.Publisher)
 	 */
 	@Override
@@ -297,7 +304,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 				.map(CommandResponse::getOutput));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#expire(java.lang.Object, java.time.Duration)
 	 */
 	@Override
@@ -314,7 +322,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return createMono(connection -> connection.keyCommands().pExpire(rawKey(key), timeout));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#expireAt(java.lang.Object, java.time.Instant)
 	 */
 	@Override
@@ -331,7 +340,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return createMono(connection -> connection.keyCommands().pExpireAt(rawKey(key), expireAt));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#persist(java.lang.Object)
 	 */
 	@Override
@@ -342,7 +352,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return createMono(connection -> connection.keyCommands().persist(rawKey(key)));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#getExpire(java.lang.Object)
 	 */
 	@Override
@@ -364,7 +375,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		}));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#move(java.lang.Object, int)
 	 */
 	@Override
@@ -435,7 +447,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 				new CloseSuppressingInvocationHandler(reactiveRedisConnection));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForGeo()
 	 */
 	@Override
@@ -443,7 +456,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return opsForGeo(serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForGeo(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
@@ -451,7 +465,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return new DefaultReactiveGeoOperations<>(this, serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHash()
 	 */
 	@Override
@@ -459,7 +474,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return opsForHash(serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHash(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
@@ -468,7 +484,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return new DefaultReactiveHashOperations<>(this, serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHyperLogLog()
 	 */
 	@Override
@@ -476,7 +493,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return opsForHyperLogLog(serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHyperLogLog(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
@@ -485,7 +503,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return new DefaultReactiveHyperLogLogOperations<>(this, serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForList()
 	 */
 	@Override
@@ -493,7 +512,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return opsForList(serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForList(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
@@ -501,7 +521,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return new DefaultReactiveListOperations<>(this, serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForSet()
 	 */
 	@Override
@@ -509,7 +530,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return opsForSet(serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForSet(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
@@ -517,7 +539,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return new DefaultReactiveSetOperations<>(this, serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForValue()
 	 */
 	@Override
@@ -525,7 +548,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return opsForValue(serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForValue(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
@@ -533,7 +557,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return new DefaultReactiveValueOperations<>(this, serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForZSet()
 	 */
 	@Override
@@ -541,7 +566,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return opsForZSet(serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForZSet(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
@@ -549,7 +575,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return new DefaultReactiveZSetOperations<>(this, serializationContext);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#serialization()
 	 */
 	@Override
