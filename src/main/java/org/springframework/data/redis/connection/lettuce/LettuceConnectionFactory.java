@@ -935,7 +935,7 @@ public class LettuceConnectionFactory
 			return useSsl;
 		}
 
-		public void setUseSsl(boolean useSsl) {
+		void setUseSsl(boolean useSsl) {
 			this.useSsl = useSsl;
 		}
 
@@ -947,7 +947,7 @@ public class LettuceConnectionFactory
 			return verifyPeer;
 		}
 
-		public void setVerifyPeer(boolean verifyPeer) {
+		void setVerifyPeer(boolean verifyPeer) {
 			this.verifyPeer = verifyPeer;
 		}
 
@@ -959,7 +959,7 @@ public class LettuceConnectionFactory
 			return startTls;
 		}
 
-		public void setStartTls(boolean startTls) {
+		void setStartTls(boolean startTls) {
 			this.startTls = startTls;
 		}
 
@@ -971,7 +971,7 @@ public class LettuceConnectionFactory
 			return Optional.ofNullable(clientResources);
 		}
 
-		public void setClientResources(ClientResources clientResources) {
+		void setClientResources(ClientResources clientResources) {
 			this.clientResources = clientResources;
 		}
 
@@ -992,7 +992,7 @@ public class LettuceConnectionFactory
 			return Optional.ofNullable(clientName);
 		}
 
-		public void setClientName(String clientName) {
+		void setClientName(String clientName) {
 			this.clientName = clientName;
 		}
 
@@ -1004,7 +1004,7 @@ public class LettuceConnectionFactory
 			return timeout;
 		}
 
-		public void setTimeout(Duration timeout) {
+		void setTimeout(Duration timeout) {
 			this.timeout = timeout;
 		}
 
@@ -1016,7 +1016,7 @@ public class LettuceConnectionFactory
 			return shutdownTimeout;
 		}
 
-		public void setShutdownTimeout(Duration shutdownTimeout) {
+		void setShutdownTimeout(Duration shutdownTimeout) {
 			this.shutdownTimeout = shutdownTimeout;
 		}
 	}

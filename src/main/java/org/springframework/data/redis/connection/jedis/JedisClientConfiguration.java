@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * <li>Optional {@link HostnameVerifier}</li>
  * <li>Whether to use connection-pooling</li>
  * <li>Optional {@link GenericObjectPoolConfig}</li>
+ * <li>Optional client name</li>
  * <li>Connect {@link Duration timeout}</li>
  * <li>Read {@link Duration timeout}</li>
  * </ul>
