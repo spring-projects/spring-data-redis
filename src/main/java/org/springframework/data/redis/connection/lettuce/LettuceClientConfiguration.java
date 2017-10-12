@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  * <li>Whether to use StartTLS</li>
  * <li>Optional {@link ClientResources}</li>
  * <li>Optional {@link ClientOptions}</li>
+ * <li>Optional client name</li>
  * <li>Client {@link Duration timeout}</li>
  * <li>Shutdown {@link Duration timeout}</li>
  * </ul>
@@ -76,6 +77,12 @@ public interface LettuceClientConfiguration {
 	Optional<ClientOptions> getClientOptions();
 
 	/**
+	 * @return the optional client name to be set with {@code CLIENT SETNAME}.
+	 * @since 2.1
+	 */
+	Optional<String> getClientName();
+
+	/**
 	 * @return the timeout.
 	 */
 	Duration getCommandTimeout();
@@ -109,6 +116,8 @@ public interface LettuceClientConfiguration {
 	 * <dd>none</dd>
 	 * <dt>Client Resources</dt>
 	 * <dd>none</dd>
+	 * <dt>Client name</dt>
+	 * <dd>none</dd>
 	 * <dt>Connect Timeout</dt>
 	 * <dd>60 Seconds</dd>
 	 * <dt>Shutdown Timeout</dt>
@@ -132,6 +141,7 @@ public interface LettuceClientConfiguration {
 		boolean startTls;
 		@Nullable ClientResources clientResources;
 		@Nullable ClientOptions clientOptions;
+		@Nullable String clientName;
 		Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 		Duration shutdownTimeout = Duration.ofMillis(100);
 
@@ -179,6 +189,21 @@ public interface LettuceClientConfiguration {
 		}
 
 		/**
+		 * Configure a {@code clientName} to be set with {@code CLIENT SETNAME}.
+		 *
+		 * @param clientName must not be {@literal null} or empty.
+		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if clientName is {@literal null}.
+		 */
+		public LettuceClientConfigurationBuilder clientName(String clientName) {
+
+			Assert.hasText(clientName, "Client name must not be null or empty!");
+
+			this.clientName = clientName;
+			return this;
+		}
+
+		/**
 		 * Configure a command timeout.
 		 *
 		 * @param timeout must not be {@literal null}.
@@ -216,7 +241,7 @@ public interface LettuceClientConfiguration {
 		public LettuceClientConfiguration build() {
 
 			return new DefaultLettuceClientConfiguration(useSsl, verifyPeer, startTls, clientResources, clientOptions,
-					timeout, shutdownTimeout);
+					clientName, timeout, shutdownTimeout);
 		}
 	}
 

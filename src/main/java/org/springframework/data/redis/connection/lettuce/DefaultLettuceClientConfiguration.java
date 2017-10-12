@@ -37,23 +37,26 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	private final boolean startTls;
 	private final Optional<ClientResources> clientResources;
 	private final Optional<ClientOptions> clientOptions;
+	private final Optional<String> clientName;
 	private final Duration timeout;
 	private final Duration shutdownTimeout;
 
 	DefaultLettuceClientConfiguration(boolean useSsl, boolean verifyPeer, boolean startTls,
-			@Nullable ClientResources clientResources, @Nullable ClientOptions clientOptions, Duration timeout,
-			Duration shutdownTimeout) {
+			@Nullable ClientResources clientResources, @Nullable ClientOptions clientOptions, @Nullable String clientName,
+			Duration timeout, Duration shutdownTimeout) {
 
 		this.useSsl = useSsl;
 		this.verifyPeer = verifyPeer;
 		this.startTls = startTls;
 		this.clientResources = Optional.ofNullable(clientResources);
 		this.clientOptions = Optional.ofNullable(clientOptions);
+		this.clientName = Optional.ofNullable(clientName);
 		this.timeout = timeout;
 		this.shutdownTimeout = shutdownTimeout;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#useSsl()
 	 */
 	@Override
@@ -61,7 +64,8 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 		return useSsl;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isVerifyPeer()
 	 */
 	@Override
@@ -69,7 +73,8 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 		return verifyPeer;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isStartTls()
 	 */
 	@Override
@@ -77,7 +82,8 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 		return startTls;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientResources()
 	 */
 	@Override
@@ -85,7 +91,8 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 		return clientResources;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientOptions()
 	 */
 	@Override
@@ -93,7 +100,17 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 		return clientOptions;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientName()
+	 */
+	@Override
+	public Optional<String> getClientName() {
+		return clientName;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getTimeout()
 	 */
 	@Override
@@ -101,7 +118,8 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 		return timeout;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getShutdownTimeout()
 	 */
 	@Override

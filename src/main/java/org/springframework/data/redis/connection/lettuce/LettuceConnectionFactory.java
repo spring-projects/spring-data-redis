@@ -587,6 +587,30 @@ public class LettuceConnectionFactory
 	}
 
 	/**
+	 * Returns the client name.
+	 *
+	 * @return the client name.
+	 * @since 2.1
+	 */
+	@Nullable
+	public String getClientName() {
+		return clientConfiguration.getClientName().orElse(null);
+	}
+
+	/**
+	 * Sets the client name used by this connection factory. Defaults to none which does not set a client name.
+	 *
+	 * @param clientName the client name.
+	 * @since 2.1
+	 * @deprecated configure the client name using {@link LettuceClientConfiguration}.
+	 * @throws IllegalStateException if {@link JedisClientConfiguration} is immutable.
+	 */
+	@Deprecated
+	public void setClientName(String clientName) {
+		this.getMutableConfiguration().setClientName(clientName);
+	}
+
+	/**
 	 * Returns the password used for authenticating with the Redis server.
 	 *
 	 * @return password for authentication.
@@ -849,6 +873,7 @@ public class LettuceConnectionFactory
 		RedisURI redisUri = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
 
 		getRedisPassword().toOptional().ifPresent(redisUri::setPassword);
+		clientConfiguration.getClientName().ifPresent(redisUri::setClientName);
 		redisUri.setTimeout(clientConfiguration.getCommandTimeout());
 
 		return redisUri;
@@ -859,6 +884,7 @@ public class LettuceConnectionFactory
 		RedisURI.Builder builder = RedisURI.Builder.redis(host, port);
 
 		getRedisPassword().toOptional().ifPresent(builder::withPassword);
+		clientConfiguration.getClientName().ifPresent(builder::withClientName);
 
 		builder.withSsl(clientConfiguration.isUseSsl());
 		builder.withVerifyPeer(clientConfiguration.isVerifyPeer());
@@ -897,6 +923,7 @@ public class LettuceConnectionFactory
 		private boolean verifyPeer = true;
 		private boolean startTls;
 		private @Nullable ClientResources clientResources;
+		private @Nullable String clientName;
 		private Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 		private Duration shutdownTimeout = Duration.ofMillis(100);
 
@@ -908,7 +935,7 @@ public class LettuceConnectionFactory
 			return useSsl;
 		}
 
-		public void setUseSsl(boolean useSsl) {
+		void setUseSsl(boolean useSsl) {
 			this.useSsl = useSsl;
 		}
 
@@ -920,7 +947,7 @@ public class LettuceConnectionFactory
 			return verifyPeer;
 		}
 
-		public void setVerifyPeer(boolean verifyPeer) {
+		void setVerifyPeer(boolean verifyPeer) {
 			this.verifyPeer = verifyPeer;
 		}
 
@@ -932,7 +959,7 @@ public class LettuceConnectionFactory
 			return startTls;
 		}
 
-		public void setStartTls(boolean startTls) {
+		void setStartTls(boolean startTls) {
 			this.startTls = startTls;
 		}
 
@@ -944,7 +971,7 @@ public class LettuceConnectionFactory
 			return Optional.ofNullable(clientResources);
 		}
 
-		public void setClientResources(ClientResources clientResources) {
+		void setClientResources(ClientResources clientResources) {
 			this.clientResources = clientResources;
 		}
 
@@ -956,6 +983,19 @@ public class LettuceConnectionFactory
 			return Optional.empty();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientName()
+		 */
+		@Override
+		public Optional<String> getClientName() {
+			return Optional.ofNullable(clientName);
+		}
+
+		void setClientName(String clientName) {
+			this.clientName = clientName;
+		}
+
 		/* (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getTimeout()
 		 */
@@ -964,7 +1004,7 @@ public class LettuceConnectionFactory
 			return timeout;
 		}
 
-		public void setTimeout(Duration timeout) {
+		void setTimeout(Duration timeout) {
 			this.timeout = timeout;
 		}
 
@@ -976,7 +1016,7 @@ public class LettuceConnectionFactory
 			return shutdownTimeout;
 		}
 
-		public void setShutdownTimeout(Duration shutdownTimeout) {
+		void setShutdownTimeout(Duration shutdownTimeout) {
 			this.shutdownTimeout = shutdownTimeout;
 		}
 	}

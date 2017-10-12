@@ -48,7 +48,7 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldInitiaizeWithSentinelConfiguration() {
+	public void shouldInitializeWithSentinelConfiguration() {
 
 		JedisClientConfiguration clientConfiguration = JedisClientConfiguration.builder() //
 				.clientName("clientName") //
