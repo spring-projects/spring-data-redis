@@ -43,6 +43,8 @@ import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
 
 /**
+ * Integration tests for Lettuce and Redis Sentinel interaction.
+ *
  * @author Mark Paluch
  * @author Christoph Strobl
  */
@@ -144,6 +146,26 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 
 		try {
 			assertThat(connection.ping(), is(equalTo("PONG")));
+		} finally {
+			connection.close();
+		}
+	}
+
+	@Test // DATAREDIS-576
+	public void connectionAppliesClientName() {
+
+		LettuceClientConfiguration clientName = LettuceClientConfiguration.builder()
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).clientName("clientName").build();
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG, clientName);
+		factory.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory);
+
+		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
+
+		try {
+			assertThat(connection.getClientName(), is(equalTo("clientName")));
 		} finally {
 			connection.close();
 		}

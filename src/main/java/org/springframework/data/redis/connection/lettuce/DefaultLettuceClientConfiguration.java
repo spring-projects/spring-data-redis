@@ -37,18 +37,20 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	private final boolean startTls;
 	private final Optional<ClientResources> clientResources;
 	private final Optional<ClientOptions> clientOptions;
+	private final Optional<String> clientName;
 	private final Duration timeout;
 	private final Duration shutdownTimeout;
 
 	DefaultLettuceClientConfiguration(boolean useSsl, boolean verifyPeer, boolean startTls,
-			@Nullable ClientResources clientResources, @Nullable ClientOptions clientOptions, Duration timeout,
-			Duration shutdownTimeout) {
+			@Nullable ClientResources clientResources, @Nullable ClientOptions clientOptions, @Nullable String clientName,
+			Duration timeout, Duration shutdownTimeout) {
 
 		this.useSsl = useSsl;
 		this.verifyPeer = verifyPeer;
 		this.startTls = startTls;
 		this.clientResources = Optional.ofNullable(clientResources);
 		this.clientOptions = Optional.ofNullable(clientOptions);
+		this.clientName = Optional.ofNullable(clientName);
 		this.timeout = timeout;
 		this.shutdownTimeout = shutdownTimeout;
 	}
@@ -91,6 +93,14 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	@Override
 	public Optional<ClientOptions> getClientOptions() {
 		return clientOptions;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientName()
+	 */
+	@Override
+	public Optional<String> getClientName() {
+		return clientName;
 	}
 
 	/* (non-Javadoc)

@@ -849,6 +849,7 @@ public class LettuceConnectionFactory
 		RedisURI redisUri = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
 
 		getRedisPassword().toOptional().ifPresent(redisUri::setPassword);
+		clientConfiguration.getClientName().ifPresent(redisUri::setClientName);
 		redisUri.setTimeout(clientConfiguration.getCommandTimeout());
 
 		return redisUri;
@@ -859,6 +860,7 @@ public class LettuceConnectionFactory
 		RedisURI.Builder builder = RedisURI.Builder.redis(host, port);
 
 		getRedisPassword().toOptional().ifPresent(builder::withPassword);
+		clientConfiguration.getClientName().ifPresent(builder::withClientName);
 
 		builder.withSsl(clientConfiguration.isUseSsl());
 		builder.withVerifyPeer(clientConfiguration.isVerifyPeer());
@@ -897,6 +899,7 @@ public class LettuceConnectionFactory
 		private boolean verifyPeer = true;
 		private boolean startTls;
 		private @Nullable ClientResources clientResources;
+		private @Nullable String clientName;
 		private Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 		private Duration shutdownTimeout = Duration.ofMillis(100);
 
@@ -954,6 +957,19 @@ public class LettuceConnectionFactory
 		@Override
 		public Optional<ClientOptions> getClientOptions() {
 			return Optional.empty();
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientName()
+		 */
+		@Override
+		public Optional<String> getClientName() {
+			return Optional.ofNullable(clientName);
+		}
+
+		public void setClientName(String clientName) {
+			this.clientName = clientName;
 		}
 
 		/* (non-Javadoc)

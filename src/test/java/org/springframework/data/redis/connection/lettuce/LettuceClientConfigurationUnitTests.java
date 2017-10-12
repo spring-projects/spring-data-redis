@@ -32,7 +32,7 @@ import org.junit.Test;
  */
 public class LettuceClientConfigurationUnitTests {
 
-	@Test // DATAREDIS-574, DATAREDIS-667
+	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667
 	public void shouldCreateEmptyConfiguration() {
 
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.defaultConfiguration();
@@ -42,11 +42,12 @@ public class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.isStartTls()).isFalse();
 		assertThat(configuration.getClientOptions()).isEmpty();
 		assertThat(configuration.getClientResources()).isEmpty();
+		assertThat(configuration.getClientName()).isEmpty();
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofMillis(100));
 	}
 
-	@Test // DATAREDIS-574, DATAREDIS-667
+	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667
 	public void shouldConfigureAllProperties() {
 
 		ClientOptions clientOptions = ClientOptions.create();
@@ -58,6 +59,7 @@ public class LettuceClientConfigurationUnitTests {
 				.startTls().and() //
 				.clientOptions(clientOptions) //
 				.clientResources(sharedClientResources) //
+				.clientName("foo") //
 				.commandTimeout(Duration.ofMinutes(5)) //
 				.shutdownTimeout(Duration.ofHours(2)) //
 				.build();
@@ -67,6 +69,7 @@ public class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.isStartTls()).isTrue();
 		assertThat(configuration.getClientOptions()).contains(clientOptions);
 		assertThat(configuration.getClientResources()).contains(sharedClientResources);
+		assertThat(configuration.getClientName()).contains("foo");
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofMinutes(5));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofHours(2));
 	}

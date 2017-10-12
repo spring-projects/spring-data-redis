@@ -89,6 +89,15 @@ class DefaultLettucePoolingClientConfiguration implements LettucePoolingClientCo
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientName()
+	 */
+	@Override
+	public Optional<String> getClientName() {
+		return clientConfiguration.getClientName();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getCommandTimeout()
 	 */
 	@Override
