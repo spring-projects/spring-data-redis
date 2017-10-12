@@ -11,7 +11,7 @@ As explained in <<why-spring-redis>>, Spring Data Redis (SDR) provides integrati
 [[get-started:first-steps:spring]]
 === Knowing Spring
 
-Spring Data uses heavily Spring framework's http://docs.spring.io/spring/docs/current/spring-framework-reference/html/spring-core.html[core] functionality, such as the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html[IoC] container, http://docs.spring.io/spring/docs/current/spring-framework-reference/html/resources.html[resource] abstract or http://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop.html[AOP] infrastructure. While it is not important to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar. That being said, the more knowledge one has about the Spring, the faster she will pick up Spring Data Redis. Besides the very comprehensive (and sometimes disarming) documentation that explains in detail the Spring Framework, there are a lot of articles, blog entries and books on the matter - take a look at the Spring Guides http://spring.io/guides[home page] for more information. In general, this should be the starting point for developers wanting to try Spring DR.
+Spring Data uses heavily Spring framework's http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html[core] functionality, such as the http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html[IoC] container, http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#resources[resource] abstract or http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#aop[AOP] infrastructure. While it is not important to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar. That being said, the more knowledge one has about the Spring, the faster she will pick up Spring Data Redis. Besides the very comprehensive (and sometimes disarming) documentation that explains in detail the Spring Framework, there are a lot of articles, blog entries and books on the matter - take a look at the Spring Guides http://spring.io/guides[home page] for more information. In general, this should be the starting point for developers wanting to try Spring DR.
 
 [[get-started:first-steps:nosql]]
 === Knowing NoSQL and Key Value stores
@@ -36,7 +36,7 @@ The Spring Data tag on http://stackoverflow.com/questions/tagged/spring-data[Sta
 [[get-started:help:professional]]
 === Professional Support
 
-Professional, from-the-source support, with guaranteed response time, is available from http://www.gopivotal.com/[Pivotal Software, Inc.], the company behind Spring Data and Spring.
+Professional, from-the-source support, with guaranteed response time, is available from http://www.pivotal.io/[Pivotal Software, Inc.], the company behind Spring Data and Spring.
 
 [[get-started:up-to-date]]
 == Following Development
@@ -50,5 +50,5 @@ If you encounter a bug or want to suggest an improvement, please create a ticket
 
 To stay up to date with the latest news and announcements in the Spring eco system, subscribe to the Spring Community http://spring.io/[Portal].
 
-Lastly, you can follow the Spring http://spring.io/blog/[blog] or the project team (http://twitter.com/thomasdarimont[Thomas] and http://twitter.com/stroblchristoph[Christoph]) on Twitter.
+Lastly, you can follow the Spring http://spring.io/blog/[blog] or the project team (http://twitter.com/SpringData[@SpringData]) on Twitter.
 
