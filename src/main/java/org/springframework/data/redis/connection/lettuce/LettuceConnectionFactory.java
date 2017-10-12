@@ -587,6 +587,30 @@ public class LettuceConnectionFactory
 	}
 
 	/**
+	 * Returns the client name.
+	 *
+	 * @return the client name.
+	 * @since 2.1
+	 */
+	@Nullable
+	public String getClientName() {
+		return clientConfiguration.getClientName().orElse(null);
+	}
+
+	/**
+	 * Sets the client name used by this connection factory. Defaults to none which does not set a client name.
+	 *
+	 * @param clientName the client name.
+	 * @since 2.1
+	 * @deprecated configure the client name using {@link LettuceClientConfiguration}.
+	 * @throws IllegalStateException if {@link JedisClientConfiguration} is immutable.
+	 */
+	@Deprecated
+	public void setClientName(String clientName) {
+		this.getMutableConfiguration().setClientName(clientName);
+	}
+
+	/**
 	 * Returns the password used for authenticating with the Redis server.
 	 *
 	 * @return password for authentication.

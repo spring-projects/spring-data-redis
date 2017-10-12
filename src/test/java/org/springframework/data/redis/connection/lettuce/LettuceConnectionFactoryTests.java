@@ -379,4 +379,20 @@ public class LettuceConnectionFactoryTests {
 
 		factory.destroy();
 	}
+
+	@Test // DATAREDIS-576
+	public void getClientNameShouldEqualWithFactorySetting() {
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(new RedisStandaloneConfiguration());
+		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		factory.setClientName("clientName");
+		factory.afterPropertiesSet();
+
+		RedisConnection connection = factory.getConnection();
+		assertThat(connection.getClientName(), equalTo("clientName"));
+
+		connection.close();
+
+		factory.destroy();
+	}
 }
