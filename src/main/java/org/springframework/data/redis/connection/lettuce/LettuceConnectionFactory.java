@@ -29,8 +29,10 @@ import io.lettuce.core.resource.ClientResources;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -591,16 +593,7 @@ public class LettuceConnectionFactory
 	 * @return the database index.
 	 */
 	public int getDatabase() {
-
-		if (isDomainSocketAware()) {
-			return socketConfiguration.getDatabase();
-		}
-
-		if (isRedisSentinelAware()) {
-			return sentinelConfiguration.getDatabase();
-		}
-
-		return standaloneConfig.getDatabase();
+		return getConfiguration(DatabaseAware.class).getDatabase();
 	}
 
 	/**
@@ -612,17 +605,7 @@ public class LettuceConnectionFactory
 
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
 
-		if (isDomainSocketAware()) {
-			socketConfiguration.setDatabase(index);
-			return;
-		}
-
-		if (isRedisSentinelAware()) {
-			sentinelConfiguration.setDatabase(index);
-			return;
-		}
-
-		standaloneConfig.setDatabase(index);
+		getConfiguration(DatabaseAware.class).setDatabase(index);
 	}
 
 	/**
@@ -635,20 +618,7 @@ public class LettuceConnectionFactory
 	}
 
 	private RedisPassword getRedisPassword() {
-
-		if (isDomainSocketAware()) {
-			return socketConfiguration.getPassword();
-		}
-
-		if (isRedisSentinelAware()) {
-			return sentinelConfiguration.getPassword();
-		}
-
-		if (isClusterAware()) {
-			return clusterConfiguration.getPassword();
-		}
-
-		return standaloneConfig.getPassword();
+		return getConfiguration(RedisPasswordAware.class).getPassword();
 	}
 
 	/**
@@ -660,23 +630,7 @@ public class LettuceConnectionFactory
 	 */
 	@Deprecated
 	public void setPassword(String password) {
-
-		if (isDomainSocketAware()) {
-			socketConfiguration.setPassword(RedisPassword.of(password));
-			return;
-		}
-
-		if (isRedisSentinelAware()) {
-			sentinelConfiguration.setPassword(RedisPassword.of(password));
-			return;
-		}
-
-		if (isClusterAware()) {
-			clusterConfiguration.setPassword(RedisPassword.of(password));
-			return;
-		}
-
-		standaloneConfig.setPassword(RedisPassword.of(password));
+		getConfiguration(RedisPasswordAware.class).setPassword(RedisPassword.of(password));
 	}
 
 	/**
@@ -961,6 +915,37 @@ public class LettuceConnectionFactory
 
 	private long getClientTimeout() {
 		return clientConfiguration.getCommandTimeout().toMillis();
+	}
+
+	private <T> T getConfiguration(Class<T> configurationType) {
+
+		return configurations() //
+				.filter(it -> ClassUtils.isAssignableValue(configurationType, it)) //
+				.map(configurationType::cast) //
+				.findFirst() //
+				.orElseThrow(
+						() -> new NoSuchElementException("No configuration for " + ClassUtils.getQualifiedName(configurationType)));
+	}
+
+	private Stream<Object> configurations() {
+
+		List<Object> configurations = new ArrayList<>();
+
+		if (isDomainSocketAware()) {
+			configurations.add(socketConfiguration);
+		}
+
+		if (isRedisSentinelAware()) {
+			configurations.add(sentinelConfiguration);
+		}
+
+		if (isClusterAware()) {
+			configurations.add(clusterConfiguration);
+		}
+
+		configurations.add(standaloneConfig);
+
+		return configurations.stream();
 	}
 
 	/**

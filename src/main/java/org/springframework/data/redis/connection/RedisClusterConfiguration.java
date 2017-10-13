@@ -41,12 +41,12 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @since 1.7
  */
-public class RedisClusterConfiguration {
+public class RedisClusterConfiguration implements RedisPasswordAware {
 
 	private static final String REDIS_CLUSTER_NODES_CONFIG_PROPERTY = "spring.redis.cluster.nodes";
 	private static final String REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY = "spring.redis.cluster.max-redirects";
 
-	private Set<RedisNode> clusterNodes;
+	private final Set<RedisNode> clusterNodes;
 	private @Nullable Integer maxRedirects;
 	private RedisPassword password = RedisPassword.none();
 
@@ -181,20 +181,20 @@ public class RedisClusterConfiguration {
 		}
 	}
 
-	/**
-	 * Get the {@link RedisPassword} defined.
-	 *
-	 * @return never {@literal null}.
-	 * @since 2.0
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPasswordAware#getPassword()
 	 */
+	@Override
 	public RedisPassword getPassword() {
 		return password;
 	}
 
-	/**
-	 * @param password must not be {@literal null}.
-	 * @since 2.0
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPasswordAware#setPassword(org.springframework.data.redis.connection.RedisPassword)
 	 */
+	@Override
 	public void setPassword(RedisPassword password) {
 
 		Assert.notNull(password, "RedisPassword must not be null!");

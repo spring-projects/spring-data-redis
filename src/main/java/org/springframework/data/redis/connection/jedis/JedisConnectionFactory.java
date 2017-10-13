@@ -27,12 +27,16 @@ import redis.clients.jedis.Protocol;
 import redis.clients.util.Pool;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLParameters;
@@ -49,16 +53,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.ClusterCommandExecutor;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
-import org.springframework.data.redis.connection.RedisClusterConnection;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisNode;
-import org.springframework.data.redis.connection.RedisPassword;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisSentinelConnection;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterTopologyProvider;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -548,16 +543,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	private RedisPassword getRedisPassword() {
-
-		if (isRedisSentinelAware()) {
-			return sentinelConfig.getPassword();
-		}
-
-		if (isRedisClusterAware()) {
-			return clusterConfig.getPassword();
-		}
-
-		return standaloneConfig.getPassword();
+		return getConfiguration(RedisPasswordAware.class).getPassword();
 	}
 
 	/**
@@ -569,18 +555,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	@Deprecated
 	public void setPassword(String password) {
-
-		if (isRedisSentinelAware()) {
-			sentinelConfig.setPassword(RedisPassword.of(password));
-			return;
-		}
-
-		if (isRedisClusterAware()) {
-			clusterConfig.setPassword(RedisPassword.of(password));
-			return;
-		}
-
-		standaloneConfig.setPassword(RedisPassword.of(password));
+		getConfiguration(RedisPasswordAware.class).setPassword(RedisPassword.of(password));
 	}
 
 	/**
@@ -703,12 +678,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @return the database index.
 	 */
 	public int getDatabase() {
-
-		if (isRedisSentinelAware()) {
-			return sentinelConfig.getDatabase();
-		}
-
-		return standaloneConfig.getDatabase();
+		return getConfiguration(DatabaseAware.class).getDatabase();
 	}
 
 	/**
@@ -723,12 +693,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
 
-		if (isRedisSentinelAware()) {
-			sentinelConfig.setDatabase(index);
-			return;
-		}
-
-		standaloneConfig.setDatabase(index);
+		getConfiguration(DatabaseAware.class).setDatabase(index);
 	}
 
 	/**
@@ -893,6 +858,33 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 						ClassUtils.getShortName(clientConfiguration.getClass())));
 
 		return (MutableJedisClientConfiguration) clientConfiguration;
+	}
+
+	private <T> T getConfiguration(Class<T> configurationType) {
+
+		return configurations() //
+				.filter(it -> ClassUtils.isAssignableValue(configurationType, it)) //
+				.map(configurationType::cast) //
+				.findFirst() //
+				.orElseThrow(
+						() -> new NoSuchElementException("No configuration for " + ClassUtils.getQualifiedName(configurationType)));
+	}
+
+	private Stream<Object> configurations() {
+
+		List<Object> configurations = new ArrayList<>();
+
+		if (isRedisSentinelAware()) {
+			configurations.add(sentinelConfig);
+		}
+
+		if (isRedisClusterAware()) {
+			configurations.add(clusterConfig);
+		}
+
+		configurations.add(standaloneConfig);
+
+		return configurations.stream();
 	}
 
 	/**

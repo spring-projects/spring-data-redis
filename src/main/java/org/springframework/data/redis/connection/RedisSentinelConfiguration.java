@@ -41,13 +41,13 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @since 1.4
  */
-public class RedisSentinelConfiguration {
+public class RedisSentinelConfiguration implements RedisPasswordAware, DatabaseAware {
 
 	private static final String REDIS_SENTINEL_MASTER_CONFIG_PROPERTY = "spring.redis.sentinel.master";
 	private static final String REDIS_SENTINEL_NODES_CONFIG_PROPERTY = "spring.redis.sentinel.nodes";
 
 	private @Nullable NamedNode master;
-	private Set<RedisNode> sentinels;
+	private final Set<RedisNode> sentinels;
 	private int database;
 	private RedisPassword password = RedisPassword.none();
 
@@ -217,20 +217,20 @@ public class RedisSentinelConfiguration {
 		}
 	}
 
-	/**
-	 * @return the initial db index.
-	 * @since 2.0
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.DatabaseAware#getDatabase()
 	 */
+	@Override
 	public int getDatabase() {
 		return database;
 	}
 
-	/**
-	 * Sets the index of the database used by this connection factory. Default is 0.
-	 *
-	 * @param index database index.
-	 * @since 2.0
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.DatabaseAware#setDatabase(int)
 	 */
+	@Override
 	public void setDatabase(int index) {
 
 		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
@@ -238,18 +238,20 @@ public class RedisSentinelConfiguration {
 		this.database = index;
 	}
 
-	/**
-	 * @return never {@literal null}.
-	 * @since 2.0
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPasswordAware#getPassword()
 	 */
+	@Override
 	public RedisPassword getPassword() {
 		return password;
 	}
 
-	/**
-	 * @param password must not be {@literal null}.
-	 * @since 2.0
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPasswordAware#setPassword(org.springframework.data.redis.connection.RedisPassword)
 	 */
+	@Override
 	public void setPassword(RedisPassword password) {
 
 		Assert.notNull(password, "RedisPassword must not be null!");

@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.1
  */
-public class RedisSocketConfiguration {
+public class RedisSocketConfiguration implements RedisPasswordAware, DatabaseAware {
 
 	private static final String DEFAULT_SOCKET = "/tmp/redis.sock";
 
@@ -63,18 +63,20 @@ public class RedisSocketConfiguration {
 		this.socket = socket;
 	}
 
-	/**
-	 * @return the db index.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.DatabaseAware#getDatabase()
 	 */
+	@Override
 	public int getDatabase() {
 		return database;
 	}
 
-	/**
-	 * Sets the index of the database used by this connection factory. Default is 0.
-	 *
-	 * @param index database index.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.DatabaseAware#setDatabase(int)
 	 */
+	@Override
 	public void setDatabase(int index) {
 
 		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
@@ -82,16 +84,20 @@ public class RedisSocketConfiguration {
 		this.database = index;
 	}
 
-	/**
-	 * @return never {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPasswordAware#getPassword()
 	 */
+	@Override
 	public RedisPassword getPassword() {
 		return password;
 	}
 
-	/**
-	 * @param password must not be {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPasswordAware#setPassword(org.springframework.data.redis.connection.RedisPassword)
 	 */
+	@Override
 	public void setPassword(RedisPassword password) {
 
 		Assert.notNull(password, "RedisPassword must not be null!");

@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.0
  */
-public class RedisStandaloneConfiguration {
+public class RedisStandaloneConfiguration implements RedisPasswordAware, DatabaseAware {
 
 	private static final String DEFAULT_HOST = "localhost";
 	private static final int DEFAULT_PORT = 6379;
@@ -93,18 +93,20 @@ public class RedisStandaloneConfiguration {
 		this.port = port;
 	}
 
-	/**
-	 * @return the db index.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.DatabaseAware#getDatabase()
 	 */
+	@Override
 	public int getDatabase() {
 		return database;
 	}
 
-	/**
-	 * Sets the index of the database used by this connection factory. Default is 0.
-	 *
-	 * @param index database index.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.DatabaseAware#setDatabase(int)
 	 */
+	@Override
 	public void setDatabase(int index) {
 
 		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
@@ -112,16 +114,20 @@ public class RedisStandaloneConfiguration {
 		this.database = index;
 	}
 
-	/**
-	 * @return never {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPasswordAware#getPassword()
 	 */
+	@Override
 	public RedisPassword getPassword() {
 		return password;
 	}
 
-	/**
-	 * @param password must not be {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPasswordAware#setPassword(org.springframework.data.redis.connection.RedisPassword)
 	 */
+	@Override
 	public void setPassword(RedisPassword password) {
 
 		Assert.notNull(password, "RedisPassword must not be null!");
