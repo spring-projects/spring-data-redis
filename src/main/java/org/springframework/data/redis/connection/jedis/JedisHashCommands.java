@@ -26,7 +26,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisHashCommands;
-import org.springframework.data.redis.connection.jedis.JedisConnection.JedisResult;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;

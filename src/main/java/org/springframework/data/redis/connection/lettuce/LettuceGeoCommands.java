@@ -40,8 +40,7 @@ import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.convert.ListConverter;
-import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceResult;
-import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceTxResult;
+import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceTxResult;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 

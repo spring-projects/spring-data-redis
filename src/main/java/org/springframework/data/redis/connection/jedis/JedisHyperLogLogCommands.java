@@ -19,7 +19,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
-import org.springframework.data.redis.connection.jedis.JedisConnection.JedisResult;
 import org.springframework.util.Assert;
 
 /**

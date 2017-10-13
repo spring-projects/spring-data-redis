@@ -155,27 +155,31 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testExpire() throws Exception {
-		connection.set("exp", "true");
+
+		actual.add(connection.set("exp", "true"));
 		actual.add(connection.expire("exp", 1));
-		verifyResults(Arrays.asList(new Object[] { true }));
+
+		verifyResults(Arrays.asList(true, true));
 		assertTrue(waitFor(new KeyExpired("exp"), 3000l));
 	}
 
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testExpireAt() throws Exception {
-		connection.set("exp2", "true");
+
+		actual.add(connection.set("exp2", "true"));
 		actual.add(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
-		verifyResults(Arrays.asList(new Object[] { true }));
+		verifyResults(Arrays.asList(true, true));
 		assertTrue(waitFor(new KeyExpired("exp2"), 3000l));
 	}
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPExpire() {
-		connection.set("exp", "true");
+
+		actual.add(connection.set("exp", "true"));
 		actual.add(connection.pExpire("exp", 100));
-		verifyResults(Arrays.asList(new Object[] { true }));
+		verifyResults(Arrays.asList(true, true));
 		assertTrue(waitFor(new KeyExpired("exp"), 1000l));
 	}
 
@@ -189,9 +193,10 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPExpireAt() {
-		connection.set("exp2", "true");
+
+		actual.add(connection.set("exp2", "true"));
 		actual.add(connection.pExpireAt("exp2", System.currentTimeMillis() + 200));
-		verifyResults(Arrays.asList(new Object[] { true }));
+		verifyResults(Arrays.asList(true, true));
 		assertTrue(waitFor(new KeyExpired("exp2"), 1000l));
 	}
 
@@ -397,19 +402,22 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testPersist() throws Exception {
-		connection.set("exp3", "true");
+
+		actual.add(connection.set("exp3", "true"));
 		actual.add(connection.expire("exp3", 30));
 		actual.add(connection.persist("exp3"));
 		actual.add(connection.ttl("exp3"));
-		verifyResults(Arrays.asList(new Object[] { true, true, -1L }));
+		verifyResults(Arrays.asList(true, true, true, -1L));
 	}
 
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testSetEx() throws Exception {
-		connection.setEx("expy", 1l, "yep");
+
+		actual.add(connection.setEx("expy", 1l, "yep"));
 		actual.add(connection.get("expy"));
-		verifyResults(Arrays.asList(new Object[] { "yep" }));
+
+		verifyResults(Arrays.asList(true, "yep"));
 		assertTrue(waitFor(new KeyExpired("expy"), 2500l));
 	}
 
@@ -417,10 +425,10 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testPsetEx() throws Exception {
 
-		connection.pSetEx("expy", 500L, "yep");
+		actual.add(connection.pSetEx("expy", 500L, "yep"));
 		actual.add(connection.get("expy"));
 
-		verifyResults(Arrays.asList(new Object[] { "yep" }));
+		verifyResults(Arrays.asList(true, "yep"));
 		assertTrue(waitFor(new KeyExpired("expy"), 2500L));
 	}
 
@@ -447,11 +455,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testSetAndGet() {
+
 		String key = "foo";
 		String value = "blabla";
-		connection.set(key.getBytes(), value.getBytes());
+
+		actual.add(connection.set(key.getBytes(), value.getBytes()));
 		actual.add(connection.get(key));
-		verifyResults(new ArrayList<>(Collections.singletonList(value)));
+		verifyResults(Arrays.asList(true, value));
 	}
 
 	@Test
@@ -485,9 +495,10 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitCountInterval() {
-		connection.set("mykey", "foobar");
+
+		actual.add(connection.set("mykey", "foobar"));
 		actual.add(connection.bitCount("mykey", 1, 1));
-		verifyResults(new ArrayList<>(Collections.singletonList(6l)));
+		verifyResults(Arrays.asList(Boolean.TRUE, 6L));
 	}
 
 	@Test
@@ -500,51 +511,57 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitOpAnd() {
-		connection.set("key1", "foo");
-		connection.set("key2", "bar");
+
+		actual.add(connection.set("key1", "foo"));
+		actual.add(connection.set("key2", "bar"));
 		actual.add(connection.bitOp(BitOperation.AND, "key3", "key1", "key2"));
 		actual.add(connection.get("key3"));
-		verifyResults(Arrays.asList(new Object[] { 3l, "bab" }));
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, 3L, "bab"));
 	}
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitOpOr() {
-		connection.set("key1", "foo");
-		connection.set("key2", "ugh");
+
+		actual.add(connection.set("key1", "foo"));
+		actual.add(connection.set("key2", "ugh"));
 		actual.add(connection.bitOp(BitOperation.OR, "key3", "key1", "key2"));
 		actual.add(connection.get("key3"));
-		verifyResults(Arrays.asList(new Object[] { 3l, "woo" }));
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, 3l, "woo"));
 	}
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitOpXOr() {
-		connection.set("key1", "abcd");
-		connection.set("key2", "efgh");
+
+		actual.add(connection.set("key1", "abcd"));
+		actual.add(connection.set("key2", "efgh"));
 		actual.add(connection.bitOp(BitOperation.XOR, "key3", "key1", "key2"));
-		verifyResults(Arrays.asList(new Object[] { 4l }));
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, 4L));
 	}
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitOpNot() {
-		connection.set("key1", "abcd");
+
+		actual.add(connection.set("key1", "abcd"));
 		actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1"));
-		verifyResults(Arrays.asList(new Object[] { 4l }));
+		verifyResults(Arrays.asList(Boolean.TRUE, 4L));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitOpNotMultipleSources() {
-		connection.set("key1", "abcd");
-		connection.set("key2", "efgh");
+
+		actual.add(connection.set("key1", "abcd"));
+		actual.add(connection.set("key2", "efgh"));
 		actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
 		getResults();
 	}
 
 	@Test
 	public void testInfo() throws Exception {
+
 		actual.add(connection.info());
 		List<Object> results = getResults();
 		Properties info = (Properties) results.get(0);
@@ -629,10 +646,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testAppend() {
-		connection.set("a", "b");
+		actual.add(connection.set("a", "b"));
 		actual.add(connection.append("a", "c"));
 		actual.add(connection.get("a"));
-		verifyResults(Arrays.asList(new Object[] { 2l, "bc" }));
+		verifyResults(Arrays.asList(new Object[] { Boolean.TRUE, 2l, "bc" }));
 	}
 
 	@Test
@@ -731,13 +748,16 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testExecute() {
-		connection.set("foo", "bar");
+
+		actual.add(connection.set("foo", "bar"));
 		actual.add(connection.execute("GET", "foo"));
-		assertEquals("bar", stringSerializer.deserialize((byte[]) getResults().get(0)));
+
+		assertEquals("bar", stringSerializer.deserialize((byte[]) getResults().get(1)));
 	}
 
 	@Test
 	public void testExecuteNoArgs() {
+
 		actual.add(connection.execute("PING"));
 		List<Object> results = getResults();
 		assertEquals("PONG", stringSerializer.deserialize((byte[]) results.get(0)));
@@ -746,13 +766,14 @@ public abstract class AbstractConnectionIntegrationTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testMultiExec() throws Exception {
+
 		connection.multi();
 		connection.set("key", "value");
 		connection.get("key");
 		actual.add(connection.exec());
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] { "value" }), execResults);
+		assertEquals(Arrays.asList(true, "value"), execResults);
 		assertEquals("value", connection.get("key"));
 	}
 
@@ -796,7 +817,9 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testWatch() throws Exception {
-		connection.set("testitnow", "willdo");
+
+		actual.add(connection.set("testitnow", "willdo"));
+
 		connection.watch("testitnow".getBytes());
 		// Give some time for watch to be asynch executed in extending tests
 		Thread.sleep(500);
@@ -809,29 +832,33 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get("testitnow"));
 
 		if (connectionFactory instanceof JedisConnectionFactory) {
-			verifyResults(Arrays.asList(new Object[] { Collections.emptyList(), "something" }));
+			verifyResults(Arrays.asList(new Object[] { true, Collections.emptyList(), "something" }));
 		} else {
-			verifyResults(Arrays.asList(new Object[] { null, "something" }));
+			verifyResults(Arrays.asList(new Object[] { true, null, "something" }));
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testUnwatch() throws Exception {
-		connection.set("testitnow", "willdo");
+
+		actual.add(connection.set("testitnow", "willdo"));
+
 		connection.watch("testitnow".getBytes());
 		connection.unwatch();
+
 		connection.multi();
+
 		// Give some time for unwatch to be asynch executed
 		Thread.sleep(100);
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
+
 		connection.set("testitnow", "somethingelse");
 		connection.get("testitnow");
 		actual.add(connection.exec());
-		List<Object> results = getResults();
-		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] { "somethingelse" }), execResults);
+
+		verifyResults(Arrays.asList(true, Arrays.asList(true, "somethingelse")));
 	}
 
 	@Test
@@ -874,9 +901,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testDbSize() {
-		connection.set("dbparam", "foo");
+
+		actual.add(connection.set("dbparam", "foo"));
 		actual.add(connection.dbSize());
-		assertTrue((Long) getResults().get(0) > 0);
+		assertTrue((Long) getResults().get(1) > 0);
 	}
 
 	@Test
@@ -902,99 +930,105 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testExists() {
-		connection.set("existent", "true");
+
+		actual.add(connection.set("existent", "true"));
 		actual.add(connection.exists("existent"));
 		actual.add(connection.exists("nonexistent"));
-		verifyResults(Arrays.asList(new Object[] { true, false }));
+		verifyResults(Arrays.asList(true, true, false));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testKeys() throws Exception {
-		connection.set("keytest", "true");
+
+		actual.add(connection.set("keytest", "true"));
 		actual.add(connection.keys("key*"));
-		assertTrue(((Collection<String>) getResults().get(0)).contains("keytest"));
+		assertTrue(((Collection<String>) getResults().get(1)).contains("keytest"));
 	}
 
 	@Test
 	public void testRandomKey() {
-		connection.set("some", "thing");
+
+		actual.add(connection.set("some", "thing"));
 		actual.add(connection.randomKey());
 		List<Object> results = getResults();
-		assertNotNull(results.get(0));
+		assertNotNull(results.get(1));
 	}
 
 	@Test
 	public void testRename() {
-		connection.set("renametest", "testit");
+
+		actual.add(connection.set("renametest", "testit"));
 		connection.rename("renametest", "newrenametest");
 		actual.add(connection.get("newrenametest"));
 		actual.add(connection.exists("renametest"));
-		verifyResults(Arrays.asList(new Object[] { "testit", false }));
+		verifyResults(Arrays.asList(true, "testit", false));
 	}
 
 	@Test
 	public void testRenameNx() {
-		connection.set("nxtest", "testit");
+
+		actual.add(connection.set("nxtest", "testit"));
 		actual.add(connection.renameNX("nxtest", "newnxtest"));
 		actual.add(connection.get("newnxtest"));
 		actual.add(connection.exists("nxtest"));
-		verifyResults(Arrays.asList(new Object[] { true, "testit", false }));
+		verifyResults(Arrays.asList(true, true, "testit", false));
 	}
 
 	@Test
 	public void testTtl() {
-		connection.set("whatup", "yo");
+		actual.add(connection.set("whatup", "yo"));
 		actual.add(connection.ttl("whatup"));
-		verifyResults(Arrays.asList(new Object[] { -1L }));
+		verifyResults(Arrays.asList(true, -1L));
 	}
 
 	@Test // DATAREDIS-526
 	public void testTtlWithTimeUnit() {
 
-		connection.set("whatup", "yo");
+		actual.add(connection.set("whatup", "yo"));
 		actual.add(connection.expire("whatup", 10));
 		actual.add(connection.ttl("whatup", TimeUnit.MILLISECONDS));
 
 		List<Object> results = getResults();
 
-		assertTrue((Long) results.get(1) > TimeUnit.SECONDS.toMillis(5));
-		assertTrue((Long) results.get(1) <= TimeUnit.SECONDS.toMillis(10));
+		assertTrue((Long) results.get(2) > TimeUnit.SECONDS.toMillis(5));
+		assertTrue((Long) results.get(2) <= TimeUnit.SECONDS.toMillis(10));
 	}
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPTtlNoExpire() {
-		connection.set("whatup", "yo");
+
+		actual.add(connection.set("whatup", "yo"));
 		actual.add(connection.pTtl("whatup"));
-		verifyResults(Arrays.asList(new Object[] { -1L }));
+		verifyResults(Arrays.asList(true, -1L));
 	}
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPTtl() {
 
-		connection.set("whatup", "yo");
+		actual.add(connection.set("whatup", "yo"));
 		actual.add(connection.pExpire("whatup", TimeUnit.SECONDS.toMillis(10)));
 		actual.add(connection.pTtl("whatup"));
 
 		List<Object> results = getResults();
 
-		assertTrue((Long) results.get(1) > -1);
+		assertTrue((Long) results.get(2) > -1);
 	}
 
 	@Test // DATAREDIS-526
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPTtlWithTimeUnit() {
 
-		connection.set("whatup", "yo");
+		actual.add(connection.set("whatup", "yo"));
 		actual.add(connection.pExpire("whatup", TimeUnit.MINUTES.toMillis(10)));
 		actual.add(connection.pTtl("whatup", TimeUnit.SECONDS));
 
 		List<Object> results = getResults();
 
-		assertTrue((Long) results.get(1) > TimeUnit.MINUTES.toSeconds(9));
-		assertTrue((Long) results.get(1) <= TimeUnit.MINUTES.toSeconds(10));
+		assertTrue((Long) results.get(2) > TimeUnit.MINUTES.toSeconds(9));
+		assertTrue((Long) results.get(2) <= TimeUnit.MINUTES.toSeconds(10));
 	}
 
 	@Test
@@ -1032,49 +1066,54 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test(expected = RedisSystemException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreExistingKey() {
-		connection.set("testing", "12");
+
+		actual.add(connection.set("testing", "12"));
 		actual.add(connection.dump("testing".getBytes()));
 		List<Object> results = getResults();
 		initConnection();
-		connection.restore("testing".getBytes(), 0, (byte[]) results.get(0));
+		connection.restore("testing".getBytes(), 0, (byte[]) results.get(1));
 		getResults();
 	}
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreTtl() {
-		connection.set("testing", "12");
+
+		actual.add(connection.set("testing", "12"));
 		actual.add(connection.dump("testing".getBytes()));
+
 		List<Object> results = getResults();
 		initConnection();
 		actual.add(connection.del("testing"));
 		actual.add(connection.get("testing"));
-		connection.restore("testing".getBytes(), 100l, (byte[]) results.get(0));
-		verifyResults(Arrays.asList(new Object[] { 1l, null }));
+		connection.restore("testing".getBytes(), 100l, (byte[]) results.get(1));
+		verifyResults(Arrays.asList(1l, null));
 		assertTrue(waitFor(new KeyExpired("testing"), 400l));
 	}
 
 	@Test
 	public void testDel() {
-		connection.set("testing", "123");
+
+		actual.add(connection.set("testing", "123"));
 		actual.add(connection.del("testing"));
 		actual.add(connection.exists("testing"));
-		verifyResults(Arrays.asList(new Object[] { 1l, false }));
+		verifyResults(Arrays.asList(true, 1L, false));
 	}
 
 	@Test
 	public void testType() {
-		connection.set("something", "yo");
+
+		actual.add(connection.set("something", "yo"));
 		actual.add(connection.type("something"));
-		verifyResults(Arrays.asList(new Object[] { DataType.STRING }));
+		verifyResults(Arrays.asList(true, DataType.STRING));
 	}
 
 	@Test
 	public void testGetSet() {
-		connection.set("testGS", "1");
+		actual.add(connection.set("testGS", "1"));
 		actual.add(connection.getSet("testGS", "2"));
 		actual.add(connection.get("testGS"));
-		verifyResults(Arrays.asList(new Object[] { "1", "2" }));
+		verifyResults(Arrays.asList(true, "1", "2"));
 	}
 
 	@Test
@@ -1082,9 +1121,10 @@ public abstract class AbstractConnectionIntegrationTests {
 		Map<String, String> vals = new HashMap<>();
 		vals.put("color", "orange");
 		vals.put("size", "1");
-		connection.mSetString(vals);
+
+		actual.add(connection.mSetString(vals));
 		actual.add(connection.mGet("color", "size"));
-		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new String[] { "orange", "1" }) }));
+		verifyResults(Arrays.asList(true, Arrays.asList(new String[] { "orange", "1" })));
 	}
 
 	@Test
@@ -1099,13 +1139,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testMSetNxFailure() {
-		connection.set("height", "2");
+		actual.add(connection.set("height", "2"));
 		Map<String, String> vals = new HashMap<>();
 		vals.put("height", "5");
 		vals.put("width", "1");
 		actual.add(connection.mSetNXString(vals));
 		actual.add(connection.mGet("height", "width"));
-		verifyResults(Arrays.asList(new Object[] { false, Arrays.asList(new String[] { "2", null }) }));
+		verifyResults(Arrays.asList(true, false, Arrays.asList(new String[] { "2", null })));
 	}
 
 	@Test
@@ -1119,43 +1159,49 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testGetRangeSetRange() {
-		connection.set("rangekey", "supercalifrag");
+
+		actual.add(connection.set("rangekey", "supercalifrag"));
 		actual.add(connection.getRange("rangekey", 0l, 2l));
 		connection.setRange("rangekey", "ck", 2);
 		actual.add(connection.get("rangekey"));
-		verifyResults(Arrays.asList(new Object[] { "sup", "suckrcalifrag" }));
+		verifyResults(Arrays.asList(true, "sup", "suckrcalifrag"));
 	}
 
 	@Test
 	public void testDecrByIncrBy() {
-		connection.set("tdb", "4");
+
+		actual.add(connection.set("tdb", "4"));
 		actual.add(connection.decrBy("tdb", 3l));
 		actual.add(connection.incrBy("tdb", 7l));
-		verifyResults(Arrays.asList(new Object[] { 1l, 8l }));
+		verifyResults(Arrays.asList(Boolean.TRUE, 1L, 8L));
 	}
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testIncrByDouble() {
-		connection.set("tdb", "4.5");
+
+		actual.add(connection.set("tdb", "4.5"));
 		actual.add(connection.incrBy("tdb", 7.2));
 		actual.add(connection.get("tdb"));
-		verifyResults(Arrays.asList(new Object[] { 11.7d, "11.7" }));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, 11.7d, "11.7"));
 	}
 
 	@Test
 	public void testIncrDecrByLong() {
+
 		String key = "test.count";
 		long largeNumber = 0x123456789L; // > 32bits
-		connection.set(key, "0");
+		actual.add(connection.set(key, "0"));
 		actual.add(connection.incrBy(key, largeNumber));
 		actual.add(connection.decrBy(key, largeNumber));
 		actual.add(connection.decrBy(key, 2 * largeNumber));
-		verifyResults(Arrays.asList(new Object[] { largeNumber, 0l, -2 * largeNumber }));
+		verifyResults(Arrays.asList(Boolean.TRUE, largeNumber, 0l, -2 * largeNumber));
 	}
 
 	@Test
 	public void testHashIncrDecrByLong() {
+
 		String key = "test.hcount";
 		String hkey = "hashkey";
 
@@ -1170,19 +1216,21 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testIncDecr() {
-		connection.set("incrtest", "0");
+
+		actual.add(connection.set("incrtest", "0"));
 		actual.add(connection.incr("incrtest"));
 		actual.add(connection.get("incrtest"));
 		actual.add(connection.decr("incrtest"));
 		actual.add(connection.get("incrtest"));
-		verifyResults(Arrays.asList(new Object[] { 1l, "1", 0l, "0" }));
+		verifyResults(Arrays.asList(Boolean.TRUE, 1L, "1", 0L, "0"));
 	}
 
 	@Test
 	public void testStrLen() {
-		connection.set("strlentest", "cat");
+
+		actual.add(connection.set("strlentest", "cat"));
 		actual.add(connection.strLen("strlentest"));
-		verifyResults(Arrays.asList(new Object[] { 3l }));
+		verifyResults(Arrays.asList(Boolean.TRUE, 3L));
 	}
 
 	// List operations
@@ -1913,9 +1961,11 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testMove() {
-		connection.set("foo", "bar");
+
+		actual.add(connection.set("foo", "bar"));
 		actual.add(connection.move("foo", 1));
-		verifyResults(Arrays.asList(new Object[] { true }));
+
+		verifyResults(Arrays.asList(true, true));
 		connection.select(1);
 		try {
 			assertEquals("bar", connection.get("foo"));
@@ -2220,14 +2270,15 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setWithExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
-		connection.set(key, "foo", Expiration.milliseconds(500), SetOption.upsert());
+		actual.add(connection.set(key, "foo", Expiration.milliseconds(500), SetOption.upsert()));
 
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
 
 		List<Object> result = getResults();
 		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(500d, 499d)));
+		assertThat(result.get(1), is(Boolean.TRUE));
+		assertThat(((Long) result.get(2)).doubleValue(), is(closeTo(500d, 499d)));
 	}
 
 	@Test // DATAREDIS-316
@@ -2235,8 +2286,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setWithExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesExist() {
 
 		String key = "exp-" + UUID.randomUUID();
-		connection.set(key, "spring");
-		connection.set(key, "data", Expiration.milliseconds(500), SetOption.upsert());
+		actual.add(connection.set(key, "spring"));
+		actual.add(connection.set(key, "data", Expiration.milliseconds(500), SetOption.upsert()));
 
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
@@ -2244,8 +2295,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(500d, 499d)));
-		assertThat((result.get(2)), is(equalTo("data")));
+		assertThat(result.get(1), is(Boolean.TRUE));
+		assertThat(result.get(2), is(Boolean.TRUE));
+		assertThat(((Long) result.get(3)).doubleValue(), is(closeTo(500d, 499d)));
+		assertThat((result.get(4)), is(equalTo("data")));
 	}
 
 	@Test // DATAREDIS-316
@@ -2253,8 +2306,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setWithExpirationAndAbsentOptionShouldSetTtlWhenKeyDoesExist() {
 
 		String key = "exp-" + UUID.randomUUID();
-		connection.set(key, "spring");
-		connection.set(key, "data", Expiration.milliseconds(500), SetOption.ifAbsent());
+		actual.add(connection.set(key, "spring"));
+		actual.add(connection.set(key, "data", Expiration.milliseconds(500), SetOption.ifAbsent()));
 
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
@@ -2262,8 +2315,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-1, 0)));
-		assertThat((result.get(2)), is(equalTo("spring")));
+		assertThat(result.get(1), is(Boolean.FALSE));
+		assertThat(result.get(2), is(Boolean.TRUE));
+		assertThat(((Long) result.get(3)).doubleValue(), is(closeTo(-1, 0)));
+		assertThat((result.get(4)), is(equalTo("spring")));
 	}
 
 	@Test // DATAREDIS-316
@@ -2271,7 +2326,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setWithExpirationAndAbsentOptionShouldSetTtlWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
-		connection.set(key, "data", Expiration.milliseconds(500), SetOption.ifAbsent());
+		actual.add(connection.set(key, "data", Expiration.milliseconds(500), SetOption.ifAbsent()));
 
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
@@ -2279,8 +2334,9 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(500d, 499d)));
-		assertThat((result.get(2)), is(equalTo("data")));
+		assertThat(result.get(1), is(Boolean.TRUE));
+		assertThat(((Long) result.get(2)).doubleValue(), is(closeTo(500d, 499d)));
+		assertThat((result.get(3)), is(equalTo("data")));
 	}
 
 	@Test // DATAREDIS-316
@@ -2288,8 +2344,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setWithExpirationAndPresentOptionShouldSetTtlWhenKeyDoesExist() {
 
 		String key = "exp-" + UUID.randomUUID();
-		connection.set(key, "spring");
-		connection.set(key, "data", Expiration.milliseconds(500), SetOption.ifPresent());
+		actual.add(connection.set(key, "spring"));
+		actual.add(connection.set(key, "data", Expiration.milliseconds(500), SetOption.ifPresent()));
 
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
@@ -2297,8 +2353,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(500, 499)));
-		assertThat((result.get(2)), is(equalTo("data")));
+		assertThat(result.get(1), is(Boolean.TRUE));
+		assertThat(result.get(2), is(Boolean.TRUE));
+		assertThat(((Long) result.get(3)).doubleValue(), is(closeTo(500, 499)));
+		assertThat((result.get(4)), is(equalTo("data")));
 	}
 
 	@Test // DATAREDIS-316
@@ -2306,7 +2364,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setWithExpirationAndPresentOptionShouldSetTtlWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
-		connection.set(key, "data", Expiration.milliseconds(500), SetOption.ifPresent());
+		actual.add(connection.set(key, "data", Expiration.milliseconds(500), SetOption.ifPresent()));
 
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
@@ -2314,7 +2372,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 		assertThat(result.get(0), is(Boolean.FALSE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-2, 0)));
+		assertThat(result.get(1), is(Boolean.FALSE));
+		assertThat(((Long) result.get(2)).doubleValue(), is(closeTo(-2, 0)));
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-316, DATAREDIS-692
@@ -2330,14 +2389,15 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setWithoutExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
-		connection.set(key, "foo", Expiration.persistent(), SetOption.upsert());
+		actual.add(connection.set(key, "foo", Expiration.persistent(), SetOption.upsert()));
 
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
 
 		List<Object> result = getResults();
 		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-1, 0)));
+		assertThat(result.get(1), is(Boolean.TRUE));
+		assertThat(((Long) result.get(2)).doubleValue(), is(closeTo(-1, 0)));
 	}
 
 	@Test // DATAREDIS-316
@@ -2345,17 +2405,20 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setWithoutExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesExist() {
 
 		String key = "exp-" + UUID.randomUUID();
-		connection.set(key, "spring");
-		connection.set(key, "data", Expiration.persistent(), SetOption.upsert());
+		actual.add(connection.set(key, "spring"));
+		actual.add(connection.set(key, "data", Expiration.persistent(), SetOption.upsert()));
 
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
 		actual.add(connection.get(key));
 
 		List<Object> result = getResults();
+
 		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-1, 0)));
-		assertThat((result.get(2)), is(equalTo("data")));
+		assertThat(result.get(1), is(Boolean.TRUE));
+		assertThat(result.get(2), is(Boolean.TRUE));
+		assertThat(((Long) result.get(3)).doubleValue(), is(closeTo(-1, 0)));
+		assertThat((result.get(4)), is(equalTo("data")));
 	}
 
 	@Test // DATAREDIS-316
@@ -2363,8 +2426,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setWithoutExpirationAndAbsentOptionShouldSetTtlWhenKeyDoesExist() {
 
 		String key = "exp-" + UUID.randomUUID();
-		connection.set(key, "spring");
-		connection.set(key, "data", Expiration.persistent(), SetOption.ifAbsent());
+		actual.add(connection.set(key, "spring"));
+		actual.add(connection.set(key, "data", Expiration.persistent(), SetOption.ifAbsent()));
 
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
@@ -2372,8 +2435,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-1, 0)));
-		assertThat((result.get(2)), is(equalTo("spring")));
+		assertThat(result.get(1), is(Boolean.FALSE));
+		assertThat(result.get(2), is(Boolean.TRUE));
+		assertThat(((Long) result.get(3)).doubleValue(), is(closeTo(-1, 0)));
+		assertThat((result.get(4)), is(equalTo("spring")));
 	}
 
 	@Test // DATAREDIS-316
@@ -2381,7 +2446,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setWithoutExpirationAndAbsentOptionShouldSetTtlWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
-		connection.set(key, "data", Expiration.persistent(), SetOption.ifAbsent());
+		actual.add(connection.set(key, "data", Expiration.persistent(), SetOption.ifAbsent()));
 
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
@@ -2389,8 +2454,9 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-1, 0)));
-		assertThat((result.get(2)), is(equalTo("data")));
+		assertThat(result.get(1), is(Boolean.TRUE));
+		assertThat(((Long) result.get(2)).doubleValue(), is(closeTo(-1, 0)));
+		assertThat((result.get(3)), is(equalTo("data")));
 	}
 
 	@Test // DATAREDIS-316
@@ -2398,8 +2464,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setWithoutExpirationAndPresentOptionShouldSetTtlWhenKeyDoesExist() {
 
 		String key = "exp-" + UUID.randomUUID();
-		connection.set(key, "spring");
-		connection.set(key, "data", Expiration.persistent(), SetOption.ifPresent());
+		actual.add(connection.set(key, "spring"));
+		actual.add(connection.set(key, "data", Expiration.persistent(), SetOption.ifPresent()));
 
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
@@ -2407,8 +2473,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-1, 0)));
-		assertThat((result.get(2)), is(equalTo("data")));
+		assertThat(result.get(1), is(Boolean.TRUE));
+		assertThat(result.get(2), is(Boolean.TRUE));
+		assertThat(((Long) result.get(3)).doubleValue(), is(closeTo(-1, 0)));
+		assertThat((result.get(4)), is(equalTo("data")));
 	}
 
 	@Test // DATAREDIS-316
@@ -2416,7 +2484,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setWithoutExpirationAndPresentOptionShouldSetTtlWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
-		connection.set(key, "data", Expiration.persistent(), SetOption.ifPresent());
+		actual.add(connection.set(key, "data", Expiration.persistent(), SetOption.ifPresent()));
 
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
@@ -2424,7 +2492,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 		assertThat(result.get(0), is(Boolean.FALSE));
-		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-2, 0)));
+		assertThat(result.get(1), is(Boolean.FALSE));
+		assertThat(((Long) result.get(2)).doubleValue(), is(closeTo(-2, 0)));
 	}
 
 	@Test // DATAREDIS-438

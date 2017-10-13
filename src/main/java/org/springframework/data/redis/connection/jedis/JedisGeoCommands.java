@@ -32,7 +32,6 @@ import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.convert.ListConverter;
-import org.springframework.data.redis.connection.jedis.JedisConnection.JedisResult;
 import org.springframework.util.Assert;
 
 /**
@@ -63,9 +62,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(
-						connection
-								.newJedisResult(connection.getRequiredTransaction().geoadd(key, point.getX(), point.getY(), member)));
+				transaction(connection
+						.newJedisResult(connection.getRequiredTransaction().geoadd(key, point.getX(), point.getY(), member)));
 				return null;
 			}
 
@@ -159,9 +157,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(
-						connection.newJedisResult(connection.getRequiredTransaction().geodist(key, member1, member2),
-								distanceConverter));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().geodist(key, member1, member2),
+						distanceConverter));
 				return null;
 			}
 
@@ -194,8 +191,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 			}
 			if (isQueueing()) {
 				transaction(connection.newJedisResult(
-						connection.getRequiredTransaction().geodist(key, member1, member2, geoUnit),
-						distanceConverter));
+						connection.getRequiredTransaction().geodist(key, member1, member2, geoUnit), distanceConverter));
 				return null;
 			}
 
@@ -323,8 +319,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 			}
 			if (isQueueing()) {
 				transaction(connection.newJedisResult(connection.getRequiredTransaction().georadius(key,
-						within.getCenter().getX(),
-						within.getCenter().getY(), within.getRadius().getValue(),
+						within.getCenter().getX(), within.getCenter().getY(), within.getRadius().getValue(),
 						JedisConverters.toGeoUnit(within.getRadius().getMetric()), geoRadiusParam), converter));
 				return null;
 			}
@@ -396,10 +391,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(
-						connection.getRequiredTransaction().georadiusByMember(key, member, radius.getValue(), geoUnit,
-								geoRadiusParam),
-						converter));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().georadiusByMember(key, member,
+						radius.getValue(), geoUnit, geoRadiusParam), converter));
 				return null;
 			}
 			return converter

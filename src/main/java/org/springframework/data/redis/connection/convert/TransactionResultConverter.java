@@ -71,7 +71,7 @@ public class TransactionResultConverter<T> implements Converter<List<Object>, Li
 						: new RedisSystemException("Error reading future result.", source);
 			}
 			if (!(futureResult.isStatus())) {
-				convertedResults.add(futureResult.convert(result));
+				convertedResults.add(futureResult.seeksConversion() ? futureResult.convert(result) : result);
 			}
 		}
 

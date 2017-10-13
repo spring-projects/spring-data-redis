@@ -184,7 +184,7 @@ public class RedisTemplateTests<K, V> {
 		Set<V> set = new HashSet<>(Collections.singletonList(setValue));
 		Set<TypedTuple<V>> tupleSet = new LinkedHashSet<>(
 				Collections.singletonList(new DefaultTypedTuple<>(zsetValue, 1d)));
-		assertThat(results, isEqual(Arrays.asList(new Object[] { value1, 1l, list, 1l, set, true, tupleSet })));
+		assertThat(results, isEqual(Arrays.asList(new Object[] { true, value1, 1l, list, 1l, set, true, tupleSet })));
 	}
 
 	@Test
@@ -235,7 +235,7 @@ public class RedisTemplateTests<K, V> {
 		Map<Long, Long> map = new LinkedHashMap<>();
 		map.put(10l, 11l);
 		assertThat(results,
-				isEqual(Arrays.asList(new Object[] { 5l, 1L, 1l, list, 1l, longSet, true, tupleSet, zSet, true, map })));
+				isEqual(Arrays.asList(new Object[] { true, 5l, 1L, 1l, list, 1l, longSet, true, tupleSet, zSet, true, map })));
 	}
 
 	@Test
@@ -282,7 +282,7 @@ public class RedisTemplateTests<K, V> {
 			return null;
 		});
 		assertThat(results,
-				isEqual(Arrays.asList(new Object[] { value1, 1l, 2l, Arrays.asList(new Object[] { listValue, listValue2 }) })));
+				isEqual(Arrays.asList(new Object[] { true, value1, 1l, 2l, Arrays.asList(new Object[] { listValue, listValue2 }) })));
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -301,7 +301,7 @@ public class RedisTemplateTests<K, V> {
 			return null;
 		}, new GenericToStringSerializer<>(Long.class));
 
-		assertEquals(Arrays.asList(new Object[] { 5l, 1l, 2l, Arrays.asList(new Long[] { 10l, 11l }) }), results);
+		assertEquals(Arrays.asList(new Object[] { true, 5l, 1l, 2l, Arrays.asList(new Long[] { 10l, 11l }) }), results);
 	}
 
 	@Test // DATAREDIS-500
@@ -349,7 +349,7 @@ public class RedisTemplateTests<K, V> {
 		});
 		// Should contain the List of deserialized exec results and the result of the last call to get()
 		assertThat(pipelinedResults,
-				isEqual(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 1l, value1, 0l }), value1 })));
+				isEqual(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 1l, value1, 0l }), true, value1 })));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -369,7 +369,7 @@ public class RedisTemplateTests<K, V> {
 			}
 		}, new GenericToStringSerializer<>(Long.class));
 		// Should contain the List of deserialized exec results and the result of the last call to get()
-		assertEquals(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 1l, 5l, 0l }), 2l }), pipelinedResults);
+		assertEquals(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 1l, 5l, 0l }), true, 2l }), pipelinedResults);
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
@@ -552,9 +552,9 @@ public class RedisTemplateTests<K, V> {
 			}
 		});
 
-		assertThat(result, hasSize(2));
-		assertThat(((Long) result.get(1)), greaterThanOrEqualTo(23L));
-		assertThat(((Long) result.get(1)), lessThan(25L));
+		assertThat(result, hasSize(3));
+		assertThat(((Long) result.get(2)), greaterThanOrEqualTo(23L));
+		assertThat(((Long) result.get(2)), lessThan(25L));
 	}
 
 	@Test // DATAREDIS-526
@@ -578,9 +578,9 @@ public class RedisTemplateTests<K, V> {
 			}
 		});
 
-		assertThat(result, hasSize(2));
-		assertThat(((Long) result.get(1)), greaterThanOrEqualTo(23L));
-		assertThat(((Long) result.get(1)), lessThan(25L));
+		assertThat(result, hasSize(3));
+		assertThat(((Long) result.get(2)), greaterThanOrEqualTo(23L));
+		assertThat(((Long) result.get(2)), lessThan(25L));
 	}
 
 	@Test
@@ -741,7 +741,7 @@ public class RedisTemplateTests<K, V> {
 			}
 		});
 
-		assertTrue(results.isEmpty());
+		assertTrue(results.size() == 1);
 		assertThat(redisTemplate.opsForValue().get(key1), isEqual(value3));
 	}
 
