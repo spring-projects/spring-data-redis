@@ -102,7 +102,7 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 		actual.add(connection.exec());
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] { "somethingelse" }), execResults);
+		assertEquals(Arrays.asList(new Object[] { true, "somethingelse" }), execResults);
 	}
 
 	@Test

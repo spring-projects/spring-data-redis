@@ -29,8 +29,7 @@ import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisHashCommands;
-import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceResult;
-import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceTxResult;
+import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceTxResult;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
