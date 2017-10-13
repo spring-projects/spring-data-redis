@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -74,7 +75,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	 * @param clusterClient must not be {@literal null}.
 	 */
 	public LettuceClusterConnection(RedisClusterClient clusterClient) {
-		this(new ClusterConnectionProvider(clusterClient, CODEC));
+		this(new ClusterConnectionProvider(clusterClient, CODEC, Optional.empty()));
 	}
 
 	/**
@@ -98,7 +99,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	 * @since 2.0
 	 */
 	public LettuceClusterConnection(RedisClusterClient clusterClient, ClusterCommandExecutor executor, Duration timeout) {
-		this(new ClusterConnectionProvider(clusterClient, CODEC), executor, timeout);
+		this(new ClusterConnectionProvider(clusterClient, CODEC, Optional.empty()), executor, timeout);
 	}
 
 	/**

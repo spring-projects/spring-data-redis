@@ -20,6 +20,8 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.*;
 
+import io.lettuce.core.ReadFrom;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -33,8 +35,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
@@ -169,5 +173,65 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		} finally {
 			connection.close();
 		}
+	}
+
+	@Test // DATAREDIS-580
+	public void factoryWithReadFromMasterSettings() {
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG,
+				LettuceTestClientConfiguration.builder().readFrom(ReadFrom.MASTER).build());
+		factory.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory);
+
+		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
+
+		try {
+			assertThat(connection.ping(), is(equalTo("PONG")));
+			assertThat(connection.info().getProperty("role"), is(equalTo("master")));
+		} finally {
+			connection.close();
+		}
+	}
+
+	@Test // DATAREDIS-580
+	public void factoryWithReadFromSlaveSettings() {
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG,
+				LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE).build());
+		factory.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory);
+
+		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
+
+		try {
+			assertThat(connection.ping(), is(equalTo("PONG")));
+			assertThat(connection.info().getProperty("role"), is(equalTo("slave")));
+		} finally {
+			connection.close();
+		}
+	}
+
+	@Test // DATAREDIS-580
+	public void factoryUsesMasterSlaveConnections() {
+
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
+				.build();
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(SettingsUtils.standaloneConfiguration(),
+				configuration);
+		factory.afterPropertiesSet();
+
+		RedisConnection connection = factory.getConnection();
+
+		try {
+			assertThat(connection.ping(), is(equalTo("PONG")));
+			assertThat(connection.info().getProperty("role"), is(equalTo("slave")));
+		} finally {
+			this.connection.close();
+		}
+
+		factory.destroy();
 	}
 }

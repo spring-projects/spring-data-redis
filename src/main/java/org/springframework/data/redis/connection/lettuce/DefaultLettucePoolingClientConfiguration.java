@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.ReadFrom;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
@@ -94,6 +95,15 @@ class DefaultLettucePoolingClientConfiguration implements LettucePoolingClientCo
 	@Override
 	public Optional<String> getClientName() {
 		return clientConfiguration.getClientName();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getReadFrom()
+	 */
+	@Override
+	public Optional<ReadFrom> getReadFrom() {
+		return clientConfiguration.getReadFrom();
 	}
 
 	/*

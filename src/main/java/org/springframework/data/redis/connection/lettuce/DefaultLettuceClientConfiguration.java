@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.ReadFrom;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
@@ -38,11 +39,13 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	private final Optional<ClientResources> clientResources;
 	private final Optional<ClientOptions> clientOptions;
 	private final Optional<String> clientName;
+	private final Optional<ReadFrom> readFrom;
 	private final Duration timeout;
 	private final Duration shutdownTimeout;
 
 	DefaultLettuceClientConfiguration(boolean useSsl, boolean verifyPeer, boolean startTls,
 			@Nullable ClientResources clientResources, @Nullable ClientOptions clientOptions, @Nullable String clientName,
+			@Nullable ReadFrom readFrom,
 			Duration timeout, Duration shutdownTimeout) {
 
 		this.useSsl = useSsl;
@@ -51,6 +54,7 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 		this.clientResources = Optional.ofNullable(clientResources);
 		this.clientOptions = Optional.ofNullable(clientOptions);
 		this.clientName = Optional.ofNullable(clientName);
+		this.readFrom = Optional.ofNullable(readFrom);
 		this.timeout = timeout;
 		this.shutdownTimeout = shutdownTimeout;
 	}
@@ -91,8 +95,7 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 		return clientResources;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientOptions()
 	 */
 	@Override
@@ -107,6 +110,15 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	@Override
 	public Optional<String> getClientName() {
 		return clientName;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getReadFrom()
+	 */
+	@Override
+	public Optional<ReadFrom> getReadFrom() {
+		return readFrom;
 	}
 
 	/*
