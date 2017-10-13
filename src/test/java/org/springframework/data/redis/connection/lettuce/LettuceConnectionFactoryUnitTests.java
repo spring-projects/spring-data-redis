@@ -43,6 +43,7 @@ import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSocketConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -285,6 +286,21 @@ public class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
+	@Test // DATAREDIS-682
+	public void socketShouldBeSetOnStandaloneClient() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisSocketConfiguration());
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClient.class));
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.getSocket(), is("/tmp/redis.sock"));
+	}
+
 	@Test // DATAREDIS-574
 	public void shouldReadStandalonePassword() {
 
@@ -327,6 +343,20 @@ public class LettuceConnectionFactoryUnitTests {
 	public void shouldWriteSentinelPassword() {
 
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
+		envConfig.setPassword(RedisPassword.of("foo"));
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
+				LettuceClientConfiguration.defaultConfiguration());
+		connectionFactory.setPassword("bar");
+
+		assertThat(connectionFactory.getPassword(), is(equalTo("bar")));
+		assertThat(envConfig.getPassword(), is(equalTo(RedisPassword.of("bar"))));
+	}
+
+	@Test // DATAREDIS-682
+	public void shouldWriteSocketPassword() {
+
+		RedisSocketConfiguration envConfig = new RedisSocketConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
@@ -415,6 +445,20 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(envConfig.getDatabase(), is(3));
 	}
 
+	@Test // DATAREDIS-682
+	public void shouldWriteSocketDatabaseIndex() {
+
+		RedisSocketConfiguration envConfig = new RedisSocketConfiguration();
+		envConfig.setDatabase(2);
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
+				LettuceClientConfiguration.defaultConfiguration());
+		connectionFactory.setDatabase(3);
+
+		assertThat(connectionFactory.getDatabase(), is(3));
+		assertThat(envConfig.getDatabase(), is(3));
+	}
+
 	@Test // DATAREDIS-574
 	public void shouldApplyClientConfiguration() {
 
@@ -452,6 +496,19 @@ public class LettuceConnectionFactoryUnitTests {
 				LettuceClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getStandaloneConfiguration(), is(configuration));
+		assertThat(connectionFactory.getSentinelConfiguration(), is(nullValue()));
+		assertThat(connectionFactory.getClusterConfiguration(), is(nullValue()));
+	}
+
+	@Test // DATAREDIS-682
+	public void shouldReturnSocketConfiguration() {
+
+		RedisSocketConfiguration configuration = new RedisSocketConfiguration("/var/redis/socket");
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
+				LettuceClientConfiguration.defaultConfiguration());
+
+		assertThat(connectionFactory.getStandaloneConfiguration(), is(notNullValue()));
+		assertThat(connectionFactory.getSocketConfiguration(), is(configuration));
 		assertThat(connectionFactory.getSentinelConfiguration(), is(nullValue()));
 		assertThat(connectionFactory.getClusterConfiguration(), is(nullValue()));
 	}

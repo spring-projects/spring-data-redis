@@ -3,7 +3,11 @@
 
 New and noteworthy in the latest releases.
 
-[[new-in-2.0.0]]
+[[new-in-2.1.0]]
+== New in Spring Data Redis 2.1
+
+* Unix domain socket connections.
+
 == New in Spring Data Redis 2.0
 
 * Upgrade to Java 8.
