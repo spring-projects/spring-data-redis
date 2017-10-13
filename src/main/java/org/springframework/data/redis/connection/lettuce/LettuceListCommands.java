@@ -24,8 +24,7 @@ import java.util.List;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisListCommands;
-import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceResult;
-import org.springframework.data.redis.connection.lettuce.LettuceConnection.LettuceTxResult;
+import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceTxResult;
 import org.springframework.util.Assert;
 
 /**

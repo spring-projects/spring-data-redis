@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.convert.Converters;
-import org.springframework.data.redis.connection.jedis.JedisConnection.JedisResult;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -126,12 +125,12 @@ class JedisStringCommands implements RedisStringCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().set(key, value),
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().set(key, value),
 						Converters.stringToBooleanConverter()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().set(key, value),
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().set(key, value),
 						Converters.stringToBooleanConverter()));
 				return null;
 			}
@@ -165,14 +164,14 @@ class JedisStringCommands implements RedisStringCommands {
 
 					if (isPipelined()) {
 
-						pipeline(connection.newStatusResult(connection.getRequiredPipeline().set(key, value, nxxx),
-								Converters.stringToBooleanConverter()));
+						pipeline(connection.newJedisResult(connection.getRequiredPipeline().set(key, value, nxxx),
+								Converters.stringToBooleanConverter(), () -> false));
 						return null;
 					}
 					if (isQueueing()) {
 
-						transaction(connection.newStatusResult(connection.getRequiredTransaction().set(key, value, nxxx),
-								Converters.stringToBooleanConverter()));
+						transaction(connection.newJedisResult(connection.getRequiredTransaction().set(key, value, nxxx),
+								Converters.stringToBooleanConverter(), () -> false));
 						return null;
 					}
 
@@ -205,9 +204,9 @@ class JedisStringCommands implements RedisStringCommands {
 									"Expiration.expirationTime must be less than Integer.MAX_VALUE for pipeline in Jedis.");
 						}
 
-						pipeline(connection.newStatusResult(
+						pipeline(connection.newJedisResult(
 								connection.getRequiredPipeline().set(key, value, nxxx, expx, (int) expiration.getExpirationTime()),
-								Converters.stringToBooleanConverter()));
+								Converters.stringToBooleanConverter(), () -> false));
 						return null;
 					}
 					if (isQueueing()) {
@@ -217,9 +216,9 @@ class JedisStringCommands implements RedisStringCommands {
 									"Expiration.expirationTime must be less than Integer.MAX_VALUE for transactions in Jedis.");
 						}
 
-						transaction(connection.newStatusResult(
+						transaction(connection.newJedisResult(
 								connection.getRequiredTransaction().set(key, value, nxxx, expx, (int) expiration.getExpirationTime()),
-								Converters.stringToBooleanConverter()));
+								Converters.stringToBooleanConverter(), () -> false));
 						return null;
 					}
 
@@ -277,13 +276,13 @@ class JedisStringCommands implements RedisStringCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().setex(key, (int) seconds, value),
-						Converters.stringToBooleanConverter()));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().setex(key, (int) seconds, value),
+						Converters.stringToBooleanConverter(), () -> false));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().setex(key, (int) seconds, value),
-						Converters.stringToBooleanConverter()));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().setex(key, (int) seconds, value),
+						Converters.stringToBooleanConverter(), () -> false));
 				return null;
 			}
 			return Converters.stringToBoolean(connection.getJedis().setex(key, (int) seconds, value));
@@ -304,13 +303,13 @@ class JedisStringCommands implements RedisStringCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().psetex(key, milliseconds, value),
-						Converters.stringToBooleanConverter()));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().psetex(key, milliseconds, value),
+						Converters.stringToBooleanConverter(), () -> false));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().psetex(key, milliseconds, value),
-						Converters.stringToBooleanConverter()));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().psetex(key, milliseconds, value),
+						Converters.stringToBooleanConverter(), () -> false));
 				return null;
 			}
 			return Converters.stringToBoolean(connection.getJedis().psetex(key, milliseconds, value));
@@ -330,13 +329,13 @@ class JedisStringCommands implements RedisStringCommands {
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().mset(JedisConverters.toByteArrays(tuples)),
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().mset(JedisConverters.toByteArrays(tuples)),
 						Converters.stringToBooleanConverter()));
 				return null;
 			}
 			if (isQueueing()) {
 				transaction(
-						connection.newStatusResult(connection.getRequiredTransaction().mset(JedisConverters.toByteArrays(tuples)),
+						connection.newJedisResult(connection.getRequiredTransaction().mset(JedisConverters.toByteArrays(tuples)),
 								Converters.stringToBooleanConverter()));
 				return null;
 			}

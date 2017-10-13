@@ -15,8 +15,17 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -725,7 +734,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean mSet(Map<byte[], byte[]> tuple) {
-		return delegate.mSet(tuple);
+		return convertAndReturn(delegate.mSet(tuple), identityConverter);
 	}
 
 	/*
@@ -923,7 +932,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean set(byte[] key, byte[] value) {
-		return delegate.set(key, value);
+		return convertAndReturn(delegate.set(key, value), identityConverter);
 	}
 
 	/*
@@ -932,7 +941,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
-		return delegate.set(key, value, expiration, option);
+		return convertAndReturn(delegate.set(key, value, expiration, option), identityConverter);
 	}
 
 	/*
@@ -959,7 +968,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean setEx(byte[] key, long seconds, byte[] value) {
-		return delegate.setEx(key, seconds, value);
+		return convertAndReturn(delegate.setEx(key, seconds, value), identityConverter);
 	}
 
 	/*
@@ -968,7 +977,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean pSetEx(byte[] key, long milliseconds, byte[] value) {
-		return delegate.pSetEx(key, milliseconds, value);
+		return convertAndReturn(delegate.pSetEx(key, milliseconds, value), identityConverter);
 	}
 
 	/*
@@ -2106,7 +2115,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean mSetString(Map<String, String> tuple) {
-		return delegate.mSet(serialize(tuple));
+		return mSet(serialize(tuple));
 	}
 
 	/*
@@ -2241,7 +2250,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean set(String key, String value) {
-		return delegate.set(serialize(key), serialize(value));
+		return set(serialize(key), serialize(value));
 	}
 
 	/*
@@ -2268,7 +2277,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean setEx(String key, long seconds, String value) {
-		return delegate.setEx(serialize(key), seconds, serialize(value));
+		return setEx(serialize(key), seconds, serialize(value));
 	}
 
 	/*
@@ -3441,7 +3450,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<String> zRangeByLex(String key) {
-		return this.zRangeByLex(key, Range.unbounded());
+		return zRangeByLex(key, Range.unbounded());
 	}
 
 	/*
@@ -3450,7 +3459,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<String> zRangeByLex(String key, Range range) {
-		return this.zRangeByLex(key, range, null);
+		return zRangeByLex(key, range, null);
 	}
 
 	/*

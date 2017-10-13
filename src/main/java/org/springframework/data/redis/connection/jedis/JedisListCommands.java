@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.redis.connection.RedisListCommands;
-import org.springframework.data.redis.connection.jedis.JedisConnection.JedisResult;
 import org.springframework.util.Assert;
 
 /**
