@@ -19,11 +19,15 @@ import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
+import io.lettuce.core.EpollProvider;
+import io.lettuce.core.KqueueProvider;
 import io.lettuce.core.RedisException;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.reactive.BaseRedisReactiveCommands;
 
+import java.io.File;
 import java.time.Duration;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -359,6 +363,25 @@ public class LettuceConnectionFactoryTests {
 
 		assertThat(initialNativeConnection, is(subsequentNativeConnection));
 
+		factory.destroy();
+	}
+
+	@Test // DATAREDIS-687
+	public void connectsThroughRedisSocket() {
+
+		assumeTrue(EpollProvider.isAvailable() || KqueueProvider.isAvailable());
+		assumeTrue(new File(SettingsUtils.getSocket()).exists());
+
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.create();
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(SettingsUtils.socketConfiguration(), configuration);
+		factory.setShareNativeConnection(false);
+		factory.afterPropertiesSet();
+
+		RedisConnection connection = factory.getConnection();
+		assertThat(connection.ping(), is(equalTo("PONG")));
+
+		connection.close();
 		factory.destroy();
 	}
 }

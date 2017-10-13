@@ -62,6 +62,7 @@ import org.springframework.util.ClassUtils;
  * {@link LettuceConnectionFactory client configuration}. Lettuce supports the following environmental configurations:
  * <ul>
  * <li>{@link RedisStandaloneConfiguration}</li>
+ * <li>{@link RedisSocketConfiguration}</li>
  * <li>{@link RedisSentinelConfiguration}</li>
  * <li>{@link RedisClusterConfiguration}</li>
  * </ul>
@@ -93,6 +94,7 @@ public class LettuceConnectionFactory
 	private final Object connectionMonitor = new Object();
 	private boolean convertPipelineAndTxResults = true;
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost", 6379);
+	private @Nullable RedisSocketConfiguration socketConfiguration;
 	private @Nullable RedisSentinelConfiguration sentinelConfiguration;
 	private @Nullable RedisClusterConfiguration clusterConfiguration;
 	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
@@ -132,7 +134,17 @@ public class LettuceConnectionFactory
 	}
 
 	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSentinelConfiguration}
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSocketConfiguration}.
+	 *
+	 * @param socketConfiguration must not be {@literal null}.
+	 * @since 2.1
+	 */
+	public LettuceConnectionFactory(RedisSocketConfiguration socketConfiguration) {
+		this(socketConfiguration, new MutableLettuceClientConfiguration());
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSentinelConfiguration}.
 	 *
 	 * @param sentinelConfiguration must not be {@literal null}.
 	 * @since 1.6
@@ -178,6 +190,24 @@ public class LettuceConnectionFactory
 		Assert.notNull(standaloneConfig, "RedisStandaloneConfiguration must not be null!");
 
 		this.standaloneConfig = standaloneConfig;
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSocketConfiguration} and
+	 * {@link LettuceClientConfiguration}.
+	 *
+	 * @param socketConfiguration must not be {@literal null}.
+	 * @param clientConfig must not be {@literal null}.
+	 * @since 2.1
+	 */
+	public LettuceConnectionFactory(RedisSocketConfiguration socketConfiguration,
+			LettuceClientConfiguration clientConfig) {
+
+		this(clientConfig);
+
+		Assert.notNull(socketConfiguration, "RedisSocketConfiguration must not be null!");
+
+		this.socketConfiguration = socketConfiguration;
 	}
 
 	/**
@@ -562,6 +592,10 @@ public class LettuceConnectionFactory
 	 */
 	public int getDatabase() {
 
+		if (isDomainSocketAware()) {
+			return socketConfiguration.getDatabase();
+		}
+
 		if (isRedisSentinelAware()) {
 			return sentinelConfiguration.getDatabase();
 		}
@@ -577,6 +611,11 @@ public class LettuceConnectionFactory
 	public void setDatabase(int index) {
 
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
+
+		if (isDomainSocketAware()) {
+			socketConfiguration.setDatabase(index);
+			return;
+		}
 
 		if (isRedisSentinelAware()) {
 			sentinelConfiguration.setDatabase(index);
@@ -596,6 +635,10 @@ public class LettuceConnectionFactory
 	}
 
 	private RedisPassword getRedisPassword() {
+
+		if (isDomainSocketAware()) {
+			return socketConfiguration.getPassword();
+		}
 
 		if (isRedisSentinelAware()) {
 			return sentinelConfiguration.getPassword();
@@ -617,6 +660,11 @@ public class LettuceConnectionFactory
 	 */
 	@Deprecated
 	public void setPassword(String password) {
+
+		if (isDomainSocketAware()) {
+			socketConfiguration.setPassword(RedisPassword.of(password));
+			return;
+		}
 
 		if (isRedisSentinelAware()) {
 			sentinelConfiguration.setPassword(RedisPassword.of(password));
@@ -695,6 +743,15 @@ public class LettuceConnectionFactory
 	}
 
 	/**
+	 * @return the {@link RedisSocketConfiguration}.
+	 * @since 2.1
+	 */
+	@Nullable
+	public RedisSocketConfiguration getSocketConfiguration() {
+		return socketConfiguration;
+	}
+
+	/**
 	 * @return the {@link RedisStandaloneConfiguration}, may be {@literal null}.
 	 * @since 2.0
 	 */
@@ -740,6 +797,14 @@ public class LettuceConnectionFactory
 	 */
 	public boolean isRedisSentinelAware() {
 		return sentinelConfiguration != null;
+	}
+
+	/**
+	 * @return true when {@link RedisSocketConfiguration} is present.
+	 * @since 2.1
+	 */
+	private boolean isDomainSocketAware() {
+		return socketConfiguration != null;
 	}
 
 	/**
@@ -797,6 +862,7 @@ public class LettuceConnectionFactory
 	}
 
 	private LettuceConnectionProvider doConnectionProvider(AbstractRedisClient client, RedisCodec<?, ?> codec) {
+
 		if (isClusterAware()) {
 			return new ClusterConnectionProvider((RedisClusterClient) client, codec);
 		}
@@ -835,7 +901,8 @@ public class LettuceConnectionFactory
 			return clusterClient;
 		}
 
-		RedisURI uri = createRedisURIAndApplySettings(getHostName(), getPort());
+		RedisURI uri = isDomainSocketAware() ? createRedisSocketURIAndApplySettings(socketConfiguration.getSocket())
+				: createRedisURIAndApplySettings(getHostName(), getPort());
 		RedisClient redisClient = clientConfiguration.getClientResources() //
 				.map(clientResources -> RedisClient.create(clientResources, uri)) //
 				.orElseGet(() -> RedisClient.create(uri));
@@ -863,6 +930,16 @@ public class LettuceConnectionFactory
 		builder.withSsl(clientConfiguration.isUseSsl());
 		builder.withVerifyPeer(clientConfiguration.isVerifyPeer());
 		builder.withStartTls(clientConfiguration.isStartTls());
+		builder.withTimeout(clientConfiguration.getCommandTimeout());
+
+		return builder.build();
+	}
+
+	private RedisURI createRedisSocketURIAndApplySettings(String socketPath) {
+
+		RedisURI.Builder builder = RedisURI.Builder.socket(socketPath);
+
+		getRedisPassword().toOptional().ifPresent(builder::withPassword);
 		builder.withTimeout(clientConfiguration.getCommandTimeout());
 
 		return builder.build();

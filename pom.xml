@@ -24,6 +24,7 @@
 		<lettuce>5.0.0.RELEASE</lettuce>
 		<jedis>2.9.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
+		<netty>4.1.15.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
 	</properties>
 
@@ -83,6 +84,22 @@
 			<artifactId>lettuce-core</artifactId>
 			<version>${lettuce}</version>
 			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-transport-native-epoll</artifactId>
+			<classifier>linux-x86_64</classifier>
+			<version>${netty}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-transport-native-kqueue</artifactId>
+			<classifier>osx-x86_64</classifier>
+			<version>${netty}</version>
+			<scope>test</scope>
 		</dependency>
 
 		<!-- reactive -->
