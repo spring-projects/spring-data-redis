@@ -17,14 +17,14 @@ package org.springframework.data.redis.test.util;
 
 import static org.hamcrest.CoreMatchers.*;
 
+import redis.clients.jedis.Jedis;
+
 import org.junit.Assume;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TestRule;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.jedis.JedisConverters;
-
-import redis.clients.jedis.Jedis;
 
 /**
  * Simple {@link TestRule} implementation that check Redis is running in cluster mode.
@@ -59,7 +59,7 @@ public class RedisClusterRule extends ExternalResource {
 	 * @see org.junit.rules.ExternalResource#before()
 	 */
 	@Override
-	protected void before() throws Throwable {
+	public void before() {
 		Assume.assumeThat(mode, is("cluster"));
 	}
 

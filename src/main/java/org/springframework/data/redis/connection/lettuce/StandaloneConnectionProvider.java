@@ -15,14 +15,20 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.masterslave.MasterSlave;
+import io.lettuce.core.masterslave.StatefulRedisMasterSlaveConnection;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Optional;
+
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
 
 /**
@@ -35,6 +41,7 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 
 	private final RedisClient client;
 	private final RedisCodec<?, ?> codec;
+	private final Optional<ReadFrom> readFrom;
 
 	/*
 	 * (non-Javadoc)
@@ -53,7 +60,17 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 		}
 
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
-			return connectionType.cast(client.connect(codec));
+
+			return readFrom.map(it -> {
+
+				DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(client);
+				RedisURI redisURI = RedisURI.class.cast(fieldAccessor.getPropertyValue("redisURI"));
+
+				StatefulRedisMasterSlaveConnection<?, ?> connection = MasterSlave.connect(client, codec, redisURI);
+				connection.setReadFrom(it);
+
+				return connectionType.cast(connection);
+			}).orElseGet(() -> connectionType.cast(client.connect(codec)));
 		}
 
 		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");

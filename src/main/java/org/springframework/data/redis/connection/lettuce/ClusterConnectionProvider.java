@@ -15,11 +15,15 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.ReadFrom;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import lombok.RequiredArgsConstructor;
+
+import java.util.Optional;
 
 /**
  * Connection provider for Cluster connections.
@@ -28,16 +32,12 @@ import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
  * @author Christoph Strobl
  * @since 2.0
  */
+@RequiredArgsConstructor
 class ClusterConnectionProvider implements LettuceConnectionProvider {
 
 	private final RedisClusterClient client;
 	private final RedisCodec<?, ?> codec;
-
-	ClusterConnectionProvider(RedisClusterClient client, RedisCodec<?, ?> codec) {
-
-		this.client = client;
-		this.codec = codec;
-	}
+	private final Optional<ReadFrom> readFrom;
 
 	/*
 	 * (non-Javadoc)
@@ -52,7 +52,11 @@ class ClusterConnectionProvider implements LettuceConnectionProvider {
 
 		if (StatefulRedisClusterConnection.class.isAssignableFrom(connectionType)
 				|| connectionType.equals(StatefulConnection.class)) {
-			return connectionType.cast(client.connect(codec));
+
+			StatefulRedisClusterConnection<?, ?> connection = client.connect(codec);
+			readFrom.ifPresent(connection::setReadFrom);
+
+			return connectionType.cast(connection);
 		}
 
 		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");

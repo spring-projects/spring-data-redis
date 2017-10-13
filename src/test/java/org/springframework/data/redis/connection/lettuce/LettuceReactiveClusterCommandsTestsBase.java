@@ -22,6 +22,8 @@ import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 
+import java.util.Optional;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -43,7 +45,8 @@ public abstract class LettuceReactiveClusterCommandsTestsBase {
 		assumeThat(clientProvider.test(), is(true));
 		nativeCommands = clientProvider.getClient().connect().sync();
 		connection = new LettuceReactiveRedisClusterConnection(
-				new ClusterConnectionProvider(clientProvider.getClient(), LettuceReactiveRedisConnection.CODEC),
+				new ClusterConnectionProvider(clientProvider.getClient(), LettuceReactiveRedisConnection.CODEC,
+						Optional.empty()),
 				clientProvider.getClient());
 	}
 

@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.After;
 import org.junit.Before;
@@ -89,9 +90,9 @@ public abstract class LettuceReactiveCommandsTestsBase {
 		List<Object[]> parameters = new ArrayList<>();
 
 		StandaloneConnectionProvider standaloneProvider = new StandaloneConnectionProvider(standalone.getClient(),
-				LettuceReactiveRedisConnection.CODEC);
+				LettuceReactiveRedisConnection.CODEC, Optional.empty());
 		StandaloneConnectionProvider nativeConnectionProvider = new StandaloneConnectionProvider(standalone.getClient(),
-				StringCodec.UTF8);
+				StringCodec.UTF8, Optional.empty());
 
 		parameters.add(new Object[] { standaloneProvider, nativeConnectionProvider, "Standalone" });
 		parameters.add(new Object[] {
@@ -101,9 +102,9 @@ public abstract class LettuceReactiveCommandsTestsBase {
 		if (cluster.test()) {
 
 			ClusterConnectionProvider clusterProvider = new ClusterConnectionProvider(cluster.getClient(),
-					LettuceReactiveRedisConnection.CODEC);
+					LettuceReactiveRedisConnection.CODEC, Optional.empty());
 			ClusterConnectionProvider nativeClusterConnectionProvider = new ClusterConnectionProvider(cluster.getClient(),
-					StringCodec.UTF8);
+					StringCodec.UTF8, Optional.empty());
 
 			parameters.add(new Object[] { clusterProvider, nativeClusterConnectionProvider, "Cluster" });
 		}
