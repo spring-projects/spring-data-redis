@@ -29,6 +29,8 @@ work/redis-%.conf:
 	echo notify-keyspace-events Ex >> $@
 	echo pidfile $(shell pwd)/work/redis-$*.pid >> $@
 	echo logfile $(shell pwd)/work/redis-$*.log >> $@
+	echo unixsocket $(shell pwd)/work/redis-$*.sock >> $@
+	echo unixsocketperm 755 >> $@
 	echo save \"\" >> $@
 	echo slaveof 127.0.0.1 6379 >> $@
 
@@ -42,6 +44,8 @@ work/redis-6379.conf:
 	echo notify-keyspace-events Ex >> $@
 	echo pidfile $(shell pwd)/work/redis-6379.pid >> $@
 	echo logfile $(shell pwd)/work/redis-6379.log >> $@
+	echo unixsocket $(shell pwd)/work/redis-6379.sock >> $@
+	echo unixsocketperm 755 >> $@
 	echo save \"\" >> $@
 
 work/redis-%.pid: work/redis-%.conf work/redis/bin/redis-server
@@ -122,7 +126,7 @@ cluster-init: cluster-start cluster-meet cluster-slots
 # Global
 ########
 clean:
-	rm -rf work/*.conf work/*.log
+	rm -rf work/*.conf work/*.log dump.rdb
 
 clobber:
 	rm -rf work
