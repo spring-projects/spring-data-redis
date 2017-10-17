@@ -58,7 +58,7 @@ public class DefaultStringRedisConnectionTests {
 
 	protected DefaultStringRedisConnection connection;
 
-	protected StringRedisSerializer serializer = new StringRedisSerializer();
+	protected StringRedisSerializer serializer = StringRedisSerializer.UTF_8;
 
 	protected String foo = "foo";
 

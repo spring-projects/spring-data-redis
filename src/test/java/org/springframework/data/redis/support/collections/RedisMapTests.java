@@ -45,6 +45,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
@@ -75,7 +76,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 		Jackson2JsonRedisSerializer<String> jackson2JsonStringSerializer = new Jackson2JsonRedisSerializer<>(
 				String.class);
-		StringRedisSerializer stringSerializer = new StringRedisSerializer();
+		StringRedisSerializer stringSerializer = StringRedisSerializer.UTF_8;
 
 		PoolConfig defaultPoolConfig = new PoolConfig();
 		defaultPoolConfig.setMaxActive(1000);

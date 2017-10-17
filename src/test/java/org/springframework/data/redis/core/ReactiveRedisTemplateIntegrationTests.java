@@ -191,7 +191,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		V value = valueFactory.instance();
 
 		SerializationPair json = SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(Person.class));
-		RedisElementReader<String> resultReader = RedisElementReader.from(new StringRedisSerializer());
+		RedisElementReader<String> resultReader = RedisElementReader.from(StringRedisSerializer.UTF_8);
 
 		assumeFalse(value instanceof Long);
 
@@ -346,7 +346,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		RedisSerializationContext<K, V> objectSerializers = RedisSerializationContext.<K, V> newSerializationContext()
 				.key(serializationContext.getKeySerializationPair()) //
 				.value(serializationContext.getValueSerializationPair()) //
-				.hashKey(new StringRedisSerializer()) //
+				.hashKey(StringRedisSerializer.UTF_8) //
 				.hashValue(new JdkSerializationRedisSerializer()) //
 				.build();
 

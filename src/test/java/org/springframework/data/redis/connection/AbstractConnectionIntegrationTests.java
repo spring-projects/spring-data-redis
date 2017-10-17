@@ -100,7 +100,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	protected StringRedisConnection connection;
 	protected RedisSerializer<Object> serializer = new JdkSerializationRedisSerializer();
-	protected RedisSerializer<String> stringSerializer = new StringRedisSerializer();
+	protected RedisSerializer<String> stringSerializer = StringRedisSerializer.UTF_8;
 
 	private static final byte[] EMPTY_ARRAY = new byte[0];
 

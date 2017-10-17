@@ -75,7 +75,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		lettuceConnectionFactory.afterPropertiesSet();
 
 		RedisSerializationContext<String, String> serializationContext = RedisSerializationContext
-				.fromSerializer(new StringRedisSerializer());
+				.fromSerializer(StringRedisSerializer.UTF_8);
 		ReactiveRedisTemplate<String, String> stringTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
 				serializationContext);
 

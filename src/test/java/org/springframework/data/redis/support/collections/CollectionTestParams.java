@@ -54,7 +54,7 @@ public abstract class CollectionTestParams {
 		}
 		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
-		StringRedisSerializer stringSerializer = new StringRedisSerializer();
+		StringRedisSerializer stringSerializer = StringRedisSerializer.UTF_8;
 
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();

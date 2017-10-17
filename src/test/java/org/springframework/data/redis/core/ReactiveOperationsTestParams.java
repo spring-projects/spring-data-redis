@@ -104,7 +104,7 @@ abstract public class ReactiveOperationsTestParams {
 		ReactiveRedisTemplate<Object, Object> pooledObjectTemplate = new ReactiveRedisTemplate<>(poolingConnectionFactory,
 				RedisSerializationContext.fromSerializer(jdkSerializationRedisSerializer));
 
-		StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
+		StringRedisSerializer stringRedisSerializer = StringRedisSerializer.UTF_8;
 		ReactiveRedisTemplate<String, String> stringTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
 				RedisSerializationContext.fromSerializer(stringRedisSerializer));
 

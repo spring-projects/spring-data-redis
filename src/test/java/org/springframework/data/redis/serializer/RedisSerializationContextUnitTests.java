@@ -33,9 +33,9 @@ public class RedisSerializationContextUnitTests {
 	public void shouldRejectBuildIfKeySerializerIsNotSet() {
 
 		RedisSerializationContext.<String, String> newSerializationContext() //
-				.value(new StringRedisSerializer()) //
-				.hashKey(new StringRedisSerializer()) //
-				.hashValue(new StringRedisSerializer()) //
+				.value(StringRedisSerializer.UTF_8) //
+				.hashKey(StringRedisSerializer.UTF_8) //
+				.hashValue(StringRedisSerializer.UTF_8) //
 				.build();
 	}
 
@@ -43,9 +43,9 @@ public class RedisSerializationContextUnitTests {
 	public void shouldRejectBuildIfValueSerializerIsNotSet() {
 
 		RedisSerializationContext.<String, String> newSerializationContext() //
-				.key(new StringRedisSerializer()) //
-				.hashKey(new StringRedisSerializer()) //
-				.hashValue(new StringRedisSerializer()) //
+				.key(StringRedisSerializer.UTF_8) //
+				.hashKey(StringRedisSerializer.UTF_8) //
+				.hashValue(StringRedisSerializer.UTF_8) //
 				.build();
 	}
 
@@ -53,9 +53,9 @@ public class RedisSerializationContextUnitTests {
 	public void shouldRejectBuildIfHashKeySerializerIsNotSet() {
 
 		RedisSerializationContext.<String, String> newSerializationContext() //
-				.key(new StringRedisSerializer()) //
-				.value(new StringRedisSerializer()) //
-				.hashValue(new StringRedisSerializer()) //
+				.key(StringRedisSerializer.UTF_8) //
+				.value(StringRedisSerializer.UTF_8) //
+				.hashValue(StringRedisSerializer.UTF_8) //
 				.build();
 	}
 
@@ -63,16 +63,16 @@ public class RedisSerializationContextUnitTests {
 	public void shouldRejectBuildIfHashValueSerializerIsNotSet() {
 
 		RedisSerializationContext.<String, String> newSerializationContext() //
-				.key(new StringRedisSerializer()) //
-				.value(new StringRedisSerializer()) //
-				.hashKey(new StringRedisSerializer()) //
+				.key(StringRedisSerializer.UTF_8) //
+				.value(StringRedisSerializer.UTF_8) //
+				.hashKey(StringRedisSerializer.UTF_8) //
 				.build();
 	}
 
 	@Test // DATAREDIS-602
 	public void shouldUseDefaultIfSet() {
 
-		RedisSerializationContext.<String, String> newSerializationContext(new StringRedisSerializer())
+		RedisSerializationContext.<String, String> newSerializationContext(StringRedisSerializer.UTF_8)
 				.key(new GenericToStringSerializer(Long.class))//
 				.build();
 	}
@@ -114,10 +114,10 @@ public class RedisSerializationContextUnitTests {
 	private RedisSerializationContext<String, Long> createSerializationContext() {
 
 		return RedisSerializationContext.<String, Long> newSerializationContext() //
-				.key(new StringRedisSerializer()) //
+				.key(StringRedisSerializer.UTF_8) //
 				.value(ByteBuffer::getLong, value -> (ByteBuffer) ByteBuffer.allocate(8).putLong(value).flip()) //
-				.hashKey(new StringRedisSerializer()) //
-				.hashValue(new StringRedisSerializer()) //
+				.hashKey(StringRedisSerializer.UTF_8) //
+				.hashValue(StringRedisSerializer.UTF_8) //
 				.build();
 	}
 }

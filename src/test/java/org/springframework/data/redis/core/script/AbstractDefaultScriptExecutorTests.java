@@ -45,6 +45,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @IfProfileValue(name = "redisVersion", value = "2.6+")
 public abstract class AbstractDefaultScriptExecutorTests {
@@ -90,7 +91,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 	@Test
 	public void testExecuteBooleanResult() {
 		this.template = new RedisTemplate<String, Long>();
-		template.setKeySerializer(new StringRedisSerializer());
+		template.setKeySerializer(StringRedisSerializer.UTF_8);
 		template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
@@ -155,7 +156,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 	@Test
 	public void testExecuteStatusResult() {
 		this.template = new RedisTemplate<String, Long>();
-		template.setKeySerializer(new StringRedisSerializer());
+		template.setKeySerializer(StringRedisSerializer.UTF_8);
 		template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
@@ -171,7 +172,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 	public void testExecuteCustomResultSerializer() {
 		Jackson2JsonRedisSerializer<Person> personSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 		this.template = new RedisTemplate<String, Person>();
-		template.setKeySerializer(new StringRedisSerializer());
+		template.setKeySerializer(StringRedisSerializer.UTF_8);
 		template.setValueSerializer(personSerializer);
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
@@ -180,7 +181,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		script.setResultType(String.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		Person joe = new Person("Joe", "Schmoe", 23);
-		String result = scriptExecutor.execute(script, personSerializer, new StringRedisSerializer(),
+		String result = scriptExecutor.execute(script, personSerializer, StringRedisSerializer.UTF_8,
 				Collections.singletonList("bar"), joe);
 		assertEquals("FOO", result);
 		assertEquals(joe, template.boundValueOps("bar").get());
