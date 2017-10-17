@@ -113,7 +113,7 @@ class RedisConfiguration {
 
   @Bean
   ReactiveRedisTemplate<String, String> reactiveRedisTemplate(ReactiveRedisConnectionFactory factory) {
-    return new ReactiveRedisTemplate<>(connectionFactory, RedisSerializationContext.string());
+    return new ReactiveRedisTemplate<>(factory, RedisSerializationContext.string());
   }
 }
 ----
@@ -127,6 +127,36 @@ public class Example {
 
   public Mono<Long> addLink(String userId, URL url) {
     return template.opsForList().leftPush(userId, url.toExternalForm());
+  }
+}
+----
+
+[[redis:reactive:string]]
+== String-focused convenience classes
+
+Since it's quite common for keys and values stored in Redis to be a `java.lang.String`, the Redis module provides a String-based extension to `ReactiveRedisTemplate`: `ReactiveStringRedisTemplate` is a convenient one-stop solution for intensive `String` operations. In addition to being bound to `String` keys, the template uses the String-based `RedisSerializationContext` underneath which means the stored keys and values are human readable (assuming the same encoding is used both in Redis and your code). For example:
+
+[source,java]
+----
+@Configuration
+class RedisConfiguration {
+
+  @Bean
+  ReactiveStringRedisTemplate reactiveRedisTemplate(ReactiveRedisConnectionFactory factory) {
+    return new ReactiveStringRedisTemplate<>(factory);
+  }
+}
+----
+
+[source,java]
+----
+public class Example {
+
+  @Autowired
+  private ReactiveStringRedisTemplate redisTemplate;
+
+  public Mono<Long> addLink(String userId, URL url) {
+    return redisTemplate.opsForList().leftPush(userId, url.toExternalForm());
   }
 }
 ----
