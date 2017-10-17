@@ -79,7 +79,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 		Assert.notNull(factory, "a valid factory is required");
 
 		RedisTemplate<String, Double> redisTemplate = new RedisTemplate<>();
-		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setKeySerializer(StringRedisSerializer.UTF_8);
 		redisTemplate.setValueSerializer(new GenericToStringSerializer<>(Double.class));
 		redisTemplate.setExposeConnection(true);
 		redisTemplate.setConnectionFactory(factory);

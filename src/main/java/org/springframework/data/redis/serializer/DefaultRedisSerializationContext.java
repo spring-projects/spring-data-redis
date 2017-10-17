@@ -98,7 +98,7 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 		private @Nullable SerializationPair<V> valueTuple;
 		private @Nullable SerializationPair<?> hashKeyTuple;
 		private @Nullable SerializationPair<?> hashValueTuple;
-		private SerializationPair<String> stringTuple = SerializationPair.fromSerializer(new StringRedisSerializer());
+		private SerializationPair<String> stringTuple = SerializationPair.fromSerializer(StringRedisSerializer.UTF_8);
 
 		/* (non-Javadoc)
 		 * @see org.springframework.data.redis.serializer.RedisSerializationContextBuilder#key(SerializationPair)

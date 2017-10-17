@@ -31,6 +31,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * {@link StringRedisConnection}.
  * 
  * @author Costin Leau
+ * @author Mark Paluch
  */
 public class StringRedisTemplate extends RedisTemplate<String, String> {
 
@@ -39,11 +40,10 @@ public class StringRedisTemplate extends RedisTemplate<String, String> {
 	 * and {@link #afterPropertiesSet()} still need to be called.
 	 */
 	public StringRedisTemplate() {
-		RedisSerializer<String> stringSerializer = new StringRedisSerializer();
-		setKeySerializer(stringSerializer);
-		setValueSerializer(stringSerializer);
-		setHashKeySerializer(stringSerializer);
-		setHashValueSerializer(stringSerializer);
+		setKeySerializer(StringRedisSerializer.UTF_8);
+		setValueSerializer(StringRedisSerializer.UTF_8);
+		setHashKeySerializer(StringRedisSerializer.UTF_8);
+		setHashValueSerializer(StringRedisSerializer.UTF_8);
 	}
 
 	/**

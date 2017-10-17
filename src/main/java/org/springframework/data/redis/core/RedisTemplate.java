@@ -96,7 +96,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	@SuppressWarnings("rawtypes") private @Nullable RedisSerializer valueSerializer = null;
 	@SuppressWarnings("rawtypes") private @Nullable RedisSerializer hashKeySerializer = null;
 	@SuppressWarnings("rawtypes") private @Nullable RedisSerializer hashValueSerializer = null;
-	private RedisSerializer<String> stringSerializer = new StringRedisSerializer();
+	private RedisSerializer<String> stringSerializer = StringRedisSerializer.UTF_8;
 
 	private @Nullable ScriptExecutor<K> scriptExecutor;
 
