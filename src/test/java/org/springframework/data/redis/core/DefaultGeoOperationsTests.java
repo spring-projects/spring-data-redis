@@ -55,6 +55,7 @@ import org.springframework.test.annotation.IfProfileValue;
  *
  * @author Ninad Divadkar
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 @IfProfileValue(name = "redisVersion", value = "3.2.0+")
@@ -202,8 +203,6 @@ public class DefaultGeoOperationsTests<K, M> {
 
 		List<String> result = geoOperations.hash(key, v1, v2);
 		assertThat(result, hasSize(2));
-
-		final RedisSerializer<String> serializer = new StringRedisSerializer();
 
 		assertThat(result.get(0), is(equalTo("sqc8b49rny0")));
 		assertThat(result.get(1), is(equalTo("sqdtr74hyu0")));

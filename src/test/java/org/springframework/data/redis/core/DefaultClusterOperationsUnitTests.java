@@ -43,6 +43,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class DefaultClusterOperationsUnitTests {
@@ -66,7 +67,7 @@ public class DefaultClusterOperationsUnitTests {
 		when(connectionFactory.getConnection()).thenReturn(connection);
 		when(connectionFactory.getClusterConnection()).thenReturn(connection);
 
-		serializer = new StringRedisSerializer();
+		serializer = StringRedisSerializer.UTF_8;
 
 		RedisTemplate<String, String> template = new RedisTemplate<>();
 		template.setConnectionFactory(connectionFactory);

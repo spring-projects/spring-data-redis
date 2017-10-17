@@ -73,13 +73,13 @@ abstract public class AbstractOperationsTestParams {
 		stringTemplate.afterPropertiesSet();
 
 		RedisTemplate<String, Long> longTemplate = new RedisTemplate<>();
-		longTemplate.setKeySerializer(new StringRedisSerializer());
+		longTemplate.setKeySerializer(StringRedisSerializer.UTF_8);
 		longTemplate.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		longTemplate.setConnectionFactory(jedisConnectionFactory);
 		longTemplate.afterPropertiesSet();
 
 		RedisTemplate<String, Double> doubleTemplate = new RedisTemplate<>();
-		doubleTemplate.setKeySerializer(new StringRedisSerializer());
+		doubleTemplate.setKeySerializer(StringRedisSerializer.UTF_8);
 		doubleTemplate.setValueSerializer(new GenericToStringSerializer<>(Double.class));
 		doubleTemplate.setConnectionFactory(jedisConnectionFactory);
 		doubleTemplate.afterPropertiesSet();

@@ -127,7 +127,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	private final SubscriptionTask subscriptionTask = new SubscriptionTask();
 
-	private volatile RedisSerializer<String> serializer = new StringRedisSerializer();
+	private volatile RedisSerializer<String> serializer = StringRedisSerializer.UTF_8;
 
 	private long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 

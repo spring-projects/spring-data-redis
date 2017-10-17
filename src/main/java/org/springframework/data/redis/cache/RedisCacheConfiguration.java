@@ -95,7 +95,7 @@ public class RedisCacheConfiguration {
 		registerDefaultConverters(conversionService);
 
 		return new RedisCacheConfiguration(Duration.ZERO, true, true, null,
-				SerializationPair.fromSerializer(new StringRedisSerializer()),
+				SerializationPair.fromSerializer(StringRedisSerializer.UTF_8),
 				SerializationPair.fromSerializer(new JdkSerializationRedisSerializer()), conversionService);
 	}
 

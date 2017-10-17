@@ -166,12 +166,12 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 		jedisConnectionFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> jedisStringTemplate = new RedisTemplate<>();
-		jedisStringTemplate.setDefaultSerializer(new StringRedisSerializer());
+		jedisStringTemplate.setDefaultSerializer(StringRedisSerializer.UTF_8);
 		jedisStringTemplate.setConnectionFactory(jedisConnectionFactory);
 		jedisStringTemplate.afterPropertiesSet();
 
 		RedisTemplate<String, Long> jedisLongTemplate = new RedisTemplate<>();
-		jedisLongTemplate.setKeySerializer(new StringRedisSerializer());
+		jedisLongTemplate.setKeySerializer(StringRedisSerializer.UTF_8);
 		jedisLongTemplate.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		jedisLongTemplate.setConnectionFactory(jedisConnectionFactory);
 		jedisLongTemplate.afterPropertiesSet();
@@ -204,12 +204,12 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 		lettuceConnectionFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> lettuceStringTemplate = new RedisTemplate<>();
-		lettuceStringTemplate.setDefaultSerializer(new StringRedisSerializer());
+		lettuceStringTemplate.setDefaultSerializer(StringRedisSerializer.UTF_8);
 		lettuceStringTemplate.setConnectionFactory(lettuceConnectionFactory);
 		lettuceStringTemplate.afterPropertiesSet();
 
 		RedisTemplate<String, Long> lettuceLongTemplate = new RedisTemplate<>();
-		lettuceLongTemplate.setKeySerializer(new StringRedisSerializer());
+		lettuceLongTemplate.setKeySerializer(StringRedisSerializer.UTF_8);
 		lettuceLongTemplate.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		lettuceLongTemplate.setConnectionFactory(lettuceConnectionFactory);
 		lettuceLongTemplate.afterPropertiesSet();

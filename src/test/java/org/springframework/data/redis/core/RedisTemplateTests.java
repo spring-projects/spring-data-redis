@@ -309,7 +309,7 @@ public class RedisTemplateTests<K, V> {
 
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
 
-		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setKeySerializer(StringRedisSerializer.UTF_8);
 		redisTemplate.setHashKeySerializer(new GenericToStringSerializer<>(Long.class));
 		redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(Person.class));
 
@@ -800,7 +800,7 @@ public class RedisTemplateTests<K, V> {
 		final DefaultRedisScript<String> script = new DefaultRedisScript<>();
 		script.setScriptText("return 'Hey'");
 		script.setResultType(String.class);
-		assertEquals("Hey", redisTemplate.execute(script, redisTemplate.getValueSerializer(), new StringRedisSerializer(),
+		assertEquals("Hey", redisTemplate.execute(script, redisTemplate.getValueSerializer(), StringRedisSerializer.UTF_8,
 				Collections.singletonList(key1)));
 	}
 

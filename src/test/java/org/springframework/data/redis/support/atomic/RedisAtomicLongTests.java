@@ -41,6 +41,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
@@ -56,7 +57,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 
 		this.template = new RedisTemplate<>();
 		this.template.setConnectionFactory(factory);
-		this.template.setKeySerializer(new StringRedisSerializer());
+		this.template.setKeySerializer(StringRedisSerializer.UTF_8);
 		this.template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		this.template.afterPropertiesSet();
 
@@ -165,7 +166,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		expectedException.expectMessage("a valid value serializer in template is required");
 
 		RedisTemplate<String, Long> template = new RedisTemplate<>();
-		template.setKeySerializer(new StringRedisSerializer());
+		template.setKeySerializer(StringRedisSerializer.UTF_8);
 		new RedisAtomicLong("foo", template);
 	}
 
@@ -174,7 +175,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 
 		RedisTemplate<String, Long> template = new RedisTemplate<>();
 		template.setConnectionFactory(factory);
-		template.setKeySerializer(new StringRedisSerializer());
+		template.setKeySerializer(StringRedisSerializer.UTF_8);
 		template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		template.afterPropertiesSet();
 

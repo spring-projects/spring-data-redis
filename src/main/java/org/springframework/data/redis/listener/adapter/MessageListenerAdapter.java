@@ -92,6 +92,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @see org.springframework.jms.listener.adapter.MessageListenerAdapter
  */
 public class MessageListenerAdapter implements InitializingBean, MessageListener {
@@ -317,9 +318,8 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 * @see JdkSerializationRedisSerializer
 	 */
 	protected void initDefaultStrategies() {
-		RedisSerializer<String> serializer = new StringRedisSerializer();
-		setSerializer(serializer);
-		setStringSerializer(serializer);
+		setSerializer(StringRedisSerializer.UTF_8);
+		setStringSerializer(StringRedisSerializer.UTF_8);
 	}
 
 	/**

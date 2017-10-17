@@ -111,7 +111,7 @@ public class DefaultReactiveScriptExecutorTests {
 	public void shouldReturnBoolean() {
 
 		RedisSerializationContextBuilder<String, Long> builder = RedisSerializationContext
-				.newSerializationContext(new StringRedisSerializer());
+				.newSerializationContext(StringRedisSerializer.UTF_8);
 		builder.value(new GenericToStringSerializer<>(Long.class));
 
 		DefaultRedisScript<Boolean> script = new DefaultRedisScript<>();
@@ -142,7 +142,7 @@ public class DefaultReactiveScriptExecutorTests {
 
 		Flux<List<String>> mylist = stringScriptExecutor.execute(script, Collections.singletonList("mylist"),
 				Collections.singletonList(1L), RedisElementWriter.from(new GenericToStringSerializer<>(Long.class)),
-				(RedisElementReader) RedisElementReader.from(new StringRedisSerializer()));
+				(RedisElementReader) RedisElementReader.from(StringRedisSerializer.UTF_8));
 
 		StepVerifier.create(mylist).expectNext(Collections.singletonList("a")).verifyComplete();
 	}
@@ -185,7 +185,7 @@ public class DefaultReactiveScriptExecutorTests {
 		script.setScriptText("return redis.call('SET',KEYS[1], ARGV[1])");
 
 		RedisSerializationContextBuilder<String, Long> builder = RedisSerializationContext
-				.newSerializationContext(new StringRedisSerializer());
+				.newSerializationContext(StringRedisSerializer.UTF_8);
 		builder.value(new GenericToStringSerializer<>(Long.class));
 
 		ReactiveScriptExecutor<String> scriptExecutor = new DefaultReactiveScriptExecutor<>(connectionFactory,
@@ -203,7 +203,7 @@ public class DefaultReactiveScriptExecutorTests {
 		Jackson2JsonRedisSerializer<Person> personSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 
 		RedisTemplate<String, Person> template = new RedisTemplate<>();
-		template.setKeySerializer(new StringRedisSerializer());
+		template.setKeySerializer(StringRedisSerializer.UTF_8);
 		template.setValueSerializer(personSerializer);
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
@@ -215,7 +215,7 @@ public class DefaultReactiveScriptExecutorTests {
 		Person joe = new Person("Joe", "Schmoe", 23);
 		Flux<String> result = stringScriptExecutor.execute(script, Collections.singletonList("bar"),
 				Collections.singletonList(joe), RedisElementWriter.from(personSerializer),
-				RedisElementReader.from(new StringRedisSerializer()));
+				RedisElementReader.from(StringRedisSerializer.UTF_8));
 
 		StepVerifier.create(result).expectNext("FOO").verifyComplete();
 

@@ -36,10 +36,11 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Costin Leau
  * @author Greg Turnquist
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public class MessageListenerTest {
 
-	private static final StringRedisSerializer serializer = new StringRedisSerializer();
+	private static final StringRedisSerializer serializer = StringRedisSerializer.UTF_8;
 	private static final String CHANNEL = "some::test:";
 	private static final byte[] RAW_CHANNEL = serializer.serialize(CHANNEL);
 	private static final String PAYLOAD = "do re mi";

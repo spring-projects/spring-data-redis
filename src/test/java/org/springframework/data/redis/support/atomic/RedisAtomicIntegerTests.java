@@ -60,7 +60,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 
 		this.template = new RedisTemplate<>();
 		this.template.setConnectionFactory(factory);
-		this.template.setKeySerializer(new StringRedisSerializer());
+		this.template.setKeySerializer(StringRedisSerializer.UTF_8);
 		this.template.setValueSerializer(new GenericToStringSerializer<>(Integer.class));
 		this.template.afterPropertiesSet();
 
@@ -191,7 +191,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		expectedException.expectMessage("a valid value serializer in template is required");
 
 		RedisTemplate<String, Integer> template = new RedisTemplate<>();
-		template.setKeySerializer(new StringRedisSerializer());
+		template.setKeySerializer(StringRedisSerializer.UTF_8);
 		new RedisAtomicInteger("foo", template);
 	}
 
