@@ -22,19 +22,41 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Simple String to byte[] (and back) serializer. Converts Strings into bytes and vice-versa using the specified charset
- * (by default UTF-8).
+ * Simple {@literal} to {@literal byte[]} (and back) serializer. Converts Strings into bytes and vice-versa using the
+ * specified charset (by default UTF-8).
  * <p>
  * Useful when the interaction with the Redis happens mainly through Strings.
  * <p>
- * Does not perform any null conversion since empty strings are valid keys/values.
+ * Does not perform any {@literal null} conversion since empty strings are valid keys/values.
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class StringRedisSerializer implements RedisSerializer<String> {
 
 	private final Charset charset;
+
+	/**
+	 * Serializer to use 7 bit ASCII, a.k.a. ISO646-US, a.k.a. the Basic Latin block of the Unicode character set.
+	 * 
+	 * @since 2.1
+	 */
+	public static final StringRedisSerializer US_ASCII = new StringRedisSerializer(StandardCharsets.US_ASCII);
+
+	/**
+	 * Serializer to use ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1.
+	 * 
+	 * @since 2.1
+	 */
+	public static final StringRedisSerializer ISO_8859_1 = new StringRedisSerializer(StandardCharsets.ISO_8859_1);
+
+	/**
+	 * Serializer to use 8 bit UCS Transformation Format.
+	 * 
+	 * @since 2.1
+	 */
+	public static final StringRedisSerializer UTF_8 = new StringRedisSerializer(StandardCharsets.UTF_8);
 
 	/**
 	 * Creates a new {@link StringRedisSerializer} using {@link StandardCharsets#UTF_8 UTF-8}.
