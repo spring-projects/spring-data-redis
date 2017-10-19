@@ -119,8 +119,10 @@ public abstract class LettuceReactiveCommandsTestsBase {
 			this.connection = new LettuceReactiveRedisConnection(connectionProvider);
 
 		} else {
+			ClusterConnectionProvider clusterConnectionProvider = (ClusterConnectionProvider) nativeConnectionProvider;
 			nativeCommands = nativeConnectionProvider.getConnection(StatefulRedisClusterConnection.class).sync();
-			this.connection = new LettuceReactiveRedisClusterConnection(connectionProvider);
+			this.connection = new LettuceReactiveRedisClusterConnection(connectionProvider,
+					clusterConnectionProvider.getClient());
 		}
 	}
 

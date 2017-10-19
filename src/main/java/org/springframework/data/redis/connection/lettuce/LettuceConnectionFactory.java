@@ -20,12 +20,15 @@ import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisException;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,6 +91,7 @@ public class LettuceConnectionFactory
 	private boolean validateConnection = false;
 	private boolean shareNativeConnection = true;
 	private @Nullable StatefulRedisConnection<byte[], byte[]> connection;
+	private @Nullable StatefulConnection<ByteBuffer, ByteBuffer> reactiveConnection;
 	private @Nullable LettucePool pool;
 	/** Synchronization monitor for the shared Connection */
 	private final Object connectionMonitor = new Object();
@@ -242,6 +246,7 @@ public class LettuceConnectionFactory
 	public void destroy() {
 
 		resetConnection();
+		resetReactiveConnection();
 
 		if (connectionProvider instanceof DisposableBean) {
 			try {
@@ -318,7 +323,10 @@ public class LettuceConnectionFactory
 	 */
 	@Override
 	public LettuceReactiveRedisConnection getReactiveConnection() {
-		return new LettuceReactiveRedisConnection(reactiveConnectionProvider);
+
+		return getShareNativeConnection()
+				? new LettuceReactiveRedisConnection(getSharedReactiveConnection(), reactiveConnectionProvider)
+				: new LettuceReactiveRedisConnection(reactiveConnectionProvider);
 	}
 
 	/*
@@ -327,11 +335,16 @@ public class LettuceConnectionFactory
 	 */
 	@Override
 	public LettuceReactiveRedisClusterConnection getReactiveClusterConnection() {
+
 		if (!isClusterAware()) {
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
 		}
 
-		return new LettuceReactiveRedisClusterConnection(reactiveConnectionProvider);
+		RedisClusterClient client = (RedisClusterClient) this.client;
+
+		return getShareNativeConnection()
+				? new LettuceReactiveRedisClusterConnection(getSharedReactiveConnection(), reactiveConnectionProvider, client)
+				: new LettuceReactiveRedisClusterConnection(reactiveConnectionProvider, client);
 	}
 
 	public void initConnection() {
@@ -344,11 +357,23 @@ public class LettuceConnectionFactory
 		}
 	}
 
+	public void initReactiveConnection() {
+
+		synchronized (this.connectionMonitor) {
+			if (this.reactiveConnection != null) {
+				resetReactiveConnection();
+			}
+			this.reactiveConnection = createReactiveLettuceConnector();
+		}
+	}
+
 	/**
 	 * Reset the underlying shared Connection, to be reinitialized on next access.
 	 */
 	public void resetConnection() {
+
 		synchronized (this.connectionMonitor) {
+
 			if (this.connection != null) {
 				this.connectionProvider.release(this.connection);
 			}
@@ -357,16 +382,48 @@ public class LettuceConnectionFactory
 	}
 
 	/**
+	 * Reset the underlying shared Connection, to be reinitialized on next access.
+	 *
+	 * @since 2.0.1
+	 */
+	public void resetReactiveConnection() {
+
+		synchronized (this.connectionMonitor) {
+
+			if (this.reactiveConnection != null) {
+				this.reactiveConnectionProvider.release(this.reactiveConnection);
+			}
+			this.reactiveConnection = null;
+		}
+	}
+
+	/**
 	 * Validate the shared Connection and reinitialize if invalid
 	 */
 	public void validateConnection() {
+
+		validateConnection(connection, connectionProvider, this::initConnection);
+
+		validateConnection(reactiveConnection, reactiveConnectionProvider, this::initReactiveConnection);
+	}
+
+	private void validateConnection(@Nullable StatefulConnection<?, ?> connection,
+			LettuceConnectionProvider connectionProvider, Runnable initConnection) {
+
 		synchronized (this.connectionMonitor) {
 
 			boolean valid = false;
 
-			if (connection.isOpen()) {
+			if (connection != null && connection.isOpen()) {
 				try {
-					connection.sync().ping();
+
+					if (connection instanceof StatefulRedisConnection) {
+						((StatefulRedisConnection) connection).sync().ping();
+					}
+
+					if (connection instanceof StatefulRedisClusterConnection) {
+						((StatefulRedisConnection) connection).sync().ping();
+					}
 					valid = true;
 				} catch (Exception e) {
 					log.debug("Validation failed", e);
@@ -375,9 +432,13 @@ public class LettuceConnectionFactory
 
 			if (!valid) {
 
-				connectionProvider.release(connection);
+				if (connection != null) {
+					connectionProvider.release(connection);
+				}
+
 				log.warn("Validation of shared connection failed. Creating a new connection.");
-				initConnection();
+
+				initConnection.run();
 			}
 		}
 	}
@@ -775,7 +836,12 @@ public class LettuceConnectionFactory
 		return clusterConfiguration != null;
 	}
 
+	/**
+	 * @return the shared connection using {@literal byte} array encoding for imperative API use. {@literal null} if
+	 *         {@link #getShareNativeConnection() connection sharing} is disabled.
+	 */
 	protected StatefulRedisConnection<byte[], byte[]> getSharedConnection() {
+
 		if (shareNativeConnection) {
 			synchronized (this.connectionMonitor) {
 				if (this.connection == null) {
@@ -785,6 +851,28 @@ public class LettuceConnectionFactory
 					validateConnection();
 				}
 				return this.connection;
+			}
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * @return the shared connection using {@link ByteBuffer} encoding for reactive API use. {@literal null} if
+	 *         {@link #getShareNativeConnection() connection sharing} is disabled.
+	 * @since 2.0.1
+	 */
+	protected StatefulConnection<ByteBuffer, ByteBuffer> getSharedReactiveConnection() {
+
+		if (shareNativeConnection) {
+			synchronized (this.connectionMonitor) {
+				if (this.reactiveConnection == null) {
+					initReactiveConnection();
+				}
+				if (validateConnection) {
+					validateConnection();
+				}
+				return this.reactiveConnection;
 			}
 		} else {
 			return null;
@@ -803,6 +891,23 @@ public class LettuceConnectionFactory
 			} else {
 				connection = null;
 			}
+			return connection;
+		} catch (RedisException e) {
+			throw new RedisConnectionFailureException("Unable to connect to Redis on " + getHostName() + ":" + getPort(), e);
+		}
+	}
+
+	protected StatefulConnection<ByteBuffer, ByteBuffer> createReactiveLettuceConnector() {
+
+		try {
+
+			StatefulConnection<ByteBuffer, ByteBuffer> connection;
+			connection = reactiveConnectionProvider.getConnection(StatefulConnection.class);
+
+			if (connection instanceof StatefulRedisConnection && getDatabase() > 0) {
+				((StatefulRedisConnection) connection).sync().select(getDatabase());
+			}
+
 			return connection;
 		} catch (RedisException e) {
 			throw new RedisConnectionFailureException("Unable to connect to Redis on " + getHostName() + ":" + getPort(), e);

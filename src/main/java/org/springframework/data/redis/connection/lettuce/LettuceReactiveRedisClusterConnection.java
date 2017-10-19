@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.reactive.BaseRedisReactiveCommands;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import io.lettuce.core.cluster.RedisClusterClient;
@@ -45,19 +46,37 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	private final ClusterTopologyProvider topologyProvider;
 
 	/**
-	 * Creates new {@link LettuceReactiveRedisClusterConnection}.
+	 * Creates new {@link LettuceReactiveRedisClusterConnection} given {@link LettuceConnectionProvider} and
+	 * {@link RedisClusterClient}.
 	 *
+	 * @param connectionProvider must not be {@literal null}.
 	 * @param client must not be {@literal null}.
 	 * @throws IllegalArgumentException when {@code client} is {@literal null}.
-	 * @throws org.springframework.dao.InvalidDataAccessResourceUsageException when {@code client} is not suitable for
-	 *           cluster environment.
 	 */
-	LettuceReactiveRedisClusterConnection(LettuceConnectionProvider connectionProvider) {
+	LettuceReactiveRedisClusterConnection(LettuceConnectionProvider connectionProvider, RedisClusterClient client) {
 
 		super(connectionProvider);
 
-		this.topologyProvider = new LettuceClusterTopologyProvider(
-				((ClusterConnectionProvider) connectionProvider).getClient());
+		this.topologyProvider = new LettuceClusterTopologyProvider(client);
+	}
+
+	/**
+	 * Creates new {@link LettuceReactiveRedisClusterConnection} given a shared {@link StatefulConnection connection},
+	 * {@link LettuceConnectionProvider} and {@link RedisClusterClient}.
+	 *
+	 * @param sharedConnection must not be {@literal null}.
+	 * @param connectionProvider must not be {@literal null}.
+	 * @param client must not be {@literal null}.
+	 * @throws IllegalArgumentException when {@code client} is {@literal null}.
+	 * @since 2.0.1
+	 */
+	@SuppressWarnings("unchecked")
+	LettuceReactiveRedisClusterConnection(StatefulConnection<ByteBuffer, ByteBuffer> sharedConnection,
+			LettuceConnectionProvider connectionProvider, RedisClusterClient client) {
+
+		super(sharedConnection, connectionProvider);
+
+		this.topologyProvider = new LettuceClusterTopologyProvider(client);
 	}
 
 	/*
@@ -183,7 +202,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 			return Flux.error(e);
 		}
 
-		return Flux.defer(() -> callback.doWithCommands(getCommands(node))).onErrorMap(translateException());
+		return getCommands(node).flatMapMany(callback::doWithCommands).onErrorMap(translateException());
 	}
 
 	/*
@@ -192,33 +211,27 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	protected StatefulRedisClusterConnection<ByteBuffer, ByteBuffer> getConnection() {
-
-		Assert.isInstanceOf(StatefulRedisClusterConnection.class, super.getConnection(),
-				"Connection needs to be instance of StatefulRedisClusterConnection");
-
-		return (StatefulRedisClusterConnection) super.getConnection();
+	protected Mono<StatefulRedisClusterConnection<ByteBuffer, ByteBuffer>> getConnection() {
+		return (Mono) super.getConnection();
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#getCommands()
 	 */
-	protected RedisClusterReactiveCommands<ByteBuffer, ByteBuffer> getCommands() {
-		return getConnection().reactive();
+	protected Mono<RedisClusterReactiveCommands<ByteBuffer, ByteBuffer>> getCommands() {
+		return getConnection().map(StatefulRedisClusterConnection::reactive);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected RedisReactiveCommands<ByteBuffer, ByteBuffer> getCommands(RedisNode node) {
-
-		if (!(getConnection() instanceof StatefulRedisClusterConnection)) {
-			throw new IllegalArgumentException("o.O connection needs to be cluster compatible " + getConnection());
-		}
+	protected Mono<RedisReactiveCommands<ByteBuffer, ByteBuffer>> getCommands(RedisNode node) {
 
 		if (StringUtils.hasText(node.getId())) {
-			return ((StatefulRedisClusterConnection) getConnection()).getConnection(node.getId()).reactive();
+			return getConnection().cast(StatefulRedisClusterConnection.class)
+					.map(it -> it.getConnection(node.getId()).reactive());
 		}
 
-		return ((StatefulRedisClusterConnection) getConnection()).getConnection(node.getHost(), node.getPort()).reactive();
+		return getConnection().cast(StatefulRedisClusterConnection.class)
+				.map(it -> it.getConnection(node.getHost(), node.getPort()).reactive());
 	}
 }
