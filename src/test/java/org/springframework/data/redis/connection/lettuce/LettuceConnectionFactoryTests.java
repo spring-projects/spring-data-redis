@@ -372,12 +372,12 @@ public class LettuceConnectionFactoryTests {
 		factory.setShareNativeConnection(false);
 		factory.afterPropertiesSet();
 
+		ConnectionFactoryTracker.add(factory);
+
 		RedisConnection connection = factory.getConnection();
 
 		assertThat(connection.getClientName(), is(equalTo("clientName")));
 		connection.close();
-
-		factory.destroy();
 	}
 
 	@Test // DATAREDIS-576
@@ -388,11 +388,11 @@ public class LettuceConnectionFactoryTests {
 		factory.setClientName("clientName");
 		factory.afterPropertiesSet();
 
+		ConnectionFactoryTracker.add(factory);
+
 		RedisConnection connection = factory.getConnection();
 		assertThat(connection.getClientName(), equalTo("clientName"));
 
 		connection.close();
-
-		factory.destroy();
 	}
 }

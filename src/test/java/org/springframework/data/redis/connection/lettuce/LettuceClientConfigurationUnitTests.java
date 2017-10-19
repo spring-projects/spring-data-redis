@@ -73,4 +73,14 @@ public class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofMinutes(5));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofHours(2));
 	}
+
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-576
+	public void clientConfigurationThrowsExceptionForNullClientName() {
+		LettuceClientConfiguration.builder().clientName(null);
+	}
+
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-576
+	public void clientConfigurationThrowsExceptionForEmptyClientName() {
+		LettuceClientConfiguration.builder().clientName(" ");
+	}
 }
