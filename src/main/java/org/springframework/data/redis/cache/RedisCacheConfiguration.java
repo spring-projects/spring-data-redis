@@ -23,9 +23,8 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -95,8 +94,8 @@ public class RedisCacheConfiguration {
 		registerDefaultConverters(conversionService);
 
 		return new RedisCacheConfiguration(Duration.ZERO, true, true, null,
-				SerializationPair.fromSerializer(StringRedisSerializer.UTF_8),
-				SerializationPair.fromSerializer(new JdkSerializationRedisSerializer()), conversionService);
+				SerializationPair.fromSerializer(RedisSerializer.string()),
+				SerializationPair.fromSerializer(RedisSerializer.java()), conversionService);
 	}
 
 	/**

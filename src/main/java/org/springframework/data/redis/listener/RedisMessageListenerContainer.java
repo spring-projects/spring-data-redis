@@ -127,7 +127,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	private final SubscriptionTask subscriptionTask = new SubscriptionTask();
 
-	private volatile RedisSerializer<String> serializer = StringRedisSerializer.UTF_8;
+	private volatile RedisSerializer<String> serializer = RedisSerializer.string();
 
 	private long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
@@ -307,7 +307,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * @param connectionFactory The connectionFactory to set.
 	 */
 	public void setConnectionFactory(RedisConnectionFactory connectionFactory) {
-		
+
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
 		this.connectionFactory = connectionFactory;
 	}

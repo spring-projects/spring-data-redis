@@ -79,7 +79,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 		Assert.notNull(factory, "a valid factory is required");
 
 		RedisTemplate<String, Long> redisTemplate = new RedisTemplate<>();
-		redisTemplate.setKeySerializer(StringRedisSerializer.UTF_8);
+		redisTemplate.setKeySerializer(RedisSerializer.string());
 		redisTemplate.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		redisTemplate.setExposeConnection(true);
 		redisTemplate.setConnectionFactory(factory);

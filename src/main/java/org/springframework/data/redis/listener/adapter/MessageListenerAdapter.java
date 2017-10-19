@@ -318,8 +318,8 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 * @see JdkSerializationRedisSerializer
 	 */
 	protected void initDefaultStrategies() {
-		setSerializer(StringRedisSerializer.UTF_8);
-		setStringSerializer(StringRedisSerializer.UTF_8);
+		setSerializer(RedisSerializer.string());
+		setStringSerializer(RedisSerializer.string());
 	}
 
 	/**

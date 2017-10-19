@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.springframework.lang.Nullable;
  * Basic interface serialization and deserialization of Objects to byte arrays (binary data). It is recommended that
  * implementations are designed to handle null objects/empty arrays on serialization and deserialization side. Note that
  * Redis does not accept null keys or values but can return null replies (for non existing keys).
- * 
+ *
  * @author Mark Pollack
  * @author Costin Leau
  * @author Christoph Strobl
@@ -45,4 +45,36 @@ public interface RedisSerializer<T> {
 	 */
 	@Nullable
 	T deserialize(@Nullable byte[] bytes) throws SerializationException;
+
+	/**
+	 * Obtain a {@link RedisSerializer} using java serialization.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.1
+	 */
+	static RedisSerializer<Object> java() {
+		return new JdkSerializationRedisSerializer();
+	}
+
+	/**
+	 * Obtain a {@link RedisSerializer} that can read and write JSON using
+	 * <a href="https://github.com/FasterXML/jackson-core">Jackson</a>.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.1
+	 */
+	static RedisSerializer<Object> json() {
+		return new GenericJackson2JsonRedisSerializer();
+	}
+
+	/**
+	 * Obtain a simple {@link java.lang.String} to {@literal byte[]} (and back) serializer using
+	 * {@link java.nio.charset.StandardCharsets#UTF_8 UTF-8} as the default {@link java.nio.charset.Charset}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.1
+	 */
+	static RedisSerializer<String> string() {
+		return StringRedisSerializer.UTF_8;
+	}
 }

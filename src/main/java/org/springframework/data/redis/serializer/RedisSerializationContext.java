@@ -93,7 +93,7 @@ public interface RedisSerializationContext<K, V> {
 	 * @return
 	 */
 	static RedisSerializationContext<String, String> string() {
-		return fromSerializer(StringRedisSerializer.UTF_8);
+		return fromSerializer(RedisSerializer.string());
 	}
 
 	/**
