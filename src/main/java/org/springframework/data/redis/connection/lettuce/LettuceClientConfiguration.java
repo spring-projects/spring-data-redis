@@ -193,7 +193,8 @@ public interface LettuceClientConfiguration {
 		 *
 		 * @param clientName must not be {@literal null} or empty.
 		 * @return {@literal this} builder.
-		 * @throws IllegalArgumentException if clientName is {@literal null}.
+		 * @throws IllegalArgumentException if clientName is {@literal null} or empty.
+		 * @since 2.1
 		 */
 		public LettuceClientConfigurationBuilder clientName(String clientName) {
 
