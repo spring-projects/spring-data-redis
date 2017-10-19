@@ -28,7 +28,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceTestClientConfig
 
 /**
  * Integration tests for {@link ReactiveStringRedisTemplate}.
- * 
+ *
  * @author Mark Paluch
  */
 public class ReactiveStringRedisTemplateIntegrationTests {

@@ -19,11 +19,12 @@ import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 /**
- * String-focused extension of {@link ReactiveRedisTemplate}. Since most operations against Redis are {@link String}
- * based, this class provides a dedicated arrangement that minimizes configuration of its more generic
- * {@link ReactiveRedisTemplate template} especially in terms of serializers.
- * 
+ * {@link java.lang.String String-focused} extension of {@link ReactiveRedisTemplate}. As most operations against Redis
+ * are {@link String} based, this class provides a dedicated arrangement that minimizes configuration of its more
+ * generic {@link ReactiveRedisTemplate template} especially in terms of the used {@link RedisSerializationContext}.
+ *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.1
  */
 public class ReactiveStringRedisTemplate extends ReactiveRedisTemplate<String, String> {
