@@ -27,6 +27,7 @@ import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
+import lombok.RequiredArgsConstructor;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -45,6 +46,7 @@ import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.*;
+import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -90,8 +92,8 @@ public class LettuceConnectionFactory
 	private @Nullable LettuceConnectionProvider reactiveConnectionProvider;
 	private boolean validateConnection = false;
 	private boolean shareNativeConnection = true;
-	private @Nullable StatefulRedisConnection<byte[], byte[]> connection;
-	private @Nullable StatefulConnection<ByteBuffer, ByteBuffer> reactiveConnection;
+	private @Nullable SharedConnection<byte[]> connection;
+	private @Nullable SharedConnection<ByteBuffer> reactiveConnection;
 	private @Nullable LettucePool pool;
 	/** Synchronization monitor for the shared Connection */
 	private final Object connectionMonitor = new Object();
@@ -246,7 +248,6 @@ public class LettuceConnectionFactory
 	public void destroy() {
 
 		resetConnection();
-		resetReactiveConnection();
 
 		if (connectionProvider instanceof DisposableBean) {
 			try {
@@ -347,24 +348,16 @@ public class LettuceConnectionFactory
 				: new LettuceReactiveRedisClusterConnection(reactiveConnectionProvider, client);
 	}
 
+	/**
+	 * Initialize the shared connection if {@link #getShareNativeConnection() native connection sharing} is enabled and
+	 * reset any previously existing connection.
+	 */
 	public void initConnection() {
 
-		synchronized (this.connectionMonitor) {
-			if (this.connection != null) {
-				resetConnection();
-			}
-			this.connection = createLettuceConnector();
-		}
-	}
+		resetConnection();
 
-	public void initReactiveConnection() {
-
-		synchronized (this.connectionMonitor) {
-			if (this.reactiveConnection != null) {
-				resetReactiveConnection();
-			}
-			this.reactiveConnection = createReactiveLettuceConnector();
-		}
+		getSharedConnection();
+		getSharedReactiveConnection();
 	}
 
 	/**
@@ -372,74 +365,46 @@ public class LettuceConnectionFactory
 	 */
 	public void resetConnection() {
 
+		Optionals.toStream(Optional.ofNullable(connection), Optional.ofNullable(reactiveConnection))
+				.forEach(SharedConnection::resetConnection);
+
 		synchronized (this.connectionMonitor) {
 
-			if (this.connection != null) {
-				this.connectionProvider.release(this.connection);
-			}
 			this.connection = null;
-		}
-	}
-
-	/**
-	 * Reset the underlying shared Connection, to be reinitialized on next access.
-	 *
-	 * @since 2.0.1
-	 */
-	public void resetReactiveConnection() {
-
-		synchronized (this.connectionMonitor) {
-
-			if (this.reactiveConnection != null) {
-				this.reactiveConnectionProvider.release(this.reactiveConnection);
-			}
 			this.reactiveConnection = null;
 		}
 	}
 
 	/**
-	 * Validate the shared Connection and reinitialize if invalid
+	 * Validate the shared connections and reinitialize if invalid.
 	 */
 	public void validateConnection() {
 
-		validateConnection(connection, connectionProvider, this::initConnection);
-
-		validateConnection(reactiveConnection, reactiveConnectionProvider, this::initReactiveConnection);
+		getOrCreateSharedConnection().validateConnection();
+		getOrCreateSharedReactiveConnection().validateConnection();
 	}
 
-	private void validateConnection(@Nullable StatefulConnection<?, ?> connection,
-			LettuceConnectionProvider connectionProvider, Runnable initConnection) {
+	private SharedConnection<byte[]> getOrCreateSharedConnection() {
 
 		synchronized (this.connectionMonitor) {
 
-			boolean valid = false;
-
-			if (connection != null && connection.isOpen()) {
-				try {
-
-					if (connection instanceof StatefulRedisConnection) {
-						((StatefulRedisConnection) connection).sync().ping();
-					}
-
-					if (connection instanceof StatefulRedisClusterConnection) {
-						((StatefulRedisConnection) connection).sync().ping();
-					}
-					valid = true;
-				} catch (Exception e) {
-					log.debug("Validation failed", e);
-				}
+			if (this.connection == null) {
+				this.connection = new SharedConnection<>(connectionProvider, false);
 			}
 
-			if (!valid) {
+			return this.connection;
+		}
+	}
 
-				if (connection != null) {
-					connectionProvider.release(connection);
-				}
+	private SharedConnection<ByteBuffer> getOrCreateSharedReactiveConnection() {
 
-				log.warn("Validation of shared connection failed. Creating a new connection.");
+		synchronized (this.connectionMonitor) {
 
-				initConnection.run();
+			if (this.reactiveConnection == null) {
+				this.reactiveConnection = new SharedConnection<>(reactiveConnectionProvider, true);
 			}
+
+			return this.reactiveConnection;
 		}
 	}
 
@@ -585,11 +550,11 @@ public class LettuceConnectionFactory
 	 * will be created and used if validation fails.
 	 * <p>
 	 * Lettuce will automatically reconnect until close is called, which should never happen through
-	 * {@link LettuceConnection} if a shared native connection is used, therefore the default is false.
+	 * {@link LettuceConnection} if a shared native connection is used, therefore the default is {@literal false}.
 	 * <p>
-	 * Setting this to true will result in a round-trip call to the server on each new connection, so this setting should
-	 * only be used if connection sharing is enabled and there is code that is actively closing the native Lettuce
-	 * connection.
+	 * Setting this to {@literal true} will result in a round-trip call to the server on each new connection, so this
+	 * setting should only be used if connection sharing is enabled and there is code that is actively closing the native
+	 * Lettuce connection.
 	 *
 	 * @param validateConnection enable connection validation.
 	 */
@@ -607,8 +572,8 @@ public class LettuceConnectionFactory
 	}
 
 	/**
-	 * Enables multiple {@link LettuceConnection}s to share a single native connection. If set to false, every operation
-	 * on {@link LettuceConnection} will open and close a socket.
+	 * Enables multiple {@link LettuceConnection}s to share a single native connection. If set to {@literal false}, every
+	 * operation on {@link LettuceConnection} will open and close a socket.
 	 *
 	 * @param shareNativeConnection enable connection sharing.
 	 */
@@ -841,20 +806,7 @@ public class LettuceConnectionFactory
 	 *         {@link #getShareNativeConnection() connection sharing} is disabled.
 	 */
 	protected StatefulRedisConnection<byte[], byte[]> getSharedConnection() {
-
-		if (shareNativeConnection) {
-			synchronized (this.connectionMonitor) {
-				if (this.connection == null) {
-					initConnection();
-				}
-				if (validateConnection) {
-					validateConnection();
-				}
-				return this.connection;
-			}
-		} else {
-			return null;
-		}
+		return shareNativeConnection ? (StatefulRedisConnection) getOrCreateSharedConnection().getConnection() : null;
 	}
 
 	/**
@@ -863,55 +815,7 @@ public class LettuceConnectionFactory
 	 * @since 2.0.1
 	 */
 	protected StatefulConnection<ByteBuffer, ByteBuffer> getSharedReactiveConnection() {
-
-		if (shareNativeConnection) {
-			synchronized (this.connectionMonitor) {
-				if (this.reactiveConnection == null) {
-					initReactiveConnection();
-				}
-				if (validateConnection) {
-					validateConnection();
-				}
-				return this.reactiveConnection;
-			}
-		} else {
-			return null;
-		}
-	}
-
-	protected StatefulRedisConnection<byte[], byte[]> createLettuceConnector() {
-		try {
-
-			StatefulRedisConnection<byte[], byte[]> connection;
-			if (!isClusterAware()) {
-				connection = connectionProvider.getConnection(StatefulRedisConnection.class);
-				if (getDatabase() > 0) {
-					connection.sync().select(getDatabase());
-				}
-			} else {
-				connection = null;
-			}
-			return connection;
-		} catch (RedisException e) {
-			throw new RedisConnectionFailureException("Unable to connect to Redis on " + getHostName() + ":" + getPort(), e);
-		}
-	}
-
-	protected StatefulConnection<ByteBuffer, ByteBuffer> createReactiveLettuceConnector() {
-
-		try {
-
-			StatefulConnection<ByteBuffer, ByteBuffer> connection;
-			connection = reactiveConnectionProvider.getConnection(StatefulConnection.class);
-
-			if (connection instanceof StatefulRedisConnection && getDatabase() > 0) {
-				((StatefulRedisConnection) connection).sync().select(getDatabase());
-			}
-
-			return connection;
-		} catch (RedisException e) {
-			throw new RedisConnectionFailureException("Unable to connect to Redis on " + getHostName() + ":" + getPort(), e);
-		}
+		return shareNativeConnection ? getOrCreateSharedReactiveConnection().getConnection() : null;
 	}
 
 	private LettuceConnectionProvider createConnectionProvider(AbstractRedisClient client, RedisCodec<?, ?> codec) {
@@ -1016,6 +920,127 @@ public class LettuceConnectionFactory
 
 	private long getClientTimeout() {
 		return clientConfiguration.getCommandTimeout().toMillis();
+	}
+
+	/**
+	 * Wrapper for shared connections. Keeps track of the connection lifecycleThe wrapper is thread-safe as it
+	 * synchronizes concurrent calls by blocking.
+	 *
+	 * @param <E> connection encoding.
+	 * @author Mark Paluch
+	 * @since 2.1
+	 */
+	@RequiredArgsConstructor
+	class SharedConnection<E> {
+
+		private final LettuceConnectionProvider connectionProvider;
+		private final boolean clusterEnabled;
+
+		/** Synchronization monitor for the shared Connection */
+		private final Object connectionMonitor = new Object();
+
+		private @Nullable StatefulConnection<E, E> connection;
+
+		/**
+		 * Returns a valid Lettuce connection. Initializes and validates the connection if
+		 * {@link #setValidateConnection(boolean) enabled}.
+		 *
+		 * @return the connection.
+		 */
+		StatefulConnection<E, E> getConnection() {
+
+			synchronized (this.connectionMonitor) {
+
+				if (this.connection == null) {
+					this.connection = getNativeConnection();
+				}
+
+				if (getValidateConnection()) {
+					validateConnection();
+				}
+
+				return this.connection;
+			}
+		}
+
+		/**
+		 * Obtain a connection from the associated {@link LettuceConnectionProvider}.
+		 *
+		 * @return the connection.
+		 */
+		private StatefulConnection<E, E> getNativeConnection() {
+
+			try {
+
+				StatefulConnection<E, E> connection;
+
+				if ((isClusterAware() && clusterEnabled) || !isClusterAware()) {
+					connection = connectionProvider.getConnection(StatefulConnection.class);
+					if (connection instanceof StatefulRedisConnection && getDatabase() > 0) {
+						((StatefulRedisConnection) connection).sync().select(getDatabase());
+					}
+				} else {
+					connection = null;
+				}
+				return connection;
+			} catch (RedisException e) {
+				throw new RedisConnectionFailureException("Unable to connect to Redis", e);
+			}
+		}
+
+		/**
+		 * Validate the connection. Invalid connections will be closed and the connection state will be reset.
+		 */
+		void validateConnection() {
+
+			synchronized (this.connectionMonitor) {
+
+				boolean valid = false;
+
+				if (connection != null && connection.isOpen()) {
+					try {
+
+						if (connection instanceof StatefulRedisConnection) {
+							((StatefulRedisConnection) connection).sync().ping();
+						}
+
+						if (connection instanceof StatefulRedisClusterConnection) {
+							((StatefulRedisConnection) connection).sync().ping();
+						}
+						valid = true;
+					} catch (Exception e) {
+						log.debug("Validation failed", e);
+					}
+				}
+
+				if (!valid) {
+
+					if (connection != null) {
+						connectionProvider.release(connection);
+					}
+
+					log.warn("Validation of shared connection failed. Creating a new connection.");
+
+					resetConnection();
+					this.connection = getNativeConnection();
+				}
+			}
+		}
+
+		/**
+		 * Reset the underlying shared Connection, to be reinitialized on next access.
+		 */
+		void resetConnection() {
+
+			synchronized (this.connectionMonitor) {
+
+				if (this.connection != null) {
+					this.connectionProvider.release(this.connection);
+				}
+
+				this.connection = null;
+			}
+		}
 	}
 
 	/**
