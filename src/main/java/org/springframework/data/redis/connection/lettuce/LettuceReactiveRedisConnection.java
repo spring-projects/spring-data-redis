@@ -23,8 +23,11 @@ import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
 import io.lettuce.core.codec.RedisCodec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
@@ -43,9 +46,9 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 	static final RedisCodec<ByteBuffer, ByteBuffer> CODEC = ByteBufferCodec.INSTANCE;
 
-	private final LettuceConnectionProvider connectionProvider;
+	private final AsyncConnect dedicatedConnection;
 
-	private @Nullable StatefulConnection<ByteBuffer, ByteBuffer> connection;
+	private @Nullable Mono<StatefulConnection<ByteBuffer, ByteBuffer>> sharedConnection;
 
 	/**
 	 * Creates new {@link LettuceReactiveRedisConnection}.
@@ -59,8 +62,27 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null!");
 
-		this.connectionProvider = connectionProvider;
-		this.connection = connectionProvider.getConnection(StatefulConnection.class);
+		this.dedicatedConnection = new AsyncConnect(connectionProvider);
+	}
+
+	/**
+	 * Creates new {@link LettuceReactiveRedisConnection} given a shared {@link StatefulConnection connection}.
+	 *
+	 * @param sharedConnection must not be {@literal null}.
+	 * @param connectionProvider must not be {@literal null}.
+	 * @throws IllegalArgumentException when {@code client} is {@literal null}.
+	 * @throws InvalidDataAccessResourceUsageException when {@code client} is not suitable for connection.
+	 * @since 2.0.1
+	 */
+	@SuppressWarnings("unchecked")
+	LettuceReactiveRedisConnection(StatefulConnection<ByteBuffer, ByteBuffer> sharedConnection,
+			LettuceConnectionProvider connectionProvider) {
+
+		Assert.notNull(sharedConnection, "Shared StatefulConnection must not be null!");
+		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null!");
+
+		this.dedicatedConnection = new AsyncConnect(connectionProvider);
+		this.sharedConnection = Mono.just(sharedConnection);
 	}
 
 	/*
@@ -176,33 +198,55 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	 * @return
 	 */
 	public <T> Flux<T> execute(LettuceReactiveCallback<T> callback) {
-		return Flux.defer(() -> callback.doWithCommands(getCommands())).onErrorMap(translateException());
+		return getCommands().flatMapMany(callback::doWithCommands).onErrorMap(translateException());
 	}
 
-	/* (non-Javadoc)
+	/**
+	 * @param callback
+	 * @return
+	 * @since 2.0.1
+	 */
+	public <T> Flux<T> executeDedicated(LettuceReactiveCallback<T> callback) {
+		return getDedicatedCommands().flatMapMany(callback::doWithCommands).onErrorMap(translateException());
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see java.io.Closeable#close()
 	 */
 	@Override
 	public void close() {
-
-		if (connection != null) {
-			synchronized (connectionProvider) {
-				connectionProvider.release(connection);
-				connection = null;
-			}
-		}
+		dedicatedConnection.close();
 	}
 
-	protected StatefulConnection<ByteBuffer, ByteBuffer> getConnection() {
+	protected Mono<? extends StatefulConnection<ByteBuffer, ByteBuffer>> getConnection() {
 
-		if (connection != null) {
-			return connection;
+		if (sharedConnection != null) {
+			return sharedConnection;
 		}
 
-		throw new IllegalStateException("Connection is closed");
+		return getDedicatedConnection();
 	}
 
-	protected RedisClusterReactiveCommands<ByteBuffer, ByteBuffer> getCommands() {
+	protected Mono<StatefulConnection<ByteBuffer, ByteBuffer>> getDedicatedConnection() {
+		return dedicatedConnection.getConnection().onErrorMap(translateException());
+	}
+
+	protected Mono<? extends RedisClusterReactiveCommands<ByteBuffer, ByteBuffer>> getCommands() {
+
+		if (sharedConnection != null) {
+			return sharedConnection.map(LettuceReactiveRedisConnection::getRedisClusterReactiveCommands);
+		}
+
+		return getDedicatedCommands();
+	}
+
+	protected Mono<? extends RedisClusterReactiveCommands<ByteBuffer, ByteBuffer>> getDedicatedCommands() {
+		return dedicatedConnection.getConnection().map(LettuceReactiveRedisConnection::getRedisClusterReactiveCommands);
+	}
+
+	private static RedisClusterReactiveCommands<ByteBuffer, ByteBuffer> getRedisClusterReactiveCommands(
+			StatefulConnection<ByteBuffer, ByteBuffer> connection) {
 
 		if (connection instanceof StatefulRedisConnection) {
 			return ((StatefulRedisConnection<ByteBuffer, ByteBuffer>) connection).reactive();
@@ -210,7 +254,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 			return ((StatefulRedisClusterConnection<ByteBuffer, ByteBuffer>) connection).reactive();
 		}
 
-		throw new RuntimeException("o.O unknown connection type " + connection);
+		throw new IllegalStateException("o.O unknown connection type " + connection);
 	}
 
 	<T> Function<Throwable, Throwable> translateException() {
@@ -258,6 +302,96 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		@Override
 		public ByteBuffer encodeValue(ByteBuffer value) {
 			return value.duplicate();
+		}
+	}
+
+	/**
+	 * Asynchronous connection utility. This utility has a lifecycle controlled by {@link #getConnection()} and
+	 * {@link #close()} methods:
+	 * <ol>
+	 * <li>Initial state: Not connected. Calling {@link #getConnection()} will transition to the next state.</li>
+	 * <li>Connection requested: First caller to {@link #getConnection()} initiates an asynchronous connect. Connection is
+	 * accessible through the resulting {@link Mono}.</li>
+	 * <li>Closing: Call to {@link #close()} initiates connection closing.</li>
+	 * <li>Closed: Connection is closed.</li>
+	 * </ol>
+	 *
+	 * @author Mark Paluch
+	 * @since 2.0.1
+	 */
+	static class AsyncConnect {
+
+		private final Mono<StatefulConnection<ByteBuffer, ByteBuffer>> connectionPublisher;
+		private final LettuceConnectionProvider connectionProvider;
+
+		private AtomicReference<State> state = new AtomicReference<>(State.INITIAL);
+		private volatile @Nullable CompletableFuture<StatefulConnection<ByteBuffer, ByteBuffer>> connection;
+
+		@SuppressWarnings("unchecked")
+		AsyncConnect(LettuceConnectionProvider connectionProvider) {
+
+			Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null!");
+
+			this.connectionProvider = connectionProvider;
+
+			Mono<StatefulConnection<ByteBuffer, ByteBuffer>> defer = Mono
+					.defer(() -> Mono.<StatefulConnection<ByteBuffer, ByteBuffer>> just(
+							connectionProvider.getConnection(StatefulConnection.class)));
+
+			this.connectionPublisher = defer.subscribeOn(Schedulers.elastic());
+		}
+
+		/**
+		 * Obtain a connection publisher. This method connects asynchronously by requesting a connection from
+		 * {@link LettuceConnectionProvider} with non-blocking synchronization if called concurrently.
+		 *
+		 * @return
+		 */
+		Mono<StatefulConnection<ByteBuffer, ByteBuffer>> getConnection() {
+
+			if (state.get() == State.CLOSED) {
+				throw new IllegalStateException("Connection is closed!");
+			}
+
+			CompletableFuture<StatefulConnection<ByteBuffer, ByteBuffer>> connection = this.connection;
+
+			if (connection != null) {
+				return Mono.fromCompletionStage(connection);
+			}
+
+			if (state.compareAndSet(State.INITIAL, State.CONNECTION_REQUESTED)) {
+				this.connection = connectionPublisher.toFuture();
+			}
+
+			for (;;) {
+
+				connection = this.connection;
+				if (connection != null) {
+					return Mono.fromCompletionStage(connection);
+				}
+
+				Thread thread = Thread.currentThread();
+				if (thread.isInterrupted()) {
+					thread.interrupt();
+					return Mono.error(new InterruptedException());
+				}
+			}
+		}
+
+		/**
+		 * Close connection (blocking call).
+		 */
+		void close() {
+
+			if (state.compareAndSet(State.CONNECTION_REQUESTED, State.CLOSING)) {
+				getConnection().doOnSuccess(connectionProvider::release).doOnSuccess(it -> state.set(State.CLOSED)).block();
+			}
+
+			state.compareAndSet(State.INITIAL, State.CLOSED);
+		}
+
+		enum State {
+			INITIAL, CONNECTION_REQUESTED, CLOSING, CLOSED;
 		}
 	}
 }

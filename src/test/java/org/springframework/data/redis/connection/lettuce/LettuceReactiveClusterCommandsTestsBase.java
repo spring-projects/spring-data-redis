@@ -43,7 +43,8 @@ public abstract class LettuceReactiveClusterCommandsTestsBase {
 		assumeThat(clientProvider.test(), is(true));
 		nativeCommands = clientProvider.getClient().connect().sync();
 		connection = new LettuceReactiveRedisClusterConnection(
-				new ClusterConnectionProvider(clientProvider.getClient(), LettuceReactiveRedisConnection.CODEC));
+				new ClusterConnectionProvider(clientProvider.getClient(), LettuceReactiveRedisConnection.CODEC),
+				clientProvider.getClient());
 	}
 
 	@After
