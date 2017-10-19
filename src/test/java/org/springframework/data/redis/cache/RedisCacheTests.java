@@ -61,7 +61,7 @@ public class RedisCacheTests {
 	Person sample = new Person("calmity", new Date());
 	byte[] binarySample;
 
-	byte[] binaryNullValue = new JdkSerializationRedisSerializer().serialize(NullValue.INSTANCE);
+	byte[] binaryNullValue = RedisSerializer.java().serialize(NullValue.INSTANCE);
 
 	RedisConnectionFactory connectionFactory;
 	RedisSerializer serializer;

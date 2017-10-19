@@ -99,8 +99,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	private static final GeoLocation<String> PALERMO = new GeoLocation<>("palermo", POINT_PALERMO);
 
 	protected StringRedisConnection connection;
-	protected RedisSerializer<Object> serializer = new JdkSerializationRedisSerializer();
-	protected RedisSerializer<String> stringSerializer = StringRedisSerializer.UTF_8;
+	protected RedisSerializer<Object> serializer = RedisSerializer.java();
+	protected RedisSerializer<String> stringSerializer = RedisSerializer.string();
 
 	private static final byte[] EMPTY_ARRAY = new byte[0];
 

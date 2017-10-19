@@ -24,7 +24,7 @@ import org.springframework.cache.support.NullValue;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -44,7 +44,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class RedisCache extends AbstractValueAdaptingCache {
 
-	private static final byte[] BINARY_NULL_VALUE = new JdkSerializationRedisSerializer().serialize(NullValue.INSTANCE);
+	private static final byte[] BINARY_NULL_VALUE = RedisSerializer.java().serialize(NullValue.INSTANCE);
 
 	private final String name;
 	private final RedisCacheWriter cacheWriter;

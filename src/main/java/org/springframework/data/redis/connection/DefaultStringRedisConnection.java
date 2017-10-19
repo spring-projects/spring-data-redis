@@ -117,7 +117,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @param connection Redis connection
 	 */
 	public DefaultStringRedisConnection(RedisConnection connection) {
-		this(connection, StringRedisSerializer.UTF_8);
+		this(connection, RedisSerializer.string());
 	}
 
 	/**

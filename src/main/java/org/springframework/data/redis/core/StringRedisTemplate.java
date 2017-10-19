@@ -40,10 +40,10 @@ public class StringRedisTemplate extends RedisTemplate<String, String> {
 	 * and {@link #afterPropertiesSet()} still need to be called.
 	 */
 	public StringRedisTemplate() {
-		setKeySerializer(StringRedisSerializer.UTF_8);
-		setValueSerializer(StringRedisSerializer.UTF_8);
-		setHashKeySerializer(StringRedisSerializer.UTF_8);
-		setHashValueSerializer(StringRedisSerializer.UTF_8);
+		setKeySerializer(RedisSerializer.string());
+		setValueSerializer(RedisSerializer.string());
+		setHashKeySerializer(RedisSerializer.string());
+		setHashValueSerializer(RedisSerializer.string());
 	}
 
 	/**

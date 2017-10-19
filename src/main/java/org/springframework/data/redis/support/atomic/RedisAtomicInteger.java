@@ -102,7 +102,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	private RedisAtomicInteger(String redisCounter, RedisConnectionFactory factory, @Nullable Integer initialValue) {
 
 		RedisTemplate<String, Integer> redisTemplate = new RedisTemplate<>();
-		redisTemplate.setKeySerializer(StringRedisSerializer.UTF_8);
+		redisTemplate.setKeySerializer(RedisSerializer.string());
 		redisTemplate.setValueSerializer(new GenericToStringSerializer<>(Integer.class));
 		redisTemplate.setExposeConnection(true);
 		redisTemplate.setConnectionFactory(factory);
