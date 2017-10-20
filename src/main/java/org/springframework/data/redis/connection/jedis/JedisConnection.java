@@ -631,7 +631,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	JedisStatusResult newStatusResult(Response<?> response) {
-		return JedisResultBuilder.forResponse( response).buildStatusResult();
+		return JedisResultBuilder.forResponse(response).buildStatusResult();
 	}
 
 	/*

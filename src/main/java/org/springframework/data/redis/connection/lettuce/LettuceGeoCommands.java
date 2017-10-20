@@ -40,7 +40,6 @@ import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.convert.ListConverter;
-import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceTxResult;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -71,7 +70,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().geoadd(key, point.getX(), point.getY(), member)));
+				transaction(connection.newLettuceResult(getAsyncConnection().geoadd(key, point.getX(), point.getY(), member)));
 				return null;
 			}
 			return getConnection().geoadd(key, point.getX(), point.getY(), member);
@@ -132,7 +131,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().geoadd(key, values.toArray())));
+				transaction(connection.newLettuceResult(getAsyncConnection().geoadd(key, values.toArray())));
 				return null;
 			}
 			return getConnection().geoadd(key, values.toArray());
@@ -172,8 +171,8 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(
-						connection.newLettuceTxResult(getConnection().geodist(key, member1, member2, geoUnit), distanceConverter));
+				transaction(connection.newLettuceResult(getAsyncConnection().geodist(key, member1, member2, geoUnit),
+						distanceConverter));
 				return null;
 			}
 			return distanceConverter.convert(getConnection().geodist(key, member1, member2, geoUnit));
@@ -199,7 +198,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().geohash(key, members)));
+				transaction(connection.newLettuceResult(getAsyncConnection().geohash(key, members)));
 				return null;
 			}
 			return getConnection().geohash(key, members).stream().map(value -> value.getValueOrElse(null))
@@ -228,7 +227,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().geopos(key, members), converter));
+				transaction(connection.newLettuceResult(getAsyncConnection().geopos(key, members), converter));
 				return null;
 			}
 			return converter.convert(getConnection().geopos(key, members));
@@ -259,8 +258,8 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(
-						getConnection().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
+				transaction(connection.newLettuceResult(
+						getAsyncConnection().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
 								within.getRadius().getValue(), LettuceConverters.toGeoArgsUnit(within.getRadius().getMetric())),
 						geoResultsConverter));
 				return null;
@@ -296,7 +295,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().georadius(key, within.getCenter().getX(),
+				transaction(connection.newLettuceResult(getAsyncConnection().georadius(key, within.getCenter().getX(),
 						within.getCenter().getY(), within.getRadius().getValue(),
 						LettuceConverters.toGeoArgsUnit(within.getRadius().getMetric()), geoArgs), geoResultsConverter));
 				return null;
@@ -340,8 +339,8 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection
-						.newLettuceTxResult(getConnection().georadiusbymember(key, member, radius.getValue(), geoUnit), converter));
+				transaction(connection.newLettuceResult(
+						getAsyncConnection().georadiusbymember(key, member, radius.getValue(), geoUnit), converter));
 				return null;
 			}
 			return converter.convert(getConnection().georadiusbymember(key, member, radius.getValue(), geoUnit));
@@ -376,8 +375,9 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(
-						getConnection().georadiusbymember(key, member, radius.getValue(), geoUnit, geoArgs), geoResultsConverter));
+				transaction(connection.newLettuceResult(
+						getAsyncConnection().georadiusbymember(key, member, radius.getValue(), geoUnit, geoArgs),
+						geoResultsConverter));
 				return null;
 			}
 			return geoResultsConverter
@@ -408,7 +408,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 		connection.pipeline(result);
 	}
 
-	private void transaction(LettuceTxResult result) {
+	private void transaction(LettuceResult result) {
 		connection.transaction(result);
 	}
 

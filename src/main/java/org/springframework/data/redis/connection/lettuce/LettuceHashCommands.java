@@ -29,7 +29,6 @@ import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisHashCommands;
-import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceTxResult;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
@@ -63,7 +62,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().hset(key, field, value)));
+				transaction(connection.newLettuceResult(getAsyncConnection().hset(key, field, value)));
 				return null;
 			}
 			return getConnection().hset(key, field, value);
@@ -89,7 +88,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().hsetnx(key, field, value)));
+				transaction(connection.newLettuceResult(getAsyncConnection().hsetnx(key, field, value)));
 				return null;
 			}
 			return getConnection().hsetnx(key, field, value);
@@ -114,7 +113,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().hdel(key, fields)));
+				transaction(connection.newLettuceResult(getAsyncConnection().hdel(key, fields)));
 				return null;
 			}
 			return getConnection().hdel(key, fields);
@@ -139,7 +138,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().hexists(key, field)));
+				transaction(connection.newLettuceResult(getAsyncConnection().hexists(key, field)));
 				return null;
 			}
 			return getConnection().hexists(key, field);
@@ -164,7 +163,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().hget(key, field)));
+				transaction(connection.newLettuceResult(getAsyncConnection().hget(key, field)));
 				return null;
 			}
 			return getConnection().hget(key, field);
@@ -188,7 +187,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().hgetall(key)));
+				transaction(connection.newLettuceResult(getAsyncConnection().hgetall(key)));
 				return null;
 			}
 			return getConnection().hgetall(key);
@@ -213,7 +212,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().hincrby(key, field, delta)));
+				transaction(connection.newLettuceResult(getAsyncConnection().hincrby(key, field, delta)));
 				return null;
 			}
 			return getConnection().hincrby(key, field, delta);
@@ -238,7 +237,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().hincrbyfloat(key, field, delta)));
+				transaction(connection.newLettuceResult(getAsyncConnection().hincrbyfloat(key, field, delta)));
 				return null;
 			}
 			return getConnection().hincrbyfloat(key, field, delta);
@@ -262,7 +261,8 @@ class LettuceHashCommands implements RedisHashCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().hkeys(key), LettuceConverters.bytesListToBytesSet()));
+				transaction(
+						connection.newLettuceResult(getAsyncConnection().hkeys(key), LettuceConverters.bytesListToBytesSet()));
 				return null;
 			}
 			return LettuceConverters.toBytesSet(getConnection().hkeys(key));
@@ -286,7 +286,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().hlen(key)));
+				transaction(connection.newLettuceResult(getAsyncConnection().hlen(key)));
 				return null;
 			}
 			return getConnection().hlen(key);
@@ -312,7 +312,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().hmget(key, fields),
+				transaction(connection.newLettuceResult(getAsyncConnection().hmget(key, fields),
 						LettuceConverters.keyValueListUnwrapper()));
 				return null;
 			}
@@ -338,7 +338,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().hmset(key, hashes)));
+				transaction(connection.newLettuceStatusResult(getAsyncConnection().hmset(key, hashes)));
 				return;
 			}
 			getConnection().hmset(key, hashes);
@@ -362,7 +362,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().hvals(key)));
+				transaction(connection.newLettuceResult(getAsyncConnection().hvals(key)));
 				return null;
 			}
 			return getConnection().hvals(key);
@@ -429,7 +429,7 @@ class LettuceHashCommands implements RedisHashCommands {
 		connection.pipeline(result);
 	}
 
-	private void transaction(LettuceTxResult result) {
+	private void transaction(LettuceResult result) {
 		connection.transaction(result);
 	}
 

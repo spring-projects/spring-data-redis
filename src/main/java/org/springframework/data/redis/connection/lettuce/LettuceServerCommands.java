@@ -27,7 +27,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.convert.Converters;
-import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceTxResult;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -54,7 +53,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().bgrewriteaof()));
+				transaction(connection.newLettuceStatusResult(getAsyncConnection().bgrewriteaof()));
 				return;
 			}
 			getConnection().bgrewriteaof();
@@ -76,7 +75,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().bgsave()));
+				transaction(connection.newLettuceStatusResult(getAsyncConnection().bgsave()));
 				return;
 			}
 			getConnection().bgsave();
@@ -98,7 +97,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().lastsave(), LettuceConverters.dateToLong()));
+				transaction(connection.newLettuceResult(getAsyncConnection().lastsave(), LettuceConverters.dateToLong()));
 				return null;
 			}
 			return LettuceConverters.toLong(getConnection().lastsave());
@@ -120,7 +119,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().save()));
+				transaction(connection.newLettuceStatusResult(getAsyncConnection().save()));
 				return;
 			}
 			getConnection().save();
@@ -142,7 +141,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().dbsize()));
+				transaction(connection.newLettuceResult(getAsyncConnection().dbsize()));
 				return null;
 			}
 			return getConnection().dbsize();
@@ -164,7 +163,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().flushdb()));
+				transaction(connection.newLettuceStatusResult(getAsyncConnection().flushdb()));
 				return;
 			}
 			getConnection().flushdb();
@@ -186,7 +185,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().flushall()));
+				transaction(connection.newLettuceResult(getAsyncConnection().flushall()));
 				return;
 			}
 			getConnection().flushall();
@@ -208,7 +207,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().info(), LettuceConverters.stringToProps()));
+				transaction(connection.newLettuceResult(getAsyncConnection().info(), LettuceConverters.stringToProps()));
 				return null;
 			}
 			return LettuceConverters.toProperties(getConnection().info());
@@ -232,7 +231,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().info(section), LettuceConverters.stringToProps()));
+				transaction(connection.newLettuceResult(getAsyncConnection().info(section), LettuceConverters.stringToProps()));
 				return null;
 			}
 			return LettuceConverters.toProperties(getConnection().info(section));
@@ -299,8 +298,8 @@ class LettuceServerCommands implements RedisServerCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(
-						connection.newLettuceTxResult(getConnection().configGet(pattern), Converters.mapToPropertiesConverter()));
+				transaction(connection.newLettuceResult(getAsyncConnection().configGet(pattern),
+						Converters.mapToPropertiesConverter()));
 				return null;
 			}
 			return Converters.toProperties(getConnection().configGet(pattern));
@@ -325,7 +324,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().configSet(param, value)));
+				transaction(connection.newLettuceStatusResult(getAsyncConnection().configSet(param, value)));
 				return;
 			}
 			getConnection().configSet(param, value);
@@ -347,7 +346,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().configResetstat()));
+				transaction(connection.newLettuceStatusResult(getAsyncConnection().configResetstat()));
 				return;
 			}
 			getConnection().configResetstat();
@@ -369,7 +368,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().time(), LettuceConverters.toTimeConverter()));
+				transaction(connection.newLettuceResult(getAsyncConnection().time(), LettuceConverters.toTimeConverter()));
 				return null;
 			}
 			return LettuceConverters.toTimeConverter().convert(getConnection().time());
@@ -413,7 +412,7 @@ class LettuceServerCommands implements RedisServerCommands {
 			return;
 		}
 		if (isQueueing()) {
-			transaction(connection.newLettuceTxStatusResult(getConnection().clientSetname(name)));
+			transaction(connection.newLettuceStatusResult(getAsyncConnection().clientSetname(name)));
 			return;
 		}
 
@@ -433,7 +432,8 @@ class LettuceServerCommands implements RedisServerCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().clientGetname(), LettuceConverters.bytesToString()));
+				transaction(
+						connection.newLettuceResult(getAsyncConnection().clientGetname(), LettuceConverters.bytesToString()));
 				return null;
 			}
 			return LettuceConverters.toString(getConnection().clientGetname());
@@ -453,7 +453,7 @@ class LettuceServerCommands implements RedisServerCommands {
 			throw new UnsupportedOperationException("Cannot be called in pipeline mode.");
 		}
 		if (isQueueing()) {
-			transaction(connection.newLettuceTxResult(getConnection().clientList(),
+			transaction(connection.newLettuceResult(getAsyncConnection().clientList(),
 					LettuceConverters.stringToRedisClientListConverter()));
 			return null;
 		}
@@ -476,7 +476,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().slaveof(host, port)));
+				transaction(connection.newLettuceResult(getAsyncConnection().slaveof(host, port)));
 				return;
 			}
 			getConnection().slaveof(host, port);
@@ -498,7 +498,7 @@ class LettuceServerCommands implements RedisServerCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().slaveofNoOne()));
+				transaction(connection.newLettuceResult(getAsyncConnection().slaveofNoOne()));
 				return;
 			}
 			getConnection().slaveofNoOne();
@@ -534,7 +534,7 @@ class LettuceServerCommands implements RedisServerCommands {
 			}
 			if (isQueueing()) {
 				transaction(connection
-						.newLettuceTxResult(getConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout)));
+						.newLettuceResult(getAsyncConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout)));
 				return;
 			}
 			getConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout);
@@ -555,7 +555,7 @@ class LettuceServerCommands implements RedisServerCommands {
 		connection.pipeline(result);
 	}
 
-	private void transaction(LettuceTxResult<?, ?> result) {
+	private void transaction(LettuceResult<?, ?> result) {
 		connection.transaction(result);
 	}
 

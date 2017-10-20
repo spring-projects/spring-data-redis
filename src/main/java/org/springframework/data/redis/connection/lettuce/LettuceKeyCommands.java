@@ -32,7 +32,6 @@ import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.convert.Converters;
-import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceTxResult;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
@@ -65,7 +64,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().exists(new byte[][] { key }),
+				transaction(connection.newLettuceResult(getAsyncConnection().exists(new byte[][] { key }),
 						LettuceConverters.longToBooleanConverter()));
 				return null;
 			}
@@ -91,7 +90,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().del(keys)));
+				transaction(connection.newLettuceResult(getAsyncConnection().del(keys)));
 				return null;
 			}
 			return getConnection().del(keys);
@@ -115,7 +114,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().type(key), LettuceConverters.stringToDataType()));
+				transaction(connection.newLettuceResult(getAsyncConnection().type(key), LettuceConverters.stringToDataType()));
 				return null;
 			}
 			return LettuceConverters.toDataType(getConnection().type(key));
@@ -141,7 +140,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 			}
 			if (isQueueing()) {
 				transaction(
-						connection.newLettuceTxResult(getConnection().keys(pattern), LettuceConverters.bytesListToBytesSet()));
+						connection.newLettuceResult(getAsyncConnection().keys(pattern), LettuceConverters.bytesListToBytesSet()));
 				return null;
 			}
 			return LettuceConverters.toBytesSet(getConnection().keys(pattern));
@@ -217,7 +216,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().randomkey()));
+				transaction(connection.newLettuceResult(getAsyncConnection().randomkey()));
 				return null;
 			}
 			return getConnection().randomkey();
@@ -242,7 +241,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().rename(sourceKey, targetKey)));
+				transaction(connection.newLettuceStatusResult(getAsyncConnection().rename(sourceKey, targetKey)));
 				return;
 			}
 			getConnection().rename(sourceKey, targetKey);
@@ -267,7 +266,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().renamenx(sourceKey, targetKey)));
+				transaction(connection.newLettuceResult(getAsyncConnection().renamenx(sourceKey, targetKey)));
 				return null;
 			}
 			return (getConnection().renamenx(sourceKey, targetKey));
@@ -291,7 +290,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().expire(key, seconds)));
+				transaction(connection.newLettuceResult(getAsyncConnection().expire(key, seconds)));
 				return null;
 			}
 			return getConnection().expire(key, seconds);
@@ -315,7 +314,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().pexpire(key, millis)));
+				transaction(connection.newLettuceResult(getAsyncConnection().pexpire(key, millis)));
 				return null;
 			}
 			return getConnection().pexpire(key, millis);
@@ -339,7 +338,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().expireat(key, unixTime)));
+				transaction(connection.newLettuceResult(getAsyncConnection().expireat(key, unixTime)));
 				return null;
 			}
 			return getConnection().expireat(key, unixTime);
@@ -363,7 +362,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().pexpireat(key, unixTimeInMillis)));
+				transaction(connection.newLettuceResult(getAsyncConnection().pexpireat(key, unixTimeInMillis)));
 				return null;
 			}
 			return getConnection().pexpireat(key, unixTimeInMillis);
@@ -387,7 +386,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().persist(key)));
+				transaction(connection.newLettuceResult(getAsyncConnection().persist(key)));
 				return null;
 			}
 			return getConnection().persist(key);
@@ -411,7 +410,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().move(key, dbIndex)));
+				transaction(connection.newLettuceResult(getAsyncConnection().move(key, dbIndex)));
 				return null;
 			}
 			return getConnection().move(key, dbIndex);
@@ -435,7 +434,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().ttl(key)));
+				transaction(connection.newLettuceResult(getAsyncConnection().ttl(key)));
 				return null;
 			}
 
@@ -460,7 +459,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().ttl(key), Converters.secondsToTimeUnit(timeUnit)));
+				transaction(connection.newLettuceResult(getAsyncConnection().ttl(key), Converters.secondsToTimeUnit(timeUnit)));
 				return null;
 			}
 
@@ -485,7 +484,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().pttl(key)));
+				transaction(connection.newLettuceResult(getAsyncConnection().pttl(key)));
 				return null;
 			}
 
@@ -512,7 +511,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 			}
 			if (isQueueing()) {
 				transaction(
-						connection.newLettuceTxResult(getConnection().pttl(key), Converters.millisecondsToTimeUnit(timeUnit)));
+						connection.newLettuceResult(getAsyncConnection().pttl(key), Converters.millisecondsToTimeUnit(timeUnit)));
 				return null;
 			}
 
@@ -539,7 +538,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().sort(key, args)));
+				transaction(connection.newLettuceResult(getAsyncConnection().sort(key, args)));
 				return null;
 			}
 			return getConnection().sort(key, args);
@@ -565,7 +564,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().sortStore(key, args, sortKey)));
+				transaction(connection.newLettuceResult(getAsyncConnection().sortStore(key, args, sortKey)));
 				return null;
 			}
 			return getConnection().sortStore(key, args, sortKey);
@@ -589,7 +588,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().dump(key)));
+				transaction(connection.newLettuceResult(getAsyncConnection().dump(key)));
 				return null;
 			}
 			return getConnection().dump(key);
@@ -614,7 +613,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().restore(key, ttlInMillis, serializedValue)));
+				transaction(connection.newLettuceStatusResult(getAsyncConnection().restore(key, ttlInMillis, serializedValue)));
 				return;
 			}
 			getConnection().restore(key, ttlInMillis, serializedValue);
@@ -635,7 +634,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		connection.pipeline(result);
 	}
 
-	private void transaction(LettuceTxResult result) {
+	private void transaction(LettuceResult result) {
 		connection.transaction(result);
 	}
 
