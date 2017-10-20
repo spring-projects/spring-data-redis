@@ -29,7 +29,6 @@ import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisZSetCommands;
-import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceTxResult;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
@@ -63,8 +62,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(
-						connection.newLettuceTxResult(getConnection().zadd(key, score, value), LettuceConverters.longToBoolean()));
+				transaction(connection.newLettuceResult(getAsyncConnection().zadd(key, score, value),
+						LettuceConverters.longToBoolean()));
 				return null;
 			}
 			return LettuceConverters.toBoolean(getConnection().zadd(key, score, value));
@@ -91,7 +90,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 			}
 			if (isQueueing()) {
 				transaction(
-						connection.newLettuceTxResult(getConnection().zadd(key, LettuceConverters.toObjects(tuples).toArray())));
+						connection.newLettuceResult(getAsyncConnection().zadd(key, LettuceConverters.toObjects(tuples).toArray())));
 				return null;
 			}
 			return getConnection().zadd(key, LettuceConverters.toObjects(tuples).toArray());
@@ -117,7 +116,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrem(key, values)));
+				transaction(connection.newLettuceResult(getAsyncConnection().zrem(key, values)));
 				return null;
 			}
 			return getConnection().zrem(key, values);
@@ -142,7 +141,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zincrby(key, increment, value)));
+				transaction(connection.newLettuceResult(getAsyncConnection().zincrby(key, increment, value)));
 				return null;
 			}
 			return getConnection().zincrby(key, increment, value);
@@ -167,7 +166,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrank(key, value)));
+				transaction(connection.newLettuceResult(getAsyncConnection().zrank(key, value)));
 				return null;
 			}
 			return getConnection().zrank(key, value);
@@ -191,7 +190,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrevrank(key, value)));
+				transaction(connection.newLettuceResult(getAsyncConnection().zrevrank(key, value)));
 				return null;
 			}
 			return getConnection().zrevrank(key, value);
@@ -216,7 +215,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrange(key, start, end),
+				transaction(connection.newLettuceResult(getAsyncConnection().zrange(key, start, end),
 						LettuceConverters.bytesListToBytesSet()));
 				return null;
 			}
@@ -242,7 +241,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrangeWithScores(key, start, end),
+				transaction(connection.newLettuceResult(getAsyncConnection().zrangeWithScores(key, start, end),
 						LettuceConverters.scoredValuesToTupleSet()));
 				return null;
 			}
@@ -278,11 +277,11 @@ class LettuceZSetCommands implements RedisZSetCommands {
 			}
 			if (isQueueing()) {
 				if (limit.isUnlimited()) {
-					transaction(connection.newLettuceTxResult(
-							getConnection().zrangebyscoreWithScores(key, LettuceConverters.toRange(range)),
+					transaction(connection.newLettuceResult(
+							getAsyncConnection().zrangebyscoreWithScores(key, LettuceConverters.toRange(range)),
 							LettuceConverters.scoredValuesToTupleSet()));
 				} else {
-					transaction(connection.newLettuceTxResult(getConnection().zrangebyscoreWithScores(key,
+					transaction(connection.newLettuceResult(getAsyncConnection().zrangebyscoreWithScores(key,
 							LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
 							LettuceConverters.scoredValuesToTupleSet()));
 				}
@@ -315,7 +314,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrevrange(key, start, end),
+				transaction(connection.newLettuceResult(getAsyncConnection().zrevrange(key, start, end),
 						LettuceConverters.bytesListToBytesSet()));
 				return null;
 			}
@@ -341,7 +340,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrevrangeWithScores(key, start, end),
+				transaction(connection.newLettuceResult(getAsyncConnection().zrevrangeWithScores(key, start, end),
 						LettuceConverters.scoredValuesToTupleSet()));
 				return null;
 			}
@@ -378,12 +377,12 @@ class LettuceZSetCommands implements RedisZSetCommands {
 			if (isQueueing()) {
 				if (limit.isUnlimited()) {
 					transaction(
-							connection.newLettuceTxResult(getConnection().zrevrangebyscore(key, LettuceConverters.toRange(range)),
+							connection.newLettuceResult(getAsyncConnection().zrevrangebyscore(key, LettuceConverters.toRange(range)),
 									LettuceConverters.bytesListToBytesSet()));
 				} else {
-					transaction(connection.newLettuceTxResult(
-							getConnection().zrevrangebyscore(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
-							LettuceConverters.bytesListToBytesSet()));
+					transaction(
+							connection.newLettuceResult(getAsyncConnection().zrevrangebyscore(key, LettuceConverters.toRange(range),
+									LettuceConverters.toLimit(limit)), LettuceConverters.bytesListToBytesSet()));
 				}
 				return null;
 			}
@@ -424,11 +423,11 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 			if (isQueueing()) {
 				if (limit.isUnlimited()) {
-					transaction(connection.newLettuceTxResult(
-							getConnection().zrevrangebyscoreWithScores(key, LettuceConverters.toRange(range)),
+					transaction(connection.newLettuceResult(
+							getAsyncConnection().zrevrangebyscoreWithScores(key, LettuceConverters.toRange(range)),
 							LettuceConverters.scoredValuesToTupleSet()));
 				} else {
-					transaction(connection.newLettuceTxResult(getConnection().zrevrangebyscoreWithScores(key,
+					transaction(connection.newLettuceResult(getAsyncConnection().zrevrangebyscoreWithScores(key,
 							LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
 							LettuceConverters.scoredValuesToTupleSet()));
 				}
@@ -460,7 +459,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zcount(key, LettuceConverters.toRange(range))));
+				transaction(connection.newLettuceResult(getAsyncConnection().zcount(key, LettuceConverters.toRange(range))));
 				return null;
 			}
 			return getConnection().zcount(key, LettuceConverters.toRange(range));
@@ -484,7 +483,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zcard(key)));
+				transaction(connection.newLettuceResult(getAsyncConnection().zcard(key)));
 				return null;
 			}
 			return getConnection().zcard(key);
@@ -509,7 +508,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zscore(key, value)));
+				transaction(connection.newLettuceResult(getAsyncConnection().zscore(key, value)));
 				return null;
 			}
 			return getConnection().zscore(key, value);
@@ -533,7 +532,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zremrangebyrank(key, start, end)));
+				transaction(connection.newLettuceResult(getAsyncConnection().zremrangebyrank(key, start, end)));
 				return null;
 			}
 			return getConnection().zremrangebyrank(key, start, end);
@@ -560,7 +559,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 			}
 			if (isQueueing()) {
 				transaction(
-						connection.newLettuceTxResult(getConnection().zremrangebyscore(key, LettuceConverters.toRange(range))));
+						connection.newLettuceResult(getAsyncConnection().zremrangebyscore(key, LettuceConverters.toRange(range))));
 				return null;
 			}
 			return getConnection().zremrangebyscore(key, LettuceConverters.toRange(range));
@@ -588,7 +587,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zunionstore(destKey, storeArgs, sets)));
+				transaction(connection.newLettuceResult(getAsyncConnection().zunionstore(destKey, storeArgs, sets)));
 				return null;
 			}
 			return getConnection().zunionstore(destKey, storeArgs, sets);
@@ -614,7 +613,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zunionstore(destKey, sets)));
+				transaction(connection.newLettuceResult(getAsyncConnection().zunionstore(destKey, sets)));
 				return null;
 			}
 			return getConnection().zunionstore(destKey, sets);
@@ -642,7 +641,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zinterstore(destKey, storeArgs, sets)));
+				transaction(connection.newLettuceResult(getAsyncConnection().zinterstore(destKey, storeArgs, sets)));
 				return null;
 			}
 			return getConnection().zinterstore(destKey, storeArgs, sets);
@@ -668,7 +667,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zinterstore(destKey, sets)));
+				transaction(connection.newLettuceResult(getAsyncConnection().zinterstore(destKey, sets)));
 				return null;
 			}
 			return getConnection().zinterstore(destKey, sets);
@@ -742,7 +741,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrangebyscore(key, min, max),
+				transaction(connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, min, max),
 						LettuceConverters.bytesListToBytesSet()));
 				return null;
 			}
@@ -768,7 +767,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().zrangebyscore(key, min, max, offset, count),
+				transaction(connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, min, max, offset, count),
 						LettuceConverters.bytesListToBytesSet()));
 				return null;
 			}
@@ -804,12 +803,12 @@ class LettuceZSetCommands implements RedisZSetCommands {
 			if (isQueueing()) {
 				if (limit.isUnlimited()) {
 					transaction(
-							connection.newLettuceTxResult(getConnection().zrangebyscore(key, LettuceConverters.toRange(range)),
+							connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, LettuceConverters.toRange(range)),
 									LettuceConverters.bytesListToBytesSet()));
 				} else {
-					transaction(connection.newLettuceTxResult(
-							getConnection().zrangebyscore(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
-							LettuceConverters.bytesListToBytesSet()));
+					transaction(
+							connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, LettuceConverters.toRange(range),
+									LettuceConverters.toLimit(limit)), LettuceConverters.bytesListToBytesSet()));
 				}
 				return null;
 			}
@@ -848,11 +847,12 @@ class LettuceZSetCommands implements RedisZSetCommands {
 			}
 			if (isQueueing()) {
 				if (limit.isUnlimited()) {
-					transaction(connection.newLettuceTxResult(getConnection().zrangebylex(key, LettuceConverters.toRange(range)),
-							LettuceConverters.bytesListToBytesSet()));
+					transaction(
+							connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range)),
+									LettuceConverters.bytesListToBytesSet()));
 				} else {
-					transaction(connection.newLettuceTxResult(
-							getConnection().zrangebylex(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
+					transaction(connection.newLettuceResult(
+							getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
 							LettuceConverters.bytesListToBytesSet()));
 				}
 				return null;
@@ -882,7 +882,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		connection.pipeline(result);
 	}
 
-	private void transaction(LettuceTxResult result) {
+	private void transaction(LettuceResult result) {
 		connection.transaction(result);
 	}
 

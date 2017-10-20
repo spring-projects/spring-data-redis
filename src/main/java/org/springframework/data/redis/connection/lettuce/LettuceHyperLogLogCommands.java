@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import io.lettuce.core.api.async.RedisHLLAsyncCommands;
 import io.lettuce.core.api.sync.RedisHLLCommands;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
@@ -24,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
-import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceTxResult;
 import org.springframework.util.Assert;
 
 /**
@@ -49,14 +47,12 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 
 		try {
 			if (isPipelined()) {
-				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
-				pipeline(connection.newLettuceResult(asyncConnection.pfadd(key, values)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().pfadd(key, values)));
 				return null;
 			}
 
 			if (isQueueing()) {
-				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
-				transaction(connection.newLettuceTxResult(asyncConnection.pfadd(key, values)));
+				transaction(connection.newLettuceResult(getAsyncConnection().pfadd(key, values)));
 				return null;
 			}
 
@@ -79,14 +75,12 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 
 		try {
 			if (isPipelined()) {
-				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
-				pipeline(connection.newLettuceResult(asyncConnection.pfcount(keys)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().pfcount(keys)));
 				return null;
 			}
 
 			if (isQueueing()) {
-				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
-				transaction(connection.newLettuceTxResult(asyncConnection.pfcount(keys)));
+				transaction(connection.newLettuceResult(getAsyncConnection().pfcount(keys)));
 				return null;
 			}
 
@@ -110,14 +104,12 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 
 		try {
 			if (isPipelined()) {
-				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
-				pipeline(connection.newLettuceResult(asyncConnection.pfmerge(destinationKey, sourceKeys)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().pfmerge(destinationKey, sourceKeys)));
 				return;
 			}
 
 			if (isQueueing()) {
-				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
-				transaction(connection.newLettuceTxResult(asyncConnection.pfmerge(destinationKey, sourceKeys)));
+				transaction(connection.newLettuceResult(getAsyncConnection().pfmerge(destinationKey, sourceKeys)));
 				return;
 			}
 
@@ -140,7 +132,7 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 		connection.pipeline(result);
 	}
 
-	private void transaction(LettuceTxResult result) {
+	private void transaction(LettuceResult result) {
 		connection.transaction(result);
 	}
 
