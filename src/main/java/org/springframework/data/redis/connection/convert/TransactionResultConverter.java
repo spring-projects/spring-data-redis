@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.convert;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
@@ -31,13 +30,13 @@ import org.springframework.data.redis.connection.FutureResult;
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @param <T> The type of {@link FutureResult} of the individual tx operations
  */
 public class TransactionResultConverter<T> implements Converter<List<Object>, List<Object>> {
 
-	private Queue<FutureResult<T>> txResults = new LinkedList<>();
-
-	private Converter<Exception, DataAccessException> exceptionConverter;
+	private final Queue<FutureResult<T>> txResults;
+	private final Converter<Exception, DataAccessException> exceptionConverter;
 
 	public TransactionResultConverter(Queue<FutureResult<T>> txResults,
 			Converter<Exception, DataAccessException> exceptionConverter) {
@@ -71,7 +70,7 @@ public class TransactionResultConverter<T> implements Converter<List<Object>, Li
 						: new RedisSystemException("Error reading future result.", source);
 			}
 			if (!(futureResult.isStatus())) {
-				convertedResults.add(futureResult.seeksConversion() ? futureResult.convert(result) : result);
+				convertedResults.add(futureResult.conversionRequired() ? futureResult.convert(result) : result);
 			}
 		}
 
