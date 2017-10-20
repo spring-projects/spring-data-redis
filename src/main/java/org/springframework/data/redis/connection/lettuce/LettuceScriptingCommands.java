@@ -25,7 +25,6 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisScriptingCommands;
 import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceTxResult;
 import org.springframework.util.Assert;
 
 /**
@@ -53,7 +52,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxStatusResult(getConnection().scriptFlush()));
+				transaction(connection.newLettuceStatusResult(getAsyncConnection().scriptFlush()));
 				return;
 			}
 			getConnection().scriptFlush();
@@ -99,7 +98,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().scriptLoad(script)));
+				transaction(connection.newLettuceResult(getAsyncConnection().scriptLoad(script)));
 				return null;
 			}
 			return getConnection().scriptLoad(script);
@@ -124,7 +123,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().scriptExists(scriptSha1)));
+				transaction(connection.newLettuceResult(getAsyncConnection().scriptExists(scriptSha1)));
 				return null;
 			}
 			return getConnection().scriptExists(scriptSha1);
@@ -153,8 +152,8 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(
-						getConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType), keys, args),
+				transaction(connection.newLettuceResult(
+						getAsyncConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType), keys, args),
 						new LettuceEvalResultsConverter<T>(returnType)));
 				return null;
 			}
@@ -185,8 +184,8 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(
-						getConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType), keys, args),
+				transaction(connection.newLettuceResult(
+						getAsyncConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType), keys, args),
 						new LettuceEvalResultsConverter<T>(returnType)));
 				return null;
 			}
@@ -221,7 +220,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		connection.pipeline(result);
 	}
 
-	private void transaction(LettuceTxResult result) {
+	private void transaction(LettuceResult result) {
 		connection.transaction(result);
 	}
 
