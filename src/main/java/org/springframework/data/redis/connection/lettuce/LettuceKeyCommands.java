@@ -66,7 +66,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getAsyncConnection().exists(new byte[][] { key }),
+				transaction(connection.newLettuceTxResult(getConnection().exists(new byte[][] { key }),
 						LettuceConverters.longToBooleanConverter()));
 				return null;
 			}
@@ -93,7 +93,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getAsyncConnection().exists(keys)));
+				transaction(connection.newLettuceTxResult(getConnection().exists(keys)));
 				return null;
 			}
 			return getConnection().exists(keys);

@@ -453,7 +453,7 @@ class LettuceServerCommands implements RedisServerCommands {
 			throw new UnsupportedOperationException("Cannot be called in pipeline mode.");
 		}
 		if (isQueueing()) {
-			transaction(connection.newLettuceTxResult(getAsyncConnection().clientList(),
+			transaction(connection.newLettuceTxResult(getConnection().clientList(),
 					LettuceConverters.stringToRedisClientListConverter()));
 			return null;
 		}
@@ -551,11 +551,11 @@ class LettuceServerCommands implements RedisServerCommands {
 		return connection.isQueueing();
 	}
 
-	private void pipeline(LettuceResult result) {
+	private void pipeline(LettuceResult<?, ?> result) {
 		connection.pipeline(result);
 	}
 
-	private void transaction(LettuceTxResult result) {
+	private void transaction(LettuceTxResult<?, ?> result) {
 		connection.transaction(result);
 	}
 

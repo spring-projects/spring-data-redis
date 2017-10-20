@@ -34,19 +34,20 @@ import org.springframework.lang.Nullable;
  * @since 2.1
  */
 @SuppressWarnings("rawtypes")
-class LettuceResult<T, S> extends FutureResult<RedisCommand<?, T, ?>> {
+class LettuceResult<T, R> extends FutureResult<RedisCommand<?, T, ?>> {
 
 	private final boolean convertPipelineAndTxResults;
 
-	<T> LettuceResult(Future<T> resultHolder) {
+	LettuceResult(Future<T> resultHolder) {
 		this(resultHolder, false, val -> val);
 	}
 
-	<T> LettuceResult(Future<T> resultHolder, boolean convertPipelineAndTxResults, @Nullable Converter<T, ?> converter) {
+	LettuceResult(Future<T> resultHolder, boolean convertPipelineAndTxResults, @Nullable Converter<T, ?> converter) {
 		this(resultHolder, () -> null, convertPipelineAndTxResults, converter);
 	}
 
-	<T> LettuceResult(Future<T> resultHolder, Supplier<S> defaultReturnValue, boolean convertPipelineAndTxResults,
+	@SuppressWarnings("unchecked")
+	LettuceResult(Future<T> resultHolder, Supplier<R> defaultReturnValue, boolean convertPipelineAndTxResults,
 			@Nullable Converter<T, ?> converter) {
 
 		super((RedisCommand) resultHolder, converter, defaultReturnValue);
@@ -56,38 +57,31 @@ class LettuceResult<T, S> extends FutureResult<RedisCommand<?, T, ?>> {
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.FutureResult#get()
-	 * @return
 	 */
 	@Nullable
-	@SuppressWarnings("unchecked")
 	@Override
+	@SuppressWarnings("unchecked")
 	public T get() {
 		return (T) getResultHolder().getOutput().get();
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.FutureResult#seeksConversion()
-	 * @return
+	 * @see org.springframework.data.redis.connection.FutureResult#conversionRequired()
 	 */
 	@Override
-	public boolean seeksConversion() {
-		return convertPipelineAndTxResults && converter != null;
+	public boolean conversionRequired() {
+		return convertPipelineAndTxResults;
 	}
 
 	/**
 	 * Lettuce specific {@link FutureResult} implementation of a throw away status result.
 	 */
-	static class LettuceStatusResult extends LettuceResult {
+	static class LettuceStatusResult<T, R> extends LettuceResult<T, R> {
 
-		@SuppressWarnings("rawtypes")
-		LettuceStatusResult(Future resultHolder) {
+		@SuppressWarnings("unchecked")
+		LettuceStatusResult(Future<T> resultHolder) {
 			super(resultHolder);
-			setStatus(true);
-		}
-
-		<T> LettuceStatusResult(Future<T> resultHolder, boolean convertPipelineAndTxResults, Converter<T, ?> converter) {
-			super(resultHolder, convertPipelineAndTxResults, converter);
 			setStatus(true);
 		}
 	}
@@ -95,20 +89,20 @@ class LettuceResult<T, S> extends FutureResult<RedisCommand<?, T, ?>> {
 	/**
 	 * Lettuce specific {@link FutureResult} implementation of a transaction result.
 	 */
-	static class LettuceTxResult<T> extends FutureResult<Object> {
+	static class LettuceTxResult<T, R> extends FutureResult<T> {
 
 		private final boolean convertPipelineAndTxResults;
 
 		LettuceTxResult(T resultHolder) {
-			this(resultHolder, false, val -> val);
+			this(resultHolder, false, val -> (R) val);
 		}
 
-		LettuceTxResult(T resultHolder, boolean convertPipelineAndTxResults, Converter<?, ?> converter) {
+		LettuceTxResult(T resultHolder, boolean convertPipelineAndTxResults, Converter<T, R> converter) {
 			this(resultHolder, () -> null, convertPipelineAndTxResults, converter);
 		}
 
 		LettuceTxResult(T resultHolder, Supplier<Object> defaultReturnValue, boolean convertPipelineAndTxResults,
-				Converter<?, ?> converter) {
+				Converter<T, R> converter) {
 			super(resultHolder, converter, defaultReturnValue);
 			this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 		}
@@ -121,15 +115,14 @@ class LettuceResult<T, S> extends FutureResult<RedisCommand<?, T, ?>> {
 
 		@Override
 		public boolean seeksConversion() {
-			return convertPipelineAndTxResults && converter != null;
+			return convertPipelineAndTxResults;
 		}
-
 	}
 
 	/**
 	 * Lettuce specific {@link FutureResult} implementation of a throw away status result.
 	 */
-	static class LettuceTxStatusResult extends LettuceTxResult {
+	static class LettuceTxStatusResult extends LettuceTxResult<Object, Object> {
 
 		LettuceTxStatusResult(Object resultHolder) {
 			super(resultHolder);
@@ -141,63 +134,76 @@ class LettuceResult<T, S> extends FutureResult<RedisCommand<?, T, ?>> {
 	 * Builder for constructing {@link LettuceResult}.
 	 *
 	 * @param <T>
-	 * @param <S>
+	 * @param <R>
 	 * @since 2.1
 	 */
-	static class LettuceResultBuilder<T, S> {
+	static class LettuceResultBuilder<T, R> {
 
-		private final Object response;
-		private Converter<T, ?> converter;
+		private final Future<T> response;
+		private Converter<T, R> converter;
 		private boolean convertPipelineAndTxResults = false;
-		private Supplier<?> nullValueDefault = () -> null;
+		private Supplier<R> nullValueDefault = () -> null;
 
-		LettuceResultBuilder(Object response) {
+		LettuceResultBuilder(Future<T> response) {
 
 			this.response = response;
-			this.converter = (source) -> source;
+			this.converter = (source) -> (R) source;
 		}
 
-		static <T> LettuceResultBuilder<T, ?> forResponse(Future<T> response) {
+		/**
+		 * Create a new {@link LettuceResultBuilder} given {@link Future}.
+		 * 
+		 * @param response must not be {@literal null}.
+		 * @param <T> native response type.
+		 * @param <R> resulting response type.
+		 * @return the new {@link LettuceResultBuilder}.
+		 */
+		static <T, R> LettuceResultBuilder<T, R> forResponse(Future<T> response) {
 			return new LettuceResultBuilder<>(response);
 		}
 
-		static <T> LettuceResultBuilder<T, ?> forResponse(T response) {
-			return new LettuceResultBuilder<>(response);
-		}
-
-		<S> LettuceResultBuilder<T, S> mappedWith(Converter<T, S> converter) {
+		/**
+		 * Configure a {@link Converter} to convert between {@code T} and {@code R} types.
+		 * 
+		 * @param converter must not be {@literal null}.
+		 * @return {@code this} builder.
+		 */
+		LettuceResultBuilder<T, R> mappedWith(Converter<T, R> converter) {
 
 			this.converter = converter;
-			return (LettuceResultBuilder<T, S>) this;
+			return (LettuceResultBuilder<T, R>) this;
 		}
 
-		<S> LettuceResultBuilder<T, S> defaultNullTo(S value) {
-			return (defaultNullTo(() -> value));
+		/**
+		 * Configure a {@link Supplier} to map {@literal null} responses to a different value.
+		 * 
+		 * @param supplier must not be {@literal null}.
+		 * @return {@code this} builder.
+		 */
+		LettuceResultBuilder<T, R> defaultNullTo(Supplier<R> supplier) {
+
+			this.nullValueDefault = supplier;
+			return this;
 		}
 
-		<S> LettuceResultBuilder<T, S> defaultNullTo(Supplier<S> value) {
-
-			this.nullValueDefault = value;
-			return (LettuceResultBuilder<T, S>) this;
-		}
-
-		LettuceResultBuilder<T, S> convertPipelineAndTxResults(boolean flag) {
+		LettuceResultBuilder<T, R> convertPipelineAndTxResults(boolean flag) {
 
 			convertPipelineAndTxResults = flag;
 			return this;
 		}
 
-		LettuceResult<T, S> build() {
-			return new LettuceResult((Future<T>) response, nullValueDefault, convertPipelineAndTxResults, converter);
+		/**
+		 * @return a new {@link LettuceResult} wrapper with configuration applied from this builder.
+		 */
+		LettuceResult<T, R> build() {
+			return new LettuceResult<>(response, nullValueDefault, convertPipelineAndTxResults, converter);
 		}
 
-		LettuceTxResult<T> buildTxResult() {
-
-			return new LettuceTxResult(response, nullValueDefault, convertPipelineAndTxResults, converter);
-		}
-
-		LettuceResult buildStatusResult() {
-			return new LettuceStatusResult((Future<T>) response);
+		/**
+		 * @return a new {@link LettuceResult} wrapper for status results with configuration applied from this builder.
+		 */
+		LettuceResult<T, R> buildStatusResult() {
+			return new LettuceStatusResult<>(response);
 		}
 	}
 }
