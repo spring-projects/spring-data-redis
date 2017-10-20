@@ -26,7 +26,8 @@ import org.springframework.lang.Nullable;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Mark Paluch
- * @param <T> The data type of the object that holds the future result (usually of type Future)
+ * @param <T> The data type of the object that holds the future result (usually type of the
+ *          {@link java.util.concurrent.Future} or response wrapper).
  */
 public abstract class FutureResult<T> {
 
@@ -36,7 +37,7 @@ public abstract class FutureResult<T> {
 	private boolean status = false;
 
 	@SuppressWarnings("rawtypes") //
-	protected @Nullable Converter converter;
+	protected Converter converter;
 
 	/**
 	 * Create new {@link FutureResult} for given object actually holding the result itself.
@@ -70,7 +71,6 @@ public abstract class FutureResult<T> {
 	 * @param defaultConversionResult must not be {@literal null}.
 	 * @since 2.1
 	 */
-	@SuppressWarnings("rawtypes")
 	public FutureResult(T resultHolder, @Nullable Converter converter, Supplier<?> defaultConversionResult) {
 
 		this.resultHolder = resultHolder;
@@ -99,7 +99,7 @@ public abstract class FutureResult<T> {
 	public Object convert(@Nullable Object result) {
 
 		if (result == null) {
-			return computeDefaultResult(result);
+			return computeDefaultResult(null);
 		}
 
 		return computeDefaultResult(converter.convert(result));
@@ -140,8 +140,8 @@ public abstract class FutureResult<T> {
 	/**
 	 * Indicate whether or not the actual result needs to be {@link #convert(Object) converted} before handing over.
 	 *
-	 * @return
+	 * @return {@literal true} if result conversion is required.
 	 * @since 2.1
 	 */
-	public abstract boolean seeksConversion();
+	public abstract boolean conversionRequired();
 }

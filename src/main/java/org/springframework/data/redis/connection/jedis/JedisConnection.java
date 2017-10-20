@@ -453,7 +453,7 @@ public class JedisConnection extends AbstractRedisConnection {
 				Object data = result.get();
 
 				if (!result.isStatus()) {
-					results.add(result.seeksConversion() ? result.convert(data) : data);
+					results.add(result.conversionRequired() ? result.convert(data) : data);
 				}
 			} catch (JedisDataException e) {
 				DataAccessException dataAccessException = convertJedisAccessException(e);
@@ -618,16 +618,16 @@ public class JedisConnection extends AbstractRedisConnection {
 		return JedisResultBuilder.forResponse(response).build();
 	}
 
-	<T> JedisResult newJedisResult(Response<T> response, Converter<T, ?> converter) {
+	<T, R> JedisResult newJedisResult(Response<T> response, Converter<T, R> converter) {
 
-		return JedisResultBuilder.forResponse(response).mappedWith(converter)
+		return JedisResultBuilder.<T, R> forResponse(response).mappedWith(converter)
 				.convertPipelineAndTxResults(convertPipelineAndTxResults).build();
 	}
 
-	<T> JedisResult newJedisResult(Response<T> response, Converter<T, ?> converter, Supplier<?> defaultValue) {
+	<T, R> JedisResult newJedisResult(Response<T> response, Converter<T, R> converter, Supplier<R> defaultValue) {
 
-		return JedisResultBuilder.forResponse(response).mappedWith(converter)
-				.convertPipelineAndTxResults(convertPipelineAndTxResults).defaultNullTo(defaultValue).build();
+		return JedisResultBuilder.<T, R> forResponse(response).mappedWith(converter)
+				.convertPipelineAndTxResults(convertPipelineAndTxResults).mapNullTo(defaultValue).build();
 	}
 
 	JedisStatusResult newStatusResult(Response<?> response) {
