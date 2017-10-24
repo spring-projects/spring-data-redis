@@ -317,6 +317,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	 * </ol>
 	 *
 	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 * @since 2.0.1
 	 */
 	static class AsyncConnect {
@@ -345,12 +346,12 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		 * Obtain a connection publisher. This method connects asynchronously by requesting a connection from
 		 * {@link LettuceConnectionProvider} with non-blocking synchronization if called concurrently.
 		 *
-		 * @return
+		 * @return never {@literal null}.
 		 */
 		Mono<StatefulConnection<ByteBuffer, ByteBuffer>> getConnection() {
 
 			if (state.get() == State.CLOSED) {
-				throw new IllegalStateException("Connection is closed!");
+				throw new IllegalStateException("Unable to connect. Connection is closed!");
 			}
 
 			CompletableFuture<StatefulConnection<ByteBuffer, ByteBuffer>> connection = this.connection;
@@ -363,7 +364,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 				this.connection = connectionPublisher.toFuture();
 			}
 
-			for (;;) {
+			while (true) {
 
 				connection = this.connection;
 				if (connection != null) {
