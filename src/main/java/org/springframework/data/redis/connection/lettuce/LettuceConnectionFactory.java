@@ -805,6 +805,7 @@ public class LettuceConnectionFactory
 	 * @return the shared connection using {@literal byte} array encoding for imperative API use. {@literal null} if
 	 *         {@link #getShareNativeConnection() connection sharing} is disabled.
 	 */
+	@Nullable
 	protected StatefulRedisConnection<byte[], byte[]> getSharedConnection() {
 		return shareNativeConnection ? (StatefulRedisConnection) getOrCreateSharedConnection().getConnection() : null;
 	}
@@ -814,6 +815,7 @@ public class LettuceConnectionFactory
 	 *         {@link #getShareNativeConnection() connection sharing} is disabled.
 	 * @since 2.0.1
 	 */
+	@Nullable
 	protected StatefulConnection<ByteBuffer, ByteBuffer> getSharedReactiveConnection() {
 		return shareNativeConnection ? getOrCreateSharedReactiveConnection().getConnection() : null;
 	}
@@ -928,13 +930,14 @@ public class LettuceConnectionFactory
 	 *
 	 * @param <E> connection encoding.
 	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 * @since 2.1
 	 */
 	@RequiredArgsConstructor
 	class SharedConnection<E> {
 
 		private final LettuceConnectionProvider connectionProvider;
-		private final boolean clusterEnabled;
+		private final boolean shareNativeClusterConnection;
 
 		/** Synchronization monitor for the shared Connection */
 		private final Object connectionMonitor = new Object();
@@ -947,6 +950,7 @@ public class LettuceConnectionFactory
 		 *
 		 * @return the connection.
 		 */
+		@Nullable
 		StatefulConnection<E, E> getConnection() {
 
 			synchronized (this.connectionMonitor) {
@@ -968,20 +972,20 @@ public class LettuceConnectionFactory
 		 *
 		 * @return the connection.
 		 */
+		@Nullable
 		private StatefulConnection<E, E> getNativeConnection() {
 
 			try {
 
-				StatefulConnection<E, E> connection;
-
-				if ((isClusterAware() && clusterEnabled) || !isClusterAware()) {
-					connection = connectionProvider.getConnection(StatefulConnection.class);
-					if (connection instanceof StatefulRedisConnection && getDatabase() > 0) {
-						((StatefulRedisConnection) connection).sync().select(getDatabase());
-					}
-				} else {
-					connection = null;
+				if (isClusterAware() && !shareNativeClusterConnection) {
+					return null;
 				}
+
+				StatefulConnection<E, E> connection = connectionProvider.getConnection(StatefulConnection.class);
+				if (connection instanceof StatefulRedisConnection && getDatabase() > 0) {
+					((StatefulRedisConnection) connection).sync().select(getDatabase());
+				}
+
 				return connection;
 			} catch (RedisException e) {
 				throw new RedisConnectionFailureException("Unable to connect to Redis", e);
