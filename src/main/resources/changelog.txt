@@ -6,6 +6,15 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 2.0.1.RELEASE (2017-10-27)
+---------------------------------------------
+* DATAREDIS-720 - Reactive connections using Lettuce do not use shared connection.
+* DATAREDIS-719 - Improve connection FutureResult handling for pipeline and tx mode.
+* DATAREDIS-711 - ClassCastException in Lua script result processing returning List.
+* DATAREDIS-709 - Release 2.0.1 (Kay SR1).
+* DATAREDIS-619 - Provide documentation for reactive Redis Template API.
+
+
 Changes in version 1.8.8.RELEASE (2017-10-11)
 ---------------------------------------------
 * DATAREDIS-689 - Release 1.8.8 (Ingalls SR8).
