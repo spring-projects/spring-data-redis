@@ -165,7 +165,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceTxResult(getConnection().touch(keys)));
+				transaction(connection.newLettuceResult(getAsyncConnection().touch(keys)));
 				return null;
 			}
 			return getConnection().touch(keys);

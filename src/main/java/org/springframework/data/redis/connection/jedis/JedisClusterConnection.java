@@ -177,14 +177,17 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	}
 
 	/**
-	 * Execute the given command for the {@code key} provided potentially appending args. <br />
+	 * Execute the given command for each key in {@code keys} provided appending all {@code args} on each invocation.
+	 * <br />
 	 * This method, other than {@link #execute(String, byte[]...)}, dispatches the command to the {@code key} serving
-	 * master node.
+	 * master node and appends the {@code key} as first command argument to the {@code command}. {@code keys} are not
+	 * required to share the same slot for single-key commands. Multi-key commands carrying their keys in {@code args}
+	 * still require to share the same slot as the {@code key}.
 	 *
 	 * <pre>
 	 * <code>
 	 * // SET foo bar EX 10 NX
-	 * execute("SET", "foo".getBytes(), asBinaryList("bar", "EX", 10, "NX")
+	 * execute("SET", "foo".getBytes(), asBinaryList("bar", "EX", 10, "NX"))
 	 * </code>
 	 * </pre>
 	 *
@@ -860,7 +863,8 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 				PropertyAccessor accessor = new DirectFieldAccessFallbackBeanWrapper(cluster);
 				this.connectionHandler = accessor.isReadableProperty("connectionHandler")
-						? (JedisClusterConnectionHandler) accessor.getPropertyValue("connectionHandler") : null;
+						? (JedisClusterConnectionHandler) accessor.getPropertyValue("connectionHandler")
+						: null;
 			} else {
 				this.connectionHandler = null;
 			}
