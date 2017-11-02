@@ -260,7 +260,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	protected Pool<Jedis> createRedisSentinelPool(RedisSentinelConfiguration config) {
 		return new JedisSentinelPool(config.getMaster().getName(), convertToJedisSentinelSet(config.getSentinels()),
 				getPoolConfig() != null ? getPoolConfig() : new JedisPoolConfig(), getTimeoutFrom(getShardInfo()),
-				getShardInfo().getPassword(), Protocol.DEFAULT_DATABASE, clientName);
+				getShardInfo().getPassword(), getDatabase(), clientName);
 	}
 
 	/**
@@ -272,7 +272,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	protected Pool<Jedis> createRedisPool() {
 
 		return new JedisPool(getPoolConfig(), getShardInfo().getHost(), getShardInfo().getPort(),
-				getTimeoutFrom(getShardInfo()), getShardInfo().getPassword(), Protocol.DEFAULT_DATABASE, clientName, useSsl);
+				getTimeoutFrom(getShardInfo()), getShardInfo().getPassword(), getDatabase(), clientName, useSsl);
 	}
 
 	private JedisCluster createCluster() {
