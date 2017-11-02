@@ -36,6 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.ConnectionUtils;
@@ -113,13 +114,18 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		factory2.destroy();
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = RedisConnectionFailureException.class) // DATAREDIS-714
 	public void testCreateConnectionWithDbFailure() {
+
 		JedisConnectionFactory factory2 = new JedisConnectionFactory();
 		factory2.setDatabase(77);
 		factory2.afterPropertiesSet();
-		factory2.getConnection();
-		factory2.destroy();
+
+		try {
+			factory2.getConnection();
+		} finally {
+			factory2.destroy();
+		}
 	}
 
 	@Test
@@ -381,8 +387,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	@RequiresRedisSentinel(SentinelsAvailable.ONE_ACTIVE)
 	public void shouldReturnSentinelCommandsWhenWhenActiveSentinelFound() {
 
-		((JedisConnection) byteConnection).setSentinelConfiguration(new RedisSentinelConfiguration().master("mymaster")
-				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
+		((JedisConnection) byteConnection).setSentinelConfiguration(
+				new RedisSentinelConfiguration().master("mymaster").sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
 		assertThat(connection.getSentinelConnection(), notNullValue());
 	}
 

@@ -161,7 +161,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		// select the db
 		// if this fail, do manual clean-up before propagating the exception
 		// as we're inside the constructor
-		if (dbIndex > 0) {
+		if (dbIndex != jedis.getDB()) {
 			try {
 				select(dbIndex);
 			} catch (DataAccessException ex) {
@@ -332,19 +332,9 @@ public class JedisConnection extends AbstractRedisConnection {
 			if (broken) {
 				pool.returnBrokenResource(jedis);
 			} else {
-
-				// reset the connection
-				try {
-					if (dbIndex > 0) {
-						jedis.select(0);
-					}
-					return;
-				} catch (Exception ex) {
-					throw convertJedisAccessException(ex);
-				} finally {
-					jedis.close();
-				}
+				jedis.close();
 			}
+			return;
 		}
 		// else close the connection normally (doing the try/catch dance)
 		Exception exc = null;
