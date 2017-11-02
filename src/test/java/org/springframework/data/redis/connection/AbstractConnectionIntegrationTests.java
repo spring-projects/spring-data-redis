@@ -69,9 +69,7 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.util.RedisClientRule;
 import org.springframework.data.redis.test.util.RedisDriver;
 import org.springframework.data.redis.test.util.WithRedisDriver;
@@ -2778,11 +2776,10 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // DATAREDIS-694
 	public void touchReturnsNrOfKeysTouched() {
 
-		connection.set("touch.this", "Can't touch this! - oh-oh oh oh oh-oh-oh");
-
+		actual.add(connection.set("touch.this", "Can't touch this! - oh-oh oh oh oh-oh-oh"));
 		actual.add(connection.touch("touch.this", "touch.that"));
 
-		verifyResults(Arrays.asList(new Object[] { 1L }));
+		verifyResults(Arrays.asList(new Object[] { Boolean.TRUE, 1L }));
 	}
 
 	@Test // DATAREDIS-694
