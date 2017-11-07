@@ -221,7 +221,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 		private final RedisCacheWriter cacheWriter;
 		private RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
-		private Map<String, RedisCacheConfiguration> intialCaches = new LinkedHashMap<>();
+		private final Map<String, RedisCacheConfiguration> intialCaches = new LinkedHashMap<>();
 		private boolean enableTransactions;
 
 		private RedisCacheManagerBuilder(RedisCacheWriter cacheWriter) {
@@ -312,10 +312,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 			cacheConfigurations.forEach((cacheName, configuration) -> Assert.notNull(configuration,
 					String.format("RedisCacheConfiguration for cache %s must not be null!", cacheName)));
 
-			Map<String, RedisCacheConfiguration> cacheConfigMap = new LinkedHashMap<>(intialCaches);
-			cacheConfigMap.putAll(cacheConfigurations);
-
-			this.intialCaches = cacheConfigMap;
+			this.intialCaches.putAll(cacheConfigurations);
 
 			return this;
 		}
