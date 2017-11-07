@@ -258,7 +258,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 * Define a default {@link RedisCacheConfiguration} applied to dynamically created {@link RedisCache}s.
 		 *
 		 * @param defaultCacheConfiguration must not be {@literal null}.
-		 * @return new instance of {@link RedisCacheManagerBuilder}.
+		 * @return this {@link RedisCacheManagerBuilder}.
 		 */
 		public RedisCacheManagerBuilder cacheDefaults(RedisCacheConfiguration defaultCacheConfiguration) {
 
@@ -272,7 +272,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		/**
 		 * Enable {@link RedisCache}s to synchronize cache put/evict operations with ongoing Spring-managed transactions.
 		 *
-		 * @return new instance of {@link RedisCacheManagerBuilder}.
+		 * @return this {@link RedisCacheManagerBuilder}.
 		 */
 		public RedisCacheManagerBuilder transactionAware() {
 
@@ -287,7 +287,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 * default {@link RedisCacheConfiguration} is present at the time of invoking this method.
 		 *
 		 * @param cacheNames must not be {@literal null}.
-		 * @return new instance of {@link RedisCacheManagerBuilder}.
+		 * @return this {@link RedisCacheManagerBuilder}.
 		 */
 		public RedisCacheManagerBuilder initialCacheNames(Set<String> cacheNames) {
 
@@ -303,7 +303,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 * Append a {@link Map} of cache name/{@link RedisCacheConfiguration} pairs to be pre initialized.
 		 *
 		 * @param cacheConfigurations must not be {@literal null}.
-		 * @return new instance of {@link RedisCacheManagerBuilder}.
+		 * @return this {@link RedisCacheManagerBuilder}.
 		 */
 		public RedisCacheManagerBuilder withInitialCacheConfigurations(
 				Map<String, RedisCacheConfiguration> cacheConfigurations) {
