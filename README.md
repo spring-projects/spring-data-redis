@@ -17,35 +17,37 @@ For examples on using the Spring Data Key Value, see the dedicated project, also
 
 # Artifacts
 
-* Maven:
+## Maven configuration
 
-~~~~~ xml
+Add the Maven dependency:
 
+```xml
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-redis</artifactId>
-  <version>${version}</version>
-</dependency> 
+  <version>${version}.RELEASE</version>
+</dependency>
+```
 
-<!-- used for nightly builds -->
+If you'd rather like the latest snapshots of the upcoming major version, use our Maven snapshot repository and declare the appropriate dependency version.
+
+```xml
+<dependency>
+  <groupId>org.springframework.data</groupId>
+  <artifactId>spring-data-redis</artifactId>
+  <version>${version}.BUILD-SNAPSHOT</version>
+</dependency>
+
 <repository>
-  <id>spring-maven-snapshot</id>
-  <snapshots><enabled>true</enabled></snapshots>
-  <name>Springframework Maven SNAPSHOT Repository</name>
-  <url>http://repo.spring.io/libs-release</url>
-</repository> 
+  <id>spring-libs-snapshot</id>
+  <name>Spring Snapshot Repository</name>
+  <url>http://repo.spring.io/libs-snapshot</url>
+</repository>
+```
 
-<!-- used for milestone/rc releases -->
-<repository>
-  <id>spring-maven-milestone</id>
-  <name>Springframework Maven Milestone Repository</name>
-  <url>http://repo.spring.io/libs-milestone</url>
-</repository> 
-~~~~~
+## Gradle 
 
-* Gradle: 
-
-~~~~~ groovy
+```groovy
 repositories {
    maven { url "http://repo.spring.io/libs-milestone" }
    maven { url "http://repo.spring.io/libs-snapshot" }
@@ -55,13 +57,13 @@ repositories {
 dependencies {
    compile "org.springframework.data:spring-data-redis:${version}"
 }
-~~~~~
+```
 
 # Usage (for the impatient)
 
 * Configure the Redis connector to use (here [jedis](https://github.com/xetorthio/jedis)):
 
-~~~~~ xml
+```xml
 <beans xmlns="http://www.springframework.org/schema/beans"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:p="http://www.springframework.org/schema/p"
@@ -73,22 +75,22 @@ dependencies {
   <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate"
       p:connection-factory="jedisFactory"/>
 </beans>
-~~~~~
+```
 
 * Use `RedisTemplate` to interact with the Redis store:
 
-~~~~~ java
+```java
 String random = template.randomKey();
 template.set(random, new Person("John", "Smith"));
-~~~~~
+```
 
 * Use Redis 'views' to execute specific operations based on the underlying Redis type:
 
-~~~~~ java
+```java
 ListOperations<String, Person> listOps = template.listOps();
 listOps.rightPush(random, new Person("Jane", "Smith"));
 List<Person> peopleOnSecondFloor = listOps.range("users:floor:2", 0, -1);
-~~~~~
+```
 
 # Building
 
