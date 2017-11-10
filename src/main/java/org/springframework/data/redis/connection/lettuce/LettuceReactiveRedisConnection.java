@@ -21,6 +21,7 @@ import io.lettuce.core.api.reactive.BaseRedisReactiveCommands;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
 import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -46,7 +47,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 	static final RedisCodec<ByteBuffer, ByteBuffer> CODEC = ByteBufferCodec.INSTANCE;
 
-	private final AsyncConnect dedicatedConnection;
+	private final AsyncConnect<StatefulConnection<ByteBuffer, ByteBuffer>> dedicatedConnection;
+	private final AsyncConnect<StatefulRedisPubSubConnection<ByteBuffer, ByteBuffer>> pubSubConnection;
 
 	private @Nullable Mono<StatefulConnection<ByteBuffer, ByteBuffer>> sharedConnection;
 
@@ -62,7 +64,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null!");
 
-		this.dedicatedConnection = new AsyncConnect(connectionProvider);
+		this.dedicatedConnection = new AsyncConnect(connectionProvider, StatefulConnection.class);
+		this.pubSubConnection = new AsyncConnect(connectionProvider, StatefulRedisPubSubConnection.class);
 	}
 
 	/**
@@ -81,7 +84,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		Assert.notNull(sharedConnection, "Shared StatefulConnection must not be null!");
 		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null!");
 
-		this.dedicatedConnection = new AsyncConnect(connectionProvider);
+		this.dedicatedConnection = new AsyncConnect(connectionProvider, StatefulConnection.class);
+		this.pubSubConnection = new AsyncConnect(connectionProvider, StatefulRedisPubSubConnection.class);
 		this.sharedConnection = Mono.just(sharedConnection);
 	}
 
@@ -168,6 +172,15 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#pubSubCommands()
+	 */
+	@Override
+	public ReactiveRedisPubSubCommands pubSubCommands() {
+		return new LettuceReactivePubSubCommands(this);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#scriptingCommands()
 	 */
 	@Override
@@ -230,6 +243,10 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 	protected Mono<StatefulConnection<ByteBuffer, ByteBuffer>> getDedicatedConnection() {
 		return dedicatedConnection.getConnection().onErrorMap(translateException());
+	}
+
+	protected Mono<StatefulRedisPubSubConnection<ByteBuffer, ByteBuffer>> getPubSubConnection() {
+		return pubSubConnection.getConnection().onErrorMap(translateException());
 	}
 
 	protected Mono<? extends RedisClusterReactiveCommands<ByteBuffer, ByteBuffer>> getCommands() {
@@ -320,24 +337,22 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	 * @author Christoph Strobl
 	 * @since 2.0.1
 	 */
-	static class AsyncConnect {
+	static class AsyncConnect<T extends StatefulConnection<?, ?>> {
 
-		private final Mono<StatefulConnection<ByteBuffer, ByteBuffer>> connectionPublisher;
+		private final Mono<T> connectionPublisher;
 		private final LettuceConnectionProvider connectionProvider;
 
 		private AtomicReference<State> state = new AtomicReference<>(State.INITIAL);
-		private volatile @Nullable CompletableFuture<StatefulConnection<ByteBuffer, ByteBuffer>> connection;
+		private volatile @Nullable CompletableFuture<T> connection;
 
 		@SuppressWarnings("unchecked")
-		AsyncConnect(LettuceConnectionProvider connectionProvider) {
+		AsyncConnect(LettuceConnectionProvider connectionProvider, Class<? extends T> connectionType) {
 
 			Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null!");
 
 			this.connectionProvider = connectionProvider;
 
-			Mono<StatefulConnection<ByteBuffer, ByteBuffer>> defer = Mono
-					.defer(() -> Mono.<StatefulConnection<ByteBuffer, ByteBuffer>> just(
-							connectionProvider.getConnection(StatefulConnection.class)));
+			Mono<T> defer = Mono.defer(() -> Mono.<T> just(connectionProvider.getConnection(connectionType)));
 
 			this.connectionPublisher = defer.subscribeOn(Schedulers.elastic());
 		}
@@ -348,13 +363,13 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		 *
 		 * @return never {@literal null}.
 		 */
-		Mono<StatefulConnection<ByteBuffer, ByteBuffer>> getConnection() {
+		Mono<T> getConnection() {
 
 			if (state.get() == State.CLOSED) {
 				throw new IllegalStateException("Unable to connect. Connection is closed!");
 			}
 
-			CompletableFuture<StatefulConnection<ByteBuffer, ByteBuffer>> connection = this.connection;
+			CompletableFuture<T> connection = this.connection;
 
 			if (connection != null) {
 				return Mono.fromCompletionStage(connection);
