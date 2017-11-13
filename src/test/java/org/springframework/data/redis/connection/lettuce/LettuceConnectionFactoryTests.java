@@ -21,9 +21,9 @@ import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 
-import io.lettuce.core.ReadFrom;
 import io.lettuce.core.EpollProvider;
 import io.lettuce.core.KqueueProvider;
+import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisException;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.reactive.BaseRedisReactiveCommands;
