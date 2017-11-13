@@ -6,8 +6,9 @@ New and noteworthy in the latest releases.
 [[new-in-2.1.0]]
 == New in Spring Data Redis 2.1
 
-* Unix domain socket connections.
+* Unix domain socket connections using <<redis:connectors:lettuce,Lettuce>>.
 
+[[new-in-2.0.0]]
 == New in Spring Data Redis 2.0
 
 * Upgrade to Java 8.

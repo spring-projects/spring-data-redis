@@ -23,7 +23,7 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 /**
  * Utility class exposing connection settings to connect Redis instances during test execution. Settings can be adjusted
  * by overriding these in {@literal org/springframework/data/redis/test.properties}.
- * 
+ *
  * @author Costin Leau
  * @author Mark Paluch
  */
@@ -71,7 +71,7 @@ public abstract class SettingsUtils {
 
 	/**
 	 * Construct a new {@link RedisStandaloneConfiguration} initialized with test endpoint settings.
-	 * 
+	 *
 	 * @return a new {@link RedisStandaloneConfiguration} initialized with test endpoint settings.
 	 */
 	public static RedisStandaloneConfiguration standaloneConfiguration() {
@@ -80,7 +80,7 @@ public abstract class SettingsUtils {
 
 	/**
 	 * Construct a new {@link RedisSocketConfiguration} initialized with test endpoint settings.
-	 * 
+	 *
 	 * @return a new {@link RedisSocketConfiguration} initialized with test endpoint settings.
 	 */
 	public static RedisSocketConfiguration socketConfiguration() {

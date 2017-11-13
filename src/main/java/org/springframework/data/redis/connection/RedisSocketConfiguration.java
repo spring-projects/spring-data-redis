@@ -18,10 +18,11 @@ package org.springframework.data.redis.connection;
 import org.springframework.util.Assert;
 
 /**
- * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} by connecting to a
- * single node <a href="http://redis.io/">Redis</a> using a local unix domain socket.
+ * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} connecting to
+ * single <a href="http://redis.io/">Redis</a> using a local unix domain socket.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.1
  */
 public class RedisSocketConfiguration {
@@ -44,7 +45,7 @@ public class RedisSocketConfiguration {
 	 */
 	public RedisSocketConfiguration(String socket) {
 
-		Assert.hasText(socket, "Socket path must not be null or empty!");
+		Assert.hasText(socket, "Socket path must not be null nor empty!");
 
 		this.socket = socket;
 	}
@@ -60,6 +61,8 @@ public class RedisSocketConfiguration {
 	 * @param socket path to the Redis socket.
 	 */
 	public void setSocket(String socket) {
+
+		Assert.hasText(socket, "Socket must not be null nor empty!");
 		this.socket = socket;
 	}
 

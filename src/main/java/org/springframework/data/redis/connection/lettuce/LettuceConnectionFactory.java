@@ -794,7 +794,7 @@ public class LettuceConnectionFactory
 	}
 
 	/**
-	 * @return the {@link RedisSocketConfiguration}.
+	 * @return the {@link RedisSocketConfiguration} or {@literal null} if not set.
 	 * @since 2.1
 	 */
 	@Nullable
@@ -939,6 +939,7 @@ public class LettuceConnectionFactory
 
 		RedisURI uri = isDomainSocketAware() ? createRedisSocketURIAndApplySettings(socketConfiguration.getSocket())
 				: createRedisURIAndApplySettings(getHostName(), getPort());
+
 		RedisClient redisClient = clientConfiguration.getClientResources() //
 				.map(clientResources -> RedisClient.create(clientResources, uri)) //
 				.orElseGet(() -> RedisClient.create(uri));
