@@ -96,7 +96,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 
-		StepVerifier.create(container.receive(new ChannelTopic(CHANNEL1))) //
+		StepVerifier.create(container.receive(ChannelTopic.of(CHANNEL1))) //
 				.then(awaitSubscription(container::getActiveSubscriptions))
 				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
 				.assertNext(c -> {
@@ -114,7 +114,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 
-		StepVerifier.create(container.receive(new PatternTopic(PATTERN1))) //
+		StepVerifier.create(container.receive(PatternTopic.of(PATTERN1))) //
 				.then(awaitSubscription(container::getActiveSubscriptions))
 				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
 				.assertNext(c -> {
@@ -136,7 +136,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 				RedisSerializationContext.string());
 
 		BlockingQueue<PatternMessage<String, String, String>> messages = new LinkedBlockingDeque<>();
-		Disposable subscription = container.receive(new PatternTopic(PATTERN1)).doOnNext(messages::add).subscribe();
+		Disposable subscription = container.receive(PatternTopic.of(PATTERN1)).doOnNext(messages::add).subscribe();
 
 		StepVerifier.create(template.convertAndSend(CHANNEL1, MESSAGE), 0) //
 				.then(awaitSubscription(container::getActiveSubscriptions)) //
