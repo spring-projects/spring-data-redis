@@ -11,6 +11,7 @@ New and noteworthy in the latest releases.
 * <<query-by-example,Query by Example>> integration.
 * `@TypeAlias` Support for Redis repositories.
 * Cluster-wide `SCAN` using Lettuce and `SCAN` execution on a selected node supported by both drivers.
+* <<redis:reactive:pubsub,Reactive Pub/Sub>> to send and receive a message stream.
 
 [[new-in-2.0.0]]
 == New in Spring Data Redis 2.0
