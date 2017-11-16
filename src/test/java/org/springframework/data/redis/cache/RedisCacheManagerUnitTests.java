@@ -68,16 +68,18 @@ public class RedisCacheManagerUnitTests {
 		assertThat(((RedisCache) cm.getCache("other-cache")).getCacheConfiguration()).isEqualTo(withoutPrefix);
 	}
 
-	@Test // DATAREDIS-481
+	@Test // DATAREDIS-481, DATAREDIS-728
 	public void predefinedCacheShouldBeCreatedWithSpecificConfig() {
 
 		RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
 
 		RedisCacheManager cm = RedisCacheManager.builder(cacheWriter)
-				.withInitialCacheConfigurations(Collections.singletonMap("predefined-cache", configuration)).build();
+				.withInitialCacheConfigurations(Collections.singletonMap("predefined-cache", configuration))
+				.withInitialCacheConfigurations(Collections.singletonMap("another-predefined-cache", configuration)).build();
 		cm.afterPropertiesSet();
 
 		assertThat(((RedisCache) cm.getCache("predefined-cache")).getCacheConfiguration()).isEqualTo(configuration);
+		assertThat(((RedisCache) cm.getCache("another-predefined-cache")).getCacheConfiguration()).isEqualTo(configuration);
 		assertThat(cm.getMissingCache("new-cache").getCacheConfiguration()).isNotEqualTo(configuration);
 	}
 
