@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Redis operations for simple (or in Redis terminology 'string') values.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -85,7 +85,7 @@ public interface ValueOperations<K, V> {
 
 	/**
 	 * Set {@code value} of {@code key} and return its old value.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
@@ -93,7 +93,7 @@ public interface ValueOperations<K, V> {
 
 	/**
 	 * Get multiple {@code keys}. Values are returned in the order of the requested keys.
-	 * 
+	 *
 	 * @param keys must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 */
@@ -101,7 +101,7 @@ public interface ValueOperations<K, V> {
 
 	/**
 	 * Increment an integer value stored as string value under {@code key} by {@code delta}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param delta
 	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
@@ -110,10 +110,10 @@ public interface ValueOperations<K, V> {
 
 	/**
 	 * Increment a floating point number value stored as string value under {@code key} by {@code delta}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param delta
-	 * @see <a href="http://redis.io/commands/incrbyfloar">Redis Documentation: INCRBYFLOAT</a>
+	 * @see <a href="http://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
 	 */
 	Double increment(K key, double delta);
 
