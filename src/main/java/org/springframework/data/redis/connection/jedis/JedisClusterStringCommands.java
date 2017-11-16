@@ -127,9 +127,9 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		Assert.notNull(expiration, "Expiration must not be null!");
 		Assert.notNull(option, "Option must not be null!");
 
-		if (expiration == null || expiration.isPersistent()) {
+		if (expiration.isPersistent()) {
 
-			if (option == null || ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
+			if (ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
 				return set(key, value);
 			} else {
 
@@ -142,7 +142,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 			}
 		} else {
 
-			if (option == null || ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
+			if (ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
 
 				if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
 					return pSetEx(key, expiration.getExpirationTime(), value);
