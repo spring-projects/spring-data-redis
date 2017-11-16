@@ -15,6 +15,10 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import redis.clients.jedis.BinaryJedis;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -35,15 +39,13 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Xiaohu Zhang
  * @since 2.0
  */
+@RequiredArgsConstructor
 class JedisClusterStringCommands implements RedisStringCommands {
 
-	private final JedisClusterConnection connection;
-
-	JedisClusterStringCommands(JedisClusterConnection jedisClusterConnection) {
-		this.connection = jedisClusterConnection;
-	}
+	private final @NonNull JedisClusterConnection connection;
 
 	/*
 	 * (non-Javadoc)
@@ -93,8 +95,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		}
 
 		return connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<byte[]>) (client, key) -> client.get(key),
-						Arrays.asList(keys))
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<byte[]>) BinaryJedis::get, Arrays.asList(keys))
 				.resultsAsListSortBy(keys);
 	}
 

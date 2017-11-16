@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.GeoUnit;
 import redis.clients.jedis.params.geo.GeoRadiusParam;
@@ -37,13 +39,10 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class JedisClusterGeoCommands implements RedisGeoCommands {
 
-	private final JedisClusterConnection connection;
-
-	JedisClusterGeoCommands(JedisClusterConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull JedisClusterConnection connection;
 
 	/*
 	 * (non-Javadoc)
