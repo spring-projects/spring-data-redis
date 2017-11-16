@@ -215,6 +215,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 *
 	 * @author Christoph Strobl
 	 * @author Mark Strobl
+	 * @author Kezhu Wang
 	 * @since 2.0
 	 */
 	public static class RedisCacheManagerBuilder {
