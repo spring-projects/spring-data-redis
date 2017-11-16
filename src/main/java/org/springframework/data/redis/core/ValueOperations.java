@@ -128,7 +128,7 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param delta
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/incrbyfloar">Redis Documentation: INCRBYFLOAT</a>
+	 * @see <a href="http://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
 	 */
 	@Nullable
 	Double increment(K key, double delta);
