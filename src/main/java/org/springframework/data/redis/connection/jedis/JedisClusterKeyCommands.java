@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,13 +48,10 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class JedisClusterKeyCommands implements RedisKeyCommands {
 
-	private final JedisClusterConnection connection;
-
-	JedisClusterKeyCommands(JedisClusterConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull JedisClusterConnection connection;
 
 	/*
 	 * (non-Javadoc)

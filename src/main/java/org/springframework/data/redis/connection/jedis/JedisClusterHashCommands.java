@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.ScanParams;
 
 import java.util.ArrayList;
@@ -36,13 +38,10 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@RequiredArgsConstructor
 class JedisClusterHashCommands implements RedisHashCommands {
 
-	private final JedisClusterConnection connection;
-
-	JedisClusterHashCommands(JedisClusterConnection connection) {
-		this.connection = connection;
-	}
+	private final @NonNull JedisClusterConnection connection;
 
 	/*
 	* (non-Javadoc)
