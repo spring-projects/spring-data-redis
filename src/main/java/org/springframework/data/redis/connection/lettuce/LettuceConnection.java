@@ -49,7 +49,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -225,7 +224,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		if (pool != null) {
 			this.connectionProvider = new LettucePoolConnectionProvider(pool);
 		} else {
-			this.connectionProvider = new StandaloneConnectionProvider((RedisClient) client, CODEC, Optional.empty());
+			this.connectionProvider = new StandaloneConnectionProvider((RedisClient) client, CODEC);
 		}
 
 		this.asyncSharedConn = sharedConnection;

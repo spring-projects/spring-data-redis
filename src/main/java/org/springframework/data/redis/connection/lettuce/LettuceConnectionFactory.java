@@ -899,7 +899,7 @@ public class LettuceConnectionFactory
 	}
 
 	/**
-	 * Create a {@link LettuceConnectionProvider } given {@link AbstractRedisClient} and {@link RedisCodec}. Configuration
+	 * Create a {@link LettuceConnectionProvider} given {@link AbstractRedisClient} and {@link RedisCodec}. Configuration
 	 * of this connection factory specifies the type of the created connection provider. This method creates either a
 	 * {@link LettuceConnectionProvider} for either {@link RedisClient} or {@link RedisClusterClient}. Subclasses may
 	 * override this method to decorate the connection provider.
@@ -909,10 +909,11 @@ public class LettuceConnectionFactory
 	 *          Reactive connections require a {@link java.nio.ByteBuffer} codec.
 	 * @return the connection provider.
 	 * @since 2.1
-	 * @see io.lettuce.core.codec.ByteArrayCodec
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection.ByteBufferCodec
 	 */
-	protected LettuceConnectionProvider doCreateConnectionProvider(AbstractRedisClient client, RedisCodec<?, ?> codec) {Optional<ReadFrom> readFrom = getClientConfiguration().getReadFrom();
+	protected LettuceConnectionProvider doCreateConnectionProvider(AbstractRedisClient client, RedisCodec<?, ?> codec) {
+
+		ReadFrom readFrom = getClientConfiguration().getReadFrom().orElse(null);
+
 		if (isClusterAware()) {
 			return new ClusterConnectionProvider((RedisClusterClient) client, codec, readFrom);
 		}
@@ -1216,7 +1217,8 @@ public class LettuceConnectionFactory
 			return Optional.empty();
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getReadFrom()
 		 */
 		@Override

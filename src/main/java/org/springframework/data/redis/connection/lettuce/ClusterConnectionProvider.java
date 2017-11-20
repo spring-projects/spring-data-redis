@@ -21,9 +21,11 @@ import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
+
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Connection provider for Cluster connections.
@@ -32,12 +34,39 @@ import java.util.Optional;
  * @author Christoph Strobl
  * @since 2.0
  */
-@RequiredArgsConstructor
 class ClusterConnectionProvider implements LettuceConnectionProvider {
 
 	private final RedisClusterClient client;
 	private final RedisCodec<?, ?> codec;
 	private final Optional<ReadFrom> readFrom;
+
+	/**
+	 * Create new {@link ClusterConnectionProvider}.
+	 *
+	 * @param client must not be {@literal null}.
+	 * @param codec must not be {@literal null}.
+	 */
+	ClusterConnectionProvider(RedisClusterClient client, RedisCodec<?, ?> codec) {
+		this(client, codec, null);
+	}
+
+	/**
+	 * Create new {@link ClusterConnectionProvider}.
+	 *
+	 * @param client must not be {@literal null}.
+	 * @param codec must not be {@literal null}.
+	 * @param readFrom can be {@literal null}.
+	 * @since 2.1
+	 */
+	ClusterConnectionProvider(RedisClusterClient client, RedisCodec<?, ?> codec, @Nullable ReadFrom readFrom) {
+
+		Assert.notNull(client, "Client must not be null!");
+		Assert.notNull(codec, "Codec must not be null!");
+
+		this.client = client;
+		this.codec = codec;
+		this.readFrom = Optional.ofNullable(readFrom);
+	}
 
 	/*
 	 * (non-Javadoc)

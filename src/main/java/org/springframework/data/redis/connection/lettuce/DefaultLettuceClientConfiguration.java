@@ -95,7 +95,8 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 		return clientResources;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientOptions()
 	 */
 	@Override

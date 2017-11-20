@@ -219,7 +219,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
 				.build();
 
-		LettuceConnectionFactory factory = new LettuceConnectionFactory(SettingsUtils.standaloneConfiguration(),
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG,
 				configuration);
 		factory.afterPropertiesSet();
 
@@ -229,7 +229,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 			assertThat(connection.ping(), is(equalTo("PONG")));
 			assertThat(connection.info().getProperty("role"), is(equalTo("slave")));
 		} finally {
-			this.connection.close();
+			connection.close();
 		}
 
 		factory.destroy();

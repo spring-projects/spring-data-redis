@@ -389,6 +389,9 @@ public class LettuceConnectionFactoryTests {
 	@Test // DATAREDIS-580
 	public void factoryUsesMasterSlaveConnections() {
 
+		assumeThat(String.format("No slaves connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
+				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0, is(true));
+
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
 				.build();
 
@@ -402,7 +405,7 @@ public class LettuceConnectionFactoryTests {
 			assertThat(connection.ping(), is(equalTo("PONG")));
 			assertThat(connection.info().getProperty("role"), is(equalTo("slave")));
 		} finally {
-			this.connection.close();
+			connection.close();
 		}
 
 		factory.destroy();
