@@ -1128,6 +1128,38 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(true, 1L, false));
 	}
 
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0+")
+	public void unlinkReturnsNrOfKeysRemoved() {
+
+		connection.set("unlink.this", "Can't track this!");
+
+		actual.add(connection.unlink("unlink.this", "unlink.that"));
+
+		verifyResults(Arrays.asList(new Object[] { 1L }));
+	}
+
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0+")
+	public void testUnlinkBatch() {
+
+		actual.add(connection.set("testing", "123"));
+		actual.add(connection.set("foo", "bar"));
+		actual.add(connection.unlink("testing", "foo"));
+		actual.add(connection.exists("testing"));
+
+		verifyResults(Arrays.asList(true, true, 2L, false));
+	}
+
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0+")
+	public void unlinkReturnsZeroIfNoKeysRemoved() {
+
+		actual.add(connection.unlink("unlink.this"));
+
+		verifyResults(Arrays.asList(new Object[] { 0L }));
+	}
+
 	@Test
 	public void testType() {
 
@@ -2786,26 +2818,6 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void touchReturnsZeroIfNoKeysTouched() {
 
 		actual.add(connection.touch("touch.this", "touch.that"));
-
-		verifyResults(Arrays.asList(new Object[] { 0L }));
-	}
-
-	@Test // DATAREDIS-693
-	@IfProfileValue(name = "redisVersion", value = "4.0+")
-	public void unlinkReturnsNrOfKeysRemoved() {
-
-		connection.set("unlink.this", "Can't track this!");
-
-		actual.add(connection.unlink("unlink.this", "unlink.that"));
-
-		verifyResults(Arrays.asList(new Object[] { 1L }));
-	}
-
-	@Test // DATAREDIS-693
-	@IfProfileValue(name = "redisVersion", value = "4.0+")
-	public void unlinkReturnsZeroIfNoKeysRemoved() {
-
-		actual.add(connection.unlink("unlink.this"));
 
 		verifyResults(Arrays.asList(new Object[] { 0L }));
 	}

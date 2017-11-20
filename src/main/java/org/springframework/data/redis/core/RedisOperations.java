@@ -195,6 +195,30 @@ public interface RedisOperations<K, V> {
 	Long delete(Collection<K> keys);
 
 	/**
+	 * Unlink the {@code key} from the keyspace. Unlike with {@link #delete(Object)} the actual memory reclaiming here
+	 * happens asynchronously.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Boolean unlink(K key);
+
+	/**
+	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #delete(Collection)} the actual memory reclaiming
+	 * here happens asynchronously.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Long unlink(Collection<K> keys);
+
+	/**
 	 * Determine the type stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.

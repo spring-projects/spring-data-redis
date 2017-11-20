@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -184,6 +185,55 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		StepVerifier.create(result).expectNextCount(2).verifyComplete();
 	}
 
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
+	public void shouldUnlinkKeyCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		StepVerifier.create(connection.keyCommands().unlink(KEY_1_BBUFFER)).expectNext(1L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
+	public void shouldUnlinkKeysCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.set(KEY_2, VALUE_2);
+
+		Flux<NumericResponse<KeyCommand, Long>> result = connection.keyCommands()
+				.unlink(Flux.fromIterable(Arrays.asList(new KeyCommand(KEY_1_BBUFFER), new KeyCommand(KEY_2_BBUFFER))));
+
+		StepVerifier.create(result).expectNextCount(2).verifyComplete();
+	}
+
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
+	public void shouldUnlinkKeysInBatchCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.set(KEY_2, VALUE_2);
+
+		Mono<Long> result = connection.keyCommands().mUnlink(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER));
+
+		assertThat(result.block(), is(2L));
+	}
+
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
+	public void shouldUnlinkKeysInMultipleBatchesCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.set(KEY_2, VALUE_2);
+
+		Flux<Long> result = connection.keyCommands()
+				.mUnlink(Flux.fromIterable(
+						Arrays.asList(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Collections.singletonList(KEY_1_BBUFFER))))
+				.map(NumericResponse::getOutput);
+
+		StepVerifier.create(result).expectNextCount(2).verifyComplete();
+	}
+
 	@Test // DATAREDIS-602
 	public void shouldExpireKeysCorrectly() {
 
@@ -308,28 +358,6 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 	public void touchReturnsZeroIfNoKeysTouched() {
 
 		StepVerifier.create(connection.keyCommands().touch(Arrays.asList(KEY_1_BBUFFER))) //
-				.expectNext(0L) //
-				.verifyComplete();
-	}
-
-	@Test // DATAREDIS-693
-	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
-	public void unlinkReturnsNrOfKeysRemoved() {
-
-		nativeCommands.set(KEY_1, VALUE_1);
-		nativeCommands.set(KEY_2, VALUE_2);
-
-		StepVerifier.create(connection.keyCommands().unlink(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER)))
-				.expectNext(2L) //
-				.verifyComplete();
-
-	}
-
-	@Test // DATAREDIS-693
-	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
-	public void unlinkReturnsZeroIfNoKeysRemoved() {
-
-		StepVerifier.create(connection.keyCommands().unlink(Arrays.asList(KEY_1_BBUFFER))) //
 				.expectNext(0L) //
 				.verifyComplete();
 	}
