@@ -306,6 +306,40 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#unlink(java.lang.Object[])
+	 */
+	@Override
+	@SafeVarargs
+	public final Mono<Long> unlink(K... keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notEmpty(keys, "Keys must not be empty!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
+		if (keys.length == 1) {
+			return createMono(connection -> connection.keyCommands().unlink(rawKey(keys[0])));
+		}
+
+		Mono<List<ByteBuffer>> listOfKeys = Flux.fromArray(keys).map(this::rawKey).collectList();
+		return createMono(connection -> listOfKeys.flatMap(rawKeys -> connection.keyCommands().mUnlink(rawKeys)));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#unlink(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Mono<Long> unlink(Publisher<K> keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		return createMono(connection -> connection.keyCommands() //
+				.unlink(Flux.from(keys).map(this::rawKey).map(KeyCommand::new)) //
+				.map(CommandResponse::getOutput));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#expire(java.lang.Object, java.time.Duration)
 	 */
 	@Override

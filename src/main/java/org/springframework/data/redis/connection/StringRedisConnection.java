@@ -114,8 +114,8 @@ public interface StringRedisConnection extends RedisConnection {
 	Long del(String... keys);
 
 	/**
-	 * Unlinks the {@code keys} from the keyspace. Unlike with {@link #del(byte[]...)} the actual removal here happens
-	 * asynchronously.
+	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #del(String...)} the actual memory reclaiming here
+	 * happens asynchronously.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.

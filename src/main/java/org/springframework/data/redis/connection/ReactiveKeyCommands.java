@@ -265,31 +265,6 @@ public interface ReactiveKeyCommands {
 	Flux<NumericResponse<KeyCommand, Long>> del(Publisher<KeyCommand> keys);
 
 	/**
-	 * Unlink {@literal key}.
-	 *
-	 * @param keys must not be {@literal null}.
-	 * @return
-	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
-	 * @since 2.1
-	 */
-	default Mono<Long> unlink(List<ByteBuffer> keys) {
-
-		Assert.notNull(keys, "Key must not be null!");
-
-		return unlink(Mono.just(keys)).next().map(NumericResponse::getOutput);
-	}
-
-	/**
-	 * Unlink {@literal keys}.
-	 *
-	 * @param keys must not be {@literal null}.
-	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} removed along with the deletion result.
-	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
-	 * @since 2.1
-	 */
-	Flux<NumericResponse<List<ByteBuffer>, Long>> unlink(Publisher<List<ByteBuffer>> keys);
-
-	/**
 	 * Delete multiple {@literal keys} one in one batch.
 	 *
 	 * @param keys must not be {@literal null}.
@@ -311,6 +286,60 @@ public interface ReactiveKeyCommands {
 	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Flux<NumericResponse<List<ByteBuffer>, Long>> mDel(Publisher<List<ByteBuffer>> keys);
+
+	/**
+	 * Unlink the {@code key} from the keyspace. Unlike with {@link #del(ByteBuffer)} the actual memory reclaiming here
+	 * happens asynchronously.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @since 2.1
+	 */
+	default Mono<Long> unlink(ByteBuffer key) {
+
+		Assert.notNull(key, "Keys must not be null!");
+
+		return unlink(Mono.just(key).map(KeyCommand::new)).next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Unlink the {@code key} from the keyspace. Unlike with {@link #del(ByteBuffer)} the actual memory reclaiming here
+	 * happens asynchronously.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} removed along with the unlink result.
+	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @since 2.1
+	 */
+	Flux<NumericResponse<KeyCommand, Long>> unlink(Publisher<KeyCommand> keys);
+
+	/**
+	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #mDel(List)} the actual memory reclaiming here
+	 * happens asynchronously.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @since 2.1
+	 */
+	default Mono<Long> mUnlink(List<ByteBuffer> keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		return mUnlink(Mono.just(keys)).next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #mDel(Publisher)} the actual memory reclaiming here
+	 * happens asynchronously.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} removed along with the deletion result.
+	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @since 2.1
+	 */
+	Flux<NumericResponse<List<ByteBuffer>, Long>> mUnlink(Publisher<List<ByteBuffer>> keys);
 
 	/**
 	 * {@code EXPIRE}/{@code PEXPIRE} command parameters.

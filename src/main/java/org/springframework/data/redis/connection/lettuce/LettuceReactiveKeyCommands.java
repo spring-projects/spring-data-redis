@@ -22,7 +22,6 @@ import reactor.core.publisher.Mono;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.DataType;
@@ -177,22 +176,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#unlink(org.reactivestreams.Publisher)
-	 */
-	@Override
-	public Flux<NumericResponse<List<ByteBuffer>, Long>> unlink(Publisher<List<ByteBuffer>> keysCollection) {
-
-		return connection.execute(cmd -> Flux.from(keysCollection).flatMap((keys) -> {
-
-			Assert.notEmpty(keys, "Keys must not be null!");
-
-			return cmd.unlink(keys.stream().collect(Collectors.toList()).toArray(new ByteBuffer[keys.size()]))
-					.map((value) -> new NumericResponse<>(keys, value));
-		}));
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#mDel(org.reactivestreams.Publisher)
 	 */
 	@Override
@@ -202,8 +185,38 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 			Assert.notEmpty(keys, "Keys must not be null!");
 
-			return cmd.del(keys.stream().collect(Collectors.toList()).toArray(new ByteBuffer[keys.size()]))
+			return cmd.del(keys.toArray(new ByteBuffer[keys.size()]))
 					.map((value) -> new NumericResponse<>(keys, value));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#unlink(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<NumericResponse<KeyCommand, Long>> unlink(Publisher<KeyCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap((command) -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			return cmd.unlink(command.getKey()).map((value) -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#mUnlink(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<NumericResponse<List<ByteBuffer>, Long>> mUnlink(Publisher<List<ByteBuffer>> keysCollection) {
+
+		return connection.execute(cmd -> Flux.from(keysCollection).concatMap((keys) -> {
+
+			Assert.notEmpty(keys, "Keys must not be null!");
+
+			return cmd.unlink(keys.toArray(new ByteBuffer[keys.size()])).map((value) -> new NumericResponse<>(keys, value));
 		}));
 	}
 

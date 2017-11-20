@@ -729,6 +729,36 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#unlink(java.lang.Object)
+	 */
+	@Override
+	public Boolean unlink(K key) {
+
+		byte[] rawKey = rawKey(key);
+
+		Long result = execute(connection -> connection.unlink(rawKey), true);
+
+		return result != null && result.intValue() == 1;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#unlink(java.util.Collection)
+	 */
+	@Override
+	public Long unlink(Collection<K> keys) {
+
+		if (CollectionUtils.isEmpty(keys)) {
+			return 0L;
+		}
+
+		byte[][] rawKeys = rawKeys(keys);
+
+		return execute(connection -> connection.unlink(rawKeys), true);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.RedisOperations#hasKey(java.lang.Object)
 	 */
 	@Override

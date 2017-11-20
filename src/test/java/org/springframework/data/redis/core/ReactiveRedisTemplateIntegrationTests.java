@@ -166,6 +166,36 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verify();
 	}
 
+	@Test // DATAREDIS-693
+	public void unlink() {
+
+		K single = keyFactory.instance();
+
+		StepVerifier.create(redisTemplate.opsForValue().set(single, valueFactory.instance())).expectNext(true)
+				.verifyComplete();
+
+		StepVerifier.create(redisTemplate.unlink(single)).expectNext(1L).verifyComplete();
+
+		StepVerifier.create(redisTemplate.hasKey(single)).expectNext(false).verifyComplete();
+	}
+
+	@Test // DATAREDIS-693
+	public void unlinkMany() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+
+		StepVerifier.create(redisTemplate.opsForValue().set(key1, valueFactory.instance())).expectNext(true)
+				.verifyComplete();
+		StepVerifier.create(redisTemplate.opsForValue().set(key2, valueFactory.instance())).expectNext(true)
+				.verifyComplete();
+
+		StepVerifier.create(redisTemplate.unlink(key1, key2)).expectNext(2L).verifyComplete();
+
+		StepVerifier.create(redisTemplate.hasKey(key1)).expectNext(false).verifyComplete();
+		StepVerifier.create(redisTemplate.hasKey(key2)).expectNext(false).verifyComplete();
+	}
+
 	@Test // DATAREDIS-683
 	@SuppressWarnings("unchecked")
 	public void executeScript() {
