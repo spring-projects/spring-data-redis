@@ -133,6 +133,28 @@ public interface ReactiveRedisOperations<K, V> {
 	Mono<Long> delete(Publisher<K> keys);
 
 	/**
+	 * Unlink the {@code key} from the keyspace. Unlike with {@link #delete(Object[])} the actual memory reclaiming here
+	 * happens asynchronously.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @since 2.1
+	 */
+	Mono<Long> unlink(K... key);
+
+	/**
+	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #delete(Publisher)} the actual memory reclaiming here
+	 * happens asynchronously.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @since 2.1
+	 */
+	Mono<Long> unlink(Publisher<K> keys);
+
+	/**
 	 * Set time to live for given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.

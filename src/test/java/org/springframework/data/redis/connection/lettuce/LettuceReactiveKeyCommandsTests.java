@@ -28,6 +28,8 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,12 +55,12 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		assertThat(connection.keyCommands().exists(KEY_1_BBUFFER).block(), is(true));
+		StepVerifier.create(connection.keyCommands().exists(KEY_1_BBUFFER)).expectNext(true).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
 	public void existsShouldReturnFalseForNonExistingKeys() {
-		assertThat(connection.keyCommands().exists(KEY_1_BBUFFER).block(), is(false));
+		StepVerifier.create(connection.keyCommands().exists(KEY_1_BBUFFER)).expectNext(false).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -68,9 +70,9 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_2, VALUE_2);
 		nativeCommands.hset(KEY_3, KEY_1, VALUE_1);
 
-		assertThat(connection.keyCommands().type(KEY_1_BBUFFER).block(), is(DataType.STRING));
-		assertThat(connection.keyCommands().type(KEY_2_BBUFFER).block(), is(DataType.SET));
-		assertThat(connection.keyCommands().type(KEY_3_BBUFFER).block(), is(DataType.HASH));
+		StepVerifier.create(connection.keyCommands().type(KEY_1_BBUFFER)).expectNext(DataType.STRING).verifyComplete();
+		StepVerifier.create(connection.keyCommands().type(KEY_2_BBUFFER)).expectNext(DataType.SET).verifyComplete();
+		StepVerifier.create(connection.keyCommands().type(KEY_3_BBUFFER)).expectNext(DataType.HASH).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -84,8 +86,12 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.set(VALUE_2, KEY_2);
 		nativeCommands.set(VALUE_3, KEY_3);
 
-		assertThat(connection.keyCommands().keys(ByteBuffer.wrap("*".getBytes())).block(), hasSize(6));
-		assertThat(connection.keyCommands().keys(ByteBuffer.wrap("key*".getBytes())).block(), hasSize(3));
+		StepVerifier.create(connection.keyCommands().keys(ByteBuffer.wrap("*".getBytes())).flatMapIterable(it -> it)) //
+				.expectNextCount(6) //
+				.verifyComplete();
+
+		StepVerifier.create(connection.keyCommands().keys(ByteBuffer.wrap("key*".getBytes())).flatMapIterable(it -> it)) //
+				.expectNextCount(3).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -95,12 +101,12 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.set(KEY_2, VALUE_2);
 		nativeCommands.set(KEY_3, VALUE_3);
 
-		assertThat(connection.keyCommands().randomKey().block(), is(notNullValue()));
+		StepVerifier.create(connection.keyCommands().randomKey()).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
 	public void randomKeyShouldReturnNullWhenNoKeyExists() {
-		assertThat(connection.keyCommands().randomKey().block(), is(nullValue()));
+		StepVerifier.create(connection.keyCommands().randomKey()).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -108,14 +114,17 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.set(KEY_1, VALUE_2);
 
-		assertThat(connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER).block(), is(true));
+		StepVerifier.create(connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER)).expectNext(true)
+				.verifyComplete();
 		assertThat(nativeCommands.exists(KEY_2), is(1L));
 		assertThat(nativeCommands.exists(KEY_1), is(0L));
 	}
 
-	@Test(expected = RedisSystemException.class) // DATAREDIS-525
+	@Test // DATAREDIS-525
 	public void renameShouldThrowErrorWhenKeyDoesNotExist() {
-		assertThat(connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER).block(), is(true));
+
+		StepVerifier.create(connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER))
+				.expectError(RedisSystemException.class).verify();
 	}
 
 	@Test // DATAREDIS-525
@@ -123,7 +132,8 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.set(KEY_1, VALUE_2);
 
-		assertThat(connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER).block(), is(true));
+		StepVerifier.create(connection.keyCommands().renameNX(KEY_1_BBUFFER, KEY_2_BBUFFER)).expectNext(true)
+				.verifyComplete();
 
 		assertThat(nativeCommands.exists(KEY_2), is(1L));
 		assertThat(nativeCommands.exists(KEY_1), is(0L));
@@ -135,7 +145,8 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.set(KEY_1, VALUE_2);
 		nativeCommands.set(KEY_2, VALUE_2);
 
-		assertThat(connection.keyCommands().renameNX(KEY_1_BBUFFER, KEY_2_BBUFFER).block(), is(false));
+		StepVerifier.create(connection.keyCommands().renameNX(KEY_1_BBUFFER, KEY_2_BBUFFER)).expectNext(false)
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -143,8 +154,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		Mono<Long> result = connection.keyCommands().del(KEY_1_BBUFFER);
-		assertThat(result.block(), is(1L));
+		StepVerifier.create(connection.keyCommands().del(KEY_1_BBUFFER)).expectNext(1L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -167,7 +177,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 
 		Mono<Long> result = connection.keyCommands().mDel(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER));
 
-		assertThat(result.block(), is(2L));
+		StepVerifier.create(result).expectNext(2L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -176,9 +186,62 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.set(KEY_1, VALUE_1);
 		nativeCommands.set(KEY_2, VALUE_2);
 
+		Flux<List<ByteBuffer>> input = Flux.just(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER),
+				Collections.singletonList(KEY_1_BBUFFER));
+
 		Flux<Long> result = connection.keyCommands()
-				.mDel(
-						Flux.fromIterable(Arrays.asList(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(KEY_1_BBUFFER))))
+				.mDel(input)
+				.map(NumericResponse::getOutput);
+
+		StepVerifier.create(result).expectNextCount(2).verifyComplete();
+	}
+
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
+	public void shouldUnlinkKeyCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		StepVerifier.create(connection.keyCommands().unlink(KEY_1_BBUFFER)).expectNext(1L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
+	public void shouldUnlinkKeysCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.set(KEY_2, VALUE_2);
+
+		Flux<NumericResponse<KeyCommand, Long>> result = connection.keyCommands()
+				.unlink(Flux.fromIterable(Arrays.asList(new KeyCommand(KEY_1_BBUFFER), new KeyCommand(KEY_2_BBUFFER))));
+
+		StepVerifier.create(result).expectNextCount(2).verifyComplete();
+	}
+
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
+	public void shouldUnlinkKeysInBatchCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.set(KEY_2, VALUE_2);
+
+		Mono<Long> result = connection.keyCommands().mUnlink(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER));
+
+		StepVerifier.create(result).expectNext(2L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-693
+	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
+	public void shouldUnlinkKeysInMultipleBatchesCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.set(KEY_2, VALUE_2);
+
+		Flux<List<ByteBuffer>> input = Flux.just(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER),
+				Collections.singletonList(KEY_1_BBUFFER));
+
+		Flux<Long> result = connection.keyCommands()
+				.mUnlink(input)
 				.map(NumericResponse::getOutput);
 
 		StepVerifier.create(result).expectNextCount(2).verifyComplete();
@@ -307,29 +370,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 	@Test // DATAREDIS-694
 	public void touchReturnsZeroIfNoKeysTouched() {
 
-		StepVerifier.create(connection.keyCommands().touch(Arrays.asList(KEY_1_BBUFFER))) //
-				.expectNext(0L) //
-				.verifyComplete();
-	}
-
-	@Test // DATAREDIS-693
-	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
-	public void unlinkReturnsNrOfKeysRemoved() {
-
-		nativeCommands.set(KEY_1, VALUE_1);
-		nativeCommands.set(KEY_2, VALUE_2);
-
-		StepVerifier.create(connection.keyCommands().unlink(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER)))
-				.expectNext(2L) //
-				.verifyComplete();
-
-	}
-
-	@Test // DATAREDIS-693
-	@IfProfileValue(name = "redisVersion", value = "4.0.0+")
-	public void unlinkReturnsZeroIfNoKeysRemoved() {
-
-		StepVerifier.create(connection.keyCommands().unlink(Arrays.asList(KEY_1_BBUFFER))) //
+		StepVerifier.create(connection.keyCommands().touch(Collections.singletonList(KEY_1_BBUFFER))) //
 				.expectNext(0L) //
 				.verifyComplete();
 	}
