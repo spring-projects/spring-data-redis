@@ -19,29 +19,77 @@ import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.masterslave.MasterSlave;
 import io.lettuce.core.masterslave.StatefulRedisMasterSlaveConnection;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
+import org.springframework.lang.Nullable;
 
 /**
+ * {@link LettuceConnectionProvider} implementation for a standalone Redis setup.
+ *
  * @author Mark Paluch
  * @author Christoph Strobl
  * @since 2.0
  */
-@RequiredArgsConstructor
 class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetAware {
 
 	private final RedisClient client;
 	private final RedisCodec<?, ?> codec;
 	private final Optional<ReadFrom> readFrom;
+	private final Supplier<RedisURI> redisURISupplier;
+
+	/**
+	 * Create new {@link StandaloneConnectionProvider}.
+	 *
+	 * @param client must not be {@literal null}.
+	 * @param codec must not be {@literal null}.
+	 */
+	StandaloneConnectionProvider(RedisClient client, RedisCodec<?, ?> codec) {
+		this(client, codec, null);
+	}
+
+	/**
+	 * Create new {@link StandaloneConnectionProvider}.
+	 *
+	 * @param client must not be {@literal null}.
+	 * @param codec must not be {@literal null}.
+	 * @param readFrom can be {@literal null}.
+	 * @since 2.1
+	 */
+	StandaloneConnectionProvider(RedisClient client, RedisCodec<?, ?> codec, @Nullable ReadFrom readFrom) {
+
+		this.client = client;
+		this.codec = codec;
+		this.readFrom = Optional.ofNullable(readFrom);
+
+		redisURISupplier = new Supplier<RedisURI>() {
+
+			AtomicReference<RedisURI> uriFieldReference = new AtomicReference();
+
+			@Override
+			public RedisURI get() {
+
+				RedisURI uri = uriFieldReference.get();
+				if (uri != null) {
+					return uri;
+				}
+
+				uri = RedisURI.class.cast(new DirectFieldAccessor(client).getPropertyValue("redisURI"));
+
+				return uriFieldReference.compareAndSet(null, uri) ? uri : uriFieldReference.get();
+			}
+		};
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -61,16 +109,8 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
 
-			return readFrom.map(it -> {
-
-				DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(client);
-				RedisURI redisURI = RedisURI.class.cast(fieldAccessor.getPropertyValue("redisURI"));
-
-				StatefulRedisMasterSlaveConnection<?, ?> connection = MasterSlave.connect(client, codec, redisURI);
-				connection.setReadFrom(it);
-
-				return connectionType.cast(connection);
-			}).orElseGet(() -> connectionType.cast(client.connect(codec)));
+			return connectionType.cast(readFrom.map(it -> this.masterSlaveConnection(redisURISupplier.get(), it))
+					.orElseGet(() -> client.connect(codec)));
 		}
 
 		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");
@@ -93,9 +133,20 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 		}
 
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
-			return connectionType.cast(client.connect(codec, redisURI));
+
+			return connectionType
+					.cast(readFrom.map(it -> this.masterSlaveConnection(redisURI, it)).orElseGet(() -> client.connect(codec)));
 		}
 
 		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");
 	}
+
+	private StatefulRedisConnection masterSlaveConnection(RedisURI redisUri, ReadFrom readFrom) {
+
+		StatefulRedisMasterSlaveConnection<?, ?> connection = MasterSlave.connect(client, codec, redisUri);
+		connection.setReadFrom(readFrom);
+
+		return connection;
+	}
+
 }

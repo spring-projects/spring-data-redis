@@ -111,6 +111,30 @@ class RedisConfiguration {
 }
 ----
 
+[[redis:write-to-master-read-from-slave]]
+=== Write to Master read from Slave
+
+Redis Master/Slave setup, without automatic failover (for automatic failover see: <<redis:sentinel, Sentinel>>), not only allows data to be savely stored at more nodes. It also allows, using <<redis:connectors:lettuce, Lettuce>>,  reading data from slaves while pushing writes to the master.
+Set the read/write strategy to be used via `LettuceClientConfiguration`.
+
+[source,java]
+----
+@Configuration
+class WriteToMasterReadFromSlaveConfiguration {
+
+  @Bean
+  public LettuceConnectionFactory redisConnectionFactory() {
+
+    LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
+      .readFrom(SLAVE_PREFERRED)
+      .build();
+
+    return new LettuceConnectionFactory(new RedisStandaloneConfiguration("server", 6379), clientConfig);
+  }
+}
+----
+
+
 [[redis:sentinel]]
 == Redis Sentinel Support
 
