@@ -1,4 +1,4 @@
-Spring Data Redis 2.0.1
+Spring Data Redis 2.0.2
    Copyright (c) [$copyright] Pivotal Software, Inc.
 
    ========================================================================
