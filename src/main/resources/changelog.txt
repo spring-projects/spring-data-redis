@@ -6,6 +6,16 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 2.0.2.RELEASE (2017-11-27)
+---------------------------------------------
+* DATAREDIS-735 - Upgrade to Lettuce 5.0.1.
+* DATAREDIS-733 - Typo in ValueOperations.increment documentation link.
+* DATAREDIS-728 - Unnecessary cache configuration map creation in RedisCacheManagerBuilder.
+* DATAREDIS-727 - Incorrect documentation for RedisCacheManagerBuilder.
+* DATAREDIS-723 - Release 2.0.2 (Kay SR2).
+* DATAREDIS-706 - JedisClusterStringCommands.set(…) contains redundant null checks.
+
+
 Changes in version 1.8.9.RELEASE (2017-11-27)
 ---------------------------------------------
 * DATAREDIS-733 - Typo in ValueOperations.increment documentation link.
