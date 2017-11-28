@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.nio.ByteBuffer;
 
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 
 /**
@@ -44,9 +45,7 @@ class DefaultRedisElementReader<T> implements RedisElementReader<T> {
 			return (T) buffer;
 		}
 
-		byte[] bytes = new byte[buffer.slice().remaining()];
-		buffer.get(bytes);
-
-		return serializer.deserialize(bytes);
+		return serializer.deserialize(ByteUtils.extractBytes(buffer));
 	}
+
 }

@@ -25,69 +25,73 @@ import java.nio.ByteBuffer;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
-import org.springframework.data.redis.connection.ReactiveRedisPubSubCommands;
+import org.springframework.data.redis.connection.ReactivePubSubCommands;
 import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.1
  */
 @RequiredArgsConstructor
-class LettuceReactivePubSubCommands implements ReactiveRedisPubSubCommands {
+class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 
 	private final @NonNull LettuceReactiveRedisConnection connection;
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisPubSubCommands#createSubscription()
+	 * @see org.springframework.data.redis.connection.ReactivePubSubCommands#createSubscription()
 	 */
 	@Override
 	public Mono<ReactiveSubscription> createSubscription() {
+
 		return connection.getPubSubConnection()
-				.map(c -> new LettuceReactiveSubscription(c.reactive(), connection.translateException()));
+				.map(pubSubConnection -> new LettuceReactiveSubscription(pubSubConnection.reactive(),
+						connection.translateException()));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisPubSubCommands#publish(org.reactivestreams.Publisher)
+	 * @see org.springframework.data.redis.connection.ReactivePubSubCommands#publish(org.reactivestreams.Publisher)
 	 */
 	@Override
 	public Flux<Long> publish(Publisher<ChannelMessage<ByteBuffer, ByteBuffer>> messageStream) {
 
 		Assert.notNull(messageStream, "ChannelMessage stream must not be null!");
 
-		return connection.getCommands().flatMapMany(
-				c -> Flux.from(messageStream).flatMap(message -> c.publish(message.getChannel(), message.getMessage())));
+		return connection.getCommands().flatMapMany(commands -> Flux.from(messageStream)
+				.flatMap(message -> commands.publish(message.getChannel(), message.getMessage())));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisPubSubCommands#subscribe(java.nio.ByteBuffer[])
+	 * @see org.springframework.data.redis.connection.ReactivePubSubCommands#subscribe(java.nio.ByteBuffer[])
 	 */
 	@Override
 	public Mono<Void> subscribe(ByteBuffer... channels) {
 
 		Assert.notNull(channels, "Channels must not be null!");
 
-		return doWithPubSub(c -> c.subscribe(channels));
+		return doWithPubSub(commands -> commands.subscribe(channels));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisPubSubCommands#pSubscribe(java.nio.ByteBuffer[])
+	 * @see org.springframework.data.redis.connection.ReactivePubSubCommands#pSubscribe(java.nio.ByteBuffer[])
 	 */
 	@Override
 	public Mono<Void> pSubscribe(ByteBuffer... patterns) {
 
 		Assert.notNull(patterns, "Patterns must not be null!");
 
-		return doWithPubSub(c -> c.psubscribe(patterns));
+		return doWithPubSub(commands -> commands.psubscribe(patterns));
 	}
 
 	private <T> Mono<T> doWithPubSub(Function<RedisPubSubReactiveCommands<ByteBuffer, ByteBuffer>, Mono<T>> function) {
-		return connection.getPubSubConnection().flatMap(c -> function.apply(c.reactive()))
+
+		return connection.getPubSubConnection().flatMap(pubSubConnection -> function.apply(pubSubConnection.reactive()))
 				.onErrorMap(connection.translateException());
 	}
 }

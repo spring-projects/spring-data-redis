@@ -44,7 +44,7 @@ public class ChannelTopic implements Topic {
 
 	/**
 	 * Create a new {@link ChannelTopic} for channel subscriptions.
-	 * 
+	 *
 	 * @param name the channel name, must not be {@literal null} or empty.
 	 * @return the {@link ChannelTopic} for {@code channelName}.
 	 * @since 2.1

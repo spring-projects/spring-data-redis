@@ -232,4 +232,21 @@ public final class ByteUtils {
 
 		return charset.encode(theString);
 	}
+
+	/**
+	 * Extract/Transfer bytes from the given {@link ByteBuffer} into an array by duplicating the buffer and fetching its
+	 * content.
+	 *
+	 * @param buffer must not be {@literal null}.
+	 * @return the extracted bytes.
+	 * @since 2.1
+	 */
+	public static byte[] extractBytes(ByteBuffer buffer) {
+
+		ByteBuffer duplicate = buffer.duplicate();
+		byte[] bytes = new byte[duplicate.remaining()];
+		duplicate.get(bytes);
+
+		return bytes;
+	}
 }

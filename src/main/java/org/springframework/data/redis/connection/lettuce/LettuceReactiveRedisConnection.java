@@ -175,7 +175,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#pubSubCommands()
 	 */
 	@Override
-	public ReactiveRedisPubSubCommands pubSubCommands() {
+	public ReactivePubSubCommands pubSubCommands() {
 		return new LettuceReactivePubSubCommands(this);
 	}
 
@@ -225,11 +225,10 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 	/*
 	 * (non-Javadoc)
-	 * @see java.io.Closeable#close()
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#closeLater()
 	 */
-	@Override
-	public void close() {
-		dedicatedConnection.close();
+	public Mono<Void> closeLater() {
+		return Mono.fromRunnable(() -> dedicatedConnection.close());
 	}
 
 	protected Mono<? extends StatefulConnection<ByteBuffer, ByteBuffer>> getConnection() {

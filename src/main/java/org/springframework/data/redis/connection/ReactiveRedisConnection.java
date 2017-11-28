@@ -50,8 +50,21 @@ import org.springframework.util.Assert;
  */
 public interface ReactiveRedisConnection extends Closeable {
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.io.Closeable#close()
+	 */
 	@Override
-	void close();
+	default void close() {
+		closeLater().block();
+	}
+
+	/**
+	 * Asynchronously close the connection and release associated resources.
+	 *
+	 * @return the {@link Mono} signaling when done.
+	 */
+	Mono<Void> closeLater();
 
 	/**
 	 * Get {@link ReactiveKeyCommands}.
@@ -117,12 +130,12 @@ public interface ReactiveRedisConnection extends Closeable {
 	ReactiveHyperLogLogCommands hyperLogLogCommands();
 
 	/**
-	 * Get {@link ReactiveRedisPubSubCommands}.
+	 * Get {@link ReactivePubSubCommands}.
 	 *
 	 * @return never {@literal null}.
 	 * @since 2.1
 	 */
-	ReactiveRedisPubSubCommands pubSubCommands();
+	ReactivePubSubCommands pubSubCommands();
 
 	/**
 	 * Get {@link ReactiveScriptingCommands}.

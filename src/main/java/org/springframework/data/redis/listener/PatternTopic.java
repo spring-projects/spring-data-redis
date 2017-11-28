@@ -24,6 +24,7 @@ import org.springframework.util.Assert;
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @EqualsAndHashCode
 public class PatternTopic implements Topic {
@@ -49,7 +50,7 @@ public class PatternTopic implements Topic {
 	 * @return the {@link PatternTopic} for {@code pattern}.
 	 * @since 2.1
 	 */
-	static PatternTopic of(String pattern) {
+	public static PatternTopic of(String pattern) {
 		return new PatternTopic(pattern);
 	}
 

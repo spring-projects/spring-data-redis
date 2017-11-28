@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,10 @@ import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMes
  * Redis <a href="https://redis.io/commands/#pubsub">Pub/Sub</a> commands executed using reactive infrastructure.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.1
  */
-public interface ReactiveRedisPubSubCommands {
+public interface ReactivePubSubCommands {
 
 	/**
 	 * Creates a subscription for this connection. Connections can have multiple {@link ReactiveSubscription}s.
@@ -63,7 +64,7 @@ public interface ReactiveRedisPubSubCommands {
 	 * Subscribes the connection to the given {@code channels}. Once subscribed, a connection enters listening mode and
 	 * can only subscribe to other channels or unsubscribe. No other commands are accepted until the connection is
 	 * unsubscribed.
-	 * <p/>
+	 * <p />
 	 * Note that cancellation of the {@link Flux} will unsubscribe from {@code channels}.
 	 *
 	 * @param channels channel names, must not be {@literal null}.
@@ -82,4 +83,5 @@ public interface ReactiveRedisPubSubCommands {
 	 * @see <a href="http://redis.io/commands/psubscribe">Redis Documentation: PSUBSCRIBE</a>
 	 */
 	Mono<Void> pSubscribe(ByteBuffer... patterns);
+
 }

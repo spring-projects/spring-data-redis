@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,13 +37,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
+import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
 
 /**
  * Unit tests for {@link LettuceReactiveSubscription}.
- * 
+ *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @RunWith(MockitoJUnitRunner.class)
 public class LettuceReactiveSubscriptionUnitTests {
@@ -193,7 +194,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 		when(commandsMock.observePatterns()).thenReturn(Flux.never());
 
 		StepVerifier.create(subscription.receive()).then(() -> {
-			subscription.terminate().subscribe();
+			subscription.cancel().subscribe();
 		}).expectError(CancellationException.class).verify();
 
 		assertThat(subscription.getPatterns()).isEmpty();
@@ -211,7 +212,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 		when(commandsMock.observeChannels()).thenReturn(Flux.never());
 		when(commandsMock.observePatterns()).thenReturn(emitter);
 
-		Flux<ChannelMessage<ByteBuffer, ByteBuffer>> receive = subscription.receive();
+		Flux<Message<ByteBuffer, ByteBuffer>> receive = subscription.receive();
 		Disposable subscribe = receive.subscribe();
 
 		assertThat(emitter.downstreamCount()).isEqualTo(1);
@@ -221,13 +222,15 @@ public class LettuceReactiveSubscriptionUnitTests {
 	}
 
 	private static io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer> createChannelMessage(
-			String channel, String body) {
-		return new io.lettuce.core.pubsub.api.reactive.ChannelMessage<>(getByteBuffer(channel), getByteBuffer(body));
+			String channel, String message) {
+
+		return new io.lettuce.core.pubsub.api.reactive.ChannelMessage<>(getByteBuffer(channel), getByteBuffer(message));
 	}
 
 	private static io.lettuce.core.pubsub.api.reactive.PatternMessage<ByteBuffer, ByteBuffer> createPatternMessage(
-			String pattern, String channel, String body) {
+			String pattern, String channel, String message) {
+
 		return new io.lettuce.core.pubsub.api.reactive.PatternMessage<>(getByteBuffer(pattern), getByteBuffer(channel),
-				getByteBuffer(body));
+				getByteBuffer(message));
 	}
 }
