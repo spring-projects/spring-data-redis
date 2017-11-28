@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ package org.springframework.data.redis.listener;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
+import reactor.core.scheduler.Schedulers;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,16 +34,19 @@ import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.connection.ReactivePubSubCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
+import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
 import org.springframework.data.redis.serializer.RedisElementReader;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Container providing a stream of {@link ChannelMessage} for messages received via Redis Pub/Sub listeners. The stream
@@ -55,11 +58,12 @@ import org.springframework.util.Assert;
  * operations. Using reactive infrastructure allows usage of a single connection due to channel multiplexing.
  * <p />
  * This class is thread-safe and allows subscription by multiple concurrent threads.
- * 
+ *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.1
  * @see ReactiveSubscription
- * @see org.springframework.data.redis.connection.ReactiveRedisPubSubCommands
+ * @see ReactivePubSubCommands
  */
 public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
@@ -71,7 +75,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 	/**
 	 * Create a new {@link ReactiveRedisMessageListenerContainer} given {@link ReactiveRedisConnectionFactory}.
-	 * 
+	 *
 	 * @param connectionFactory must not be {@literal null}.
 	 */
 	public ReactiveRedisMessageListenerContainer(ReactiveRedisConnectionFactory connectionFactory) {
@@ -86,8 +90,13 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 */
 	@Override
 	public void destroy() {
+		destroyLater().block();
+	}
 
-		ReactiveRedisConnection connection = this.connection;
+	/**
+	 * @return the {@link Mono} signalling container termination.
+	 */
+	public Mono<Void> destroyLater() {
 
 		if (connection != null) {
 
@@ -97,55 +106,49 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 				Map<ReactiveSubscription, Subscribers> local = new HashMap<>(subscriptions);
 				List<Mono<Void>> monos = local.keySet().stream() //
 						.peek(subscriptions::remove) //
-						.map(ReactiveSubscription::terminate) //
+						.map(ReactiveSubscription::cancel) //
 						.collect(Collectors.toList());
 
 				if (terminationSignals == null) {
-					terminationSignals = Flux.merge(monos);
+					terminationSignals = Flux.concat(monos);
 				} else {
-					terminationSignals = terminationSignals.mergeWith(Flux.merge(monos));
+					terminationSignals = terminationSignals.mergeWith(Flux.concat(monos));
 				}
 			}
 
 			if (terminationSignals != null) {
-				terminationSignals.blockLast();
+				return terminationSignals.collectList()
+						.doFinally(signalType -> connection.closeLater().subscribeOn(Schedulers.immediate()))
+						.flatMap(all -> Mono.empty());
 			}
-
-			connection.close();
 			this.connection = null;
 		}
+
+		return Mono.empty();
 	}
 
 	/**
 	 * Return the currently active {@link ReactiveSubscription subscriptions}.
-	 * 
+	 *
 	 * @return {@link Set} of active {@link ReactiveSubscription}
 	 */
 	public Collection<ReactiveSubscription> getActiveSubscriptions() {
 
-		Set<ReactiveSubscription> subscriptions = new HashSet<>(this.subscriptions.size(), 1);
-
-		this.subscriptions.forEach((subscription, subscribers) -> {
-
-			if (subscribers.hasRegistration()) {
-				subscriptions.add(subscription);
-			}
-		});
-
-		return subscriptions;
+		return subscriptions.entrySet().stream().filter(entry -> entry.getValue().hasRegistration())
+				.map(entry -> entry.getKey()).collect(Collectors.toList());
 	}
 
 	/**
 	 * Subscribe to one or more {@link ChannelTopic}s and receive a stream of {@link ChannelMessage}. Messages and channel
 	 * names are treated as {@link String}. The message stream subscribes lazily to the Redis channels and unsubscribes if
 	 * the {@link org.reactivestreams.Subscription} is {@link org.reactivestreams.Subscription#cancel() cancelled}.
-	 * 
+	 *
 	 * @param channelTopics the channels to subscribe.
 	 * @return the message stream.
 	 * @throws InvalidDataAccessApiUsageException if {@code patternTopics} is empty.
 	 * @see #receive(Iterable, SerializationPair, SerializationPair)
 	 */
-	public Flux<ChannelMessage<String, String>> receive(ChannelTopic... channelTopics) {
+	public Flux<Message<String, String>> receive(ChannelTopic... channelTopics) {
 
 		Assert.notNull(channelTopics, "ChannelTopics must not be null!");
 		Assert.noNullElements(channelTopics, "ChannelTopics must not contain null elements!");
@@ -158,8 +161,8 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 * and channel names are treated as {@link String}. The message stream subscribes lazily to the Redis channels and
 	 * unsubscribes if the {@link org.reactivestreams.Subscription} is {@link org.reactivestreams.Subscription#cancel()
 	 * cancelled}.
-	 * 
-	 * @param channelTopics the channels to subscribe.
+	 *
+	 * @param patternTopics the channels to subscribe.
 	 * @return the message stream.
 	 * @throws InvalidDataAccessApiUsageException if {@code patternTopics} is empty.
 	 * @see #receive(Iterable, SerializationPair, SerializationPair)
@@ -180,39 +183,35 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 * given {@code channelSerializer} and {@code messageSerializer}. The message stream subscribes lazily to the Redis
 	 * channels and unsubscribes if the {@link org.reactivestreams.Subscription} is
 	 * {@link org.reactivestreams.Subscription#cancel() cancelled}.
-	 * 
+	 *
 	 * @param topics the channels to subscribe.
 	 * @return the message stream.
 	 * @see #receive(Iterable, SerializationPair, SerializationPair)
 	 * @throws InvalidDataAccessApiUsageException if {@code topics} is empty.
 	 */
-	public <C, B> Flux<ChannelMessage<C, B>> receive(Iterable<? extends Topic> topics,
-			SerializationPair<C> channelSerializer, SerializationPair<B> messageSerializer) {
+	public <C, B> Flux<Message<C, B>> receive(Iterable<? extends Topic> topics, SerializationPair<C> channelSerializer,
+			SerializationPair<B> messageSerializer) {
 
 		Assert.notNull(topics, "Topics must not be null!");
 
-		ReactiveRedisConnection connection = this.connection;
-		if (connection == null) {
-			throw new IllegalStateException("ReactiveRedisMessageListenerContainer is already disposed!");
-		}
-
-		Mono<ReactiveSubscription> subscription = connection.pubSubCommands().createSubscription();
+		verifyConnection();
 
 		ByteBuffer[] patterns = getTargets(topics, PatternTopic.class);
 		ByteBuffer[] channels = getTargets(topics, ChannelTopic.class);
 
-		if (patterns.length == 0 && channels.length == 0) {
-			throw new InvalidDataAccessApiUsageException("No channels or patterns to subscribe");
+		if (ObjectUtils.isEmpty(patterns) && ObjectUtils.isEmpty(channels)) {
+			throw new InvalidDataAccessApiUsageException("No channels or patterns to subscribe to.");
 		}
 
-		return doReceive(channelSerializer, messageSerializer, subscription, patterns, channels);
+		return doReceive(channelSerializer, messageSerializer, connection.pubSubCommands().createSubscription(), patterns,
+				channels);
 	}
 
-	private <C, B> Flux<ChannelMessage<C, B>> doReceive(SerializationPair<C> channelSerializer,
+	private <C, B> Flux<Message<C, B>> doReceive(SerializationPair<C> channelSerializer,
 			SerializationPair<B> messageSerializer, Mono<ReactiveSubscription> subscription, ByteBuffer[] patterns,
 			ByteBuffer[] channels) {
 
-		Flux<ChannelMessage<ByteBuffer, ByteBuffer>> messageStream = subscription.flatMapMany(it -> {
+		Flux<Message<ByteBuffer, ByteBuffer>> messageStream = subscription.flatMapMany(it -> {
 
 			Mono<Void> subscribe = subscribe(patterns, channels, it);
 
@@ -238,15 +237,16 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 	private static Mono<Void> subscribe(ByteBuffer[] patterns, ByteBuffer[] channels, ReactiveSubscription it) {
 
-		Assert.isTrue(channels.length != 0 || patterns.length != 0, "Must provide either channels or patterns!");
+		Assert.isTrue(!ObjectUtils.isEmpty(channels) || !ObjectUtils.isEmpty(patterns),
+				"Must provide either channels or patterns!");
 
 		Mono<Void> subscribe = null;
 
-		if (patterns.length != 0) {
+		if (!ObjectUtils.isEmpty(patterns)) {
 			subscribe = it.pSubscribe(patterns);
 		}
 
-		if (channels.length != 0) {
+		if (!ObjectUtils.isEmpty(channels)) {
 
 			Mono<Void> channelsSubscribe = it.subscribe(channels);
 
@@ -258,6 +258,17 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 		}
 
 		return subscribe;
+	}
+
+	private boolean isActive() {
+		return connection != null;
+	}
+
+	private void verifyConnection() {
+
+		if (!isActive()) {
+			throw new IllegalStateException("ReactiveRedisMessageListenerContainer is already disposed!");
+		}
 	}
 
 	private Subscribers getSubscribers(ReactiveSubscription it) {
@@ -274,8 +285,8 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <C, B> ChannelMessage<C, B> readMessage(RedisElementReader<C> channelSerializer,
-			RedisElementReader<B> messageSerializer, ChannelMessage<ByteBuffer, ByteBuffer> message) {
+	private <C, B> Message<C, B> readMessage(RedisElementReader<C> channelSerializer,
+			RedisElementReader<B> messageSerializer, Message<ByteBuffer, ByteBuffer> message) {
 
 		if (message instanceof PatternMessage) {
 
@@ -306,7 +317,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 	/**
 	 * Object to track subscriber count and to determine the last unsubscribed subscriber.
-	 * 
+	 *
 	 * @author Mark Paluch
 	 */
 	static class Subscribers {

@@ -214,7 +214,6 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		MessageListener listener = (message, pattern) -> {
 			messages.add(message);
-			System.out.println("Received message '" + new String(message.getBody()) + "'");
 		};
 
 		Thread t = new Thread() {
@@ -272,7 +271,6 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		final MessageListener listener = (message, pattern) -> {
 			assertEquals(expectedPattern, new String(pattern));
 			messages.add(message);
-			System.out.println("Received message '" + new String(message.getBody()) + "'");
 		};
 
 		Thread th = new Thread() {

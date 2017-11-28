@@ -39,6 +39,9 @@ import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisClusterConnection;
+import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
+import org.springframework.data.redis.connection.ReactiveSubscription.Message;
+import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -385,5 +388,50 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		StepVerifier.create(hashOperations.put(key, hashField, hashValue)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(hashOperations.get(key, hashField)).expectNext(hashValue).verifyComplete();
+	}
+
+	@Test // DATAREDIS-612
+	public void listenToChannelShouldReceiveChannelMessagesCorrectly() throws InterruptedException {
+
+		String channel = "my-channel";
+
+		V message = valueFactory.instance();
+
+		StepVerifier.create(redisTemplate.listenToChannel(channel)) //
+				.thenAwait(Duration.ofMillis(500)) // just make sure we the subscription completed
+				.then(() -> redisTemplate.convertAndSend(channel, message).block()) //
+				.assertNext(received -> {
+
+					assertThat(received).isInstanceOf(ChannelMessage.class);
+					assertThat(received.getMessage()).isEqualTo(message);
+					assertThat(received.getChannel()).isEqualTo(channel);
+				}) //
+				.thenAwait(Duration.ofMillis(10)) //
+				.thenCancel() //
+				.verify(Duration.ofSeconds(3));
+	}
+
+	@Test // DATAREDIS-612
+	public void listenToChannelPatternShouldReceiveChannelMessagesCorrectly() throws InterruptedException {
+
+		String channel = "my-channel";
+		String pattern = "my-*";
+
+		V message = valueFactory.instance();
+
+		Flux<? extends Message<String, V>> stream = redisTemplate.listenToPattern(pattern);
+
+		StepVerifier.create(stream) //
+				.thenAwait(Duration.ofMillis(500)) // just make sure we the subscription completed
+				.then(() -> redisTemplate.convertAndSend(channel, message).block()) //
+				.assertNext(received -> {
+
+					assertThat(received).isInstanceOf(PatternMessage.class);
+					assertThat(received.getMessage()).isEqualTo(message);
+					assertThat(received.getChannel()).isEqualTo(channel);
+					assertThat(((PatternMessage) received).getPattern()).isEqualTo(pattern);
+				}) //
+				.thenCancel() //
+				.verify(Duration.ofSeconds(3));
 	}
 }

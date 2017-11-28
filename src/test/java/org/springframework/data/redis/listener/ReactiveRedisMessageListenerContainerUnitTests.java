@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.util.ByteUtils.*;
 
+import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import reactor.core.Disposable;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;
@@ -34,9 +35,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.redis.connection.ReactivePubSubCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
-import org.springframework.data.redis.connection.ReactiveRedisPubSubCommands;
 import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
 import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
@@ -53,7 +54,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 
 	@Mock ReactiveRedisConnectionFactory connectionFactoryMock;
 	@Mock ReactiveRedisConnection connectionMock;
-	@Mock ReactiveRedisPubSubCommands commandsMock;
+	@Mock ReactivePubSubCommands commandsMock;
 	@Mock ReactiveSubscription subscriptionMock;
 
 	@Before
@@ -61,6 +62,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 
 		when(connectionFactoryMock.getReactiveConnection()).thenReturn(connectionMock);
 		when(connectionMock.pubSubCommands()).thenReturn(commandsMock);
+		when(connectionMock.closeLater()).thenReturn(Mono.empty());
 		when(commandsMock.createSubscription()).thenReturn(Mono.just(subscriptionMock));
 		when(subscriptionMock.subscribe(any())).thenReturn(Mono.empty());
 		when(subscriptionMock.pSubscribe(any())).thenReturn(Mono.empty());
@@ -85,8 +87,8 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
 		container = createContainer();
 
-		StepVerifier.create(container.receive(PatternTopic.of("foo*"), PatternTopic.of("bar*"))).thenRequest(1)
-				.thenAwait().thenCancel().verify();
+		StepVerifier.create(container.receive(PatternTopic.of("foo*"), PatternTopic.of("bar*"))).thenRequest(1).thenAwait()
+				.thenCancel().verify();
 
 		verify(subscriptionMock).pSubscribe(getByteBuffer("foo*"), getByteBuffer("bar*"));
 	}
@@ -117,12 +119,12 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	@Test // DATAREDIS-612
 	public void shouldEmitChannelMessage() {
 
-		DirectProcessor<ChannelMessage<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
+		DirectProcessor<Message<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
 
 		when(subscriptionMock.receive()).thenReturn(processor);
 		container = createContainer();
 
-		Flux<ChannelMessage<String, String>> messageStream = container.receive(ChannelTopic.of("foo"));
+		Flux<Message<String, String>> messageStream = container.receive(ChannelTopic.of("foo"));
 
 		StepVerifier.create(messageStream).then(() -> {
 			processor.onNext(createChannelMessage("foo", "message"));
@@ -136,7 +138,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	@Test // DATAREDIS-612
 	public void shouldEmitPatternMessage() {
 
-		DirectProcessor<ChannelMessage<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
+		DirectProcessor<Message<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
 
 		when(subscriptionMock.receive()).thenReturn(processor);
 		container = createContainer();
@@ -164,7 +166,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 		when(subscriptionMock.receive()).thenReturn(DirectProcessor.create());
 		container = createContainer();
 
-		Flux<ChannelMessage<String, String>> messageStream = container.receive(ChannelTopic.of("foo*"));
+		Flux<Message<String, String>> messageStream = container.receive(ChannelTopic.of("foo*"));
 
 		Disposable subscription = messageStream.subscribe();
 
@@ -184,7 +186,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 		when(subscriptionMock.receive()).thenReturn(DirectProcessor.create());
 		container = createContainer();
 
-		Flux<ChannelMessage<String, String>> messageStream = container.receive(new ChannelTopic("foo*"));
+		Flux<Message<String, String>> messageStream = container.receive(new ChannelTopic("foo*"));
 
 		Disposable first = messageStream.subscribe();
 		Disposable second = messageStream.subscribe();
@@ -220,10 +222,10 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	@Test // DATAREDIS-612
 	public void shouldTerminateSubscriptionsOnShutdown() {
 
-		DirectProcessor<ChannelMessage<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
+		DirectProcessor<Message<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
 
 		when(subscriptionMock.receive()).thenReturn(processor);
-		when(subscriptionMock.terminate()).thenReturn(Mono.defer(() -> {
+		when(subscriptionMock.cancel()).thenReturn(Mono.defer(() -> {
 
 			processor.onError(new CancellationException());
 			return Mono.empty();
@@ -240,7 +242,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	@Test // DATAREDIS-612
 	public void shouldCleanupDownstream() {
 
-		DirectProcessor<ChannelMessage<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
+		DirectProcessor<Message<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
 
 		when(subscriptionMock.receive()).thenReturn(processor);
 		container = createContainer();
@@ -265,6 +267,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 
 	private static PatternMessage<ByteBuffer, ByteBuffer, ByteBuffer> createPatternMessage(String pattern, String channel,
 			String body) {
+
 		return new PatternMessage<>(getByteBuffer(pattern), getByteBuffer(channel), getByteBuffer(body));
 	}
 }

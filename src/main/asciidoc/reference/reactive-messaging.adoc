@@ -4,6 +4,7 @@
 Spring Data provides dedicated messaging integration for Redis, very similar in functionality and naming to the JMS integration in Spring Framework; in fact, users familiar with the JMS support in Spring should feel right at home.
 
 Redis messaging can be roughly divided into two areas of functionality, namely the production or publication and consumption or subscription of messages, hence the shortcut pubsub (Publish/Subscribe). The `ReactiveRedisTemplate` class is used for message production. For asynchronous reception, Spring Data provides a dedicated message listener container that is used consume a stream of messages.
+For the purpose of just subscribing `ReactiveRedisTemplate` offers stripped down alternatives to utilizing a listener container.
 
 The package `org.springframework.data.redis.connection` and `org.springframework.data.redis.listener` provide the core functionality for using Redis messaging.
 
@@ -21,7 +22,7 @@ Mono<Long> publish = con.publish(msg, channel);
 
 // send message through ReactiveRedisTemplate
 ReactiveRedisTemplate template = …
-Mono<Long> publish = template.convertAndSend("hello!", "world");
+Mono<Long> publish = template.convertAndSend("channel", "message");
 ----
 
 [[redis:reactive:pubsub:subscribe]]
@@ -31,7 +32,7 @@ On the receiving side, one can subscribe to one or multiple channels either by n
 
 At the low-level, `ReactiveRedisConnection` offers `subscribe` and `pSubscribe` methods that map the Redis commands for subscribing by channel respectively by pattern. Note that multiple channels or patterns can be used as arguments. To change a subscription, simply query the channels and patterns of `ReactiveSubscription`.
 
-NOTE: Reactive subscription commands in Spring Data Redis non-blocking and terminate without emitting an element.
+NOTE: Reactive subscription commands in Spring Data Redis are non-blocking and may terminate without emitting an element.
 
 As mentioned above, once subscribed a connection starts waiting for messages. No other commands can be invoked on it except for adding new subscriptions or modifying/canceling the existing ones. Commands other than `subscribe`, `pSubscribe`, `unsubscribe`, or `pUnsubscribe` are illegal and will cause an exception.
 
@@ -42,7 +43,7 @@ In order to receive messages, one needs to obtain the message stream. Note that 
 
 Spring Data offers `ReactiveRedisMessageListenerContainer` which does all the heavy lifting of conversion and subscription state management on behalf of the user.
 
-`ReactiveRedisMessageListenerContainer` acts as a message listener container; it is used to receive messages from a Redis channel and expose a stream of messages that emits channel messages with deserialization applied. It takes care of registering to receive messages, resource acquisition and release, exception conversion and the like. This allows you as an application developer to write the (possibly complex) business logic associated with receiving a message (and reacting to it), and delegates boilerplate Redis infrastructure concerns to the framework. Message streams register a subscription in Redis upon publisher subscription and unregister if the subscription gets canceled.
+`ReactiveRedisMessageListenerContainer` acts as a message listener container. It is used to receive messages from a Redis channel and expose a stream of messages that emits channel messages with deserialization applied. It takes care of registering to receive messages, resource acquisition and release, exception conversion and the like. This allows you as an application developer to write the (possibly complex) business logic associated with receiving a message (and reacting to it), and delegates boilerplate Redis infrastructure concerns to the framework. Message streams register a subscription in Redis upon publisher subscription and unregister if the subscription gets canceled.
 
 Furthermore, to minimize the application footprint, `ReactiveRedisMessageListenerContainer` allows one connection and one thread to be shared by multiple listeners even though they do not share a subscription. Thus no matter how many listeners or channels an application tracks, the runtime cost will remain the same through out its lifetime. Moreover, the container allows runtime configuration changes so one can add or remove listeners while an application is running without the need for restart. Additionally, the container uses a lazy subscription approach, using a `ReactiveRedisConnection` only when needed - if all the listeners are unsubscribed, cleanup is automatically performed.
 
@@ -54,4 +55,19 @@ ReactiveRedisConnectionFactory factory = …
 ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(factory);
 
 Flux<ChannelMessage<String, String>> stream = container.receive(ChannelTopic.of("my-chanel"));
+----
+
+[[redis:reactive:pubsub:subscribe:template]]
+=== Subscribing via template API
+
+As mentioned above you can directly use `ReactiveRedisTemplate` to subscribe to channels / patterns. This approach
+offers a straight forward, though limited solution as you loose the option to add subscriptions after the initial
+ones. Nevertheless you still can control the message stream via the returned `Flux` using eg. `take(Duration)`. When
+done reading, on error or cancellation all bound resources are freed again.
+
+[source,java]
+----
+redisTemplate.listenToChannel("channel1", "channel2").doOnNext(msg -> {
+    // message processing ...
+}).subscribe();
 ----

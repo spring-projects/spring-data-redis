@@ -21,8 +21,17 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,7 +44,6 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.convert.EntityInstantiator;
 import org.springframework.data.convert.EntityInstantiators;
-import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -450,9 +458,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			targetProperty = getTargetPropertyOrNullForPath(path.replaceAll("\\.\\[.*\\]", ""), update.getTarget());
 
 			TypeInformation<?> ti = targetProperty == null ? ClassTypeInformation.OBJECT
-					: (targetProperty.isMap() ? (targetProperty.getTypeInformation().getMapValueType() != null
-							? targetProperty.getTypeInformation().getRequiredMapValueType()
-							: ClassTypeInformation.OBJECT) : targetProperty.getTypeInformation().getActualType());
+					: (targetProperty.isMap()
+							? (targetProperty.getTypeInformation().getMapValueType() != null
+									? targetProperty.getTypeInformation().getRequiredMapValueType() : ClassTypeInformation.OBJECT)
+							: targetProperty.getTypeInformation().getActualType());
 
 			writeInternal(entity.getKeySpace(), pUpdate.getPropertyPath(), pUpdate.getValue(), ti, sink);
 			return;
