@@ -28,16 +28,7 @@ import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -46,6 +37,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -967,6 +959,31 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		Set<byte[]> keysOnNode = clusterConnection.keys(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()),
 				JedisConverters.toBytes("*"));
+
+		assertThat(keysOnNode, hasItems(KEY_2_BYTES));
+		assertThat(keysOnNode, not(hasItems(KEY_1_BYTES)));
+	}
+
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-635
+	public void scanShouldReturnAllKeys() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.scan(ScanOptions.NONE);
+	}
+
+	@Override // DATAREDIS-635
+	public void scanShouldReturnAllKeysForSpecificNode() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		Cursor<byte[]> cursor = clusterConnection.scan(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()),
+				ScanOptions.NONE);
+
+		List<byte[]> keysOnNode = new ArrayList<>();
+		cursor.forEachRemaining(keysOnNode::add);
 
 		assertThat(keysOnNode, hasItems(KEY_2_BYTES));
 		assertThat(keysOnNode, not(hasItems(KEY_1_BYTES)));

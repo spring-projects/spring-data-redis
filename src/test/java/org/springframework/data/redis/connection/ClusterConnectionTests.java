@@ -267,6 +267,12 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void keysShouldReturnAllKeysForSpecificNode();
 
+	// DATAREDIS-635
+	void scanShouldReturnAllKeys();
+
+	// DATAREDIS-635
+	void scanShouldReturnAllKeysForSpecificNode();
+
 	// DATAREDIS-315
 	void lIndexShouldGetElementAtIndexCorrectly();
 

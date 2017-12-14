@@ -134,7 +134,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		cursorId = Long.valueOf(result.getCursorId());
 
-		if (cursorId == 0) {
+		if (isFinished(cursorId)) {
 			state = CursorState.FINISHED;
 		}
 
@@ -143,6 +143,17 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		} else {
 			resetDelegate();
 		}
+	}
+
+	/**
+	 * Check whether {@code cursorId} is finished.
+	 *
+	 * @param cursorId the cursor Id
+	 * @return {@literal true} if the cursor is considered finished, {@literal false} otherwise.s
+	 * @since 2.1
+	 */
+	protected boolean isFinished(long cursorId) {
+		return cursorId == 0;
 	}
 
 	private void resetDelegate() {

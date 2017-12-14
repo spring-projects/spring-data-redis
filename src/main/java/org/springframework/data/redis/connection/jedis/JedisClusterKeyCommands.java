@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.ScanParams;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +42,8 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterCommandCallback;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanCursor;
+import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -166,6 +169,28 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
 		throw new InvalidDataAccessApiUsageException("Scan is not supported across multiple nodes within a cluster");
+	}
+
+	Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
+
+		Assert.notNull(node, "RedisClusterNode must not be null!");
+		Assert.notNull(options, "Pattern must not be null!");
+
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<Cursor<byte[]>>) client -> {
+
+					return new ScanCursor<byte[]>(0, options) {
+
+						@Override
+						protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
+
+							ScanParams params = JedisConverters.toScanParams(options);
+							redis.clients.jedis.ScanResult<String> result = client.scan(Long.toString(cursorId), params);
+							return new ScanIteration<>(Long.valueOf(result.getStringCursor()),
+									JedisConverters.stringListToByteList().convert(result.getResult()));
+						}
+					}.open();
+				}, node).getValue();
 	}
 
 	/*
