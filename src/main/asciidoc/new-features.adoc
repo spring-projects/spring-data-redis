@@ -8,6 +8,7 @@ New and noteworthy in the latest releases.
 
 * Unix domain socket connections using <<redis:connectors:lettuce,Lettuce>>.
 * <<redis:write-to-master-read-from-slave, Write to Master read from Slave>> support using Lettuce.
+* Cluster-wide `SCAN` using Lettuce and `SCAN` execution on a selected node supported by both drivers.
 
 [[new-in-2.0.0]]
 == New in Spring Data Redis 2.0

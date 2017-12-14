@@ -18,6 +18,8 @@ package org.springframework.data.redis.connection;
 import java.util.Collection;
 import java.util.Set;
 
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 
 /**
@@ -48,6 +50,17 @@ public interface RedisClusterConnection extends RedisConnection, RedisClusterCom
 	 */
 	@Nullable
 	Set<byte[]> keys(RedisClusterNode node, byte[] pattern);
+
+	/**
+	 * Use a {@link Cursor} to iterate over keys.
+	 *
+	 * @param node must not be {@literal null}.
+	 * @param options must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 */
+	Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options);
 
 	/**
 	 * @param node must not be {@literal null}.

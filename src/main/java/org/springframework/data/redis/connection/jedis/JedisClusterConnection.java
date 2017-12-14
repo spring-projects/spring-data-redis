@@ -48,6 +48,8 @@ import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKey
 import org.springframework.data.redis.connection.ClusterCommandExecutor.NodeResult;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -304,9 +306,22 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		return new JedisClusterKeyCommands(this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterConnection#keys(org.springframework.data.redis.connection.RedisClusterNode, byte[])
+	 */
 	@Override
 	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
 		return doGetKeyCommands().keys(node, pattern);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterConnection#scan(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
+		return doGetKeyCommands().scan(node, options);
 	}
 
 	/*

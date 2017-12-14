@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
 import io.lettuce.core.SortArgs;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
@@ -33,8 +34,6 @@ import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.ScanCursor;
-import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -229,7 +228,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	 * @return
 	 */
 	public Cursor<byte[]> scan() {
-		return scan(0, ScanOptions.NONE);
+		return scan(ScanOptions.NONE);
 	}
 
 	/*
@@ -238,36 +237,31 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	 */
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
-		return scan(0, options != null ? options : ScanOptions.NONE);
+		return doScan(options != null ? options : ScanOptions.NONE);
 	}
 
 	/**
 	 * @since 1.4
-	 * @param cursorId
 	 * @param options
 	 * @return
 	 */
-	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
+	private Cursor<byte[]> doScan(ScanOptions options) {
 
-		return new ScanCursor<byte[]>(cursorId, options) {
+		return new LettuceScanCursor<byte[]>(options) {
 
-			@SuppressWarnings("unchecked")
 			@Override
-			protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
+			protected LettuceScanIteration<byte[]> doScan(ScanCursor cursor, ScanOptions options) {
 
 				if (isQueueing() || isPipelined()) {
 					throw new UnsupportedOperationException("'SCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				io.lettuce.core.ScanCursor scanCursor = connection.getScanCursor(cursorId);
 				ScanArgs scanArgs = connection.getScanArgs(options);
 
-				KeyScanCursor<byte[]> keyScanCursor = getConnection().scan(scanCursor, scanArgs);
-				String nextCursorId = keyScanCursor.getCursor();
-
+				KeyScanCursor<byte[]> keyScanCursor = getConnection().scan(cursor, scanArgs);
 				List<byte[]> keys = keyScanCursor.getKeys();
 
-				return new ScanIteration<>(Long.valueOf(nextCursorId), (keys));
+				return new LettuceScanIteration<>(keyScanCursor, keys);
 			}
 
 			@Override
