@@ -241,7 +241,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
 	 * @since 2.0
 	 */
-	public LettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection,
+	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection,
 			LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
 		this((StatefulConnection<byte[], byte[]>) sharedConnection, connectionProvider, timeout, defaultDbIndex);
 	}
@@ -254,7 +254,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
 	 * @since 2.1
 	 */
-	LettuceConnection(StatefulConnection<byte[], byte[]> sharedConnection, LettuceConnectionProvider connectionProvider,
+	LettuceConnection(@Nullable StatefulConnection<byte[], byte[]> sharedConnection,
+			LettuceConnectionProvider connectionProvider,
 			long timeout, int defaultDbIndex) {
 
 		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null.");

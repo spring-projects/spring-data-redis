@@ -33,6 +33,7 @@ import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -203,6 +204,12 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 
 		lettuceConnectionFactory.afterPropertiesSet();
 
+		LettuceConnectionFactory pooledLettuceConnectionFactory = new LettuceConnectionFactory(
+				new RedisClusterConfiguration(CLUSTER_NODES), LettucePoolingClientConfiguration.builder()
+						.clientResources(LettuceTestClientResources.getSharedClientResources()).build());
+
+		pooledLettuceConnectionFactory.afterPropertiesSet();
+
 		RedisTemplate<String, String> lettuceStringTemplate = new RedisTemplate<>();
 		lettuceStringTemplate.setDefaultSerializer(StringRedisSerializer.UTF_8);
 		lettuceStringTemplate.setConnectionFactory(lettuceConnectionFactory);
@@ -233,6 +240,11 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 		lettuceJackson2JsonPersonTemplate.setValueSerializer(jackson2JsonSerializer);
 		lettuceJackson2JsonPersonTemplate.afterPropertiesSet();
 
+		RedisTemplate<String, String> pooledLettuceStringTemplate = new RedisTemplate<>();
+		pooledLettuceStringTemplate.setDefaultSerializer(StringRedisSerializer.UTF_8);
+		pooledLettuceStringTemplate.setConnectionFactory(pooledLettuceConnectionFactory);
+		pooledLettuceStringTemplate.afterPropertiesSet();
+
 		return Arrays.asList(new Object[][] { //
 
 						// JEDIS
@@ -249,7 +261,8 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 						{ lettuceRawTemplate, rawFactory, rawFactory }, //
 						{ lettucePersonTemplate, stringFactory, personFactory }, //
 						{ lettuceXstreamStringTemplate, stringFactory, stringFactory }, //
-						{ lettuceJackson2JsonPersonTemplate, stringFactory, personFactory } //
+				{ lettuceJackson2JsonPersonTemplate, stringFactory, personFactory }, //
+				{ pooledLettuceStringTemplate, stringFactory, stringFactory } //
 				});
 	}
 

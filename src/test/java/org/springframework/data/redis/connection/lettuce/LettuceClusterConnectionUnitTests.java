@@ -68,7 +68,7 @@ public class LettuceClusterConnectionUnitTests {
 
 	@Mock RedisClusterClient clusterMock;
 
-	@Mock ClusterConnectionProvider connectionProviderMock;
+	@Mock LettuceConnectionProvider connectionProviderMock;
 	@Mock ClusterCommandExecutor executorMock;
 	@Mock ClusterNodeResourceProvider resourceProvider;
 	@Mock StatefulRedisClusterConnection<byte[], byte[]> sharedConnectionMock;
@@ -355,41 +355,37 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection1Mock, never()).configResetstat();
 	}
 
-	@Test // DATAREDIS-731
+	@Test // DATAREDIS-731, DATAREDIS-545
 	public void shouldExecuteOnSharedConnection() {
 
 		RedisAdvancedClusterCommands<byte[], byte[]> sync = mock(RedisAdvancedClusterCommands.class);
 
-		when(connectionProviderMock.getClient()).thenReturn(clusterMock);
 		when(sharedConnectionMock.sync()).thenReturn(sync);
 
 		LettuceClusterConnection connection = new LettuceClusterConnection(sharedConnectionMock, connectionProviderMock,
-				executorMock, Duration.ZERO);
+				clusterMock, executorMock, Duration.ZERO);
 
 		connection.keyCommands().del(KEY_1_BYTES);
 
 		verify(sync).del(KEY_1_BYTES);
-		verify(connectionProviderMock).getClient();
 		verifyNoMoreInteractions(connectionProviderMock);
 	}
 
-	@Test // DATAREDIS-731
+	@Test // DATAREDIS-731, DATAREDIS-545
 	public void shouldExecuteOnDedicatedConnection() {
 
 		RedisCommands<byte[], byte[]> sync = mock(RedisCommands.class);
 		StatefulRedisConnection<byte[], byte[]> dedicatedConnection = mock(StatefulRedisConnection.class);
 
-		when(connectionProviderMock.getClient()).thenReturn(clusterMock);
 		when(connectionProviderMock.getConnection(StatefulConnection.class)).thenReturn(dedicatedConnection);
 		when(dedicatedConnection.sync()).thenReturn(sync);
 
 		LettuceClusterConnection connection = new LettuceClusterConnection(sharedConnectionMock, connectionProviderMock,
-				executorMock, Duration.ZERO);
+				clusterMock, executorMock, Duration.ZERO);
 
 		connection.listCommands().bLPop(1, KEY_1_BYTES);
 
 		verify(sync).blpop(1, KEY_1_BYTES);
-		verify(connectionProviderMock).getClient();
 		verify(connectionProviderMock).getConnection(StatefulConnection.class);
 		verifyNoMoreInteractions(connectionProviderMock);
 		verifyZeroInteractions(sharedConnectionMock);
