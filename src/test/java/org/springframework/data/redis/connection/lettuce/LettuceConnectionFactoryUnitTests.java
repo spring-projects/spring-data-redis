@@ -20,6 +20,7 @@ import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsInstanceOf.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceTestClientResources.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
@@ -29,6 +30,9 @@ import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
 
 import java.security.NoSuchAlgorithmException;
@@ -38,6 +42,8 @@ import java.util.Collections;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
@@ -552,6 +558,7 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
 		connectionFactory.setShutdownTimeout(0);
 		connectionFactory.setTimeout(2000);
+		connectionFactory.setShareNativeConnection(false);
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -566,6 +573,7 @@ public class LettuceConnectionFactoryUnitTests {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig, LettuceClientConfiguration
 				.builder().commandTimeout(Duration.ofSeconds(2)).shutdownTimeout(Duration.ZERO).build());
+		connectionFactory.setShareNativeConnection(false);
 
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -574,5 +582,31 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(ReflectionTestUtils.getField(clusterConnection, "timeout"), is(equalTo(2000L)));
 
 		clusterConnection.close();
+	}
+
+	@Test // DATAREDIS-731
+	public void shouldShareNativeConnectionWithCluster() {
+
+		RedisClusterClient clientMock = mock(RedisClusterClient.class);
+		StatefulRedisClusterConnection<byte[], byte[]> connectionMock = mock(StatefulRedisClusterConnection.class);
+		when(clientMock.connect(ByteArrayCodec.INSTANCE)).thenReturn(connectionMock);
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
+				LettuceClientConfiguration.defaultConfiguration()) {
+
+			@Override
+			protected AbstractRedisClient createClient() {
+				return clientMock;
+			}
+		};
+
+		connectionFactory.afterPropertiesSet();
+
+		new DirectFieldAccessor(connectionFactory).setPropertyValue("client", clientMock);
+
+		connectionFactory.getClusterConnection().close();
+		connectionFactory.getClusterConnection().close();
+
+		verify(clientMock).connect(ArgumentMatchers.any(RedisCodec.class));
 	}
 }

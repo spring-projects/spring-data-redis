@@ -243,6 +243,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	public LettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection,
 			LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
+		this((StatefulConnection<byte[], byte[]>) sharedConnection, connectionProvider, timeout, defaultDbIndex);
+	}
+
+	/**
+	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s. Should not be
+	 *          used for transactions or blocking operations.
+	 * @param connectionProvider connection provider to obtain and release native connections.
+	 * @param timeout The connection timeout (in milliseconds)
+	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
+	 * @since 2.1
+	 */
+	LettuceConnection(StatefulConnection<byte[], byte[]> sharedConnection, LettuceConnectionProvider connectionProvider,
+			long timeout, int defaultDbIndex) {
 
 		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null.");
 
