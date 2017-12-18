@@ -138,6 +138,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	 *
 	 * @param connectionProvider must not be {@literal null}.
 	 * @param executor must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
 	 * @since 2.0
 	 */
 	public LettuceClusterConnection(LettuceConnectionProvider connectionProvider, ClusterCommandExecutor executor,

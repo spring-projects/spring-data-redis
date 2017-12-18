@@ -54,7 +54,7 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 		super(redisTemplate, keyFactory, valueFactory);
 	}
 
-	public static @ClassRule RedisClusterRule clusterAvaialbale = new RedisClusterRule();
+	public static @ClassRule RedisClusterRule clusterAvailable = new RedisClusterRule();
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
 	@Ignore("Pipeline not supported in cluster mode")
