@@ -153,6 +153,28 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	}
 
 	/**
+	 * Creates new {@link LettuceClusterConnection} given a shared {@link StatefulRedisClusterConnection}
+	 * and{@link LettuceConnectionProvider} running commands across the cluster via given {@link ClusterCommandExecutor}.
+	 *
+	 * @param sharedConnection must not be {@literal null}.
+	 * @param connectionProvider must not be {@literal null}.
+	 * @param executor must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @since 2.1
+	 */
+	public LettuceClusterConnection(StatefulRedisClusterConnection<byte[], byte[]> sharedConnection,
+			LettuceConnectionProvider connectionProvider, ClusterCommandExecutor executor, Duration timeout) {
+
+		super(sharedConnection, connectionProvider, timeout.toMillis(), 0);
+
+		Assert.notNull(executor, "ClusterCommandExecutor must not be null.");
+
+		this.topologyProvider = new LettuceClusterTopologyProvider(getClient());
+		this.clusterCommandExecutor = executor;
+		this.disposeClusterCommandExecutorOnClose = false;
+	}
+
+	/**
 	 * @return access to {@link RedisClusterClient} for non-connection access.
 	 */
 	private RedisClusterClient getClient() {
@@ -319,7 +341,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 
 		clusterCommandExecutor.executeCommandOnSingleNode(
 				(LettuceClusterCommandCallback<String>) client -> client.clusterAddSlots(slots), node);
-
 	}
 
 	/*
