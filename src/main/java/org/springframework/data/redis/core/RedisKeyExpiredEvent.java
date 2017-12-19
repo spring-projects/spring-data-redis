@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.context.ApplicationEvent;
-import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.data.redis.core.convert.MappingRedisConverter.BinaryKeyspaceIdentifier;
 import org.springframework.lang.Nullable;
 
 /**
@@ -27,6 +27,7 @@ import org.springframework.lang.Nullable;
  * expires. It might but must not hold the expired value itself next to the key.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
@@ -36,7 +37,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	 */
 	public static final Charset CHARSET = StandardCharsets.UTF_8;
 
-	private final byte[][] args;
+	private final BinaryKeyspaceIdentifier objectId;
 	private final @Nullable Object value;
 
 	/**
@@ -69,7 +70,12 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	public RedisKeyExpiredEvent(@Nullable String channel, byte[] key, @Nullable Object value) {
 		super(channel, key);
 
-		args = ByteUtils.split(key, ':');
+		if (BinaryKeyspaceIdentifier.isValid(key)) {
+			this.objectId = BinaryKeyspaceIdentifier.of(key);
+		} else {
+			this.objectId = null;
+		}
+
 		this.value = value;
 	}
 
@@ -79,12 +85,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	 * @return {@literal null} if it could not be determined.
 	 */
 	public String getKeyspace() {
-
-		if (args.length >= 2) {
-			return new String(args[0], CHARSET);
-		}
-
-		return null;
+		return objectId != null ? new String(objectId.getKeyspace(), CHARSET) : null;
 	}
 
 	/**
@@ -93,7 +94,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	 * @return
 	 */
 	public byte[] getId() {
-		return args.length == 2 ? args[1] : args[0];
+		return objectId != null ? objectId.getId() : getSource();
 	}
 
 	/**
