@@ -27,8 +27,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -52,6 +50,8 @@ import org.springframework.data.redis.core.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.GeoIndexedPropertyValue;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
+import org.springframework.data.redis.core.convert.MappingRedisConverter.BinaryKeyspaceIdentifier;
+import org.springframework.data.redis.core.convert.MappingRedisConverter.KeyspaceIdentifier;
 import org.springframework.data.redis.core.convert.PathIndexResolver;
 import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
@@ -64,7 +64,6 @@ import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Redis specific {@link KeyValueAdapter} implementation. Uses binary codec to read/write data from/to Redis. Objects
@@ -228,7 +227,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 					connection.expire(objectKey, rdo.getTimeToLive().longValue());
 
 					// add phantom key so values can be restored
-					byte[] phantomKey = ByteUtils.concat(objectKey, toBytes(":phantom"));
+					byte[] phantomKey = ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 					connection.del(phantomKey);
 					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
 					connection.expire(phantomKey, rdo.getTimeToLive().longValue() + 300);
@@ -484,14 +483,14 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 						connection.expire(redisKey, rdo.getTimeToLive().longValue());
 
 						// add phantom key so values can be restored
-						byte[] phantomKey = ByteUtils.concat(redisKey, toBytes(":phantom"));
+						byte[] phantomKey = ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 						connection.hMSet(phantomKey, rdo.getBucket().rawMap());
 						connection.expire(phantomKey, rdo.getTimeToLive().longValue() + 300);
 
 					} else {
 
 						connection.persist(redisKey);
-						connection.persist(ByteUtils.concat(redisKey, toBytes(":phantom")));
+						connection.persist(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
 					}
 				}
 
@@ -779,7 +778,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			byte[] key = message.getBody();
 
 			final byte[] phantomKey = ByteUtils.concat(key,
-					converter.getConversionService().convert(":phantom", byte[].class));
+					converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
 
 			Map<byte[], byte[]> hash = ops.execute(new RedisCallback<Map<byte[], byte[]>>() {
 
@@ -822,12 +821,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				return false;
 			}
 
-			byte[][] args = ByteUtils.split(message.getBody(), ':');
-			if (args.length != 2) {
-				return false;
-			}
-
-			return true;
+			return BinaryKeyspaceIdentifier.isValid(message.getBody());
 		}
 	}
 
