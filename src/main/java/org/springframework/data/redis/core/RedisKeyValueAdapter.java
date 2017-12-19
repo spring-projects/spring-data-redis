@@ -48,6 +48,8 @@ import org.springframework.data.redis.core.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.GeoIndexedPropertyValue;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
+import org.springframework.data.redis.core.convert.MappingRedisConverter.BinaryKeyspaceIdentifier;
+import org.springframework.data.redis.core.convert.MappingRedisConverter.KeyspaceIdentifier;
 import org.springframework.data.redis.core.convert.PathIndexResolver;
 import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisCustomConversions;
@@ -240,7 +242,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				connection.expire(objectKey, rdo.getTimeToLive());
 
 				// add phantom key so values can be restored
-				byte[] phantomKey = ByteUtils.concat(objectKey, toBytes(":phantom"));
+				byte[] phantomKey = ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 				connection.del(phantomKey);
 				connection.hMSet(phantomKey, rdo.getBucket().rawMap());
 				connection.expire(phantomKey, rdo.getTimeToLive() + 300);
@@ -471,14 +473,14 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 					connection.expire(redisKey, rdo.getTimeToLive());
 
 					// add phantom key so values can be restored
-					byte[] phantomKey = ByteUtils.concat(redisKey, toBytes(":phantom"));
+					byte[] phantomKey = ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
 					connection.expire(phantomKey, rdo.getTimeToLive() + 300);
 
 				} else {
 
 					connection.persist(redisKey);
-					connection.persist(ByteUtils.concat(redisKey, toBytes(":phantom")));
+					connection.persist(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
 				}
 			}
 
@@ -763,7 +765,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			byte[] key = message.getBody();
 
-			byte[] phantomKey = ByteUtils.concat(key, converter.getConversionService().convert(":phantom", byte[].class));
+			byte[] phantomKey = ByteUtils.concat(key, converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
 
 			Map<byte[], byte[]> hash = ops.execute((RedisCallback<Map<byte[], byte[]>>) connection -> {
 
@@ -799,9 +801,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				return false;
 			}
 
-			byte[][] args = ByteUtils.split(message.getBody(), ':');
-
-			return args.length == 2;
+			return BinaryKeyspaceIdentifier.isValid(message.getBody());
 		}
 	}
 

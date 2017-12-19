@@ -16,6 +16,9 @@
 package org.springframework.data.redis.core.convert;
 
 import lombok.RequiredArgsConstructor;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -52,6 +55,7 @@ import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
@@ -308,9 +312,14 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				for (Entry<String, byte[]> entry : bucket.entrySet()) {
 
 					String referenceKey = fromBytes(entry.getValue(), String.class);
-					String[] args = referenceKey.split(":");
 
-					Map<byte[], byte[]> rawHash = referenceResolver.resolveReference(args[1], args[0]);
+					if (!KeyspaceIdentifier.isValid(referenceKey)) {
+						continue;
+					}
+
+					KeyspaceIdentifier identifier = KeyspaceIdentifier.of(referenceKey);
+					Map<byte[], byte[]> rawHash = referenceResolver.resolveReference(identifier.getId(),
+							identifier.getKeyspace());
 
 					if (!CollectionUtils.isEmpty(rawHash)) {
 						target.add(read(association.getInverse().getActualType(), new RedisData(rawHash)));
@@ -326,15 +335,18 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 					return;
 				}
 
-				String key = fromBytes(binKey, String.class);
+				String referenceKey = fromBytes(binKey, String.class);
+				if (KeyspaceIdentifier.isValid(referenceKey)) {
 
-				String[] args = key.split(":");
+					KeyspaceIdentifier identifier = KeyspaceIdentifier.of(referenceKey);
 
-				Map<byte[], byte[]> rawHash = referenceResolver.resolveReference(args[1], args[0]);
+					Map<byte[], byte[]> rawHash = referenceResolver.resolveReference(identifier.getId(),
+							identifier.getKeyspace());
 
-				if (!CollectionUtils.isEmpty(rawHash)) {
-					accessor.setProperty(association.getInverse(),
-							read(association.getInverse().getActualType(), new RedisData(rawHash)));
+					if (!CollectionUtils.isEmpty(rawHash)) {
+						accessor.setProperty(association.getInverse(),
+								read(association.getInverse().getActualType(), new RedisData(rawHash)));
+					}
 				}
 			}
 		});
@@ -434,9 +446,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			targetProperty = getTargetPropertyOrNullForPath(path.replaceAll("\\.\\[.*\\]", ""), update.getTarget());
 
 			TypeInformation<?> ti = targetProperty == null ? ClassTypeInformation.OBJECT
-					: (targetProperty.isMap() ? (targetProperty.getTypeInformation().getMapValueType() != null
-							? targetProperty.getTypeInformation().getRequiredMapValueType()
-							: ClassTypeInformation.OBJECT) : targetProperty.getTypeInformation().getActualType());
+					: (targetProperty.isMap()
+							? (targetProperty.getTypeInformation().getMapValueType() != null
+									? targetProperty.getTypeInformation().getRequiredMapValueType() : ClassTypeInformation.OBJECT)
+							: targetProperty.getTypeInformation().getActualType());
 
 			writeInternal(entity.getKeySpace(), pUpdate.getPropertyPath(), pUpdate.getValue(), ti, sink);
 			return;
@@ -1160,4 +1173,177 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 	}
 
+	/**
+	 * Value object representing a Redis Hash/Object identifier composed from keyspace and object id in the form of
+	 * {@literal keyspace:id}.
+	 *
+	 * @author Mark Paluch
+	 * @since 1.8.10
+	 */
+	@AllArgsConstructor(access = AccessLevel.PRIVATE)
+	@Getter
+	public static class KeyspaceIdentifier {
+
+		public static final String PHANTOM = "phantom";
+		public static final String DELIMITTER = ":";
+		public static final String PHANTOM_SUFFIX = DELIMITTER + PHANTOM;
+
+		private String keyspace;
+		private String id;
+		private boolean phantomKey;
+
+		/**
+		 * Parse a {@code key} into {@link KeyspaceIdentifier}.
+		 *
+		 * @param key the key representation.
+		 * @return {@link BinaryKeyspaceIdentifier} for binary key.
+		 */
+		public static KeyspaceIdentifier of(String key) {
+
+			Assert.isTrue(isValid(key), String.format("Invalid key %s", key));
+
+			boolean phantomKey = key.endsWith(PHANTOM_SUFFIX);
+			int keyspaceEndIndex = key.indexOf(DELIMITTER);
+			String keyspace = key.substring(0, keyspaceEndIndex);
+			String id;
+
+			if (phantomKey) {
+				id = key.substring(keyspaceEndIndex + 1, key.length() - PHANTOM_SUFFIX.length());
+			} else {
+				id = key.substring(keyspaceEndIndex + 1);
+			}
+
+			return new KeyspaceIdentifier(keyspace, id, phantomKey);
+		}
+
+		/**
+		 * Check whether the {@code key} is valid, in particular whether the key contains a keyspace and an id part in the
+		 * form of {@literal keyspace:id}.
+		 *
+		 * @param key the key.
+		 * @return {@literal true} if the key is valid.
+		 */
+		public static boolean isValid(String key) {
+
+			if (key == null) {
+				return false;
+			}
+
+			int keyspaceEndIndex = key.indexOf(DELIMITTER);
+
+			return keyspaceEndIndex > 0 && key.length() > keyspaceEndIndex;
+		}
+	}
+
+	/**
+	 * Value object representing a binary Redis Hash/Object identifier composed from keyspace and object id in the form of
+	 * {@literal keyspace:id}.
+	 *
+	 * @author Mark Paluch
+	 * @since 1.8.10
+	 */
+	@AllArgsConstructor(access = AccessLevel.PRIVATE)
+	@Getter
+	public static class BinaryKeyspaceIdentifier {
+
+		public static final byte[] PHANTOM = KeyspaceIdentifier.PHANTOM.getBytes();
+		public static final byte DELIMITTER = ':';
+		public static final byte[] PHANTOM_SUFFIX = ByteUtils.concat(new byte[] { DELIMITTER }, PHANTOM);
+
+		private byte[] keyspace;
+		private byte[] id;
+		private boolean phantomKey;
+
+		/**
+		 * Parse a binary {@code key} into {@link BinaryKeyspaceIdentifier}.
+		 *
+		 * @param key the binary key representation.
+		 * @return {@link BinaryKeyspaceIdentifier} for binary key.
+		 */
+		public static BinaryKeyspaceIdentifier of(byte[] key) {
+
+			Assert.isTrue(isValid(key), String.format("Invalid key %s", new String(key)));
+
+			boolean phantomKey = startsWith(key, PHANTOM_SUFFIX, key.length - PHANTOM_SUFFIX.length);
+
+			int keyspaceEndIndex = find(key, DELIMITTER);
+			byte[] keyspace = getKeyspace(key, keyspaceEndIndex);
+			byte[] id = getId(key, phantomKey, keyspaceEndIndex);
+
+			return new BinaryKeyspaceIdentifier(keyspace, id, phantomKey);
+		}
+
+		/**
+		 * Check whether the {@code key} is valid, in particular whether the key contains a keyspace and an id part in the
+		 * form of {@literal keyspace:id}.
+		 *
+		 * @param key the key.
+		 * @return {@literal true} if the key is valid.
+		 */
+		public static boolean isValid(byte[] key) {
+
+			if (key == null) {
+				return false;
+			}
+
+			int keyspaceEndIndex = find(key, DELIMITTER);
+
+			return keyspaceEndIndex > 0 && key.length > keyspaceEndIndex;
+		}
+
+		private static byte[] getId(byte[] key, boolean phantomKey, int keyspaceEndIndex) {
+
+			int idSize;
+
+			if (phantomKey) {
+				idSize = (key.length - PHANTOM_SUFFIX.length) - (keyspaceEndIndex + 1);
+			} else {
+
+				idSize = key.length - (keyspaceEndIndex + 1);
+			}
+
+			byte[] id = new byte[idSize];
+			System.arraycopy(key, keyspaceEndIndex + 1, id, 0, idSize);
+
+			return id;
+		}
+
+		private static byte[] getKeyspace(byte[] key, int keyspaceEndIndex) {
+
+			byte[] keyspace = new byte[keyspaceEndIndex];
+			System.arraycopy(key, 0, keyspace, 0, keyspaceEndIndex);
+
+			return keyspace;
+		}
+
+		private static boolean startsWith(byte[] haystack, byte[] prefix, int offset) {
+
+			int to = offset;
+			int prefixOffset = 0;
+			int prefixLength = prefix.length;
+
+			if ((offset < 0) || (offset > haystack.length - prefixLength)) {
+				return false;
+			}
+
+			while (--prefixLength >= 0) {
+				if (haystack[to++] != prefix[prefixOffset++]) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		private static int find(byte[] haystack, byte needle) {
+
+			for (int i = 0; i < haystack.length; i++) {
+				if (haystack[i] == needle) {
+					return i;
+				}
+			}
+
+			return -1;
+		}
+	}
 }

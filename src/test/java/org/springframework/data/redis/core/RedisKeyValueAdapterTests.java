@@ -146,6 +146,20 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForHash().entries("persons:1").size(), is(2));
 	}
 
+	@Test // DATAREDIS-744
+	public void putWritesDataWithColonCorrectly() {
+
+		Person rand = new Person();
+		rand.age = 24;
+
+		adapter.put("1:a", rand, "persons");
+
+		assertThat(template.keys("persons*"), hasItems("persons", "persons:1:a"));
+		assertThat(template.opsForSet().size("persons"), is(1L));
+		assertThat(template.opsForSet().members("persons"), hasItems("1:a"));
+		assertThat(template.opsForHash().entries("persons:1:a").size(), is(2));
+	}
+
 	@Test // DATAREDIS-425
 	public void putWritesSimpleIndexDataCorrectly() {
 
@@ -156,6 +170,18 @@ public class RedisKeyValueAdapterTests {
 
 		assertThat(template.keys("persons*"), hasItem("persons:firstname:rand"));
 		assertThat(template.opsForSet().members("persons:firstname:rand"), hasItems("1"));
+	}
+
+	@Test // DATAREDIS-744
+	public void putWritesSimpleIndexDataWithColonCorrectly() {
+
+		Person rand = new Person();
+		rand.firstname = "rand";
+
+		adapter.put("1:a", rand, "persons");
+
+		assertThat(template.keys("persons*"), hasItem("persons:firstname:rand"));
+		assertThat(template.opsForSet().members("persons:firstname:rand"), hasItems("1:a"));
 	}
 
 	@Test // DATAREDIS-425
@@ -184,15 +210,15 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:address.country:Andor"), hasItems("1"));
 	}
 
-	@Test // DATAREDIS-425
+	@Test // DATAREDIS-425, DATAREDIS-744
 	public void getShouldReadSimpleObjectCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
 		map.put("age", "24");
-		template.opsForHash().putAll("persons:load-1", map);
+		template.opsForHash().putAll("persons:load-1:a", map);
 
-		Object loaded = adapter.get("load-1", "persons");
+		Object loaded = adapter.get("load-1:a", "persons");
 
 		assertThat(loaded, instanceOf(Person.class));
 		assertThat(((Person) loaded).age, is(24));
@@ -257,7 +283,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand"), not(hasItem("1")));
 	}
 
-	@Test // DATAREDIS-425
+	@Test // DATAREDIS-425, DATAREDIS-744
 	public void keyExpiredEventShouldRemoveHelperStructures() throws Exception {
 
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
@@ -267,22 +293,22 @@ public class RedisKeyValueAdapterTests {
 		map.put("firstname", "rand");
 		map.put("address.country", "Andor");
 
-		template.opsForHash().putAll("persons:1", map);
+		template.opsForHash().putAll("persons:1:b", map);
 
 		template.opsForSet().add("persons", "1");
-		template.opsForSet().add("persons:firstname:rand", "1");
-		template.opsForSet().add("persons:1:idx", "persons:firstname:rand");
+		template.opsForSet().add("persons:firstname:rand", "1:b");
+		template.opsForSet().add("persons:1:b:idx", "persons:firstname:rand");
 
-		template.expire("persons:1", 100, TimeUnit.MILLISECONDS);
+		template.expire("persons:1:b", 100, TimeUnit.MILLISECONDS);
 
-		waitUntilKeyIsGone(template, "persons:1");
-		waitUntilKeyIsGone(template, "persons:1:phantom");
+		waitUntilKeyIsGone(template, "persons:1:b");
+		waitUntilKeyIsGone(template, "persons:1:b:phantom");
 		waitUntilKeyIsGone(template, "persons:firstname:rand");
 
 		assertThat(template.hasKey("persons:1"), is(false));
 		assertThat(template.hasKey("persons:firstname:rand"), is(false));
-		assertThat(template.hasKey("persons:1:idx"), is(false));
-		assertThat(template.opsForSet().members("persons"), not(hasItem("1")));
+		assertThat(template.hasKey("persons:1:b:idx"), is(false));
+		assertThat(template.opsForSet().members("persons"), not(hasItem("1:b")));
 	}
 
 	@Test // DATAREDIS-589
@@ -348,17 +374,17 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().isMember("persons:mat:idx", "persons:firstname:mat"), is(true));
 	}
 
-	@Test // DATAREDIS-471
+	@Test // DATAREDIS-471, DATAREDIS-744
 	public void updateShouldAlterIndexDataCorrectly() {
 
 		Person rand = new Person();
 		rand.firstname = "rand";
 
-		adapter.put("1", rand, "persons");
+		adapter.put("1:a", rand, "persons");
 
 		assertThat(template.hasKey("persons:firstname:rand"), is(true));
 
-		PartialUpdate<Person> update = new PartialUpdate<>("1", Person.class) //
+		PartialUpdate<Person> update = new PartialUpdate<>("1:a", Person.class) //
 				.set("firstname", "mat");
 
 		adapter.update(update);
