@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.repository.cdi;
 
 import java.lang.annotation.Annotation;
@@ -183,7 +182,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 	private <T> CdiRepositoryBean<T> createRepositoryBean(Class<T> repositoryType, Set<Annotation> qualifiers,
 			BeanManager beanManager) {
 
-		// Determine the MongoOperations bean which matches the qualifiers of the repository.
+		// Determine the KeyValueOperations bean which matches the qualifiers of the repository.
 		Bean<KeyValueOperations> redisKeyValueTemplate = this.redisKeyValueTemplates.get(qualifiers);
 
 		if (redisKeyValueTemplate == null) {
@@ -205,7 +204,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 	 */
 	private RedisKeyValueAdapterBean createRedisKeyValueAdapterBean(Set<Annotation> qualifiers, BeanManager beanManager) {
 
-		// Determine the MongoOperations bean which matches the qualifiers of the repository.
+		// Determine the RedisOperations bean which matches the qualifiers of the repository.
 		Bean<RedisOperations<?, ?>> redisOperationsBean = this.redisOperations.get(qualifiers);
 
 		if (redisOperationsBean == null) {
@@ -227,7 +226,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 	private RedisKeyValueTemplateBean createRedisKeyValueTemplateBean(Set<Annotation> qualifiers,
 			BeanManager beanManager) {
 
-		// Determine the MongoOperations bean which matches the qualifiers of the repository.
+		// Determine the RedisKeyValueAdapter bean which matches the qualifiers of the repository.
 		Bean<RedisKeyValueAdapter> redisKeyValueAdapterBean = this.redisKeyValueAdapters.get(qualifiers);
 
 		if (redisKeyValueAdapterBean == null) {
