@@ -254,6 +254,61 @@ ciudad = "emond's field"
 
 NOTE: Custom conversions have no effect on index resolution. <<redis.repositories.indexes>> will still be created even for custom converted types.
 
+=== Customizing type mapping
+
+In case you want to avoid writing the entire Java class name as type information but rather like to use some key you can use the `@TypeAlias` annotation at the entity class being persisted. If you need to customize the mapping even more have a look at the `TypeInformationMapper` interface. An instance of that interface can be configured at the `DefaultRedisTypeMapper` which can be configured on `MappingRedisConverter`.
+
+.Defining `@TypeAlias` for an Entity
+====
+[source,java]
+----
+@TypeAlias("pers")
+class Person {
+
+}
+----
+====
+
+Note that the resulting document will contain `pers` as the value in a `_class` field.
+
+==== Configuring custom type mapping
+
+The following example demonstrates how to configure a custom `RedisTypeMapper` in `MappingRedisConverter`.
+
+.Configuring a custom `RedisTypeMapper` via Spring Java Config
+====
+[source,java]
+----
+class CustomRedisTypeMapper extends DefaultRedisTypeMapper {
+  //implement custom type mapping here
+}
+----
+====
+
+[source,java]
+----
+@Configuration
+class SampleRedisConfiguration {
+
+  @Bean
+  public MappingRedisConverter redisConverter(RedisMappingContext mappingContext,
+        RedisCustomConversions customConversions, ReferenceResolver referenceResolver) {
+
+    MappingRedisConverter mappingRedisConverter = new MappingRedisConverter(mappingContext, null, referenceResolver,
+            customTypeMapper());
+
+    mappingRedisConverter.setCustomConversions(customConversions);
+
+    return mappingRedisConverter;
+  }
+
+  @Bean
+  public RedisTypeMapper customTypeMapper() {
+    return new CustomRedisTypeMapper();
+  }
+}
+----
+
 [[redis.repositories.keyspaces]]
 == Keyspaces
 Keyspaces define prefixes used to create the actual _key_ for the Redis Hash.

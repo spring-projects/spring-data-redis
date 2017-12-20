@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
+import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.index.Indexed;
@@ -109,6 +110,7 @@ public class ConversionTestEntities {
 		}
 	}
 
+	@TypeAlias("with-post-code")
 	public static class AddressWithPostcode extends Address {
 
 		String postcode;
