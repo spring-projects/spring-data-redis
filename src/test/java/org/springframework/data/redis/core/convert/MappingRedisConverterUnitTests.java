@@ -32,16 +32,7 @@ import java.time.LocalTime;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import org.hamcrest.core.IsEqual;
 import org.junit.Before;
@@ -91,6 +82,15 @@ public class MappingRedisConverterUnitTests {
 
 	@Test // DATAREDIS-425
 	public void writeAppendsTypeHintForRootCorrectly() {
+		assertThat(write(rand).getBucket(), isBucket().containingTypeHint("_class", Person.class));
+	}
+
+	@Test // DATAREDIS-543
+	public void writeSkipsTypeHintIfConfigured() {
+
+		converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
+		converter.afterPropertiesSet();
+
 		assertThat(write(rand).getBucket(), isBucket().containingTypeHint("_class", Person.class));
 	}
 
@@ -205,7 +205,7 @@ public class MappingRedisConverterUnitTests {
 		assertThat(target.getBucket(), isBucket().without("address._class"));
 	}
 
-	@Test // DATAREDIS-425
+	@Test // DATAREDIS-425, DATAREDIS-543
 	public void writeAddsClassTypeInformationCorrectlyForNonMatchingTypes() {
 
 		AddressWithPostcode address = new AddressWithPostcode();
@@ -216,7 +216,7 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().containingTypeHint("address._class", AddressWithPostcode.class));
+		assertThat(target.getBucket(), isBucket().containingUtf8String("address._class", "with-post-code"));
 	}
 
 	@Test // DATAREDIS-425
