@@ -31,6 +31,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Rosty Kerei
+ * @author wongoo
  */
 public interface ZSetOperations<K, V> {
 
