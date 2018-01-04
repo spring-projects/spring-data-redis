@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
@@ -400,10 +401,33 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 */
 	@Override
 	public Long unionAndStore(K key, Collection<K> otherKeys, K destKey) {
-
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		byte[] rawDestKey = rawKey(destKey);
 		return execute(connection -> connection.zUnionStore(rawDestKey, rawKeys), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#unionAndStore(java.lang.Object, java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
+	 */
+	@Override
+	public Long unionAndStore(K key, Collection<K> otherKeys, K destKey, RedisZSetCommands.Aggregate aggregate) {
+		int weights[] = new int[otherKeys.size() + 1];
+		for (int i = 0; i < weights.length; i++) {
+			weights[i] = 1;
+		}
+		return unionAndStore(key, otherKeys, weights, destKey, aggregate);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#unionAndStore(java.lang.Object, java.util.Collection, int[], java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
+	 */
+	@Override
+	public Long unionAndStore(K key, Collection<K> otherKeys, int[] weights, K destKey, RedisZSetCommands.Aggregate aggregate) {
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		byte[] rawDestKey = rawKey(destKey);
+		return execute(connection -> connection.zUnionStore(rawDestKey, aggregate, weights, rawKeys), true);
 	}
 
 	/*

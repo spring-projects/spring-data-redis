@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -288,6 +289,24 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	@Override
 	public void unionAndStore(Collection<K> otherKeys, K destKey) {
 		ops.unionAndStore(getKey(), otherKeys, destKey);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionAndStore(Collection, Object, RedisZSetCommands.Aggregate)
+	 */
+	@Override
+	public void unionAndStore(Collection<K> otherKeys, K destKey, RedisZSetCommands.Aggregate aggregate) {
+		ops.unionAndStore(getKey(), otherKeys, destKey, aggregate);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionAndStore(Collection, int[], Object, RedisZSetCommands.Aggregate)
+	 */
+	@Override
+	public void unionAndStore(Collection<K> otherKeys, int[] weights, K destKey, RedisZSetCommands.Aggregate aggregate) {
+		ops.unionAndStore(getKey(), otherKeys, weights, destKey, aggregate);
 	}
 
 	/*
