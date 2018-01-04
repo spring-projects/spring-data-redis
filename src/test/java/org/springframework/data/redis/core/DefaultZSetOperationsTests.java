@@ -23,10 +23,12 @@ import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.After;
@@ -37,6 +39,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.DoubleObjectFactory;
@@ -54,6 +57,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author wongoo
  * @param <K> Key type
  * @param <V> Value type
  */
@@ -364,5 +368,60 @@ public class DefaultZSetOperationsTests<K, V> {
 
 		it.close();
 		assertThat(count, equalTo(3));
+	}
+
+	@Test //DATAREDIS-746
+	public void testZsetUnionWithAggregate() {
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+		V value4 = valueFactory.instance();
+
+		Set<TypedTuple<V>> values1 = new HashSet<>();
+		values1.add(new DefaultTypedTuple<>(value1, 1.0));
+		values1.add(new DefaultTypedTuple<>(value2, 2.0));
+		zSetOps.add(key1, values1);
+
+		Set<TypedTuple<V>> values2 = new HashSet<>();
+		values2.add(new DefaultTypedTuple<>(value3, 3.0));
+		zSetOps.add(key2, values2);
+
+		// union values
+		assertThat(zSetOps.count(key1, 0, 99), equalTo(2L));
+		List<K> otherKeys = Arrays.asList(key2);
+		zSetOps.unionAndStore(key1, otherKeys, key1, RedisZSetCommands.Aggregate.MIN);
+		assertThat(zSetOps.count(key1, 0, 99), equalTo(3L));
+		assertThat(zSetOps.score(key1, value3), equalTo(3.0));
+
+		// aggregate in MAX
+		K key3 = keyFactory.instance();
+		Set<TypedTuple<V>> values3 = new HashSet<>();
+		values3.add(new DefaultTypedTuple<>(value4, 4.0));
+		values3.add(new DefaultTypedTuple<>(value2, 20.0));
+		zSetOps.add(key3, values3);
+		List<K> otherKeys3 = Arrays.asList(key3);
+		zSetOps.unionAndStore(key1, otherKeys3, key1, RedisZSetCommands.Aggregate.MAX);
+		assertThat(zSetOps.count(key1, 0, 99), equalTo(4L));
+		assertThat(zSetOps.score(key1, value4), equalTo(4.0));
+		assertThat(zSetOps.score(key1, value2), equalTo(20.0));
+
+		// aggregate in MIN with weight
+		K key4 = keyFactory.instance();
+		Set<TypedTuple<V>> values1_1 = new HashSet<>();
+		values1_1.add(new DefaultTypedTuple<>(value1, 4.0));
+		zSetOps.add(key4, values1_1);
+		List<K> otherKeys4 = Arrays.asList(key4);
+		int weight[] = {2, 1};
+		zSetOps.unionAndStore(key1, otherKeys4, weight, key1, RedisZSetCommands.Aggregate.MIN);
+		assertThat(zSetOps.count(key1, 0, 99), equalTo(4L));
+		assertThat(zSetOps.score(key1, value1), equalTo(2.0));
+
+		int weight2[] = {5, 1};
+		zSetOps.unionAndStore(key1, otherKeys4, weight2, key1, RedisZSetCommands.Aggregate.MIN);
+		assertThat(zSetOps.score(key1, value1), equalTo(4.0));
+
 	}
 }
