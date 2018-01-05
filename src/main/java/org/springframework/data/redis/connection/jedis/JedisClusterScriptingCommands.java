@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ enum JedisClusterScriptingCommands implements RedisScriptingCommands {
 
 	INSTANCE;
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptFlush()
 	 */
@@ -38,7 +38,7 @@ enum JedisClusterScriptingCommands implements RedisScriptingCommands {
 		throw new InvalidDataAccessApiUsageException("ScriptFlush is not supported in cluster environment.");
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptKill()
 	 */
@@ -47,7 +47,7 @@ enum JedisClusterScriptingCommands implements RedisScriptingCommands {
 		throw new InvalidDataAccessApiUsageException("ScriptKill is not supported in cluster environment.");
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptLoad(byte[])
 	 */
@@ -56,7 +56,7 @@ enum JedisClusterScriptingCommands implements RedisScriptingCommands {
 		throw new InvalidDataAccessApiUsageException("ScriptLoad is not supported in cluster environment.");
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptExists(java.lang.String[])
 	 */
@@ -65,7 +65,7 @@ enum JedisClusterScriptingCommands implements RedisScriptingCommands {
 		throw new InvalidDataAccessApiUsageException("ScriptExists is not supported in cluster environment.");
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#eval(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
 	 */
@@ -74,7 +74,7 @@ enum JedisClusterScriptingCommands implements RedisScriptingCommands {
 		throw new InvalidDataAccessApiUsageException("Eval is not supported in cluster environment.");
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(java.lang.String, org.springframework.data.redis.connection.ReturnType, int, byte[][])
 	 */
@@ -83,7 +83,7 @@ enum JedisClusterScriptingCommands implements RedisScriptingCommands {
 		throw new InvalidDataAccessApiUsageException("EvalSha is not supported in cluster environment.");
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
 	 */

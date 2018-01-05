@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public interface Cursor<T> extends Iterator<T>, Closeable {
 	/**
 	 * Get the reference cursor. <br>
 	 * <strong>NOTE:</strong> the id might change while iterating items.
-	 * 
+	 *
 	 * @return
 	 */
 	long getCursorId();
@@ -40,7 +40,7 @@ public interface Cursor<T> extends Iterator<T>, Closeable {
 
 	/**
 	 * Opens cursor and returns itself.
-	 * 
+	 *
 	 * @return
 	 */
 	Cursor<T> open();

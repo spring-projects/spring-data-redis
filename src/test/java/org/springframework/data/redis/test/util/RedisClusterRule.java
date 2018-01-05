@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import redis.clients.jedis.Jedis;
 
 /**
  * Simple {@link TestRule} implementation that check Redis is running in cluster mode.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -46,7 +46,7 @@ public class RedisClusterRule extends ExternalResource {
 
 	/**
 	 * Create and init {@link RedisClientRule} with given configuration.
-	 * 
+	 *
 	 * @param config
 	 */
 	public RedisClusterRule(RedisClusterConfiguration config) {

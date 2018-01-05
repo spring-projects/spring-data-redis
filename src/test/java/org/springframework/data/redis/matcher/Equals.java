@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import org.hamcrest.Matcher;
  * some assumptions about structure of data based on what we typically get back from Redis commands, i.e that Sets or
  * Maps don't contain Collections, but a List might contain a bit of everything (when it comes back from exec() or
  * closePipeline())
- * 
+ *
  * @author Jennifer Hickey
  */
 public class Equals extends BaseMatcher<Object> {

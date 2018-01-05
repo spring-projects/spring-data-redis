@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 /**
  * {@link TimeToLive} marks a single numeric property on aggregate root to be used for setting expirations in Redis. The
  * annotated property supersedes any other timeout configuration.
- * 
+ *
  * <pre>
  * <code>
  * &#64;RedisHash
@@ -38,7 +38,7 @@ import org.springframework.data.annotation.ReadOnlyProperty;
  * }
  * </code>
  * </pre>
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -50,7 +50,7 @@ public @interface TimeToLive {
 
 	/**
 	 * {@link TimeUnit} unit to use.
-	 * 
+	 *
 	 * @return {@link TimeUnit#SECONDS} by default.
 	 */
 	TimeUnit unit() default TimeUnit.SECONDS;

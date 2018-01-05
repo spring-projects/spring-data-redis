@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import org.springframework.core.convert.converter.Converter;
 
 /**
  * {@link Converter} implementation that is used to transform values for usage in a particular secondary index.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */

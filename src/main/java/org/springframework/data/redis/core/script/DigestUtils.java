@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * Utilties for working with {@link MessageDigest}
- * 
+ *
  * @author Jennifer Hickey
  */
 abstract public class DigestUtils {
@@ -33,7 +33,7 @@ abstract public class DigestUtils {
 
 	/**
 	 * Returns the SHA1 of the provided data
-	 * 
+	 *
 	 * @param data The data to calculate, such as the contents of a file
 	 * @return The human-readable SHA1
 	 */

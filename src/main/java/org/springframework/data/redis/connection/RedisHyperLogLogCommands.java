@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * {@literal HyperLogLog} specific commands supported by Redis.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.5
@@ -28,7 +28,7 @@ public interface RedisHyperLogLogCommands {
 
 	/**
 	 * Adds given {@literal values} to the HyperLogLog stored at given {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -39,7 +39,7 @@ public interface RedisHyperLogLogCommands {
 
 	/**
 	 * Return the approximated cardinality of the structures observed by the HyperLogLog at {@literal key(s)}.
-	 * 
+	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
@@ -49,7 +49,7 @@ public interface RedisHyperLogLogCommands {
 
 	/**
 	 * Merge N different HyperLogLogs at {@literal sourceKeys} into a single {@literal destinationKey}.
-	 * 
+	 *
 	 * @param destinationKey must not be {@literal null}.
 	 * @param sourceKeys must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/pfmerge">Redis Documentation: PFMERGE</a>

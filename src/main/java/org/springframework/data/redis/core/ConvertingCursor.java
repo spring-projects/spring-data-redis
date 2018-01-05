@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
  * {@link ConvertingCursor} wraps a given cursor and applies given {@link Converter} to items prior to returning them.
  * This allows to easily perform required conversion whereas the underlying implementation may still work with its
  * native types.
- * 
+ *
  * @author Christoph Strobl
  * @param <S>
  * @param <T>
