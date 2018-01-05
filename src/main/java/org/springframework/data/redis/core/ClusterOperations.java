@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * {@link RedisClusterCommands#clusterGetNodes() a connection} or it can be
  * constructed using either {@link RedisClusterNode#getHost() host} and {@link RedisClusterNode#getPort()} or the
  * {@link RedisClusterNode#getId() node Id}.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.7
@@ -37,7 +37,7 @@ public interface ClusterOperations<K, V> {
 
 	/**
 	 * Get all keys located at given node.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @param pattern
 	 * @return never {@literal null}.
@@ -47,7 +47,7 @@ public interface ClusterOperations<K, V> {
 
 	/**
 	 * Ping the given node;
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @return
 	 * @see RedisConnection#ping()
@@ -56,7 +56,7 @@ public interface ClusterOperations<K, V> {
 
 	/**
 	 * Get a random key from the range served by the given node.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @return
 	 * @see RedisConnection#randomKey()
@@ -65,7 +65,7 @@ public interface ClusterOperations<K, V> {
 
 	/**
 	 * Add slots to given node;
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @param slots must not be {@literal null}.
 	 */
@@ -73,7 +73,7 @@ public interface ClusterOperations<K, V> {
 
 	/**
 	 * Add slots in {@link SlotRange} to given node.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 */
@@ -81,7 +81,7 @@ public interface ClusterOperations<K, V> {
 
 	/**
 	 * Start an {@literal Append Only File} rewrite process on given node.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @see RedisConnection#bgReWriteAof()
 	 */
@@ -89,7 +89,7 @@ public interface ClusterOperations<K, V> {
 
 	/**
 	 * Start background saving of db on given node.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @see RedisConnection#bgSave()
 	 */
@@ -97,21 +97,21 @@ public interface ClusterOperations<K, V> {
 
 	/**
 	 * Add the node to cluster.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 */
 	void meet(RedisClusterNode node);
 
 	/**
 	 * Remove the node from the cluster.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 */
 	void forget(RedisClusterNode node);
 
 	/**
 	 * Flush db on node.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @see RedisConnection#flushDb()
 	 */
@@ -125,7 +125,7 @@ public interface ClusterOperations<K, V> {
 
 	/**
 	 * Synchronous save current db snapshot on server.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @see RedisConnection#save()
 	 */
@@ -133,7 +133,7 @@ public interface ClusterOperations<K, V> {
 
 	/**
 	 * Shutdown given node.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @see RedisConnection#shutdown()
 	 */
@@ -141,7 +141,7 @@ public interface ClusterOperations<K, V> {
 
 	/**
 	 * Move slot assignment from one source to target node and copy keys associated with the slot.
-	 * 
+	 *
 	 * @param source must not be {@literal null}.
 	 * @param slot
 	 * @param target must not be {@literal null}.

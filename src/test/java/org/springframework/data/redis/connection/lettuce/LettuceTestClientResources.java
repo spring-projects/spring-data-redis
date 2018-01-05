@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * Client-Resources suitable for testing. Uses {@link TestEventLoopGroupProvider} to preserve the event loop groups
  * between tests. Every time a new {@link LettuceTestClientResources} instance is created, a
  * {@link Runtime#addShutdownHook(Thread) shutdown hook} is added to close the client resources.
- * 
+ *
  * @author Mark Paluch
  * @author Christoph Strobl
  */

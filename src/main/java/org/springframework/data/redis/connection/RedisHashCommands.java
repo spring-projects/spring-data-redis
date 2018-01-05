@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Hash-specific commands supported by Redis.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -34,7 +34,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Set the {@code value} of a hash {@code field}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -46,7 +46,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Set the {@code value} of a hash {@code field} only if {@code field} does not exist.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -58,7 +58,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Get value for given {@code field} from hash at {@code key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
 	 * @return {@literal null} when key or field do not exists or when used in pipeline / transaction.
@@ -69,7 +69,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Get values for given {@code fields} from hash at {@code key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal empty}.
 	 * @return empty {@link List} if key or fields do not exists. {@literal null} when used in pipeline / transaction.
@@ -80,7 +80,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Set multiple hash fields to multiple values using data provided in {@code hashes}
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashes must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/hmset">Redis Documentation: HMSET</a>
@@ -89,7 +89,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Increment {@code value} of a hash {@code field} by the given {@code delta}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
 	 * @param delta
@@ -101,7 +101,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Increment {@code value} of a hash {@code field} by the given {@code delta}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
 	 * @param delta
@@ -113,7 +113,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Determine if given hash {@code field} exists.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -135,7 +135,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Get size of hash at {@code key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hlen">Redis Documentation: HLEN</a>
@@ -145,7 +145,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Get key set (fields) of hash at {@code key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hkeys">Redis Documentation: HKEYS</a>?
@@ -155,7 +155,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Get entry set (values) of hash at {@code field}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hvals">Redis Documentation: HVALS</a>
@@ -165,7 +165,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Get entire hash stored at {@code key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @return empty {@link Map} if key does not exist or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/hgetall">Redis Documentation: HGETALL</a>
@@ -175,7 +175,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Use a {@link Cursor} to iterate over entries in hash at {@code key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param options must not be {@literal null}.
 	 * @return

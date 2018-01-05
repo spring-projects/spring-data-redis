@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.springframework.data.redis.core.index.ConfigurableIndexDefinitionProv
 /**
  * {@link MappingConfiguration} is used for programmatic configuration of secondary indexes, key prefixes, expirations
  * and the such.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -31,7 +31,7 @@ public class MappingConfiguration {
 
 	/**
 	 * Creates new {@link MappingConfiguration}.
-	 * 
+	 *
 	 * @param indexConfiguration must not be {@literal null}.
 	 * @param keyspaceConfiguration must not be {@literal null}.
 	 */

@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2013 the original author or authors.
- * 
+ * Copyright 2011-2018 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,14 +28,14 @@ import org.springframework.util.StringUtils;
  * Factory bean that facilitates creation of Redis-based collections. Supports list, set, zset (or sortedSet), map (or
  * hash) and properties. Will use the key type if it exists or to create a dedicated collection (Properties vs Map).
  * Otherwise uses the provided type (default is list).
- * 
+ *
  * @author Costin Leau
  */
 public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAware, FactoryBean<RedisStore> {
 
 	/**
 	 * Collection types supported by this factory.
-	 * 
+	 *
 	 * @author Costin Leau
 	 */
 	public enum CollectionType {
@@ -141,7 +141,7 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 
 	/**
 	 * Sets the store type. Used if the key does not exist.
-	 * 
+	 *
 	 * @param type The type to set.
 	 */
 	public void setType(CollectionType type) {
@@ -150,7 +150,7 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 
 	/**
 	 * Sets the template used by the resulting store.
-	 * 
+	 *
 	 * @param template The template to set.
 	 */
 	public void setTemplate(RedisTemplate<String, ?> template) {
@@ -159,7 +159,7 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 
 	/**
 	 * Sets the key of the store.
-	 * 
+	 *
 	 * @param key The key to set.
 	 */
 	public void setKey(String key) {

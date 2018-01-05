@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,7 +145,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		});
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.cache.RedisCacheWriter#remove(java.lang.String, byte[])
 	 */
@@ -158,7 +158,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		execute(name, connection -> connection.del(key));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.cache.RedisCacheWriter#clean(java.lang.String, byte[])
 	 */

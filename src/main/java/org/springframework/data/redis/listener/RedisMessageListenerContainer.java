@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	public static final long DEFAULT_RECOVERY_INTERVAL = 5000;
 
 	/**
-	 * The default subscription wait time: 2000 ms = 2 seconds.
+	 * The default subscription wait time: 2000-2018 ms = 2 seconds.
 	 */
 	public static final long DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME = 2000L;
 

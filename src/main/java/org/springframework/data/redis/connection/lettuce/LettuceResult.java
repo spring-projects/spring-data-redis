@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,7 +110,7 @@ class LettuceResult<T, R> extends FutureResult<RedisCommand<?, T, ?>> {
 
 		/**
 		 * Create a new {@link LettuceResultBuilder} given {@link Future}.
-		 * 
+		 *
 		 * @param response must not be {@literal null}.
 		 * @param <T> native response type.
 		 * @param <R> resulting response type.
@@ -122,7 +122,7 @@ class LettuceResult<T, R> extends FutureResult<RedisCommand<?, T, ?>> {
 
 		/**
 		 * Configure a {@link Converter} to convert between {@code T} and {@code R} types.
-		 * 
+		 *
 		 * @param converter must not be {@literal null}.
 		 * @return {@code this} builder.
 		 */
@@ -134,7 +134,7 @@ class LettuceResult<T, R> extends FutureResult<RedisCommand<?, T, ?>> {
 
 		/**
 		 * Configure a {@link Supplier} to map {@literal null} responses to a different value.
-		 * 
+		 *
 		 * @param supplier must not be {@literal null}.
 		 * @return {@code this} builder.
 		 */

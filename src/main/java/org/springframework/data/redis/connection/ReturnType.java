@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.springframework.lang.Nullable;
 /**
  * Represents a data type returned from Redis, currently used to denote the expected return type of Redis scripting
  * commands
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  */

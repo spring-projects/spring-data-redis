@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.data.redis.connection;
 /**
  * {@link ClusterNodeResourceProvider} provides access to low level client api to directly execute operations against a
  * Redis instance.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -26,7 +26,7 @@ public interface ClusterNodeResourceProvider {
 
 	/**
 	 * Get the client resource for the given node.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @throws org.springframework.dao.DataAccessResourceFailureException if node is not known to the cluster.
@@ -35,7 +35,7 @@ public interface ClusterNodeResourceProvider {
 
 	/**
 	 * Return the resource object for the given node. This can mean free up resources or return elements back to a pool.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @param resource must not be {@literal null}.
 	 */

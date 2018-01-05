@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
  * Java Serialization Redis serializer. Delegates to the default (Java based) {@link DefaultSerializer serializer} and
  * {@link DefaultDeserializer}. This {@link RedisSerializer serializer} can be constructed with either custom
  * {@link ClassLoader} or own {@link Converter converters}.
- * 
+ *
  * @author Mark Pollack
  * @author Costin Leau
  * @author Mark Paluch
@@ -58,7 +58,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	/**
 	 * Creates a new {@link JdkSerializationRedisSerializer} using a {@link Converter converters} to serialize and
 	 * deserialize objects.
-	 * 
+	 *
 	 * @param serializer must not be {@literal null}
 	 * @param deserializer must not be {@literal null}
 	 * @since 1.7

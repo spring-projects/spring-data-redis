@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import redis.clients.jedis.Jedis;
  * version of Redis. 2.4.x will be returned as "2.4" and 2.6.x will be returned as "2.6". Any other version found will
  * cause an {@link UnsupportedOperationException} System property values will be returned for any key other than
  * "redisVersion"
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont

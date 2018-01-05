@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
  * Interface for the {@literal cluster} commands supported by Redis. A {@link RedisClusterNode} can be obtained from
  * {@link #clusterGetNodes()} or it can be constructed using either {@link RedisClusterNode#getHost() host} and
  * {@link RedisClusterNode#getPort()} or the {@link RedisClusterNode#getId() node Id}.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.7
@@ -34,7 +34,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Retrieve cluster node information such as {@literal id}, {@literal host}, {@literal port} and {@literal slots}.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-nodes">Redis Documentation: CLUSTER NODES</a>
 	 */
@@ -42,7 +42,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Retrieve information about connected slaves for given master node.
-	 * 
+	 *
 	 * @param master must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-slaves">Redis Documentation: CLUSTER SLAVES</a>
@@ -51,7 +51,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Retrieve information about masters and their connected slaves.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-slaves">Redis Documentation: CLUSTER SLAVES</a>
 	 */
@@ -59,7 +59,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Find the slot for a given {@code key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/cluster-keyslot">Redis Documentation: CLUSTER KEYSLOT</a>
@@ -68,7 +68,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Find the {@link RedisClusterNode} serving given {@literal slot}.
-	 * 
+	 *
 	 * @param slot
 	 * @return
 	 */
@@ -76,7 +76,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Find the {@link RedisClusterNode} serving given {@literal key}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
@@ -84,7 +84,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Get cluster information.
-	 * 
+	 *
 	 * @return
 	 * @see <a href="https://redis.io/commands/cluster-info">Redis Documentation: CLUSTER INFO</a>
 	 */
@@ -92,7 +92,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Assign slots to given {@link RedisClusterNode}.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @param slots
 	 * @see <a href="https://redis.io/commands/cluster-addslots">Redis Documentation: CLUSTER ADDSLOTS</a>
@@ -101,7 +101,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Assign {@link SlotRange#getSlotsArray()} to given {@link RedisClusterNode}.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-addslots">Redis Documentation: CLUSTER ADDSLOTS</a>
@@ -110,7 +110,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Count the number of keys assigned to one {@literal slot}.
-	 * 
+	 *
 	 * @param slot
 	 * @return
 	 * @see <a href="https://redis.io/commands/cluster-countkeysinslot">Redis Documentation: CLUSTER COUNTKEYSINSLOT</a>
@@ -119,7 +119,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Remove slots from {@link RedisClusterNode}.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @param slots
 	 * @see <a href="https://redis.io/commands/cluster-delslots">Redis Documentation: CLUSTER DELSLOTS</a>
@@ -128,7 +128,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Removes {@link SlotRange#getSlotsArray()} from given {@link RedisClusterNode}.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-delslots">Redis Documentation: CLUSTER DELSLOTS</a>
@@ -137,7 +137,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Remove given {@literal node} from cluster.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-forget">Redis Documentation: CLUSTER FORGET</a>
 	 */
@@ -162,7 +162,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Get {@literal keys} served by slot.
-	 * 
+	 *
 	 * @param slot
 	 * @param count must not be {@literal null}.
 	 * @return
@@ -172,7 +172,7 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Assign a {@literal slave} to given {@literal master}.
-	 * 
+	 *
 	 * @param master must not be {@literal null}.
 	 * @param slave must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-replicate">Redis Documentation: CLUSTER REPLICATE</a>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class JedisVersionUtil {
 
 	/**
 	 * Parse version string {@literal eg. 1.1.1} to {@link Version}.
-	 * 
+	 *
 	 * @param version
 	 * @return
 	 */
@@ -76,7 +76,7 @@ public class JedisVersionUtil {
 
 	/**
 	 * Compares given version string against current jedis version.
-	 * 
+	 *
 	 * @param version
 	 * @return true in case given version is greater than equal to current one.
 	 */
@@ -86,7 +86,7 @@ public class JedisVersionUtil {
 
 	/**
 	 * Compares given version string against current jedis version.
-	 * 
+	 *
 	 * @param version
 	 * @return true in case given version is less than equal to current one.
 	 */

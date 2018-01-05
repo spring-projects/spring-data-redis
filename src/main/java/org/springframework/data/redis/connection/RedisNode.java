@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class RedisNode implements NamedNode {
 
 	/**
 	 * Creates a new {@link RedisNode} with the given {@code host}, {@code port}.
-	 * 
+	 *
 	 * @param host must not be {@literal null}
 	 * @param port
 	 */
@@ -133,7 +133,7 @@ public class RedisNode implements NamedNode {
 
 	/**
 	 * Get {@link RedisNodeBuilder} for creating new {@link RedisNode}.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 * @since 1.7
 	 */
@@ -192,7 +192,7 @@ public class RedisNode implements NamedNode {
 
 	/**
 	 * Builder for creating new {@link RedisNode}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.4
 	 */
@@ -214,7 +214,7 @@ public class RedisNode implements NamedNode {
 
 		/**
 		 * Set host and port of server.
-		 * 
+		 *
 		 * @param host must not be {@literal null}.
 		 * @param port
 		 * @return
@@ -229,7 +229,7 @@ public class RedisNode implements NamedNode {
 
 		/**
 		 * Set id of server.
-		 * 
+		 *
 		 * @param id
 		 * @return
 		 */
@@ -241,7 +241,7 @@ public class RedisNode implements NamedNode {
 
 		/**
 		 * Set server role.
-		 * 
+		 *
 		 * @param nodeType
 		 * @return
 		 * @since 1.7
@@ -254,7 +254,7 @@ public class RedisNode implements NamedNode {
 
 		/**
 		 * Set the id of the master node.
-		 * 
+		 *
 		 * @param masterId
 		 * @return
 		 * @since 1.7
@@ -267,7 +267,7 @@ public class RedisNode implements NamedNode {
 
 		/**
 		 * Get the {@link RedisNode}.
-		 * 
+		 *
 		 * @return
 		 */
 		public RedisNode build() {

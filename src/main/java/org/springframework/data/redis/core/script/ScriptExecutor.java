@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
  * Executes {@link RedisScript}s
- * 
+ *
  * @author Jennifer Hickey
  * @param <K> The type of keys that may be passed during script execution
  */
@@ -29,7 +29,7 @@ public interface ScriptExecutor<K> {
 
 	/**
 	 * Executes the given {@link RedisScript}
-	 * 
+	 *
 	 * @param script The script to execute
 	 * @param keys Any keys that need to be passed to the script
 	 * @param args Any args that need to be passed to the script
@@ -41,7 +41,7 @@ public interface ScriptExecutor<K> {
 	/**
 	 * Executes the given {@link RedisScript}, using the provided {@link RedisSerializer}s to serialize the script
 	 * arguments and result.
-	 * 
+	 *
 	 * @param script The script to execute
 	 * @param argsSerializer The {@link RedisSerializer} to use for serializing args
 	 * @param resultSerializer The {@link RedisSerializer} to use for serializing the script return value

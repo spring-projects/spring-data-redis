@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import redis.clients.jedis.Jedis;
 /**
  * {@link MinimumRedisVersionRule} is a custom {@link TestRule} validating {@literal redisVersion} given in
  * {@link IfProfileValue} against used redis server version.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.4
  */

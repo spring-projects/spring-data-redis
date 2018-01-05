@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.data.redis.core.index;
 /**
  * {@link PathBasedRedisIndexDefinition} for including property values in a secondary index. <br />
  * Uses Redis {@literal SET} for storage. <br />
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -26,7 +26,7 @@ public class SimpleIndexDefinition extends RedisIndexDefinition implements PathB
 
 	/**
 	 * Creates new {@link SimpleIndexDefinition}.
-	 * 
+	 *
 	 * @param keyspace must not be {@literal null}.
 	 * @param path
 	 */
@@ -36,7 +36,7 @@ public class SimpleIndexDefinition extends RedisIndexDefinition implements PathB
 
 	/**
 	 * Creates new {@link SimpleIndexDefinition}.
-	 * 
+	 *
 	 * @param keyspace must not be {@literal null}.
 	 * @param path
 	 * @param name must not be {@literal null}.

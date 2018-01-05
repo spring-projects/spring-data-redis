@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.data.keyvalue.annotation.KeySpace;
 
 /**
  * {@link RedisHash} marks Objects as aggregate roots to be stored in a Redis hash.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -42,7 +42,7 @@ public @interface RedisHash {
 
 	/**
 	 * The prefix to distinguish between domain types.
-	 * 
+	 *
 	 * @return
 	 * @see KeySpace
 	 */
@@ -51,7 +51,7 @@ public @interface RedisHash {
 
 	/**
 	 * Time before expire in seconds. Superseded by {@link TimeToLive}.
-	 * 
+	 *
 	 * @return positive number when expiration should be applied.
 	 */
 	long timeToLive() default -1L;
