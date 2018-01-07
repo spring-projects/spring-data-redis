@@ -413,7 +413,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 */
 	@Override
 	public Long unionAndStore(K key, Collection<K> otherKeys, K destKey, RedisZSetCommands.Aggregate aggregate) {
-		int weights[] = new int[otherKeys.size() + 1];
+		int weights[] = new int[otherKeys.size() + (key != null ? 1 : 0)];
 		for (int i = 0; i < weights.length; i++) {
 			weights[i] = 1;
 		}
