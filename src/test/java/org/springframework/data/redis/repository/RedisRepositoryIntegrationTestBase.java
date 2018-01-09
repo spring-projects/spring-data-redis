@@ -18,19 +18,20 @@ package org.springframework.data.redis.repository;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-import java.io.Serializable;
+import lombok.Data;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.Data;
 import org.hamcrest.core.IsNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +48,7 @@ import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.index.SimpleIndexDefinition;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.QueryByExampleExecutor;
 
 /**
  * Base for testing Redis repository support in different configurations.
@@ -288,6 +290,22 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		}
 	}
 
+	@Test // DATAREDIS-605
+	public void shouldFindByExample() {
+
+		Person eddard = new Person("eddard", "stark");
+		Person tyrion = new Person("tyrion", "lannister");
+		Person robb = new Person("robb", "stark");
+		Person jon = new Person("jon", "snow");
+		Person arya = new Person("arya", "stark");
+
+		repo.saveAll(Arrays.asList(eddard, tyrion, robb, jon, arya));
+
+		List<Person> result = repo.findAll(Example.of(new Person(null, "stark")));
+
+		assertThat(result, hasSize(3));
+	}
+
 	@Test // DATAREDIS-533
 	public void nearQueryShouldReturnResultsCorrectly() {
 
@@ -347,7 +365,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(result, not(hasItems(p1)));
 	}
 
-	public static interface PersonRepository extends PagingAndSortingRepository<Person, String> {
+	public static interface PersonRepository
+			extends PagingAndSortingRepository<Person, String>, QueryByExampleExecutor<Person> {
 
 		List<Person> findByFirstname(String firstname);
 
@@ -368,6 +387,9 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Page<Person> findBy(Pageable page);
 
 		List<Person> findByHometownLocationNear(Point point, Distance distance);
+
+		@Override
+		<S extends Person> List<S> findAll(Example<S> example);
 	}
 
 	public static interface CityRepository extends CrudRepository<City, String> {

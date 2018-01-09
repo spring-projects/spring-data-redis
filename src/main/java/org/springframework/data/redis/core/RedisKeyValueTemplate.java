@@ -35,6 +35,8 @@ import org.springframework.util.ClassUtils;
  */
 public class RedisKeyValueTemplate extends KeyValueTemplate {
 
+	private final RedisKeyValueAdapter adapter;
+
 	/**
 	 * Create new {@link RedisKeyValueTemplate}.
 	 *
@@ -43,6 +45,15 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	 */
 	public RedisKeyValueTemplate(RedisKeyValueAdapter adapter, RedisMappingContext mappingContext) {
 		super(adapter, mappingContext);
+		this.adapter = adapter;
+	}
+
+	/**
+	 * @return the {@link RedisKeyValueAdapter}.
+	 * @since 2.1
+	 */
+	public RedisKeyValueAdapter getAdapter() {
+		return adapter;
 	}
 
 	/*
@@ -53,6 +64,7 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	public RedisMappingContext getMappingContext() {
 		return (RedisMappingContext) super.getMappingContext();
 	}
+
 
 	/**
 	 * Retrieve entities by resolving their {@literal id}s and converting them into required type. <br />

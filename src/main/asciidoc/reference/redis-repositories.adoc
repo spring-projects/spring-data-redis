@@ -468,6 +468,8 @@ In the above example the lon/lat values are stored using `GEOADD` using the obje
 
 NOTE: It is **not** possible to combine `near`/`within` with other criteria.
 
+include::../{spring-data-commons-include}/query-by-example.adoc[leveloffset=+1]
+include::query-by-example.adoc[leveloffset=+1]
 
 [[redis.repositories.expirations]]
 == Time To Live

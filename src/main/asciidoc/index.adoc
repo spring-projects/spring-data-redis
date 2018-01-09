@@ -4,6 +4,7 @@ Costin Leau, Jennifer Hickey, Christoph Strobl, Thomas Darimont, Mark Paluch
 :revdate: {localdate}
 :toc:
 :toc-placement!:
+:spring-data-commons-include: ../../../../spring-data-commons/src/main/asciidoc
 :spring-data-commons-docs: https://raw.githubusercontent.com/spring-projects/spring-data-commons/master/src/main/asciidoc
 
 (C) 2011-2016 The original authors.
