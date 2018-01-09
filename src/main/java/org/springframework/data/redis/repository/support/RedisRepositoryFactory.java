@@ -18,11 +18,16 @@ package org.springframework.data.redis.repository.support;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.keyvalue.repository.query.KeyValuePartTreeQuery;
 import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactory;
+import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.repository.core.MappingRedisEntityInformation;
 import org.springframework.data.redis.repository.query.RedisQueryCreator;
 import org.springframework.data.repository.core.EntityInformation;
+import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
+import org.springframework.data.repository.core.support.RepositoryFragment;
+import org.springframework.data.repository.query.QueryByExampleExecutor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 
@@ -68,6 +73,28 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 		super(keyValueOperations, queryCreator, repositoryQueryType);
 
 		this.operations = keyValueOperations;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getRepositoryFragments(org.springframework.data.repository.core.RepositoryMetadata)
+	 */
+	@Override
+	protected RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata) {
+
+		RepositoryFragments fragments = RepositoryFragments.empty();
+
+		if (QueryByExampleExecutor.class.isAssignableFrom(metadata.getRepositoryInterface())) {
+
+			RedisMappingContext mappingContext = (RedisMappingContext) this.operations.getMappingContext();
+			RedisPersistentEntity<?> persistentEntity = mappingContext.getRequiredPersistentEntity(metadata.getDomainType());
+			MappingRedisEntityInformation<?, ?> entityInformation = new MappingRedisEntityInformation<>(persistentEntity);
+
+			fragments = fragments.append(RepositoryFragment.implemented(QueryByExampleExecutor.class,
+					getTargetRepositoryViaReflection(QueryByExampleRedisExecutor.class, entityInformation, operations)));
+		}
+
+		return fragments;
 	}
 
 	/*

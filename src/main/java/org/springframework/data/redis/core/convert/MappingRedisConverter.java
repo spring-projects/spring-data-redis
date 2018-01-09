@@ -18,17 +18,8 @@ package org.springframework.data.redis.core.convert;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -988,6 +979,16 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	@Override
 	public RedisMappingContext getMappingContext() {
 		return this.mappingContext;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.convert.RedisConverter#getIndexResolver()
+	 */
+	@Nullable
+	@Override
+	public IndexResolver getIndexResolver() {
+		return this.indexResolver;
 	}
 
 	/*

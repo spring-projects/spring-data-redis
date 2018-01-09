@@ -19,11 +19,13 @@ import org.springframework.data.convert.EntityConverter;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
+import org.springframework.lang.Nullable;
 
 /**
  * Redis specific {@link EntityConverter}.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public interface RedisConverter
@@ -35,4 +37,11 @@ public interface RedisConverter
 	 */
 	@Override
 	RedisMappingContext getMappingContext();
+
+	/**
+	 * @return the configured {@link IndexResolver}, may be {@literal null}.
+	 * @since 2.1
+	 */
+	@Nullable
+	IndexResolver getIndexResolver();
 }

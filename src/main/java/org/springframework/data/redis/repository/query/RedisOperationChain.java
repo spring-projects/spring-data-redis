@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * Simple set of operations required to run queries against Redis.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisOperationChain {
@@ -41,6 +42,10 @@ public class RedisOperationChain {
 	private final Set<PathAndValue> orSismember = new LinkedHashSet<>();
 
 	private @Nullable NearPath near;
+
+	public boolean isEmpty() {
+		return near == null && sismember.isEmpty() && orSismember.isEmpty();
+	}
 
 	public void sismember(String path, Object value) {
 		sismember(new PathAndValue(path, value));

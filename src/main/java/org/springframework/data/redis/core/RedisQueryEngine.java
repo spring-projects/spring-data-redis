@@ -159,20 +159,23 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	@Override
 	public long count(RedisOperationChain criteria, String keyspace) {
 
-		if (criteria == null) {
+		if (criteria == null || criteria.isEmpty()) {
 			return this.getAdapter().count(keyspace);
 		}
 
 		return this.getAdapter().execute(connection -> {
 
-			String key = keyspace + ":";
-			byte[][] keys = new byte[criteria.getSismember().size()][];
-			int i = 0;
-			for (Object o : criteria.getSismember()) {
-				keys[i] = getAdapter().getConverter().getConversionService().convert(key + o, byte[].class);
+			long result = 0;
+
+			if (!criteria.getOrSismember().isEmpty()) {
+				result += connection.sUnion(keys(keyspace + ":", criteria.getOrSismember())).size();
 			}
 
-			return (long) connection.sInter(keys).size();
+			if (!criteria.getSismember().isEmpty()) {
+				result += connection.sInter(keys(keyspace + ":", criteria.getSismember())).size();
+			}
+
+			return result;
 		});
 	}
 
