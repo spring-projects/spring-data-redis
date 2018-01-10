@@ -27,6 +27,7 @@ import java.util.Optional;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -48,6 +49,7 @@ import org.springframework.data.redis.repository.core.MappingRedisEntityInformat
  * Integration tests for {@link QueryByExampleRedisExecutor}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class QueryByExampleRedisExecutorTests {
 
@@ -99,6 +101,19 @@ public class QueryByExampleRedisExecutorTests {
 		Optional<Person> result = executor.findOne(Example.of(walt));
 
 		assertThat(result).contains(walt);
+	}
+
+	@Test // DATAREDIS-605
+	public void shouldThrowExceptionWhenFindOneByExampleReturnsNonUniqueResult() {
+
+		QueryByExampleRedisExecutor<Person> executor = new QueryByExampleRedisExecutor<>(getEntityInformation(Person.class),
+				kvTemplate);
+
+		Person person = new Person();
+		person.setHometown(walt.getHometown());
+
+		assertThatThrownBy(() -> executor.findOne(Example.of(person)))
+				.isInstanceOf(IncorrectResultSizeDataAccessException.class);
 	}
 
 	@Test // DATAREDIS-605
