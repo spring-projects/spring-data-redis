@@ -40,6 +40,7 @@ import org.springframework.data.redis.repository.query.RedisOperationChain.PathA
  * Unit tests for {@link ExampleQueryMapper}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class ExampleQueryMapperUnitTests {
 
@@ -186,7 +187,7 @@ public class ExampleQueryMapperUnitTests {
 	}
 
 	@Data
-	public static class Person {
+	static class Person {
 
 		@Id String id;
 
@@ -204,7 +205,8 @@ public class ExampleQueryMapperUnitTests {
 		Species species;
 	}
 
-	public enum Gender {
+	enum Gender {
+
 		MALE, FEMALE {
 
 			@Override
@@ -214,7 +216,7 @@ public class ExampleQueryMapperUnitTests {
 		}
 	}
 
-	public static class Species {
+	static class Species {
 
 		@Indexed String name;
 	}

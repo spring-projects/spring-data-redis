@@ -22,6 +22,7 @@ import java.util.List;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueCallback;
 import org.springframework.data.keyvalue.core.KeyValueTemplate;
+import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -49,11 +50,13 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	}
 
 	/**
-	 * @return the {@link RedisKeyValueAdapter}.
+	 * Obtain the underlying redis specific {@link org.springframework.data.convert.EntityConverter}.
+	 *
+	 * @return never {@literal null}.
 	 * @since 2.1
 	 */
-	public RedisKeyValueAdapter getAdapter() {
-		return adapter;
+	public RedisConverter getConverter() {
+		return adapter.getConverter();
 	}
 
 	/*
@@ -64,7 +67,6 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	public RedisMappingContext getMappingContext() {
 		return (RedisMappingContext) super.getMappingContext();
 	}
-
 
 	/**
 	 * Retrieve entities by resolving their {@literal id}s and converting them into required type. <br />
@@ -104,15 +106,13 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 				}
 
 				Iterable<?> ids = ClassUtils.isAssignable(Iterable.class, callbackResult.getClass())
-						? (Iterable<?>) callbackResult
-						: Collections.singleton(callbackResult);
+						? (Iterable<?>) callbackResult : Collections.singleton(callbackResult);
 
 				List<T> result = new ArrayList<>();
 				for (Object id : ids) {
 
 					String idToUse = adapter.getConverter().getConversionService().canConvert(id.getClass(), String.class)
-							? adapter.getConverter().getConversionService().convert(id, String.class)
-							: id.toString();
+							? adapter.getConverter().getConversionService().convert(id, String.class) : id.toString();
 
 					findById(idToUse, type).ifPresent(result::add);
 				}

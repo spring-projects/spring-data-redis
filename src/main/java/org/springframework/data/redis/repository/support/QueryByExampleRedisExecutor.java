@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -29,7 +30,6 @@ import org.springframework.data.keyvalue.core.query.KeyValueQuery;
 import org.springframework.data.redis.core.RedisKeyValueTemplate;
 import org.springframework.data.redis.core.convert.IndexResolver;
 import org.springframework.data.redis.core.convert.PathIndexResolver;
-import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.repository.query.ExampleQueryMapper;
 import org.springframework.data.redis.repository.query.RedisOperationChain;
 import org.springframework.data.repository.core.EntityInformation;
@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * methods.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.1
  */
 @SuppressWarnings("unchecked")
@@ -62,17 +63,9 @@ public class QueryByExampleRedisExecutor<T> implements QueryByExampleExecutor<T>
 	public QueryByExampleRedisExecutor(EntityInformation<T, ?> entityInformation,
 			RedisKeyValueTemplate keyValueTemplate) {
 
-		Assert.notNull(entityInformation, "EntityInformation must not be null!");
-		Assert.notNull(keyValueTemplate, "RedisKeyValueTemplate must not be null!");
-
-		this.entityInformation = entityInformation;
-		this.keyValueTemplate = keyValueTemplate;
-
-		RedisConverter converter = keyValueTemplate.getAdapter().getConverter();
-		IndexResolver indexResolver = converter.getIndexResolver();
-
-		this.mapper = new ExampleQueryMapper(keyValueTemplate.getMappingContext(),
-				indexResolver != null ? indexResolver : new PathIndexResolver(converter.getMappingContext()));
+		this(entityInformation, keyValueTemplate,
+				keyValueTemplate.getConverter().getIndexResolver() != null ? keyValueTemplate.getConverter().getIndexResolver()
+						: new PathIndexResolver(keyValueTemplate.getMappingContext()));
 	}
 
 	/**
@@ -91,8 +84,7 @@ public class QueryByExampleRedisExecutor<T> implements QueryByExampleExecutor<T>
 		this.entityInformation = entityInformation;
 		this.keyValueTemplate = keyValueTemplate;
 
-		this.mapper = new ExampleQueryMapper(keyValueTemplate.getMappingContext(),
-				new PathIndexResolver(keyValueTemplate.getMappingContext()));
+		this.mapper = new ExampleQueryMapper(keyValueTemplate.getMappingContext(), indexResolver);
 	}
 
 	/*
@@ -102,13 +94,21 @@ public class QueryByExampleRedisExecutor<T> implements QueryByExampleExecutor<T>
 	@Override
 	public <S extends T> Optional<S> findOne(Example<S> example) {
 
-		RedisOperationChain operationChain = getQuery(example);
+		RedisOperationChain operationChain = createQuery(example);
 
 		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<>(operationChain);
-		Iterable<T> result = keyValueTemplate.find(query.limit(1), entityInformation.getJavaType());
-		Iterator<T> iterator = result.iterator();
+		Iterator<T> iterator = keyValueTemplate.find(query.limit(2), entityInformation.getJavaType()).iterator();
 
-		return iterator.hasNext() ? Optional.of((S) iterator.next()) : Optional.empty();
+		Optional result = Optional.empty();
+
+		if (iterator.hasNext()) {
+			result = Optional.of((S) iterator.next());
+			if (iterator.hasNext()) {
+				throw new IncorrectResultSizeDataAccessException(1);
+			}
+		}
+
+		return result;
 	}
 
 	/*
@@ -118,7 +118,7 @@ public class QueryByExampleRedisExecutor<T> implements QueryByExampleExecutor<T>
 	@Override
 	public <S extends T> Iterable<S> findAll(Example<S> example) {
 
-		RedisOperationChain operationChain = getQuery(example);
+		RedisOperationChain operationChain = createQuery(example);
 
 		return (Iterable<S>) keyValueTemplate.find(new KeyValueQuery<>(operationChain), entityInformation.getJavaType());
 	}
@@ -141,7 +141,7 @@ public class QueryByExampleRedisExecutor<T> implements QueryByExampleExecutor<T>
 
 		Assert.notNull(pageable, "Pageable must not be null!");
 
-		RedisOperationChain operationChain = getQuery(example);
+		RedisOperationChain operationChain = createQuery(example);
 
 		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<>(operationChain);
 		Iterable<T> result = keyValueTemplate.find(
@@ -166,7 +166,7 @@ public class QueryByExampleRedisExecutor<T> implements QueryByExampleExecutor<T>
 	@Override
 	public <S extends T> long count(Example<S> example) {
 
-		RedisOperationChain operationChain = getQuery(example);
+		RedisOperationChain operationChain = createQuery(example);
 
 		return keyValueTemplate.count(new KeyValueQuery<>(operationChain), entityInformation.getJavaType());
 	}
@@ -180,7 +180,7 @@ public class QueryByExampleRedisExecutor<T> implements QueryByExampleExecutor<T>
 		return count(example) > 0;
 	}
 
-	private <S extends T> RedisOperationChain getQuery(Example<S> example) {
+	private <S extends T> RedisOperationChain createQuery(Example<S> example) {
 
 		Assert.notNull(example, "Example must not be null!");
 
