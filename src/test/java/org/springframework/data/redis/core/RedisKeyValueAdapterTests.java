@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -215,8 +215,22 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:address.country:Andor"), hasItems("1"));
 	}
 
-	@Test // DATAREDIS-425, DATAREDIS-744
+	@Test // DATAREDIS-425
 	public void getShouldReadSimpleObjectCorrectly() {
+
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		map.put("_class", Person.class.getName());
+		map.put("age", "24");
+		template.opsForHash().putAll("persons:load-1", map);
+
+		Object loaded = adapter.get("load-1", "persons");
+
+		assertThat(loaded, instanceOf(Person.class));
+		assertThat(((Person) loaded).age, is(24));
+	}
+
+	@Test // DATAREDIS-744
+	public void getShouldReadSimpleObjectWithColonInIdCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("_class", Person.class.getName());
@@ -288,8 +302,36 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand"), not(hasItem("1")));
 	}
 
-	@Test // DATAREDIS-425, DATAREDIS-744
+	@Test // DATAREDIS-425
 	public void keyExpiredEventShouldRemoveHelperStructures() throws Exception {
+
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		map.put("_class", Person.class.getName());
+		map.put("firstname", "rand");
+		map.put("address.country", "Andor");
+
+		template.opsForHash().putAll("persons:1", map);
+
+		template.opsForSet().add("persons", "1");
+		template.opsForSet().add("persons:firstname:rand", "1");
+		template.opsForSet().add("persons:1:idx", "persons:firstname:rand");
+
+		template.expire("persons:1", 100, TimeUnit.MILLISECONDS);
+
+		waitUntilKeyIsGone(template, "persons:1");
+		waitUntilKeyIsGone(template, "persons:1:phantom");
+		waitUntilKeyIsGone(template, "persons:firstname:rand");
+
+		assertThat(template.hasKey("persons:1"), is(false));
+		assertThat(template.hasKey("persons:firstname:rand"), is(false));
+		assertThat(template.hasKey("persons:1:idx"), is(false));
+		assertThat(template.opsForSet().members("persons"), not(hasItem("1")));
+	}
+
+	@Test // DATAREDIS-744
+	public void keyExpiredEventShouldRemoveHelperStructuresForObjectsWithColonInId() throws Exception {
 
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 
@@ -379,8 +421,27 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().isMember("persons:mat:idx", "persons:firstname:mat"), is(true));
 	}
 
-	@Test // DATAREDIS-471, DATAREDIS-744
+	@Test // DATAREDIS-471
 	public void updateShouldAlterIndexDataCorrectly() {
+
+		Person rand = new Person();
+		rand.firstname = "rand";
+
+		adapter.put("1", rand, "persons");
+
+		assertThat(template.hasKey("persons:firstname:rand"), is(true));
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class) //
+				.set("firstname", "mat");
+
+		adapter.update(update);
+
+		assertThat(template.hasKey("persons:firstname:rand"), is(false));
+		assertThat(template.hasKey("persons:firstname:mat"), is(true));
+	}
+
+	@Test // DATAREDIS-744
+	public void updateShouldAlterIndexDataForObjectsWithColonInIdCorrectly() {
 
 		Person rand = new Person();
 		rand.firstname = "rand";

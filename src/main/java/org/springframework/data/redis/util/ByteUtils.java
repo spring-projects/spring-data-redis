@@ -98,4 +98,65 @@ public final class ByteUtils {
 
 		return result;
 	}
+
+	/**
+	 * Tests if the {@code haystack} starts with the given {@code prefix}.
+	 *
+	 * @param haystack the source to scan.
+	 * @param prefix the prefix to find.
+	 * @return {@literal true} if {@code haystack} at position {@code offset} starts with {@code prefix}.
+	 * @since 1.8.10
+	 * @see #startsWith(byte[], byte[], int)
+	 */
+	public static boolean startsWith(byte[] haystack, byte[] prefix) {
+		return startsWith(haystack, prefix, 0);
+	}
+
+	/**
+	 * Tests if the {@code haystack} beginning at the specified {@code offset} starts with the given {@code prefix}.
+	 *
+	 * @param haystack the source to scan.
+	 * @param prefix the prefix to find.
+	 * @param offset the offset to start at.
+	 * @return {@literal true} if {@code haystack} at position {@code offset} starts with {@code prefix}.
+	 * @since 1.8.10
+	 */
+	public static boolean startsWith(byte[] haystack, byte[] prefix, int offset) {
+
+		int to = offset;
+		int prefixOffset = 0;
+		int prefixLength = prefix.length;
+
+		if ((offset < 0) || (offset > haystack.length - prefixLength)) {
+			return false;
+		}
+
+		while (--prefixLength >= 0) {
+			if (haystack[to++] != prefix[prefixOffset++]) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Searches the specified array of bytes for the specified value. Returns the index of the first matching value in the
+	 * {@code haystack}s natural order or {@code -1} of {@code needle} could not be found.
+	 *
+	 * @param haystack the source to scan.
+	 * @param needle the value to scan for.
+	 * @return index of first appearance, or -1 if not found.
+	 * @since 1.8.10
+	 */
+	public static int indexOf(byte[] haystack, byte needle) {
+
+		for (int i = 0; i < haystack.length; i++) {
+			if (haystack[i] == needle) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
 }
