@@ -35,7 +35,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	/**
 	 * Use {@literal UTF-8} as default charset.
 	 */
-	public static final Charset CHARSET = StandardCharsets.UTF_8;
+	static final Charset CHARSET = StandardCharsets.UTF_8;
 
 	private final BinaryKeyspaceIdentifier objectId;
 	private final @Nullable Object value;
