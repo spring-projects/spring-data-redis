@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1263,11 +1263,11 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			Assert.isTrue(isValid(key), String.format("Invalid key %s", new String(key)));
 
-			boolean phantomKey = startsWith(key, PHANTOM_SUFFIX, key.length - PHANTOM_SUFFIX.length);
+			boolean phantomKey = ByteUtils.startsWith(key, PHANTOM_SUFFIX, key.length - PHANTOM_SUFFIX.length);
 
-			int keyspaceEndIndex = find(key, DELIMITTER);
-			byte[] keyspace = getKeyspace(key, keyspaceEndIndex);
-			byte[] id = getId(key, phantomKey, keyspaceEndIndex);
+			int keyspaceEndIndex = ByteUtils.indexOf(key, DELIMITTER);
+			byte[] keyspace = extractKeyspace(key, keyspaceEndIndex);
+			byte[] id = extractId(key, phantomKey, keyspaceEndIndex);
 
 			return new BinaryKeyspaceIdentifier(keyspace, id, phantomKey);
 		}
@@ -1285,12 +1285,12 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				return false;
 			}
 
-			int keyspaceEndIndex = find(key, DELIMITTER);
+			int keyspaceEndIndex = ByteUtils.indexOf(key, DELIMITTER);
 
 			return keyspaceEndIndex > 0 && key.length > keyspaceEndIndex;
 		}
 
-		private static byte[] getId(byte[] key, boolean phantomKey, int keyspaceEndIndex) {
+		private static byte[] extractId(byte[] key, boolean phantomKey, int keyspaceEndIndex) {
 
 			int idSize;
 
@@ -1307,42 +1307,12 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			return id;
 		}
 
-		private static byte[] getKeyspace(byte[] key, int keyspaceEndIndex) {
+		private static byte[] extractKeyspace(byte[] key, int keyspaceEndIndex) {
 
 			byte[] keyspace = new byte[keyspaceEndIndex];
 			System.arraycopy(key, 0, keyspace, 0, keyspaceEndIndex);
 
 			return keyspace;
-		}
-
-		private static boolean startsWith(byte[] haystack, byte[] prefix, int offset) {
-
-			int to = offset;
-			int prefixOffset = 0;
-			int prefixLength = prefix.length;
-
-			if ((offset < 0) || (offset > haystack.length - prefixLength)) {
-				return false;
-			}
-
-			while (--prefixLength >= 0) {
-				if (haystack[to++] != prefix[prefixOffset++]) {
-					return false;
-				}
-			}
-
-			return true;
-		}
-
-		private static int find(byte[] haystack, byte needle) {
-
-			for (int i = 0; i < haystack.length; i++) {
-				if (haystack[i] == needle) {
-					return i;
-				}
-			}
-
-			return -1;
 		}
 	}
 }
