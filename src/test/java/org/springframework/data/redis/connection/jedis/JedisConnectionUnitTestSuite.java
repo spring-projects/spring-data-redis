@@ -258,6 +258,25 @@ public class JedisConnectionUnitTestSuite {
 			verify(jedisSpy, times(1)).quit();
 		}
 
+		@Test // DATAREDIS-714, DATAREDIS-790
+		public void doesNotSelectDbWhenCurrentDbMatchesDesiredOne() {
+
+			Jedis jedisSpy = spy(new MockedClientJedis("http://localhost:1234", getNativeRedisConnectionMock()));
+			new JedisConnection(jedisSpy);
+
+			verify(jedisSpy, never()).select(anyInt());
+		}
+
+		@Test // DATAREDIS-714, DATAREDIS-790
+		public void doesNotSelectDbWhenCurrentDbDoesNotMatchDesiredOne() {
+
+			Jedis jedisSpy = spy(new MockedClientJedis("http://localhost:1234", getNativeRedisConnectionMock()));
+			when(jedisSpy.getDB()).thenReturn(3L);
+
+			new JedisConnection(jedisSpy);
+
+			verify(jedisSpy).select(eq(0));
+		}
 	}
 
 	public static class JedisConnectionPipelineUnitTests extends JedisConnectionUnitTests {
