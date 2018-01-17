@@ -179,7 +179,7 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#and()
 		 */
 		@Override
-		LettucePoolingClientConfigurationBuilder and() {
+		public LettucePoolingClientConfigurationBuilder and() {
 			return (LettucePoolingClientConfigurationBuilder) super.and();
 		}
 
@@ -188,7 +188,7 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#disablePeerVerification()
 		 */
 		@Override
-		LettucePoolingSslClientConfigurationBuilder disablePeerVerification() {
+		public LettucePoolingSslClientConfigurationBuilder disablePeerVerification() {
 
 			super.disablePeerVerification();
 			return this;
@@ -199,7 +199,7 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#startTls()
 		 */
 		@Override
-		LettucePoolingSslClientConfigurationBuilder startTls() {
+		public LettucePoolingSslClientConfigurationBuilder startTls() {
 
 			super.startTls();
 			return this;
@@ -210,7 +210,7 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#build()
 		 */
 		@Override
-		LettucePoolingClientConfiguration build() {
+		public LettucePoolingClientConfiguration build() {
 			return (LettucePoolingClientConfiguration) super.build();
 		}
 	}
