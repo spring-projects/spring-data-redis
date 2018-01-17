@@ -291,7 +291,7 @@ public interface LettuceClientConfiguration {
 		 *
 		 * @return {@literal this} builder.
 		 */
-		LettuceSslClientConfigurationBuilder disablePeerVerification() {
+		public LettuceSslClientConfigurationBuilder disablePeerVerification() {
 
 			delegate.verifyPeer = false;
 			return this;
@@ -302,7 +302,7 @@ public interface LettuceClientConfiguration {
 		 *
 		 * @return {@literal this} builder.
 		 */
-		LettuceSslClientConfigurationBuilder startTls() {
+		public LettuceSslClientConfigurationBuilder startTls() {
 
 			delegate.startTls = true;
 			return this;
@@ -313,7 +313,7 @@ public interface LettuceClientConfiguration {
 		 *
 		 * @return {@link LettuceClientConfigurationBuilder}.
 		 */
-		LettuceClientConfigurationBuilder and() {
+		public LettuceClientConfigurationBuilder and() {
 			return delegate;
 		}
 
@@ -322,7 +322,7 @@ public interface LettuceClientConfiguration {
 		 *
 		 * @return a new {@link LettuceClientConfiguration} object.
 		 */
-		LettuceClientConfiguration build() {
+		public LettuceClientConfiguration build() {
 			return delegate.build();
 		}
 	}
