@@ -243,8 +243,14 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void lSetShouldSetElementAtPositionCorrectly();
 
+	// DATAREDIS-756
+	void mGetShouldReturnMultipleSameKeysWhenKeysDoNotMapToSameSlot();
+
 	// DATAREDIS-315
 	void lRemShouldRemoveElementAtPositionCorrectly();
+
+	// DATAREDIS-756
+	void mGetShouldReturnMultipleSameKeysWhenKeysMapToSameSlot();
 
 	// DATAREDIS-315
 	void lPopShouldReturnElementCorrectly();
