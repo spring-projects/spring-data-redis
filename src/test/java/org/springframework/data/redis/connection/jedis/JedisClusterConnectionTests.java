@@ -967,6 +967,17 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sIsMember(KEY_1_BYTES, JedisConverters.toBytes("foo")), is(false));
 	}
 
+	@Test // DATAREDIS-756
+	public void mGetShouldReturnMultipleSameKeysWhenKeysDoNotMapToSameSlot() {
+
+		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
+		nativeConnection.set(KEY_2_BYTES, VALUE_2_BYTES);
+		nativeConnection.set(KEY_3_BYTES, VALUE_3_BYTES);
+
+		List<byte[]> result = clusterConnection.mGet(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES, KEY_1_BYTES);
+		assertThat(result, contains(VALUE_1_BYTES, VALUE_2_BYTES, VALUE_3_BYTES, VALUE_1_BYTES));
+	}
+
 	@Test // DATAREDIS-315
 	public void sInterShouldWorkForKeysMappingToSameSlot() {
 
@@ -974,6 +985,16 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.sadd(SAME_SLOT_KEY_2_BYTES, VALUE_2_BYTES, VALUE_3_BYTES);
 
 		assertThat(clusterConnection.sInter(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES), hasItem(VALUE_2_BYTES));
+	}
+
+	@Test // DATAREDIS-756
+	public void mGetShouldReturnMultipleSameKeysWhenKeysMapToSameSlot() {
+
+		nativeConnection.set(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES);
+		nativeConnection.set(SAME_SLOT_KEY_2_BYTES, VALUE_2_BYTES);
+
+		List<byte[]> result = clusterConnection.mGet(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, SAME_SLOT_KEY_1_BYTES);
+		assertThat(result, contains(VALUE_1_BYTES, VALUE_2_BYTES, VALUE_1_BYTES));
 	}
 
 	@Test // DATAREDIS-315

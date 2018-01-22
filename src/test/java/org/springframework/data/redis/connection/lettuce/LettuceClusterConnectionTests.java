@@ -892,6 +892,16 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(KEY_2), is(true));
 	}
 
+	@Test // DATAREDIS-756
+	public void mGetShouldReturnMultipleSameKeysWhenKeysDoNotMapToSameSlot() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		assertThat(clusterConnection.mGet(KEY_1_BYTES, KEY_2_BYTES, KEY_1_BYTES),
+				contains(VALUE_1_BYTES, VALUE_2_BYTES, VALUE_1_BYTES));
+	}
+
 	@Test // DATAREDIS-315
 	public void bRPopLPushShouldWorkOnSameSlotKeys() {
 
@@ -899,6 +909,16 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.bRPopLPush(0, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES), is(VALUE_1_BYTES));
 		assertThat(nativeConnection.exists(SAME_SLOT_KEY_2), is(true));
+	}
+
+	@Test // DATAREDIS-756
+	public void mGetShouldReturnMultipleSameKeysWhenKeysMapToSameSlot() {
+
+		nativeConnection.set(SAME_SLOT_KEY_1, VALUE_1);
+		nativeConnection.set(SAME_SLOT_KEY_2, VALUE_2);
+
+		assertThat(clusterConnection.mGet(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, SAME_SLOT_KEY_1_BYTES),
+				contains(VALUE_1_BYTES, VALUE_2_BYTES, VALUE_1_BYTES));
 	}
 
 	@Test // DATAREDIS-315
