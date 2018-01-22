@@ -300,8 +300,14 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void mGetShouldReturnCorrectlyWhenKeysDoNotMapToSameSlot();
 
+	// DATAREDIS-756
+	void mGetShouldReturnMultipleSameKeysWhenKeysDoNotMapToSameSlot();
+
 	// DATAREDIS-315
 	void mGetShouldReturnCorrectlyWhenKeysMapToSameSlot();
+
+	// DATAREDIS-756
+	void mGetShouldReturnMultipleSameKeysWhenKeysMapToSameSlot();
 
 	// DATAREDIS-315
 	void mSetNXShouldReturnFalseIfNotAllKeysSet();

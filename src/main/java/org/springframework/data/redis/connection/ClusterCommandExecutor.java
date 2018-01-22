@@ -15,10 +15,16 @@
  */
 package org.springframework.data.redis.connection;
 
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -202,7 +208,6 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		Map<NodeExecution, Future<NodeResult<T>>> futures = new LinkedHashMap<>();
 		for (RedisClusterNode node : resolvedRedisClusterNodes) {
-
 			futures.put(new NodeExecution(node), executor.submit(() -> executeCommandOnSingleNode(callback, node)));
 		}
 
@@ -225,23 +230,30 @@ public class ClusterCommandExecutor implements DisposableBean {
 				if (!entry.getValue().isDone() && !entry.getValue().isCancelled()) {
 					done = false;
 				} else {
+
+					NodeExecution execution = entry.getKey();
 					try {
 
 						String futureId = ObjectUtils.getIdentityHexString(entry.getValue());
 						if (!saveGuard.contains(futureId)) {
-							result.add(entry.getValue().get());
+
+							if (execution.isPositional()) {
+								result.add(execution.getPositionalKey(), entry.getValue().get());
+							} else {
+								result.add(entry.getValue().get());
+							}
 							saveGuard.add(futureId);
 						}
 					} catch (ExecutionException e) {
 
 						RuntimeException ex = convertToDataAccessException((Exception) e.getCause());
-						exceptions.put(entry.getKey().getNode(), ex != null ? ex : e.getCause());
+						exceptions.put(execution.getNode(), ex != null ? ex : e.getCause());
 					} catch (InterruptedException e) {
 
 						Thread.currentThread().interrupt();
 
 						RuntimeException ex = convertToDataAccessException((Exception) e.getCause());
-						exceptions.put(entry.getKey().getNode(), ex != null ? ex : e.getCause());
+						exceptions.put(execution.getNode(), ex != null ? ex : e.getCause());
 						break;
 					}
 				}
@@ -271,29 +283,28 @@ public class ClusterCommandExecutor implements DisposableBean {
 	public <S, T> MultiNodeResult<T> executeMultiKeyCommand(MultiKeyClusterCommandCallback<S, T> cmd,
 			Iterable<byte[]> keys) {
 
-		Map<RedisClusterNode, Set<byte[]>> nodeKeyMap = new HashMap<>();
+		Map<RedisClusterNode, PositionalKeys> nodeKeyMap = new HashMap<>();
 
+		int index = 0;
 		for (byte[] key : keys) {
 			for (RedisClusterNode node : getClusterTopology().getKeyServingNodes(key)) {
 
 				if (nodeKeyMap.containsKey(node)) {
-					nodeKeyMap.get(node).add(key);
+					nodeKeyMap.get(node).append(PositionalKey.of(key, index++));
 				} else {
-					Set<byte[]> keySet = new LinkedHashSet<>();
-					keySet.add(key);
-					nodeKeyMap.put(node, keySet);
+					nodeKeyMap.put(node, PositionalKeys.of(PositionalKey.of(key, index++)));
 				}
 			}
 		}
 
 		Map<NodeExecution, Future<NodeResult<T>>> futures = new LinkedHashMap<>();
 
-		for (Entry<RedisClusterNode, Set<byte[]>> entry : nodeKeyMap.entrySet()) {
+		for (Entry<RedisClusterNode, PositionalKeys> entry : nodeKeyMap.entrySet()) {
 
 			if (entry.getKey().isMaster()) {
-				for (byte[] key : entry.getValue()) {
+				for (PositionalKey key : entry.getValue()) {
 					futures.put(new NodeExecution(entry.getKey(), key),
-							executor.submit(() -> executeMultiKeyCommandOnSingleNode(cmd, entry.getKey(), key)));
+							executor.submit(() -> executeMultiKeyCommandOnSingleNode(cmd, entry.getKey(), key.getBytes())));
 				}
 			}
 		}
@@ -326,6 +337,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		return this.topologyProvider.getTopology();
 	}
 
+	@Nullable
 	private DataAccessException convertToDataAccessException(Exception e) {
 		return exceptionTranslationStrategy.translate(e);
 	}
@@ -384,17 +396,22 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * keys, involved.
 	 *
 	 * @author Christoph Strobl
+	 * @author Mark Paluch
 	 * @since 1.7
 	 */
 	private static class NodeExecution {
 
-		private RedisClusterNode node;
-		private Object[] args;
+		private final RedisClusterNode node;
+		private final @Nullable PositionalKey positionalKey;
 
-		NodeExecution(RedisClusterNode node, Object... args) {
+		NodeExecution(RedisClusterNode node) {
+			this(node, null);
+		}
+
+		NodeExecution(RedisClusterNode node, @Nullable PositionalKey positionalKey) {
 
 			this.node = node;
-			this.args = args;
+			this.positionalKey = positionalKey;
 		}
 
 		/**
@@ -404,45 +421,18 @@ public class ClusterCommandExecutor implements DisposableBean {
 			return node;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
+		/**
+		 * Get the {@link PositionalKey} of this execution.
+		 *
+		 * @since 2.0.3
 		 */
-		@Override
-		public int hashCode() {
-
-			int result = ObjectUtils.nullSafeHashCode(node);
-			return result + ObjectUtils.nullSafeHashCode(args);
+		PositionalKey getPositionalKey() {
+			return positionalKey;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
-		@Override
-		public boolean equals(Object obj) {
-
-			if (this == obj) {
-				return true;
-			}
-
-			if (obj == null) {
-				return false;
-			}
-
-			if (!(obj instanceof NodeExecution)) {
-				return false;
-			}
-
-			NodeExecution that = (NodeExecution) obj;
-
-			if (!ObjectUtils.nullSafeEquals(this.node, that.node)) {
-				return false;
-			}
-
-			return ObjectUtils.nullSafeEquals(this.args, that.args);
+		boolean isPositional() {
+			return positionalKey != null;
 		}
-
 	}
 
 	/**
@@ -515,15 +505,23 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * {@link MultiNodeResult} holds all {@link NodeResult} of a command executed on multiple {@link RedisClusterNode}.
 	 *
 	 * @author Christoph Strobl
+	 * @author Mark Paluch
 	 * @param <T>
 	 * @since 1.7
 	 */
 	public static class MultiNodeResult<T> {
 
 		List<NodeResult<T>> nodeResults = new ArrayList<>();
+		Map<PositionalKey, NodeResult<T>> positionalResults = new LinkedHashMap<>();
 
 		private void add(NodeResult<T> result) {
 			nodeResults.add(result);
+		}
+
+		private void add(PositionalKey key, NodeResult<T> result) {
+
+			positionalResults.put(key, result);
+			add(result);
 		}
 
 		/**
@@ -551,15 +549,23 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 */
 		public List<T> resultsAsListSortBy(byte[]... keys) {
 
-			ArrayList<NodeResult<T>> clone = new ArrayList<>(nodeResults);
-			clone.sort(new ResultByReferenceKeyPositionComparator(keys));
+			if (positionalResults.isEmpty()) {
 
-			return toList(clone);
+				List<NodeResult<T>> clone = new ArrayList<>(nodeResults);
+				clone.sort(new ResultByReferenceKeyPositionComparator(keys));
+
+				return toList(clone);
+			}
+
+			Map<PositionalKey, NodeResult<T>> result = new TreeMap<>(new ResultByKeyPositionComparator(keys));
+			result.putAll(positionalResults);
+
+			return result.values().stream().map(tNodeResult -> tNodeResult.value).collect(Collectors.toList());
 		}
 
 		/**
 		 * @param returnValue can be {@literal null}.
-		 * @return can be {@litearl null}.
+		 * @return can be {@literal null}.
 		 */
 		@Nullable
 		public T getFirstNonNullNotEmptyOrDefault(@Nullable T returnValue) {
@@ -608,6 +614,115 @@ public class ClusterCommandExecutor implements DisposableBean {
 			public int compare(NodeResult<?> o1, NodeResult<?> o2) {
 				return Integer.compare(reference.indexOf(o1.key), reference.indexOf(o2.key));
 			}
+		}
+
+		/**
+		 * {@link Comparator} for sorting {@link PositionalKey} by external {@link PositionalKeys}.
+		 *
+		 * @author Mark Paluch
+		 * @since 2.0.3
+		 */
+		private static class ResultByKeyPositionComparator implements Comparator<PositionalKey> {
+
+			PositionalKeys reference;
+
+			ResultByKeyPositionComparator(byte[]... keys) {
+				reference = PositionalKeys.of(keys);
+			}
+
+			@Override
+			public int compare(PositionalKey o1, PositionalKey o2) {
+				return Integer.compare(reference.indexOf(o1), reference.indexOf(o2));
+			}
+		}
+	}
+
+	/**
+	 * Value object representing a Redis key at a particular command position.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.0.3
+	 */
+	@Getter
+	@EqualsAndHashCode
+	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+	static class PositionalKey {
+
+		private final ByteArrayWrapper key;
+		private final int position;
+
+		public static PositionalKey of(byte[] key, int index) {
+			return new PositionalKey(new ByteArrayWrapper(key), index);
+		}
+
+		/**
+		 * @return binary key.
+		 */
+		public byte[] getBytes() {
+			return key.getArray();
+		}
+	}
+
+	/**
+	 * Mutable data structure to represent multiple {@link PositionalKey}s.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.0.3
+	 */
+	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+	static class PositionalKeys implements Iterable<PositionalKey> {
+
+		private final List<PositionalKey> keys;
+
+		/**
+		 * Create an empty {@link PositionalKeys}.
+		 */
+		public static PositionalKeys empty() {
+			return new PositionalKeys(new ArrayList<>());
+		}
+
+		/**
+		 * Create an {@link PositionalKeys} from {@code keys}.
+		 */
+		public static PositionalKeys of(byte[]... keys) {
+
+			List<PositionalKey> result = new ArrayList<>(keys.length);
+
+			for (int i = 0; i < keys.length; i++) {
+				result.add(PositionalKey.of(keys[i], i));
+			}
+
+			return new PositionalKeys(result);
+		}
+
+		/**
+		 * Create an {@link PositionalKeys} from {@link PositionalKey}s.
+		 */
+		public static PositionalKeys of(PositionalKey... keys) {
+
+			PositionalKeys result = PositionalKeys.empty();
+			result.append(keys);
+
+			return result;
+		}
+
+		/**
+		 * Append {@link PositionalKey}s to this object.
+		 */
+		public void append(PositionalKey... keys) {
+			this.keys.addAll(Arrays.asList(keys));
+		}
+
+		/**
+		 * @return index of the {@link PositionalKey}.
+		 */
+		public int indexOf(PositionalKey key) {
+			return keys.indexOf(key);
+		}
+
+		@Override
+		public Iterator<PositionalKey> iterator() {
+			return keys.iterator();
 		}
 	}
 }
