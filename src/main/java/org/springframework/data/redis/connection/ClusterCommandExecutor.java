@@ -288,17 +288,11 @@ public class ClusterCommandExecutor implements DisposableBean {
 		int index = 0;
 		for (byte[] key : keys) {
 			for (RedisClusterNode node : getClusterTopology().getKeyServingNodes(key)) {
-
-				if (nodeKeyMap.containsKey(node)) {
-					nodeKeyMap.get(node).append(PositionalKey.of(key, index++));
-				} else {
-					nodeKeyMap.put(node, PositionalKeys.of(PositionalKey.of(key, index++)));
-				}
+				nodeKeyMap.computeIfAbsent(node, val -> PositionalKeys.empty()).append(PositionalKey.of(key, index++));
 			}
 		}
 
 		Map<NodeExecution, Future<NodeResult<T>>> futures = new LinkedHashMap<>();
-
 		for (Entry<RedisClusterNode, PositionalKeys> entry : nodeKeyMap.entrySet()) {
 
 			if (entry.getKey().isMaster()) {
@@ -604,7 +598,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 */
 		private static class ResultByReferenceKeyPositionComparator implements Comparator<NodeResult<?>> {
 
-			List<ByteArrayWrapper> reference;
+			private final List<ByteArrayWrapper> reference;
 
 			ResultByReferenceKeyPositionComparator(byte[]... keys) {
 				reference = new ArrayList<>(new ByteArraySet(Arrays.asList(keys)));
@@ -620,11 +614,12 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 * {@link Comparator} for sorting {@link PositionalKey} by external {@link PositionalKeys}.
 		 *
 		 * @author Mark Paluch
+		 * @author Christoph Strobl
 		 * @since 2.0.3
 		 */
 		private static class ResultByKeyPositionComparator implements Comparator<PositionalKey> {
 
-			PositionalKeys reference;
+			private final PositionalKeys reference;
 
 			ResultByKeyPositionComparator(byte[]... keys) {
 				reference = PositionalKeys.of(keys);
@@ -641,24 +636,25 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * Value object representing a Redis key at a particular command position.
 	 *
 	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 * @since 2.0.3
 	 */
 	@Getter
 	@EqualsAndHashCode
 	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-	static class PositionalKey {
+	private static class PositionalKey {
 
 		private final ByteArrayWrapper key;
 		private final int position;
 
-		public static PositionalKey of(byte[] key, int index) {
+		static PositionalKey of(byte[] key, int index) {
 			return new PositionalKey(new ByteArrayWrapper(key), index);
 		}
 
 		/**
 		 * @return binary key.
 		 */
-		public byte[] getBytes() {
+		byte[] getBytes() {
 			return key.getArray();
 		}
 	}
@@ -667,24 +663,25 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * Mutable data structure to represent multiple {@link PositionalKey}s.
 	 *
 	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 * @since 2.0.3
 	 */
 	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-	static class PositionalKeys implements Iterable<PositionalKey> {
+	private static class PositionalKeys implements Iterable<PositionalKey> {
 
 		private final List<PositionalKey> keys;
 
 		/**
 		 * Create an empty {@link PositionalKeys}.
 		 */
-		public static PositionalKeys empty() {
+		static PositionalKeys empty() {
 			return new PositionalKeys(new ArrayList<>());
 		}
 
 		/**
 		 * Create an {@link PositionalKeys} from {@code keys}.
 		 */
-		public static PositionalKeys of(byte[]... keys) {
+		static PositionalKeys of(byte[]... keys) {
 
 			List<PositionalKey> result = new ArrayList<>(keys.length);
 
@@ -698,7 +695,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		/**
 		 * Create an {@link PositionalKeys} from {@link PositionalKey}s.
 		 */
-		public static PositionalKeys of(PositionalKey... keys) {
+		static PositionalKeys of(PositionalKey... keys) {
 
 			PositionalKeys result = PositionalKeys.empty();
 			result.append(keys);
@@ -709,14 +706,14 @@ public class ClusterCommandExecutor implements DisposableBean {
 		/**
 		 * Append {@link PositionalKey}s to this object.
 		 */
-		public void append(PositionalKey... keys) {
+		void append(PositionalKey... keys) {
 			this.keys.addAll(Arrays.asList(keys));
 		}
 
 		/**
 		 * @return index of the {@link PositionalKey}.
 		 */
-		public int indexOf(PositionalKey key) {
+		int indexOf(PositionalKey key) {
 			return keys.indexOf(key);
 		}
 
