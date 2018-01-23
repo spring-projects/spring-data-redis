@@ -612,7 +612,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 */
 		private static class ResultByReferenceKeyPositionComparator implements Comparator<NodeResult<?>> {
 
-			List<ByteArrayWrapper> reference;
+			private final List<ByteArrayWrapper> reference;
 
 			ResultByReferenceKeyPositionComparator(byte[]... keys) {
 				reference = new ArrayList<ByteArrayWrapper>(new ByteArraySet(Arrays.asList(keys)));
@@ -632,7 +632,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 */
 		private static class ResultByKeyPositionComparator implements Comparator<PositionalKey> {
 
-			PositionalKeys reference;
+			private final PositionalKeys reference;
 
 			ResultByKeyPositionComparator(byte[]... keys) {
 				reference = PositionalKeys.of(keys);
@@ -649,6 +649,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * Value object representing a Redis key at a particular command position.
 	 *
 	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 * @since 2.0.3
 	 */
 
@@ -657,40 +658,43 @@ public class ClusterCommandExecutor implements DisposableBean {
 		private final ByteArrayWrapper key;
 		private final int position;
 
-		public PositionalKey(ByteArrayWrapper key, int position) {
+		PositionalKey(ByteArrayWrapper key, int position) {
 			this.key = key;
 			this.position = position;
 		}
 
-		public static PositionalKey of(byte[] key, int index) {
+		static PositionalKey of(byte[] key, int index) {
 			return new PositionalKey(new ByteArrayWrapper(key), index);
 		}
 
 		/**
 		 * @return binary key.
 		 */
-		public byte[] getBytes() {
+		byte[] getBytes() {
 			return key.getArray();
 		}
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o)
+			if (this == o) {
 				return true;
-			if (o == null || getClass() != o.getClass())
+			}
+			if (o == null || getClass() != o.getClass()) {
 				return false;
+			}
 
 			PositionalKey that = (PositionalKey) o;
 
-			if (position != that.position)
+			if (!ObjectUtils.nullSafeEquals(this.position, that.position)) {
 				return false;
-			return key.equals(that.key);
+			}
+			return ObjectUtils.nullSafeEquals(this.key, that.key);
 		}
 
 		@Override
 		public int hashCode() {
-			int result = key.hashCode();
-			result = 31 * result + position;
+			int result = ObjectUtils.nullSafeHashCode(key);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(position);
 			return result;
 		}
 	}
@@ -705,21 +709,21 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		private final List<PositionalKey> keys;
 
-		public PositionalKeys(List<PositionalKey> keys) {
+		PositionalKeys(List<PositionalKey> keys) {
 			this.keys = keys;
 		}
 
 		/**
 		 * Create an empty {@link PositionalKeys}.
 		 */
-		public static PositionalKeys empty() {
+		static PositionalKeys empty() {
 			return new PositionalKeys(new ArrayList<PositionalKey>());
 		}
 
 		/**
 		 * Create an {@link PositionalKeys} from {@code keys}.
 		 */
-		public static PositionalKeys of(byte[]... keys) {
+		static PositionalKeys of(byte[]... keys) {
 
 			List<PositionalKey> result = new ArrayList<PositionalKey>(keys.length);
 
@@ -733,7 +737,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		/**
 		 * Create an {@link PositionalKeys} from {@link PositionalKey}s.
 		 */
-		public static PositionalKeys of(PositionalKey... keys) {
+		static PositionalKeys of(PositionalKey... keys) {
 
 			PositionalKeys result = PositionalKeys.empty();
 			result.append(keys);
@@ -744,14 +748,14 @@ public class ClusterCommandExecutor implements DisposableBean {
 		/**
 		 * Append {@link PositionalKey}s to this object.
 		 */
-		public void append(PositionalKey... keys) {
+		void append(PositionalKey... keys) {
 			this.keys.addAll(Arrays.asList(keys));
 		}
 
 		/**
 		 * @return index of the {@link PositionalKey}.
 		 */
-		public int indexOf(PositionalKey key) {
+		int indexOf(PositionalKey key) {
 			return keys.indexOf(key);
 		}
 
