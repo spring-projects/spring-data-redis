@@ -1,6 +1,17 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.0.3.RELEASE (2018-01-24)
+---------------------------------------------
+* DATAREDIS-759 - Fix line endings.
+* DATAREDIS-756 - MGET with repeating cross-slot keys does not return all results.
+* DATAREDIS-755 - LettuceSslClientConfigurationBuilder methods are package-protected.
+* DATAREDIS-744 - Secondary indexes not removed if id contains colon.
+* DATAREDIS-738 - Align changelog with other modules' format.
+* DATAREDIS-737 - Release 2.0.3 (Kay SR3).
+* DATAREDIS-714 - JedisConnection always executes SELECT via RedisTemplate.
+
+
 Changes in version 1.8.10.RELEASE (2018-01-24)
 ----------------------------------------------
 * DATAREDIS-756 - MGET with repeating cross-slot keys does not return all results.
