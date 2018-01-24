@@ -1,6 +1,14 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.10.RELEASE (2018-01-24)
+----------------------------------------------
+* DATAREDIS-756 - MGET with repeating cross-slot keys does not return all results.
+* DATAREDIS-744 - Secondary indexes not removed if id contains colon.
+* DATAREDIS-738 - Align changelog with other modules' format.
+* DATAREDIS-736 - Release 1.8.10 (Ingalls SR10).
+
+
 Changes in version 2.0.2.RELEASE (2017-11-27)
 ---------------------------------------------
 * DATAREDIS-735 - Upgrade to Lettuce 5.0.1.
