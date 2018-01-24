@@ -1,4 +1,4 @@
-Spring Data Redis 1.8.9
+Spring Data Redis 1.8.10
    Copyright (c) [$copyright] Pivotal Software, Inc.
 
    ========================================================================
