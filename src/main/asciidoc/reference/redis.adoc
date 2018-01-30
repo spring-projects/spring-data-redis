@@ -299,19 +299,21 @@ The conversion between the user (custom) types and raw data (and vice-versa) is 
 
 This package contains two types of serializers which as the name implies, takes care of the serialization process:
 
-* Two-way serializers based on`RedisSerializer`.
-* Element readers and writers using `RedisElementReader` and `RedisElementWriter`.
+* Two-way serializers based on ``RedisSerializer``.
+* Element readers and writers using `RedisElementReader` and ``RedisElementWriter``.
 
 The main difference between these variants is that `RedisSerializer` primarily serializes to `byte[]` while readers and writers use `ByteBuffer`.
 
 Multiple implementations are available out of the box, two of which have been already mentioned before in this documentation:
 
-* the `StringRedisSerializer`
-* `JdkSerializationRedisSerializer`
+* `JdkSerializationRedisSerializer` which is used by default for `RedisCache` and ``RedisTemplate``.
+* the ``StringRedisSerializer``.
 
 However one can use `OxmSerializer` for Object/XML mapping through Spring http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#oxm[OXM] support or either `Jackson2JsonRedisSerializer` or `GenericJackson2JsonRedisSerializer` for storing data in http://en.wikipedia.org/wiki/JSON[JSON] format.
 
 Do note that the storage format is not limited only to values - it can be used for keys, values or hashes without any restrictions.
+
+WARNING: `RedisCache` and `RedisTemplate` are configured by default to use Java native serialization. Java native serialization is known for allowing remote code execution caused by payloads that exploit vulnerable libraries and classes injecting unverified bytecode. You might want to consider other serialization mechanisms such as JSON or XML to prevent flaws. Alternatively, use a customized `ObjectInputStream` whitelisting classes you trust to be deserialized properly. See also https://www.owasp.org/index.php/Deserialization_of_untrusted_data[OWASP: Deserialization of untrusted data].
 
 [[redis.hashmappers.root]]
 == Hash mapping
