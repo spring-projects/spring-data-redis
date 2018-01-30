@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -68,6 +69,7 @@ import org.springframework.util.ClassUtils;
  * {@link LettuceConnectionFactory client configuration}. Lettuce supports the following environmental configurations:
  * <ul>
  * <li>{@link RedisStandaloneConfiguration}</li>
+ * <li>{@link RedisElastiCacheConfiguration}</li>
  * <li>{@link RedisSocketConfiguration}</li>
  * <li>{@link RedisSentinelConfiguration}</li>
  * <li>{@link RedisClusterConfiguration}</li>
@@ -101,6 +103,7 @@ public class LettuceConnectionFactory
 	private final Object connectionMonitor = new Object();
 	private boolean convertPipelineAndTxResults = true;
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost", 6379);
+	private @Nullable RedisElastiCacheConfiguration elastiCacheConfiguration;
 	private @Nullable RedisSocketConfiguration socketConfiguration;
 	private @Nullable RedisSentinelConfiguration sentinelConfiguration;
 	private @Nullable RedisClusterConfiguration clusterConfiguration;
@@ -197,6 +200,24 @@ public class LettuceConnectionFactory
 		Assert.notNull(standaloneConfig, "RedisStandaloneConfiguration must not be null!");
 
 		this.standaloneConfig = standaloneConfig;
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisElastiCacheConfiguration}
+	 * and {@link LettuceClientConfiguration}.
+	 *
+	 * @param elastiCacheConfiguration must not be {@literal null}.
+	 * @param clientConfig must not be {@literal null}.
+	 * @since 2.1
+	 */
+	public LettuceConnectionFactory(RedisElastiCacheConfiguration elastiCacheConfiguration,
+			LettuceClientConfiguration clientConfig) {
+
+		this(clientConfig);
+
+		Assert.notNull(elastiCacheConfiguration, "RedisElastiCacheConfiguration must not be null!");
+
+		this.elastiCacheConfiguration = elastiCacheConfiguration;
 	}
 
 	/**
@@ -625,6 +646,10 @@ public class LettuceConnectionFactory
 	 */
 	public int getDatabase() {
 
+		if (isElastiCacheAware()) {
+			return elastiCacheConfiguration.getDatabase();
+		}
+
 		if (isDomainSocketAware()) {
 			return socketConfiguration.getDatabase();
 		}
@@ -644,6 +669,11 @@ public class LettuceConnectionFactory
 	public void setDatabase(int index) {
 
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
+
+		if (isElastiCacheAware()) {
+			elastiCacheConfiguration.setDatabase(index);
+			return;
+		}
 
 		if (isDomainSocketAware()) {
 			socketConfiguration.setDatabase(index);
@@ -694,6 +724,10 @@ public class LettuceConnectionFactory
 
 	private RedisPassword getRedisPassword() {
 
+		if (isElastiCacheAware()) {
+			return elastiCacheConfiguration.getPassword();
+		}
+
 		if (isDomainSocketAware()) {
 			return socketConfiguration.getPassword();
 		}
@@ -721,6 +755,11 @@ public class LettuceConnectionFactory
 
 		if (isDomainSocketAware()) {
 			socketConfiguration.setPassword(RedisPassword.of(password));
+			return;
+		}
+
+		if (isElastiCacheAware()) {
+			elastiCacheConfiguration.setPassword(RedisPassword.of(password));
 			return;
 		}
 
@@ -850,6 +889,14 @@ public class LettuceConnectionFactory
 	}
 
 	/**
+	 * @return true when {@link RedisElastiCacheConfiguration} is present.
+	 * @since 2.1
+	 */
+	private boolean isElastiCacheAware() {
+		return elastiCacheConfiguration != null;
+	}
+
+	/**
 	 * @return true when {@link RedisSentinelConfiguration} is present.
 	 * @since 1.5
 	 */
@@ -920,6 +967,16 @@ public class LettuceConnectionFactory
 
 		ReadFrom readFrom = getClientConfiguration().getReadFrom().orElse(null);
 
+		if (isElastiCacheAware()) {
+
+			List<RedisURI> nodes = this.elastiCacheConfiguration.getNodes().stream() //
+					.map(it -> createRedisURIAndApplySettings(it.getHostName(), it.getPort())) //
+					.peek(it -> it.setDatabase(getDatabase())) //
+					.collect(Collectors.toList());
+
+			return new ElastiCacheConnectionProvider((RedisClient) client, codec, nodes, readFrom);
+		}
+
 		if (isClusterAware()) {
 			return new ClusterConnectionProvider((RedisClusterClient) client, codec, readFrom);
 		}
@@ -928,6 +985,17 @@ public class LettuceConnectionFactory
 	}
 
 	protected AbstractRedisClient createClient() {
+
+		if (isElastiCacheAware()) {
+
+			RedisClient redisClient = clientConfiguration.getClientResources() //
+					.map(RedisClient::create) //
+					.orElseGet(RedisClient::create);
+
+			clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
+
+			return redisClient;
+		}
 
 		if (isRedisSentinelAware()) {
 
