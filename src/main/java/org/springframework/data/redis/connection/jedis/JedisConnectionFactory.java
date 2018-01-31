@@ -122,7 +122,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @param shardInfo shard information
 	 */
 	public JedisConnectionFactory(JedisShardInfo shardInfo) {
-		this.shardInfo = shardInfo;
+		setShardInfo(shardInfo);
 	}
 
 	/**
@@ -457,12 +457,17 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	/**
-	 * Sets the shard info for this factory.
+	 * Sets the shard info for this factory and apply SSL settings.
 	 *
 	 * @param shardInfo the shardInfo to set.
 	 */
 	public void setShardInfo(JedisShardInfo shardInfo) {
+
 		this.shardInfo = shardInfo;
+
+		if(shardInfo != null) {
+			setUseSsl(shardInfo.getSsl());
+		}
 	}
 
 	/**
