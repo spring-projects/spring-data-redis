@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
@@ -28,9 +30,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.JedisShardInfo;
 
 /**
+ * Unit tests for {@link JedisConnectionFactory}.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class JedisConnectionFactoryUnitTests {
 
@@ -74,7 +80,7 @@ public class JedisConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldClostClusterCorrectlyOnFactoryDestruction() throws IOException {
+	public void shouldCloseClusterCorrectlyOnFactoryDestruction() throws IOException {
 
 		JedisCluster clusterMock = mock(JedisCluster.class);
 		JedisConnectionFactory factory = new JedisConnectionFactory();
@@ -83,6 +89,15 @@ public class JedisConnectionFactoryUnitTests {
 		factory.destroy();
 
 		verify(clusterMock, times(1)).close();
+	}
+
+	@Test // DATAREDIS-766
+	public void shardInfoShouldConfigureSslFlag() {
+
+		JedisShardInfo shardInfo = new JedisShardInfo("host", 6379, true);
+		JedisConnectionFactory factory = new JedisConnectionFactory(shardInfo);
+
+		assertThat(factory.isUseSsl(), is(true));
 	}
 
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfig,
