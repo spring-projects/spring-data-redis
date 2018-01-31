@@ -15,12 +15,13 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.core.IsEqual.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
 
@@ -47,8 +48,8 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 		}
 	}
 
-	@Test // DATAREDIS-574
-	public void shouldInitiaizeWithSentinelConfiguration() {
+	@Test // DATAREDIS-574, DATAREDIS-765
+	public void shouldInitializeWithSentinelConfiguration() {
 
 		JedisClientConfiguration clientConfiguration = JedisClientConfiguration.builder() //
 				.clientName("clientName") //
@@ -57,7 +58,10 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 		factory = new JedisConnectionFactory(SENTINEL_CONFIG, clientConfiguration);
 		factory.afterPropertiesSet();
 
-		assertThat(factory.getConnection().getClientName(), equalTo("clientName"));
+		RedisConnection connection = factory.getConnection();
+
+		assertThat(factory.getUsePool(), is(true));
+		assertThat(connection.getClientName(), equalTo("clientName"));
 	}
 
 	@Test // DATAREDIS-324
