@@ -75,6 +75,14 @@ public class JedisConnectionFactoryUnitTests {
 		verify(connectionFactory, never()).createRedisSentinelPool(any(RedisSentinelConfiguration.class));
 	}
 
+	@Test(expected = IllegalStateException.class) // DATAREDIS-765
+	public void shouldRejectPoolDisablingWhenSentinelConfigPresent() {
+
+		connectionFactory = new JedisConnectionFactory(new RedisSentinelConfiguration());
+
+		connectionFactory.setUsePool(false);
+	}
+
 	@Test // DATAREDIS-315
 	public void shouldInitConnectionCorrectlyWhenClusterConfigPresent() {
 

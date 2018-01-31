@@ -660,6 +660,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @return the use of connection pooling.
 	 */
 	public boolean getUsePool() {
+
+		// Jedis Sentinel cannot operate without a pool.
+		if (isRedisSentinelAware()) {
+			return true;
+		}
+
 		return clientConfiguration.isUsePooling();
 	}
 
@@ -669,9 +675,16 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @param usePool the usePool to set.
 	 * @deprecated since 2.0, configure pooling usage with {@link JedisClientConfiguration}.
 	 * @throws IllegalStateException if {@link JedisClientConfiguration} is immutable.
+	 * @throws IllegalStateException if configured to use sentinel and {@code usePool} is {@literal false} as Jedis
+	 *           requires pooling for Redis sentinel use.
 	 */
 	@Deprecated
 	public void setUsePool(boolean usePool) {
+
+		if (isRedisSentinelAware() && !usePool) {
+			throw new IllegalStateException("Jedis requires pooling for Redis Sentinel use!");
+		}
+
 		getMutableConfiguration().setUsePooling(usePool);
 	}
 
