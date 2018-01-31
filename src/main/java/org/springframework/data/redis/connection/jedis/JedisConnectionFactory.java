@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -489,15 +489,22 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @return the use of connection pooling.
 	 */
 	public boolean getUsePool() {
-		return usePool;
+		return isRedisSentinelAware() ? true : usePool;
 	}
 
 	/**
 	 * Turns on or off the use of connection pooling.
 	 *
 	 * @param usePool the usePool to set.
+	 * @throws IllegalStateException if configured to use sentinel and {@code usePool} is {@literal false} as Jedis
+	 *           requires pooling for Redis sentinel use.
 	 */
 	public void setUsePool(boolean usePool) {
+
+		if (isRedisSentinelAware() && !usePool) {
+			throw new IllegalStateException("Jedis requires pooling for Redis Sentinel use!");
+		}
+
 		this.usePool = usePool;
 	}
 

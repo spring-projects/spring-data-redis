@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.core.IsEqual.*;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.*;
 
 import org.junit.After;
@@ -26,8 +27,11 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
 
 /**
+ * Sentinel integration tests for {@link JedisConnectionFactory}.
+ *
  * @author Christoph Strobl
  * @author Fu Jian
+ * @author Mark Paluch
  */
 public class JedisConnectionFactoryTests {
 
@@ -47,6 +51,11 @@ public class JedisConnectionFactoryTests {
 	@After
 	public void tearDown() {
 		factory.destroy();
+	}
+
+	@Test // DATAREDIS-765
+	public void shouldInitializeWithSentinelConfiguration() {
+		assertThat(factory.getUsePool(), is(true));
 	}
 
 	@Test // DATAREDIS-324
