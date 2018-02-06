@@ -1,6 +1,39 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.0.M1 (2018-02-06)
+----------------------------------------
+* DATAREDIS-765 - Sentinel with JedisConnectionFactory without pooling connects to localhost:6379.
+* DATAREDIS-759 - Fix line endings.
+* DATAREDIS-756 - MGET with repeating cross-slot keys does not return all results.
+* DATAREDIS-755 - LettuceSslClientConfigurationBuilder methods are package-protected.
+* DATAREDIS-751 - Update copyright years to 2018.
+* DATAREDIS-744 - Secondary indexes not removed if id contains colon.
+* DATAREDIS-738 - Align changelog with other modules' format.
+* DATAREDIS-735 - Upgrade to Lettuce 5.0.1.
+* DATAREDIS-733 - Typo in ValueOperations.increment documentation link.
+* DATAREDIS-728 - Unnecessary cache configuration map creation in RedisCacheManagerBuilder.
+* DATAREDIS-727 - Incorrect documentation for RedisCacheManagerBuilder.
+* DATAREDIS-726 - Repository readme mentions libs-release repository as snapshot/nightly build repo.
+* DATAREDIS-720 - Reactive connections using Lettuce do not use shared connection.
+* DATAREDIS-719 - Improve connection FutureResult handling for pipeline and tx mode.
+* DATAREDIS-714 - JedisConnection always executes SELECT via RedisTemplate.
+* DATAREDIS-713 - Provide constant UTF-8 and ASCII StringRedisSerializer instances.
+* DATAREDIS-711 - ClassCastException in Lua script result processing returning List.
+* DATAREDIS-710 - Release 2.1 M1 (Lovelace).
+* DATAREDIS-706 - JedisClusterStringCommands.set(…) contains redundant null checks.
+* DATAREDIS-698 - Add support for HSTRLEN.
+* DATAREDIS-694 - Add support for TOUCH.
+* DATAREDIS-693 - Add support for UNLINK.
+* DATAREDIS-682 - Support unix domain socket connections.
+* DATAREDIS-643 - Provide a reactive StringRedisTemplate.
+* DATAREDIS-619 - Provide documentation for reactive Redis Template API.
+* DATAREDIS-605 - Query by Example support.
+* DATAREDIS-580 - Support Master/Slave connections using Lettuce.
+* DATAREDIS-576 - Set client name on Lettuce connection factory.
+* DATAREDIS-529 - Add support for EXISTS taking multiple keys.
+
+
 Changes in version 2.0.3.RELEASE (2018-01-24)
 ---------------------------------------------
 * DATAREDIS-759 - Fix line endings.
