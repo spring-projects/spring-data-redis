@@ -181,7 +181,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return null;
 		}
 
-		return new RedisCacheElement(cacheKey, fromStoreValue(lookup(cacheKey)));
+		Object storeValue = lookup(cacheKey);
+		return (storeValue != null ? new RedisCacheElement(cacheKey,fromStoreValue(storeValue)) : null);
 	}
 
 	/*
