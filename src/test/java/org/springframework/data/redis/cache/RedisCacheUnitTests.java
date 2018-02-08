@@ -313,6 +313,23 @@ public class RedisCacheUnitTests {
 		assertThat((String) cache.get(KEY, callableMock), equalTo(VALUE));
 		verifyZeroInteractions(callableMock);
 	}
+	
+	@Test // DATAREDIS-673
+	@SuppressWarnings("unchecked")
+	public void getWithCallableShouldReadValueFromCallableWhenKeyGetsDeletedInFlight() throws Exception {
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L);
+		Callable<Object> callableMock = mock(Callable.class);
+
+		Object result = new Object();
+		when(callableMock.call()).thenReturn(result);
+		when(connectionMock.exists(KEY_BYTES)).thenReturn(true);
+		when(connectionMock.get(KEY_BYTES)).thenReturn(null);
+
+		assertThat((String) cache.get(KEY, callableMock), equalTo(VALUE));
+		verify(callableMock).call();
+		verify(connectionMock, times(2)).get(KEY_BYTES);
+	}
 
 	@Test // DATAREDIS-468
 	public void noMultiExecForCluster() {

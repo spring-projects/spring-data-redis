@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,11 +177,18 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			}
 		});
 
-		if (!exists.booleanValue()) {
+		if (!exists) {
 			return null;
 		}
 
-		return new RedisCacheElement(cacheKey, fromStoreValue(lookup(cacheKey)));
+		byte[] bytes = doLookup(cacheKey);
+
+		// safeguard if key gets deleted between EXISTS and GET calls.
+		if (bytes == null) {
+			return null;
+		}
+
+		return new RedisCacheElement(cacheKey, fromStoreValue(deserialize(bytes)));
 	}
 
 	/*
@@ -308,10 +315,14 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	@Override
 	protected Object lookup(Object key) {
+		return deserialize(doLookup(key));
+	}
 
+	private byte[] doLookup(Object key) {
+		
 		RedisCacheKey cacheKey = key instanceof RedisCacheKey ? (RedisCacheKey) key : getRedisCacheKey(key);
 
-		byte[] bytes = (byte[]) redisOperations.execute(new AbstractRedisCacheCallback<byte[]>(
+		return (byte[]) redisOperations.execute(new AbstractRedisCacheCallback<byte[]>(
 				new BinaryRedisCacheElement(new RedisCacheElement(cacheKey, null), cacheValueAccessor), cacheMetadata) {
 
 			@Override
@@ -319,7 +330,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 				return connection.get(element.getKeyBytes());
 			}
 		});
-
+	}
+	
+	private Object deserialize(byte[] bytes) {
 		return bytes == null ? null : cacheValueAccessor.deserializeIfNecessary(bytes);
 	}
 
