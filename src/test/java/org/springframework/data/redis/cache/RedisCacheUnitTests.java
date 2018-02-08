@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -312,6 +312,23 @@ public class RedisCacheUnitTests {
 
 		assertThat((String) cache.get(KEY, callableMock), equalTo(VALUE));
 		verifyZeroInteractions(callableMock);
+	}
+	
+	@Test // DATAREDIS-673
+	@SuppressWarnings("unchecked")
+	public void getWithCallableShouldReadValueFromCallableWhenKeyGetsDeletedInFlight() throws Exception {
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L);
+		Callable<Object> callableMock = mock(Callable.class);
+
+		Object result = new Object();
+		when(callableMock.call()).thenReturn(result);
+		when(connectionMock.exists(KEY_BYTES)).thenReturn(true);
+		when(connectionMock.get(KEY_BYTES)).thenReturn(null);
+
+		assertThat((String) cache.get(KEY, callableMock), equalTo(VALUE));
+		verify(callableMock).call();
+		verify(connectionMock, times(2)).get(KEY_BYTES);
 	}
 
 	@Test // DATAREDIS-468
