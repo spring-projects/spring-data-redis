@@ -93,7 +93,7 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-767
-	public void lockingCacheShouldPreventInFlightCacheCreation() {
+	public void lockedCacheManagerShouldPreventInFlightCacheCreation() {
 
 		RedisCacheManager cacheManager = RedisCacheManager.builder(cacheWriter).disableCreateOnMissingCache().build();
 		cacheManager.afterPropertiesSet();
@@ -102,7 +102,7 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-767
-	public void lockingCacheShouldStillReturnPreconfiguredCaches() {
+	public void lockedCacheManagerShouldStillReturnPreconfiguredCaches() {
 
 		RedisCacheManager cacheManager = RedisCacheManager.builder(cacheWriter)
 				.initialCacheNames(Collections.singleton("configured")).disableCreateOnMissingCache().build();
