@@ -18,7 +18,7 @@ package org.springframework.data.redis.core;
 import java.util.Collection;
 import java.util.Set;
 
-import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
@@ -373,10 +373,11 @@ public interface ZSetOperations<K, V> {
 	 * @param destKey must not be {@literal null}.
 	 * @param aggregate must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	@Nullable
-	Long unionAndStore(K key, Collection<K> otherKeys, K destKey, RedisZSetCommands.Aggregate aggregate);
+	Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate);
 
 	/**
 	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
@@ -387,10 +388,11 @@ public interface ZSetOperations<K, V> {
 	 * @param destKey must not be {@literal null}.
 	 * @param aggregate must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	@Nullable
-	Long unionAndStore(K key, Collection<K> otherKeys, int[] weights, K destKey, RedisZSetCommands.Aggregate aggregate);
+	Long unionAndStore(K key, Collection<K> otherKeys, int[] weights, K destKey, Aggregate aggregate);
 
 	/**
 	 * Intersect sorted sets at {@code key} and {@code otherKey} and store result in destination {@code destKey}.

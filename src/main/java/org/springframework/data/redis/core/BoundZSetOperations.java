@@ -18,7 +18,7 @@ package org.springframework.data.redis.core;
 import java.util.Collection;
 import java.util.Set;
 
-import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
@@ -31,7 +31,7 @@ import org.springframework.lang.Nullable;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
- * @author wongoo
+ * @author Wongoo
  */
 public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 
@@ -269,9 +269,10 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @param aggregate must not be {@literal null}.
+	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	void unionAndStore(Collection<K> otherKeys, K destKey, RedisZSetCommands.Aggregate aggregate);
+	void unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate);
 
 	/**
 	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
@@ -280,9 +281,10 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param weights must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @param aggregate must not be {@literal null}.
+	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	void unionAndStore(Collection<K> otherKeys, int[] weights, K destKey, RedisZSetCommands.Aggregate aggregate);
+	void unionAndStore(Collection<K> otherKeys, int[] weights, K destKey, Aggregate aggregate);
 
 	/**
 	 * Intersect sorted sets at the bound key and {@code otherKey} and store result in destination {@code destKey}.
