@@ -275,6 +275,18 @@ public class MappingRedisConverterUnitTests {
 		assertThat(converter.read(Person.class, rdo).nicknames, contains("dragon reborn", "car'a'carn", "lews therin"));
 	}
 
+	@Test // DATAREDIS-768
+	public void readConvertsUnorderedListOfSimpleIntegerPropertiesCorrectly() {
+
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("positions.[9]", "0");
+		map.put("positions.[10]", "1");
+		map.put("positions.[1]", "2");
+		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(map));
+
+		assertThat(converter.read(Person.class, rdo).positions, contains(2, 0, 1));
+	}
+
 	@Test // DATAREDIS-425
 	public void readComplexPropertyCorrectly() {
 
@@ -402,6 +414,22 @@ public class MappingRedisConverterUnitTests {
 		assertThat(target.physicalAttributes.get("eye-color"), is("grey"));
 	}
 
+	@Test // DATAREDIS-768
+	public void readSimpleIntegerMapValuesCorrectly() {
+
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("numberMapping.[1]", "2");
+		map.put("numberMapping.[3]", "4");
+
+		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(map));
+
+		Person target = converter.read(Person.class, rdo);
+
+		assertThat(target.numberMapping, notNullValue());
+		assertThat(target.numberMapping.get(1), is(2));
+		assertThat(target.numberMapping.get(3), is(4));
+	}
+
 	@Test // DATAREDIS-425
 	public void writeAppendsMapWithComplexObjectsCorrectly() {
 
@@ -435,6 +463,22 @@ public class MappingRedisConverterUnitTests {
 		assertThat(target.relatives.get("father").firstname, is("janduin"));
 		assertThat(target.relatives.get("step-father"), notNullValue());
 		assertThat(target.relatives.get("step-father").firstname, is("tam"));
+	}
+
+	@Test // DATAREDIS-768
+	public void readMapWithIntegerKeysAndComplexObjectsCorrectly() {
+
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("favoredRelatives.[1].firstname", "janduin");
+		map.put("favoredRelatives.[2].firstname", "tam");
+
+		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
+
+		assertThat(target.favoredRelatives, notNullValue());
+		assertThat(target.favoredRelatives.get(1), notNullValue());
+		assertThat(target.favoredRelatives.get(1).firstname, is("janduin"));
+		assertThat(target.favoredRelatives.get(2), notNullValue());
+		assertThat(target.favoredRelatives.get(2).firstname, is("tam"));
 	}
 
 	@Test // DATAREDIS-425

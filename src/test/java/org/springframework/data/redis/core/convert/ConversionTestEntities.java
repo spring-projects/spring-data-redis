@@ -57,6 +57,7 @@ public class ConversionTestEntities {
 
 		List<String> nicknames;
 		List<Person> coworkers;
+		List<Integer> positions;
 		Integer age;
 		Boolean alive;
 		Date birthdate;
@@ -73,7 +74,9 @@ public class ConversionTestEntities {
 		Address address;
 
 		Map<String, String> physicalAttributes;
+		Map<Integer, Integer> numberMapping;
 		Map<String, Person> relatives;
+		Map<Integer, Person> favoredRelatives;
 
 		@Reference Location location;
 		@Reference List<Location> visited;
