@@ -269,6 +269,37 @@ public class RedisCacheTests {
 		});
 	}
 
+	@Test // DATAREDIS-715
+	public void computePrefixCreatesCacheKeyCorrectly() {
+
+		RedisCache cacheWithCustomPrefix = new RedisCache("cache", new DefaultRedisCacheWriter(connectionFactory),
+				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
+						.computePrefixWith(cacheName -> "_" + cacheName + "_"));
+
+		cacheWithCustomPrefix.put("key-1", sample);
+
+		doWithConnection(connection -> {
+
+			assertThat(connection.stringCommands().get("_cache_key-1".getBytes(Charset.forName("UTF-8"))))
+					.isEqualTo(binarySample);
+		});
+	}
+
+	@Test // DATAREDIS-715
+	public void fetchKeyWithComputedPrefixReturnsExpectedResult() {
+
+		doWithConnection(connection -> connection.set("_cache_key-1".getBytes(Charset.forName("UTF-8")), binarySample));
+
+		RedisCache cacheWithCustomPrefix = new RedisCache("cache", new DefaultRedisCacheWriter(connectionFactory),
+				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
+						.computePrefixWith(cacheName -> "_" + cacheName + "_"));
+
+		ValueWrapper result = cacheWithCustomPrefix.get(key);
+
+		assertThat(result).isNotNull();
+		assertThat(result.get()).isEqualTo(sample);
+	}
+
 	void doWithConnection(Consumer<RedisConnection> callback) {
 		RedisConnection connection = connectionFactory.getConnection();
 		try {

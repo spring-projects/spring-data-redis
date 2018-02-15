@@ -18,6 +18,7 @@ package org.springframework.data.redis.cache;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.SimpleKey;
@@ -43,7 +44,7 @@ public class RedisCacheConfiguration {
 
 	private final Duration ttl;
 	private final boolean cacheNullValues;
-	private final @Nullable String keyPrefix;
+	private final @Nullable CacheKeyPrefix keyPrefix;
 	private final boolean usePrefix;
 
 	private final SerializationPair<String> keySerializationPair;
@@ -52,9 +53,9 @@ public class RedisCacheConfiguration {
 	private final ConversionService conversionService;
 
 	@SuppressWarnings("unchecked")
-	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix, @Nullable String keyPrefix,
-			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
-			ConversionService conversionService) {
+	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix,
+			@Nullable CacheKeyPrefix keyPrefix, SerializationPair<String> keySerializationPair,
+			SerializationPair<?> valueSerializationPair, ConversionService conversionService) {
 
 		this.ttl = ttl;
 		this.cacheNullValues = cacheNullValues;
@@ -122,8 +123,37 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(prefix, "Prefix must not be null!");
 
+		return prefixKeysWith((cacheName) -> prefix);
+	}
+
+	/**
+	 * Use the given {@link CacheKeyPrefix} computing the prefix based on the {@literal cache name}.
+	 *
+	 * @param prefix must not be {@literal null}.
+	 * @return new {@link RedisCacheConfiguration}.
+	 * @since 2.0.4
+	 */
+	public RedisCacheConfiguration prefixKeysWith(CacheKeyPrefix prefix) {
+
+		Assert.notNull(prefix, "Prefix must not be null!");
+
 		return new RedisCacheConfiguration(ttl, cacheNullValues, true, prefix, keySerializationPair, valueSerializationPair,
 				conversionService);
+	}
+
+	/**
+	 * Use the given {@link Function} to compute the prefix for the actual Redis {@literal key} on the
+	 * {@literal cache name}.
+	 *
+	 * @param function must not be {@literal null}.
+	 * @return new {@link RedisCacheConfiguration}.
+	 * @since 2.0.4
+	 */
+	public RedisCacheConfiguration computePrefixWith(Function<String, String> function) {
+
+		Assert.notNull(function, "Function for computing prefix must not be null!");
+
+		return prefixKeysWith(function::apply);
 	}
 
 	/**
@@ -196,14 +226,36 @@ public class RedisCacheConfiguration {
 
 	/**
 	 * @return never {@literal null}.
+	 * @deprecated since 2.0.4. Please use {@link #getKeyPrefixFor(String)}.
 	 */
+	@Deprecated()
 	public Optional<String> getKeyPrefix() {
+		return getCacheKeyPrefix().map(val -> val.compute(""));
+	}
+
+	/**
+	 * Get the computed {@literal key} prefix for a given {@literal cacheName}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.0.4
+	 */
+	public Optional<String> getKeyPrefixFor(String cacheName) {
+		return getCacheKeyPrefix().map(val -> val.compute(cacheName));
+	}
+
+	/**
+	 * Obtain the {@link CacheKeyPrefix} used to compute the actual {@literal key} prefix.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.0.4
+	 */
+	public Optional<CacheKeyPrefix> getCacheKeyPrefix() {
 		return Optional.ofNullable(keyPrefix);
 	}
 
 	/**
-	 * @return {@literal true} if cache keys need to be prefixed with the {@link #getKeyPrefix()} if present or the
-	 *         default which resolves to {@link Cache#getName()}.
+	 * @return {@literal true} if cache keys need to be prefixed with the {@link #getKeyPrefixFor(String)} if present or
+	 *         the default which resolves to {@link Cache#getName()}.
 	 */
 	public boolean usePrefix() {
 		return usePrefix;
