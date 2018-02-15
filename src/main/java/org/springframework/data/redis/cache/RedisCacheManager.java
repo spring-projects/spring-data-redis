@@ -49,6 +49,29 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	private final RedisCacheWriter cacheWriter;
 	private final RedisCacheConfiguration defaultCacheConfig;
 	private final Map<String, RedisCacheConfiguration> initialCacheConfiguration;
+	private final boolean locked;
+
+	/**
+	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
+	 * {@link RedisCacheConfiguration}.
+	 *
+	 * @param cacheWriter must not be {@literal null}.
+	 * @param defaultCacheConfiguration must not be {@literal null}. Maybe just use
+	 *          {@link RedisCacheConfiguration#defaultCacheConfig()}.
+	 * @param locked allow create missing caches.
+	 * @since 2.0.4
+	 */
+	private RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
+			boolean locked) {
+
+		Assert.notNull(cacheWriter, "CacheWriter must not be null!");
+		Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null!");
+
+		this.cacheWriter = cacheWriter;
+		this.defaultCacheConfig = defaultCacheConfiguration;
+		this.initialCacheConfiguration = new LinkedHashMap<>();
+		this.locked = locked;
+	}
 
 	/**
 	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
@@ -59,13 +82,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 *          {@link RedisCacheConfiguration#defaultCacheConfig()}.
 	 */
 	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration) {
-
-		Assert.notNull(cacheWriter, "CacheWriter must not be null!");
-		Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null!");
-
-		this.cacheWriter = cacheWriter;
-		this.defaultCacheConfig = defaultCacheConfiguration;
-		this.initialCacheConfiguration = new LinkedHashMap<>();
+		this(cacheWriter, defaultCacheConfiguration, false);
 	}
 
 	/**
@@ -81,7 +98,26 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
 			String... initialCacheNames) {
 
-		this(cacheWriter, defaultCacheConfiguration);
+		this(cacheWriter, defaultCacheConfiguration, false, initialCacheNames);
+	}
+
+	/**
+	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
+	 * {@link RedisCacheConfiguration}.
+	 *
+	 * @param cacheWriter must not be {@literal null}.
+	 * @param defaultCacheConfiguration must not be {@literal null}. Maybe just use
+	 *          {@link RedisCacheConfiguration#defaultCacheConfig()}.
+	 * @param locked if set to {@literal true} no new caches can be acquire at runtime but limited to the given list of
+	 *          initial cache names.
+	 * @param initialCacheNames optional set of known cache names that will be created with given
+	 *          {@literal defaultCacheConfiguration}.
+	 * @since 2.0.4
+	 */
+	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
+			boolean locked, String... initialCacheNames) {
+
+		this(cacheWriter, defaultCacheConfiguration, locked);
 
 		for (String cacheName : initialCacheNames) {
 			this.initialCacheConfiguration.put(cacheName, defaultCacheConfiguration);
@@ -101,7 +137,26 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
 			Map<String, RedisCacheConfiguration> initialCacheConfigurations) {
 
-		this(cacheWriter, defaultCacheConfiguration);
+		this(cacheWriter, defaultCacheConfiguration, initialCacheConfigurations, false);
+	}
+
+	/**
+	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
+	 * {@link RedisCacheConfiguration}.
+	 *
+	 * @param cacheWriter must not be {@literal null}.
+	 * @param defaultCacheConfiguration must not be {@literal null}. Maybe just use
+	 *          {@link RedisCacheConfiguration#defaultCacheConfig()}.
+	 * @param initialCacheConfigurations Map of known cache names along with the configuration to use for those caches.
+	 *          Must not be {@literal null}.
+	 * @param locked if set to {@literal true} no new caches can be acquire at runtime but limited to the initial cache
+	 *          configurations.
+	 * @since 2.0.4
+	 */
+	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
+			Map<String, RedisCacheConfiguration> initialCacheConfigurations, boolean locked) {
+
+		this(cacheWriter, defaultCacheConfiguration, locked);
 
 		Assert.notNull(initialCacheConfigurations, "InitialCacheConfigurations must not be null!");
 
@@ -180,7 +235,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 */
 	@Override
 	protected RedisCache getMissingCache(String name) {
-		return createRedisCache(name, defaultCacheConfig);
+		return locked ? null : createRedisCache(name, defaultCacheConfig);
 	}
 
 	/**
@@ -222,8 +277,9 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 		private final RedisCacheWriter cacheWriter;
 		private RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
-		private final Map<String, RedisCacheConfiguration> intialCaches = new LinkedHashMap<>();
+		private final Map<String, RedisCacheConfiguration> initialCaches = new LinkedHashMap<>();
 		private boolean enableTransactions;
+		boolean allowInFlightCacheCreation = true;
 
 		private RedisCacheManagerBuilder(RedisCacheWriter cacheWriter) {
 			this.cacheWriter = cacheWriter;
@@ -313,8 +369,24 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 			cacheConfigurations.forEach((cacheName, configuration) -> Assert.notNull(configuration,
 					String.format("RedisCacheConfiguration for cache %s must not be null!", cacheName)));
 
-			this.intialCaches.putAll(cacheConfigurations);
+			this.initialCaches.putAll(cacheConfigurations);
 
+			return this;
+		}
+
+		/**
+		 * Disable the in flight {@link org.springframework.cache.Cache} creation for a missing cache.
+		 * <p />
+		 * {@link RedisCacheManager#getMissingCache(String)} returns {@literal null} for any missing
+		 * {@link org.springframework.cache.Cache} instead of a new {@link RedisCache} instance. This allows eg.
+		 * {@link org.springframework.cache.support.CompositeCacheManager} to chime.
+		 *
+		 * @return this {@link RedisCacheManagerBuilder}.
+		 * @since 2.0.4
+		 */
+		public RedisCacheManagerBuilder disableCreateOnMissingCache() {
+
+			this.allowInFlightCacheCreation = false;
 			return this;
 		}
 
@@ -325,7 +397,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 */
 		public RedisCacheManager build() {
 
-			RedisCacheManager cm = new RedisCacheManager(cacheWriter, defaultCacheConfiguration, intialCaches);
+			RedisCacheManager cm = new RedisCacheManager(cacheWriter, defaultCacheConfiguration, initialCaches,
+					!allowInFlightCacheCreation);
 
 			cm.setTransactionAware(enableTransactions);
 
