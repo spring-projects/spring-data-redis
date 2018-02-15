@@ -91,4 +91,23 @@ public class RedisCacheManagerUnitTests {
 		assertThat(cache).isInstanceOfAny(TransactionAwareCacheDecorator.class);
 		assertThat(ReflectionTestUtils.getField(cache, "targetCache")).isInstanceOf(RedisCache.class);
 	}
+
+	@Test // DATAREDIS-767
+	public void lockingCacheShouldPreventInFlightCacheCreation() {
+
+		RedisCacheManager cacheManager = RedisCacheManager.builder(cacheWriter).disableCreateOnMissingCache().build();
+		cacheManager.afterPropertiesSet();
+
+		assertThat(cacheManager.getCache("not-configured")).isNull();
+	}
+
+	@Test // DATAREDIS-767
+	public void lockingCacheShouldStillReturnPreconfiguredCaches() {
+
+		RedisCacheManager cacheManager = RedisCacheManager.builder(cacheWriter)
+				.initialCacheNames(Collections.singleton("configured")).disableCreateOnMissingCache().build();
+		cacheManager.afterPropertiesSet();
+
+		assertThat(cacheManager.getCache("configured")).isNotNull();
+	}
 }
