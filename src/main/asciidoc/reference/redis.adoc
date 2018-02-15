@@ -527,6 +527,18 @@ RedisCacheManager cm = RedisCacheManager.build(RedisCacheWriter.lockingRedisCach
 	...
 ----
 
+By default any `key` for a cache entry gets prefixed with the actual cache name followed by 2 colons.
+This behavior can be changed to a static as well as a computed prefix.
+
+[source,java]
+----
+// static key prefix
+RedisCacheConfiguration.defaultCacheConfig().prefixKeysWith("( ͡° ᴥ ͡°)");
+
+// computed key prefix
+RedisCacheConfiguration.defaultCacheConfig().computePrefixWith(cacheName -> "¯\_(ツ)_/¯" + cacheName);
+----
+
 .RedisCacheManager defaults
 [width="80%",cols="<1,<2",options="header"]
 |====
