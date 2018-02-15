@@ -18,6 +18,7 @@ package org.springframework.data.redis.core.convert;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -831,9 +832,14 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				throw new IllegalArgumentException(
 						String.format("Cannot extract map value for key '%s' in path '%s'.", entry.getKey(), path));
 			}
-			String key = matcher.group(2);
+			Object key = matcher.group(2);
 
 			Class<?> typeToUse = getTypeHint(path + ".[" + key + "]", source.getBucket(), valueType);
+
+			if (!keyType.isAssignableFrom(key.getClass())) {
+				key = conversionService.convert(key, keyType);
+			}
+
 			target.put(key, fromBytes(entry.getValue(), typeToUse));
 		}
 
@@ -865,7 +871,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				throw new IllegalArgumentException(
 						String.format("Cannot extract map value for key '%s' in path '%s'.", key, path));
 			}
-			String mapKey = matcher.group(2);
+			Object mapKey = matcher.group(2);
 
 			Bucket partial = source.getBucket().extract(key);
 
@@ -874,8 +880,13 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				partial.put(TYPE_HINT_ALIAS, typeInfo);
 			}
 
-			Object o = readInternal(key, valueType, new RedisData(partial));
-			target.put(mapKey, o);
+			if (!keyType.isAssignableFrom(mapKey.getClass())) {
+				mapKey = conversionService.convert(mapKey, keyType);
+			}
+
+			Object value = readInternal(key, valueType, new RedisData(partial));
+
+			target.put(mapKey, value);
 		}
 
 		return target.isEmpty() ? null : target;
