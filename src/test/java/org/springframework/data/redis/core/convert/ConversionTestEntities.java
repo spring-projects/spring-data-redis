@@ -74,7 +74,6 @@ public class ConversionTestEntities {
 		Address address;
 
 		Map<String, String> physicalAttributes;
-		Map<Integer, Integer> numberMapping;
 		Map<String, Person> relatives;
 		Map<Integer, Person> favoredRelatives;
 
@@ -181,8 +180,16 @@ public class ConversionTestEntities {
 	}
 
 	static class TypeWithObjectValueTypes {
+
 		Object object;
 		Map<String, Object> map = new HashMap<>();
 		List<Object> list = new ArrayList<>();
+	}
+
+	static class TypeWithMaps {
+
+		Map<Integer, Integer> integerMapKeyMapping;
+		Map<Double, String> decimalMapKeyMapping;
+		Map<Date, String> dateMapKeyMapping;
 	}
 }
