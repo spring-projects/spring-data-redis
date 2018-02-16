@@ -300,7 +300,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	private String prefixCacheKey(String key) {
-		return cacheConfig.getKeyPrefixFor(name).orElseGet(() -> name + "::") + key;
+
+		// allow contextual cache names by computing the key prefix on every call.
+		return cacheConfig.getKeyPrefixFor(name) + key;
 	}
 
 	private static <T> T valueFromLoader(Object key, Callable<T> valueLoader) {
