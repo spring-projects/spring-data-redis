@@ -18,7 +18,6 @@ package org.springframework.data.redis.cache;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.function.Function;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.SimpleKey;
@@ -28,7 +27,6 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.format.support.DefaultFormattingConversionService;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -45,7 +43,7 @@ public class RedisCacheConfiguration {
 
 	private final Duration ttl;
 	private final boolean cacheNullValues;
-	private final @Nullable CacheKeyPrefix keyPrefix;
+	private final CacheKeyPrefix keyPrefix;
 	private final boolean usePrefix;
 
 	private final SerializationPair<String> keySerializationPair;
@@ -55,7 +53,7 @@ public class RedisCacheConfiguration {
 
 	@SuppressWarnings("unchecked")
 	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix,
-			@Nullable CacheKeyPrefix keyPrefix, SerializationPair<String> keySerializationPair,
+			CacheKeyPrefix keyPrefix, SerializationPair<String> keySerializationPair,
 			SerializationPair<?> valueSerializationPair, ConversionService conversionService) {
 
 		this.ttl = ttl;
@@ -95,7 +93,7 @@ public class RedisCacheConfiguration {
 
 		registerDefaultConverters(conversionService);
 
-		return new RedisCacheConfiguration(Duration.ZERO, true, true, null,
+		return new RedisCacheConfiguration(Duration.ZERO, true, true, CacheKeyPrefix.simple(),
 				SerializationPair.fromSerializer(new StringRedisSerializer()),
 				SerializationPair.fromSerializer(new JdkSerializationRedisSerializer()), conversionService);
 	}
@@ -124,37 +122,23 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(prefix, "Prefix must not be null!");
 
-		return prefixKeysWith((cacheName) -> prefix);
+		return computePrefixWith((cacheName) -> prefix);
 	}
 
 	/**
-	 * Use the given {@link CacheKeyPrefix} computing the prefix based on the {@literal cache name}.
-	 *
-	 * @param prefix must not be {@literal null}.
-	 * @return new {@link RedisCacheConfiguration}.
-	 * @since 2.0.4
-	 */
-	public RedisCacheConfiguration prefixKeysWith(CacheKeyPrefix prefix) {
-
-		Assert.notNull(prefix, "Prefix must not be null!");
-
-		return new RedisCacheConfiguration(ttl, cacheNullValues, true, prefix, keySerializationPair, valueSerializationPair,
-				conversionService);
-	}
-
-	/**
-	 * Use the given {@link Function} to compute the prefix for the actual Redis {@literal key} on the
+	 * Use the given {@link CacheKeyPrefix} to compute the prefix for the actual Redis {@literal key} on the
 	 * {@literal cache name}.
 	 *
-	 * @param function must not be {@literal null}.
+	 * @param cacheKeyPrefix must not be {@literal null}.
 	 * @return new {@link RedisCacheConfiguration}.
 	 * @since 2.0.4
 	 */
-	public RedisCacheConfiguration computePrefixWith(Function<String, String> function) {
+	public RedisCacheConfiguration computePrefixWith(CacheKeyPrefix cacheKeyPrefix) {
 
-		Assert.notNull(function, "Function for computing prefix must not be null!");
+		Assert.notNull(cacheKeyPrefix, "Function for computing prefix must not be null!");
 
-		return prefixKeysWith(function::apply);
+		return new RedisCacheConfiguration(ttl, cacheNullValues, true, cacheKeyPrefix, keySerializationPair,
+				valueSerializationPair, conversionService);
 	}
 
 	/**
@@ -229,9 +213,9 @@ public class RedisCacheConfiguration {
 	 * @return never {@literal null}.
 	 * @deprecated since 2.0.4. Please use {@link #getKeyPrefixFor(String)}.
 	 */
-	@Deprecated()
+	@Deprecated
 	public Optional<String> getKeyPrefix() {
-		return getCacheKeyPrefix().map(val -> val.compute(""));
+		return usePrefix() ? Optional.of(keyPrefix.compute("")) : Optional.empty();
 	}
 
 	/**
@@ -240,18 +224,11 @@ public class RedisCacheConfiguration {
 	 * @return never {@literal null}.
 	 * @since 2.0.4
 	 */
-	public Optional<String> getKeyPrefixFor(String cacheName) {
-		return getCacheKeyPrefix().map(val -> val.compute(cacheName));
-	}
+	public String getKeyPrefixFor(String cacheName) {
 
-	/**
-	 * Obtain the {@link CacheKeyPrefix} used to compute the actual {@literal key} prefix.
-	 *
-	 * @return never {@literal null}.
-	 * @since 2.0.4
-	 */
-	public Optional<CacheKeyPrefix> getCacheKeyPrefix() {
-		return Optional.ofNullable(keyPrefix);
+		Assert.notNull(cacheName, "Cache name must not be null!");
+
+		return keyPrefix.compute(cacheName);
 	}
 
 	/**
