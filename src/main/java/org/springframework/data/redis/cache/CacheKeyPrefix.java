@@ -20,6 +20,7 @@ package org.springframework.data.redis.cache;
  * Redis.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0.4
  */
 @FunctionalInterface
@@ -32,4 +33,14 @@ public interface CacheKeyPrefix {
 	 * @return never {@literal null}.
 	 */
 	String compute(String cacheName);
+
+	/**
+	 * Creates a default {@link CacheKeyPrefix} scheme that prefixes cache keys with {@code cacheName} followed by double
+	 * colons. A cache named {@code myCache} will prefix all cache keys with {@code myCache::}.
+	 *
+	 * @return the default {@link CacheKeyPrefix} scheme.
+	 */
+	static CacheKeyPrefix simple() {
+		return name -> name + "::";
+	}
 }
