@@ -418,16 +418,74 @@ public class MappingRedisConverterUnitTests {
 	public void readSimpleIntegerMapValuesCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<>();
-		map.put("numberMapping.[1]", "2");
-		map.put("numberMapping.[3]", "4");
+		map.put("integerMapKeyMapping.[1]", "2");
+		map.put("integerMapKeyMapping.[3]", "4");
 
 		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(map));
 
-		Person target = converter.read(Person.class, rdo);
+		TypeWithMaps target = converter.read(TypeWithMaps.class, rdo);
 
-		assertThat(target.numberMapping, notNullValue());
-		assertThat(target.numberMapping.get(1), is(2));
-		assertThat(target.numberMapping.get(3), is(4));
+		assertThat(target.integerMapKeyMapping, notNullValue());
+		assertThat(target.integerMapKeyMapping.get(1), is(2));
+		assertThat(target.integerMapKeyMapping.get(3), is(4));
+	}
+
+	@Test // DATAREDIS-768
+	public void readMapWithDecimalMapKeyCorrectly() {
+
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("decimalMapKeyMapping.[1.7]", "2");
+		map.put("decimalMapKeyMapping.[3.1]", "4");
+
+		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(map));
+
+		TypeWithMaps target = converter.read(TypeWithMaps.class, rdo);
+
+		assertThat(target.decimalMapKeyMapping, notNullValue());
+		assertThat(target.decimalMapKeyMapping.get(1.7D), is("2"));
+		assertThat(target.decimalMapKeyMapping.get(3.1D), is("4"));
+	}
+
+	@Test // DATAREDIS-768
+	public void writeMapWithDecimalMapKeyCorrectly() {
+
+		TypeWithMaps source = new TypeWithMaps();
+		source.decimalMapKeyMapping = new LinkedHashMap<>();
+		source.decimalMapKeyMapping.put(1.7D, "2");
+		source.decimalMapKeyMapping.put(3.1D, "4");
+
+		RedisData target = write(source);
+
+		assertThat(target.getBucket(), isBucket().containingUtf8String("decimalMapKeyMapping.[1.7]", "2") //
+				.containingUtf8String("decimalMapKeyMapping.[3.1]", "4"));
+	}
+
+	@Test // DATAREDIS-768
+	public void readMapWithDateMapKeyCorrectly() {
+
+		Date judgmentDay = Date.from(Instant.parse("1979-08-29T12:00:00Z"));
+
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("dateMapKeyMapping.[" + judgmentDay.getTime() + "]", "skynet");
+
+		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(map));
+
+		TypeWithMaps target = converter.read(TypeWithMaps.class, rdo);
+
+		assertThat(target.dateMapKeyMapping, notNullValue());
+		assertThat(target.dateMapKeyMapping.get(judgmentDay), is("skynet"));
+	}
+
+	@Test // DATAREDIS-768
+	public void writeMapWithDateMapKeyCorrectly() {
+
+		Date judgmentDay = Date.from(Instant.parse("1979-08-29T12:00:00Z"));
+
+		TypeWithMaps source = new TypeWithMaps();
+		source.dateMapKeyMapping = Collections.singletonMap(judgmentDay, "skynet");
+
+		assertThat(write(source).getBucket(),
+				isBucket().containingUtf8String("dateMapKeyMapping.[" + judgmentDay.getTime() + "]", "skynet"));
 	}
 
 	@Test // DATAREDIS-425
@@ -1422,8 +1480,7 @@ public class MappingRedisConverterUnitTests {
 	@Test // DATAREDIS-471
 	public void writeShouldWritePartialUpdatePathWithSimpleValueCorrectly() {
 
-		PartialUpdate<Person> update = new PartialUpdate<>("123", Person.class).set("firstname", "rand").set("age",
-				24);
+		PartialUpdate<Person> update = new PartialUpdate<>("123", Person.class).set("firstname", "rand").set("age", 24);
 
 		assertThat(write(update).getBucket(),
 				isBucket().containingUtf8String("firstname", "rand").containingUtf8String("age", "24"));
@@ -1577,8 +1634,7 @@ public class MappingRedisConverterUnitTests {
 	@Test // DATAREDIS-471
 	public void writeShouldWritePartialUpdatePathWithSimpleMapValueOnNestedElementCorrectly() {
 
-		PartialUpdate<Person> update = new PartialUpdate<>("123", Person.class).set("relatives.[father].firstname",
-				"tam");
+		PartialUpdate<Person> update = new PartialUpdate<>("123", Person.class).set("relatives.[father].firstname", "tam");
 
 		assertThat(write(update).getBucket(), isBucket().containingUtf8String("relatives.[father].firstname", "tam"));
 	}
@@ -1620,8 +1676,7 @@ public class MappingRedisConverterUnitTests {
 		tear.id = "2";
 		tear.name = "city of tear";
 
-		PartialUpdate<Person> update = new PartialUpdate<>("123", Person.class).set("visited",
-				Arrays.asList(tar, tear));
+		PartialUpdate<Person> update = new PartialUpdate<>("123", Person.class).set("visited", Arrays.asList(tar, tear));
 
 		assertThat(write(update).getBucket(),
 				isBucket().containingUtf8String("visited.[0]", "locations:1").containingUtf8String("visited.[1]", "locations:2") //
