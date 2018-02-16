@@ -20,9 +20,10 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.DataType;
-import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
+import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
@@ -101,6 +102,24 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	@Override
 	public void intersectAndStore(Collection<K> otherKeys, K destKey) {
 		ops.intersectAndStore(getKey(), otherKeys, destKey);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
+	 */
+	@Override
+	public void intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate) {
+		ops.intersectAndStore(getKey(), otherKeys, destKey, aggregate);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
+	 */
+	@Override
+	public void intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
+		ops.intersectAndStore(getKey(), otherKeys, destKey, aggregate, weights);
 	}
 
 	/*
@@ -292,22 +311,22 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		ops.unionAndStore(getKey(), otherKeys, destKey);
 	}
 
-	/*
+	/* 
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionAndStore(Collection, Object, RedisZSetCommands.Aggregate)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
 	 */
 	@Override
-	public void unionAndStore(Collection<K> otherKeys, K destKey, RedisZSetCommands.Aggregate aggregate) {
+	public void unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate) {
 		ops.unionAndStore(getKey(), otherKeys, destKey, aggregate);
 	}
 
-	/*
+	/* 
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionAndStore(Collection, int[], Object, RedisZSetCommands.Aggregate)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
 	 */
 	@Override
-	public void unionAndStore(Collection<K> otherKeys, int[] weights, K destKey, RedisZSetCommands.Aggregate aggregate) {
-		ops.unionAndStore(getKey(), otherKeys, weights, destKey, aggregate);
+	public void unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
+		ops.unionAndStore(getKey(), otherKeys, destKey, aggregate, weights);
 	}
 
 	/*

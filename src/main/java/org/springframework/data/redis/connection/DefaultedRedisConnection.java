@@ -688,6 +688,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
+	default Long zInterStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
+		return zSetCommands().zInterStore(destKey, aggregate, weights, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
 	default Long zInterStore(byte[] destKey, byte[]... sets) {
 		return zSetCommands().zInterStore(destKey, sets);
 	}
@@ -808,6 +815,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Override
 	@Deprecated
 	default Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+		return zSetCommands().zUnionStore(destKey, aggregate, weights, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
 		return zSetCommands().zUnionStore(destKey, aggregate, weights, sets);
 	}
 

@@ -15,17 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -1313,6 +1304,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.zInterStore(destKey, aggregate, weights, sets), identityConverter);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Long zInterStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
+		return convertAndReturn(delegate.zInterStore(destKey, aggregate, weights, sets), identityConverter);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], byte[][])
@@ -1570,6 +1570,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], byte[][])
 	 */
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+		return convertAndReturn(delegate.zUnionStore(destKey, aggregate, weights, sets), identityConverter);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
 		return convertAndReturn(delegate.zUnionStore(destKey, aggregate, weights, sets), identityConverter);
 	}
 

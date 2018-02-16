@@ -21,8 +21,10 @@ import reactor.core.publisher.Mono;
 import java.util.Collection;
 
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
@@ -298,6 +300,33 @@ public interface ReactiveZSetOperations<K, V> {
 	Mono<Long> unionAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	/**
+	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	Mono<Long> unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate);
+
+	/**
+	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	Mono<Long> unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
+
+	/**
 	 * Intersect sorted sets at {@code key} and {@code otherKey} and store result in destination {@code destKey}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -318,6 +347,33 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Intersect sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 */
+	Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate);
+
+	/**
+	 * Intersect sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 */
+	Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
 
 	/**
 	 * Get all elements with lexicographical ordering from {@literal ZSET} at {@code key} with a value between

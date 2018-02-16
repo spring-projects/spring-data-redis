@@ -21,6 +21,7 @@ import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.AfterClass;
@@ -35,7 +36,9 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
+import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -484,6 +487,33 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.range(destKey, new Range<>(0L, 100L))).expectNextCount(3).verifyComplete();
 	}
 
+	@Test // DATAREDIS-746
+	public void unionAndStoreWithAggregation() {
+
+		K key = keyFactory.instance();
+		K otherKey = keyFactory.instance();
+		K destKey = keyFactory.instance();
+
+		V onlyInKey = valueFactory.instance();
+		V shared = valueFactory.instance();
+		V onlyInOtherKey = valueFactory.instance();
+
+		StepVerifier.create(zSetOperations.add(key, onlyInKey, 10)).expectNext(true).verifyComplete();
+		StepVerifier.create(zSetOperations.add(key, shared, 11)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(zSetOperations.add(otherKey, onlyInOtherKey, 10)).expectNext(true).verifyComplete();
+		StepVerifier.create(zSetOperations.add(otherKey, shared, 11)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(zSetOperations.unionAndStore(key, Collections.singleton(otherKey), destKey, Aggregate.SUM))
+				.expectNext(3L).verifyComplete();
+		StepVerifier.create(zSetOperations.score(destKey, shared)).expectNext(22d).verifyComplete();
+
+		StepVerifier.create(
+				zSetOperations.unionAndStore(key, Collections.singleton(otherKey), destKey, Aggregate.SUM, Weights.of(2, 1)))
+				.expectNext(3L).verifyComplete();
+		StepVerifier.create(zSetOperations.score(destKey, shared)).expectNext(33d).verifyComplete();
+	}
+
 	@Test // DATAREDIS-602
 	public void intersectAndStore() {
 
@@ -507,7 +537,39 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.range(destKey, new Range<>(0L, 5L))) //
 				.expectNextCount(1) //
 				.verifyComplete();
+	}
 
+	@Test // DATAREDIS-746
+	public void intersectAndStoreWithAggregation() {
+
+		K key = keyFactory.instance();
+		K otherKey = keyFactory.instance();
+		K destKey = keyFactory.instance();
+
+		V onlyInKey = valueFactory.instance();
+		V shared = valueFactory.instance();
+		V onlyInOtherKey = valueFactory.instance();
+
+		StepVerifier.create(zSetOperations.add(key, onlyInKey, 10)).expectNext(true).verifyComplete();
+		StepVerifier.create(zSetOperations.add(key, shared, 11)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(zSetOperations.add(otherKey, onlyInOtherKey, 10)).expectNext(true).verifyComplete();
+		StepVerifier.create(zSetOperations.add(otherKey, shared, 11)).expectNext(true).verifyComplete();
+
+		StepVerifier
+				.create(zSetOperations.intersectAndStore(key, Collections.singletonList(otherKey), destKey, Aggregate.SUM))
+				.expectNext(1L).expectComplete().verify();
+
+		StepVerifier.create(zSetOperations.score(destKey, shared)) //
+				.expectNext(22d) //
+				.verifyComplete();
+
+		StepVerifier.create(zSetOperations.intersectAndStore(key, Collections.singletonList(otherKey), destKey,
+				Aggregate.SUM, Weights.of(1, 2))).expectNext(1L).expectComplete().verify();
+
+		StepVerifier.create(zSetOperations.score(destKey, shared)) //
+				.expectNext(33d) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
