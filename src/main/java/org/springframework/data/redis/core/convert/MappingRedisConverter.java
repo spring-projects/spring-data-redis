@@ -788,7 +788,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				continue;
 			}
 
-			String currentPath = path + ".[" + entry.getKey() + "]";
+			String currentPath = path + ".[" + mapMapKey(entry.getKey()) + "]";
 
 			if (!ClassUtils.isAssignable(mapValueType, entry.getValue().getClass())) {
 				throw new MappingException(
@@ -801,6 +801,15 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				writeInternal(keyspace, currentPath, entry.getValue(), ClassTypeInformation.from(mapValueType), sink);
 			}
 		}
+	}
+
+	private String mapMapKey(Object key) {
+
+		if (conversionService.canConvert(key.getClass(), byte[].class)) {
+			return new String(conversionService.convert(key, byte[].class));
+		}
+
+		return conversionService.convert(key, String.class);
 	}
 
 	/**
@@ -824,22 +833,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				continue;
 			}
 
-			String regex = "^(" + Pattern.quote(path) + "\\.\\[)(.*?)(\\])";
-			Pattern pattern = Pattern.compile(regex);
-
-			Matcher matcher = pattern.matcher(entry.getKey());
-			if (!matcher.find()) {
-				throw new IllegalArgumentException(
-						String.format("Cannot extract map value for key '%s' in path '%s'.", entry.getKey(), path));
-			}
-			Object key = matcher.group(2);
-
+			Object key = extractMapKeyForPath(path, entry.getKey(), keyType);
 			Class<?> typeToUse = getTypeHint(path + ".[" + key + "]", source.getBucket(), valueType);
-
-			if (!keyType.isAssignableFrom(key.getClass())) {
-				key = conversionService.convert(key, keyType);
-			}
-
 			target.put(key, fromBytes(entry.getValue(), typeToUse));
 		}
 
@@ -863,16 +858,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		for (String key : keys) {
 
-			String regex = "^(" + Pattern.quote(path) + "\\.\\[)(.*?)(\\])";
-			Pattern pattern = Pattern.compile(regex);
-
-			Matcher matcher = pattern.matcher(key);
-			if (!matcher.find()) {
-				throw new IllegalArgumentException(
-						String.format("Cannot extract map value for key '%s' in path '%s'.", key, path));
-			}
-			Object mapKey = matcher.group(2);
-
 			Bucket partial = source.getBucket().extract(key);
 
 			byte[] typeInfo = partial.get(key + "." + TYPE_HINT_ALIAS);
@@ -880,16 +865,33 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				partial.put(TYPE_HINT_ALIAS, typeInfo);
 			}
 
-			if (!keyType.isAssignableFrom(mapKey.getClass())) {
-				mapKey = conversionService.convert(mapKey, keyType);
-			}
-
 			Object value = readInternal(key, valueType, new RedisData(partial));
 
+			Object mapKey = extractMapKeyForPath(path, key, keyType);
 			target.put(mapKey, value);
 		}
 
 		return target.isEmpty() ? null : target;
+	}
+
+	private Object extractMapKeyForPath(String path, String key, Class<?> targetType) {
+
+		String regex = "^(" + Pattern.quote(path) + "\\.\\[)(.*?)(\\])";
+		Pattern pattern = Pattern.compile(regex);
+
+		Matcher matcher = pattern.matcher(key);
+		if (!matcher.find()) {
+			throw new IllegalArgumentException(
+					String.format("Cannot extract map value for key '%s' in path '%s'.", key, path));
+		}
+
+		Object mapKey = matcher.group(2);
+
+		if (ClassUtils.isAssignable(targetType, mapKey.getClass())) {
+			return mapKey;
+		}
+
+		return conversionService.convert(toBytes(mapKey), targetType);
 	}
 
 	private Class<?> getTypeHint(String path, Bucket bucket, Class<?> fallback) {
