@@ -631,16 +631,28 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	 */
 	@Override
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+		return zUnionStore(destKey, aggregate, Weights.of(weights), sets);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
 
 		Assert.notNull(destKey, "Destination key must not be null!");
 		Assert.notNull(sets, "Source sets must not be null!");
 		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
-			ZParams zparams = new ZParams().weights(weights).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+			ZParams zparams = new ZParams().weightsByDouble(weights.toArray())
+					.aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			try {
 				return connection.getCluster().zunionstore(destKey, zparams, sets);
@@ -683,16 +695,28 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	 */
 	@Override
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+		return zInterStore(destKey, aggregate, Weights.of(weights), sets);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Long zInterStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
 
 		Assert.notNull(destKey, "Destination key must not be null!");
 		Assert.notNull(sets, "Source sets must not be null!");
 		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
-			ZParams zparams = new ZParams().weights(weights).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+			ZParams zparams = new ZParams().weightsByDouble(weights.toArray())
+					.aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			try {
 				return connection.getCluster().zinterstore(destKey, zparams, sets);

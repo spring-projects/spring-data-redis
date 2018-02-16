@@ -33,6 +33,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -574,10 +575,21 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	 */
 	@Override
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+		return zUnionStore(destKey, aggregate, Weights.of(weights), sets);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
 
 		Assert.notNull(destKey, "Destination key must not be null!");
 		Assert.notNull(sets, "Source sets must not be null!");
 		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
 
 		ZStoreArgs storeArgs = zStoreArgs(aggregate, weights);
 
@@ -628,10 +640,21 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	 */
 	@Override
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+		return zInterStore(destKey, aggregate, Weights.of(weights), sets);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Long zInterStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
 
 		Assert.notNull(destKey, "Destination key must not be null!");
 		Assert.notNull(sets, "Source sets must not be null!");
 		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
 
 		ZStoreArgs storeArgs = zStoreArgs(aggregate, weights);
 
@@ -898,8 +921,10 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.convertLettuceAccessException(ex);
 	}
 
-	private ZStoreArgs zStoreArgs(Aggregate aggregate, int[] weights) {
+	private static ZStoreArgs zStoreArgs(@Nullable Aggregate aggregate, Weights weights) {
+
 		ZStoreArgs args = new ZStoreArgs();
+
 		if (aggregate != null) {
 			switch (aggregate) {
 				case MIN:
@@ -913,11 +938,9 @@ class LettuceZSetCommands implements RedisZSetCommands {
 					break;
 			}
 		}
-		double[] lg = new double[weights.length];
-		for (int i = 0; i < lg.length; i++) {
-			lg[i] = weights[i];
-		}
-		args.weights(lg);
+
+		args.weights(weights.toArray());
+
 		return args;
 	}
 

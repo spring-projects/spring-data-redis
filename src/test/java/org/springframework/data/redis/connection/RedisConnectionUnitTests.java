@@ -844,11 +844,19 @@ public class RedisConnectionUnitTests {
 			return delegate.zUnionStore(destKey, aggregate, weights, sets);
 		}
 
+		public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
+			return delegate.zUnionStore(destKey, aggregate, weights, sets);
+		}
+
 		public Long zInterStore(byte[] destKey, byte[]... sets) {
 			return delegate.zInterStore(destKey, sets);
 		}
 
 		public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+			return delegate.zInterStore(destKey, aggregate, weights, sets);
+		}
+
+		public Long zInterStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
 			return delegate.zInterStore(destKey, aggregate, weights, sets);
 		}
 

@@ -39,6 +39,7 @@ import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -466,7 +467,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	private ZStoreArgs zStoreArgs(Aggregate aggregate, List<Double> weights) {
+	private static ZStoreArgs zStoreArgs(@Nullable Aggregate aggregate, @Nullable List<Double> weights) {
 
 		ZStoreArgs args = new ZStoreArgs();
 		if (aggregate != null) {
@@ -484,12 +485,9 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}
 
 		if (weights != null) {
-			double[] lg = new double[weights.size()];
-			for (int i = 0; i < lg.length; i++) {
-				lg[i] = weights.get(i).longValue();
-			}
-			args.weights(lg);
+			args.weights(weights.stream().mapToDouble(it -> it).toArray());
 		}
+
 		return args;
 	}
 

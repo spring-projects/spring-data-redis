@@ -34,6 +34,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Numeric
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -1367,6 +1368,17 @@ public interface ReactiveZSetCommands {
 		}
 
 		/**
+		 * Applies the {@link Weights}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param weights must not be {@literal null}.
+		 * @return a new {@link ZUnionStoreCommand} with {@literal weights} applied.
+		 * @since 2.1
+		 */
+		public ZUnionStoreCommand applyWeights(Weights weights) {
+			return new ZUnionStoreCommand(getKey(), sourceKeys, weights.toList(), aggregateFunction);
+		}
+
+		/**
 		 * Applies a specific {@link Aggregate} function. Constructs a new command instance with all previously configured
 		 * properties.
 		 *
@@ -1441,6 +1453,21 @@ public interface ReactiveZSetCommands {
 	}
 
 	/**
+	 * Union sorted {@literal sets} and store result in destination {@literal destinationKey} and apply weights to
+	 * individual sets.
+	 *
+	 * @param destinationKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets, Weights weights) {
+		return zUnionStore(destinationKey, sets, weights, null);
+	}
+
+	/**
 	 * Union sorted {@literal sets} by applying {@literal aggregateFunction} and store result in destination
 	 * {@literal destinationKey} and apply weights to individual sets.
 	 *
@@ -1452,6 +1479,29 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets, List<Double> weights,
+			@Nullable Aggregate aggregateFunction) {
+
+		Assert.notNull(destinationKey, "DestinationKey must not be null!");
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return zUnionStore(Mono.just(
+				ZUnionStoreCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights).storeAs(destinationKey)))
+						.next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Union sorted {@literal sets} by applying {@literal aggregateFunction} and store result in destination
+	 * {@literal destinationKey} and apply weights to individual sets.
+	 *
+	 * @param destinationKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @param weights can be {@literal null}.
+	 * @param aggregateFunction can be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets, Weights weights,
 			@Nullable Aggregate aggregateFunction) {
 
 		Assert.notNull(destinationKey, "DestinationKey must not be null!");
@@ -1515,6 +1565,17 @@ public interface ReactiveZSetCommands {
 		 */
 		public ZInterStoreCommand applyWeights(List<Double> weights) {
 			return new ZInterStoreCommand(getKey(), sourceKeys, weights, aggregateFunction);
+		}
+
+		/**
+		 * Applies the {@link Weights}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param weights must not be {@literal null}.
+		 * @return a new {@link ZInterStoreCommand} with {@literal weights} applied.
+		 * @since 2.1
+		 */
+		public ZInterStoreCommand applyWeights(Weights weights) {
+			return new ZInterStoreCommand(getKey(), sourceKeys, weights.toList(), aggregateFunction);
 		}
 
 		/**
@@ -1592,6 +1653,21 @@ public interface ReactiveZSetCommands {
 	}
 
 	/**
+	 * Intersect sorted {@literal sets} and store result in destination {@literal destinationKey} and apply weights to
+	 * individual sets.
+	 *
+	 * @param destinationKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 */
+	default Mono<Long> zInterStore(ByteBuffer destinationKey, List<ByteBuffer> sets, Weights weights) {
+		return zInterStore(destinationKey, sets, weights, null);
+	}
+
+	/**
 	 * Intersect sorted {@literal sets} by applying {@literal aggregateFunction} and store result in destination
 	 * {@literal destinationKey} and apply weights to individual sets.
 	 *
@@ -1603,6 +1679,29 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	default Mono<Long> zInterStore(ByteBuffer destinationKey, List<ByteBuffer> sets, List<Double> weights,
+			@Nullable Aggregate aggregateFunction) {
+
+		Assert.notNull(destinationKey, "DestinationKey must not be null!");
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return zInterStore(Mono.just(
+				ZInterStoreCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights).storeAs(destinationKey)))
+						.next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Intersect sorted {@literal sets} by applying {@literal aggregateFunction} and store result in destination
+	 * {@literal destinationKey} and apply weights to individual sets.
+	 *
+	 * @param destinationKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @param aggregateFunction can be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 */
+	default Mono<Long> zInterStore(ByteBuffer destinationKey, List<ByteBuffer> sets, Weights weights,
 			@Nullable Aggregate aggregateFunction) {
 
 		Assert.notNull(destinationKey, "DestinationKey must not be null!");

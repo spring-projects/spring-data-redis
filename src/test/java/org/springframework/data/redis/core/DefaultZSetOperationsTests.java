@@ -42,6 +42,7 @@ import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
@@ -394,9 +395,42 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key1, value1, 4.0);
 		zSetOps.add(key2, value1, 3.0);
 
-		int weight[] = { 1, 2 };
+		zSetOps.unionAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MAX,
+				Weights.of(1, 2));
 
-		zSetOps.unionAndStore(key1, Collections.singletonList(key2), weight, key1, RedisZSetCommands.Aggregate.MAX);
+		assertThat(zSetOps.score(key1, value1), closeTo(6.0, 0.1));
+	}
+
+	@Test // DATAREDIS-746
+	public void testZsetIntersectWithAggregate() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOps.add(key1, value1, 1.0);
+		zSetOps.add(key1, value2, 2.0);
+		zSetOps.add(key2, value2, 3.0);
+
+		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MIN);
+
+		assertThat(zSetOps.score(key1, value2), closeTo(2.0, 0.1));
+	}
+
+	@Test // DATAREDIS-746
+	public void testZsetIntersectWithAggregateWeights() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+
+		zSetOps.add(key1, value1, 4.0);
+		zSetOps.add(key2, value1, 3.0);
+
+		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MAX,
+				Weights.of(1, 2));
 
 		assertThat(zSetOps.score(key1, value1), closeTo(6.0, 0.1));
 	}

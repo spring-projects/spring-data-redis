@@ -15,7 +15,13 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
+import java.util.function.DoubleUnaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
@@ -38,6 +44,128 @@ public interface RedisZSetCommands {
 	 */
 	enum Aggregate {
 		SUM, MIN, MAX;
+	}
+
+	/**
+	 * Value object encapsulating a multiplication factor for each input sorted set. This means that the score of every
+	 * element in every input sorted set is multiplied by this factor before being passed to the aggregation function.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.1
+	 */
+	class Weights {
+
+		private final double[] weights;
+
+		Weights(double[] weights) {
+			this.weights = weights;
+		}
+
+		/**
+		 * Create new {@link Weights} given {@code weights} as {@code int}.
+		 *
+		 * @param weights must not be {@literal null}.
+		 * @return the {@link Weights} for {@code weights}.
+		 */
+		public static Weights of(int... weights) {
+
+			Assert.notNull(weights, "Weights must not be null!");
+			return new Weights(Arrays.stream(weights).mapToDouble(value -> value).toArray());
+		}
+
+		/**
+		 * Create new {@link Weights} given {@code weights} as {@code double}.
+		 *
+		 * @param weights must not be {@literal null}.
+		 * @return the {@link Weights} for {@code weights}.
+		 */
+		public static Weights of(double... weights) {
+
+			Assert.notNull(weights, "Weights must not be null!");
+
+			return new Weights(Arrays.copyOf(weights, weights.length));
+		}
+
+		/**
+		 * Creates equal {@link Weights} for a number of input sets {@code count} with a weight of one.
+		 *
+		 * @param count number of input sets. Must be greater or equal to zero.
+		 * @return equal {@link Weights} for a number of input sets with a weight of one.
+		 */
+		public static Weights fromSetCount(int count) {
+
+			Assert.isTrue(count >= 0, "Count of input sorted sets must be greater or equal to zero!");
+
+			return new Weights(IntStream.range(0, count).mapToDouble(value -> 1).toArray());
+		}
+
+		/**
+		 * Creates a new {@link Weights} object that contains all weights multiplied by {@code multiplier}
+		 *
+		 * @param multiplier multiplier used to multiply each weight with.
+		 * @return equal {@link Weights} for a number of input sets with a weight of one.
+		 */
+		public Weights multiply(int multiplier) {
+			return apply(it -> it * multiplier);
+		}
+
+		/**
+		 * Creates a new {@link Weights} object that contains all weights multiplied by {@code multiplier}
+		 *
+		 * @param multiplier multiplier used to multiply each weight with.
+		 * @return equal {@link Weights} for a number of input sets with a weight of one.
+		 */
+		public Weights multiply(double multiplier) {
+			return apply(it -> it * multiplier);
+		}
+
+		/**
+		 * Creates a new {@link Weights} object that contains all weights with {@link DoubleUnaryOperator} applied.
+		 *
+		 * @param operator operator function.
+		 * @return the new {@link Weights} with {@link DoubleUnaryOperator} applied.
+		 */
+		public Weights apply(DoubleUnaryOperator operator) {
+			return new Weights(DoubleStream.of(weights).map(operator).toArray());
+		}
+
+		/**
+		 * Retrieve the weight at {@code index}.
+		 *
+		 * @param index the weight index.
+		 * @return the weight at {@code index}.
+		 * @throws IndexOutOfBoundsException if the index is out of range
+		 */
+		public double getWeight(int index) {
+
+			if (index > size() || index < 0) {
+				throw new IndexOutOfBoundsException("No such weight");
+			}
+
+			return weights[index];
+		}
+
+		/**
+		 * @return number of weights.
+		 */
+		public int size() {
+			return weights.length;
+		}
+
+		/**
+		 * @return an array containing all of the weights in this list in proper sequence (from first to last element).
+		 */
+		public double[] toArray() {
+			return Arrays.copyOf(weights, weights.length);
+		}
+
+		/**
+		 * @return a {@link List} containing all of the weights in this list in proper sequence (from first to last
+		 *         element).
+		 */
+		public List<Double> toList() {
+			return Arrays.stream(weights).boxed().collect(Collectors.toList());
+		}
 	}
 
 	/**
@@ -687,13 +815,27 @@ public interface RedisZSetCommands {
 	 *
 	 * @param destKey must not be {@literal null}.
 	 * @param aggregate must not be {@literal null}.
-	 * @param weights
+	 * @param weights must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	@Nullable
 	Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
+
+	/**
+	 * Union sorted {@code sets} and store result in destination {@code key}.
+	 *
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	@Nullable
+	Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets);
 
 	/**
 	 * Intersect sorted {@code sets} and store result in destination {@code key}.
@@ -718,6 +860,20 @@ public interface RedisZSetCommands {
 	 */
 	@Nullable
 	Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
+
+	/**
+	 * Intersect sorted {@code sets} and store result in destination {@code key}.
+	 *
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 */
+	@Nullable
+	Long zInterStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets);
 
 	/**
 	 * Use a {@link Cursor} to iterate over elements in sorted set at {@code key}.

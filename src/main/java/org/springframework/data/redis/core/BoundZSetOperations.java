@@ -22,6 +22,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.lang.Nullable;
 
@@ -278,13 +279,13 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
 	 *
 	 * @param otherKeys must not be {@literal null}.
-	 * @param weights must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
 	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	void unionAndStore(Collection<K> otherKeys, int[] weights, K destKey, Aggregate aggregate);
+	void unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
 
 	/**
 	 * Intersect sorted sets at the bound key and {@code otherKey} and store result in destination {@code destKey}.
@@ -303,6 +304,29 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	void intersectAndStore(Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Intersect sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 */
+	void intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate);
+
+	/**
+	 * Intersect sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 */
+	void intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
 
 	/**
 	 * Iterate over elements in zset at the bound key. <br />
