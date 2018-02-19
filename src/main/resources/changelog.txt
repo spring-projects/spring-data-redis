@@ -1,6 +1,17 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.0.4.RELEASE (2018-02-19)
+---------------------------------------------
+* DATAREDIS-773 - Upgrade to Lettuce 5.0.2.RELEASE.
+* DATAREDIS-768 - Redis repositories deserialize Map<Integer, Integer> to strings.
+* DATAREDIS-767 - RedisCacheManager always returns/creates caches which is conflicting with CompositeCacheManager.
+* DATAREDIS-765 - Sentinel with JedisConnectionFactory without pooling connects to localhost:6379.
+* DATAREDIS-764 - Polish serializers section in reference documentation.
+* DATAREDIS-760 - Release 2.0.4 (Kay SR4).
+* DATAREDIS-715 - Cannot configure RedisCache prefix.
+
+
 Changes in version 2.1.0.M1 (2018-02-06)
 ----------------------------------------
 * DATAREDIS-765 - Sentinel with JedisConnectionFactory without pooling connects to localhost:6379.
