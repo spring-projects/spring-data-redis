@@ -25,6 +25,8 @@ import io.lettuce.core.masterslave.StatefulRedisMasterSlaveConnection;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import org.springframework.lang.Nullable;
 
@@ -75,6 +77,29 @@ class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider
 			readFrom.ifPresent(connection::setReadFrom);
 
 			return connectionType.cast(connection);
+		}
+
+		throw new UnsupportedOperationException(String.format("Connection type %s not supported!", connectionType));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
+	 */
+	@Override
+	public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType) {
+
+		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
+
+			// See https://github.com/lettuce-io/lettuce-core/issues/845 for MasterSlave -> MasterReplica change.
+			CompletableFuture<? extends StatefulRedisMasterSlaveConnection<?, ?>> connection = MasterSlave
+					.connectAsync(client, codec, nodes);
+
+			connection.thenApply(it -> {
+
+				readFrom.ifPresent(readFrom -> it.setReadFrom(readFrom));
+				return connectionType.cast(connection);
+			});
 		}
 
 		throw new UnsupportedOperationException(String.format("Connection type %s not supported!", connectionType));

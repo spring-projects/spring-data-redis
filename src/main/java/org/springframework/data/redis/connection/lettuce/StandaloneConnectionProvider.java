@@ -21,12 +21,15 @@ import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.codec.StringCodec;
 import io.lettuce.core.masterslave.MasterSlave;
 import io.lettuce.core.masterslave.StatefulRedisMasterSlaveConnection;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -74,7 +77,7 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 
 		redisURISupplier = new Supplier<RedisURI>() {
 
-			AtomicReference<RedisURI> uriFieldReference = new AtomicReference();
+			AtomicReference<RedisURI> uriFieldReference = new AtomicReference<>();
 
 			@Override
 			public RedisURI get() {
@@ -95,7 +98,6 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
 	 */
-	@SuppressWarnings("null")
 	@Override
 	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
 
@@ -118,27 +120,38 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware#getConnection(java.lang.Class, io.lettuce.core.RedisURI)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
 	 */
-	@SuppressWarnings("null")
 	@Override
-	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType, RedisURI redisURI) {
+	public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType) {
+		return getConnectionAsync(connectionType, redisURISupplier.get());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware#getConnectionAsync(java.lang.Class, io.lettuce.core.RedisURI)
+	 */
+	@SuppressWarnings({ "null", "unchecked", "rawtypes" })
+	@Override
+	public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType,
+			RedisURI redisURI) {
 
 		if (connectionType.equals(StatefulRedisSentinelConnection.class)) {
-			return connectionType.cast(client.connectSentinel(redisURI));
+			return client.connectSentinelAsync(StringCodec.UTF8, redisURI).thenApply(connectionType::cast);
 		}
 
 		if (connectionType.equals(StatefulRedisPubSubConnection.class)) {
-			return connectionType.cast(client.connectPubSub(codec, redisURI));
+			return client.connectPubSubAsync(codec, redisURI).thenApply(connectionType::cast);
 		}
 
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
-
-			return connectionType
-					.cast(readFrom.map(it -> this.masterReplicaConnection(redisURI, it)).orElseGet(() -> client.connect(codec)));
+			return readFrom.map(it -> this.masterReplicaConnectionAsync(redisURI, it)) //
+					.orElseGet(() -> (CompletionStage) client.connectAsync(codec, redisURI)) //
+					.thenApply(connectionType::cast);
 		}
 
-		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");
+		return LettuceFutureUtils
+				.failed(new UnsupportedOperationException("Connection type " + connectionType + " not supported!"));
 	}
 
 	private StatefulRedisConnection masterReplicaConnection(RedisURI redisUri, ReadFrom readFrom) {
@@ -150,4 +163,17 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 		return connection;
 	}
 
+	private CompletionStage<StatefulRedisConnection<?, ?>> masterReplicaConnectionAsync(RedisURI redisUri,
+			ReadFrom readFrom) {
+
+		CompletableFuture<? extends StatefulRedisMasterSlaveConnection<?, ?>> connection = MasterSlave.connectAsync(client,
+				codec, redisUri);
+
+		return connection.thenApply(conn -> {
+
+			conn.setReadFrom(readFrom);
+
+			return conn;
+		});
+	}
 }

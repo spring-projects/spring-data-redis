@@ -16,14 +16,17 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
 import io.lettuce.core.RedisURI.Builder;
 import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.codec.StringCodec;
 import io.lettuce.core.resource.ClientResources;
 import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
 import io.lettuce.core.sentinel.api.sync.RedisSentinelCommands;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
@@ -99,6 +102,11 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 			public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> t) {
 				return t.cast(redisClient.connectSentinel());
 			}
+
+			@Override
+			public <T extends StatefulConnection<?, ?>> CompletableFuture<T> getConnectionAsync(Class<T> t) {
+				return CompletableFuture.completedFuture(t.cast(connection));
+			}
 		};
 		init();
 	}
@@ -115,6 +123,11 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 			@Override
 			public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> t) {
 				return t.cast(connection);
+			}
+
+			@Override
+			public <T extends StatefulConnection<?, ?>> CompletableFuture<T> getConnectionAsync(Class<T> t) {
+				return CompletableFuture.completedFuture(t.cast(connection));
 			}
 		};
 		init();
@@ -253,12 +266,14 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	private static class DedicatedClientConnectionProvider implements LettuceConnectionProvider {
 
 		private final RedisClient redisClient;
+		private final RedisURI uri;
 
 		DedicatedClientConnectionProvider(String host, int port) {
 
 			Assert.notNull(host, "Cannot create LettuceSentinelConnection using 'null' as host.");
 
-			redisClient = RedisClient.create(Builder.redis(host, port).build());
+			uri = Builder.redis(host, port).build();
+			redisClient = RedisClient.create(uri);
 		}
 
 		DedicatedClientConnectionProvider(String host, int port, ClientResources clientResources) {
@@ -266,16 +281,17 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 			Assert.notNull(clientResources, "Cannot create LettuceSentinelConnection using 'null' as ClientResources.");
 			Assert.notNull(host, "Cannot create LettuceSentinelConnection using 'null' as host.");
 
-			redisClient = RedisClient.create(clientResources, Builder.redis(host, port).build());
+			this.uri = Builder.redis(host, port).build();
+			redisClient = RedisClient.create(clientResources, uri);
 		}
 
-		/*
+		/* 
 		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
 		 */
 		@Override
-		public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
-			return connectionType.cast(redisClient.connectSentinel());
+		public <T extends StatefulConnection<?, ?>> CompletableFuture<T> getConnectionAsync(Class<T> connectionType) {
+			return redisClient.connectSentinelAsync(StringCodec.UTF8, uri).thenApply(connectionType::cast);
 		}
 
 		/*
@@ -287,6 +303,16 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 
 			connection.close();
 			redisClient.shutdown();
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#releaseAsync(io.lettuce.core.api.StatefulConnection)
+		 */
+		@Override
+		public CompletableFuture<Void> releaseAsync(StatefulConnection<?, ?> connection) {
+			return connection.closeAsync().exceptionally(LettuceFutureUtils.ignoreErrors())
+					.thenCompose(it -> redisClient.shutdownAsync());
 		}
 	}
 }

@@ -27,7 +27,6 @@ import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
@@ -53,7 +52,8 @@ public class LettuceReactiveRedisConnectionUnitTests {
 
 	@Before
 	public void before() {
-		when(connectionProvider.getConnection(any())).thenReturn(sharedConnection);
+		when(connectionProvider.getConnectionAsync(any())).thenReturn(CompletableFuture.completedFuture(sharedConnection));
+		when(connectionProvider.releaseAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
 		when(sharedConnection.reactive()).thenReturn(reactiveCommands);
 	}
 
@@ -65,24 +65,24 @@ public class LettuceReactiveRedisConnectionUnitTests {
 		verifyZeroInteractions(connectionProvider);
 	}
 
-	@Test // DATAREDIS-720
+	@Test // DATAREDIS-720, DATAREDIS-721
 	public void shouldExecuteUsingConnectionProvider() {
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 
 		StepVerifier.create(connection.execute(cmd -> Mono.just("foo"))).expectNext("foo").verifyComplete();
 
-		verify(connectionProvider).getConnection(StatefulConnection.class);
+		verify(connectionProvider).getConnectionAsync(StatefulConnection.class);
 	}
 
-	@Test // DATAREDIS-720
+	@Test // DATAREDIS-720, DATAREDIS-721
 	public void shouldExecuteDedicatedUsingConnectionProvider() {
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 
 		StepVerifier.create(connection.executeDedicated(cmd -> Mono.just("foo"))).expectNext("foo").verifyComplete();
 
-		verify(connectionProvider).getConnection(StatefulConnection.class);
+		verify(connectionProvider).getConnectionAsync(StatefulConnection.class);
 	}
 
 	@Test // DATAREDIS-720
@@ -96,7 +96,7 @@ public class LettuceReactiveRedisConnectionUnitTests {
 		verifyZeroInteractions(connectionProvider);
 	}
 
-	@Test // DATAREDIS-720
+	@Test // DATAREDIS-720, DATAREDIS-721
 	public void shouldExecuteDedicatedWithSharedConnection() {
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(sharedConnection,
@@ -104,20 +104,20 @@ public class LettuceReactiveRedisConnectionUnitTests {
 
 		StepVerifier.create(connection.executeDedicated(cmd -> Mono.just("foo"))).expectNext("foo").verifyComplete();
 
-		verify(connectionProvider).getConnection(StatefulConnection.class);
+		verify(connectionProvider).getConnectionAsync(StatefulConnection.class);
 	}
 
-	@Test // DATAREDIS-720
+	@Test // DATAREDIS-720, DATAREDIS-721
 	public void shouldOperateOnDedicatedConnection() {
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 
 		StepVerifier.create(connection.getConnection()).expectNextCount(1).verifyComplete();
 
-		verify(connectionProvider).getConnection(StatefulConnection.class);
+		verify(connectionProvider).getConnectionAsync(StatefulConnection.class);
 	}
 
-	@Test // DATAREDIS-720
+	@Test // DATAREDIS-720, DATAREDIS-721
 	public void shouldCloseOnlyDedicatedConnection() {
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(sharedConnection,
@@ -128,11 +128,11 @@ public class LettuceReactiveRedisConnectionUnitTests {
 
 		connection.close();
 
-		verify(sharedConnection, never()).close();
-		verify(connectionProvider, times(1)).release(sharedConnection);
+		verify(sharedConnection, never()).closeAsync();
+		verify(connectionProvider, times(1)).releaseAsync(sharedConnection);
 	}
 
-	@Test // DATAREDIS-720
+	@Test // DATAREDIS-720, DATAREDIS-721
 	public void shouldCloseConnectionOnlyOnce() {
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
@@ -142,21 +142,16 @@ public class LettuceReactiveRedisConnectionUnitTests {
 		connection.close();
 		connection.close();
 
-		verify(connectionProvider, times(1)).release(sharedConnection);
+		verify(connectionProvider, times(1)).releaseAsync(sharedConnection);
 	}
 
-	@Test // DATAREDIS-720
+	@Test // DATAREDIS-720, DATAREDIS-721
 	@SuppressWarnings("unchecked")
 	public void multipleCallsInProgressShouldConnectOnlyOnce() throws Exception {
 
-		CountDownLatch latch = new CountDownLatch(1);
-
+		CompletableFuture<StatefulConnection<?, ?>> connectionFuture = new CompletableFuture<>();
 		reset(connectionProvider);
-		when(connectionProvider.getConnection(any())).thenAnswer(invocation -> {
-
-			latch.await();
-			return sharedConnection;
-		});
+		when(connectionProvider.getConnectionAsync(any())).thenReturn(connectionFuture);
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 
@@ -168,9 +163,9 @@ public class LettuceReactiveRedisConnectionUnitTests {
 		assertThat(first).isNotDone();
 		assertThat(second).isNotDone();
 
-		verify(connectionProvider, times(1)).getConnection(StatefulConnection.class);
+		verify(connectionProvider, times(1)).getConnectionAsync(StatefulConnection.class);
 
-		latch.countDown();
+		connectionFuture.complete(sharedConnection);
 
 		first.get(10, TimeUnit.SECONDS);
 		second.get(10, TimeUnit.SECONDS);
@@ -179,24 +174,25 @@ public class LettuceReactiveRedisConnectionUnitTests {
 		assertThat(second).isCompletedWithValue(sharedConnection);
 	}
 
-	@Test // DATAREDIS-720
+	@Test // DATAREDIS-720, DATAREDIS-721
 	public void shouldPropagateConnectionFailures() {
 
 		reset(connectionProvider);
-		when(connectionProvider.getConnection(any())).thenThrow(new RedisConnectionException("something went wrong"));
+		when(connectionProvider.getConnectionAsync(any()))
+				.thenReturn(LettuceFutureUtils.failed(new RedisConnectionException("something went wrong")));
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 
 		StepVerifier.create(connection.getConnection()).expectError(RedisConnectionFailureException.class).verify();
 	}
 
-	@Test(expected = IllegalStateException.class) // DATAREDIS-720
+	@Test // DATAREDIS-720, DATAREDIS-721
 	public void shouldRejectCommandsAfterClose() {
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 		connection.close();
 
-		connection.getConnection();
+		StepVerifier.create(connection.getConnection()).expectError(IllegalStateException.class).verify();
 	}
 
 	@Test // DATAREDIS-659, DATAREDIS-708

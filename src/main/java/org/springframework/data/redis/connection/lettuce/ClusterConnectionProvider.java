@@ -23,6 +23,7 @@ import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -39,6 +40,10 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 	private final RedisClusterClient client;
 	private final RedisCodec<?, ?> codec;
 	private final Optional<ReadFrom> readFrom;
+
+	private final Object monitor = new Object();
+
+	private volatile boolean initialized;
 
 	/**
 	 * Create new {@link ClusterConnectionProvider}.
@@ -70,25 +75,39 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
 	 */
 	@Override
-	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
+	public <T extends StatefulConnection<?, ?>> CompletableFuture<T> getConnectionAsync(Class<T> connectionType) {
+
+		if (!initialized) {
+
+			// partitions have to be initialized before asynchronous usage.
+			// Needs to happen only once. Initialize eagerly if
+			// blocking is not an options.
+			synchronized (monitor) {
+				if (!initialized) {
+					client.getPartitions();
+					initialized = true;
+				}
+			}
+		}
 
 		if (connectionType.equals(StatefulRedisPubSubConnection.class)) {
-			return connectionType.cast(client.connectPubSub(codec));
+			return client.connectPubSubAsync(codec).thenApply(connectionType::cast);
 		}
 
 		if (StatefulRedisClusterConnection.class.isAssignableFrom(connectionType)
 				|| connectionType.equals(StatefulConnection.class)) {
 
-			StatefulRedisClusterConnection<?, ?> connection = client.connect(codec);
-			readFrom.ifPresent(connection::setReadFrom);
-
-			return connectionType.cast(connection);
+			return client.connectAsync(codec).thenApply(conn -> {
+				readFrom.ifPresent(conn::setReadFrom);
+				return connectionType.cast(conn);
+			});
 		}
 
-		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");
+		return LettuceFutureUtils
+				.failed(new UnsupportedOperationException("Connection type " + connectionType + " not supported!"));
 	}
 
 	/*

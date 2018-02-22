@@ -101,6 +101,7 @@ public class LettuceConnectionFactory
 	private @Nullable LettuceConnectionProvider reactiveConnectionProvider;
 	private boolean validateConnection = false;
 	private boolean shareNativeConnection = true;
+	private boolean eagerInitialization = false;
 	private @Nullable SharedConnection<byte[]> connection;
 	private @Nullable SharedConnection<ByteBuffer> reactiveConnection;
 	private @Nullable LettucePool pool;
@@ -279,6 +280,10 @@ public class LettuceConnectionFactory
 					new LettuceClusterTopologyProvider((RedisClusterClient) client),
 					new LettuceClusterConnection.LettuceClusterNodeResourceProvider(this.connectionProvider),
 					EXCEPTION_TRANSLATION);
+		}
+
+		if (getEagerInitialization() && getShareNativeConnection()) {
+			initConnection();
 		}
 	}
 
@@ -627,6 +632,30 @@ public class LettuceConnectionFactory
 	 */
 	public void setShareNativeConnection(boolean shareNativeConnection) {
 		this.shareNativeConnection = shareNativeConnection;
+	}
+
+	/**
+	 * Indicates {@link #setShareNativeConnection(boolean) shared connections} should be eagerly initialized. Eager
+	 * initialization requires a running Redis instance during application startup to allow early validation of connection
+	 * factory configuration. Eager initialization also prevents blocking connect while using reactive API and is
+	 * recommended for reactive API usage.
+	 *
+	 * @return {@link true} if the shared connection is initialized upon {@link #afterPropertiesSet()}.
+	 * @since 2.2
+	 */
+	public boolean getEagerInitialization() {
+		return eagerInitialization;
+	}
+
+	/**
+	 * Enables eager initialization of {@link #setShareNativeConnection(boolean) shared connections}.
+	 *
+	 * @param eagerInitialization enable eager connection shared connection initialization upon
+	 *          {@link #afterPropertiesSet()}.
+	 * @since 2.2
+	 */
+	public void setEagerInitialization(boolean eagerInitialization) {
+		this.eagerInitialization = eagerInitialization;
 	}
 
 	/**
