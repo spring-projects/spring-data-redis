@@ -29,6 +29,8 @@ import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.ByteArrayCodec;
@@ -38,6 +40,7 @@ import io.lettuce.core.resource.ClientResources;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.After;
 import org.junit.Before;
@@ -590,7 +593,7 @@ public class LettuceConnectionFactoryUnitTests {
 
 		RedisClusterClient clientMock = mock(RedisClusterClient.class);
 		StatefulRedisClusterConnection<byte[], byte[]> connectionMock = mock(StatefulRedisClusterConnection.class);
-		when(clientMock.connect(ByteArrayCodec.INSTANCE)).thenReturn(connectionMock);
+		when(clientMock.connectAsync(ByteArrayCodec.INSTANCE)).thenReturn(CompletableFuture.completedFuture(connectionMock));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
 				LettuceClientConfiguration.defaultConfiguration()) {
@@ -608,7 +611,31 @@ public class LettuceConnectionFactoryUnitTests {
 		connectionFactory.getClusterConnection().close();
 		connectionFactory.getClusterConnection().close();
 
-		verify(clientMock).connect(ArgumentMatchers.any(RedisCodec.class));
+		verify(clientMock).connectAsync(ArgumentMatchers.any(RedisCodec.class));
+	}
+
+	@Test // DATAREDIS-721
+	@SuppressWarnings("unchecked")
+	public void shouldEagerlyInitializeSharedConnection() {
+
+		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class);
+		StatefulRedisConnection connectionMock = mock(StatefulRedisConnection.class);
+
+		when(connectionProviderMock.getConnectionAsync(any()))
+				.thenReturn(CompletableFuture.completedFuture(connectionMock));
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory() {
+			@Override
+			protected LettuceConnectionProvider doCreateConnectionProvider(AbstractRedisClient client,
+																		   RedisCodec<?, ?> codec) {
+				return connectionProviderMock;
+			}
+		};
+		connectionFactory.setEagerInitialization(true);
+
+		connectionFactory.afterPropertiesSet();
+
+		verify(connectionProviderMock, times(2)).getConnection(StatefulConnection.class);
 	}
 
 	@Test // DATAREDIS-842

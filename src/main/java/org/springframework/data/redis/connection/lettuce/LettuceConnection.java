@@ -49,6 +49,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -1253,11 +1254,28 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		private final LettucePool pool;
 
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
+		 */
 		@Override
 		public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
 			return connectionType.cast(pool.getResource());
 		}
 
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
+		 */
+		@Override
+		public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType) {
+			throw new UnsupportedOperationException("Async operations not supported!");
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#release(io.lettuce.core.api.StatefulConnection)
+		 */
 		@Override
 		@SuppressWarnings("unchecked")
 		public void release(StatefulConnection<?, ?> connection) {

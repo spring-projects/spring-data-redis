@@ -21,6 +21,7 @@ import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 
+import io.lettuce.core.ConnectionFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import io.lettuce.core.cluster.RedisClusterClient;
@@ -30,6 +31,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -60,8 +62,8 @@ public class LettuceReactiveRedisClusterConnectionUnitTests {
 	@Before
 	public void before() {
 
-		when(connectionProvider.getConnection(any())).thenReturn(sharedConnection);
-		when(sharedConnection.getConnection(anyString(), anyInt())).thenReturn(nodeConnection);
+		when(connectionProvider.getConnectionAsync(any())).thenReturn(CompletableFuture.completedFuture(sharedConnection));
+		when(sharedConnection.getConnectionAsync(anyString(), anyInt())).thenReturn(CompletableFuture.completedFuture(nodeConnection));
 		when(nodeConnection.reactive()).thenReturn(reactiveNodeCommands);
 	}
 
