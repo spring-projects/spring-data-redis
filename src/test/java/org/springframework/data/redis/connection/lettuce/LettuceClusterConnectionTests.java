@@ -28,6 +28,7 @@ import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 
 import java.nio.charset.Charset;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -41,16 +42,10 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.ClusterConnectionTests;
-import org.springframework.data.redis.connection.ClusterSlotHashUtil;
-import org.springframework.data.redis.connection.DataType;
-import org.springframework.data.redis.connection.DefaultSortParameters;
-import org.springframework.data.redis.connection.DefaultTuple;
-import org.springframework.data.redis.connection.RedisClusterNode;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
@@ -119,6 +114,47 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.getStatefulConnection().close();
 		clusterConnection.close();
 		client.shutdown(0, 0, TimeUnit.MILLISECONDS);
+	}
+
+	@Test // DATAREDIS-775
+	public void shouldCreateConnectionWithPooling() {
+
+		LettuceConnectionFactory factory = createConnectionFactory();
+		factory.afterPropertiesSet();
+
+		RedisConnection connection = factory.getConnection();
+
+		assertThat(connection.ping(), is("PONG"));
+		connection.close();
+
+		factory.destroy();
+	}
+
+	@Test // DATAREDIS-775
+	public void shouldCreateClusterConnectionWithPooling() {
+
+		LettuceConnectionFactory factory = createConnectionFactory();
+		factory.afterPropertiesSet();
+
+		RedisClusterConnection clusterConnection = factory.getClusterConnection();
+
+		assertThat(clusterConnection.ping(ClusterTestVariables.CLUSTER_NODE_1), is("PONG"));
+		clusterConnection.close();
+
+		factory.destroy();
+	}
+
+	private static LettuceConnectionFactory createConnectionFactory() {
+
+		LettucePoolingClientConfiguration clientConfiguration = LettucePoolingClientConfiguration.builder() //
+				.clientResources(LettuceTestClientResources.getSharedClientResources()) //
+				.shutdownTimeout(Duration.ZERO) //
+				.build();
+
+		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
+		clusterConfiguration.addClusterNode(ClusterTestVariables.CLUSTER_NODE_1);
+
+		return new LettuceConnectionFactory(clusterConfiguration, clientConfiguration);
 	}
 
 	@Test // DATAREDIS-315

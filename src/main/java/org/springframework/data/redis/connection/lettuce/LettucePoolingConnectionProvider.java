@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.support.ConnectionPoolSupport;
 
@@ -42,7 +43,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  * @see #getConnection(Class)
  */
-class LettucePoolingConnectionProvider implements LettuceConnectionProvider, DisposableBean {
+class LettucePoolingConnectionProvider implements LettuceConnectionProvider, RedisClientProvider,  DisposableBean {
 
 	private final static Log log = LogFactory.getLog(LettucePoolingConnectionProvider.class);
 
@@ -84,6 +85,22 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Dis
 		} catch (Exception e) {
 			throw new PoolException("Could not get a resource from the pool", e);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.RedisClientProvider#getRedisClient()
+	 */
+	@Override
+	public AbstractRedisClient getRedisClient() {
+
+		if (connectionProvider instanceof RedisClientProvider) {
+			return ((RedisClientProvider) connectionProvider).getRedisClient();
+		}
+
+		throw new IllegalStateException(
+				String.format("Undyerlying connection provider %s does not implement RedisClientProvider!",
+						connectionProvider.getClass().getName()));
 	}
 
 	/*
