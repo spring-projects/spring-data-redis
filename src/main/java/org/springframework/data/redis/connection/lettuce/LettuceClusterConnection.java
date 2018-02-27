@@ -154,7 +154,15 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	 * @return access to {@link RedisClusterClient} for non-connection access.
 	 */
 	private RedisClusterClient getClient() {
-		return ((ClusterConnectionProvider) getConnectionProvider()).getClient();
+
+		LettuceConnectionProvider connectionProvider = getConnectionProvider();
+
+		if (connectionProvider instanceof RedisClientProvider) {
+			return (RedisClusterClient) ((RedisClientProvider) getConnectionProvider()).getRedisClient();
+		}
+
+		throw new IllegalStateException(String.format("Connection provider %s does not implement RedisClientProvider!",
+				connectionProvider.getClass().getName()));
 	}
 
 	/*
