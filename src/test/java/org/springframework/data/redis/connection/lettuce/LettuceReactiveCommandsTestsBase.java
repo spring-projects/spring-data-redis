@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
-import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
@@ -123,7 +122,7 @@ public abstract class LettuceReactiveCommandsTestsBase {
 			ClusterConnectionProvider clusterConnectionProvider = (ClusterConnectionProvider) nativeConnectionProvider;
 			nativeCommands = nativeConnectionProvider.getConnection(StatefulRedisClusterConnection.class).sync();
 			this.connection = new LettuceReactiveRedisClusterConnection(connectionProvider,
-					(RedisClusterClient) clusterConnectionProvider.getRedisClient());
+					clusterConnectionProvider.getRedisClient());
 		}
 	}
 

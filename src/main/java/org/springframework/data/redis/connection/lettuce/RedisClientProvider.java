@@ -28,7 +28,7 @@ interface RedisClientProvider {
 	/**
 	 * Returns the underlying Redis Client.
 	 *
-	 * @return the {@link AbstractRedisClient}.
+	 * @return the {@link AbstractRedisClient}. Never {@literal null}.
 	 */
 	AbstractRedisClient getRedisClient();
 }
