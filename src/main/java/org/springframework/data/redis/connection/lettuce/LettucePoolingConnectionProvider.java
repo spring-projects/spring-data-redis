@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  * @see #getConnection(Class)
  */
-class LettucePoolingConnectionProvider implements LettuceConnectionProvider, RedisClientProvider,  DisposableBean {
+class LettucePoolingConnectionProvider implements LettuceConnectionProvider, RedisClientProvider, DisposableBean {
 
 	private final static Log log = LogFactory.getLog(LettucePoolingConnectionProvider.class);
 

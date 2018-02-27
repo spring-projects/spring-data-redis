@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.cluster.RedisClusterClient;
@@ -97,7 +96,7 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 	 * @see org.springframework.data.redis.connection.lettuce.RedisClientProvider#getRedisClient()
 	 */
 	@Override
-	public AbstractRedisClient getRedisClient() {
+	public RedisClusterClient getRedisClient() {
 		return client;
 	}
 }
