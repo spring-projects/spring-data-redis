@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.cluster.RedisClusterClient;
@@ -34,7 +35,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.0
  */
-class ClusterConnectionProvider implements LettuceConnectionProvider {
+class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClientProvider {
 
 	private final RedisClusterClient client;
 	private final RedisCodec<?, ?> codec;
@@ -91,7 +92,12 @@ class ClusterConnectionProvider implements LettuceConnectionProvider {
 		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");
 	}
 
-	public RedisClusterClient getClient() {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.RedisClientProvider#getRedisClient()
+	 */
+	@Override
+	public AbstractRedisClient getRedisClient() {
 		return client;
 	}
 }
