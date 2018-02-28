@@ -1,6 +1,12 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.0.5.RELEASE (2018-02-28)
+---------------------------------------------
+* DATAREDIS-775 - ClassCastException when using Redis Cluster with connection pooling.
+* DATAREDIS-774 - Release 2.0.5 (Kay SR5).
+
+
 Changes in version 2.0.4.RELEASE (2018-02-19)
 ---------------------------------------------
 * DATAREDIS-773 - Upgrade to Lettuce 5.0.2.RELEASE.
