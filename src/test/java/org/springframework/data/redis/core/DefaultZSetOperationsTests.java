@@ -53,7 +53,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Mark Paluch
- * @author wongoo
+ * @author Wongoo (望哥)
  * @param <K> Key type
  * @param <V> Value type
  */
@@ -378,7 +378,6 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key1, value1, 1.0);
 		zSetOps.add(key1, value2, 2.0);
 		zSetOps.add(key2, value2, 3.0);
-
 
 		zSetOps.unionAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MIN);
 

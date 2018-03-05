@@ -16,9 +16,11 @@
 package org.springframework.data.redis.connection;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -51,13 +53,14 @@ public interface RedisZSetCommands {
 	 * element in every input sorted set is multiplied by this factor before being passed to the aggregation function.
 	 *
 	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 * @since 2.1
 	 */
 	class Weights {
 
-		private final double[] weights;
+		private final List<Double> weights;
 
-		Weights(double[] weights) {
+		private Weights(List<Double> weights) {
 			this.weights = weights;
 		}
 
@@ -70,7 +73,7 @@ public interface RedisZSetCommands {
 		public static Weights of(int... weights) {
 
 			Assert.notNull(weights, "Weights must not be null!");
-			return new Weights(Arrays.stream(weights).mapToDouble(value -> value).toArray());
+			return new Weights(Arrays.stream(weights).mapToDouble(value -> value).boxed().collect(Collectors.toList()));
 		}
 
 		/**
@@ -83,7 +86,7 @@ public interface RedisZSetCommands {
 
 			Assert.notNull(weights, "Weights must not be null!");
 
-			return new Weights(Arrays.copyOf(weights, weights.length));
+			return new Weights(DoubleStream.of(weights).boxed().collect(Collectors.toList()));
 		}
 
 		/**
@@ -96,7 +99,7 @@ public interface RedisZSetCommands {
 
 			Assert.isTrue(count >= 0, "Count of input sorted sets must be greater or equal to zero!");
 
-			return new Weights(IntStream.range(0, count).mapToDouble(value -> 1).toArray());
+			return new Weights(IntStream.range(0, count).mapToDouble(value -> 1).boxed().collect(Collectors.toList()));
 		}
 
 		/**
@@ -120,13 +123,13 @@ public interface RedisZSetCommands {
 		}
 
 		/**
-		 * Creates a new {@link Weights} object that contains all weights with {@link DoubleUnaryOperator} applied.
+		 * Creates a new {@link Weights} object that contains all weights with {@link Function} applied.
 		 *
 		 * @param operator operator function.
 		 * @return the new {@link Weights} with {@link DoubleUnaryOperator} applied.
 		 */
-		public Weights apply(DoubleUnaryOperator operator) {
-			return new Weights(DoubleStream.of(weights).map(operator).toArray());
+		public Weights apply(Function<Double, Double> operator) {
+			return new Weights(weights.stream().map(operator).collect(Collectors.toList()));
 		}
 
 		/**
@@ -137,26 +140,21 @@ public interface RedisZSetCommands {
 		 * @throws IndexOutOfBoundsException if the index is out of range
 		 */
 		public double getWeight(int index) {
-
-			if (index > size() || index < 0) {
-				throw new IndexOutOfBoundsException("No such weight");
-			}
-
-			return weights[index];
+			return weights.get(index);
 		}
 
 		/**
 		 * @return number of weights.
 		 */
 		public int size() {
-			return weights.length;
+			return weights.size();
 		}
 
 		/**
 		 * @return an array containing all of the weights in this list in proper sequence (from first to last element).
 		 */
 		public double[] toArray() {
-			return Arrays.copyOf(weights, weights.length);
+			return weights.stream().mapToDouble(Double::doubleValue).toArray();
 		}
 
 		/**
@@ -164,7 +162,7 @@ public interface RedisZSetCommands {
 		 *         element).
 		 */
 		public List<Double> toList() {
-			return Arrays.stream(weights).boxed().collect(Collectors.toList());
+			return Collections.unmodifiableList(weights);
 		}
 	}
 
@@ -821,7 +819,9 @@ public interface RedisZSetCommands {
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	@Nullable
-	Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
+	default Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+		return zUnionStore(destKey, aggregate, Weights.of(weights), sets);
+	}
 
 	/**
 	 * Union sorted {@code sets} and store result in destination {@code key}.
@@ -859,7 +859,9 @@ public interface RedisZSetCommands {
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	@Nullable
-	Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
+	default Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+		return zInterStore(destKey, aggregate, Weights.of(weights), sets);
+	}
 
 	/**
 	 * Intersect sorted {@code sets} and store result in destination {@code key}.

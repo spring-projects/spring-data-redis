@@ -32,7 +32,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
- * @author wongoo
+ * @author Wongoo (望哥)
  */
 class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundZSetOperations<K, V> {
 

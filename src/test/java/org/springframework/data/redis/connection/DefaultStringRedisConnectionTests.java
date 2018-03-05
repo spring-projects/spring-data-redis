@@ -18,7 +18,16 @@ package org.springframework.data.redis.connection;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
@@ -38,6 +47,7 @@ import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOpt
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -1286,14 +1296,14 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testZInterStoreAggWeightsBytes() {
-		doReturn(5l).when(nativeConnection).zInterStore(fooBytes, Aggregate.MAX, new int[0], fooBytes);
+		doReturn(5l).when(nativeConnection).zInterStore(eq(fooBytes), eq(Aggregate.MAX), any(Weights.class), eq(fooBytes));
 		actual.add(connection.zInterStore(fooBytes, Aggregate.MAX, new int[0], fooBytes));
 		verifyResults(Arrays.asList(new Object[] { 5l }));
 	}
 
 	@Test
 	public void testZInterStoreAggWeights() {
-		doReturn(5l).when(nativeConnection).zInterStore(fooBytes, Aggregate.MAX, new int[0], fooBytes);
+		doReturn(5l).when(nativeConnection).zInterStore(eq(fooBytes), eq(Aggregate.MAX), any(Weights.class), eq(fooBytes));
 		actual.add(connection.zInterStore(foo, Aggregate.MAX, new int[0], foo));
 		verifyResults(Arrays.asList(new Object[] { 5l }));
 	}
@@ -1566,14 +1576,14 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testZUnionStoreAggWeightsBytes() {
-		doReturn(5l).when(nativeConnection).zUnionStore(fooBytes, Aggregate.MAX, new int[0], fooBytes);
+		doReturn(5l).when(nativeConnection).zUnionStore(eq(fooBytes), eq(Aggregate.MAX), any(Weights.class), eq(fooBytes));
 		actual.add(connection.zUnionStore(fooBytes, Aggregate.MAX, new int[0], fooBytes));
 		verifyResults(Arrays.asList(new Object[] { 5l }));
 	}
 
 	@Test
 	public void testZUnionStoreAggWeights() {
-		doReturn(5l).when(nativeConnection).zUnionStore(fooBytes, Aggregate.MAX, new int[0], fooBytes);
+		doReturn(5l).when(nativeConnection).zUnionStore(eq(fooBytes), eq(Aggregate.MAX), any(Weights.class), eq(fooBytes));
 		actual.add(connection.zUnionStore(foo, Aggregate.MAX, new int[0], foo));
 		verifyResults(Arrays.asList(new Object[] { 5l }));
 	}
@@ -1785,8 +1795,7 @@ public class DefaultStringRedisConnectionTests {
 	@Test // DATAREDIS-438
 	public void testGeoAddWithGeoLocationBytes() {
 
-		doReturn(1l).when(nativeConnection).geoAdd(fooBytes,
-				new GeoLocation<>(barBytes, new Point(1.23232, 34.2342434)));
+		doReturn(1l).when(nativeConnection).geoAdd(fooBytes, new GeoLocation<>(barBytes, new Point(1.23232, 34.2342434)));
 
 		actual.add(connection.geoAdd(fooBytes, new GeoLocation<>(barBytes, new Point(1.23232, 34.2342434))));
 		verifyResults(Collections.singletonList(1L));
