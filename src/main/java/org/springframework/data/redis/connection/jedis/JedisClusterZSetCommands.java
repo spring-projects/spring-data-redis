@@ -627,15 +627,6 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], byte[][])
-	 */
-	@Override
-	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
-		return zUnionStore(destKey, aggregate, Weights.of(weights), sets);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
 	 */
 	@Override
@@ -689,14 +680,6 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		throw new InvalidDataAccessApiUsageException("ZINTERSTORE can only be executed when all keys map to the same slot");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], byte[][])
-	 */
-	@Override
-	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
-		return zInterStore(destKey, aggregate, Weights.of(weights), sets);
-	}
 
 	/*
 	 * (non-Javadoc)

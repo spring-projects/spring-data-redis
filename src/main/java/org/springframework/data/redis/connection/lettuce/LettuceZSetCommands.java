@@ -571,15 +571,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], byte[][])
-	 */
-	@Override
-	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
-		return zUnionStore(destKey, aggregate, Weights.of(weights), sets);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
 	 */
 	@Override
@@ -632,15 +623,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], byte[][])
-	 */
-	@Override
-	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
-		return zInterStore(destKey, aggregate, Weights.of(weights), sets);
 	}
 
 	/*

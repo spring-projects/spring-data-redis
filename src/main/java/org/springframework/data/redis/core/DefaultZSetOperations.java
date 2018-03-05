@@ -33,7 +33,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
  * @author Thomas Darimont
  * @author David Liu
  * @author Mark Paluch
- * @author wongoo
+ * @author Wongoo (望哥)
  */
 class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZSetOperations<K, V> {
 
@@ -97,15 +97,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[] rawDestKey = rawKey(destKey);
 
 		return execute(connection -> connection.zInterStore(rawDestKey, rawKeys), true);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
-	 */
-	@Override
-	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
-		return intersectAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
 
 	/*
@@ -431,15 +422,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[] rawDestKey = rawKey(destKey);
 
 		return execute(connection -> connection.zUnionStore(rawDestKey, rawKeys), true);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#unionAndStore(java.lang.Object, java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
-	 */
-	@Override
-	public Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
-		return unionAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
 
 	/*

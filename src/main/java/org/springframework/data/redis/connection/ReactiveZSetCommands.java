@@ -1375,7 +1375,7 @@ public interface ReactiveZSetCommands {
 		 * @since 2.1
 		 */
 		public ZUnionStoreCommand applyWeights(Weights weights) {
-			return new ZUnionStoreCommand(getKey(), sourceKeys, weights.toList(), aggregateFunction);
+			return applyWeights(weights.toList());
 		}
 
 		/**
@@ -1575,7 +1575,7 @@ public interface ReactiveZSetCommands {
 		 * @since 2.1
 		 */
 		public ZInterStoreCommand applyWeights(Weights weights) {
-			return new ZInterStoreCommand(getKey(), sourceKeys, weights.toList(), aggregateFunction);
+			return applyWeights(weights.toList());
 		}
 
 		/**

@@ -1295,15 +1295,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.zIncrBy(key, increment, value), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], byte[][])
-	 */
-	@Override
-	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
-		return convertAndReturn(delegate.zInterStore(destKey, aggregate, weights, sets), identityConverter);
-	}
-
 	/* 
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
@@ -1563,14 +1554,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Double zScore(byte[] key, byte[] value) {
 		return convertAndReturn(delegate.zScore(key, value), identityConverter);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, int[], byte[][])
-	 */
-	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
-		return convertAndReturn(delegate.zUnionStore(destKey, aggregate, weights, sets), identityConverter);
 	}
 
 	/* 

@@ -32,7 +32,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Rosty Kerei
- * @author wongoo
+ * @author Wongoo (望哥)
  */
 public interface ZSetOperations<K, V> {
 
@@ -378,7 +378,9 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	@Nullable
-	Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate);
+	default Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
+		return unionAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
+	}
 
 	/**
 	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
@@ -431,7 +433,9 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	@Nullable
-	Long intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate);
+	default Long intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
+		return intersectAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
+	}
 
 	/**
 	 * Intersect sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.

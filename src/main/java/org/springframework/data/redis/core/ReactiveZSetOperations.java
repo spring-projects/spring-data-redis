@@ -310,7 +310,9 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	Mono<Long> unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate);
+	default Mono<Long> unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
+		return unionAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
+	}
 
 	/**
 	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
@@ -359,7 +361,9 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate);
+	default Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
+		return intersectAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
+	}
 
 	/**
 	 * Intersect sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.

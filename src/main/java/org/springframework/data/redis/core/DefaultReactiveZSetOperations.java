@@ -375,18 +375,6 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#unionAndStore(java.lang.Object, java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
-	 */
-	@Override
-	public Mono<Long> unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
-
-		Assert.notNull(otherKeys, "Other keys must not be null!");
-
-		return unionAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#unionAndStore(java.lang.Object, java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
 	 */
 	@Override
@@ -433,18 +421,6 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 				.map(this::rawKey) //
 				.collectList() //
 				.flatMap(serialized -> connection.zInterStore(rawKey(destKey), serialized)));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
-	 */
-	@Override
-	public Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
-
-		Assert.notNull(otherKeys, "Other keys must not be null!");
-
-		return intersectAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
 
 	/*
