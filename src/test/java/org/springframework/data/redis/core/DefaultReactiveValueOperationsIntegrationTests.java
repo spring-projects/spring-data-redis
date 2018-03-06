@@ -131,7 +131,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.setIfAbsent(key, value)).verifyComplete();
+		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(false).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602

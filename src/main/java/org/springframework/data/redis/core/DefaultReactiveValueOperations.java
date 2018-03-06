@@ -82,7 +82,8 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null!");
 
 		return createMono(
-				connection -> connection.set(rawKey(key), rawValue(value), Expiration.persistent(), SetOption.SET_IF_ABSENT));
+				connection -> connection.set(rawKey(key), rawValue(value), Expiration.persistent(), SetOption.SET_IF_ABSENT))
+				.switchIfEmpty(Mono.just(Boolean.FALSE));
 	}
 
 	/* (non-Javadoc)
