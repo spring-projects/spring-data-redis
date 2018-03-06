@@ -353,7 +353,16 @@ However one can use `OxmSerializer` for Object/XML mapping through Spring http:/
 
 Do note that the storage format is not limited only to values - it can be used for keys, values or hashes without any restrictions.
 
-WARNING: `RedisCache` and `RedisTemplate` are configured by default to use Java native serialization. Java native serialization is known for allowing remote code execution caused by payloads that exploit vulnerable libraries and classes injecting unverified bytecode. You might want to consider other serialization mechanisms such as JSON or XML to prevent flaws. Alternatively, use a customized `ObjectInputStream` whitelisting classes you trust to be deserialized properly. See also https://www.owasp.org/index.php/Deserialization_of_untrusted_data[OWASP: Deserialization of untrusted data].
+[WARNING]
+====
+`RedisCache` and `RedisTemplate` are configured by default to use Java native serialization. Java native serialization is known for allowing remote code execution caused by payloads that exploit vulnerable libraries and classes injecting unverified bytecode. Manipulated input could lead to unwanted code execution in the application during the deserialization step. As a consequence, do not use serialization in untrusted environments. In general, we strongly recommend any other message format (e.g. JSON) instead.
+
+If you are concerned about security vulnerabilities due to Java serialization, consider the general-purpose serialization filter mechanism at the core JVM level, originally developed for JDK 9 but backported to JDK 8, 7 and 6 in the meantime:
+
+* https://blogs.oracle.com/java-platform-group/entry/incoming_filter_serialization_data_a[Filter Incoming Serialization Data].
+* http://openjdk.java.net/jeps/290[JEP 290].
+* https://www.owasp.org/index.php/Deserialization_of_untrusted_data[OWASP: Deserialization of untrusted data].
+====
 
 [[redis.hashmappers.root]]
 == Hash mapping
