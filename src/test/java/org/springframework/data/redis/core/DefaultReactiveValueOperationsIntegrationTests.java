@@ -45,6 +45,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Jiahe Cai
  */
 @RunWith(Parameterized.class)
 @SuppressWarnings("unchecked")
@@ -141,7 +142,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		V value = valueFactory.instance();
 		V laterValue = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.setIfPresent(key, value)).verifyComplete();
+		StepVerifier.create(valueOperations.setIfPresent(key, value)).expectNext(false).verifyComplete();
 
 		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
 
