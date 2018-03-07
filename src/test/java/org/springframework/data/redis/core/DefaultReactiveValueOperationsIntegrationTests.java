@@ -124,7 +124,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 				.verify();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-779
 	public void setIfAbsent() {
 
 		K key = keyFactory.instance();
@@ -135,7 +135,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(false).verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-779
 	public void setIfPresent() {
 
 		K key = keyFactory.instance();
