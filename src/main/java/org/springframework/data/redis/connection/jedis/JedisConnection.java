@@ -15,6 +15,22 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BinaryJedisPubSub;
+import redis.clients.jedis.Client;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Response;
+import redis.clients.jedis.Transaction;
+import redis.clients.jedis.exceptions.JedisDataException;
+import redis.clients.util.Pool;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.function.Supplier;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -30,12 +46,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import redis.clients.jedis.*;
-import redis.clients.jedis.exceptions.JedisDataException;
-import redis.clients.util.Pool;
-
-import java.util.*;
-import java.util.function.Supplier;
 
 /**
  * {@code RedisConnection} implementation on top of <a href="http://github.com/xetorthio/jedis">Jedis</a> library.
@@ -50,6 +60,7 @@ import java.util.function.Supplier;
  * @author Milan Agatonovic
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Binglei Yu
  */
 public class JedisConnection extends AbstractRedisConnection {
 
