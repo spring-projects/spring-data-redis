@@ -77,7 +77,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 	 * @param label parameterized test label, no further use besides that.
 	 */
 	public DefaultReactiveValueOperationsIntegrationTests(ReactiveRedisTemplate<K, V> redisTemplate,
-			ObjectFactory<K> keyFactory, ObjectFactory<V> valueFactory, RedisSerializer serializer, String label) {
+														  ObjectFactory<K> keyFactory, ObjectFactory<V> valueFactory, RedisSerializer serializer, String label) {
 
 		this.redisTemplate = redisTemplate;
 		this.valueOperations = redisTemplate.opsForValue();
@@ -125,7 +125,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 				.verify();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-779
 	public void setIfAbsent() {
 
 		K key = keyFactory.instance();
@@ -133,7 +133,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.setIfAbsent(key, value)).verifyComplete();
+		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(false).verifyComplete();
 	}
 
 	@Test // DATAREDIS-782
@@ -154,14 +154,14 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(mono).expectNext(true).verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-779
 	public void setIfPresent() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 		V laterValue = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.setIfPresent(key, value)).verifyComplete();
+		StepVerifier.create(valueOperations.setIfPresent(key, value)).expectNext(false).verifyComplete();
 
 		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
 
