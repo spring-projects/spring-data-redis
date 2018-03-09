@@ -133,7 +133,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(false).verifyComplete();
+		StepVerifier.create(valueOperations.setIfAbsent(key, value)).verifyComplete();
 	}
 
 	@Test // DATAREDIS-782
@@ -161,7 +161,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		V value = valueFactory.instance();
 		V laterValue = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.setIfPresent(key, value)).expectNext(false).verifyComplete();
+		StepVerifier.create(valueOperations.setIfPresent(key, value)).verifyComplete();
 
 		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
 

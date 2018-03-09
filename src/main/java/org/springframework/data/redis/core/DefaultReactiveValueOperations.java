@@ -87,6 +87,9 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 	}
 
 	@Override
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#setIfAbsent(java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
 	public Mono<Boolean> setIfAbsent(K key, V value, Duration timeout) {
 
 		Assert.notNull(key, "Key must not be null!");
