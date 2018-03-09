@@ -37,7 +37,6 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
- * @author Jiahe Cai
  * @since 2.0
  */
 class LettuceReactiveStringCommands implements ReactiveStringCommands {
@@ -94,9 +93,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Mono<String> mono = args != null ? cmd.set(command.getKey(), command.getValue(), args)
 					: cmd.set(command.getKey(), command.getValue());
-			return mono.map(LettuceConverters::stringToBoolean)
-					.map(value -> new BooleanResponse<>(command, value))
-					.switchIfEmpty(Mono.just(new BooleanResponse<>(command, Boolean.FALSE)));
+			return mono.map(LettuceConverters::stringToBoolean).map((value) -> new BooleanResponse<>(command, value));
 		}));
 	}
 
