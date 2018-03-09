@@ -24,6 +24,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author Jiahe Cai
  */
 public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 

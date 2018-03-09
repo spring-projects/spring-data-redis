@@ -47,6 +47,7 @@ import org.springframework.data.redis.RedisTestProfileValueSource;
  * @author Christoph Strobl
  * @author David Liu
  * @author Thomas Darimont
+ * @author Jiahe Cai
  */
 @RunWith(Parameterized.class)
 public class DefaultValueOperationsTests<K, V> {

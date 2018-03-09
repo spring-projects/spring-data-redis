@@ -26,6 +26,7 @@ import java.util.Map;
  * Reactive Redis operations for simple (or in Redis terminology 'string') values.
  *
  * @author Mark Paluch
+ * @author Jiahe Cai
  * @since 2.0
  */
 public interface ReactiveValueOperations<K, V> {

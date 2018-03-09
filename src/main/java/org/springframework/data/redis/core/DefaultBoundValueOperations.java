@@ -21,6 +21,7 @@ import org.springframework.data.redis.connection.DataType;
 
 /**
  * @author Costin Leau
+ * @author Jiahe Cai
  */
 class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundValueOperations<K, V> {
 

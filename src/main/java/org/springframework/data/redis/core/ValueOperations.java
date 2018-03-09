@@ -28,6 +28,7 @@ import org.springframework.lang.Nullable;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jiahe Cai
  */
 public interface ValueOperations<K, V> {
 

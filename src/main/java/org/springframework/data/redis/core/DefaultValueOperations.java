@@ -33,6 +33,7 @@ import org.springframework.data.redis.core.types.Expiration;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Jiahe Cai
  */
 class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
 
