@@ -21,6 +21,7 @@ import org.springframework.data.redis.connection.DataType;
 
 /**
  * @author Costin Leau
+ * @author Jiahe Cai
  */
 class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundValueOperations<K, V> {
 
@@ -117,6 +118,15 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 	@Override
 	public Boolean setIfAbsent(V value) {
 		return ops.setIfAbsent(getKey(), value);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#setIfAbsent(java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Boolean setIfAbsent(V value, long timeout, TimeUnit unit) {
+		return ops.setIfAbsent(getKey(), value, timeout, unit);
 	}
 
 	/*
