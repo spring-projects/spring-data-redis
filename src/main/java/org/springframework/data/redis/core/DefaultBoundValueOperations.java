@@ -121,6 +121,15 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#setIfAbsent(java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Boolean setIfAbsent(V value, long timeout, TimeUnit unit) {
+		return ops.setIfAbsent(getKey(), value, timeout, unit);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundValueOperations#set(java.lang.Object, long)
 	 */
 	@Override

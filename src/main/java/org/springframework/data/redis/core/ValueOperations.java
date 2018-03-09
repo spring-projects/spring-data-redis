@@ -63,6 +63,19 @@ public interface ValueOperations<K, V> {
 	Boolean setIfAbsent(K key, V value);
 
 	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	@Nullable
+	Boolean setIfAbsent(K key, V value, long timeout, TimeUnit unit);
+
+	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
 	 *
 	 * @param map must not be {@literal null}.

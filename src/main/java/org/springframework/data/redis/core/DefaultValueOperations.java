@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.core.types.Expiration;
 
 /**
  * Default implementation of {@link ValueOperations}.
@@ -256,6 +258,20 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
 		return execute(connection -> connection.setNX(rawKey, rawValue), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#setIfAbsent(java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Boolean setIfAbsent(K key, V value, long timeout, TimeUnit unit) {
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		Expiration expiration = Expiration.from(timeout, unit);
+		RedisStringCommands.SetOption setOption = RedisStringCommands.SetOption.ifAbsent();
+		return execute(connection -> connection.set(rawKey, rawValue, expiration, setOption), true);
 	}
 
 	/*

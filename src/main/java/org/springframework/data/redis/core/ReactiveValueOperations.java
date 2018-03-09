@@ -59,6 +59,16 @@ public interface ReactiveValueOperations<K, V> {
 	Mono<Boolean> setIfAbsent(K key, V value);
 
 	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param timeout must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	Mono<Boolean> setIfAbsent(K key, V value, Duration timeout);
+
+	/**
 	 * Set {@code key} to hold the string {@code value} if {@code key} is present.
 	 *
 	 * @param key must not be {@literal null}.

@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -133,6 +134,24 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(false).verifyComplete();
+	}
+
+	@Test // DATAREDIS-782
+	public void setIfAbsentWithExpiry() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		StepVerifier.create(valueOperations.setIfAbsent(key, value, Duration.ofMillis(500))).expectNext(true)
+				.expectComplete().verify();
+
+		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(false).verifyComplete();
+		StepVerifier.create(valueOperations.setIfAbsent(key, value, Duration.ofMillis(500))).expectNext(false)
+				.verifyComplete();
+
+		Mono<Boolean> mono = valueOperations.setIfAbsent(key, value, Duration.ofMillis(500))
+				.delaySubscription(Duration.ofMillis(500));
+		StepVerifier.create(mono).expectNext(true).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602

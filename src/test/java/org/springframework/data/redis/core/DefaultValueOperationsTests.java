@@ -235,6 +235,17 @@ public class DefaultValueOperationsTests<K, V> {
 		assertFalse(valueOps.setIfAbsent(key1, value2));
 	}
 
+	@Test // DATAREDIS-782
+	public void testSetIfAbsentWithExpiration() {
+		final K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		assertTrue(valueOps.setIfAbsent(key1, value1, 500, TimeUnit.MILLISECONDS));
+		assertFalse(valueOps.setIfAbsent(key1, value2));
+		assertFalse(valueOps.setIfAbsent(key1, value2, 500, TimeUnit.MILLISECONDS));
+		waitFor(() -> (valueOps.setIfAbsent(key1, value1, 500, TimeUnit.MILLISECONDS)), 3000);
+	}
+
 	@Test
 	public void testSize() {
 		K key1 = keyFactory.instance();
