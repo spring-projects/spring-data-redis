@@ -177,7 +177,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#hyperLogLogCommands()
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#serverCommands()
 	 */
 	@Override
 	public ReactiveServerCommands serverCommands() {
