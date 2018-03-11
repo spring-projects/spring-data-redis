@@ -292,7 +292,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveValueOperations#decrementBy(java.lang.Object, double)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#decrementBy(java.lang.Object, long)
 	 */
 	@Override
 	public Mono<Long> decrementBy(K key, long delta) {
