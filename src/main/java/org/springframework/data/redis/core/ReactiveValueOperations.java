@@ -193,4 +193,44 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 */
 	Mono<Boolean> delete(K key);
+	
+	/**
+	 * Increments the number stored at {@code key} by one.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 */
+	Mono<Long> increment(K key);
+
+	/**
+	 * Increments the number stored at {@code key} by {@code delta}.
+	 * @param key must not be {@literal null}.
+	 * @param delta
+	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
+	 */
+	Mono<Long> incrementBy(K key, long delta);
+
+	/**
+	 * Increment the string representing a floating point number stored at {@code key} by {@code delta}.
+	 * @param key must not be {@literal null}.
+	 * @param delta
+	 * @see <a href="http://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
+	 */
+	Mono<Double> incrementBy(K key, double delta);
+
+	/**
+	 * Decrements the number stored at {@code key} by one.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/decr">Redis Documentation: DECR</a>
+	 */
+	Mono<Long> decrement(K key);
+
+	/**
+	 * Decrements the number stored at {@code key} by {@code delta}.
+	 * @param key must not be {@literal null}.
+	 * @param delta
+	 * @see <a href="http://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
+	 */
+	Mono<Long> decrementBy(K key, long delta);
 }
