@@ -55,18 +55,20 @@ public class RedisRepositoryBean<T> extends CdiRepositoryBean<T> {
 			Class<T> repositoryType, BeanManager beanManager, @Nullable CustomRepositoryImplementationDetector detector) {
 
 		super(qualifiers, repositoryType, beanManager, Optional.ofNullable(detector));
+
 		Assert.notNull(keyValueTemplate, "Bean holding keyvalue template must not be null!");
 		this.keyValueTemplate = keyValueTemplate;
 	}
 
-	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType,
-			Optional<Object> customImplementation) {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(javax.enterprise.context.spi.CreationalContext, java.lang.Class)
+	 */
+	@Override
+	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType) {
 
 		KeyValueOperations keyValueTemplate = getDependencyInstance(this.keyValueTemplate, KeyValueOperations.class);
-		RedisRepositoryFactory factory = new RedisRepositoryFactory(keyValueTemplate, RedisQueryCreator.class);
 
-		return customImplementation.map(o -> factory.getRepository(repositoryType, o))
-				.orElseGet(() -> factory.getRepository(repositoryType));
+		return create(() -> new RedisRepositoryFactory(keyValueTemplate, RedisQueryCreator.class), repositoryType);
 	}
-
 }

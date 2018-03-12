@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.repository.cdi;
 
 /**
  * @author Mark Paluch
  */
-interface PersonRepositoryCustom {
+interface PersonFragment {
 
 	int returnOne();
 }
