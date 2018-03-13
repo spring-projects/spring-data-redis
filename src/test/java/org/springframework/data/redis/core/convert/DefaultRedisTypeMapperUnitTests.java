@@ -185,7 +185,7 @@ public class DefaultRedisTypeMapperUnitTests {
 
 	private void readsTypeFromField(Bucket bucket, @Nullable Class<?> type) {
 
-		TypeInformation<?> typeInfo = typeMapper.readType(BucketPropertyPath.from(bucket));
+		TypeInformation<?> typeInfo = typeMapper.readType(bucket.getPath());
 
 		if (type != null) {
 			assertThat(typeInfo).isNotNull();
@@ -197,7 +197,7 @@ public class DefaultRedisTypeMapperUnitTests {
 
 	private void writesTypeToField(@Nullable String field, Bucket bucket, Class<?> type) {
 
-		typeMapper.writeType(type, BucketPropertyPath.from(bucket));
+		typeMapper.writeType(type, bucket.getPath());
 
 		if (field == null) {
 			assertThat(bucket.keySet()).isEmpty();
@@ -209,7 +209,7 @@ public class DefaultRedisTypeMapperUnitTests {
 
 	private void writesTypeToField(Bucket bucket, Class<?> type, @Nullable Object value) {
 
-		typeMapper.writeType(type, BucketPropertyPath.from(bucket));
+		typeMapper.writeType(type, bucket.getPath());
 
 		if (value == null) {
 			assertThat(bucket.keySet()).isEmpty();

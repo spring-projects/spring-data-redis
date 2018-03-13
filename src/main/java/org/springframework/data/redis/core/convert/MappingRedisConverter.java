@@ -192,8 +192,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			return null;
 		}
 
-		TypeInformation<?> readType = typeMapper.readType(BucketPropertyPath.from(source.getBucket()),
-				ClassTypeInformation.from(type));
+		TypeInformation<?> readType = typeMapper.readType(source.getBucket().getPath(), ClassTypeInformation.from(type));
 
 		RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(readType);
 
@@ -278,7 +277,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				Bucket bucket = source.getBucket().extract(currentPath + ".");
 
 				RedisData newBucket = new RedisData(bucket);
-				TypeInformation<?> typeInformation = typeMapper.readType(BucketPropertyPath.from(bucket, currentPath),
+				TypeInformation<?> typeInformation = typeMapper.readType(bucket.getPropertyPath(currentPath),
 						persistentProperty.getTypeInformation().getActualType());
 
 				Class<R> targetType = (Class<R>) typeInformation.getType();
@@ -386,12 +385,12 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(source.getClass());
 
 		if (!customConversions.hasCustomWriteTarget(source.getClass())) {
-			typeMapper.writeType(ClassUtils.getUserClass(source), BucketPropertyPath.from(sink.getBucket()));
+			typeMapper.writeType(ClassUtils.getUserClass(source), sink.getBucket().getPath());
 		}
 
 		if (entity == null) {
 
-			typeMapper.writeType(ClassUtils.getUserClass(source), BucketPropertyPath.from(sink.getBucket()));
+			typeMapper.writeType(ClassUtils.getUserClass(source), sink.getBucket().getPath());
 			sink.getBucket().put("_raw", conversionService.convert(source, byte[].class));
 			return;
 		}
@@ -583,7 +582,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 
 		if (value.getClass() != typeHint.getType()) {
-			typeMapper.writeType(value.getClass(), BucketPropertyPath.from(sink.getBucket(), path));
+			typeMapper.writeType(value.getClass(), sink.getBucket().getPropertyPath(path));
 		}
 
 		RedisPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(value.getClass());
@@ -743,7 +742,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			if (!targetType.filter(it -> ClassUtils.isAssignable(Map.class, it)).isPresent()
 					&& customConversions.isSimpleType(value.getClass()) && value.getClass() != propertyType) {
-				typeMapper.writeType(value.getClass(), BucketPropertyPath.from(sink.getBucket(), path));
+				typeMapper.writeType(value.getClass(), sink.getBucket().getPropertyPath(path));
 			}
 
 			if (targetType.filter(it -> ClassUtils.isAssignable(Map.class, it)).isPresent()) {
@@ -779,7 +778,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			Bucket elementData = bucket.extract(key);
 
-			TypeInformation<?> typeInformation = typeMapper.readType(BucketPropertyPath.from(elementData, key),
+			TypeInformation<?> typeInformation = typeMapper.readType(elementData.getPropertyPath(key),
 					ClassTypeInformation.from(valueType));
 
 			Class<?> typeToUse = typeInformation.getType();
@@ -885,10 +884,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		for (String key : keys) {
 
 			Bucket partial = source.getBucket().extract(key);
-			
+
 			Object mapKey = extractMapKeyForPath(path, key, keyType);
 
-			TypeInformation<?> typeInformation = typeMapper.readType(BucketPropertyPath.from(source.getBucket(), key),
+			TypeInformation<?> typeInformation = typeMapper.readType(source.getBucket().getPropertyPath(key),
 					ClassTypeInformation.from(valueType));
 
 			Object o = readInternal(key, typeInformation.getType(), new RedisData(partial));
@@ -920,7 +919,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 	private Class<?> getTypeHint(String path, Bucket bucket, Class<?> fallback) {
 
-		TypeInformation<?> typeInformation = typeMapper.readType(BucketPropertyPath.from(bucket, path),
+		TypeInformation<?> typeInformation = typeMapper.readType(bucket.getPropertyPath(path),
 				ClassTypeInformation.from(fallback));
 		return typeInformation.getType();
 	}

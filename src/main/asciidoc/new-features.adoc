@@ -9,6 +9,7 @@ New and noteworthy in the latest releases.
 * Unix domain socket connections using <<redis:connectors:lettuce,Lettuce>>.
 * <<redis:write-to-master-read-from-slave, Write to Master read from Slave>> support using Lettuce.
 * <<query-by-example,Query by Example>> integration.
+* `@TypeAlias` Support for Redis repositories.
 
 [[new-in-2.0.0]]
 == New in Spring Data Redis 2.0

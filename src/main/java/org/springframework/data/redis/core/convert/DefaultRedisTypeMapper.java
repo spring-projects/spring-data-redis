@@ -27,6 +27,7 @@ import org.springframework.data.convert.TypeInformationMapper;
 import org.springframework.data.mapping.Alias;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.redis.core.convert.Bucket.BucketPropertyPath;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 

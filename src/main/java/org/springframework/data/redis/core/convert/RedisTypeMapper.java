@@ -16,13 +16,14 @@
 package org.springframework.data.redis.core.convert;
 
 import org.springframework.data.convert.TypeMapper;
+import org.springframework.data.redis.core.convert.Bucket.BucketPropertyPath;
 
 /**
  * Redis-specific {@link TypeMapper} exposing that {@link BucketPropertyPath}s might contain a type key.
  *
  * @author Mark Paluch
  * @since 2.1
- * @see BucketPropertyPath
+ * @see Bucket.BucketPropertyPath
  */
 public interface RedisTypeMapper extends TypeMapper<BucketPropertyPath> {
 
