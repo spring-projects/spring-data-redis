@@ -24,6 +24,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author Jiahe Cai
  */
 public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
@@ -54,6 +55,18 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Boolean setIfAbsent(V value);
+
+	/**
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is absent.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	@Nullable
+	Boolean setIfAbsent(V value, long timeout, TimeUnit unit);
 
 	/**
 	 * Get the value of the bound key.
