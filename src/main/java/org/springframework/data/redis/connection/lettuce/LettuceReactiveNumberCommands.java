@@ -75,7 +75,7 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 
 			T incrBy = command.getValue();
 
-			Mono<? extends Number> result = null;
+			Mono<? extends Number> result;
 			if (incrBy instanceof Double || incrBy instanceof Float) {
 				result = cmd.incrbyfloat(command.getKey(), incrBy.doubleValue());
 			} else {

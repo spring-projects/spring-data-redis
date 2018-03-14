@@ -127,12 +127,23 @@ public interface ValueOperations<K, V> {
 	List<V> multiGet(Collection<K> keys);
 
 	/**
+	 * Increment an integer value stored as string value under {@code key} by one.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 */
+	@Nullable
+	Long increment(K key);
+
+	/**
 	 * Increment an integer value stored as string value under {@code key} by {@code delta}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param delta
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 */
 	@Nullable
 	Long increment(K key, long delta);
@@ -147,6 +158,29 @@ public interface ValueOperations<K, V> {
 	 */
 	@Nullable
 	Double increment(K key, double delta);
+
+	/**
+	 * Decrement an integer value stored as string value under {@code key} by one.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/decr">Redis Documentation: DECR</a>
+	 */
+	@Nullable
+	Long decrement(K key);
+
+	/**
+	 * Decrement an integer value stored as string value under {@code key} by {@code delta}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param delta
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
+	 */
+	@Nullable
+	Long decrement(K key, long delta);
 
 	/**
 	 * Append a {@code value} to {@code key}.

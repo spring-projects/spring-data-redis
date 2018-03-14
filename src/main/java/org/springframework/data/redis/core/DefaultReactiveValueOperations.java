@@ -195,6 +195,61 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 	}
 
 	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#increment(java.lang.Object)
+	 */
+	@Override
+	public Mono<Long> increment(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.numberCommands().incr(rawKey(key)));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#increment(java.lang.Object, long)
+	 */
+	@Override
+	public Mono<Long> increment(K key, long delta) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.numberCommands().incrBy(rawKey(key), delta));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#increment(java.lang.Object, double)
+	 */
+	@Override
+	public Mono<Double> increment(K key, double delta) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.numberCommands().incrBy(rawKey(key), delta));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#decrement(java.lang.Object)
+	 */
+	@Override
+	public Mono<Long> decrement(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.numberCommands().decr(rawKey(key)));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#decrement(java.lang.Object, long)
+	 */
+	@Override
+	public Mono<Long> decrement(K key, long delta) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.numberCommands().decrBy(rawKey(key), delta));
+	}
+
+	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveValueOperations#append(java.lang.Object, java.lang.String)
 	 */
 	@Override
@@ -272,61 +327,6 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null!");
 
 		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveValueOperations#increment(java.lang.Object)
-	 */
-	@Override
-	public Mono<Long> increment(K key) {
-
-		Assert.notNull(key, "Key must not be null!");
-
-		return incrementBy(key, 1L);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveValueOperations#incrementBy(java.lang.Object, long)
-	 */
-	@Override
-	public Mono<Long> incrementBy(K key, long delta) {
-
-		Assert.notNull(key, "Key must not be null!");
-
-		return template.createMono(connection -> connection.numberCommands().incrBy(rawKey(key), delta));
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveValueOperations#incrementBy(java.lang.Object, double)
-	 */
-	@Override
-	public Mono<Double> incrementBy(K key, double delta) {
-
-		Assert.notNull(key, "Key must not be null!");
-
-		return template.createMono(connection -> connection.numberCommands().incrBy(rawKey(key), delta));
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveValueOperations#decrement(java.lang.Object)
-	 */
-	@Override
-	public Mono<Long> decrement(K key) {
-
-		Assert.notNull(key, "Key must not be null!");
-
-		return incrementBy(key, -1L);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveValueOperations#decrementBy(java.lang.Object, long)
-	 */
-	@Override
-	public Mono<Long> decrementBy(K key, long delta) {
-
-		Assert.notNull(key, "Key must not be null!");
-
-		return incrementBy(key, -delta);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveStringCommands, Publisher<T>> function) {

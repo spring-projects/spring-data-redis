@@ -88,11 +88,22 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	V getAndSet(V value);
 
 	/**
+	 * Increment an integer value stored as string value under the bound key by one.
+	 *
+	 * @param delta
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 */
+	@Nullable
+	Long increment();
+
+	/**
 	 * Increment an integer value stored as string value under the bound key by {@code delta}.
 	 *
 	 * @param delta
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 */
 	@Nullable
 	Long increment(long delta);
@@ -106,6 +117,27 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Double increment(double delta);
+
+	/**
+	 * Decrement an integer value stored as string value under the bound key by one.
+	 *
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/decr">Redis Documentation: DECR</a>
+	 */
+	@Nullable
+	Long decrement();
+
+	/**
+	 * Decrement an integer value stored as string value under the bound key by {@code delta}.
+	 *
+	 * @param delta
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
+	 */
+	@Nullable
+	Long decrement(long delta);
 
 	/**
 	 * Append a {@code value} to the bound key.

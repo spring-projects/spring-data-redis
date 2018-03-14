@@ -117,6 +117,7 @@ public interface ReactiveNumberCommands {
 	 * @param value must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
+	 * @see <a href="http://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
 	 */
 	default <T extends Number> Mono<T> incrBy(ByteBuffer key, T value) {
 
@@ -132,6 +133,7 @@ public interface ReactiveNumberCommands {
 	 * @param commands must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
+	 * @see <a href="http://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
 	 */
 	<T extends Number> Flux<NumericResponse<ReactiveNumberCommands.IncrByCommand<T>, T>> incrBy(
 			Publisher<ReactiveNumberCommands.IncrByCommand<T>> commands);

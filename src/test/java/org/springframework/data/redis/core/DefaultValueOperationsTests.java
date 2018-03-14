@@ -49,6 +49,7 @@ import org.springframework.data.redis.RedisTestProfileValueSource;
  * @author David Liu
  * @author Thomas Darimont
  * @author Jiahe Cai
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class DefaultValueOperationsTests<K, V> {
@@ -94,8 +95,18 @@ public class DefaultValueOperationsTests<K, V> {
 		});
 	}
 
+	@Test // DATAREDIS-784
+	public void testIncrement() {
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		assumeTrue(v1 instanceof Long);
+		valueOps.set(key, v1);
+		assertEquals(Long.valueOf((Long) v1 + 1), valueOps.increment(key));
+		assertEquals(Long.valueOf((Long) v1 + 1), valueOps.get(key));
+	}
+
 	@Test
-	public void testIncrementLong() throws Exception {
+	public void testIncrementLong() {
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
 		assumeTrue(v1 instanceof Long);
@@ -120,6 +131,26 @@ public class DefaultValueOperationsTests<K, V> {
 		assertEquals(Double.valueOf(twoDForm.format((Double) v1 + 1.4)), valueOps.get(key));
 		valueOps.increment(key, -10d);
 		assertEquals(Double.valueOf(twoDForm.format((Double) v1 + 1.4 - 10d)), valueOps.get(key));
+	}
+
+	@Test // DATAREDIS-784
+	public void testDecrement() {
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		assumeTrue(v1 instanceof Long);
+		valueOps.set(key, v1);
+		assertEquals(Long.valueOf((Long) v1 - 1), valueOps.decrement(key));
+		assertEquals(Long.valueOf((Long) v1 - 1), valueOps.get(key));
+	}
+
+	@Test // DATAREDIS-784
+	public void testDecrementByLong() {
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		assumeTrue(v1 instanceof Long);
+		valueOps.set(key, v1);
+		assertEquals(Long.valueOf((Long) v1 - 5), valueOps.decrement(key, 5));
+		assertEquals(Long.valueOf((Long) v1 - 5), valueOps.get(key));
 	}
 
 	@Test

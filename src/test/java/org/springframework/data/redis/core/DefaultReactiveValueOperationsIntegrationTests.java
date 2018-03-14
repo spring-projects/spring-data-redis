@@ -384,7 +384,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(valueOperations.size(key)).expectNext(0L).verifyComplete();
 	}
-	
+
 	@Test // DATAREDIS-784
 	public void increment() {
 
@@ -400,11 +400,11 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(valueOperations.incrementBy(key, 2L)).expectNext(2L).verifyComplete();
+		StepVerifier.create(valueOperations.increment(key, 2L)).expectNext(2L).verifyComplete();
 
-		StepVerifier.create(valueOperations.incrementBy(key, -3L)).expectNext(-1L).verifyComplete();
+		StepVerifier.create(valueOperations.increment(key, -3L)).expectNext(-1L).verifyComplete();
 
-		StepVerifier.create(valueOperations.incrementBy(key, 1L)).expectNext(0L).verifyComplete();
+		StepVerifier.create(valueOperations.increment(key, 1L)).expectNext(0L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-784
@@ -412,11 +412,11 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(valueOperations.incrementBy(key, 0.1)).expectNext(0.1).verifyComplete();
+		StepVerifier.create(valueOperations.increment(key, 0.1)).expectNext(0.1).verifyComplete();
 
-		StepVerifier.create(valueOperations.incrementBy(key, -0.3)).expectNext(-0.2).verifyComplete();
+		StepVerifier.create(valueOperations.increment(key, -0.3)).expectNext(-0.2).verifyComplete();
 
-		StepVerifier.create(valueOperations.incrementBy(key, 0.2)).expectNext(0.0).verifyComplete();
+		StepVerifier.create(valueOperations.increment(key, 0.2)).expectNext(0.0).verifyComplete();
 	}
 
 	@Test // DATAREDIS-784
@@ -434,10 +434,10 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(valueOperations.decrementBy(key, 2L)).expectNext(-2L).verifyComplete();
+		StepVerifier.create(valueOperations.decrement(key, 2L)).expectNext(-2L).verifyComplete();
 
-		StepVerifier.create(valueOperations.decrementBy(key, -3L)).expectNext(1L).verifyComplete();
+		StepVerifier.create(valueOperations.decrement(key, -3L)).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(valueOperations.decrementBy(key, 1L)).expectNext(0L).verifyComplete();
+		StepVerifier.create(valueOperations.decrement(key, 1L)).expectNext(0L).verifyComplete();
 	}
 }

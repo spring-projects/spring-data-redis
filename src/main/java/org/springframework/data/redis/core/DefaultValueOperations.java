@@ -76,6 +76,17 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#increment(java.lang.Object)
+	 */
+	@Override
+	public Long increment(K key) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.incr(rawKey), true);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ValueOperations#increment(java.lang.Object, long)
 	 */
 	@Override
@@ -94,6 +105,28 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.incrBy(rawKey, delta), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#decrement(java.lang.Object)
+	 */
+	@Override
+	public Long decrement(K key) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.decr(rawKey), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#increment(java.lang.Object, long)
+	 */
+	@Override
+	public Long decrement(K key, long delta) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.decrBy(rawKey, delta), true);
 	}
 
 	/*

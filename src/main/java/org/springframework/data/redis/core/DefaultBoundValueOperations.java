@@ -22,6 +22,7 @@ import org.springframework.data.redis.connection.DataType;
 /**
  * @author Costin Leau
  * @author Jiahe Cai
+ * @author Mark Paluch
  */
 class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundValueOperations<K, V> {
 
@@ -59,6 +60,15 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#increment()
+	 */
+	@Override
+	public Long increment() {
+		return ops.increment(getKey());
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundValueOperations#increment(long)
 	 */
 	@Override
@@ -73,6 +83,24 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 	@Override
 	public Double increment(double delta) {
 		return ops.increment(getKey(), delta);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#decrement()
+	 */
+	@Override
+	public Long decrement() {
+		return ops.decrement(getKey());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#decrement(double)
+	 */
+	@Override
+	public Long decrement(long delta) {
+		return ops.decrement(getKey(), delta);
 	}
 
 	/*

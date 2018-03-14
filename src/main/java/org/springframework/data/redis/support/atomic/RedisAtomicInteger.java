@@ -30,7 +30,6 @@ import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -245,7 +244,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	 * @return the updated value.
 	 */
 	public int incrementAndGet() {
-		return operations.increment(key, 1).intValue();
+		return operations.increment(key).intValue();
 	}
 
 	/**
@@ -254,7 +253,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	 * @return the updated value.
 	 */
 	public int decrementAndGet() {
-		return operations.increment(key, -1).intValue();
+		return operations.decrement(key).intValue();
 	}
 
 	/**
