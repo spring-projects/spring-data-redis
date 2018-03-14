@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
@@ -47,6 +48,7 @@ import org.springframework.data.redis.RedisTestProfileValueSource;
  * @author Christoph Strobl
  * @author David Liu
  * @author Thomas Darimont
+ * @author Jiahe Cai
  */
 @RunWith(Parameterized.class)
 public class DefaultValueOperationsTests<K, V> {
@@ -237,13 +239,15 @@ public class DefaultValueOperationsTests<K, V> {
 
 	@Test // DATAREDIS-782
 	public void testSetIfAbsentWithExpiration() {
-		final K key1 = keyFactory.instance();
+		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
-		assertTrue(valueOps.setIfAbsent(key1, value1, 500, TimeUnit.MILLISECONDS));
-		assertFalse(valueOps.setIfAbsent(key1, value2));
-		assertFalse(valueOps.setIfAbsent(key1, value2, 500, TimeUnit.MILLISECONDS));
-		waitFor(() -> (valueOps.setIfAbsent(key1, value1, 500, TimeUnit.MILLISECONDS)), 500);
+		assertTrue(valueOps.setIfAbsent(key, value1, 5, TimeUnit.SECONDS));
+		assertFalse(valueOps.setIfAbsent(key, value2));
+		assertFalse(valueOps.setIfAbsent(key, value2, 5, TimeUnit.SECONDS));
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
+		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
 	}
 
 	@Test

@@ -28,7 +28,7 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 	private final ValueOperations<K, V> ops;
 
 	/**
-	 * Constructs a new <code>DefaultBoundValueOperations</code> instance.
+	 * Constructs a new {@link DefaultBoundValueOperations} instance.
 	 *
 	 * @param key
 	 * @param operations

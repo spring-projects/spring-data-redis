@@ -63,6 +63,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param timeout
 	 * @param unit must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	@Nullable

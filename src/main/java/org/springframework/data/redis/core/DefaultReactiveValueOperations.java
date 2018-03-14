@@ -86,10 +86,10 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 				connection -> connection.set(rawKey(key), rawValue(value), Expiration.persistent(), SetOption.SET_IF_ABSENT));
 	}
 
-	@Override
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveValueOperations#setIfAbsent(java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#setIfAbsent(java.lang.Object, java.lang.Object, java.time.Duration)
 	 */
+	@Override
 	public Mono<Boolean> setIfAbsent(K key, V value, Duration timeout) {
 
 		Assert.notNull(key, "Key must not be null!");
@@ -109,6 +109,19 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		return createMono(
 				connection -> connection.set(rawKey(key), rawValue(value), Expiration.persistent(), SetOption.SET_IF_PRESENT));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#setIfPresent(java.lang.Object, java.lang.Object, java.time.Duration)
+	 */
+	@Override
+	public Mono<Boolean> setIfPresent(K key, V value, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(timeout, "Duration must not be null!");
+
+		return createMono(
+				connection -> connection.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.SET_IF_PRESENT));
 	}
 
 	/* (non-Javadoc)

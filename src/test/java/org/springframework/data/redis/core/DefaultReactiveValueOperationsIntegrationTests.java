@@ -18,7 +18,6 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -142,16 +141,18 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.setIfAbsent(key, value, Duration.ofMillis(500))).expectNext(true)
+		StepVerifier.create(valueOperations.setIfAbsent(key, value, Duration.ofSeconds(5))).expectNext(true)
 				.expectComplete().verify();
 
 		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(false).verifyComplete();
-		StepVerifier.create(valueOperations.setIfAbsent(key, value, Duration.ofMillis(500))).expectNext(false)
+		StepVerifier.create(valueOperations.setIfAbsent(key, value, Duration.ofSeconds(5))).expectNext(false)
 				.verifyComplete();
 
-		Mono<Boolean> mono = valueOperations.setIfAbsent(key, value, Duration.ofMillis(500))
-				.delaySubscription(Duration.ofMillis(500));
-		StepVerifier.create(mono).expectNext(true).verifyComplete();
+		StepVerifier.create(redisTemplate.getExpire(key)) //
+				.assertNext(actual -> {
+
+					assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5));
+				}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602, DATAREDIS-779
@@ -168,6 +169,30 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(valueOperations.setIfPresent(key, laterValue)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(valueOperations.get(key)).expectNext(laterValue).verifyComplete();
+	}
+
+	@Test // DATAREDIS-782
+	public void setIfPresentWithExpiry() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V laterValue = valueFactory.instance();
+
+		StepVerifier.create(valueOperations.setIfPresent(key, value, Duration.ofSeconds(5))).expectNext(false)
+				.verifyComplete();
+
+		StepVerifier.create(valueOperations.set(key, value, Duration.ofSeconds(5))).expectNext(true).verifyComplete();
+
+		StepVerifier.create(valueOperations.setIfPresent(key, laterValue, Duration.ofSeconds(5))).expectNext(true)
+				.verifyComplete();
+
+		StepVerifier.create(valueOperations.get(key)).expectNext(laterValue).verifyComplete();
+
+		StepVerifier.create(redisTemplate.getExpire(key)) //
+				.assertNext(actual -> {
+
+					assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5));
+				}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602

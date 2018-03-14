@@ -68,9 +68,10 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
-	 * @param timeout
+	 * @param timeout must not be {@literal null}.
 	 * @param unit must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	@Nullable
