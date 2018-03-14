@@ -384,4 +384,60 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(valueOperations.size(key)).expectNext(0L).verifyComplete();
 	}
+	
+	@Test // DATAREDIS-784
+	public void increment() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier.create(valueOperations.increment(key)).expectNext(1L).verifyComplete();
+
+		StepVerifier.create(valueOperations.increment(key)).expectNext(2L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-784
+	public void incrementByLongDelta() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier.create(valueOperations.incrementBy(key, 2L)).expectNext(2L).verifyComplete();
+
+		StepVerifier.create(valueOperations.incrementBy(key, -3L)).expectNext(-1L).verifyComplete();
+
+		StepVerifier.create(valueOperations.incrementBy(key, 1L)).expectNext(0L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-784
+	public void incrementByFloatDelta() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier.create(valueOperations.incrementBy(key, 0.1)).expectNext(0.1).verifyComplete();
+
+		StepVerifier.create(valueOperations.incrementBy(key, -0.3)).expectNext(-0.2).verifyComplete();
+
+		StepVerifier.create(valueOperations.incrementBy(key, 0.2)).expectNext(0.0).verifyComplete();
+	}
+
+	@Test // DATAREDIS-784
+	public void decrement() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier.create(valueOperations.decrement(key)).expectNext(-1L).verifyComplete();
+
+		StepVerifier.create(valueOperations.decrement(key)).expectNext(-2L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-784
+	public void decrementByLongDelta() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier.create(valueOperations.decrementBy(key, 2L)).expectNext(-2L).verifyComplete();
+
+		StepVerifier.create(valueOperations.decrementBy(key, -3L)).expectNext(1L).verifyComplete();
+
+		StepVerifier.create(valueOperations.decrementBy(key, 1L)).expectNext(0L).verifyComplete();
+	}
 }
