@@ -122,9 +122,11 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	 */
 	public void setResultType(Class<T> resultType) {
 
-		Assert.isTrue(!resultType.isAssignableFrom(Byte.class), "You should use Long type.");
-		Assert.isTrue(!resultType.isAssignableFrom(Short.class), "You should use Long type.");
-		Assert.isTrue(!resultType.isAssignableFrom(Integer.class), "You should use Long type.");
+		if (resultType != null) {
+			Assert.isTrue(!resultType.isAssignableFrom(Byte.class), "You should use Long type.");
+			Assert.isTrue(!resultType.isAssignableFrom(Short.class), "You should use Long type.");
+			Assert.isTrue(!resultType.isAssignableFrom(Integer.class), "You should use Long type.");
+		}
 
 		this.resultType = resultType;
 	}
