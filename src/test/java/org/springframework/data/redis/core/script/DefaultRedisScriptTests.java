@@ -69,4 +69,22 @@ public class DefaultRedisScriptTests {
 		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
 		redisScript.afterPropertiesSet();
 	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void initializeWithIntegerType() {
+
+		new DefaultRedisScript<>("return ARGS[1]", Integer.class);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void initializeWithShortType() {
+
+		new DefaultRedisScript<>("return ARGS[1]", Short.class);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void initializeWithByteType() {
+
+		new DefaultRedisScript<>("return ARGS[1]", Byte.class);
+	}
 }
