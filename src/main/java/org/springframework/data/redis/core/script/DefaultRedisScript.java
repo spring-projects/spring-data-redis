@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Jiahe Cai
  * @param <T> The script result type. Should be one of Long, Boolean, List, or deserialized value type. Can be null if
  *          the script returns a throw-away status (i.e "OK")
  */
