@@ -119,7 +119,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		Assert.isTrue(connectionProvider instanceof ClusterConnectionProvider,
 				"LettuceConnectionProvider must be a ClusterConnectionProvider.");
 
-		this.clusterClient = ((ClusterConnectionProvider) connectionProvider).getRedisClient();
+		this.clusterClient = getClient();
 		this.topologyProvider = new LettuceClusterTopologyProvider(this.clusterClient);
 		this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
 				new LettuceClusterNodeResourceProvider(getConnectionProvider()), exceptionConverter);
@@ -156,7 +156,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		Assert.isTrue(connectionProvider instanceof ClusterConnectionProvider,
 				"LettuceConnectionProvider must be a ClusterConnectionProvider.");
 
-		this.clusterClient = ((ClusterConnectionProvider) connectionProvider).getRedisClient();
+		this.clusterClient = getClient();
 		this.topologyProvider = new LettuceClusterTopologyProvider(this.clusterClient);
 		this.clusterCommandExecutor = executor;
 		this.disposeClusterCommandExecutorOnClose = false;
@@ -209,7 +209,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	private Partitions getPartitions() {
 		return clusterClient.getPartitions();
 	}
-
 
 	/*
 	 * (non-Javadoc)
