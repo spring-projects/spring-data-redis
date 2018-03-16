@@ -183,10 +183,18 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 				.getValue());
 	}
 
+	/**
+	 * Use a {@link Cursor} to iterate over keys stored at the given {@link RedisClusterNode}.
+	 *
+	 * @param node must not be {@literal null}.
+	 * @param options must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.1
+	 */
 	Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
 
 		Assert.notNull(node, "RedisClusterNode must not be null!");
-		Assert.notNull(options, "Pattern must not be null!");
+		Assert.notNull(options, "Options must not be null!");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((LettuceClusterCommandCallback<ScanCursor<byte[]>>) client -> {
@@ -195,12 +203,11 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 
 						@Override
 						protected LettuceScanIteration<byte[]> doScan(io.lettuce.core.ScanCursor cursor, ScanOptions options) {
+
 							ScanArgs scanArgs = connection.getScanArgs(options);
 
 							KeyScanCursor<byte[]> keyScanCursor = client.scan(cursor, scanArgs);
-							List<byte[]> keys = keyScanCursor.getKeys();
-
-							return new LettuceScanIteration<>(keyScanCursor, keys);
+							return new LettuceScanIteration<>(keyScanCursor, keyScanCursor.getKeys());
 						}
 
 					}.open();

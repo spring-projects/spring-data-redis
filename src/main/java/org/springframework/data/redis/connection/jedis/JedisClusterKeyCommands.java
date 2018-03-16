@@ -171,10 +171,18 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		throw new InvalidDataAccessApiUsageException("Scan is not supported across multiple nodes within a cluster");
 	}
 
+	/**
+	 * Use a {@link Cursor} to iterate over keys stored at the given {@link RedisClusterNode}.
+	 *
+	 * @param node must not be {@literal null}.
+	 * @param options must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.1
+	 */
 	Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
 
 		Assert.notNull(node, "RedisClusterNode must not be null!");
-		Assert.notNull(options, "Pattern must not be null!");
+		Assert.notNull(options, "Options must not be null!");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<Cursor<byte[]>>) client -> {

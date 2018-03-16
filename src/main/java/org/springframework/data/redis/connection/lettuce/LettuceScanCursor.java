@@ -27,14 +27,14 @@ import org.springframework.lang.Nullable;
  * across a Redis Cluster.
  * <p/>
  * The cursor state uses Lettuce's stateful {@link io.lettuce.core.ScanCursor} to keep track of scanning progress.
- * Lettuce's cursor stores scanning progress inside its cursor so using a primitive {@code long} is not sufficient.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.1
  */
 abstract class LettuceScanCursor<T> extends ScanCursor<T> {
 
-	@Nullable private io.lettuce.core.ScanCursor state;
+	private @Nullable io.lettuce.core.ScanCursor state;
 
 	/**
 	 * Creates a new {@link LettuceScanCursor} given {@link ScanOptions}.
@@ -93,19 +93,22 @@ abstract class LettuceScanCursor<T> extends ScanCursor<T> {
 	 *
 	 * @param cursor must not be {@literal null}.
 	 * @param options must not be {@literal null}.
-	 * @return
+	 * @return never {@literal null}
 	 */
 	protected abstract LettuceScanIteration<T> doScan(io.lettuce.core.ScanCursor cursor, ScanOptions options);
 
 	/**
 	 * Lettuce-specific extension to {@link ScanIteration} keeping track of the original
 	 * {@link io.lettuce.core.ScanCursor} object.
+	 *
+	 * @author Mark Paluch
 	 */
 	static class LettuceScanIteration<T> extends ScanIteration<T> {
 
 		private final io.lettuce.core.ScanCursor cursor;
 
 		LettuceScanIteration(io.lettuce.core.ScanCursor cursor, Collection<T> items) {
+
 			super(Long.parseLong(cursor.getCursor()), items);
 			this.cursor = cursor;
 		}
