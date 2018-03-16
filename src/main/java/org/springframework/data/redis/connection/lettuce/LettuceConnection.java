@@ -255,8 +255,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @since 2.1
 	 */
 	LettuceConnection(@Nullable StatefulConnection<byte[], byte[]> sharedConnection,
-			LettuceConnectionProvider connectionProvider,
-			long timeout, int defaultDbIndex) {
+			LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
 
 		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null.");
 
