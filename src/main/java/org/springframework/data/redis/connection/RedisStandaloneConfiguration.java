@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
+import org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort;
+import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
 import org.springframework.util.Assert;
 
 /**
@@ -25,7 +28,8 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.0
  */
-public class RedisStandaloneConfiguration {
+public class RedisStandaloneConfiguration
+		implements RedisConfiguration, WithHostAndPort, WithPassword, WithDatabaseIndex {
 
 	private static final String DEFAULT_HOST = "localhost";
 	private static final int DEFAULT_PORT = 6379;
@@ -65,46 +69,55 @@ public class RedisStandaloneConfiguration {
 		this.port = port;
 	}
 
-	/**
-	 * @return the hostname or ip of the Redis node.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort#getHostName()
 	 */
+	@Override
 	public String getHostName() {
 		return hostName;
 	}
 
-	/**
-	 * @return the port or the Redis node.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort#getPort()
 	 */
+	@Override
 	public int getPort() {
 		return port;
 	}
 
-	/**
-	 * @param hostName the hostname or ip of the Redis node.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort#setHostName(java.lang.String)
 	 */
+	@Override
 	public void setHostName(String hostName) {
 		this.hostName = hostName;
 	}
 
-	/**
-	 * @param port the Redis node port to connect to.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort#setPort(int)
 	 */
 	public void setPort(int port) {
 		this.port = port;
 	}
 
-	/**
-	 * @return the db index.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#getDatabase()
 	 */
+	@Override
 	public int getDatabase() {
 		return database;
 	}
 
-	/**
-	 * Sets the index of the database used by this connection factory. Default is 0.
-	 *
-	 * @param index database index.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#setDatabase(int)
 	 */
+	@Override
 	public void setDatabase(int index) {
 
 		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
@@ -112,16 +125,20 @@ public class RedisStandaloneConfiguration {
 		this.database = index;
 	}
 
-	/**
-	 * @return never {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#getPassword()
 	 */
+	@Override
 	public RedisPassword getPassword() {
 		return password;
 	}
 
-	/**
-	 * @param password must not be {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#setPassword(org.springframework.data.redis.connection.RedisPassword)
 	 */
+	@Override
 	public void setPassword(RedisPassword password) {
 
 		Assert.notNull(password, "RedisPassword must not be null!");

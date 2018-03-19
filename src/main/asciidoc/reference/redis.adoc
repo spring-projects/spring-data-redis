@@ -136,6 +136,7 @@ class WriteToMasterReadFromSlaveConfiguration {
 }
 ----
 
+TIP: Use `RedisStaticMasterSlaveConfiguration` instead of `RedisStandaloneConfiguration` for environments reporting non public addresses via the `INFO` command (e.g. when using AWS).
 
 [[redis:sentinel]]
 == Redis Sentinel Support

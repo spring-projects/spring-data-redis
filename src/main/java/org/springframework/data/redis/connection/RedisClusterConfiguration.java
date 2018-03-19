@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
@@ -41,7 +42,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @since 1.7
  */
-public class RedisClusterConfiguration {
+public class RedisClusterConfiguration implements RedisConfiguration, ClusterConfiguration {
 
 	private static final String REDIS_CLUSTER_NODES_CONFIG_PROPERTY = "spring.redis.cluster.nodes";
 	private static final String REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY = "spring.redis.cluster.max-redirects";
@@ -120,11 +121,11 @@ public class RedisClusterConfiguration {
 		}
 	}
 
-	/**
-	 * Returns an {@link Collections#unmodifiableSet(Set)} of {@literal cluster nodes}.
-	 *
-	 * @return {@link Set} of nodes. Never {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration#getClusterNodes()
 	 */
+	@Override
 	public Set<RedisNode> getClusterNodes() {
 		return Collections.unmodifiableSet(clusterNodes);
 	}
@@ -149,9 +150,11 @@ public class RedisClusterConfiguration {
 		return this;
 	}
 
-	/**
-	 * @return max number of redirects to follow or {@literal null} if not set.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration#getMaxRedirects()
 	 */
+	@Override
 	public Integer getMaxRedirects() {
 		return maxRedirects != null && maxRedirects > Integer.MIN_VALUE ? maxRedirects : null;
 	}
@@ -181,20 +184,20 @@ public class RedisClusterConfiguration {
 		}
 	}
 
-	/**
-	 * Get the {@link RedisPassword} defined.
-	 *
-	 * @return never {@literal null}.
-	 * @since 2.0
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#getPassword()
 	 */
+	@Override
 	public RedisPassword getPassword() {
 		return password;
 	}
 
-	/**
-	 * @param password must not be {@literal null}.
-	 * @since 2.0
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#setPassword(org.springframework.data.redis.connection.RedisPassword)
 	 */
+	@Override
 	public void setPassword(RedisPassword password) {
 
 		Assert.notNull(password, "RedisPassword must not be null!");

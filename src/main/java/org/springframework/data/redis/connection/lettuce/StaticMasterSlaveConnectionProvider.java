@@ -29,13 +29,15 @@ import java.util.Optional;
 import org.springframework.lang.Nullable;
 
 /**
- * {@link LettuceConnectionProvider} implementation for a AWS ElastiCache with replicas setup. <br/>
+ * {@link LettuceConnectionProvider} implementation for a static Master/Slave connection suitable for eg. AWS
+ * ElastiCache with replicas setup.<br/>
  * Lettuce auto-discovers node roles from the static {@link RedisURI} collection.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.1
  */
-class ElastiCacheConnectionProvider implements LettuceConnectionProvider {
+class StaticMasterSlaveConnectionProvider implements LettuceConnectionProvider {
 
 	private final RedisClient client;
 	private final RedisCodec<?, ?> codec;
@@ -43,14 +45,14 @@ class ElastiCacheConnectionProvider implements LettuceConnectionProvider {
 	private final Collection<RedisURI> nodes;
 
 	/**
-	 * Create new {@link ElastiCacheConnectionProvider}.
+	 * Create new {@link StaticMasterSlaveConnectionProvider}.
 	 *
 	 * @param client must not be {@literal null}.
 	 * @param codec must not be {@literal null}.
 	 * @param nodes must not be {@literal null}.
 	 * @param readFrom can be {@literal null}.
 	 */
-	ElastiCacheConnectionProvider(RedisClient client, RedisCodec<?, ?> codec, Collection<RedisURI> nodes,
+	StaticMasterSlaveConnectionProvider(RedisClient client, RedisCodec<?, ?> codec, Collection<RedisURI> nodes,
 			@Nullable ReadFrom readFrom) {
 
 		this.client = client;
@@ -74,6 +76,6 @@ class ElastiCacheConnectionProvider implements LettuceConnectionProvider {
 			return connectionType.cast(connection);
 		}
 
-		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");
+		throw new UnsupportedOperationException(String.format("Connection type %s not supported!", connectionType));
 	}
 }

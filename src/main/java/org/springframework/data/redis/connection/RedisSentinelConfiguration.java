@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -41,7 +42,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @since 1.4
  */
-public class RedisSentinelConfiguration {
+public class RedisSentinelConfiguration implements RedisConfiguration, SentinelConfiguration {
 
 	private static final String REDIS_SENTINEL_MASTER_CONFIG_PROPERTY = "spring.redis.sentinel.master";
 	private static final String REDIS_SENTINEL_NODES_CONFIG_PROPERTY = "spring.redis.sentinel.nodes";
@@ -118,10 +119,9 @@ public class RedisSentinelConfiguration {
 		}
 	}
 
-	/**
-	 * Returns an {@link Collections#unmodifiableSet(Set)} of {@literal Sentinels}.
-	 *
-	 * @return {@link Set} of sentinels. Never {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#getSentinels()
 	 */
 	public Set<RedisNode> getSentinels() {
 		return Collections.unmodifiableSet(sentinels);
@@ -138,21 +138,9 @@ public class RedisSentinelConfiguration {
 		this.sentinels.add(sentinel);
 	}
 
-	/**
-	 * Set the master node via its name.
-	 *
-	 * @param name must not be {@literal null}.
-	 */
-	public void setMaster(final String name) {
-
-		notNull(name, "Name of sentinel master must not be null.");
-		setMaster(() -> name);
-	}
-
-	/**
-	 * Set the master.
-	 *
-	 * @param master must not be {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#setMaster(org.springframework.data.redis.connection.NamedNode)
 	 */
 	public void setMaster(NamedNode master) {
 
@@ -160,12 +148,10 @@ public class RedisSentinelConfiguration {
 		this.master = master;
 	}
 
-	/**
-	 * Get the {@literal Sentinel} master node.
-	 *
-	 * @return get the master node or {@literal null} if not set.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#getMaster()
 	 */
-	@Nullable
 	public NamedNode getMaster() {
 		return master;
 	}
@@ -217,20 +203,20 @@ public class RedisSentinelConfiguration {
 		}
 	}
 
-	/**
-	 * @return the initial db index.
-	 * @since 2.0
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#getDatabase()
 	 */
+	@Override
 	public int getDatabase() {
 		return database;
 	}
 
-	/**
-	 * Sets the index of the database used by this connection factory. Default is 0.
-	 *
-	 * @param index database index.
-	 * @since 2.0
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#setDatabase(int)
 	 */
+	@Override
 	public void setDatabase(int index) {
 
 		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
@@ -238,18 +224,20 @@ public class RedisSentinelConfiguration {
 		this.database = index;
 	}
 
-	/**
-	 * @return never {@literal null}.
-	 * @since 2.0
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#getPassword()
 	 */
+	@Override
 	public RedisPassword getPassword() {
 		return password;
 	}
 
-	/**
-	 * @param password must not be {@literal null}.
-	 * @since 2.0
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#setPassword(org.springframework.data.redis.connection.RedisPassword)
 	 */
+	@Override
 	public void setPassword(RedisPassword password) {
 
 		Assert.notNull(password, "RedisPassword must not be null!");

@@ -41,7 +41,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisElastiCacheConfiguration;
+import org.springframework.data.redis.connection.RedisStaticMasterSlaveConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.StringRedisConnection;
 
@@ -394,7 +394,7 @@ public class LettuceConnectionFactoryTests {
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
 				.build();
 
-		RedisElastiCacheConfiguration elastiCache = new RedisElastiCacheConfiguration(SettingsUtils.getHost())
+		RedisStaticMasterSlaveConfiguration elastiCache = new RedisStaticMasterSlaveConfiguration(SettingsUtils.getHost())
 				.node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache,
@@ -422,7 +422,7 @@ public class LettuceConnectionFactoryTests {
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.MASTER)
 				.build();
 
-		RedisElastiCacheConfiguration elastiCache = new RedisElastiCacheConfiguration(SettingsUtils.getHost(),
+		RedisStaticMasterSlaveConfiguration elastiCache = new RedisStaticMasterSlaveConfiguration(SettingsUtils.getHost(),
 				SettingsUtils.getPort() + 1);
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache, configuration);
