@@ -19,16 +19,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.data.redis.connection.RedisConfiguration.StaticMasterSlaveConfiguration;
 import org.springframework.util.Assert;
 
 /**
- * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
- * to <a href="https://aws.amazon.com/documentation/elasticache/">AWS ElastiCache with Read Replicas</a> .
+ * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using the provided
+ * Master / Slave configuration to nodes know to not change address. Eg. when connecting to
+ * <a href="https://aws.amazon.com/documentation/elasticache/">AWS ElastiCache with Read Replicas</a> .
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.1
  */
-public class RedisElastiCacheConfiguration {
+public class RedisStaticMasterSlaveConfiguration implements RedisConfiguration, StaticMasterSlaveConfiguration {
 
 	private static final int DEFAULT_PORT = 6379;
 
@@ -37,21 +40,21 @@ public class RedisElastiCacheConfiguration {
 	private RedisPassword password = RedisPassword.none();
 
 	/**
-	 * Create a new {@link RedisElastiCacheConfiguration} given {@code hostName}.
+	 * Create a new {@link StaticMasterSlaveConfiguration} given {@code hostName}.
 	 *
 	 * @param hostName must not be {@literal null} or empty.
 	 */
-	public RedisElastiCacheConfiguration(String hostName) {
+	public RedisStaticMasterSlaveConfiguration(String hostName) {
 		this(hostName, DEFAULT_PORT);
 	}
 
 	/**
-	 * Create a new {@link RedisElastiCacheConfiguration} given {@code hostName} and {@code port}.
+	 * Create a new {@link StaticMasterSlaveConfiguration} given {@code hostName} and {@code port}.
 	 *
 	 * @param hostName must not be {@literal null} or empty.
 	 * @param port a valid TCP port (1-65535).
 	 */
-	public RedisElastiCacheConfiguration(String hostName, int port) {
+	public RedisStaticMasterSlaveConfiguration(String hostName, int port) {
 		addNode(hostName, port);
 	}
 
@@ -83,9 +86,9 @@ public class RedisElastiCacheConfiguration {
 	 * Add a {@link RedisStandaloneConfiguration node} to the list of nodes given {@code hostName}.
 	 *
 	 * @param hostName must not be {@literal null} or empty.
-	 * @return {@code this} {@link RedisElastiCacheConfiguration}.
+	 * @return {@code this} {@link StaticMasterSlaveConfiguration}.
 	 */
-	public RedisElastiCacheConfiguration node(String hostName) {
+	public StaticMasterSlaveConfiguration node(String hostName) {
 		return node(hostName, DEFAULT_PORT);
 	}
 
@@ -94,26 +97,28 @@ public class RedisElastiCacheConfiguration {
 	 *
 	 * @param hostName must not be {@literal null} or empty.
 	 * @param port a valid TCP port (1-65535).
-	 * @return {@code this} {@link RedisElastiCacheConfiguration}.
+	 * @return {@code this} {@link StaticMasterSlaveConfiguration}.
 	 */
-	public RedisElastiCacheConfiguration node(String hostName, int port) {
+	public RedisStaticMasterSlaveConfiguration node(String hostName, int port) {
 
 		addNode(hostName, port);
 		return this;
 	}
 
-	/**
-	 * @return the db index.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#getDatabase()
 	 */
+	@Override
 	public int getDatabase() {
 		return database;
 	}
 
-	/**
-	 * Sets the index of the database used by this connection factory. Default is 0.
-	 *
-	 * @param index database index.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#setDatabase(int)
 	 */
+	@Override
 	public void setDatabase(int index) {
 
 		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
@@ -122,16 +127,20 @@ public class RedisElastiCacheConfiguration {
 		this.nodes.forEach(it -> it.setDatabase(database));
 	}
 
-	/**
-	 * @return never {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#getPassword()
 	 */
+	@Override
 	public RedisPassword getPassword() {
 		return password;
 	}
 
-	/**
-	 * @param password must not be {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#setPassword(org.springframework.data.redis.connection.RedisPassword)
 	 */
+	@Override
 	public void setPassword(RedisPassword password) {
 
 		Assert.notNull(password, "RedisPassword must not be null!");
@@ -140,10 +149,12 @@ public class RedisElastiCacheConfiguration {
 		this.nodes.forEach(it -> it.setPassword(password));
 	}
 
-	/**
-	 * @return list of {@link RedisStandaloneConfiguration nodes}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.StaticMasterSlaveConfiguration#getNodes()
 	 */
+	@Override
 	public List<RedisStandaloneConfiguration> getNodes() {
-		return Collections.unmodifiableList(new ArrayList<>(nodes));
+		return Collections.unmodifiableList(nodes);
 	}
 }

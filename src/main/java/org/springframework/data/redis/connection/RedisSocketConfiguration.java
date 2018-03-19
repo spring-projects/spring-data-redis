@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.springframework.data.redis.connection.RedisConfiguration.DomainSocketConfiguration;
 import org.springframework.util.Assert;
 
 /**
@@ -25,7 +26,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.1
  */
-public class RedisSocketConfiguration {
+public class RedisSocketConfiguration implements RedisConfiguration, DomainSocketConfiguration {
 
 	private static final String DEFAULT_SOCKET = "/tmp/redis.sock";
 
@@ -50,34 +51,40 @@ public class RedisSocketConfiguration {
 		this.socket = socket;
 	}
 
-	/**
-	 * @return path to the Redis socket.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDomainSocket#getSocket()
 	 */
+	@Override
 	public String getSocket() {
 		return socket;
 	}
 
-	/**
-	 * @param socket path to the Redis socket.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDomainSocket#setSocket(java.lang.String)
 	 */
+	@Override
 	public void setSocket(String socket) {
 
 		Assert.hasText(socket, "Socket must not be null nor empty!");
 		this.socket = socket;
 	}
 
-	/**
-	 * @return the db index.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#getDatabase()
 	 */
+	@Override
 	public int getDatabase() {
 		return database;
 	}
 
-	/**
-	 * Sets the index of the database used by this connection factory. Default is 0.
-	 *
-	 * @param index database index.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#setDatabase(int)
 	 */
+	@Override
 	public void setDatabase(int index) {
 
 		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
@@ -85,16 +92,20 @@ public class RedisSocketConfiguration {
 		this.database = index;
 	}
 
-	/**
-	 * @return never {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#getPassword()
 	 */
+	@Override
 	public RedisPassword getPassword() {
 		return password;
 	}
 
-	/**
-	 * @param password must not be {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#setPassword(org.springframework.data.redis.connection.RedisPassword)
 	 */
+	@Override
 	public void setPassword(RedisPassword password) {
 
 		Assert.notNull(password, "RedisPassword must not be null!");

@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link RedisElastiCacheConfiguration}.
+ * Unit tests for {@link RedisStaticMasterSlaveConfiguration}.
  *
  * @author Mark Paluch
  */
@@ -29,7 +29,7 @@ public class RedisElastiCacheConfigurationUnitTests {
 	@Test // DATAREDIS-762
 	public void shouldCreateSingleHostConfiguration() {
 
-		RedisElastiCacheConfiguration singleHost = new RedisElastiCacheConfiguration("localhost");
+		RedisStaticMasterSlaveConfiguration singleHost = new RedisStaticMasterSlaveConfiguration("localhost");
 
 		assertThat(singleHost.getNodes()).hasSize(1);
 
@@ -42,7 +42,7 @@ public class RedisElastiCacheConfigurationUnitTests {
 	@Test // DATAREDIS-762
 	public void shouldCreateMultiHostConfiguration() {
 
-		RedisElastiCacheConfiguration multiHost = new RedisElastiCacheConfiguration("localhost");
+		RedisStaticMasterSlaveConfiguration multiHost = new RedisStaticMasterSlaveConfiguration("localhost");
 		multiHost.node("other-host", 6479);
 
 		assertThat(multiHost.getNodes()).hasSize(2);
@@ -61,7 +61,7 @@ public class RedisElastiCacheConfigurationUnitTests {
 	@Test // DATAREDIS-762
 	public void shouldApplyPasswordToNodes() {
 
-		RedisElastiCacheConfiguration multiHost = new RedisElastiCacheConfiguration("localhost").node("other-host", 6479);
+		RedisStaticMasterSlaveConfiguration multiHost = new RedisStaticMasterSlaveConfiguration("localhost").node("other-host", 6479);
 
 		multiHost.setPassword(RedisPassword.of("foobar"));
 		multiHost.node("third", 1234);
@@ -73,7 +73,7 @@ public class RedisElastiCacheConfigurationUnitTests {
 	@Test // DATAREDIS-762
 	public void shouldApplyDatabaseToNodes() {
 
-		RedisElastiCacheConfiguration multiHost = new RedisElastiCacheConfiguration("localhost").node("other-host", 6479);
+		RedisStaticMasterSlaveConfiguration multiHost = new RedisStaticMasterSlaveConfiguration("localhost").node("other-host", 6479);
 
 		multiHost.setDatabase(4);
 		multiHost.node("third", 1234);
