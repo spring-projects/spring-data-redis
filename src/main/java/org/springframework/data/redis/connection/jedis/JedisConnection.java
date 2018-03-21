@@ -60,6 +60,7 @@ import org.springframework.util.StringUtils;
  * @author Milan Agatonovic
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Binglei Yu
  */
 public class JedisConnection extends AbstractRedisConnection {
 
@@ -122,7 +123,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		// as we're inside the constructor
 		if (dbIndex != jedis.getDB()) {
 			try {
-				select(dbIndex);
+				jedis.select(dbIndex);
 			} catch (DataAccessException ex) {
 				close();
 				throw ex;
