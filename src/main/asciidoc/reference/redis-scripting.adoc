@@ -11,8 +11,8 @@ Here's an example that executes a common "check-and-set" scenario using a Lua sc
 
 [source,java]
 ----
-@Bean 
-public RedisScript<Boolean> script() { 
+@Bean
+public RedisScript<Boolean> script() {
 
   ScriptSource scriptSource = new ResourceScriptSource(new ClassPathResource("META-INF/scripts/checkandset.lua");
   return RedisScript.of(scriptSource, Boolean.class);
@@ -23,24 +23,24 @@ public RedisScript<Boolean> script() {
 ----
 public class Example {
 
-  @Autowired 
+  @Autowired
   RedisScript<Boolean> script;
 
-  public boolean checkAndSet(String expectedValue, String newValue) { 
+  public boolean checkAndSet(String expectedValue, String newValue) {
     return redisTemplate.execute(script, singletonList("key"), asList(expectedValue, newValue));
-  } 
+  }
 }
 ----
 
 [source,lua]
 ----
- -- checkandset.lua
- local current = redis.call('GET', KEYS[1]) 
- if current == ARGV[1]
-   then redis.call('SET', KEYS[1], ARGV[2])
-   return true
- end
- return false 
+-- checkandset.lua
+local current = redis.call('GET', KEYS[1])
+if current == ARGV[1]
+  then redis.call('SET', KEYS[1], ARGV[2])
+  return true
+end
+return false
 ----
 
 The code above configures a `RedisScript` pointing to a file called `checkandset.lua`, which is expected to return a boolean value. The script `resultType` should be one of `Long`, `Boolean`, `List`, or deserialized value type. It can also be `null` if the script returns a throw-away status (i.e "OK"). It is ideal to configure a single instance of `DefaultRedisScript` in your application context to avoid re-calculation of the script's SHA1 on every script execution.
