@@ -27,6 +27,7 @@ import org.springframework.scripting.support.StaticScriptSource;
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Jiahe Cai
  */
 public class DefaultRedisScriptTests {
 
@@ -68,5 +69,26 @@ public class DefaultRedisScriptTests {
 
 		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
 		redisScript.afterPropertiesSet();
+	}
+
+	// DATAREDIS-788
+	@Test(expected = IllegalArgumentException.class)
+	public void initializeWithIntegerType() {
+
+		new DefaultRedisScript<>("return ARGS[1]", Integer.class);
+	}
+
+	// DATAREDIS-788
+	@Test(expected = IllegalArgumentException.class)
+	public void initializeWithShortType() {
+
+		new DefaultRedisScript<>("return ARGS[1]", Short.class);
+	}
+
+	// DATAREDIS-788
+	@Test(expected = IllegalArgumentException.class)
+	public void initializeWithByteType() {
+
+		new DefaultRedisScript<>("return ARGS[1]", Byte.class);
 	}
 }

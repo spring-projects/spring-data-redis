@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Jiahe Cai
  * @param <T> The script result type. Should be one of Long, Boolean, List, or deserialized value type. Can be null if
  *          the script returns a throw-away status (i.e "OK")
  */
@@ -68,7 +69,7 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	public DefaultRedisScript(String script, @Nullable Class<T> resultType) {
 
 		this.setScriptText(script);
-		this.resultType = resultType;
+		this.setResultType(resultType);
 	}
 
 	/*
@@ -120,6 +121,13 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	 *          null if the script returns a throw-away status (i.e "OK")
 	 */
 	public void setResultType(Class<T> resultType) {
+
+		if (resultType != null) {
+			Assert.isTrue(!resultType.isAssignableFrom(Byte.class), "You should use Long type.");
+			Assert.isTrue(!resultType.isAssignableFrom(Short.class), "You should use Long type.");
+			Assert.isTrue(!resultType.isAssignableFrom(Integer.class), "You should use Long type.");
+		}
+
 		this.resultType = resultType;
 	}
 
