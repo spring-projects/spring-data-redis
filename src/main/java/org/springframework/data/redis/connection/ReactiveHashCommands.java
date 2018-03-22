@@ -195,8 +195,7 @@ public interface ReactiveHashCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(fieldValueMap, "Field must not be null!");
 
-		return hSet(Mono.just(HSetCommand.fieldValues(fieldValueMap).forKey(key).ifValueNotExists())).next()
-				.map(BooleanResponse::getOutput);
+		return hSet(Mono.just(HSetCommand.fieldValues(fieldValueMap).forKey(key))).next().map(it -> true);
 	}
 
 	/**
