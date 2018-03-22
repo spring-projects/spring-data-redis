@@ -120,6 +120,21 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		assertThat(nativeCommands.hget(KEY_1, FIELD_2), is(equalTo(VALUE_2)));
 	}
 
+	@Test // DATAREDIS-791
+	public void hMSetShouldOverwriteValuesCorrectly() {
+
+		Map<ByteBuffer, ByteBuffer> fieldValues = new LinkedHashMap<>();
+		fieldValues.put(FIELD_1_BBUFFER, VALUE_1_BBUFFER);
+
+		connection.hashCommands().hMSet(KEY_1_BBUFFER, fieldValues).block();
+
+		Map<ByteBuffer, ByteBuffer> overwriteFieldValues = new LinkedHashMap<>();
+		overwriteFieldValues.put(FIELD_1_BBUFFER, VALUE_2_BBUFFER);
+
+		connection.hashCommands().hMSet(KEY_1_BBUFFER, overwriteFieldValues).block();
+		assertThat(nativeCommands.hget(KEY_1, FIELD_1), is(equalTo(VALUE_2)));
+	}
+
 	@Test // DATAREDIS-525
 	public void hExistsShouldReturnTrueForExistingField() {
 
