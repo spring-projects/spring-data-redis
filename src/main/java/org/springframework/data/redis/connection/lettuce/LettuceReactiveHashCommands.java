@@ -34,7 +34,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyComm
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
@@ -74,7 +73,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 				Entry<ByteBuffer, ByteBuffer> entry = command.getFieldValueMap().entrySet().iterator().next();
 
-				result = ObjectUtils.nullSafeEquals(command.isUpsert(), Boolean.TRUE)
+				result = command.isUpsert()
 						? cmd.hset(command.getKey(), entry.getKey(), entry.getValue())
 						: cmd.hsetnx(command.getKey(), entry.getKey(), entry.getValue());
 			} else {
