@@ -15,16 +15,13 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.collection.IsIterableContainingInOrder.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsNull.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -42,9 +39,9 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 	static final String FIELD_2 = "field-2";
 	static final String FIELD_3 = "field-3";
 
-	static final byte[] FIELD_1_BYTES = FIELD_1.getBytes(Charset.forName("UTF-8"));
-	static final byte[] FIELD_2_BYTES = FIELD_2.getBytes(Charset.forName("UTF-8"));
-	static final byte[] FIELD_3_BYTES = FIELD_3.getBytes(Charset.forName("UTF-8"));
+	static final byte[] FIELD_1_BYTES = FIELD_1.getBytes(StandardCharsets.UTF_8);
+	static final byte[] FIELD_2_BYTES = FIELD_2.getBytes(StandardCharsets.UTF_8);
+	static final byte[] FIELD_3_BYTES = FIELD_3.getBytes(StandardCharsets.UTF_8);
 
 	static final ByteBuffer FIELD_1_BBUFFER = ByteBuffer.wrap(FIELD_1_BYTES);
 	static final ByteBuffer FIELD_2_BBUFFER = ByteBuffer.wrap(FIELD_2_BYTES);
@@ -52,12 +49,15 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 
 	@Test // DATAREDIS-525
 	public void hSetShouldOperateCorrectly() {
-		assertThat(connection.hashCommands().hSet(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER).block(), is(true));
+
+		StepVerifier.create(connection.hashCommands().hSet(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER))
+				.expectNext(true).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
 	public void hSetNxShouldOperateCorrectly() {
-		assertThat(connection.hashCommands().hSetNX(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER).block(), is(true));
+		StepVerifier.create(connection.hashCommands().hSetNX(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER))
+				.expectNext(true).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -65,7 +65,8 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
 
-		assertThat(connection.hashCommands().hSetNX(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER).block(), is(false));
+		StepVerifier.create(connection.hashCommands().hSetNX(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER))
+				.expectNext(false).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -75,7 +76,8 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
-		assertThat(connection.hashCommands().hGet(KEY_1_BBUFFER, FIELD_1_BBUFFER).block(), is(equalTo(VALUE_1_BBUFFER)));
+		StepVerifier.create(connection.hashCommands().hGet(KEY_1_BBUFFER, FIELD_1_BBUFFER)).expectNext(VALUE_1_BBUFFER)
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -83,7 +85,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
 
-		assertThat(connection.hashCommands().hGet(KEY_1_BBUFFER, FIELD_2_BBUFFER).block(), is(nullValue()));
+		StepVerifier.create(connection.hashCommands().hGet(KEY_1_BBUFFER, FIELD_2_BBUFFER)).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -93,8 +95,12 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
-		assertThat(connection.hashCommands().hMGet(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_3_BBUFFER)).block(),
-				contains(VALUE_1_BBUFFER, VALUE_3_BBUFFER));
+		StepVerifier.create(connection.hashCommands().hMGet(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_3_BBUFFER)))
+				.consumeNextWith(actual -> {
+
+					assertThat(actual, hasItems(VALUE_1_BBUFFER, VALUE_3_BBUFFER));
+
+				}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -103,9 +109,10 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
-		assertThat(connection.hashCommands()
-				.hMGet(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER)).block(),
-				contains(VALUE_1_BBUFFER, null, VALUE_3_BBUFFER));
+		StepVerifier
+				.create(connection.hashCommands().hMGet(KEY_1_BBUFFER,
+						Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER)))
+				.expectNext(Arrays.asList(VALUE_1_BBUFFER, null, VALUE_3_BBUFFER)).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -115,7 +122,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		fieldValues.put(FIELD_1_BBUFFER, VALUE_1_BBUFFER);
 		fieldValues.put(FIELD_2_BBUFFER, VALUE_2_BBUFFER);
 
-		assertThat(connection.hashCommands().hMSet(KEY_1_BBUFFER, fieldValues).block(), is(true));
+		StepVerifier.create(connection.hashCommands().hMSet(KEY_1_BBUFFER, fieldValues)).expectNext(true).verifyComplete();
 		assertThat(nativeCommands.hget(KEY_1, FIELD_1), is(equalTo(VALUE_1)));
 		assertThat(nativeCommands.hget(KEY_1, FIELD_2), is(equalTo(VALUE_2)));
 	}
@@ -126,12 +133,13 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		Map<ByteBuffer, ByteBuffer> fieldValues = new LinkedHashMap<>();
 		fieldValues.put(FIELD_1_BBUFFER, VALUE_1_BBUFFER);
 
-		connection.hashCommands().hMSet(KEY_1_BBUFFER, fieldValues).block();
+		StepVerifier.create(connection.hashCommands().hMSet(KEY_1_BBUFFER, fieldValues)).expectNext(true).verifyComplete();
 
 		Map<ByteBuffer, ByteBuffer> overwriteFieldValues = new LinkedHashMap<>();
 		overwriteFieldValues.put(FIELD_1_BBUFFER, VALUE_2_BBUFFER);
 
-		connection.hashCommands().hMSet(KEY_1_BBUFFER, overwriteFieldValues).block();
+		StepVerifier.create(connection.hashCommands().hMSet(KEY_1_BBUFFER, overwriteFieldValues)).expectNext(true)
+				.verifyComplete();
 		assertThat(nativeCommands.hget(KEY_1, FIELD_1), is(equalTo(VALUE_2)));
 	}
 
@@ -140,12 +148,14 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
 
-		assertThat(connection.hashCommands().hExists(KEY_1_BBUFFER, FIELD_1_BBUFFER).block(), is(true));
+		StepVerifier.create(connection.hashCommands().hExists(KEY_1_BBUFFER, FIELD_1_BBUFFER)).expectNext(true)
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
 	public void hExistsShouldReturnFalseForNonExistingField() {
-		assertThat(connection.hashCommands().hExists(KEY_1_BBUFFER, FIELD_1_BBUFFER).block(), is(false));
+		StepVerifier.create(connection.hashCommands().hExists(KEY_1_BBUFFER, FIELD_1_BBUFFER)).expectNext(false)
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -155,7 +165,8 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
-		assertThat(connection.hashCommands().hDel(KEY_1_BBUFFER, FIELD_2_BBUFFER).block(), is(true));
+		StepVerifier.create(connection.hashCommands().hDel(KEY_1_BBUFFER, FIELD_2_BBUFFER)).expectNext(true)
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -165,8 +176,8 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
-		assertThat(connection.hashCommands().hDel(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_3_BBUFFER)).block(),
-				is(2L));
+		StepVerifier.create(connection.hashCommands().hDel(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_3_BBUFFER)))
+				.expectNext(2L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -176,7 +187,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
-		assertThat(connection.hashCommands().hLen(KEY_1_BBUFFER).block(), is(3L));
+		StepVerifier.create(connection.hashCommands().hLen(KEY_1_BBUFFER)).expectNext(3L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
