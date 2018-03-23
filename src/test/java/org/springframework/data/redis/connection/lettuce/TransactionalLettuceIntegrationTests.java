@@ -17,8 +17,9 @@ package org.springframework.data.redis.connection.lettuce;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractTransactionalTestBase;
-import org.springframework.data.redis.connection.lettuce.TransactionalLettuceItegrationTests.LettuceContextConfiguration;
+import org.springframework.data.redis.connection.lettuce.TransactionalLettuceIntegrationTests.LettuceContextConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -26,7 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Mark Paluch
  */
 @ContextConfiguration(classes = { LettuceContextConfiguration.class })
-public class TransactionalLettuceItegrationTests extends AbstractTransactionalTestBase {
+public class TransactionalLettuceIntegrationTests extends AbstractTransactionalTestBase {
 
 	@Configuration
 	public static class LettuceContextConfiguration extends RedisContextConfiguration {
@@ -37,11 +38,9 @@ public class TransactionalLettuceItegrationTests extends AbstractTransactionalTe
 
 			LettuceConnectionFactory factory = new LettuceConnectionFactory();
 			factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-			factory.setHostName("localhost");
-			factory.setPort(6379);
+			factory.setHostName(SettingsUtils.getHost());
+			factory.setPort(SettingsUtils.getPort());
 			return factory;
 		}
-
 	}
-
 }
