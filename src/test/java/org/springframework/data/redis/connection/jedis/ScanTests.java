@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
@@ -43,7 +44,7 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * @autor Mark Paluch
+ * @author Mark Paluch
  * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
@@ -65,14 +66,14 @@ public class ScanTests {
 	public static List<RedisConnectionFactory> params() {
 
 		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory();
-		jedisConnectionFactory.setHostName("127.0.0.1");
-		jedisConnectionFactory.setPort(6379);
+		jedisConnectionFactory.setHostName(SettingsUtils.getHost());
+		jedisConnectionFactory.setPort(SettingsUtils.getPort());
 		jedisConnectionFactory.afterPropertiesSet();
 
 		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
 		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnectionFactory.setHostName("127.0.0.1");
-		lettuceConnectionFactory.setPort(6379);
+		lettuceConnectionFactory.setHostName(SettingsUtils.getHost());
+		lettuceConnectionFactory.setPort(SettingsUtils.getPort());
 		lettuceConnectionFactory.afterPropertiesSet();
 
 		return Arrays.<RedisConnectionFactory> asList(jedisConnectionFactory, lettuceConnectionFactory);
