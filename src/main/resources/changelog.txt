@@ -1,6 +1,21 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.11.RELEASE (2018-04-04)
+----------------------------------------------
+* DATAREDIS-798 - Remove explicit declaration of Jackson library versions.
+* DATAREDIS-790 - Backport JedisConnection always executes SELECT via RedisTemplate.
+* DATAREDIS-789 - Lua script in redis-scripting.adoc contains syntax error.
+* DATAREDIS-780 - Up-to-date guidelines for serialization usage.
+* DATAREDIS-768 - Redis repositories deserialize Map<Integer, Integer> to strings.
+* DATAREDIS-766 - SSL flag not applied if JedisConnectionFactory configured via JedisShardInfo.
+* DATAREDIS-765 - Sentinel with JedisConnectionFactory without pooling connects to localhost:6379.
+* DATAREDIS-764 - Polish serializers section in reference documentation.
+* DATAREDIS-759 - Fix line endings.
+* DATAREDIS-758 - Release 1.8.11 (Ingalls SR11).
+* DATAREDIS-673 - RedisCache.get(…) returns false positive cache hit when key is deleted in-flight.
+
+
 Changes in version 2.0.5.RELEASE (2018-02-28)
 ---------------------------------------------
 * DATAREDIS-775 - ClassCastException when using Redis Cluster with connection pooling.
