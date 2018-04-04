@@ -62,8 +62,8 @@ public class RedisTxContextConfiguration {
 // executed on thread bound connection 
 template.opsForValue().set("foo", "bar"); 
 
-// read operation executed on a free (not tx-aware) 
-connection template.keys("*"); 
+// read operation executed on a free (not tx-aware) connection 
+template.keys("*"); 
 
 // returns null as values set within transaction are not visible 
 template.opsForValue().get("foo"); 
