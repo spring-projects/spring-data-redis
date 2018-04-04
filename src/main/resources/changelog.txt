@@ -1,6 +1,17 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.0.6.RELEASE (2018-04-04)
+---------------------------------------------
+* DATAREDIS-799 - Upgrade to Lettuce 5.0.3.RELEASE.
+* DATAREDIS-798 - Remove explicit declaration of Jackson library versions.
+* DATAREDIS-791 - ReactiveHashCommands.hMSet calls HSETNX if map contains a single tuple.
+* DATAREDIS-789 - Lua script in redis-scripting.adoc contains syntax error.
+* DATAREDIS-783 - Fix typo in LettuceReactiveRedisConnection.
+* DATAREDIS-780 - Up-to-date guidelines for serialization usage.
+* DATAREDIS-776 - Release 2.0.6 (Kay SR6).
+
+
 Changes in version 1.8.11.RELEASE (2018-04-04)
 ----------------------------------------------
 * DATAREDIS-798 - Remove explicit declaration of Jackson library versions.
