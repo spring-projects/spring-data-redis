@@ -38,6 +38,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Christian Bühler
  */
 public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
@@ -156,19 +157,9 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	@Override
 	public Set<java.util.Map.Entry<K, V>> entrySet() {
 
-		Set<K> keySet = keySet();
-		checkResult(keySet);
-		Collection<V> multiGet = hashOps.multiGet(keySet);
-
-		Iterator<K> keys = keySet.iterator();
-		Iterator<V> values = multiGet.iterator();
-
-		Set<Map.Entry<K, V>> entries = new LinkedHashSet<>();
-		while (keys.hasNext()) {
-			entries.add(new DefaultRedisMapEntry(keys.next(), values.next()));
-		}
-
-		return entries;
+		Map<K, V> entries = hashOps.entries();
+		checkResult(entries);
+		return entries.entrySet();
 	}
 
 	/*
