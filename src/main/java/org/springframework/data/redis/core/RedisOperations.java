@@ -470,7 +470,7 @@ public interface RedisOperations<K, V> {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * /** Request information and statistics about connected clients.
+	 * Request information and statistics about connected clients.
 	 *
 	 * @return {@link List} of {@link RedisClientInfo} objects.
 	 * @since 1.3
