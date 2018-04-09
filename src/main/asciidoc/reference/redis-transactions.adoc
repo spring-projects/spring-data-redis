@@ -7,17 +7,17 @@ Spring Data Redis provides the `SessionCallback` interface for use when multiple
 
 [source,java]
 ----
-//execute a transaction 
-List<Object> txResults = redisTemplate.execute(new SessionCallback<List<Object>>() { 
-  public List<Object> execute(RedisOperations operations) throws DataAccessException { 
-    operations.multi(); 
-    operations.opsForSet().add("key", "value1"); 
+//execute a transaction
+List<Object> txResults = redisTemplate.execute(new SessionCallback<List<Object>>() {
+  public List<Object> execute(RedisOperations operations) throws DataAccessException {
+    operations.multi();
+    operations.opsForSet().add("key", "value1");
 
-    // This will contain the results of all ops in the transaction 
-    return operations.exec(); 
-  } 
+    // This will contain the results of all ops in the transaction
+    return operations.exec();
+  }
 });
-System.out.println("Number of items added to set: " + txResults.get(0)); 
+System.out.println("Number of items added to set: " + txResults.get(0));
 ----
 
 `RedisTemplate` will use its value, hash key, and hash value serializers to deserialize all results of `exec` before returning. There is an additional `exec` method that allows you to pass a custom serializer for transaction results.
@@ -33,39 +33,39 @@ Transaction Support is disabled by default and has to be explicitly enabled for 
 ----
 /** Sample Configuration **/
 @Configuration
-public class RedisTxContextConfiguration { 
-  @Bean 
+public class RedisTxContextConfiguration {
+  @Bean
   public StringRedisTemplate redisTemplate() {
     StringRedisTemplate template = new StringRedisTemplate(redisConnectionFactory());
-    // explicitly enable transaction support 
-    template.setEnableTransactionSupport(true); 
+    // explicitly enable transaction support
+    template.setEnableTransactionSupport(true);
     return template;
   }
 
   @Bean
   public PlatformTransactionManager transactionManager() throws SQLException {
     return new DataSourceTransactionManager(dataSource());
-  } 
+  }
 
-  @Bean 
-  public RedisConnectionFactory redisConnectionFactory( // jedis || lettuce); 
+  @Bean
+  public RedisConnectionFactory redisConnectionFactory( // jedis || lettuce);
 
-  @Bean 
-  public DataSource dataSource() throws SQLException { // ... } 
-} 
+  @Bean
+  public DataSource dataSource() throws SQLException { // ... }
+}
 ----
 
 [source,java]
 ----
-/** Usage Constrainsts **/ 
+/** Usage Constrainsts **/
 
-// executed on thread bound connection 
-template.opsForValue().set("foo", "bar"); 
+// executed on thread bound connection
+template.opsForValue().set("foo", "bar");
 
-// read operation executed on a free (not tx-aware) 
-connection template.keys("*"); 
+// read operation executed on a free (not tx-aware)
+connection template.keys("*");
 
-// returns null as values set within transaction are not visible 
-template.opsForValue().get("foo"); 
+// returns null as values set within transaction are not visible
+template.opsForValue().get("foo");
 ----
 
