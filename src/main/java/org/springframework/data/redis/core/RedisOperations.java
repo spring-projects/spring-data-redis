@@ -1,12 +1,12 @@
 /*
- * Copyright 2011-2017 the original author or authors.
- * 
+ * Copyright 2011-2018 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,7 +32,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 /**
  * Interface that specified a basic set of Redis operations, implemented by {@link RedisTemplate}. Not often used but a
  * useful option for extensibility and testability (as it can be easily mocked or stubbed).
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Ninad Divadkar
@@ -48,7 +48,7 @@ public interface RedisOperations<K, V> {
 	 * for the Redis storage. Note: Callback code is not supposed to handle transactions itself! Use an appropriate
 	 * transaction manager. Generally, callback code must not touch any Connection lifecycle methods, like close, to let
 	 * the template do its work.
-	 * 
+	 *
 	 * @param <T> return type
 	 * @param action callback object that specifies the Redis action
 	 * @return a result object returned by the action or <tt>null</tt>
@@ -58,7 +58,7 @@ public interface RedisOperations<K, V> {
 	/**
 	 * Executes a Redis session. Allows multiple operations to be executed in the same session enabling 'transactional'
 	 * capabilities through {@link #multi()} and {@link #watch(Collection)} operations.
-	 * 
+	 *
 	 * @param <T> return type
 	 * @param session session callback
 	 * @return result object returned by the action or <tt>null</tt>
@@ -69,7 +69,7 @@ public interface RedisOperations<K, V> {
 	 * Executes the given action object on a pipelined connection, returning the results. Note that the callback
 	 * <b>cannot</b> return a non-null value as it gets overwritten by the pipeline. This method will use the default
 	 * serializers to deserialize results
-	 * 
+	 *
 	 * @param action callback object to execute
 	 * @return list of objects returned by the pipeline
 	 */
@@ -78,7 +78,7 @@ public interface RedisOperations<K, V> {
 	/**
 	 * Executes the given action object on a pipelined connection, returning the results using a dedicated serializer.
 	 * Note that the callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
-	 * 
+	 *
 	 * @param action callback object to execute
 	 * @param resultSerializer The Serializer to use for individual values or Collections of values. If any returned
 	 *          values are hashes, this serializer will be used to deserialize both the key and value
@@ -89,7 +89,7 @@ public interface RedisOperations<K, V> {
 	/**
 	 * Executes the given Redis session on a pipelined connection. Allows transactions to be pipelined. Note that the
 	 * callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
-	 * 
+	 *
 	 * @param session Session callback
 	 * @return list of objects returned by the pipeline
 	 */
@@ -99,7 +99,7 @@ public interface RedisOperations<K, V> {
 	 * Executes the given Redis session on a pipelined connection, returning the results using a dedicated serializer.
 	 * Allows transactions to be pipelined. Note that the callback <b>cannot</b> return a non-null value as it gets
 	 * overwritten by the pipeline.
-	 * 
+	 *
 	 * @param session Session callback
 	 * @param resultSerializer
 	 * @return list of objects returned by the pipeline
@@ -108,7 +108,7 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Executes the given {@link RedisScript}
-	 * 
+	 *
 	 * @param script The script to execute
 	 * @param keys Any keys that need to be passed to the script
 	 * @param args Any args that need to be passed to the script
@@ -120,7 +120,7 @@ public interface RedisOperations<K, V> {
 	/**
 	 * Executes the given {@link RedisScript}, using the provided {@link RedisSerializer}s to serialize the script
 	 * arguments and result.
-	 * 
+	 *
 	 * @param script The script to execute
 	 * @param argsSerializer The {@link RedisSerializer} to use for serializing args
 	 * @param resultSerializer The {@link RedisSerializer} to use for serializing the script return value
@@ -409,8 +409,8 @@ public interface RedisOperations<K, V> {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * /** Request information and statistics about connected clients.
-	 * 
+	 * Request information and statistics about connected clients.
+	 *
 	 * @return {@link List} of {@link RedisClientInfo} objects.
 	 * @since 1.3
 	 */
@@ -460,14 +460,14 @@ public interface RedisOperations<K, V> {
 	// operation types
 	/**
 	 * Returns the operations performed on simple values (or Strings in Redis terminology).
-	 * 
+	 *
 	 * @return value operations
 	 */
 	ValueOperations<K, V> opsForValue();
 
 	/**
 	 * Returns the operations performed on simple values (or Strings in Redis terminology) bound to the given key.
-	 * 
+	 *
 	 * @param key Redis key
 	 * @return value operations bound to the given key
 	 */
@@ -475,14 +475,14 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Returns the operations performed on list values.
-	 * 
+	 *
 	 * @return list operations
 	 */
 	ListOperations<K, V> opsForList();
 
 	/**
 	 * Returns the operations performed on list values bound to the given key.
-	 * 
+	 *
 	 * @param key Redis key
 	 * @return list operations bound to the given key
 	 */
@@ -490,14 +490,14 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Returns the operations performed on set values.
-	 * 
+	 *
 	 * @return set operations
 	 */
 	SetOperations<K, V> opsForSet();
 
 	/**
 	 * Returns the operations performed on set values bound to the given key.
-	 * 
+	 *
 	 * @param key Redis key
 	 * @return set operations bound to the given key
 	 */
@@ -505,7 +505,7 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Returns the operations performed on zset values (also known as sorted sets).
-	 * 
+	 *
 	 * @return zset operations
 	 */
 	ZSetOperations<K, V> opsForZSet();
@@ -518,7 +518,7 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Returns the operations performed on zset values (also known as sorted sets) bound to the given key.
-	 * 
+	 *
 	 * @param key Redis key
 	 * @return zset operations bound to the given key.
 	 */
@@ -526,7 +526,7 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Returns the operations performed on hash values.
-	 * 
+	 *
 	 * @param <HK> hash key (or field) type
 	 * @param <HV> hash value type
 	 * @return hash operations
@@ -535,7 +535,7 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Returns the operations performed on hash values bound to the given key.
-	 * 
+	 *
 	 * @param <HK> hash key (or field) type
 	 * @param <HV> hash value type
 	 * @param key Redis key
@@ -562,7 +562,7 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Returns the cluster specific operations interface.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 * @since 1.7
 	 */
