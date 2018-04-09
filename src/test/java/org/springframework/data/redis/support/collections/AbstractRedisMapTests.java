@@ -25,7 +25,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -84,7 +83,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	abstract RedisMap<K, V> createMap();
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		map = createMap();
 	}
 
@@ -396,27 +395,6 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertThat(keys, hasItems(k1, k2));
 		assertThat(values, hasItem(v1));
 		assertThat(values, not(hasItem(v2)));
-	}
-
-	@Test // DATAREDIS-803
-	@IfProfileValue(name = "runLongTests", value = "true")
-	public void testBigEntrySet() {
-
-		Set<Entry<K, V>> entries = map.entrySet();
-		assertTrue(entries.isEmpty());
-
-		for (int j = 0; j < 2; j++) {
-			Map<K, V> m = new HashMap<>();
-			for (int i = 0; i < 1024 * 1024 / 2 - 1; i++) {
-				m.put(getKey(), getValue());
-			}
-			map.putAll(m);
-		}
-		map.put(getKey(), getValue());
-
-		entries = map.entrySet();
-
-		assertEquals(1024 * 1024 - 1, entries.size());
 	}
 
 	@Test

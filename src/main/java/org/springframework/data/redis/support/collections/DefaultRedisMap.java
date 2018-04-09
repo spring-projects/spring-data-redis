@@ -18,8 +18,6 @@ package org.springframework.data.redis.support.collections;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -43,34 +41,6 @@ import org.springframework.lang.Nullable;
 public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	private final BoundHashOperations<String, K, V> hashOps;
-
-	private class DefaultRedisMapEntry implements Map.Entry<K, V> {
-
-		private final K key;
-		private @Nullable final V value;
-
-		public DefaultRedisMapEntry(K key, @Nullable V value) {
-
-			this.key = key;
-			this.value = value;
-		}
-
-		@Override
-		public K getKey() {
-			return key;
-		}
-
-		@Override
-		@Nullable
-		public V getValue() {
-			return value;
-		}
-
-		@Override
-		public V setValue(@Nullable V value) {
-			throw new UnsupportedOperationException();
-		}
-	}
 
 	/**
 	 * Constructs a new {@link DefaultRedisMap} instance.
@@ -280,10 +250,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	@Override
 	public String toString() {
 
-		StringBuilder sb = new StringBuilder();
-		sb.append("RedisStore for key:");
-		sb.append(getKey());
-		return sb.toString();
+		return "RedisStore for key:" + getKey();
 	}
 
 	/*
