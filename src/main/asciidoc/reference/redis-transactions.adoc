@@ -29,36 +29,47 @@ NOTE: An important change has been made to the `exec` methods of `RedisConnectio
 
 Transaction Support is disabled by default and has to be explicitly enabled for each `RedisTemplate` in use by setting `setEnableTransactionSupport(true)`. This will force binding the `RedisConnection` in use to the current `Thread` triggering `MULTI`. If the transaction finishes without errors, `EXEC` is called, otherwise `DISCARD`. Once in `MULTI`, `RedisConnection` would queue write operations, all `readonly` operations, such as `KEYS` are piped to a fresh (non thread bound) `RedisConnection`.
 
+.Configuration enabling Transaction Management
+====
 [source,java]
 ----
-/** Sample Configuration **/
 @Configuration
+@EnableTransactionManagement                                 <1>
 public class RedisTxContextConfiguration {
+
   @Bean
   public StringRedisTemplate redisTemplate() {
     StringRedisTemplate template = new StringRedisTemplate(redisConnectionFactory());
     // explicitly enable transaction support
-    template.setEnableTransactionSupport(true);
+    template.setEnableTransactionSupport(true);              <2>
     return template;
   }
 
   @Bean
-  public PlatformTransactionManager transactionManager() throws SQLException {
-    return new DataSourceTransactionManager(dataSource());
+  public RedisConnectionFactory redisConnectionFactory() {
+    // jedis || Lettuce
   }
 
   @Bean
-  public RedisConnectionFactory redisConnectionFactory( // jedis || lettuce);
+  public PlatformTransactionManager transactionManager() throws SQLException {
+    return new DataSourceTransactionManager(dataSource());   <3>
+  }
 
   @Bean
-  public DataSource dataSource() throws SQLException { // ... }
+  public DataSource dataSource() throws SQLException {
+    // ...
+  }
 }
 ----
+<1> Configures a Spring Context to enable http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#transaction-declarative[declarative transaction management].
+<2> Configures `RedisTemplate` to participate in transactions by binding connections to the current Thread.
+<3> Transaction management requires a `PlatformTransactionManager`. Spring Data Redis does not ship with a `PlatformTransactionManager` implementation. Assuming your application uses JDBC, we can participate in transactions using existing transaction managers.
+====
 
+.Usage Constrainsts
+====
 [source,java]
 ----
-/** Usage Constrainsts **/
-
 // executed on thread bound connection
 template.opsForValue().set("foo", "bar");
 
@@ -68,4 +79,4 @@ connection template.keys("*");
 // returns null as values set within transaction are not visible
 template.opsForValue().get("foo");
 ----
-
+====
