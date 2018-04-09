@@ -28,6 +28,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -35,8 +36,9 @@ public class RedisRepositoryIntegrationTests extends RedisRepositoryIntegrationT
 
 	@Configuration
 	@EnableRedisRepositories(considerNestedRepositories = true, indexConfiguration = MyIndexConfiguration.class,
-			keyspaceConfiguration = MyKeyspaceConfiguration.class, includeFilters = {
-					@ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*PersonRepository|.*CityRepository") })
+			keyspaceConfiguration = MyKeyspaceConfiguration.class,
+			includeFilters = { @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
+					classes = { PersonRepository.class, CityRepository.class }) })
 	static class Config {
 
 		@Bean
