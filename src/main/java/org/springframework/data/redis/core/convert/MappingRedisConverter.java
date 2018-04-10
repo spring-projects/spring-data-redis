@@ -21,17 +21,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -232,79 +223,75 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		entity.doWithProperties((PropertyHandler<RedisPersistentProperty>) persistentProperty -> {
 
-			String currentPath = !path.isEmpty() ? path + "." + persistentProperty.getName() : persistentProperty.getName();
-
 			PreferredConstructor<?, RedisPersistentProperty> constructor = entity.getPersistenceConstructor();
 
 			if (constructor.isConstructorParameter(persistentProperty)) {
 				return;
 			}
 
-			if (persistentProperty.isMap()) {
+			Object targetValue = readProperty(path, source, persistentProperty);
 
-				Map<?, ?> targetValue = null;
-				Class<?> mapValueType = persistentProperty.getMapValueType();
-
-				if (mapValueType == null) {
-					throw new IllegalArgumentException("Unable to retrieve MapValueType!");
-				}
-
-				if (conversionService.canConvert(byte[].class, mapValueType)) {
-					targetValue = readMapOfSimpleTypes(currentPath, persistentProperty.getType(),
-							persistentProperty.getComponentType(), mapValueType, source);
-				} else {
-					targetValue = readMapOfComplexTypes(currentPath, persistentProperty.getType(),
-							persistentProperty.getComponentType(), mapValueType, source);
-				}
-
-				if (targetValue != null) {
-					accessor.setProperty(persistentProperty, targetValue);
-				}
-			}
-
-			else if (persistentProperty.isCollectionLike()) {
-
-				Object targetValue = readCollectionOrArray(currentPath, persistentProperty.getType(),
-						persistentProperty.getTypeInformation().getRequiredComponentType().getActualType().getType(),
-						source.getBucket());
-				if (targetValue != null) {
-					accessor.setProperty(persistentProperty, targetValue);
-				}
-
-			} else if (persistentProperty.isEntity() && !conversionService.canConvert(byte[].class,
-					persistentProperty.getTypeInformation().getActualType().getType())) {
-
-				Bucket bucket = source.getBucket().extract(currentPath + ".");
-
-				RedisData newBucket = new RedisData(bucket);
-				TypeInformation<?> typeInformation = typeMapper.readType(bucket.getPropertyPath(currentPath),
-						persistentProperty.getTypeInformation().getActualType());
-
-				Class<R> targetType = (Class<R>) typeInformation.getType();
-
-				R val = readInternal(currentPath, targetType, newBucket);
-
-				accessor.setProperty(persistentProperty, val);
-			} else {
-
-				if (persistentProperty.isIdProperty() && StringUtils.isEmpty(path.isEmpty())) {
-
-					if (source.getBucket().get(currentPath) == null) {
-						accessor.setProperty(persistentProperty,
-								fromBytes(source.getBucket().get(currentPath), persistentProperty.getActualType()));
-					} else {
-						accessor.setProperty(persistentProperty, source.getId());
-					}
-				}
-
-				Class<?> typeToUse = getTypeHint(currentPath, source.getBucket(), persistentProperty.getActualType());
-				accessor.setProperty(persistentProperty, fromBytes(source.getBucket().get(currentPath), typeToUse));
+			if (targetValue != null) {
+				accessor.setProperty(persistentProperty, targetValue);
 			}
 		});
 
 		readAssociation(path, source, entity, accessor);
 
 		return (R) instance;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Nullable
+	protected Object readProperty(String path, RedisData source, RedisPersistentProperty persistentProperty) {
+
+		String currentPath = !path.isEmpty() ? path + "." + persistentProperty.getName() : persistentProperty.getName();
+
+		TypeInformation<?> typeInformation = persistentProperty.getTypeInformation();
+
+		if (persistentProperty.isMap()) {
+
+			Class<?> mapValueType = persistentProperty.getMapValueType();
+
+			if (mapValueType == null) {
+				throw new IllegalArgumentException("Unable to retrieve MapValueType!");
+			}
+
+			if (conversionService.canConvert(byte[].class, mapValueType)) {
+				return readMapOfSimpleTypes(currentPath, typeInformation.getType(),
+						typeInformation.getRequiredComponentType().getType(), mapValueType, source);
+			}
+
+			return readMapOfComplexTypes(currentPath, typeInformation.getType(),
+					typeInformation.getRequiredComponentType().getType(), mapValueType, source);
+		}
+
+		if (typeInformation.isCollectionLike()) {
+
+			return readCollectionOrArray(currentPath, typeInformation.getType(),
+					typeInformation.getRequiredComponentType().getActualType().getType(), source.getBucket());
+		}
+
+		if (persistentProperty.isEntity()
+				&& !conversionService.canConvert(byte[].class, typeInformation.getActualType().getType())) {
+
+			Bucket bucket = source.getBucket().extract(currentPath + ".");
+
+			RedisData newBucket = new RedisData(bucket);
+			TypeInformation<?> typeToRead = typeMapper.readType(bucket.getPropertyPath(currentPath),
+					typeInformation.getActualType());
+
+			return readInternal(currentPath, typeToRead.getType(), newBucket);
+		}
+
+		byte[] sourceBytes = source.getBucket().get(currentPath);
+
+		if (persistentProperty.isIdProperty() && StringUtils.isEmpty(path.isEmpty())) {
+			return sourceBytes == null ? fromBytes(sourceBytes, typeInformation.getActualType().getType()) : source.getId();
+		}
+
+		Class<?> typeToUse = getTypeHint(currentPath, source.getBucket(), persistentProperty.getActualType());
+		return fromBytes(sourceBytes, typeToUse);
 	}
 
 	private void readAssociation(String path, RedisData source, RedisPersistentEntity<?> entity,
@@ -463,10 +450,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			targetProperty = getTargetPropertyOrNullForPath(path.replaceAll("\\.\\[.*\\]", ""), update.getTarget());
 
 			TypeInformation<?> ti = targetProperty == null ? ClassTypeInformation.OBJECT
-					: (targetProperty.isMap()
-							? (targetProperty.getTypeInformation().getMapValueType() != null
-									? targetProperty.getTypeInformation().getRequiredMapValueType() : ClassTypeInformation.OBJECT)
-							: targetProperty.getTypeInformation().getActualType());
+					: (targetProperty.isMap() ? (targetProperty.getTypeInformation().getMapValueType() != null
+							? targetProperty.getTypeInformation().getRequiredMapValueType()
+							: ClassTypeInformation.OBJECT) : targetProperty.getTypeInformation().getActualType());
 
 			writeInternal(entity.getKeySpace(), pUpdate.getPropertyPath(), pUpdate.getValue(), ti, sink);
 			return;
@@ -1037,9 +1023,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 	/**
 	 * @author Christoph Strobl
+	 * @author Mark Paluch
 	 */
 	@RequiredArgsConstructor
-	private static class ConverterAwareParameterValueProvider implements PropertyValueProvider<RedisPersistentProperty> {
+	private class ConverterAwareParameterValueProvider implements PropertyValueProvider<RedisPersistentProperty> {
 
 		private final String path;
 		private final RedisData source;
@@ -1049,8 +1036,13 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		@SuppressWarnings("unchecked")
 		public <T> T getPropertyValue(RedisPersistentProperty property) {
 
-			String name = StringUtils.hasText(path) ? path + "." + property.getName() : property.getName();
-			return (T) conversionService.convert(source.getBucket().get(name), property.getActualType());
+			Object value = readProperty(path, source, property);
+
+			if (value != null && !property.getActualType().isInstance(value)) {
+				return (T) conversionService.convert(value, property.getActualType());
+			}
+
+			return (T) value;
 		}
 	}
 

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.time.Duration;
@@ -82,6 +83,24 @@ public class ConversionTestEntities {
 		@Reference List<Location> visited;
 
 		Species species;
+	}
+
+	@RedisHash(KEYSPACE_PERSON)
+	@Data
+	public static class RecursiveConstructorPerson {
+
+		final @Id String id;
+		final String firstname;
+		final RecursiveConstructorPerson father;
+		String lastname;
+	}
+
+	@RedisHash(KEYSPACE_PERSON)
+	@Data
+	public static class PersonWithConstructorAndAddress {
+
+		final @Id String id;
+		final Address address;
 	}
 
 	public static class PersonWithAddressReference extends Person {
