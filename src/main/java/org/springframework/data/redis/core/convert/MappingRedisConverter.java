@@ -1046,22 +1046,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 	}
 
-	enum ClassNameKeySpaceResolver implements KeySpaceResolver {
-
-		INSTANCE;
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.keyvalue.core.KeySpaceResolver#resolveKeySpace(java.lang.Class)
-		 */
-		@Override
-		public String resolveKeySpace(Class<?> type) {
-
-			Assert.notNull(type, "Type must not be null!");
-			return ClassUtils.getUserClass(type).getName();
-		}
-	}
-
 	private enum NaturalOrderingKeyComparator implements Comparator<String> {
 
 		INSTANCE;
