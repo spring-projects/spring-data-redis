@@ -347,6 +347,22 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(result, not(hasItems(p1)));
 	}
 
+	@Test // DATAREDIS-623
+	public void pageableQueryWithTwoKeywordsShouldReturnCorrectly() {
+
+		Person eddard = new Person("eddard", "stark");
+		Person robb = new Person("robb", "stark");
+		Person sansa = new Person("sansa", "stark");
+
+		repo.save(Arrays.asList(eddard, robb, sansa));
+
+		Page<Person> page1 = repo.findByFirstnameAndLastname("sansa", "stark", new PageRequest(0, 2));
+
+		assertThat(page1.getNumberOfElements(), is(1));
+		assertThat(page1.getContent(), hasSize(1));
+		assertThat(page1.getTotalElements(), is(1L));
+	}
+
 	public static interface PersonRepository extends PagingAndSortingRepository<Person, String> {
 
 		List<Person> findByFirstname(String firstname);
@@ -356,6 +372,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Page<Person> findPersonByLastname(String lastname, Pageable page);
 
 		List<Person> findByFirstnameAndLastname(String firstname, String lastname);
+
+		Page<Person> findByFirstnameAndLastname(String firstname, String lastname, Pageable page);
 
 		List<Person> findByFirstnameOrLastname(String firstname, String lastname);
 

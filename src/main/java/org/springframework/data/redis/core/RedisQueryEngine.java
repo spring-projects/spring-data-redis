@@ -165,14 +165,16 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 		return this.getAdapter().execute(connection -> {
 
-			String key = keyspace + ":";
-			byte[][] keys = new byte[criteria.getSismember().size()][];
-			int i = 0;
-			for (Object o : criteria.getSismember()) {
-				keys[i] = getAdapter().getConverter().getConversionService().convert(key + o, byte[].class);
+			long result = 0;
+			if (!criteria.getOrSismember().isEmpty()) {
+				result += connection.sUnion(keys(keyspace + ":", criteria.getOrSismember())).size();
 			}
 
-			return (long) connection.sInter(keys).size();
+			if (!criteria.getSismember().isEmpty()) {
+				result += connection.sInter(keys(keyspace + ":", criteria.getSismember())).size();
+			}
+
+			return result;
 		});
 	}
 
