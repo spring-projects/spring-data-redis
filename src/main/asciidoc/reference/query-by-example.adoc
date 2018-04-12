@@ -1,5 +1,7 @@
 [[query-by-example.execution]]
-== Executing an example
+== Executing an Example
+
+The following example uses Query by Example against a repository:
 
 .Query by Example using a Repository
 ====
@@ -19,21 +21,21 @@ class PersonService {
 ----
 ====
 
-Redis Repositories support with their secondary indexes a subset of Spring Data's Query by Example features.
-In particular, only exact, case-sensitive and non-null values are used to construct a query.
+Redis Repositories support, with their secondary indexes, a subset of Spring Data's Query by Example features.
+In particular, only exact, case-sensitive, and non-null values are used to construct a query.
 
-Secondary indexes use set-based operations (Set intersection, Set union) to determine matching keys. Adding a property to the query that is not indexed returns no result as no index exists. Query by Example support inspects indexing configuration to only include properties in the query that are covered by an index. This is to prevent accidental inclusion of not indexed properties.
+Secondary indexes use set-based operations (Set intersection, Set union) to determine matching keys. Adding a property to the query that is not indexed returns no result, because no index exists. Query by Example support inspects indexing configuration to include only properties in the query that are covered by an index. This is to prevent accidental inclusion of non-indexed properties.
 
-Case-insensitive queries and unsupported ``StringMatcher``s are rejected at runtime.
+Case-insensitive queries and unsupported ``StringMatcher`` instances are rejected at runtime.
 
-*Supported Query by Example options*
+The following list shows the supported Query by Example options:
 
 * Case-sensitive, exact matching of simple and nested properties
 * Any/All match modes
 * Value transformation of the criteria value
 * Exclusion of `null` values from the criteria
 
-*Not supported by Query by Example*
+The following list shows properties not supported by Query by Example:
 
 * Case-insensitive matching
 * Regex, prefix/contains/suffix String-matching
