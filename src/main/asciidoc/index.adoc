@@ -1,9 +1,9 @@
 = Spring Data Redis
-Costin Leau, Jennifer Hickey, Christoph Strobl, Thomas Darimont, Mark Paluch
+Costin Leau, Jennifer Hickey, Christoph Strobl, Thomas Darimont, Mark Paluch, Jay Bryant
 :revnumber: {version}
 :revdate: {localdate}
-:toc:
-:toc-placement!:
+:toc: left
+:spring-data-commons-include: ../../../../spring-data-commons/src/main/asciidoc
 :spring-data-commons-docs: https://raw.githubusercontent.com/spring-projects/spring-data-commons/master/src/main/asciidoc
 
 (C) 2011-2018 The original authors.

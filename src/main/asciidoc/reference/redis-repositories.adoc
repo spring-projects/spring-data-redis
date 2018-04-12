@@ -1,14 +1,14 @@
 [[redis.repositories]]
 = Redis Repositories
 
-Working with Redis Repositories allows to seamlessly convert and store domain objects in Redis Hashes, apply custom mapping strategies and make use of secondary indexes.
+Working with Redis Repositories lets you seamlessly convert and store domain objects in Redis Hashes, apply custom mapping strategies, and use secondary indexes.
 
-WARNING: Redis Repositories requires at least Redis Server version 2.8.0.
+IMPORTANT: Redis Repositories requires at least Redis Server version 2.8.0.
 
 [[redis.repositories.usage]]
 == Usage
 
-To access domain entities stored in a Redis you can leverage repository support that eases implementing those quite significantly.
+Spring Data Redis lets you easily implement domain entities, as shown in the following example:
 
 .Sample Person Entity
 ====
@@ -25,12 +25,11 @@ public class Person {
 ----
 ====
 
-We have a pretty simple domain object here. Note that it has a property named `id` annotated with `org.springframework.data.annotation.Id` and a `@RedisHash` annotation on its type.
-Those two are responsible for creating the actual key used to persist the hash.
+We have a pretty simple domain object here. Note that it has a `@RedisHash` annotation on its type and a property named `id` that is annotated with `org.springframework.data.annotation.Id`. Those two items are responsible for creating the actual key used to persist the hash.
 
 NOTE: Properties annotated with `@Id` as well as those named `id` are considered as the identifier properties. Those with the annotation are favored over others.
 
-To now actually have a component responsible for storage and retrieval we need to define a repository interface.
+To now actually have a component responsible for storage and retrieval, we need to define a repository interface, as shown in the following example:
 
 .Basic Repository Interface To Persist Person Entities
 ====
@@ -42,7 +41,7 @@ public interface PersonRepository extends CrudRepository<Person, String> {
 ----
 ====
 
-As our repository extends `CrudRepository` it provides basic CRUD and finder operations. The thing we need in between to glue things together is the according Spring configuration.
+As our repository extends `CrudRepository`, it provides basic CRUD and finder operations. The thing we need in between to glue things together is the corresponding Spring configuration, shown in the following example:
 
 .JavaConfig for Redis Repositories
 ====
@@ -67,7 +66,7 @@ public class ApplicationConfig {
 ----
 ====
 
-Given the setup above we can go on and inject `PersonRepository` into our components.
+Given the preceding setup, we can inject `PersonRepository` into our components, as shown in the following example:
 
 .Access to Person Entities
 ====
@@ -89,17 +88,17 @@ public void basicCrudOperations() {
   repo.delete(rand);                                       <4>
 }
 ----
-<1> Generates a new id if current value is `null` or reuses an already set id value and stores properties of type `Person` inside the Redis Hash with key with pattern `keyspace:id` in this case eg. `persons:5d67b7e1-8640-4475-beeb-c666fab4c0e5`.
-<2> Uses the provided id to retrieve the object stored at `keyspace:id`.
-<3> Counts the total number of entities available within the keyspace _persons_ defined by `@RedisHash` on `Person`.
+<1> Generates a new `id` if the current value is `null` or reuses an already set `id` value and stores properties of type `Person` inside the Redis Hash with a key that has a pattern of `keyspace:id` -- in this case, it might be `persons:5d67b7e1-8640-4475-beeb-c666fab4c0e5`.
+<2> Uses the provided `id` to retrieve the object stored at `keyspace:id`.
+<3> Counts the total number of entities available within the keyspace, `persons`, defined by `@RedisHash` on `Person`.
 <4> Removes the key for the given object from Redis.
 ====
 
 [[redis.repositories.mapping]]
-== Object to Hash Mapping
-The Redis Repository support persists Objects in Hashes. This requires an Object to Hash conversion which is done by a `RedisConverter`. The default implementation uses `Converter` for mapping property values to and from Redis native `byte[]`.
+== Object-to-Hash Mapping
+The Redis Repository support persists Objects in Hashes. This requires an Object-to-Hash conversion which is done by a `RedisConverter`. The default implementation uses `Converter` for mapping property values to and from Redis native `byte[]`.
 
-Given the `Person` type from the previous sections the default mapping looks like the following:
+Given the `Person` type from the previous sections, the default mapping looks like the following:
 
 ====
 [source,text]
@@ -111,10 +110,12 @@ lastname = al’thor
 address.city = emond's field                <3>
 address.country = andor
 ----
-<1> The `_class` attribute is included on root level as well as on any nested interface or abstract types.
+<1> The `_class` attribute is included on the root level as well as on any nested interface or abstract types.
 <2> Simple property values are mapped by path.
 <3> Properties of complex types are mapped by their dot path.
 ====
+
+The following table describes the default mapping rules:
 
 [cols="1,2,3", options="header"]
 .Default Mapping Rules
@@ -124,13 +125,13 @@ address.country = andor
 | Mapped Value
 
 | Simple Type +
-(eg. String)
+(for example, String)
 | String firstname = "rand";
 | firstname = "rand"
 
 | Complex Type +
-(eg. Address)
-| Address adress = new Address("emond's field");
+(for example, Address)
+| Address address = new Address("emond's field");
 | address.city = "emond's field"
 
 | List +
@@ -158,9 +159,13 @@ of Complex Type
 addresses.[work].city  = "...
 |===
 
-WARNING: Due to the flat representation structure Map keys need to be simple types such as ``String``s or ``Number``s.
+CAUTION: Due to the flat representation structure, Map keys need to be simple types, such as ``String`` or ``Number``.
 
-Mapping behavior can be customized by registering the according `Converter` in `RedisCustomConversions`. Those converters can take care of converting from/to a single `byte[]` as well as `Map<String,byte[]>` whereas the first one is suitable for eg. converting one complex type to eg. a binary JSON representation that still uses the default mappings hash structure. The second option offers full control over the resulting hash. Writing objects to a Redis hash will delete the content from the hash and re-create the whole hash, so not mapped data will be lost.
+Mapping behavior can be customized by registering the corresponding `Converter` in `RedisCustomConversions`. Those converters can take care of converting from and to a single `byte[]` as well as `Map<String,byte[]>`. The first one is suitable for (for example) converting a complex type to (for example) a binary JSON representation that still uses the default mappings hash structure. The second option offers full control over the resulting hash.
+
+WARNING: Writing objects to a Redis hash deletes the content from the hash and re-creates the whole hash, so data that has not been mapped is lost.
+
+The following example shows two sample byte array converters:
 
 .Sample byte[] Converters
 ====
@@ -202,7 +207,7 @@ public class BytesToAddressConverter implements Converter<byte[], Address> {
 ----
 ====
 
-Using the above byte[] `Converter` produces eg.
+Using the preceding byte array `Converter` produces output similar to the following:
 ====
 [source,text]
 ----
@@ -214,6 +219,7 @@ address = { city : "emond's field", country : "andor" }
 ----
 ====
 
+The following example shows two examples of `Map` converters:
 
 .Sample Map<String,byte[]> Converters
 ====
@@ -239,7 +245,7 @@ public class MapToAddressConverter implements Converter<Address, Map<String, byt
 ----
 ====
 
-Using the above Map `Converter` produces eg.
+Using the preceding Map `Converter` produces output similar to the following:
 
 ====
 [source,text]
@@ -252,14 +258,73 @@ ciudad = "emond's field"
 ----
 ====
 
-NOTE: Custom conversions have no effect on index resolution. <<redis.repositories.indexes>> will still be created even for custom converted types.
+NOTE: Custom conversions have no effect on index resolution. <<redis.repositories.indexes>> are still created, even for custom converted types.
+
+=== Customizing Type Mapping
+
+If you want to avoid writing the entire Java class name as type information and would rather like to use a key, you can use the `@TypeAlias` annotation on the entity class being persisted. If you need to customize the mapping even more, look at the https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/convert/TypeInformationMapper.html[`TypeInformationMapper`] interface. An instance of that interface can be configured at the `DefaultRedisTypeMapper`, which can be configured on `MappingRedisConverter`.
+
+The following example shows how to define a type alias for an entity:
+
+.Defining `@TypeAlias` for an entity
+====
+[source,java]
+----
+@TypeAlias("pers")
+class Person {
+
+}
+----
+====
+
+The resulting document contains `pers` as the value in a `_class` field.
+
+==== Configuring Custom Type Mapping
+
+The following example demonstrates how to configure a custom `RedisTypeMapper` in `MappingRedisConverter`:
+
+.Configuring a custom `RedisTypeMapper` via Spring Java Config
+====
+[source,java]
+----
+class CustomRedisTypeMapper extends DefaultRedisTypeMapper {
+  //implement custom type mapping here
+}
+----
+
+[source,java]
+----
+@Configuration
+class SampleRedisConfiguration {
+
+  @Bean
+  public MappingRedisConverter redisConverter(RedisMappingContext mappingContext,
+        RedisCustomConversions customConversions, ReferenceResolver referenceResolver) {
+
+    MappingRedisConverter mappingRedisConverter = new MappingRedisConverter(mappingContext, null, referenceResolver,
+            customTypeMapper());
+
+    mappingRedisConverter.setCustomConversions(customConversions);
+
+    return mappingRedisConverter;
+  }
+
+  @Bean
+  public RedisTypeMapper customTypeMapper() {
+    return new CustomRedisTypeMapper();
+  }
+}
+----
+====
 
 [[redis.repositories.keyspaces]]
 == Keyspaces
-Keyspaces define prefixes used to create the actual _key_ for the Redis Hash.
-By default the prefix is set to `getClass().getName()`. This default can be altered via `@RedisHash` on aggregate root level or by setting up a programmatic configuration. However, the annotated keyspace supersedes any other configuration.
+Keyspaces define prefixes used to create the actual key for the Redis Hash.
+By default, the prefix is set to `getClass().getName()`. You can alter this default by setting `@RedisHash` on the aggregate root level or by setting up a programmatic configuration. However, the annotated keyspace supersedes any other configuration.
 
-.Keyspace Setup via @EnableRedisRepositories
+The following example shows how to set the keyspace configuration with the `@EnableRedisRepositories` annotation:
+
+.Keyspace Setup via `@EnableRedisRepositories`
 ====
 [source,java]
 ----
@@ -279,6 +344,8 @@ public class ApplicationConfig {
 }
 ----
 ====
+
+The following example shows how to programmatically set the keyspace:
 
 .Programmatic Keyspace setup
 ====
@@ -315,7 +382,7 @@ http://redis.io/topics/indexes[Secondary indexes] are used to enable lookup oper
 [[redis.repositories.indexes.simple]]
 === Simple Property Index
 
-Given the sample `Person` entity we can create an index for _firstname_ by annotating the property with `@Indexed`.
+Given the sample `Person` entity shown earlier, we can create an index for `firstname` by annotating the property with `@Indexed`, as shown in the following example:
 
 .Annotation driven indexing
 ====
@@ -332,7 +399,7 @@ public class Person {
 ----
 ====
 
-Indexes are built up for actual property values. Saving two Persons eg. "rand" and "aviendha" results in setting up indexes like below.
+Indexes are built up for actual property values. Saving two Persons (for example, "rand" and "aviendha") results in setting up indexes similar to the following:
 
 ====
 [source,text]
@@ -342,7 +409,7 @@ SADD persons:firstname:aviendha a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56
 ----
 ====
 
-It is also possible to have indexes on nested elements. Assume `Address` has a _city_ property that is annotated with `@Indexed`. In that case, once `person.address.city` is not `null`, we have Sets for each city.
+It is also possible to have indexes on nested elements. Assume `Address` has a `city` property that is annotated with `@Indexed`. In that case, once `person.address.city` is not `null`, we have Sets for each city, as shown in the following example:
 
 ====
 [source,text]
@@ -351,7 +418,7 @@ SADD persons:address.city:tear e2c7dcee-b8cd-4424-883e-736ce564363e
 ----
 ====
 
-Further more the programmatic setup allows to define indexes on map keys and list properties.
+Furthermore, the programmatic setup lets you define indexes on map keys and list properties, as shown in the following example:
 
 ====
 [source,java]
@@ -371,11 +438,11 @@ public class Person {
 <3> `SADD persons:addresses.city:tear e2c7dcee-b8cd-4424-883e-736ce564363e`
 ====
 
-WARNING: Indexes will not be resolved on <<redis.repositories.references,References>>.
+CAUTION: Indexes cannot be resolved on <<redis.repositories.references,References>>.
 
-Same as with _keyspaces_ it is possible to configure indexes without the need of annotating the actual domain type.
+As with keyspaces, you can configure indexes without needing to annotate the actual domain type, as shown in the following example:
 
-.Index Setup via @EnableRedisRepositories
+.Index Setup with @EnableRedisRepositories
 ====
 [source,java]
 ----
@@ -395,6 +462,8 @@ public class ApplicationConfig {
 }
 ----
 ====
+
+Again, as with keyspaces, you can programmatically configure indexes, as shown in the following example:
 
 .Programmatic Index setup
 ====
@@ -427,7 +496,7 @@ public class ApplicationConfig {
 [[redis.repositories.indexes.geospatial]]
 === Geospatial Index
 
-Assume the `Address` type contains a property `location` of type `Point` that holds the geo coordinates of the particular address. By annotating the property with `@GeoIndexed` those values will be added using Redis `GEO` commands.
+Assume the `Address` type contains a `location` property of type `Point` that holds the geo coordinates of the particular address. By annotating the property with `@GeoIndexed`, Spring Data Redis adds those values by using Redis `GEO` commands, as shown in the following example:
 
 ====
 [source,java]
@@ -460,23 +529,22 @@ repository.save(rand);                                                        <3
 
 repository.findByAddressLocationNear(new Point(15D, 37D), new Distance(200)); <4>
 ----
-<1> Query method declaration on nested property using Point and Distance.
-<2> Query method declaration on nested property using Circle to search within.
+<1> Query method declaration on a nested property, using Point and Distance.
+<2> Query method declaration on a nested property, using Circle to search within.
 <3> `GEOADD persons:address:location 13.361389 38.115556 e2c7dcee-b8cd-4424-883e-736ce564363e`
 <4> `GEORADIUS persons:address:location 15.0 37.0 200.0 km`
 ====
 
-In the above example the lon/lat values are stored using `GEOADD` using the objects `id` as the member's name. The finder methods allow usage of `Circle` or `Point, Distance` combinations for querying those values.
+In the preceding example the, longitude and latitude values are stored by using `GEOADD` that use the object's `id` as the member's name. The finder methods allow usage of `Circle` or `Point, Distance` combinations for querying those values.
 
-NOTE: It is **not** possible to combine `near`/`within` with other criteria.
+NOTE: It is **not** possible to combine `near` and `within` with other criteria.
 
 
 [[redis.repositories.expirations]]
 == Time To Live
-Objects stored in Redis may only be valid for a certain amount of time. This is especially useful for persisting short lived objects in Redis without having to remove them manually when they reached their end of life.
-The expiration time in seconds can be set via `@RedisHash(timeToLive=...)` as well as via `KeyspaceSettings` (see <<redis.repositories.keyspaces>>).
+Objects stored in Redis may be valid only for a certain amount of time. This is especially useful for persisting short-lived objects in Redis without having to remove them manually when they reach their end of life. The expiration time in seconds can be set with `@RedisHash(timeToLive=...)` as well as by using `KeyspaceSettings` (see <<redis.repositories.keyspaces>>).
 
-More flexible expiration times can be set by using the `@TimeToLive` annotation on either a numeric property or method. However do not apply `@TimeToLive` on both a method and a property within the same class.
+More flexible expiration times can be set by using the `@TimeToLive` annotation on either a numeric property or a method. However, do not apply `@TimeToLive` on both a method and a property within the same class. The following example shows the `@TimeToLive` annotation on a property and on a method:
 
 .Expirations
 ====
@@ -504,30 +572,26 @@ public class TimeToLiveOnMethod {
 ----
 ====
 
-NOTE: Annotating a property explicitly with `@TimeToLive` will read back the actual `TTL` or `PTTL` value from Redis. -1 indicates that the object has no expire associated.
+NOTE: Annotating a property explicitly with `@TimeToLive` reads back the actual `TTL` or `PTTL` value from Redis. -1 indicates that the object has no associated expiration.
 
 The repository implementation ensures subscription to http://redis.io/topics/notifications[Redis keyspace notifications] via `RedisMessageListenerContainer`.
 
-When the expiration is set to a positive value the according `EXPIRE` command is executed.
-Additionally to persisting the original, a _phantom_ copy is persisted in Redis and set to expire 5 minutes after the original one. This is done to enable the Repository support to publish `RedisKeyExpiredEvent` holding the expired value via Springs `ApplicationEventPublisher` whenever a key expires even though the original values have already been gone. Expiry events
-will be received on all connected applications using Spring Data Redis repositories.
+When the expiration is set to a positive value, the corresponding `EXPIRE` command is executed. In addition to persisting the original, a phantom copy is persisted in Redis and set to expire five minutes after the original one. This is done to enable the Repository support to publish `RedisKeyExpiredEvent`, holding the expired value in Spring's `ApplicationEventPublisher` whenever a key expires, even though the original values have already been removed. Expiry events are received on all connected applications that use Spring Data Redis repositories.
 
-By default, the key expiry listener is disabled when initializing the application. The startup mode can be adjusted in `@EnableRedisRepositories` or `RedisKeyValueAdapter` to start the listener with the application or upon the first insert of an entity with a TTL. See `EnableKeyspaceEvents` for possible values.
+By default, the key expiry listener is disabled when initializing the application. The startup mode can be adjusted in `@EnableRedisRepositories` or `RedisKeyValueAdapter` to start the listener with the application or upon the first insert of an entity with a TTL. See https://docs.spring.io/spring-data/redis/docs/{revnumber}/api/org/springframework/data/redis/core/RedisKeyValueAdapter.EnableKeyspaceEvents.html[`EnableKeyspaceEvents`] for possible values.
 
-The `RedisKeyExpiredEvent` will hold a copy of the actually expired domain object as well as the key.
+The `RedisKeyExpiredEvent` holds a copy of the expired domain object as well as the key.
 
-NOTE: Delaying or disabling the expiry event listener startup impacts `RedisKeyExpiredEvent` publishing.
-A disabled event listener will not publish expiry events. A delayed startup can cause loss of events because the delayed
-listener initialization.
+NOTE: Delaying or disabling the expiry event listener startup impacts `RedisKeyExpiredEvent` publishing. A disabled event listener does not publish expiry events. A delayed startup can cause loss of events because of the delayed listener initialization.
 
-NOTE: The keyspace notification message listener will alter `notify-keyspace-events` settings in Redis if those are not already set. Existing settings will not be overridden, so it is left to the user to set those up correctly when not leaving them empty. Please note that `CONFIG` is disabled on AWS ElastiCache and enabling the listener leads to an error.
+NOTE: The keyspace notification message listener alters `notify-keyspace-events` settings in Redis, if those are not already set. Existing settings are not overridden, so you must set up those settings correctly (or leav them empty). Note that `CONFIG` is disabled on AWS ElastiCache, and enabling the listener leads to an error.
 
-NOTE: Redis Pub/Sub messages are not persistent. If a key expires while the application is down the expiry event will not be processed which may lead to secondary indexes containing still references to the expired object.
+NOTE: Redis Pub/Sub messages are not persistent. If a key expires while the application is down, the expiry event is not processed, which may lead to secondary indexes containing references to the expired object.
 
 [[redis.repositories.references]]
 == Persisting References
 Marking properties with `@Reference` allows storing a simple key reference instead of copying values into the hash itself.
-On loading from Redis, references are resolved automatically and mapped back into the object.
+On loading from Redis, references are resolved automatically and mapped back into the object, as shown in the following example:
 
 .Sample Property Reference
 ====
@@ -542,13 +606,13 @@ mother = persons:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56      <1>
 <1> Reference stores the whole key (`keyspace:id`) of the referenced object.
 ====
 
-WARNING: Referenced Objects are not subject of persisting changes when saving the referencing object. Please make sure to persist changes on referenced objects separately, since only the reference will be stored.
-Indexes set on properties of referenced types will not be resolved.
+WARNING: Referenced Objects are not persisted when the referencing object is saved. You must persist changes on referenced objects separately, since only the reference is stored. Indexes set on properties of referenced types are not resolved.
 
 [[redis.repositories.partial-updates]]
 == Persisting Partial Updates
-In some cases it is not necessary to load and rewrite the entire entity just to set a new value within it. A session timestamp for last active time might be such a scenario where you just want to alter one property.
-`PartialUpdate` allows to define `set` and `delete` actions on existing objects while taking care of updating potential expiration times of the entity itself as well as index structures.
+
+In some cases, you need not load and rewrite the entire entity just to set a new value within it. A session timestamp for the last active time might be such a scenario where you want to alter one property.
+`PartialUpdate` lets you define `set` and `delete` actions on existing objects while taking care of updating potential expiration times of both the entity itself and index structures. The following example shows a partial update:
 
 .Sample Partial Update
 ====
@@ -573,19 +637,20 @@ update = new PartialUpdate<Person>("e2c7dcee", Person.class)
 
 template.update(update);
 ----
-<1> Set the simple property _firstname_ to _mat_.
-<2> Set the simple property _address.city_ to _emond's field_ without having to pass in the entire object. This does not work when a custom conversion is registered.
-<3> Remove the property _age_.
-<4> Set complex property _address_.
-<5> Set a map/collection of values removes the previously existing map/collection and replaces the values with the given ones.
+<1> Set the simple `firstname` property to `mat`.
+<2> Set the simple 'address.city' property to 'emond's field' without having to pass in the entire object. This does not work when a custom conversion is registered.
+<3> Remove the `age` property.
+<4> Set complex `address` property.
+<5> Set a map of values, which removes the previously existing map and replaces the values with the given ones.
 <6> Automatically update the server expiration time when altering <<redis.repositories.expirations>>.
 ====
 
-NOTE: Updating complex objects as well as map/collection structures requires further interaction with Redis to determine existing values which means that it might turn out that rewriting the entire entity might be faster.
+NOTE: Updating complex objects as well as map (or other collection) structures requires further interaction with Redis to determine existing values, which means that rewriting the entire entity might be faster.
 
 [[redis.repositories.queries]]
 == Queries and Query Methods
-Query methods allow automatic derivation of simple finder queries from the method name.
+
+Query methods allow automatic derivation of simple finder queries from the method name, as shown in the following example:
 
 .Sample Repository finder Method
 ====
@@ -603,7 +668,7 @@ NOTE: Please make sure properties used in finder methods are set up for indexing
 
 NOTE: Query methods for Redis repositories support only queries for entities and collections of entities with paging.
 
-Using derived query methods might not always be sufficient to model the queries to execute. `RedisCallback` offers more control over the actual matching of index structures or even custom added ones. All it takes is providing a `RedisCallback` that returns a single or `Iterable` set of _id_ values.
+Using derived query methods might not always be sufficient to model the queries to execute. `RedisCallback` offers more control over the actual matching of index structures or even custom indexes. To do so, provide a `RedisCallback` that returns a single or `Iterable` set of `id` values, as shown in the following example:
 
 .Sample finder using RedisCallback
 ====
@@ -620,9 +685,9 @@ List<RedisSession> sessionsByUser = template.find(new RedisCallback<Set<byte[]>>
 ----
 ====
 
-Here's an overview of the keywords supported for Redis and what a method containing that keyword essentially translates to.
-====
+The following table provides an overview of the keywords supported for Redis and what a method containing that keyword essentially translates to:
 
+====
 .Supported keywords inside method names
 [options = "header, autowidth"]
 |===============
@@ -635,14 +700,15 @@ Here's an overview of the keywords supported for Redis and what a method contain
 ====
 
 [[redis.repositories.cluster]]
-== Redis Repositories running on Cluster
+== Redis Repositories Running on a Cluster
 
-Using the Redis repository support in a clustered Redis environment is fine. Please see the <<cluster, Redis Cluster>> section for `ConnectionFactory` configuration details.
-Still some considerations have to be done as the default key distribution will spread entities and secondary indexes through out the whole cluster and its slots.
+You can use the Redis repository support in a clustered Redis environment. See the "`<<cluster>>`" section for `ConnectionFactory` configuration details. Still, some additional configuration must be done, because the default key distribution spreads entities and secondary indexes through out the whole cluster and its slots.
+
+The following table shows the details of data on a cluster (based on previous examples):
 
 [options = "header, autowidth"]
 |===============
-|key|type|slot|node
+|Key|Type|Slot|Node
 |persons:e2c7dcee-b8cd-4424-883e-736ce564363e|id for hash|15171|127.0.0.1:7381
 |persons:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56|id for hash|7373|127.0.0.1:7380
 |persons:firstname:rand|index|1700|127.0.0.1:7379
@@ -650,12 +716,11 @@ Still some considerations have to be done as the default key distribution will s
 |===============
 ====
 
-Some commands like `SINTER` and `SUNION` can only be processed on the Server side when all involved keys map to the same slot. Otherwise computation has to be done on client side.
-Therefore it be useful to pin keyspaces to a single slot which allows to make use of Redis serverside computation right away.
+Some commands (such as `SINTER` and `SUNION`) can only be processed on the server side when all involved keys map to the same slot. Otherwise, computation has to be done on client side. Therefore, it is useful to pin keyspaces to a single slot, which lets make use of Redis server side computation right away. The following table shows what happens when you do (note the change in the slot column and the port value in the node column):
 
 [options = "header, autowidth"]
 |===============
-|key|type|slot|node
+|Key|Type|Slot|Node
 |{persons}:e2c7dcee-b8cd-4424-883e-736ce564363e|id for hash|2399|127.0.0.1:7379
 |{persons}:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56|id for hash|2399|127.0.0.1:7379
 |{persons}:firstname:rand|index|2399|127.0.0.1:7379
@@ -663,14 +728,14 @@ Therefore it be useful to pin keyspaces to a single slot which allows to make us
 |===============
 ====
 
-TIP: Define and pin keyspaces via `@RedisHash("{yourkeyspace}") to specific slots when using Redis cluster.
+TIP: Define and pin keyspaces by using `@RedisHash("{yourkeyspace}") to specific slots when you use Redis cluster.
 
 [[redis.repositories.cdi-integration]]
-== CDI integration
+== CDI Integration
 
-Instances of the repository interfaces are usually created by a container, which Spring is the most natural choice when working with Spring Data. There's sophisticated support to easily set up Spring to create bean instances. Spring Data Redis ships with a custom CDI extension that allows using the repository abstraction in CDI environments. The extension is part of the JAR so all you need to do to activate it is dropping the Spring Data Redis JAR into your classpath.
+Instances of the repository interfaces are usually created by a container, for which Spring is the most natural choice when working with Spring Data. Spring offers sophisticated for creating bean instances. Spring Data Redis ships with a custom CDI extension that lets you use the repository abstraction in CDI environments. The extension is part of the JAR, so, to activate it, drop the Spring Data Redis JAR into your classpath.
 
-You can now set up the infrastructure by implementing a CDI Producer for the `RedisConnectionFactory` and `RedisOperations`:
+You can then set up the infrastructure by implementing a CDI Producer for the `RedisConnectionFactory` and `RedisOperations`, as shown in the following example:
 
 [source, java]
 ----
@@ -707,9 +772,9 @@ class RedisOperationsProducer {
 }
 ----
 
-The necessary setup can vary depending on the JavaEE environment you run in.
+The necessary setup can vary, depending on your JavaEE environment.
 
-The Spring Data Redis CDI extension will pick up all Repositories available as CDI beans and create a proxy for a Spring Data repository whenever a bean of a repository type is requested by the container. Thus obtaining an instance of a Spring Data repository is a matter of declaring an `@Injected` property:
+The Spring Data Redis CDI extension picks up all available repositories as CDI beans and creates a proxy for a Spring Data repository whenever a bean of a repository type is requested by the container. Thus, obtaining an instance of a Spring Data repository is a matter of declaring an `@Injected` property, as shown in the following example:
 
 [source, java]
 ----
@@ -724,7 +789,4 @@ class RepositoryClient {
 }
 ----
 
-A Redis Repository requires `RedisKeyValueAdapter` and `RedisKeyValueTemplate` instances. These beans are created and managed by the Spring Data CDI extension if no provided beans are found. You can however supply your own beans to configure the specific properties of `RedisKeyValueAdapter` and `RedisKeyValueTemplate`.
-
-
-
+A Redis Repository requires `RedisKeyValueAdapter` and `RedisKeyValueTemplate` instances. These beans are created and managed by the Spring Data CDI extension if no provided beans are found. You can, however, supply your own beans to configure the specific properties of `RedisKeyValueAdapter` and `RedisKeyValueTemplate`.
