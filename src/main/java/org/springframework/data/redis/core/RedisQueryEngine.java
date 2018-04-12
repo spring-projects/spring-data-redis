@@ -47,6 +47,7 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Zhongning Fan
  * @since 1.7
  */
 class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationChain, Comparator<?>> {

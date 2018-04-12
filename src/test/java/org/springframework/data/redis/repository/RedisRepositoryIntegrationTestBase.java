@@ -48,9 +48,10 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
  * Base for testing Redis repository support in different configurations.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Zhongning Fan
  */
 public abstract class RedisRepositoryIntegrationTestBase {
 
@@ -354,14 +355,14 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		repo.save(Arrays.asList(eddard, robb, sansa));
 
-		Page<Person> page1 = repo.findByFirstnameAndLastname("sansa", "stark", new PageRequest(0, 2));
+		Page<Person> result = repo.findByFirstnameAndLastname("sansa", "stark", new PageRequest(0, 2));
 
-		assertThat(page1.getNumberOfElements(), is(1));
-		assertThat(page1.getContent(), hasSize(1));
-		assertThat(page1.getTotalElements(), is(1L));
+		assertThat(result.getNumberOfElements(), is(1));
+		assertThat(result.getContent(), hasSize(1));
+		assertThat(result.getTotalElements(), is(1L));
 	}
 
-	public static interface PersonRepository extends PagingAndSortingRepository<Person, String> {
+	interface PersonRepository extends PagingAndSortingRepository<Person, String> {
 
 		List<Person> findByFirstname(String firstname);
 
@@ -386,14 +387,14 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		List<Person> findByHometownLocationNear(Point point, Distance distance);
 	}
 
-	public static interface CityRepository extends CrudRepository<City, String> {
+	interface CityRepository extends CrudRepository<City, String> {
 
 		List<City> findByLocationNear(Point point, Distance distance);
 	}
 
 	/**
 	 * Custom Redis {@link IndexConfiguration} forcing index of {@link Person#lastname}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 */
 	static class MyIndexConfiguration extends IndexConfiguration {
@@ -406,7 +407,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 	/**
 	 * Custom Redis {@link IndexConfiguration} forcing index of {@link Person#lastname}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 */
 	static class MyKeyspaceConfiguration extends KeyspaceConfiguration {
