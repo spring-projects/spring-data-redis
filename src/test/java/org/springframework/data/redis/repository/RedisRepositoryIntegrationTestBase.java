@@ -18,13 +18,13 @@ package org.springframework.data.redis.repository;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-import java.io.Serializable;
+import lombok.Data;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.Data;
 import org.hamcrest.core.IsNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,6 +53,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Zhongning Fan
  */
 public abstract class RedisRepositoryIntegrationTestBase {
 
@@ -354,16 +355,16 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Person robb = new Person("robb", "stark");
 		Person sansa = new Person("sansa", "stark");
 
-		repo.save(Arrays.asList(eddard, robb, sansa));
+		repo.saveAll(Arrays.asList(eddard, robb, sansa));
 
-		Page<Person> page1 = repo.findByFirstnameAndLastname("sansa", "stark", new PageRequest(0, 2));
+		Page<Person> result = repo.findByFirstnameAndLastname("sansa", "stark", new PageRequest(0, 2));
 
-		assertThat(page1.getNumberOfElements(), is(1));
-		assertThat(page1.getContent(), hasSize(1));
-		assertThat(page1.getTotalElements(), is(1L));
+		assertThat(result.getNumberOfElements(), is(1));
+		assertThat(result.getContent(), hasSize(1));
+		assertThat(result.getTotalElements(), is(1L));
 	}
 
-	public static interface PersonRepository extends PagingAndSortingRepository<Person, String> {
+	interface PersonRepository extends PagingAndSortingRepository<Person, String> {
 
 		List<Person> findByFirstname(String firstname);
 
@@ -388,7 +389,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		List<Person> findByHometownLocationNear(Point point, Distance distance);
 	}
 
-	public static interface CityRepository extends CrudRepository<City, String> {
+	interface CityRepository extends CrudRepository<City, String> {
 
 		List<City> findByLocationNear(Point point, Distance distance);
 	}
