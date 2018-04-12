@@ -1,4 +1,3 @@
-This document is the reference guide for Spring Data Redis (SDR) Support. It explains Key Value module concepts and semantics and the syntax for various stores namespaces.
+This document is the reference guide for Spring Data Redis (SDR) Support. It explains Key-Value module concepts and semantics and the syntax for various stores namespaces.
 
-For an introduction to key value stores or Spring, or Spring Data examples, please refer to <<get-started>> - this documentation refers only to Spring Data Redis Support and assumes the user is familiar with the key value storages and Spring concepts.
-
+For an introduction to key-value stores, Spring, or Spring Data examples, see <<get-started>>. This documentation refers only to Spring Data Redis Support and assumes the user is familiar with key-value storage and Spring concepts.
