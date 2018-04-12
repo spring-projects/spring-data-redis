@@ -3,7 +3,7 @@
 = Schema
 :resourcesDir: ../../resources
 
-== Core schema
+== Core Schema
 
 [source,xml]
 -------------------------------------------
