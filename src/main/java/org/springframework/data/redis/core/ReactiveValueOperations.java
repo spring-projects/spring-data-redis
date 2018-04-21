@@ -241,4 +241,11 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 */
 	Mono<Boolean> delete(K key);
+	
+	/**
+	 * Removes multiple {@literal keys} one in one batch.
+	 *
+	 * @param keys must not be {@literal null}.
+	 */
+	Mono<Long> multiDelete(Collection<K> keys);
 }
