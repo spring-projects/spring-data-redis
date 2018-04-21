@@ -328,6 +328,18 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#multiDelete(java.util.Collection)
+	 */
+	@Override
+	public Mono<Long> multiDelete(Collection<K> keys) {
+		
+		Assert.notNull(keys, "Keys must not be null!");
+
+		return template.createMono(connection -> Flux.fromIterable(keys).map(this::rawKey)
+				.collectList().flatMap(connection.keyCommands()::mDel));
+	}
 
 	private <T> Mono<T> createMono(Function<ReactiveStringCommands, Publisher<T>> function) {
 
