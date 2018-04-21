@@ -25,6 +25,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.AfterClass;
@@ -383,6 +384,36 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(valueOperations.delete(key)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(valueOperations.size(key)).expectNext(0L).verifyComplete();
+	}
+	
+	@Test // DATAREDIS-813
+	public void multiDelete() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		K absent = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V absentValue = null;
+
+		if (serializer instanceof StringRedisSerializer) {
+			absentValue = (V) "";
+		}
+		if (value1 instanceof ByteBuffer) {
+			absentValue = (V) ByteBuffer.wrap(new byte[0]);
+		}
+
+		Map<K, V> map = new LinkedHashMap<>();
+		map.put(key1, value1);
+		map.put(key2, value2);
+		StepVerifier.create(valueOperations.multiSet(map)).expectNext(true).verifyComplete();
+
+		List<K> keys = Arrays.asList(key1, key2, absent);
+		
+		StepVerifier.create(valueOperations.multiDelete(keys)).expectNext(2L).verifyComplete();
+
+		StepVerifier.create(valueOperations.multiGet(keys))
+			.expectNext(Arrays.asList(absentValue, absentValue, absentValue)).verifyComplete();
 	}
 
 	@Test // DATAREDIS-784
