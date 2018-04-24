@@ -97,17 +97,18 @@ abstract public class ReactiveOperationsTestParams {
 				poolingConfiguration);
 		poolingConnectionFactory.afterPropertiesSet();
 
-		JdkSerializationRedisSerializer jdkSerializationRedisSerializer = new JdkSerializationRedisSerializer();
+
 		ReactiveRedisTemplate<Object, Object> objectTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
-				RedisSerializationContext.fromSerializer(jdkSerializationRedisSerializer));
+				RedisSerializationContext.java(ReactiveOperationsTestParams.class.getClassLoader()));
 
 		ReactiveRedisTemplate<Object, Object> pooledObjectTemplate = new ReactiveRedisTemplate<>(poolingConnectionFactory,
-				RedisSerializationContext.fromSerializer(jdkSerializationRedisSerializer));
+				RedisSerializationContext.java());
 
 		StringRedisSerializer stringRedisSerializer = StringRedisSerializer.UTF_8;
 		ReactiveRedisTemplate<String, String> stringTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
 				RedisSerializationContext.fromSerializer(stringRedisSerializer));
 
+		JdkSerializationRedisSerializer jdkSerializationRedisSerializer = new JdkSerializationRedisSerializer();
 		GenericToStringSerializer<Long> longToStringSerializer = new GenericToStringSerializer(Long.class);
 		ReactiveRedisTemplate<String, Long> longTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
 				RedisSerializationContext.<String, Long> newSerializationContext(jdkSerializationRedisSerializer)

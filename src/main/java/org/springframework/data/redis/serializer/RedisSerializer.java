@@ -54,7 +54,19 @@ public interface RedisSerializer<T> {
 	 * @since 2.1
 	 */
 	static RedisSerializer<Object> java() {
-		return new JdkSerializationRedisSerializer();
+		return java(null);
+	}
+
+	/**
+	 * Obtain a {@link RedisSerializer} using java serialization with the given {@link ClassLoader}.<br />
+	 * <strong>Note:</strong> Ensure that your domain objects are actually {@link java.io.Serializable serializable}.
+	 *
+	 * @param classLoader the classloader to use..
+	 * @return never {@literal null}.
+	 * @since 2.1
+	 */
+	static RedisSerializer<Object> java(@Nullable ClassLoader classLoader) {
+		return new JdkSerializationRedisSerializer(classLoader);
 	}
 
 	/**
