@@ -51,7 +51,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	 * @param classLoader
 	 * @since 1.7
 	 */
-	public JdkSerializationRedisSerializer(ClassLoader classLoader) {
+	public JdkSerializationRedisSerializer(@Nullable ClassLoader classLoader) {
 		this(new SerializingConverter(), new DeserializingConverter(classLoader));
 	}
 
