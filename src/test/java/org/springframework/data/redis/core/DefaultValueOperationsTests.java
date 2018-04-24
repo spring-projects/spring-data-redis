@@ -281,6 +281,38 @@ public class DefaultValueOperationsTests<K, V> {
 		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
 	}
 
+	@Test // DATAREDIS-786
+	public void testSetIfPresent() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertFalse(valueOps.setIfPresent(key, value1));
+		valueOps.set(key, value1);
+
+		assertTrue(valueOps.setIfPresent(key, value2));
+		assertThat(valueOps.get(key), is(value2));
+	}
+
+	@Test // DATAREDIS-786
+	public void testSetIfPresentWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertFalse(valueOps.setIfPresent(key, value1, 5, TimeUnit.SECONDS));
+		valueOps.set(key, value1);
+
+		assertTrue(valueOps.setIfPresent(key, value2, 5, TimeUnit.SECONDS));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
+		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+		assertThat(valueOps.get(key), is(value2));
+	}
+
 	@Test
 	public void testSize() {
 		K key1 = keyFactory.instance();

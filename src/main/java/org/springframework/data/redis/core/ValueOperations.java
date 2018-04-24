@@ -78,6 +78,29 @@ public interface ValueOperations<K, V> {
 	Boolean setIfAbsent(K key, V value, long timeout, TimeUnit unit);
 
 	/**
+	 * Set {@code key} to hold the string {@code value} if {@code key} is present.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	@Nullable
+	Boolean setIfPresent(K key, V value);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param timeout must not be {@literal null}.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	@Nullable
+	Boolean setIfPresent(K key, V value, long timeout, TimeUnit unit);
+
+	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
 	 *
 	 * @param map must not be {@literal null}.
