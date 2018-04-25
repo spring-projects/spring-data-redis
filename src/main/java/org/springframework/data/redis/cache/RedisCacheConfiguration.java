@@ -52,9 +52,9 @@ public class RedisCacheConfiguration {
 	private final ConversionService conversionService;
 
 	@SuppressWarnings("unchecked")
-	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix,
-			CacheKeyPrefix keyPrefix, SerializationPair<String> keySerializationPair,
-			SerializationPair<?> valueSerializationPair, ConversionService conversionService) {
+	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
+			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
+			ConversionService conversionService) {
 
 		this.ttl = ttl;
 		this.cacheNullValues = cacheNullValues;
@@ -111,6 +111,8 @@ public class RedisCacheConfiguration {
 	 * cache key converters</dd>
 	 * </dl>
 	 *
+	 * @param classLoader the {@link ClassLoader} used for deserialization by the
+	 *          {@link org.springframework.data.redis.serializer.JdkSerializationRedisSerializer}.
 	 * @return new {@link RedisCacheConfiguration}.
 	 * @since 2.1
 	 */
