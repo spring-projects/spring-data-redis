@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import static org.mockito.Mockito.*;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
@@ -63,5 +64,53 @@ public class DefaultBoundValueOperationsUnitTests {
 		boundValueOps.setIfPresent(VALUE, 10, TimeUnit.SECONDS);
 
 		verify(valueOps).setIfPresent(eq(KEY), eq(VALUE), eq(10L), eq(TimeUnit.SECONDS));
+	}
+
+	@Test // DATAREDIS-815
+	public void setWithDurationOfSecondsShouldDelegateCorrectly() {
+
+		boundValueOps.set(VALUE, Duration.ofSeconds(1));
+
+		verify(valueOps).set(eq(KEY), eq(VALUE), eq(1L), eq(TimeUnit.SECONDS));
+	}
+
+	@Test // DATAREDIS-815
+	public void setWithDurationOfMillisShouldDelegateCorrectly() {
+
+		boundValueOps.set(VALUE, Duration.ofMillis(250));
+
+		verify(valueOps).set(eq(KEY), eq(VALUE), eq(250L), eq(TimeUnit.MILLISECONDS));
+	}
+
+	@Test // DATAREDIS-815
+	public void setIfAbsentWithDurationOfSecondsShouldDelegateCorrectly() {
+
+		boundValueOps.setIfAbsent(VALUE, Duration.ofSeconds(1));
+
+		verify(valueOps).setIfAbsent(eq(KEY), eq(VALUE), eq(1L), eq(TimeUnit.SECONDS));
+	}
+
+	@Test // DATAREDIS-815
+	public void setIfAbsentWithDurationOfMillisShouldDelegateCorrectly() {
+
+		boundValueOps.setIfAbsent(VALUE, Duration.ofMillis(250));
+
+		verify(valueOps).setIfAbsent(eq(KEY), eq(VALUE), eq(250L), eq(TimeUnit.MILLISECONDS));
+	}
+
+	@Test // DATAREDIS-815
+	public void setIfPresentWithDurationOfSecondsShouldDelegateCorrectly() {
+
+		boundValueOps.setIfPresent(VALUE, Duration.ofSeconds(1));
+
+		verify(valueOps).setIfPresent(eq(KEY), eq(VALUE), eq(1L), eq(TimeUnit.SECONDS));
+	}
+
+	@Test // DATAREDIS-815
+	public void setIfPresentWithDurationOfMillisShouldDelegateCorrectly() {
+
+		boundValueOps.setIfPresent(VALUE, Duration.ofMillis(250));
+
+		verify(valueOps).setIfPresent(eq(KEY), eq(VALUE), eq(250L), eq(TimeUnit.MILLISECONDS));
 	}
 }

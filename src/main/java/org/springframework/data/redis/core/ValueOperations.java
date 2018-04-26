@@ -58,10 +58,11 @@ public interface ValueOperations<K, V> {
 	 * Set the {@code value} and expiration {@code timeout} for {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
+	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
-	 * @since 2.1
+	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
 	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 * @since 2.1
 	 */
 	default void set(K key, V value, Duration timeout) {
 
@@ -103,11 +104,12 @@ public interface ValueOperations<K, V> {
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
+	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
 	@Nullable
 	default Boolean setIfAbsent(K key, V value, Duration timeout) {
@@ -153,11 +155,12 @@ public interface ValueOperations<K, V> {
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
+	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
 	@Nullable
 	default Boolean setIfPresent(K key, V value, Duration timeout) {

@@ -23,15 +23,18 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Jennifer Hickey
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 abstract public class TimeoutUtils {
 
 	/**
-	 * @param duration the actual {@link Duration} to inspect.
+	 * Check if a given Duration can be represented in {@code sec} or requires {@code msec} representation.
+	 *
+	 * @param duration the actual {@link Duration} to inspect. Never {@literal null}.
 	 * @return {@literal true} if the {@link Duration} contains millisecond information.
 	 * @since 2.1
 	 */
-	static boolean hasMillis(Duration duration) {
+	public static boolean hasMillis(Duration duration) {
 		return duration.toMillis() % 1000 != 0;
 	}
 
