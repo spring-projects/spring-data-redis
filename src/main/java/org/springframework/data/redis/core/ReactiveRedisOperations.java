@@ -56,6 +56,17 @@ public interface ReactiveRedisOperations<K, V> {
 	 */
 	<T> Flux<T> execute(ReactiveRedisCallback<T> action);
 
+	/**
+	 * Publishes the given message to the given channel.
+	 *
+	 * @param destination the channel to publish to, must not be {@literal null} or empty.
+	 * @param message message to publish.
+	 * @return the number of clients that received the message
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
+	 */
+	Mono<Long> convertAndSend(String destination, V message);
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Keys
 	// -------------------------------------------------------------------------

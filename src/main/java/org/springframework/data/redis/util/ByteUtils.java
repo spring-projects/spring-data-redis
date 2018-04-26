@@ -16,6 +16,8 @@
 package org.springframework.data.redis.util;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -202,5 +204,32 @@ public final class ByteUtils {
 		}
 
 		return -1;
+	}
+
+	/**
+	 * Convert a {@link String} into a {@link ByteBuffer} using {@link java.nio.charset.StandardCharsets#UTF_8}.
+	 *
+	 * @param theString must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 */
+	public static ByteBuffer getByteBuffer(String theString) {
+		return getByteBuffer(theString, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Convert a {@link String} into a {@link ByteBuffer} using the given {@link Charset}.
+	 *
+	 * @param theString must not be {@literal null}.
+	 * @param charset must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 */
+	public static ByteBuffer getByteBuffer(String theString, Charset charset) {
+
+		Assert.notNull(theString, "The String must not be null!");
+		Assert.notNull(charset, "The String must not be null!");
+
+		return charset.encode(theString);
 	}
 }

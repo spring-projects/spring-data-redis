@@ -193,6 +193,16 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return Flux.from(postProcessResult(result, connToUse, false)).doFinally(signal -> conn.close());
 	}
 
+	@Override
+	public Mono<Long> convertAndSend(String destination, V message) {
+
+		Assert.hasText(destination, "Destination channel must not be empty!");
+
+		return createMono(connection -> connection.pubSubCommands().publish(
+				getSerializationContext().getStringSerializationPair().write(destination),
+				getSerializationContext().getValueSerializationPair().write(message)));
+	}
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis keys
 	// -------------------------------------------------------------------------
