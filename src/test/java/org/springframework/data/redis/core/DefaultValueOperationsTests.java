@@ -345,13 +345,12 @@ public class DefaultValueOperationsTests<K, V> {
 	}
 
 	@Test // DATAREDIS-786
-	public void testSetIfPresent() {
+	public void setIfPresentReturnsTrueWhenKeyExists() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		assertFalse(valueOps.setIfPresent(key, value1));
 		valueOps.set(key, value1);
 
 		assertTrue(valueOps.setIfPresent(key, value2));
@@ -359,7 +358,12 @@ public class DefaultValueOperationsTests<K, V> {
 	}
 
 	@Test // DATAREDIS-786
-	public void testSetIfPresentWithExpiration() {
+	public void setIfPresentReturnsFalseWhenKeyDoesNotExist() {
+		assertFalse(valueOps.setIfPresent(keyFactory.instance(), valueFactory.instance()));
+	}
+
+	@Test // DATAREDIS-786
+	public void setIfPresentShouldSetExpirationCorrectly() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();

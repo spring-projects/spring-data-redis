@@ -25,6 +25,7 @@ import org.springframework.lang.Nullable;
  * @author Costin Leau
  * @author Mark Paluch
  * @author Jiahe Cai
+ * @author Christoph Strobl
  */
 public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
@@ -70,6 +71,32 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	Boolean setIfAbsent(V value, long timeout, TimeUnit unit);
 
 	/**
+	 * Set the bound key to hold the string {@code value} if {@code key} is present.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if {@code value} is not present.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Boolean setIfPresent(V value);
+
+	/**
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @param timeout the key expiration timeout.
+	 * @param unit must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Boolean setIfPresent(V value, long timeout, TimeUnit unit);
+
+	/**
 	 * Get the value of the bound key.
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -90,7 +117,6 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	/**
 	 * Increment an integer value stored as string value under the bound key by one.
 	 *
-	 * @param delta
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>

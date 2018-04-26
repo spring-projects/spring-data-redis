@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Costin Leau
@@ -155,6 +156,26 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 	@Override
 	public Boolean setIfAbsent(V value, long timeout, TimeUnit unit) {
 		return ops.setIfAbsent(getKey(), value, timeout, unit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#setIfPresent(java.lang.Object)
+	 */
+	@Nullable
+	@Override
+	public Boolean setIfPresent(V value) {
+		return ops.setIfPresent(getKey(), value);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#setIfPresent(java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Boolean setIfPresent(V value, long timeout, TimeUnit unit) {
+		return ops.setIfPresent(getKey(), value, timeout, unit);
 	}
 
 	/*

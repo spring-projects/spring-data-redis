@@ -36,7 +36,7 @@ public interface ValueOperations<K, V> {
 	 * Set {@code value} for {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
+	 * @param value must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	void set(K key, V value);
@@ -45,8 +45,8 @@ public interface ValueOperations<K, V> {
 	 * Set the {@code value} and expiration {@code timeout} for {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
-	 * @param timeout
+	 * @param value must not be {@literal null}.
+	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
@@ -56,7 +56,7 @@ public interface ValueOperations<K, V> {
 	 * Set {@code key} to hold the string {@code value} if {@code key} is absent.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
+	 * @param value must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
@@ -67,8 +67,8 @@ public interface ValueOperations<K, V> {
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
-	 * @param timeout must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
@@ -81,9 +81,11 @@ public interface ValueOperations<K, V> {
 	 * Set {@code key} to hold the string {@code value} if {@code key} is present.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
-	 * @since 2.1
+	 * @param value must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code key} or {@code value} is not present.
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
 	 */
 	@Nullable
 	Boolean setIfPresent(K key, V value);
@@ -92,10 +94,13 @@ public interface ValueOperations<K, V> {
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
-	 * @param timeout must not be {@literal null}.
-	 * @since 2.1
+	 * @param value must not be {@literal null}.
+	 * @param timeout the key expiration timeout.
+	 * @param unit must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
 	 */
 	@Nullable
 	Boolean setIfPresent(K key, V value, long timeout, TimeUnit unit);
