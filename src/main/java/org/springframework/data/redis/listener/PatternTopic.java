@@ -43,6 +43,17 @@ public class PatternTopic implements Topic {
 	}
 
 	/**
+	 * Create a new {@link PatternTopic} for channel subscriptions based on a {@code pattern}.
+	 *
+	 * @param pattern the channel pattern, must not be {@literal null} or empty.
+	 * @return the {@link PatternTopic} for {@code pattern}.
+	 * @since 2.1
+	 */
+	static PatternTopic of(String pattern) {
+		return new PatternTopic(pattern);
+	}
+
+	/**
 	 * @return channel pattern.
 	 */
 	@Override

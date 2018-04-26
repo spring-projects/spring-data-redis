@@ -53,5 +53,5 @@ The message listener container itself does not require external threading resour
 ReactiveRedisConnectionFactory factory = …
 ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(factory);
 
-Flux<ChannelMessage<String, String>> stream = container.receive(new ChannelTopic("my-chanel"));
+Flux<ChannelMessage<String, String>> stream = container.receive(ChannelTopic.of("my-chanel"));
 ----
