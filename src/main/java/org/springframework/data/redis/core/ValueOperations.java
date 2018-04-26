@@ -15,12 +15,14 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Redis operations for simple (or in Redis terminology 'string') values.
@@ -53,6 +55,26 @@ public interface ValueOperations<K, V> {
 	void set(K key, V value, long timeout, TimeUnit unit);
 
 	/**
+	 * Set the {@code value} and expiration {@code timeout} for {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param timeout must not be {@literal null}.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 */
+	default void set(K key, V value, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		if (TimeoutUtils.hasMillis(timeout)) {
+			set(key, value, timeout.toMillis(), TimeUnit.MILLISECONDS);
+		} else {
+			set(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
+		}
+	}
+
+	/**
 	 * Set {@code key} to hold the string {@code value} if {@code key} is absent.
 	 *
 	 * @param key must not be {@literal null}.
@@ -76,6 +98,28 @@ public interface ValueOperations<K, V> {
 	 */
 	@Nullable
 	Boolean setIfAbsent(K key, V value, long timeout, TimeUnit unit);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 */
+	@Nullable
+	default Boolean setIfAbsent(K key, V value, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		if (TimeoutUtils.hasMillis(timeout)) {
+			return setIfAbsent(key, value, timeout.toMillis(), TimeUnit.MILLISECONDS);
+		}
+
+		return setIfAbsent(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
+	}
 
 	/**
 	 * Set {@code key} to hold the string {@code value} if {@code key} is present.
@@ -104,6 +148,28 @@ public interface ValueOperations<K, V> {
 	 */
 	@Nullable
 	Boolean setIfPresent(K key, V value, long timeout, TimeUnit unit);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 */
+	@Nullable
+	default Boolean setIfPresent(K key, V value, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		if (TimeoutUtils.hasMillis(timeout)) {
+			return setIfPresent(key, value, timeout.toMillis(), TimeUnit.MILLISECONDS);
+		}
+
+		return setIfPresent(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
+	}
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
