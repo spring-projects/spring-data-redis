@@ -26,6 +26,7 @@ import io.lettuce.core.RedisURI.Builder;
 import io.lettuce.core.api.sync.RedisHLLCommands;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
+import io.lettuce.core.codec.ByteArrayCodec;
 
 import java.nio.charset.Charset;
 import java.time.Duration;
@@ -38,6 +39,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -54,6 +56,7 @@ import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.test.util.HexStringUtils;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.test.annotation.IfProfileValue;
@@ -89,6 +92,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 	RedisClusterClient client;
 	RedisAdvancedClusterCommands<String, String> nativeConnection;
+	RedisAdvancedClusterCommands<byte[], byte[]> binaryConnection;
 	LettuceClusterConnection clusterConnection;
 
 	public static @ClassRule RedisClusterRule clusterAvailable = new RedisClusterRule();
@@ -104,6 +108,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		client = RedisClusterClient.create(LettuceTestClientResources.getSharedClientResources(),
 				Builder.redis(CLUSTER_HOST, MASTER_NODE_1_PORT).withTimeout(500, TimeUnit.MILLISECONDS).build());
 		nativeConnection = client.connect().sync();
+		binaryConnection = client.connect(ByteArrayCodec.INSTANCE).sync();
 		clusterConnection = new LettuceClusterConnection(client);
 	}
 
@@ -112,6 +117,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.serverCommands().flushDb();
 		nativeConnection.getStatefulConnection().close();
+		binaryConnection.getStatefulConnection().close();
 		clusterConnection.close();
 		client.shutdown(0, 0, TimeUnit.MILLISECONDS);
 	}
@@ -2293,5 +2299,22 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-693
 	public void unlinkReturnsZeroIfNoKeysTouched() {
 		assertThat(clusterConnection.keyCommands().unlink(KEY_1_BYTES), is(0L));
+	}
+
+	@Test // DATAREDIS-697
+	public void bitPosShouldReturnPositionCorrectly() {
+
+		binaryConnection.set(KEY_1_BYTES, HexStringUtils.hexToBytes("fff000"));
+
+		assertThat(clusterConnection.stringCommands().bitPos(KEY_1_BYTES, false), is(12L));
+	}
+
+	@Test // DATAREDIS-697
+	public void bitPosShouldReturnPositionInRangeCorrectly() {
+
+		binaryConnection.set(KEY_1_BYTES, HexStringUtils.hexToBytes("fff0f0"));
+
+		assertThat(clusterConnection.stringCommands().bitPos(KEY_1_BYTES, true,
+				org.springframework.data.domain.Range.of(Bound.inclusive(2L), Bound.unbounded())), is(16L));
 	}
 }

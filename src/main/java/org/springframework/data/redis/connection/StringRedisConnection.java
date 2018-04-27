@@ -581,6 +581,37 @@ public interface StringRedisConnection extends RedisConnection {
 	Long bitOp(BitOperation op, String destination, String... keys);
 
 	/**
+	 * Return the position of the first bit set to given {@code bit} in a string.
+	 *
+	 * @param key the key holding the actual String.
+	 * @param bit the bit value to look for.
+	 * @return {@literal null} when used in pipeline / transaction. The position of the first bit set to 1 or 0 according
+	 *         to the request.
+	 * @see <a href="http://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
+	 * @since 2.1
+	 */
+	default Long bitPos(String key, boolean bit) {
+		return bitPos(key, bit, org.springframework.data.domain.Range.unbounded());
+	}
+
+	/**
+	 * Return the position of the first bit set to given {@code bit} in a string.
+	 * {@link org.springframework.data.domain.Range} start and end can contain negative values in order to index
+	 * <strong>bytes</strong> starting from the end of the string, where {@literal -1} is the last byte, {@literal -2} is
+	 * the penultimate.
+	 *
+	 * @param key the key holding the actual String.
+	 * @param bit the bit value to look for.
+	 * @param range must not be {@literal null}. Use {@link Range#unbounded()} to not limit search.
+	 * @return {@literal null} when used in pipeline / transaction. The position of the first bit set to 1 or 0 according
+	 *         to the request.
+	 * @see <a href="http://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Long bitPos(String key, boolean bit, org.springframework.data.domain.Range<Long> range);
+
+	/**
 	 * Get the length of the value stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.

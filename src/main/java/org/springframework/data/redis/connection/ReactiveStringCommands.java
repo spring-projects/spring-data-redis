@@ -1015,6 +1015,80 @@ public interface ReactiveStringCommands {
 	Flux<NumericResponse<BitOpCommand, Long>> bitOp(Publisher<BitOpCommand> commands);
 
 	/**
+	 * @author Christoph Strobl
+	 * @since 2.1
+	 */
+	class BitPosCommand extends KeyCommand {
+
+		private boolean bit;
+		private Range<Long> range;
+
+		private BitPosCommand(@Nullable ByteBuffer key, boolean bit, Range<Long> range) {
+			super(key);
+			this.bit = bit;
+			this.range = range;
+		}
+
+		static BitPosCommand positionOf(boolean bit) {
+			return new BitPosCommand(null, bit, Range.unbounded());
+		}
+
+		public BitPosCommand in(ByteBuffer key) {
+			return new BitPosCommand(key, bit, range);
+		}
+
+		public BitPosCommand within(Range<Long> range) {
+			return new BitPosCommand(getKey(), bit, range);
+		}
+
+		public boolean getBit() {
+			return bit;
+		}
+
+		public Range<Long> getRange() {
+			return range;
+		}
+	}
+
+	/**
+	 * Return the position of the first bit set to given {@code bit} in a string.
+	 *
+	 * @param key the key holding the actual String.
+	 * @param bit the bit value to look for.
+	 * @return {@link Mono} emitting result when ready.
+	 * @since 2.1
+	 */
+	default Mono<Long> bitPos(ByteBuffer key, boolean bit) {
+		return bitPos(key, bit, Range.unbounded());
+	}
+
+	/**
+	 * Return the position of the first bit set to given {@code bit} in a string. {@link Range} start and end can contain
+	 * negative values in order to index <strong>bytes</strong> starting from the end of the string, where {@literal -1}
+	 * is the last byte, {@literal -2} is the penultimate.
+	 *
+	 * @param key the key holding the actual String.
+	 * @param bit the bit value to look for.
+	 * @param range must not be {@literal null}. Use {@link Range#unbounded()} to not limit search.
+	 * @return {@link Mono} emitting result when ready.
+	 * @since 2.1
+	 */
+	default Mono<Long> bitPos(ByteBuffer key, boolean bit, Range<Long> range) {
+		return bitPos(Mono.just(BitPosCommand.positionOf(bit).in(key).within(range))).next()
+				.map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Emmit the the position of the first bit set to given {@code bit} in a string. Get the length of the value stored at
+	 * {@literal key}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} emitting results when ready.
+	 * @since 2.1
+	 */
+	Flux<NumericResponse<BitPosCommand, Long>> bitPos(Publisher<BitPosCommand> commands);
+
+	/**
 	 * Get the length of the value stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.

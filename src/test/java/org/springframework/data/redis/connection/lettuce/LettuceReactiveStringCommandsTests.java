@@ -22,6 +22,7 @@ import static org.junit.Assume.*;
 import org.springframework.data.redis.util.ByteUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoOperator;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Test;
+import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
@@ -43,7 +45,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveStringCommands.SetCommand;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.data.redis.test.util.LettuceRedisClientProvider;
+import org.springframework.data.redis.test.util.HexStringUtils;
 
 /**
  * @author Christoph Strobl
@@ -399,4 +401,22 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.expectNext(7L) //
 				.verifyComplete();
 	}
+
+	@Test // DATAREDIS-697
+	public void bitPosShouldReturnPositionCorrectly() {
+
+		nativeBinaryCommands.set(KEY_1_BBUFFER, ByteBuffer.wrap(HexStringUtils.hexToBytes("fff000")));
+
+		StepVerifier.create(connection.stringCommands().bitPos(KEY_1_BBUFFER, false)).expectNext(12L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-697
+	public void bitPosShouldReturnPositionInRangeCorrectly() {
+
+		nativeBinaryCommands.set(KEY_1_BBUFFER, ByteBuffer.wrap(HexStringUtils.hexToBytes("fff0f0")));
+
+		StepVerifier.create(connection.stringCommands().bitPos(KEY_1_BBUFFER, true,
+				org.springframework.data.domain.Range.of(Bound.inclusive(2L), Bound.unbounded()))).expectNext(16L).verifyComplete();
+	}
+
 }

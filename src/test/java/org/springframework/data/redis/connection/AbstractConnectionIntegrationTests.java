@@ -44,6 +44,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -70,6 +71,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.util.HexStringUtils;
 import org.springframework.data.redis.test.util.RedisClientRule;
 import org.springframework.data.redis.test.util.RedisDriver;
 import org.springframework.data.redis.test.util.WithRedisDriver;
@@ -2822,6 +2825,27 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 0L }));
 	}
 
+	@Test // DATAREDIS-697
+	@IfProfileValue(name = "redisVersion", value = "2.8.7+")
+	public void bitPosShouldReturnPositionCorrectly() {
+
+		actual.add(connection.set("bitpos-1".getBytes(), HexStringUtils.hexToBytes("fff000")));
+		actual.add(connection.bitPos("bitpos-1", false));
+
+		verifyResults(Arrays.asList(new Object[] { true, 12L }));
+	}
+
+	@Test // DATAREDIS-697
+	@IfProfileValue(name = "redisVersion", value = "2.8.7+")
+	public void bitPosShouldReturnPositionInRangeCorrectly() {
+
+		actual.add(connection.set("bitpos-1".getBytes(), HexStringUtils.hexToBytes("fff0f0")));
+		actual.add(connection.bitPos("bitpos-1", true,
+				org.springframework.data.domain.Range.of(Bound.inclusive(2L), Bound.unbounded())));
+
+		verifyResults(Arrays.asList(new Object[] { true, 16L }));
+	}
+
 	protected void verifyResults(List<Object> expected) {
 		assertEquals(expected, getResults());
 	}
@@ -2845,4 +2869,5 @@ public abstract class AbstractConnectionIntegrationTests {
 			return (!connection.exists(key));
 		}
 	}
+
 }

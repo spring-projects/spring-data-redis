@@ -38,6 +38,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -59,6 +60,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.test.util.HexStringUtils;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.test.annotation.IfProfileValue;
@@ -2269,6 +2271,25 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-693
 	public void unlinkReturnsZeroIfNoKeysTouched() {
 		assertThat(clusterConnection.keyCommands().unlink(KEY_1_BYTES), is(0L));
+	}
+
+	@Test // DATAREDIS-697
+	@IfProfileValue(name = "redisVersion", value = "2.8.7+")
+	public void bitPosShouldReturnPositionCorrectly() {
+
+		nativeConnection.set(KEY_1_BYTES, HexStringUtils.hexToBytes("fff000"));
+
+		assertThat(clusterConnection.stringCommands().bitPos(KEY_1_BYTES, false), is(12L));
+	}
+
+	@Test // DATAREDIS-697
+	@IfProfileValue(name = "redisVersion", value = "2.8.7+")
+	public void bitPosShouldReturnPositionInRangeCorrectly() {
+
+		nativeConnection.set(KEY_1_BYTES, HexStringUtils.hexToBytes("fff0f0"));
+
+		assertThat(clusterConnection.stringCommands().bitPos(KEY_1_BYTES, true,
+				org.springframework.data.domain.Range.of(Bound.inclusive(2L), Bound.unbounded())), is(16L));
 	}
 
 }

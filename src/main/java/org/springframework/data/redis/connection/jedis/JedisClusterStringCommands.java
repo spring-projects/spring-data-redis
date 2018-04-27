@@ -19,6 +19,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.BinaryJedis;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -26,11 +27,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterCommandCallback;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
+import org.springframework.data.redis.connection.lettuce.LettuceConverters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
@@ -487,6 +490,29 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		}
 
 		throw new InvalidDataAccessApiUsageException("BITOP is only supported for same slot keys in cluster mode.");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitPos(byte[], boolean, org.springframework.data.Range)
+	 */
+	@Override
+	public Long bitPos(byte[] key, boolean bit, Range<Long> range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null! Use Range.unbounded() instead.");
+
+		List<byte[]> args = new ArrayList<>(3);
+		args.add(LettuceConverters.toBit(bit));
+
+		if (range.getLowerBound().isBounded()) {
+			args.add(range.getLowerBound().getValue().map(LettuceConverters::toBytes).get());
+		}
+		if (range.getUpperBound().isBounded()) {
+			args.add(range.getUpperBound().getValue().map(LettuceConverters::toBytes).get());
+		}
+
+		return Long.class.cast(connection.execute("BITPOS", key, args));
 	}
 
 	/*
