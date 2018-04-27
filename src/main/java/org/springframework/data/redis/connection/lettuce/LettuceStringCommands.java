@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 import lombok.NonNull;
@@ -25,9 +26,11 @@ import java.util.Map;
 import java.util.concurrent.Future;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -663,6 +666,57 @@ class LettuceStringCommands implements RedisStringCommands {
 				return getConnection().bitopNot(destination, keys[0]);
 			default:
 				throw new UnsupportedOperationException("Bit operation " + op + " is not supported");
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitPos(byte[], boolean, org.springframework.data.domain.Range)
+	 */
+	@Nullable
+	@Override
+	public Long bitPos(byte[] key, boolean bit, Range<Long> range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null! Use Range.unbounded() instead.");
+
+		try {
+			if (isPipelined() || isQueueing()) {
+
+				RedisFuture<Long> futureResult;
+				if (range.getLowerBound().isBounded()) {
+					if (range.getUpperBound().isBounded()) {
+						futureResult = getAsyncConnection().bitpos(key, bit, range.getLowerBound().getValue().get(),
+								range.getUpperBound().getValue().get());
+					} else {
+
+						futureResult = getAsyncConnection().bitpos(key, bit, range.getLowerBound().getValue().get());
+					}
+
+				} else {
+					futureResult = getAsyncConnection().bitpos(key, bit);
+				}
+
+				if (isPipelined()) {
+					pipeline(connection.newLettuceResult(futureResult));
+				}
+				else if (isQueueing()) {
+					transaction(connection.newLettuceResult(futureResult));
+				}
+				return null;
+			}
+
+			if (range.getLowerBound().isBounded()) {
+				if (range.getUpperBound().isBounded()) {
+					return getConnection().bitpos(key, bit, range.getLowerBound().getValue().get(),
+							range.getUpperBound().getValue().get());
+				}
+				return getConnection().bitpos(key, bit, range.getLowerBound().getValue().get());
+			}
+
+			return getConnection().bitpos(key, bit);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
 		}
 	}
 

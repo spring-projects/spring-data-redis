@@ -31,6 +31,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection.ByteBufferCodec;
 import org.springframework.data.redis.test.util.LettuceRedisClientProvider;
 import org.springframework.data.redis.test.util.LettuceRedisClusterClientProvider;
 
@@ -75,10 +76,12 @@ public abstract class LettuceReactiveCommandsTestsBase {
 
 	@Parameterized.Parameter(value = 0) public LettuceConnectionProvider connectionProvider;
 	@Parameterized.Parameter(value = 1) public LettuceConnectionProvider nativeConnectionProvider;
-	@Parameterized.Parameter(value = 2) public Object displayName;
+	@Parameterized.Parameter(value = 2) public LettuceConnectionProvider nativeBinaryConnectionProvider;
+	@Parameterized.Parameter(value = 3) public Object displayName;
 
 	LettuceReactiveRedisConnection connection;
 	RedisClusterCommands<String, String> nativeCommands;
+	RedisClusterCommands<ByteBuffer, ByteBuffer> nativeBinaryCommands;
 
 	@Parameterized.Parameters(name = "{2}")
 	public static List<Object[]> parameters() {
@@ -92,11 +95,14 @@ public abstract class LettuceReactiveCommandsTestsBase {
 				LettuceReactiveRedisConnection.CODEC);
 		StandaloneConnectionProvider nativeConnectionProvider = new StandaloneConnectionProvider(standalone.getClient(),
 				StringCodec.UTF8);
+		StandaloneConnectionProvider nativeBinaryConnectionProvider = new StandaloneConnectionProvider(
+				standalone.getClient(), ByteBufferCodec.INSTANCE);
 
-		parameters.add(new Object[] { standaloneProvider, nativeConnectionProvider, "Standalone" });
+		parameters.add(
+				new Object[] { standaloneProvider, nativeConnectionProvider, nativeBinaryConnectionProvider, "Standalone" });
 		parameters.add(new Object[] {
 				new LettucePoolingConnectionProvider(standaloneProvider, LettucePoolingClientConfiguration.builder().build()),
-				nativeConnectionProvider, "Standalone/Pooled" });
+				nativeConnectionProvider, nativeBinaryConnectionProvider, "Standalone/Pooled" });
 
 		if (cluster.test()) {
 
@@ -104,8 +110,11 @@ public abstract class LettuceReactiveCommandsTestsBase {
 					LettuceReactiveRedisConnection.CODEC);
 			ClusterConnectionProvider nativeClusterConnectionProvider = new ClusterConnectionProvider(cluster.getClient(),
 					StringCodec.UTF8);
+			ClusterConnectionProvider nativeBinaryClusterConnectionProvider = new ClusterConnectionProvider(
+					cluster.getClient(), ByteBufferCodec.INSTANCE);
 
-			parameters.add(new Object[] { clusterProvider, nativeClusterConnectionProvider, "Cluster" });
+			parameters.add(new Object[] { clusterProvider, nativeClusterConnectionProvider,
+					nativeBinaryClusterConnectionProvider, "Cluster" });
 		}
 
 		return parameters;
@@ -116,11 +125,13 @@ public abstract class LettuceReactiveCommandsTestsBase {
 
 		if (nativeConnectionProvider instanceof StandaloneConnectionProvider) {
 			nativeCommands = nativeConnectionProvider.getConnection(StatefulRedisConnection.class).sync();
+			nativeBinaryCommands = nativeBinaryConnectionProvider.getConnection(StatefulRedisConnection.class).sync();
 			this.connection = new LettuceReactiveRedisConnection(connectionProvider);
 
 		} else {
 			ClusterConnectionProvider clusterConnectionProvider = (ClusterConnectionProvider) nativeConnectionProvider;
 			nativeCommands = nativeConnectionProvider.getConnection(StatefulRedisClusterConnection.class).sync();
+			nativeBinaryCommands = nativeBinaryConnectionProvider.getConnection(StatefulRedisClusterConnection.class).sync();
 			this.connection = new LettuceReactiveRedisClusterConnection(connectionProvider,
 					clusterConnectionProvider.getRedisClient());
 		}

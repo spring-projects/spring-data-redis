@@ -1162,6 +1162,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bitPos(byte[], boolean, org.springframework.data.domain.Range)
+	 */
+	@Nullable
+	@Override
+	public Long bitPos(byte[] key, boolean bit, org.springframework.data.domain.Range<Long> range) {
+ 		return convertAndReturn(delegate.bitPos(key, bit, range), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#subscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
 	 */
 	@Override
@@ -2468,6 +2478,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long bitOp(BitOperation op, String destination, String... keys) {
 		return bitOp(op, serialize(destination), serializeMulti(keys));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bitPos(java.lang.String, boolean, org.springframework.data.domain.Range)
+	 */
+	@Nullable
+	@Override
+	public Long bitPos(String key, boolean bit, org.springframework.data.domain.Range<Long> range) {
+		return bitPos(serialize(key), bit, range);
 	}
 
 	/*

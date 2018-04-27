@@ -17,14 +17,17 @@ package org.springframework.data.redis.connection.jedis;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import redis.clients.jedis.BitPosParams;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -708,6 +711,43 @@ class JedisStringCommands implements RedisStringCommands {
 				return null;
 			}
 			return connection.getJedis().bitop(JedisConverters.toBitOp(op), destination, keys);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitOp(byte[], boolean, org.springframework.data.domain.Range)
+	 */
+	@Nullable
+	@Override
+	public Long bitPos(byte[] key, boolean bit, Range<Long> range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null! Use Range.unbounded() instead.");
+
+		BitPosParams params = null;
+		if (range.getLowerBound().isBounded()) {
+			params = range.getUpperBound().isBounded()
+					? new BitPosParams(range.getLowerBound().getValue().get(), range.getUpperBound().getValue().get())
+					: new BitPosParams(range.getLowerBound().getValue().get());
+		}
+
+		try {
+			if (isPipelined()) {
+
+				pipeline(connection.newJedisResult(params != null ? connection.getRequiredPipeline().bitpos(key, bit, params)
+						: connection.getRequiredPipeline().bitpos(key, bit)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(
+						connection.newJedisResult(params != null ? connection.getRequiredTransaction().bitpos(key, bit, params)
+								: connection.getRequiredTransaction().bitpos(key, bit)));
+				return null;
+			}
+			return params != null ? connection.getJedis().bitpos(key, bit, params) : connection.getJedis().bitpos(key, bit);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
