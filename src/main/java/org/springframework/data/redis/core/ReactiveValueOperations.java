@@ -103,7 +103,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * not exist.
 	 *
 	 * @param map must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
+	 * @see <a href="http://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
 	Mono<Boolean> multiSetIfAbsent(Map<? extends K, ? extends V> map);
 
