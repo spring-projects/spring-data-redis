@@ -684,34 +684,32 @@ class LettuceStringCommands implements RedisStringCommands {
 			if (isPipelined() || isQueueing()) {
 
 				RedisFuture<Long> futureResult;
+				RedisClusterAsyncCommands<byte[], byte[]> connection = getAsyncConnection();
+
 				if (range.getLowerBound().isBounded()) {
 					if (range.getUpperBound().isBounded()) {
-						futureResult = getAsyncConnection().bitpos(key, bit, range.getLowerBound().getValue().get(),
-								range.getUpperBound().getValue().get());
+						futureResult = connection.bitpos(key, bit, getLowerValue(range), getUpperValue(range));
 					} else {
-
-						futureResult = getAsyncConnection().bitpos(key, bit, range.getLowerBound().getValue().get());
+						futureResult = connection.bitpos(key, bit, getLowerValue(range));
 					}
-
 				} else {
-					futureResult = getAsyncConnection().bitpos(key, bit);
+					futureResult = connection.bitpos(key, bit);
 				}
 
 				if (isPipelined()) {
-					pipeline(connection.newLettuceResult(futureResult));
+					pipeline(this.connection.newLettuceResult(futureResult));
 				}
 				else if (isQueueing()) {
-					transaction(connection.newLettuceResult(futureResult));
+					transaction(this.connection.newLettuceResult(futureResult));
 				}
 				return null;
 			}
 
 			if (range.getLowerBound().isBounded()) {
 				if (range.getUpperBound().isBounded()) {
-					return getConnection().bitpos(key, bit, range.getLowerBound().getValue().get(),
-							range.getUpperBound().getValue().get());
+					return getConnection().bitpos(key, bit, getLowerValue(range), getUpperValue(range));
 				}
-				return getConnection().bitpos(key, bit, range.getLowerBound().getValue().get());
+				return getConnection().bitpos(key, bit, getLowerValue(range));
 			}
 
 			return getConnection().bitpos(key, bit);
@@ -770,5 +768,15 @@ class LettuceStringCommands implements RedisStringCommands {
 
 	private DataAccessException convertLettuceAccessException(Exception ex) {
 		return connection.convertLettuceAccessException(ex);
+	}
+
+	private static <T extends Comparable<T>> T getUpperValue(Range<T> range) {
+		return range.getUpperBound().getValue()
+				.orElseThrow(() -> new IllegalArgumentException("Range does not contain upper bound value!"));
+	}
+
+	private static <T extends Comparable<T>> T getLowerValue(Range<T> range) {
+		return range.getLowerBound().getValue()
+				.orElseThrow(() -> new IllegalArgumentException("Range does not contain lower bound value!"));
 	}
 }

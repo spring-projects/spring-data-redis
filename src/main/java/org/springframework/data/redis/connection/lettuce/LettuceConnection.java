@@ -1019,6 +1019,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			// INTEGER
 			COMMAND_OUTPUT_TYPE_MAPPING.put(BITCOUNT, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(BITOP, IntegerOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(BITPOS, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(DBSIZE, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(DECR, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(DECRBY, IntegerOutput.class);
