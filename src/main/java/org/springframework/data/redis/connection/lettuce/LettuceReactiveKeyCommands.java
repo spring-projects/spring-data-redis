@@ -20,6 +20,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 
@@ -31,6 +32,8 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Command
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.connection.ValueEncoding;
+import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.util.Assert;
 
 /**
@@ -97,8 +100,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 			Assert.notEmpty(keys, "Keys must not be null!");
 
-			return cmd.touch(keys.toArray(new ByteBuffer[keys.size()]))
-					.map((value) -> new NumericResponse<>(keys, value));
+			return cmd.touch(keys.toArray(new ByteBuffer[keys.size()])).map((value) -> new NumericResponse<>(keys, value));
 		}));
 	}
 
@@ -185,8 +187,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 			Assert.notEmpty(keys, "Keys must not be null!");
 
-			return cmd.del(keys.toArray(new ByteBuffer[keys.size()]))
-					.map((value) -> new NumericResponse<>(keys, value));
+			return cmd.del(keys.toArray(new ByteBuffer[keys.size()])).map((value) -> new NumericResponse<>(keys, value));
 		}));
 	}
 
@@ -326,7 +327,8 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#move(org.reactivestreams.Publisher)
 	 */
 	@Override
@@ -339,5 +341,35 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 			return cmd.move(command.getKey(), command.getDatabase()).map(value -> new BooleanResponse<>(command, value));
 		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#encodingOf(java.nio.ByteBuffer)
+	 */
+	@Override
+	public Mono<ValueEncoding> encodingOf(ByteBuffer key) {
+
+		return connection
+				.execute(cmd -> cmd.objectEncoding(key).map(ValueEncoding::of).defaultIfEmpty(RedisValueEncoding.VACANT))
+				.next();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#idletime(java.nio.ByteBuffer)
+	 */
+	@Override
+	public Mono<Duration> idletime(ByteBuffer key) {
+		return connection.execute(cmd -> cmd.objectIdletime(key).map(Duration::ofSeconds)).next();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#refcount(java.nio.ByteBuffer)
+	 */
+	@Override
+	public Mono<Long> refcount(ByteBuffer key) {
+		return connection.execute(cmd -> cmd.objectRefcount(key)).next();
 	}
 }

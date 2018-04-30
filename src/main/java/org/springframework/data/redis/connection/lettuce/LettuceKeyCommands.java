@@ -24,6 +24,7 @@ import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +33,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.connection.SortParameters;
+import org.springframework.data.redis.connection.ValueEncoding;
+import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
@@ -686,6 +689,87 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				return;
 			}
 			getConnection().restore(key, ttlInMillis, serializedValue);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#encoding(byte[])
+	 */
+	@Nullable
+	@Override
+	public ValueEncoding encodingOf(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().objectEncoding(key), ValueEncoding::of,
+						() -> RedisValueEncoding.VACANT));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().objectEncoding(key), ValueEncoding::of,
+						() -> RedisValueEncoding.VACANT));
+				return null;
+			}
+
+			return ValueEncoding.of(getConnection().objectEncoding(key));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#idletime(byte[])
+	 */
+	@Nullable
+	@Override
+	public Duration idletime(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().objectIdletime(key), Converters::secondsToDuration));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(
+						connection.newLettuceResult(getAsyncConnection().objectIdletime(key), Converters::secondsToDuration));
+				return null;
+			}
+
+			return Converters.secondsToDuration(getConnection().objectIdletime(key));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#refcount(byte[])
+	 */
+	@Nullable
+	@Override
+	public Long refcount(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().objectRefcount(key)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().objectRefcount(key)));
+				return null;
+			}
+
+			return getConnection().objectRefcount(key);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

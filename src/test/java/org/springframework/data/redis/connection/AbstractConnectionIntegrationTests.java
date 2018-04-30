@@ -27,6 +27,7 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.Distanc
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CountDownLatch;
@@ -64,6 +65,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
@@ -2804,8 +2806,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		actual.add(connection.hStrLen("hash-no-exist", "key-2"));
 
-		verifyResults(
-				Arrays.asList(new Object[] { 0L }));
+		verifyResults(Arrays.asList(new Object[] { 0L }));
 	}
 
 	@Test // DATAREDIS-694
@@ -2844,6 +2845,61 @@ public abstract class AbstractConnectionIntegrationTests {
 				org.springframework.data.domain.Range.of(Bound.inclusive(2L), Bound.unbounded())));
 
 		verifyResults(Arrays.asList(new Object[] { true, 16L }));
+	}
+
+	@Test // DATAREDIS-716
+	public void encodingReturnsCorrectly() {
+
+		actual.add(connection.set("encode.this", "1000"));
+
+		actual.add(connection.encodingOf("encode.this"));
+
+		verifyResults(Arrays.asList(new Object[] { true, RedisValueEncoding.INT }));
+	}
+
+	@Test // DATAREDIS-716
+	public void encodingReturnsVacantWhenKeyDoesNotExist() {
+
+		actual.add(connection.encodingOf("encode.this"));
+
+		verifyResults(Arrays.asList(new Object[] { RedisValueEncoding.VACANT }));
+	}
+
+	@Test // DATAREDIS-716
+	public void idletimeReturnsCorrectly() {
+
+		actual.add(connection.set("idle.this", "1000"));
+		actual.add(connection.get("idle.this"));
+
+		actual.add(connection.idletime("idle.this"));
+
+		verifyResults(Arrays.asList(new Object[] { true, "1000", Duration.ofSeconds(0) }));
+	}
+
+	@Test // DATAREDIS-716
+	public void idldetimeReturnsNullWhenKeyDoesNotExist() {
+
+		actual.add(connection.idletime("idle.this"));
+
+		verifyResults(Arrays.asList(new Object[] { null }));
+	}
+
+	@Test // DATAREDIS-716
+	public void refcountReturnsCorrectly() {
+
+		actual.add(connection.lPush("refcount.this", "1000"));
+
+		actual.add(connection.refcount("refcount.this"));
+
+		verifyResults(Arrays.asList(new Object[] { 1L, 1L }));
+	}
+
+	@Test // DATAREDIS-716
+	public void refcountReturnsNullWhenKeyDoesNotExist() {
+
+		actual.add(connection.refcount("refcount.this"));
+
+		verifyResults(Arrays.asList(new Object[] { null }));
 	}
 
 	protected void verifyResults(List<Object> expected) {

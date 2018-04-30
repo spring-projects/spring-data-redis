@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.ScanParams;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,6 +39,7 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.SortParameters;
+import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterCommandCallback;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
@@ -557,6 +559,36 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		return connection.getClusterCommandExecutor()
 				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Boolean>) BinaryJedis::exists, Arrays.asList(keys))
 				.resultsAsList().stream().mapToLong(val -> ObjectUtils.nullSafeEquals(val, Boolean.TRUE) ? 1 : 0).sum();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#encoding(byte[])
+	 */
+	@Nullable
+	@Override
+	public ValueEncoding encodingOf(byte[] key) {
+		throw new UnsupportedOperationException("Jedis does not support OBJECT ENCODING in cluster!");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#idletime(byte[])
+	 */
+	@Nullable
+	@Override
+	public Duration idletime(byte[] key) {
+		throw new UnsupportedOperationException("Jedis does not support OBJECT IDLETIME in cluster!");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#refcount(byte[])
+	 */
+	@Nullable
+	@Override
+	public Long refcount(byte[] key) {
+		throw new UnsupportedOperationException("Jedis does not support OBJECT REFCOUNT in cluster!");
 	}
 
 	private DataAccessException convertJedisAccessException(Exception ex) {

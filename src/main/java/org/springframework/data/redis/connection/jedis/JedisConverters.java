@@ -59,6 +59,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
+import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
@@ -188,8 +189,7 @@ abstract public class JedisConverters extends Converters {
 		};
 
 		GEO_COORDINATE_TO_POINT_CONVERTER = geoCoordinate -> geoCoordinate != null
-				? new Point(geoCoordinate.getLongitude(), geoCoordinate.getLatitude())
-				: null;
+				? new Point(geoCoordinate.getLongitude(), geoCoordinate.getLatitude()) : null;
 		LIST_GEO_COORDINATE_TO_POINT_CONVERTER = new ListConverter<>(GEO_COORDINATE_TO_POINT_CONVERTER);
 	}
 
@@ -292,8 +292,20 @@ abstract public class JedisConverters extends Converters {
 		return STRING_TO_BYTES.convert(source);
 	}
 
-	public static String toString(byte[] source) {
+	@Nullable
+	public static String toString(@Nullable byte[] source) {
 		return source == null ? null : SafeEncoder.encode(source);
+	}
+
+	/**
+	 * Convert the given {@code source} value to the corresponding {@link ValueEncoding}.
+	 *
+	 * @param source can be {@literal null}.
+	 * @return the {@link ValueEncoding} for given {@code source}. Never {@literal null}.
+	 * @since 2.1
+	 */
+	public static ValueEncoding toEncoding(@Nullable byte[] source) {
+		return ValueEncoding.of(toString(source));
 	}
 
 	/**

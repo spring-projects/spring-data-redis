@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -221,6 +222,27 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Deprecated
 	default Long sort(byte[] key, SortParameters params, byte[] sortKey) {
 		return keyCommands().sort(key, params, sortKey);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
+	default ValueEncoding encodingOf(byte[] key) {
+		return keyCommands().encodingOf(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
+	default Duration idletime(byte[] key) {
+		return keyCommands().idletime(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
+	default Long refcount(byte[] key) {
+		return keyCommands().refcount(key);
 	}
 
 	// STRING COMMANDS
