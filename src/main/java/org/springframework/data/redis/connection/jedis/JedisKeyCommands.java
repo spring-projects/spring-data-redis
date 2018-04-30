@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.connection.SortParameters;
+import org.springframework.data.redis.connection.ValueEncoding;
+import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
@@ -699,6 +702,87 @@ class JedisKeyCommands implements RedisKeyCommands {
 			throw connection.convertJedisAccessException(ex);
 		}
 
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#encoding(byte[])
+	 */
+	@Nullable
+	@Override
+	public ValueEncoding encodingOf(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().objectEncoding(key),
+						JedisConverters::toEncoding, () -> RedisValueEncoding.VACANT));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().objectEncoding(key),
+						JedisConverters::toEncoding, () -> RedisValueEncoding.VACANT));
+				return null;
+			}
+			return JedisConverters.toEncoding(connection.getJedis().objectEncoding(key));
+		} catch (Exception ex) {
+			throw connection.convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#idletime(byte[])
+	 */
+	@Nullable
+	@Override
+	public Duration idletime(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().objectIdletime(key),
+						Converters::secondsToDuration));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().objectIdletime(key),
+						Converters::secondsToDuration));
+				return null;
+			}
+
+			return Converters.secondsToDuration(connection.getJedis().objectIdletime(key));
+		} catch (Exception ex) {
+			throw connection.convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#refcount(byte[])
+	 */
+	@Nullable
+	@Override
+	public Long refcount(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().objectRefcount(key)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().objectRefcount(key)));
+				return null;
+			}
+
+			return connection.getJedis().objectRefcount(key);
+		} catch (Exception ex) {
+			throw connection.convertJedisAccessException(ex);
+		}
 	}
 
 	private boolean isPipelined() {

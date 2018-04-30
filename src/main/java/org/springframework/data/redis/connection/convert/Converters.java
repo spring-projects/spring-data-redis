@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.convert;
 
 import lombok.RequiredArgsConstructor;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -422,6 +423,19 @@ abstract public class Converters {
 	@SuppressWarnings("unchecked")
 	public static <K, V> Converter<Map<K, V>, Properties> mapToPropertiesConverter() {
 		return (Converter) MAP_TO_PROPERTIES;
+	}
+
+	/**
+	 * Convert the given {@literal nullable seconds} to a {@link Duration} or {@literal null}.
+	 *
+	 * @param seconds can be {@literal null}.
+	 * @return given {@literal seconds} as {@link Duration} or {@literal null}.
+	 * @since 2.1
+	 */
+	@Nullable
+	public static Duration secondsToDuration(@Nullable Long seconds) {
+		return seconds != null ? Duration.ofSeconds(seconds) : null;
+
 	}
 
 	/**
