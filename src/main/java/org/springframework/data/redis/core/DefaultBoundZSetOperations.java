@@ -91,8 +91,8 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void intersectAndStore(K otherKey, K destKey) {
-		ops.intersectAndStore(getKey(), otherKey, destKey);
+	public Long intersectAndStore(K otherKey, K destKey) {
+		return ops.intersectAndStore(getKey(), otherKey, destKey);
 	}
 
 	/*
@@ -100,8 +100,8 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object)
 	 */
 	@Override
-	public void intersectAndStore(Collection<K> otherKeys, K destKey) {
-		ops.intersectAndStore(getKey(), otherKeys, destKey);
+	public Long intersectAndStore(Collection<K> otherKeys, K destKey) {
+		return ops.intersectAndStore(getKey(), otherKeys, destKey);
 	}
 
 	/* 
@@ -109,8 +109,8 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
 	 */
 	@Override
-	public void intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate) {
-		ops.intersectAndStore(getKey(), otherKeys, destKey, aggregate);
+	public Long intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate) {
+		return ops.intersectAndStore(getKey(), otherKeys, destKey, aggregate);
 	}
 
 	/* 
@@ -118,8 +118,8 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
 	 */
 	@Override
-	public void intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
-		ops.intersectAndStore(getKey(), otherKeys, destKey, aggregate, weights);
+	public Long intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
+		return ops.intersectAndStore(getKey(), otherKeys, destKey, aggregate, weights);
 	}
 
 	/*
@@ -244,8 +244,8 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#removeRange(long, long)
 	 */
 	@Override
-	public void removeRange(long start, long end) {
-		ops.removeRange(getKey(), start, end);
+	public Long removeRange(long start, long end) {
+		return ops.removeRange(getKey(), start, end);
 	}
 
 	/*
@@ -253,8 +253,8 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#removeRangeByScore(double, double)
 	 */
 	@Override
-	public void removeRangeByScore(double min, double max) {
-		ops.removeRangeByScore(getKey(), min, max);
+	public Long removeRangeByScore(double min, double max) {
+		return ops.removeRangeByScore(getKey(), min, max);
 	}
 
 	/*
@@ -298,8 +298,8 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionAndStore(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void unionAndStore(K otherKey, K destKey) {
-		ops.unionAndStore(getKey(), otherKey, destKey);
+	public Long unionAndStore(K otherKey, K destKey) {
+		return ops.unionAndStore(getKey(), otherKey, destKey);
 	}
 
 	/*
@@ -307,8 +307,8 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionAndStore(java.util.Collection, java.lang.Object)
 	 */
 	@Override
-	public void unionAndStore(Collection<K> otherKeys, K destKey) {
-		ops.unionAndStore(getKey(), otherKeys, destKey);
+	public Long unionAndStore(Collection<K> otherKeys, K destKey) {
+		return ops.unionAndStore(getKey(), otherKeys, destKey);
 	}
 
 	/* 
@@ -316,8 +316,8 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
 	 */
 	@Override
-	public void unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate) {
-		ops.unionAndStore(getKey(), otherKeys, destKey, aggregate);
+	public Long unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate) {
+		return ops.unionAndStore(getKey(), otherKeys, destKey, aggregate);
 	}
 
 	/* 
@@ -325,8 +325,8 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
 	 */
 	@Override
-	public void unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
-		ops.unionAndStore(getKey(), otherKeys, destKey, aggregate, weights);
+	public Long unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
+		return ops.unionAndStore(getKey(), otherKeys, destKey, aggregate, weights);
 	}
 
 	/*
