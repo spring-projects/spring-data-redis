@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -316,6 +317,39 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
 	Long sort(String key, SortParameters params, String storeKey);
+
+	/**
+	 * Get the type of internal representation used for storing the value at the given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @since 2.1
+	 */
+	@Nullable
+	ValueEncoding encodingOf(String key);
+
+	/**
+	 * Get the {@link Duration} since the object stored at the given {@code key} is idle.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @since 2.1
+	 */
+	@Nullable
+	Duration idletime(String key);
+
+	/**
+	 * Get the number of references of the value associated with the specified {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @since 2.1
+	 */
+	@Nullable
+	Long refcount(String key);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with values/Redis strings

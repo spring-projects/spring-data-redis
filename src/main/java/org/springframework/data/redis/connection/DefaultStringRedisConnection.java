@@ -15,8 +15,18 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.*;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -1081,6 +1091,33 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#encoding(byte[])
+	 */
+	@Override
+	public ValueEncoding encodingOf(byte[] key) {
+		return convertAndReturn(delegate.encodingOf(key), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#idletime(byte[])
+	 */
+	@Override
+	public Duration idletime(byte[] key) {
+		return convertAndReturn(delegate.idletime(key), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#refcount(byte[])
+	 */
+	@Override
+	public Long refcount(byte[] key) {
+		return convertAndReturn(delegate.refcount(key), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisSetCommands#sPop(byte[])
 	 */
 	@Override
@@ -1295,7 +1332,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.zIncrBy(key, increment, value), identityConverter);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
 	 */
@@ -1556,7 +1593,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.zScore(key, value), identityConverter);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
 	 */
@@ -2387,6 +2424,33 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public List<String> sort(String key, SortParameters params) {
 		return convertAndReturn(delegate.sort(serialize(key), params), byteListToStringList);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#encoding(java.lang.String)
+	 */
+	@Override
+	public ValueEncoding encodingOf(String key) {
+		return encodingOf(serialize(key));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#idletime(java.lang.String)
+	 */
+	@Override
+	public Duration idletime(String key) {
+		return idletime(serialize(key));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#refcount(java.lang.String)
+	 */
+	@Override
+	public Long refcount(String key) {
+		return refcount(serialize(key));
 	}
 
 	/*

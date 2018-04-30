@@ -692,4 +692,37 @@ public interface ReactiveKeyCommands {
 	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 */
 	Flux<BooleanResponse<MoveCommand>> move(Publisher<MoveCommand> commands);
+
+	/**
+	 * Get the type of internal representation used for storing the value at the given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return the {@link Mono} emitting {@link org.springframework.data.redis.connection.ValueEncoding}.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @see <a href="http://redis.io/commands/object">Redis Documentation: OBJECT ENCODING</a>
+	 * @since 2.1
+	 */
+	Mono<ValueEncoding> encodingOf(ByteBuffer key);
+
+	/**
+	 * Get the {@link Duration} since the object stored at the given {@code key} is idle.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return the {@link Mono} emitting the idletime of the key of {@link Mono#empty()} if the key does not exist.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @see <a href="http://redis.io/commands/object">Redis Documentation: OBJECT IDLETIME</a>
+	 * @since 2.1
+	 */
+	Mono<Duration> idletime(ByteBuffer key);
+
+	/**
+	 * Get the number of references of the value associated with the specified {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@link Mono#empty()} if key does not exist.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @see <a href="http://redis.io/commands/object">Redis Documentation: OBJECT REFCOUNT</a>
+	 * @since 2.1
+	 */
+	Mono<Long> refcount(ByteBuffer key);
 }
