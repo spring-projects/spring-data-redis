@@ -16,10 +16,6 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.SetArgs;
-import io.lettuce.core.codec.ByteArrayCodec;
-import io.lettuce.core.output.IntegerOutput;
-import io.lettuce.core.protocol.CommandArgs;
-import io.lettuce.core.protocol.CommandType;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -36,8 +32,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
-import org.springframework.data.redis.connection.convert.Converters;
-import org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection.ByteBufferCodec;
 import org.springframework.util.Assert;
 
 /**
@@ -383,17 +377,20 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			return Flux.from(commands).flatMap(command -> {
 
-				Mono<Long> result = cmd.bitpos(command.getKey(), command.getBit());
+				Mono<Long> result;
+				Range<Long> range = command.getRange();
 
-				if (command.getRange().getLowerBound().isBounded()) {
+				if (range.getLowerBound().isBounded()) {
 
-					result = cmd.bitpos(command.getKey(), command.getBit(), command.getRange().getLowerBound().getValue().get());
+					result = cmd.bitpos(command.getKey(), command.getBit(), getLowerValue(range));
 
-					if (command.getRange().getUpperBound().isBounded()) {
-						result = cmd.bitpos(command.getKey(), command.getBit(), command.getRange().getLowerBound().getValue().get(),
-								command.getRange().getUpperBound().getValue().get());
+					if (range.getUpperBound().isBounded()) {
+						result = cmd.bitpos(command.getKey(), command.getBit(), getLowerValue(range), getUpperValue(range));
 					}
+				} else {
+					result = cmd.bitpos(command.getKey(), command.getBit());
 				}
+
 				return result.map(respValue -> new NumericResponse<>(command, respValue));
 			});
 		});
@@ -416,5 +413,15 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 	protected LettuceReactiveRedisConnection getConnection() {
 		return connection;
+	}
+
+	private static <T extends Comparable<T>> T getUpperValue(Range<T> range) {
+		return range.getUpperBound().getValue()
+				.orElseThrow(() -> new IllegalArgumentException("Range does not contain upper bound value!"));
+	}
+
+	private static <T extends Comparable<T>> T getLowerValue(Range<T> range) {
+		return range.getLowerBound().getValue()
+				.orElseThrow(() -> new IllegalArgumentException("Range does not contain lower bound value!"));
 	}
 }

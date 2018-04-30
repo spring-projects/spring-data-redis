@@ -41,7 +41,7 @@ public enum RedisCommand {
 	BGSAVE("r", 0, 0), //
 	BITCOUNT("r", 1, 3), //
 	BITOP("rw", 3), //
-	BITPOS("r", 2), //
+	BITPOS("r", 2, 4), //
 	BLPOP("rw", 2), //
 	BRPOP("rw", 2), //
 	BRPOPLPUSH("rw", 3), //
