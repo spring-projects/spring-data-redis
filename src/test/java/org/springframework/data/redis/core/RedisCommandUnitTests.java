@@ -23,8 +23,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 /**
+ * Unit tests for {@link RedisCommand}.
+ *
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public class RedisCommandUnitTests {
 
@@ -65,8 +68,25 @@ public class RedisCommandUnitTests {
 		RedisCommand.AUTH.validateArgumentCount(1);
 	}
 
+	@Test // DATAREDIS-822
+	public void shouldConsiderMinMaxArguments() {
+
+		RedisCommand.BITPOS.validateArgumentCount(2);
+		RedisCommand.BITPOS.validateArgumentCount(3);
+		RedisCommand.BITPOS.validateArgumentCount(4);
+	}
+
+	@Test // DATAREDIS-822
+	public void shouldReportArgumentMismatchIfMaxArgumentsExceeded() {
+
+		expectedException.expect(IllegalArgumentException.class);
+		expectedException.expectMessage("BITPOS command requires at most 4 arguments");
+
+		RedisCommand.BITPOS.validateArgumentCount(5);
+	}
+
 	@Test // DATAREDIS-73
-	public void shouldThrowExceptionOnInvalidArgumentCountWhenExpectedExcatMatch() {
+	public void shouldThrowExceptionOnInvalidArgumentCountWhenExpectedExactMatch() {
 
 		expectedException.expect(IllegalArgumentException.class);
 		expectedException.expectMessage("AUTH command requires 1 arguments");

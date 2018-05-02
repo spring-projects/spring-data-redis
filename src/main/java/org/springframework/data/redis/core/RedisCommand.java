@@ -29,6 +29,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Ninad Divadkar
+ * @author Mark Paluch
  * @since 1.3
  * @see Redis command list:
  *      https://github.com/antirez/redis/blob/93e7a130fc9594e41ccfc996b5eca7626ae5356a/src/redis.c#L119
@@ -280,10 +281,10 @@ public enum RedisCommand {
 	}
 
 	/**
-	 * @return {@literal true} if an exact number of arguments is expected
+	 * @return {@literal true} if an exact number of arguments is expected.
 	 */
 	public boolean requiresExactNumberOfArguments() {
-		return maxArgs >= 0;
+		return maxArgs == 0 || minArgs == maxArgs;
 	}
 
 	/**
@@ -345,6 +346,11 @@ public enum RedisCommand {
 			if (nrArguments < minArgs) {
 				throw new IllegalArgumentException(
 						String.format("%s command requires at least %s arguments.", this.name(), this.minArgs));
+			}
+
+			if (maxArgs != 0 && nrArguments > maxArgs) {
+				throw new IllegalArgumentException(
+						String.format("%s command requires at most %s arguments.", this.name(), this.maxArgs));
 			}
 		}
 	}
