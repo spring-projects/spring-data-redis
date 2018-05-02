@@ -362,9 +362,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 			this.connectionProvider = connectionProvider;
 
-			Mono<StatefulConnection<ByteBuffer, ByteBuffer>> defer = Mono
-					.defer(() -> Mono.fromCompletionStage(connectionProvider.getConnectionAsync(connectionType)))
-					.map(it -> (StatefulConnection<ByteBuffer, ByteBuffer>) it);
+			Mono<StatefulConnection> defer = Mono
+					.defer(() -> Mono.fromCompletionStage(connectionProvider.getConnectionAsync(connectionType)));
 
 			this.connectionPublisher = defer.doOnNext(it -> {
 
