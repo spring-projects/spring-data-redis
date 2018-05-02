@@ -52,6 +52,7 @@ import org.springframework.data.redis.connection.RedisStringCommands.BitOperatio
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
@@ -2316,5 +2317,45 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.stringCommands().bitPos(KEY_1_BYTES, true,
 				org.springframework.data.domain.Range.of(Bound.inclusive(2L), Bound.unbounded())), is(16L));
+	}
+
+	@Test // DATAREDIS-716
+	public void encodingReturnsCorrectly() {
+
+		nativeConnection.set(KEY_1, "1000");
+
+		assertThat(clusterConnection.keyCommands().encodingOf(KEY_1_BYTES), is(RedisValueEncoding.INT));
+	}
+
+	@Test // DATAREDIS-716
+	public void encodingReturnsVacantWhenKeyDoesNotExist() {
+		assertThat(clusterConnection.keyCommands().encodingOf(KEY_2_BYTES), is(RedisValueEncoding.VACANT));
+	}
+
+	@Test // DATAREDIS-716
+	public void idletimeReturnsCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.get(KEY_1);
+
+		assertThat(clusterConnection.keyCommands().idletime(KEY_1_BYTES), is(Duration.ofSeconds(0)));
+	}
+
+	@Test // DATAREDIS-716
+	public void idldetimeReturnsNullWhenKeyDoesNotExist() {
+		assertThat(clusterConnection.keyCommands().idletime(KEY_3_BYTES), is(nullValue()));
+	}
+
+	@Test // DATAREDIS-716
+	public void refcountReturnsCorrectly() {
+
+		nativeConnection.lpush(KEY_1, VALUE_1);
+
+		assertThat(clusterConnection.keyCommands().refcount(KEY_1_BYTES), is(1L));
+	}
+
+	@Test // DATAREDIS-716
+	public void refcountReturnsNullWhenKeyDoesNotExist() {
+		assertThat(clusterConnection.keyCommands().refcount(KEY_3_BYTES), is(nullValue()));
 	}
 }

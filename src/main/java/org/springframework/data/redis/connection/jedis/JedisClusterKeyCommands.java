@@ -568,7 +568,13 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Nullable
 	@Override
 	public ValueEncoding encodingOf(byte[] key) {
-		throw new UnsupportedOperationException("Jedis does not support OBJECT ENCODING in cluster!");
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.objectEncoding(key),
+						connection.clusterGetNodeForKey(key))
+				.mapValue(JedisConverters::toEncoding);
 	}
 
 	/*
@@ -578,7 +584,13 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Nullable
 	@Override
 	public Duration idletime(byte[] key) {
-		throw new UnsupportedOperationException("Jedis does not support OBJECT IDLETIME in cluster!");
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.objectIdletime(key),
+						connection.clusterGetNodeForKey(key))
+				.mapValue(Converters::secondsToDuration);
 	}
 
 	/*
@@ -588,7 +600,14 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Nullable
 	@Override
 	public Long refcount(byte[] key) {
-		throw new UnsupportedOperationException("Jedis does not support OBJECT REFCOUNT in cluster!");
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.objectRefcount(key),
+						connection.clusterGetNodeForKey(key))
+				.getValue();
+
 	}
 
 	private DataAccessException convertJedisAccessException(Exception ex) {
