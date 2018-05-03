@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.BinaryJedisPubSub;
+import redis.clients.jedis.Client;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -151,6 +153,11 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	@Nullable
 	@Override
 	public <T> T execute(String command, byte[] key, Collection<byte[]> args) {
+		return execute(command, key, args, it -> (T) it.getOne());
+	}
+
+	@Nullable
+	<T> T execute(String command, byte[] key, Collection<byte[]> args, Function<Client, T> responseMapper) {
 
 		Assert.notNull(command, "Command must not be null!");
 		Assert.notNull(key, "Key must not be null!");
@@ -161,7 +168,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		RedisClusterNode keyMaster = topologyProvider.getTopology().getKeyServingMasterNode(key);
 
 		return clusterCommandExecutor.executeCommandOnSingleNode((JedisClusterCommandCallback<T>) client -> JedisClientUtils
-				.execute(command, EMPTY_2D_BYTE_ARRAY, commandArgs, () -> client), keyMaster).getValue();
+				.execute(command, EMPTY_2D_BYTE_ARRAY, commandArgs, () -> client, responseMapper), keyMaster).getValue();
 	}
 
 	private static byte[][] getCommandArguments(byte[] key, Collection<byte[]> args) {

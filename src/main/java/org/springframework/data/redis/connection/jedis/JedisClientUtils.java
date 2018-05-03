@@ -31,6 +31,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -104,12 +105,28 @@ class JedisClientUtils {
 	 * @return the response, can be be {@literal null}.
 	 */
 	static <T> T execute(String command, byte[][] keys, byte[][] args, Supplier<Jedis> jedis) {
+		return execute(command, keys, args, jedis, it -> (T) it.getOne());
+	}
+
+	/**
+	 * Execute an arbitrary on the supplied {@link Jedis} instance.
+	 *
+	 * @param command the command.
+	 * @param keys must not be {@literal null}, may be empty.
+	 * @param args must not be {@literal null}, may be empty.
+	 * @param jedis must not be {@literal null}.
+	 * @param responseMapper must not be {@literal null}.
+	 * @return the response, can be be {@literal null}.
+	 * @since 2.1
+	 */
+	static <T> T execute(String command, byte[][] keys, byte[][] args, Supplier<Jedis> jedis,
+			Function<Client, T> responseMapper) {
 
 		byte[][] commandArgs = getCommandArguments(keys, args);
 
 		Client client = sendCommand(command, commandArgs, jedis.get());
 
-		return (T) client.getOne();
+		return responseMapper.apply(client);
 	}
 
 	/**

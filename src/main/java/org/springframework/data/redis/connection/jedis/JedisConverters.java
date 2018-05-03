@@ -43,6 +43,10 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
+import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
+import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
+import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
@@ -104,7 +108,7 @@ abstract public class JedisConverters extends Converters {
 	private static final Converter<byte[], String> BYTES_TO_STRING_CONVERTER;
 	private static final ListConverter<byte[], String> BYTES_LIST_TO_STRING_LIST_CONVERTER;
 	private static final ListConverter<byte[], Long> BYTES_LIST_TO_LONG_LIST_CONVERTER;
-	private static final Converter<RedisStringCommands.BitfieldCommand, List<byte[]>> BITFIELD_COMMAND_ARGUMENT_CONVERTER;
+	private static final Converter<BitFieldSubCommands, List<byte[]>> BITFIELD_COMMAND_ARGUMENT_CONVERTER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -201,9 +205,9 @@ abstract public class JedisConverters extends Converters {
 			}
 		});
 
-		BITFIELD_COMMAND_ARGUMENT_CONVERTER = new Converter<RedisStringCommands.BitfieldCommand, List<byte[]>>() {
+		BITFIELD_COMMAND_ARGUMENT_CONVERTER = new Converter<BitFieldSubCommands, List<byte[]>>() {
 			@Override
-			public List<byte[]> convert(RedisStringCommands.BitfieldCommand source) {
+			public List<byte[]> convert(BitFieldSubCommands source) {
 
 				if (source == null) {
 					return Collections.emptyList();
@@ -211,11 +215,11 @@ abstract public class JedisConverters extends Converters {
 
 				List<byte[]> args = new ArrayList<byte[]>(source.getSubCommands().size() * 4);
 
-				for (RedisStringCommands.BitfieldSubCommand command : source.getSubCommands()) {
+				for (BitFieldSubCommand command : source.getSubCommands()) {
 
-					if (command instanceof RedisStringCommands.BitfieldIncrBy) {
+					if (command instanceof BitFieldIncrBy) {
 
-						RedisStringCommands.BitfieldIncrBy.Overflow overflow = ((RedisStringCommands.BitfieldIncrBy) command)
+						BitFieldIncrBy.Overflow overflow = ((BitFieldIncrBy) command)
 								.getOverflow();
 						if (overflow != null) {
 							args.add(JedisConverters.toBytes("OVERFLOW"));
@@ -227,10 +231,10 @@ abstract public class JedisConverters extends Converters {
 					args.add(JedisConverters.toBytes(command.getType().asString()));
 					args.add(JedisConverters.toBytes(command.getOffset().asString()));
 
-					if (command instanceof RedisStringCommands.BitfieldSet) {
-						args.add(JedisConverters.toBytes(((RedisStringCommands.BitfieldSet) command).getValue()));
-					} else if (command instanceof RedisStringCommands.BitfieldIncrBy) {
-						args.add(JedisConverters.toBytes(((RedisStringCommands.BitfieldIncrBy) command).getValue()));
+					if (command instanceof BitFieldSet) {
+						args.add(JedisConverters.toBytes(((BitFieldSet) command).getValue()));
+					} else if (command instanceof BitFieldIncrBy) {
+						args.add(JedisConverters.toBytes(((BitFieldIncrBy) command).getValue()));
 					}
 				}
 
@@ -689,14 +693,13 @@ abstract public class JedisConverters extends Converters {
 	}
 
 	/**
-	 * Convert given {@link org.springframework.data.redis.connection.RedisStringCommands.BitfieldCommand} into argument
-	 * array.
+	 * Convert given {@link BitFieldSubCommands} into argument array.
 	 *
 	 * @param bitfieldOperation
 	 * @return never {@literal null}.
 	 * @since 1.8
 	 */
-	public static byte[][] toBitfieldCommandArguments(RedisStringCommands.BitfieldCommand bitfieldOperation) {
+	public static byte[][] toBitfieldCommandArguments(BitFieldSubCommands bitfieldOperation) {
 
 		List<byte[]> tmp = BITFIELD_COMMAND_ARGUMENT_CONVERTER.convert(bitfieldOperation);
 		return tmp.toArray(new byte[tmp.size()][]);

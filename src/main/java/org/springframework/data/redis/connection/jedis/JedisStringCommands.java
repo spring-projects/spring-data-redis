@@ -18,15 +18,18 @@ package org.springframework.data.redis.connection.jedis;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.BitPosParams;
+import redis.clients.jedis.Client;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -690,33 +693,14 @@ class JedisStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitfield(byte[], BitfieldCommand)
 	 */
 	@Override
-	public List<Long> bitfield(byte[] key, BitfieldCommand command) {
+	public List<Long> bitField(byte[] key, BitFieldSubCommands subCommands) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(command, "Command must not be null!");
+		Assert.notNull(subCommands, "Command must not be null!");
 
-		byte[][] args = JedisConverters.toBitfieldCommandArguments(command);
+		byte[][] args = ByteUtils.mergeArrays(key, JedisConverters.toBitfieldCommandArguments(subCommands));
 
-		try {
-			if (isPipelined()) {
-				pipeline(new JedisResult(connection.getRequiredPipeline().bitfield(key, args)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(new JedisResult(connection.getRequiredTransaction().bitfield(key, args)));
-				return null;
-			}
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-
-		// TODO: fix type declaration once https://github.com/xetorthio/jedis/issues/1413 is resolved
-		// Jedis return type declaration is wrong. it indicates List<byte[]> but return List<Long> causing Class cast errors
-		// when trying to convert that stuff. So we hacked it here to make it work.
-
-		List untypedListToAvoidClassCastErrorsSinceThisOneDeclaresListOfByteArrayButReturnsListOfLong = connection.getJedis().bitfield(key,
-				args);
-		return (List<Long>) untypedListToAvoidClassCastErrorsSinceThisOneDeclaresListOfByteArrayButReturnsListOfLong;
+		return connection.execute("BITFIELD", args, Client::getIntegerMultiBulkReply, JedisClientUtils::getResponse);
 	}
 
 	/*

@@ -23,7 +23,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -404,8 +403,8 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
-	default List<Long> bitfield(byte[] key, BitfieldCommand operation) {
-		return stringCommands().bitfield(key, operation);
+	default List<Long> bitField(byte[] key, BitFieldSubCommands subCommands) {
+		return stringCommands().bitField(key, subCommands);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
