@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.redis.connection.BitFieldSubCommands;
+
 /**
  * Reactive Redis operations for simple (or in Redis terminology 'string') values.
  *
@@ -234,6 +236,17 @@ public interface ReactiveValueOperations<K, V> {
 	 * @see <a href="http://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
 	 */
 	Mono<Boolean> getBit(K key, long offset);
+
+	/**
+	 * Get / Manipulate specific integer fields of varying bit widths and arbitrary non (necessary) aligned offset stored
+	 * at a given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param command must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 */
+	Mono<List<Long>> bitField(K key, BitFieldSubCommands command);
 
 	/**
 	 * Removes the given {@literal key}.

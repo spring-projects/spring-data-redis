@@ -17,6 +17,10 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
 import reactor.test.StepVerifier;
 
@@ -24,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -370,6 +375,25 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(valueOperations.setBit(key, 0, true)).expectNext(false).expectComplete();
 		StepVerifier.create(valueOperations.getBit(key, 0)).expectNext(true).expectComplete();
 		StepVerifier.create(valueOperations.getBit(key, 1)).expectNext(false).expectComplete();
+	}
+
+	@Test // DATAREDIS-562
+	public void bitField() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier
+				.create(valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+				.expectNext(Collections.singletonList(1L)).verifyComplete();
+		StepVerifier
+				.create(valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+				.expectNext(Collections.singletonList(2L)).verifyComplete();
+		StepVerifier
+				.create(valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+				.expectNext(Collections.singletonList(3L)).verifyComplete();
+		StepVerifier
+				.create(valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+				.expectNext(Collections.singletonList(null)).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
