@@ -2,8 +2,15 @@
 Costin Leau, Jennifer Hickey, Christoph Strobl, Thomas Darimont, Mark Paluch
 :revnumber: {version}
 :revdate: {localdate}
-:toc:
-:toc-placement!:
+:linkcss:
+:doctype: book
+:docinfo: shared
+:toc: left
+:toclevels: 4
+:source-highlighter: prettify
+:icons: font
+:imagesdir: images
+ifdef::backend-epub3[:front-cover-image: image:epub-cover.png[Front Cover,1050,1600]]
 :spring-data-commons-include: ../../../../spring-data-commons/src/main/asciidoc
 :spring-data-commons-docs: https://raw.githubusercontent.com/spring-projects/spring-data-commons/master/src/main/asciidoc
 
@@ -11,40 +18,32 @@ Costin Leau, Jennifer Hickey, Christoph Strobl, Thomas Darimont, Mark Paluch
 
 NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
-toc::[]
-
 include::preface.adoc[]
-:leveloffset: +1
-include::new-features.adoc[]
-:leveloffset: -1
+
+include::new-features.adoc[leveloffset=+1]
 
 [[introduction]]
 = Introduction
 
-:leveloffset: +1
-include::introduction/introduction.adoc[]
-include::introduction/why-sdr.adoc[]
-include::introduction/requirements.adoc[]
-include::introduction/getting-started.adoc[]
-:leveloffset: -1
+include::introduction/introduction.adoc[leveloffset=+1]
+include::introduction/why-sdr.adoc[leveloffset=+1]
+include::introduction/requirements.adoc[leveloffset=+1]
+include::introduction/getting-started.adoc[leveloffset=+1]
 
 [[reference]]
 = Reference Documentation
 
-:leveloffset: +1
-include::reference/introduction.adoc[]
-include::reference/redis.adoc[]
-include::reference/reactive-redis.adoc[]
-include::reference/redis-cluster.adoc[]
-include::reference/redis-repositories.adoc[]
-:leveloffset: -1
+include::reference/introduction.adoc[leveloffset=+1]
+include::reference/redis.adoc[leveloffset=+1]
+include::reference/reactive-redis.adoc[leveloffset=+1]
+include::reference/redis-cluster.adoc[leveloffset=+1]
+include::reference/redis-repositories.adoc[leveloffset=+1]
 
 [[appendixes]]
 = Appendixes
 
 :numbered!:
-:leveloffset: +1
-include::appendix/introduction.adoc[]
-include::appendix/appendix-schema.adoc[]
-include::appendix/appendix-command-reference.adoc[]
-:leveloffset: -1
+
+include::appendix/introduction.adoc[leveloffset=+1]
+include::appendix/appendix-schema.adoc[leveloffset=+1]
+include::appendix/appendix-command-reference.adoc[leveloffset=+1]
