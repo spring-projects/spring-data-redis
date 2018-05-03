@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
@@ -316,6 +317,18 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null!");
 
 		return createMono(connection -> connection.getBit(rawKey(key), offset));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#bitField(java.lang.Object, org.springframework.data.redis.connection.BitFieldSubCommands)
+	 */
+	@Override
+	public Mono<List<Long>> bitField(K key, BitFieldSubCommands subCommands) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(subCommands, "BitFieldSubCommands must not be null!");
+
+		return createMono(connection -> connection.bitField(rawKey(key), subCommands));
 	}
 
 	/* (non-Javadoc)

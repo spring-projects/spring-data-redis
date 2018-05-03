@@ -15,12 +15,14 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.BitFieldArgs;
 import io.lettuce.core.SetArgs;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Range;
@@ -328,11 +330,20 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#bitCount(org.reactivestreams.Publisher)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#bitField(org.reactivestreams.Publisher)
 	 */
 	@Override
-	public Flux<NumericResponse<BitFieldCommand, Long>> bitField(Publisher<BitFieldCommand> commands) {
-		return null;
+	public Flux<MultiValueResponse<BitFieldCommand, Long>> bitField(Publisher<BitFieldCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			BitFieldArgs args = LettuceConverters.toBitFieldArgs(command.getSubCommands());
+
+			return cmd.bitfield(command.getKey(), args).collectList().map(value -> new MultiValueResponse<>(command,
+					value.stream().map(v -> v.getValueOrElse(null)).collect(Collectors.toList())));
+		}));
 	}
 
 	/*
