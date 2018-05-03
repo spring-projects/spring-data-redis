@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -3662,8 +3663,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitfield(byte[], BitfieldCommand)
 	 */
 	@Override
-	public List<Long> bitfield(byte[] key, BitfieldCommand operation) {
-		return delegate.bitfield(key, operation);
+	public List<Long> bitField(byte[] key, BitFieldSubCommands subCommands) {
+		return delegate.bitField(key, subCommands);
 	}
 
 	/*
@@ -3671,9 +3672,9 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#bitfield(byte[], BitfieldCommand)
 	 */
 	@Override
-	public List<Long> bitfield(String key, BitfieldCommand operation) {
+	public List<Long> bitfield(String key, BitFieldSubCommands operation) {
 
-		List<Long> results = delegate.bitfield(serialize(key), operation);
+		List<Long> results = delegate.bitField(serialize(key), operation);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}

@@ -12,6 +12,7 @@ New and noteworthy in the latest releases.
 * `@TypeAlias` Support for Redis repositories.
 * Cluster-wide `SCAN` using Lettuce and `SCAN` execution on a selected node supported by both drivers.
 * <<redis:reactive:pubsub,Reactive Pub/Sub>> to send and receive a message stream.
+* `BITFIELD`, `BITPOS`, and `OBJECT` command support.
 
 [[new-in-2.0.0]]
 == New in Spring Data Redis 2.0

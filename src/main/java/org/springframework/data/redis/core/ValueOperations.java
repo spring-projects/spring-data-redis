@@ -21,8 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.data.redis.connection.RedisStringCommands;
-
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -354,11 +353,13 @@ public interface ValueOperations<K, V> {
 	 * at a given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param command must not be {@literal null}.
-	 * @return
+	 * @param subCommands must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
 	 */
-	List<Long> bitfield(K key, RedisStringCommands.BitfieldCommand command);
+	@Nullable
+	List<Long> bitField(K key, BitFieldSubCommands subCommands);
 
 	RedisOperations<K, V> getOperations();
 }

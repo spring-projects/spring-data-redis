@@ -19,7 +19,6 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
@@ -68,65 +67,5 @@ public class LettuceConnectionTransactionIntegrationTests extends AbstractConnec
 	@Test(expected = UnsupportedOperationException.class)
 	public void testSelect() {
 		super.testSelect();
-	}
-
-	/**
-	 * @see DATAREDIS-562
-	 */
-	@Test
-	@Ignore("Lettuce Bug")
-	@Override
-	public void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
-		super.bitFieldIncrByWithOverflowShouldWorkCorrectly();
-	}
-
-	/**
-	 * @see DATAREDIS-562
-	 */
-	@Test
-	@Ignore("Lettuce Bug")
-	@Override
-	public void bitFieldGetShouldWorkCorrectly() {
-		super.bitFieldGetShouldWorkCorrectly();
-	}
-
-	/**
-	 * @see DATAREDIS-562
-	 */
-	@Test
-	@Ignore("Lettuce Bug")
-	@Override
-	public void bitFieldIncrByShouldWorkCorrectly() {
-		super.bitFieldIncrByShouldWorkCorrectly();
-	}
-
-	/**
-	 * @see DATAREDIS-562
-	 */
-	@Test
-	@Ignore("Lettuce Bug")
-	@Override
-	public void bitFieldSetShouldWorkCorrectly() {
-		super.bitFieldSetShouldWorkCorrectly();
-	}
-
-	/**
-	 * @see DATAREDIS-562
-	 */
-	@Test
-	@Ignore("Lettuce Bug")
-	@Override
-	public void bitfieldShouldAllowMultipleSubcommands() {
-		super.bitfieldShouldAllowMultipleSubcommands();
-	}
-
-	/**
-	 * @see DATAREDIS-562
-	 */
-	@Test
-	@Ignore("Lettuce Bug")
-	@Override
-	public void bitfieldShouldWorkUsingNonZeroBasedOffset() {
-		super.bitfieldShouldWorkUsingNonZeroBasedOffset();
 	}
 }

@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.Client;
+import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
@@ -29,6 +30,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.springframework.core.convert.converter.Converter;
@@ -241,6 +243,11 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public Object execute(String command, byte[]... args) {
+		return execute(command, args, Connection::getOne, JedisClientUtils::getResponse);
+	}
+
+	<T> T execute(String command, byte[][] args, Function<Client, T> resultMapper,
+			Function<Object, Response<?>> pipelineResponseMapper) {
 
 		Assert.hasText(command, "A valid command needs to be specified!");
 		Assert.notNull(args, "Arguments must not be null!");
@@ -251,8 +258,8 @@ public class JedisConnection extends AbstractRedisConnection {
 
 			if (isQueueing() || isPipelined()) {
 
-				Response<Object> result = JedisClientUtils
-						.getResponse(isPipelined() ? getRequiredPipeline() : getRequiredTransaction());
+				Response<?> result = pipelineResponseMapper
+						.apply(isPipelined() ? getRequiredPipeline() : getRequiredTransaction());
 				if (isPipelined()) {
 					pipeline(newJedisResult(result));
 				} else {
@@ -260,7 +267,7 @@ public class JedisConnection extends AbstractRedisConnection {
 				}
 				return null;
 			}
-			return client.getOne();
+			return resultMapper.apply(client);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

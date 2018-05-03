@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.Connection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.convert.Converters;
@@ -474,16 +476,15 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitfield(byte[], BitfieldCommand)
 	 */
 	@Override
-	public List<Long> bitfield(byte[] key, BitfieldCommand command) {
+	public List<Long> bitField(byte[] key, BitFieldSubCommands subCommands) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(command, "Command must not be null!");
+		Assert.notNull(subCommands, "Command must not be null!");
+
+		byte[][] args = JedisConverters.toBitfieldCommandArguments(subCommands);
 
 		try {
-
-			List untypedListToAvoidClassCastErrorsSinceThisOneDeclaresListOfByteArrayButReturnsListOfLong = connection.getCluster()
-					.bitfield(key, JedisConverters.toBitfieldCommandArguments(command));
-			return (List<Long>) untypedListToAvoidClassCastErrorsSinceThisOneDeclaresListOfByteArrayButReturnsListOfLong;
+			return connection.execute("BITFIELD", key, Arrays.asList(args), Connection::getIntegerMultiBulkReply);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

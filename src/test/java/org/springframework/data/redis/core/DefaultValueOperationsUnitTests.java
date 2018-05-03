@@ -23,9 +23,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
+import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -56,18 +57,13 @@ public class DefaultValueOperationsUnitTests<K, V> {
 		this.valueOps = template.opsForValue();
 	}
 
-	/**
-	 * @see DATAREDIS-562
-	 */
-	@Test
+	@Test // DATAREDIS-562
 	public void bitfieldShouldBeDelegatedCorrectly() {
 
-		RedisStringCommands.BitfieldCommand command = RedisStringCommands.BitfieldCommand.newBitfieldCommand()
-				.get(RedisStringCommands.BitfieldType.INT_8).valueAt(0L);
+		BitFieldSubCommands command = BitFieldSubCommands.create().get(BitFieldType.INT_8).valueAt(0L);
 
-		valueOps.bitfield("key", command);
+		valueOps.bitField("key", command);
 
-		verify(connectionMock, times(1)).bitfield(eq(serializer.serialize("key")), eq(command));
+		verify(connectionMock, times(1)).bitField(eq(serializer.serialize("key")), eq(command));
 	}
-
 }

@@ -23,8 +23,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.lang.Nullable;
@@ -393,14 +393,9 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	 * @see org.springframework.data.redis.core.ValueOperations#bitfield(Object, RedisStringCommands.BitfieldCommand)
 	 */
 	@Override
-	public List<Long> bitfield(K key, final RedisStringCommands.BitfieldCommand command) {
+	public List<Long> bitField(K key, final BitFieldSubCommands subCommands) {
 
-		final byte[] rawKey = rawKey(key);
-		return execute(new RedisCallback<List<Long>>() {
-
-			public List<Long> doInRedis(RedisConnection connection) {
-				return connection.bitfield(rawKey, command);
-			}
-		}, true);
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.bitField(rawKey, subCommands), true);
 	}
 }

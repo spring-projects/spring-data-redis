@@ -983,8 +983,8 @@ public class RedisConnectionUnitTests {
 		}
 
 		@Override
-		public List<Long> bitfield(byte[] key, BitfieldCommand operation) {
-			return delegate.bitfield(key, operation);
+		public List<Long> bitField(byte[] key, BitFieldSubCommands subCommands) {
+			return delegate.bitField(key, subCommands);
 		}
 	}
 }

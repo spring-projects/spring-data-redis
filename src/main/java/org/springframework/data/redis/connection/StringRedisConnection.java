@@ -1954,5 +1954,5 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param command must not be {@literal null}.
 	 * @return
 	 */
-	List<Long> bitfield(String key, BitfieldCommand command);
+	List<Long> bitfield(String key, BitFieldSubCommands command);
 }
