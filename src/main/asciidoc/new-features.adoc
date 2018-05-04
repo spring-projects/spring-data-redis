@@ -1,13 +1,13 @@
 [[new-features]]
 = New Features
 
-New and noteworthy in the latest releases.
+This section briefly covers items that are new and noteworthy in the latest releases.
 
 [[new-in-2.1.0]]
 == New in Spring Data Redis 2.1
 
 * Unix domain socket connections using <<redis:connectors:lettuce,Lettuce>>.
-* <<redis:write-to-master-read-from-slave, Write to Master read from Slave>> support using Lettuce.
+* <<redis:write-to-master-read-from-slave, Write to Master, read from Slave>> support using Lettuce.
 * <<query-by-example,Query by Example>> integration.
 * `@TypeAlias` Support for Redis repositories.
 * Cluster-wide `SCAN` using Lettuce and `SCAN` execution on a selected node supported by both drivers.
@@ -22,7 +22,7 @@ New and noteworthy in the latest releases.
 * Removed support for SRP and JRedis drivers.
 * <<redis:reactive,Reactive connection support using Lettuce>>.
 * Introduce Redis feature-specific interfaces for `RedisConnection`.
-* Improved `RedisConnectionFactory` configuration via `JedisClientConfiguration` and `LettuceClientConfiguration`.
+* Improved `RedisConnectionFactory` configuration with `JedisClientConfiguration` and `LettuceClientConfiguration`.
 * Revised `RedisCache` implementation.
 * Add `SPOP` with count command for Redis 3.2.
 
@@ -33,10 +33,10 @@ New and noteworthy in the latest releases.
 * Upgrade to `Lettuce` 4.2 (Note: Lettuce 4.2 requires Java 8).
 * Support for Redis http://redis.io/commands#geo[GEO] commands.
 * Support for Geospatial Indexes using Spring Data Repository abstractions (see <<redis.repositories.indexes.geospatial>>).
-* `MappingRedisConverter` based `HashMapper` implementation (see <<redis.hashmappers.root>>).
-* Support for `PartialUpdate` in repository support (see <<redis.repositories.partial-updates>>).
+* `MappingRedisConverter`-based `HashMapper` implementation (see <<redis.hashmappers.root>>).
+* Support for `PartialUpdate` in repositories (see <<redis.repositories.partial-updates>>).
 * SSL support for connections to Redis cluster.
-* Support for `client name` via `ConnectionFactory` when using Jedis.
+* Support for `client name` through `ConnectionFactory` when using Jedis.
 
 [[new-in-1.7.0]]
 == New in Spring Data Redis 1.7
@@ -49,14 +49,13 @@ New and noteworthy in the latest releases.
 
 * The `Lettuce` Redis driver switched from https://github.com/wg/lettuce[wg/lettuce] to https://github.com/mp911de/lettuce[mp911de/lettuce].
 * Support for `ZRANGEBYLEX`.
-* Enhanced range operations for `ZSET` s including `+inf` / `-inf`.
-* Performance improvements in `RedisCache` now releasing connections earlier.
+* Enhanced range operations for `ZSET`, including `+inf` / `-inf`.
+* Performance improvements in `RedisCache`, now releasing connections earlier.
 * Generic Jackson2 `RedisSerializer` making use of Jackson's polymorphic deserialization.
 
 [[new-in-1-5-0]]
 == New in Spring Data Redis 1.5
 
-* Add support for Redis HyperLogLog commands `PFADD`, `PFCOUNT` and `PFMERGE`.
-* Configurable `JavaType` lookup for Jackson based `RedisSerializers`.
-* `PropertySource` based configuration for connecting to Redis Sentinel (see: <<redis:sentinel>>).
-
+* Add support for Redis HyperLogLog commands: `PFADD`, `PFCOUNT`, and `PFMERGE`.
+* Configurable `JavaType` lookup for Jackson-based `RedisSerializers`.
+* `PropertySource`-based configuration for connecting to Redis Sentinel (see: <<redis:sentinel>>).
