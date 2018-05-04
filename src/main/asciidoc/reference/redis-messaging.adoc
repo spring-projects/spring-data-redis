@@ -1,5 +1,5 @@
 [[pubsub]]
-= Redis Messaging and Pub/Sub
+= Redis Messaging (Pub/Sub)
 
 Spring Data provides dedicated messaging integration for Redis, similar in functionality and naming to the JMS integration in Spring Framework.
 
@@ -13,7 +13,7 @@ This is an example of the pattern often called Publish/Subscribe (Pub/Sub for sh
 The `org.springframework.data.redis.connection` and `org.springframework.data.redis.listener` packages provide the core functionality for Redis messaging.
 
 [[redis:pubsub:publish]]
-== Publishing or Sending Messages
+== Publishing (Sending Messages)
 
 To publish a message, you can use, as with the other operations, either the low-level `RedisConnection` or the high-level `RedisTemplate`. Both entities offer the `publish` method, which accepts the message and the destination channel as arguments. While `RedisConnection` requires raw data (array of bytes), the `RedisTemplate` lets arbitrary objects be passed in as messages, as shown in the following example:
 
@@ -28,7 +28,7 @@ template.convertAndSend("hello!", "world");
 ----
 
 [[redis:pubsub:subscribe]]
-== Subscribing to or Receiving Messages
+== Subscribing (Receiving Messages)
 
 On the receiving side, one can subscribe to one or multiple channels either by naming them directly or by using pattern matching. The latter approach is quite useful, as it not only lets multiple subscriptions be created with one command but can also listen on channels not yet created at subscription time (as long as they match the pattern).
 
@@ -49,8 +49,8 @@ Due to its blocking nature, low-level subscription is not attractive, as it requ
 
 Furthermore, to minimize the application footprint, `RedisMessageListenerContainer` lets one connection and one thread be shared by multiple listeners even though they do not share a subscription. Thus, no matter how many listeners or channels an application tracks, the runtime cost remains the same throughout its lifetime. Moreover, the container allows runtime configuration changes so that you can add or remove listeners while an application is running without the need for a restart. Additionally, the container uses a lazy subscription approach, using a `RedisConnection` only when needed. If all the listeners are unsubscribed, cleanup is automatically performed, and the thread is released.
 
-To help with the asynchronous nature of messages, the container requires a `java.util.concurrent.Executor` ( or Spring's `TaskExecutor`) for dispatching the messages. Depending on the load, the number of listeners, or the runtime environment, you should change or tweak the executor to better serve your needs. In particular, in managed environments (such as app servers), it is  highly recommended to pick a proper `TaskExecutor` to take advantage of its runtime.
-// TODO How can one know which is "proper"?
+To help with the asynchronous nature of messages, the container requires a `java.util.concurrent.Executor` (or Spring's `TaskExecutor`) for dispatching the messages. Depending on the load, the number of listeners, or the runtime environment, you should change or tweak the executor to better serve your needs. In particular, in managed environments (such as app servers), it is  highly recommended to pick a proper `TaskExecutor` to take advantage of its runtime.
+
 
 [[redis:pubsub:subscribe:adapter]]
 === The MessageListenerAdapter

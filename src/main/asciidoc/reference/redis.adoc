@@ -12,7 +12,7 @@ Spring Data Redis provides easy configuration and access to Redis from Spring ap
 [[redis:requirements]]
 == Redis Requirements
 
-Spring Redis requires Redis 2.6 or above and Java SE 8.0 or above. In terms of language bindings (or connectors), Spring Redis integrates with http://github.com/xetorthio/jedis[Jedis] and http://github.com/lettuce-io/lettuce-core[Lettuce], two popular open-source Java libraries for Redis.
+Spring Redis requires Redis 2.6 or above and Spring Data Redis integrates with http://github.com/lettuce-io/lettuce-core[Lettuce] and http://github.com/xetorthio/jedis[Jedis], two popular open-source Java libraries for Redis.
 
 [[redis:architecture]]
 == Redis Support High-level View
@@ -108,28 +108,6 @@ For production use, however, you might want to tweak settings such as the host o
 
 </beans>
 ----
-
-[[redis:connectors:lettuce]]
-=== Configuring the Lettuce connector
-
-https://github.com/mp911de/lettuce[Lettuce] is a http://netty.io/[netty]-based open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.lettuce` package.
-
-Its configuration is probably easy to guess:
-
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:p="http://www.springframework.org/schema/p"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-  <bean id="lettuceConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory" p:host-name="server" p:port="6379"/>
-
-</beans>
-----
-
-There are also a few Lettuce-specific connection parameters that can be tweaked. By default, all `LettuceConnection` s created by the `LettuceConnectionFactory` share the same thread-safe native connection for all non-blocking and non-transactional operations. Set `shareNativeConnection` to false to use a dedicated connection each time. `LettuceConnectionFactory` can also be configured with a `LettucePool` to use for pooling blocking and transactional connections, or all connections if `shareNativeConnection` is set to false.
 
 [[redis:sentinel]]
 == Redis Sentinel Support
@@ -508,7 +486,7 @@ The atomic counters make it easy to wrap Redis key incrementation while the coll
 </beans>
 ----
 
-The following example shows a Java configuration example for a deque:
+The following example shows a Java configuration example for a `Deque`:
 
 [source,java]
 ----

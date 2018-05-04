@@ -7,7 +7,7 @@ This section covers reactive Redis support and how to get started. Reactive Redi
 [[redis:reactive:requirements]]
 == Redis Requirements
 
-Spring Data Redis requires Redis 2.6 or above and Java SE 8.0 or above. In terms of language bindings (or connectors), Spring Data Redis currently integrates with http://github.com/lettuce-io/lettuce-core[Lettuce] as the only reactive Java connector. https://projectreactor.io/[Project Reactor] is used as reactive composition library.
+Spring Data Redis currently integrates with http://github.com/lettuce-io/lettuce-core[Lettuce] as the only reactive Java connector. https://projectreactor.io/[Project Reactor] is used as reactive composition library.
 
 [[redis:reactive:connectors]]
 == Connecting to Redis by Using a Reactive Driver
@@ -46,7 +46,7 @@ public ReactiveRedisConnectionFactory connectionFactory() {
 }
 ----
 
-The following exxample shows a more sophisticated configuration, including SSL and timeouts, that uses `LettuceClientConfigurationBuilder`:
+The following example shows a more sophisticated configuration, including SSL and timeouts, that uses `LettuceClientConfigurationBuilder`:
 
 [source,java]
 ----
