@@ -265,7 +265,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 	@SuppressWarnings("unchecked")
 	private HV readHashValue(ByteBuffer value) {
-		return (HV) serializationContext.getHashValueSerializationPair().read(value);
+		return (HV) (value == null ? value : serializationContext.getHashValueSerializationPair().read(value));
 	}
 
 	private Map.Entry<HK, HV> deserializeHashEntry(Map.Entry<ByteBuffer, ByteBuffer> source) {
@@ -277,7 +277,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		List<HV> values = new ArrayList<>(source.size());
 		for (ByteBuffer byteBuffer : source) {
-			values.add(byteBuffer == null ? null : readHashValue(byteBuffer));
+			values.add(readHashValue(byteBuffer));
 		}
 		return values;
 	}

@@ -166,6 +166,13 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
+	@Test // DATAREDIS-824
+	public void getAbsentKey() {
+
+		hashOperations.get(keyFactory.instance(), hashKeyFactory.instance()).as(StepVerifier::create) //
+				.verifyComplete();
+	}
+
 	@Test // DATAREDIS-602
 	public void multiGet() {
 
@@ -178,17 +185,24 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey2 = hashKeyFactory.instance();
 		HV hashvalue2 = hashValueFactory.instance();
 
-		StepVerifier.create(hashOperations.multiGet(key, Arrays.asList(hashkey1, hashkey2))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(2).containsSequence(null, null);
-				}) //
-				.verifyComplete();
-
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.multiGet(key, Arrays.asList(hashkey1, hashkey2))) //
+		hashOperations.multiGet(key, Arrays.asList(hashkey1, hashkey2)).as(StepVerifier::create) //
 				.consumeNextWith(actual -> {
 					assertThat(actual).hasSize(2).containsSequence(hashvalue1, hashvalue2);
+				}) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-824
+	public void multiGetAbsentKeys() {
+
+		assumeTrue(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory);
+
+		hashOperations.multiGet(keyFactory.instance(), Arrays.asList(hashKeyFactory.instance(), hashKeyFactory.instance()))
+				.as(StepVerifier::create) //
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(2).containsSequence(null, null);
 				}) //
 				.verifyComplete();
 	}
