@@ -21,7 +21,7 @@ NoSQL stores have taken the storage world by storm. It is a vast domain with a p
 [[get-started:first-steps:samples]]
 === Trying out the Samples
 
-One can find various samples for key-value stores in the dedicated Spring Data example repo, at https://github.com/spring-projects/spring-data-keyvalue-examples[http://github.com/spring-projects/spring-data-keyvalue-examples]. For Spring Data Redis, you should pay particular attention to the `retwisj` sample, a Twitter-clone built on top of Redis that can be run locally or be deployed into the cloud. See its http://static.springsource.org/spring-data/data-keyvalue/examples/retwisj/current/[documentation], the following blog http://blog.springsource.com/2011/04/27/getting-started-redis-spring-cloud-foundry/[entry] or the http://retwisj.cloudfoundry.com/[live instance] for more information.
+One can find various samples for key-value stores in the dedicated Spring Data example repo, at https://github.com/spring-projects/spring-data-keyvalue-examples[http://github.com/spring-projects/spring-data-keyvalue-examples]. For Spring Data Redis, you should pay particular attention to the `retwisj` sample, a Twitter-clone built on top of Redis that can be run locally or be deployed into the cloud. See its http://static.springsource.org/spring-data/data-keyvalue/examples/retwisj/current/[documentation], the following blog http://blog.springsource.com/2011/04/27/getting-started-redis-spring-cloud-foundry/[entry] for more information.
 
 [[get-started:help]]
 == Need Help?
@@ -46,7 +46,7 @@ For information on the Spring Data source code repository, nightly builds, and s
 You can help make Spring Data best serve the needs of the Spring community by interacting with developers on Stack Overflow at either
 http://stackoverflow.com/questions/tagged/spring-data[spring-data] or http://stackoverflow.com/questions/tagged/spring-data-redis[spring-data-redis].
 
-If you encounter a bug or want to suggest an improvement (including to this documentation), please create a ticket on the Spring Data issue https://jira.springsource.org/browse/DATAREDIS[tracker].
+If you encounter a bug or want to suggest an improvement (including to this documentation), please create a ticket on the Spring Data issue https://jira.spring.io/browse/DATAREDIS[tracker].
 
 To stay up to date with the latest news and announcements in the Spring eco system, subscribe to the Spring Community http://spring.io/[Portal].
 

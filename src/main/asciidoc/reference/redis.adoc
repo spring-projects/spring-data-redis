@@ -12,7 +12,7 @@ Spring Data Redis provides easy configuration and access to Redis from Spring ap
 [[redis:requirements]]
 == Redis Requirements
 
-Spring Redis requires Redis 2.6 or above and Java SE 6.0 or above . In terms of language bindings (or connectors), Spring Redis integrates with http://github.com/xetorthio/jedis[Jedis], http://github.com/alphazero/jredis[JRedis] (Deprecated since 1.7), http://github.com/spullara/redis-protocol[SRP] (Deprecated since 1.7) and http://github.com/wg/lettuce[Lettuce], four popular open-source Java libraries for Redis. If you are aware of any other connector that we should be integrating with please send us feedback.
+Spring Data Redis requires Redis 2.6 or above and Java SE 6.0 or above . In terms of language bindings (or connectors), Spring Redis integrates with http://github.com/xetorthio/jedis[Jedis], http://github.com/alphazero/jredis[JRedis] (Deprecated since 1.7), http://github.com/spullara/redis-protocol[SRP] (Deprecated since 1.7) and http://github.com/wg/lettuce[Lettuce], four popular open-source Java libraries for Redis. If you are aware of any other connector that we should be integrating with please send us feedback.
 
 [[redis:architecture]]
 == Redis Support High-level View
@@ -38,43 +38,6 @@ NOTE: Depending on the underlying configuration, the factory can return a new co
 The easiest way to work with a `RedisConnectionFactory` is to configure the appropriate connector through the IoC container and inject it into the using class.
 
 IMPORTANT: Unfortunately, currently, not all connectors support all Redis features. When invoking a method on the Connection API that is unsupported by the underlying library, an `UnsupportedOperationException` is thrown.
-
-[[redis:connectors:lettuce]]
-=== Configuring the Lettuce Connector
-
-https://github.com/lettuce-io/lettuce-core[Lettuce] is a http://netty.io/[Netty]-based open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.lettuce` package. The following example shows how to create a new Lettuce connection factory:
-
-[source,java]
-----
-@Configuration
-class AppConfig {
-
-  @Bean
-  public LettuceConnectionFactory redisConnectionFactory() {
-
-    return new LettuceConnectionFactory(new RedisStandaloneConfiguration("server", 6379));
-  }
-}
-----
-
-There are also a few Lettuce-specific connection parameters that can be tweaked. By default, all `LettuceConnection` instances created by the `LettuceConnectionFactory` share the same thread-safe native connection for all non-blocking and non-transactional operations. To use a dedicated connection each time, set `shareNativeConnection` to `false`. `LettuceConnectionFactory` can also be configured to use a `LettucePool` for pooling blocking and transactional connections or all connections if `shareNativeConnection` is set to `false`.
-
-Lettuce integrates with Netty's http://netty.io/wiki/native-transports.html[native transports], letting you use Unix domain sockets to communicate with Redis. Make sure to include the appropriate native transport dependencies that match your runtime environment. The following example shows how to create a Lettuce Connection factory for a Unix domain socket at `/var/run/redis.sock`:
-
-[source,java]
-----
-@Configuration
-class AppConfig {
-
-  @Bean
-  public LettuceConnectionFactory redisConnectionFactory() {
-
-    return new LettuceConnectionFactory(new RedisSocketConfiguration("/var/run/redis.sock"));
-  }
-}
-----
-
-NOTE: Netty currently supports the epoll (Linux) and kqueue (BSD/macOS) interfaces for OS-native transport.
 
 [[redis:connectors:jedis]]
 === Configuring the Jedis Connector
@@ -584,7 +547,7 @@ The atomic counters make it easy to wrap Redis key incrementation while the coll
 </beans>
 ----
 
-The following example shows a Java configuration example for a deque:
+The following example shows a Java configuration example for a `Deque`:
 
 [source,java]
 ----
