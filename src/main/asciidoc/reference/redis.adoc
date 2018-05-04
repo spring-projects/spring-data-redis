@@ -12,7 +12,7 @@ Spring Data Redis provides easy configuration and access to Redis from Spring ap
 [[redis:requirements]]
 == Redis Requirements
 
-Spring Redis requires Redis 2.6 or above and Java SE 8.0 or above. In terms of language bindings (or connectors), Spring Redis integrates with http://github.com/xetorthio/jedis[Jedis] and http://github.com/lettuce-io/lettuce-core[Lettuce], two popular open-source Java libraries for Redis.
+Spring Redis requires Redis 2.6 or above and Spring Data Redis integrates with http://github.com/lettuce-io/lettuce-core[Lettuce] and http://github.com/xetorthio/jedis[Jedis], two popular open-source Java libraries for Redis.
 
 [[redis:architecture]]
 == Redis Support High-level View
@@ -512,7 +512,7 @@ The atomic counters make it easy to wrap Redis key incrementation while the coll
 </beans>
 ----
 
-The following example shows a Java configuration example for a deque:
+The following example shows a Java configuration example for a `Deque`:
 
 [source,java]
 ----

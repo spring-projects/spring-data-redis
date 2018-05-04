@@ -14,7 +14,7 @@ Spring Data Redis lets you easily implement domain entities, as shown in the fol
 ====
 [source,java]
 ----
-@RedisHash("persons")
+@RedisHash("people")
 public class Person {
 
   @Id String id;
@@ -88,15 +88,15 @@ public void basicCrudOperations() {
   repo.delete(rand);                                       <4>
 }
 ----
-<1> Generates a new `id` if the current value is `null` or reuses an already set `id` value and stores properties of type `Person` inside the Redis Hash with a key that has a pattern of `keyspace:id` -- in this case, it might be `persons:5d67b7e1-8640-4475-beeb-c666fab4c0e5`.
+<1> Generates a new `id` if the current value is `null` or reuses an already set `id` value and stores properties of type `Person` inside the Redis Hash with a key that has a pattern of `keyspace:id` -- in this case, it might be `people:5d67b7e1-8640-4475-beeb-c666fab4c0e5`.
 <2> Uses the provided `id` to retrieve the object stored at `keyspace:id`.
-<3> Counts the total number of entities available within the keyspace, `persons`, defined by `@RedisHash` on `Person`.
+<3> Counts the total number of entities available within the keyspace, `people`, defined by `@RedisHash` on `Person`.
 <4> Removes the key for the given object from Redis.
 ====
 
 [[redis.repositories.mapping]]
 == Object-to-Hash Mapping
-The Redis Repository support persists Objects in Hashes. This requires an Object-to-Hash conversion which is done by a `RedisConverter`. The default implementation uses `Converter` for mapping property values to and from Redis native `byte[]`.
+The Redis Repository support persists Objects to Hashes. This requires an Object-to-Hash conversion which is done by a `RedisConverter`. The default implementation uses `Converter` for mapping property values to and from Redis native `byte[]`.
 
 Given the `Person` type from the previous sections, the default mapping looks like the following:
 
@@ -338,7 +338,7 @@ public class ApplicationConfig {
 
     @Override
     protected Iterable<KeyspaceSettings> initialConfiguration() {
-      return Collections.singleton(new KeyspaceSettings(Person.class, "persons"));
+      return Collections.singleton(new KeyspaceSettings(Person.class, "people"));
     }
   }
 }
@@ -368,7 +368,7 @@ public class ApplicationConfig {
 
     @Override
     protected Iterable<KeyspaceSettings> initialConfiguration() {
-      return Collections.singleton(new KeyspaceSettings(Person.class, "persons"));
+      return Collections.singleton(new KeyspaceSettings(Person.class, "people"));
     }
   }
 }
@@ -388,7 +388,7 @@ Given the sample `Person` entity shown earlier, we can create an index for `firs
 ====
 [source,java]
 ----
-@RedisHash("persons")
+@RedisHash("people")
 public class Person {
 
   @Id String id;
@@ -404,8 +404,8 @@ Indexes are built up for actual property values. Saving two Persons (for example
 ====
 [source,text]
 ----
-SADD persons:firstname:rand e2c7dcee-b8cd-4424-883e-736ce564363e
-SADD persons:firstname:aviendha a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56
+SADD people:firstname:rand e2c7dcee-b8cd-4424-883e-736ce564363e
+SADD people:firstname:aviendha a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56
 ----
 ====
 
@@ -414,7 +414,7 @@ It is also possible to have indexes on nested elements. Assume `Address` has a `
 ====
 [source,text]
 ----
-SADD persons:address.city:tear e2c7dcee-b8cd-4424-883e-736ce564363e
+SADD people:address.city:tear e2c7dcee-b8cd-4424-883e-736ce564363e
 ----
 ====
 
@@ -423,7 +423,7 @@ Furthermore, the programmatic setup lets you define indexes on map keys and list
 ====
 [source,java]
 ----
-@RedisHash("persons")
+@RedisHash("people")
 public class Person {
 
   // ... other properties omitted
@@ -433,9 +433,9 @@ public class Person {
   List<Address> addresses;            <3>
 }
 ----
-<1> `SADD persons:attributes.map-key:map-value e2c7dcee-b8cd-4424-883e-736ce564363e`
-<2> `SADD persons:relatives.map-key.firstname:tam e2c7dcee-b8cd-4424-883e-736ce564363e`
-<3> `SADD persons:addresses.city:tear e2c7dcee-b8cd-4424-883e-736ce564363e`
+<1> `SADD people:attributes.map-key:map-value e2c7dcee-b8cd-4424-883e-736ce564363e`
+<2> `SADD people:relatives.map-key.firstname:tam e2c7dcee-b8cd-4424-883e-736ce564363e`
+<3> `SADD people:addresses.city:tear e2c7dcee-b8cd-4424-883e-736ce564363e`
 ====
 
 CAUTION: Indexes cannot be resolved on <<redis.repositories.references,References>>.
@@ -456,7 +456,7 @@ public class ApplicationConfig {
 
     @Override
     protected Iterable<IndexDefinition> initialConfiguration() {
-      return Collections.singleton(new SimpleIndexDefinition("persons", "firstname"));
+      return Collections.singleton(new SimpleIndexDefinition("people", "firstname"));
     }
   }
 }
@@ -486,7 +486,7 @@ public class ApplicationConfig {
 
     @Override
     protected Iterable<IndexDefinition> initialConfiguration() {
-      return Collections.singleton(new SimpleIndexDefinition("persons", "firstname"));
+      return Collections.singleton(new SimpleIndexDefinition("people", "firstname"));
     }
   }
 }
@@ -501,7 +501,7 @@ Assume the `Address` type contains a `location` property of type `Point` that ho
 ====
 [source,java]
 ----
-@RedisHash("persons")
+@RedisHash("people")
 public class Person {
 
   Address address;
@@ -529,10 +529,10 @@ repository.save(rand);                                                        <3
 
 repository.findByAddressLocationNear(new Point(15D, 37D), new Distance(200)); <4>
 ----
-<1> Query method declaration on a nested property, using Point and Distance.
-<2> Query method declaration on a nested property, using Circle to search within.
-<3> `GEOADD persons:address:location 13.361389 38.115556 e2c7dcee-b8cd-4424-883e-736ce564363e`
-<4> `GEORADIUS persons:address:location 15.0 37.0 200.0 km`
+<1> Query method declaration on a nested property, using `Point` and `Distance`.
+<2> Query method declaration on a nested property, using `Circle` to search within.
+<3> `GEOADD people:address:location 13.361389 38.115556 e2c7dcee-b8cd-4424-883e-736ce564363e`
+<4> `GEORADIUS people:address:location 15.0 37.0 200.0 km`
 ====
 
 In the preceding example the, longitude and latitude values are stored by using `GEOADD` that use the object's `id` as the member's name. The finder methods allow usage of `Circle` or `Point, Distance` combinations for querying those values.
@@ -586,7 +586,7 @@ The `RedisKeyExpiredEvent` holds a copy of the expired domain object as well as 
 
 NOTE: Delaying or disabling the expiry event listener startup impacts `RedisKeyExpiredEvent` publishing. A disabled event listener does not publish expiry events. A delayed startup can cause loss of events because of the delayed listener initialization.
 
-NOTE: The keyspace notification message listener alters `notify-keyspace-events` settings in Redis, if those are not already set. Existing settings are not overridden, so you must set up those settings correctly (or leav them empty). Note that `CONFIG` is disabled on AWS ElastiCache, and enabling the listener leads to an error.
+NOTE: The keyspace notification message listener alters `notify-keyspace-events` settings in Redis, if those are not already set. Existing settings are not overridden, so you must set up those settings correctly (or leave them empty). Note that `CONFIG` is disabled on AWS ElastiCache, and enabling the listener leads to an error.
 
 NOTE: Redis Pub/Sub messages are not persistent. If a key expires while the application is down, the expiry event is not processed, which may lead to secondary indexes containing references to the expired object.
 
@@ -603,7 +603,7 @@ _class = org.example.Person
 id = e2c7dcee-b8cd-4424-883e-736ce564363e
 firstname = rand
 lastname = al’thor
-mother = persons:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56      <1>
+mother = people:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56      <1>
 ----
 <1> Reference stores the whole key (`keyspace:id`) of the referenced object.
 ====
@@ -711,9 +711,9 @@ The following table shows the details of data on a cluster (based on previous ex
 [options = "header, autowidth"]
 |===============
 |Key|Type|Slot|Node
-|persons:e2c7dcee-b8cd-4424-883e-736ce564363e|id for hash|15171|127.0.0.1:7381
-|persons:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56|id for hash|7373|127.0.0.1:7380
-|persons:firstname:rand|index|1700|127.0.0.1:7379
+|people:e2c7dcee-b8cd-4424-883e-736ce564363e|id for hash|15171|127.0.0.1:7381
+|people:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56|id for hash|7373|127.0.0.1:7380
+|people:firstname:rand|index|1700|127.0.0.1:7379
 |
 |===============
 ====
@@ -723,14 +723,14 @@ Some commands (such as `SINTER` and `SUNION`) can only be processed on the serve
 [options = "header, autowidth"]
 |===============
 |Key|Type|Slot|Node
-|{persons}:e2c7dcee-b8cd-4424-883e-736ce564363e|id for hash|2399|127.0.0.1:7379
-|{persons}:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56|id for hash|2399|127.0.0.1:7379
-|{persons}:firstname:rand|index|2399|127.0.0.1:7379
+|{people}:e2c7dcee-b8cd-4424-883e-736ce564363e|id for hash|2399|127.0.0.1:7379
+|{people}:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56|id for hash|2399|127.0.0.1:7379
+|{people}:firstname:rand|index|2399|127.0.0.1:7379
 |
 |===============
 ====
 
-TIP: Define and pin keyspaces by using `@RedisHash("{yourkeyspace}") to specific slots when you use Redis cluster.
+TIP: Define and pin keyspaces by using `@RedisHash("{yourkeyspace}")` to specific slots when you use Redis cluster.
 
 [[redis.repositories.cdi-integration]]
 == CDI Integration

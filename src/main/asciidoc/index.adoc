@@ -2,7 +2,8 @@
 Costin Leau, Jennifer Hickey, Christoph Strobl, Thomas Darimont, Mark Paluch, Jay Bryant
 :revnumber: {version}
 :revdate: {localdate}
-:toc: left
+:toc:
+:toc-placement!:
 :spring-data-commons-include: ../../../../spring-data-commons/src/main/asciidoc
 :spring-data-commons-docs: https://raw.githubusercontent.com/spring-projects/spring-data-commons/master/src/main/asciidoc
 
@@ -13,8 +14,10 @@ NOTE: Copies of this document may be made for your own use and for distribution 
 toc::[]
 
 include::preface.adoc[]
+
 :leveloffset: +1
 include::new-features.adoc[]
+
 :leveloffset: -1
 
 [[introduction]]
@@ -22,9 +25,13 @@ include::new-features.adoc[]
 
 :leveloffset: +1
 include::introduction/introduction.adoc[]
+
 include::introduction/why-sdr.adoc[]
+
 include::introduction/requirements.adoc[]
+
 include::introduction/getting-started.adoc[]
+
 :leveloffset: -1
 
 [[reference]]
@@ -32,10 +39,15 @@ include::introduction/getting-started.adoc[]
 
 :leveloffset: +1
 include::reference/introduction.adoc[]
+
 include::reference/redis.adoc[]
+
 include::reference/reactive-redis.adoc[]
+
 include::reference/redis-cluster.adoc[]
+
 include::reference/redis-repositories.adoc[]
+
 :leveloffset: -1
 
 [[appendixes]]
@@ -44,6 +56,9 @@ include::reference/redis-repositories.adoc[]
 :numbered!:
 :leveloffset: +1
 include::appendix/introduction.adoc[]
+
 include::appendix/appendix-schema.adoc[]
+
 include::appendix/appendix-command-reference.adoc[]
+
 :leveloffset: -1

@@ -131,9 +131,9 @@ redis-cli@127.0.0.1:7379 > cluster nodes
 ----
 RedisClusterConnection connection = connectionFactory.getClusterConnnection();
 
-connection.set("thing1", value);         // slot: 12182
-connection.set("{thing1}.thing2", value);   // slot: 12182
-connection.set("thing2", value);         // slot:  5461
+connection.set("thing1", value);           // slot: 12182
+connection.set("{thing1}.thing2", value);  // slot: 12182
+connection.set("thing2", value);           // slot:  5461
 
 connection.mGet("thing1", "{thing1}.thing2");                                  <2>
 
@@ -148,7 +148,7 @@ connection.mGet("thing1", "thing2");                                           <
 
 TIP: The preceding examples demonstrate the general strategy followed by Spring Data Redis. Be aware that some operations might require loading huge amounts of data into memory to compute the desired command. Additionally, not all cross-slot requests can safely be ported to multiple single slot requests and error if misused (for example, `PFCOUNT`).
 
-== Working with RedisTemplate and ClusterOperations
+== Working with `RedisTemplate` and `ClusterOperations`
 
 See the <<redis:template>> section for information about the general purpose, configuration, and usage of `RedisTemplate`.
 
