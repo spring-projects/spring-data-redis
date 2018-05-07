@@ -185,6 +185,12 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey2 = hashKeyFactory.instance();
 		HV hashvalue2 = hashValueFactory.instance();
 
+		StepVerifier.create(hashOperations.multiGet(key, Arrays.asList(hashkey1, hashkey2))) //
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(2).containsSequence(null, null);
+				}) //
+				.verifyComplete();
+
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
 		hashOperations.multiGet(key, Arrays.asList(hashkey1, hashkey2)).as(StepVerifier::create) //
