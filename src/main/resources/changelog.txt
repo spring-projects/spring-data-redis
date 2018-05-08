@@ -1,6 +1,21 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.0.7.RELEASE (2018-05-08)
+---------------------------------------------
+* DATAREDIS-827 - Upgrade to Lettuce 5.0.4.RELEASE.
+* DATAREDIS-825 - Full editing pass on reference documentation.
+* DATAREDIS-824 - NPE: DefaultReactiveHashOperations#multiGet on null values.
+* DATAREDIS-822 - RedisCommand does not consider optional upper argument count.
+* DATAREDIS-819 - Fix typo in ReactiveValueOperations.
+* DATAREDIS-809 - Fix Javadoc.
+* DATAREDIS-808 - Fix ambiguous repository names in tests.
+* DATAREDIS-806 - Release 2.0.7 (Kay SR7).
+* DATAREDIS-803 - Work around Redis parameter limitation.
+* DATAREDIS-623 - RedisSystemException with paged queries by 2 indexed fields.
+* DATAREDIS-601 - Improve Transaction reference documentation.
+
+
 Changes in version 1.8.12.RELEASE (2018-05-08)
 ----------------------------------------------
 * DATAREDIS-825 - Full editing pass on reference documentation.
