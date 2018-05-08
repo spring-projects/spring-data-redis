@@ -1,6 +1,16 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.12.RELEASE (2018-05-08)
+----------------------------------------------
+* DATAREDIS-825 - Full editing pass on reference documentation.
+* DATAREDIS-822 - RedisCommand does not consider optional upper argument count.
+* DATAREDIS-809 - Fix Javadoc.
+* DATAREDIS-805 - Release 1.8.12 (Ingalls SR12).
+* DATAREDIS-623 - RedisSystemException with paged queries by 2 indexed fields.
+* DATAREDIS-601 - Improve Transaction reference documentation.
+
+
 Changes in version 2.1.0.M2 (2018-04-13)
 ----------------------------------------
 * DATAREDIS-810 - Adapt to API changes in Spring Data Commons.
