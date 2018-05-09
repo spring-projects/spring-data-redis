@@ -413,6 +413,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.AbstractRedisConnection#close()
+	 */
 	@Override
 	public void close() throws DataAccessException {
 
@@ -442,26 +446,48 @@ public class LettuceConnection extends AbstractRedisConnection {
 		this.dbIndex = defaultDbIndex;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#isClosed()
+	 */
 	@Override
 	public boolean isClosed() {
 		return isClosed && !isSubscribed();
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#getNativeConnection()
+	 */
 	@Override
 	public RedisClusterAsyncCommands<byte[], byte[]> getNativeConnection() {
-		return (subscription != null ? subscription.pubsub.async() : getAsyncConnection());
+
+		LettuceSubscription subscription = this.subscription;
+		return (subscription != null ? subscription.getNativeConnection().async() : getAsyncConnection());
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#isQueueing()
+	 */
 	@Override
 	public boolean isQueueing() {
 		return isMulti;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#isPipelined()
+	 */
 	@Override
 	public boolean isPipelined() {
 		return isPipelined;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#openPipeline()
+	 */
 	@Override
 	public void openPipeline() {
 		if (!isPipelined) {
@@ -470,6 +496,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#closePipeline()
+	 */
 	@Override
 	public List<Object> closePipeline() {
 
@@ -536,7 +566,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown(org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption)
 	 */
 	@Override
-
 	public byte[] echo(byte[] message) {
 		try {
 			if (isPipelined()) {
@@ -703,43 +732,62 @@ public class LettuceConnection extends AbstractRedisConnection {
 	// Pub/Sub functionality
 	//
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#publish(byte[], byte[])
+	 */
 	@Override
 	public Long publish(byte[] channel, byte[] message) {
+
 		try {
+
 			if (isPipelined()) {
 				pipeline(newLettuceResult(getAsyncConnection().publish(channel, message)));
 				return null;
 			}
+
 			if (isQueueing()) {
 				transaction(newLettuceResult(getAsyncConnection().publish(channel, message)));
 				return null;
 			}
+
 			return getConnection().publish(channel, message);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#getSubscription()
+	 */
 	@Override
 	public Subscription getSubscription() {
 		return subscription;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#isSubscribed()
+	 */
 	@Override
 	public boolean isSubscribed() {
 		return (subscription != null && subscription.isAlive());
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#pSubscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
+	 */
 	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
+
 		checkSubscription();
 
-		if (isQueueing()) {
-			throw new UnsupportedOperationException();
+		if (isQueueing() || isPipelined()) {
+			throw new UnsupportedOperationException("Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
 		}
-		if (isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
+
 		try {
 			subscription = new LettuceSubscription(listener, switchToPubSub(), connectionProvider);
 			subscription.pSubscribe(patterns);
@@ -748,17 +796,22 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#subscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
+	 */
 	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
+
 		checkSubscription();
 
-		if (isPipelined()) {
-			throw new UnsupportedOperationException();
+		if (isQueueing() || isPipelined()) {
+			throw new UnsupportedOperationException("Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
 		}
+
 		try {
 			subscription = new LettuceSubscription(listener, switchToPubSub(), connectionProvider);
 			subscription.subscribe(channels);
-
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
