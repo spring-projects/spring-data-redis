@@ -25,16 +25,19 @@ import org.springframework.data.redis.connection.util.AbstractSubscription;
  * Message subscription on top of Lettuce.
  *
  * @author Costin Leau
+ * @author Mark Paluch
  */
 class LettuceSubscription extends AbstractSubscription {
 
 	final StatefulRedisPubSubConnection<byte[], byte[]> pubsub;
 	private LettuceMessageListener listener;
+	private final LettuceConnectionProvider connectionProvider;
 
-	LettuceSubscription(MessageListener listener, StatefulRedisPubSubConnection<byte[], byte[]> pubsubConnection) {
+	LettuceSubscription(MessageListener listener, StatefulRedisPubSubConnection<byte[], byte[]> pubsubConnection, LettuceConnectionProvider connectionProvider) {
 		super(listener);
 		this.pubsub = pubsubConnection;
 		this.listener = new LettuceMessageListener(listener);
+		this.connectionProvider = connectionProvider;
 
 		pubsub.addListener(this.listener);
 	}
@@ -47,7 +50,8 @@ class LettuceSubscription extends AbstractSubscription {
 			pubsub.sync().punsubscribe(new byte[0]);
 		}
 		pubsub.removeListener(this.listener);
-		pubsub.close();
+		
+		connectionProvider.release(pubsub);
 	}
 
 	protected void doPsubscribe(byte[]... patterns) {
