@@ -754,7 +754,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			throw new UnsupportedOperationException();
 		}
 		try {
-			subscription = new LettuceSubscription(listener, switchToPubSub());
+			subscription = new LettuceSubscription(listener, switchToPubSub(), connectionProvider);
 			subscription.pSubscribe(patterns);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
@@ -769,7 +769,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			throw new UnsupportedOperationException();
 		}
 		try {
-			subscription = new LettuceSubscription(listener, switchToPubSub());
+			subscription = new LettuceSubscription(listener, switchToPubSub(), connectionProvider);
 			subscription.subscribe(channels);
 
 		} catch (Exception ex) {

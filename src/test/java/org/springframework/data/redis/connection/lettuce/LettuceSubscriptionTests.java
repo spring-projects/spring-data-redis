@@ -34,6 +34,7 @@ import org.springframework.data.redis.connection.RedisInvalidSubscriptionExcepti
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class LettuceSubscriptionTests {
 
@@ -45,6 +46,8 @@ public class LettuceSubscriptionTests {
 
 	private RedisPubSubCommands<byte[], byte[]> asyncCommands;
 
+	private LettuceConnectionProvider connectionProvider;
+
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() {
@@ -52,9 +55,10 @@ public class LettuceSubscriptionTests {
 		pubsub = Mockito.mock(StatefulRedisPubSubConnection.class);
 		listener = Mockito.mock(MessageListener.class);
 		asyncCommands = Mockito.mock(RedisPubSubCommands.class);
+		connectionProvider = Mockito.mock(LettuceConnectionProvider.class);
 
 		Mockito.when(pubsub.sync()).thenReturn(asyncCommands);
-		subscription = new LettuceSubscription(listener, pubsub);
+		subscription = new LettuceSubscription(listener, pubsub, connectionProvider);
 	}
 
 	@Test
@@ -64,7 +68,7 @@ public class LettuceSubscriptionTests {
 		verify(asyncCommands, times(1)).unsubscribe(new byte[][] { "a".getBytes() });
 		verify(asyncCommands, never()).unsubscribe(new byte[0]);
 		verify(asyncCommands, never()).punsubscribe(new byte[0]);
-		verify(pubsub).close();
+		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
 		assertFalse(subscription.isAlive());
 		assertTrue(subscription.getChannels().isEmpty());
@@ -94,7 +98,7 @@ public class LettuceSubscriptionTests {
 		verify(asyncCommands, times(1)).unsubscribe(channel);
 		verify(asyncCommands, never()).unsubscribe(new byte[0]);
 		verify(asyncCommands, never()).punsubscribe(new byte[0]);
-		verify(pubsub).close();
+		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
 		assertFalse(subscription.isAlive());
 		assertTrue(subscription.getChannels().isEmpty());
@@ -167,7 +171,7 @@ public class LettuceSubscriptionTests {
 	public void testUnsubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		verify(pubsub, times(1)).close();
+		verify(connectionProvider, times(1)).release(pubsub);
 		verify(pubsub, times(1)).removeListener(any(LettuceMessageListener.class));
 		assertFalse(subscription.isAlive());
 		subscription.unsubscribe();
@@ -192,7 +196,7 @@ public class LettuceSubscriptionTests {
 		verify(asyncCommands, never()).punsubscribe(new byte[0]);
 		verify(asyncCommands, times(1)).punsubscribe(new byte[][] { "a*".getBytes() });
 		assertFalse(subscription.isAlive());
-		verify(pubsub).close();
+		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
 		assertTrue(subscription.getChannels().isEmpty());
 		assertTrue(subscription.getPatterns().isEmpty());
@@ -221,7 +225,7 @@ public class LettuceSubscriptionTests {
 		verify(asyncCommands, never()).unsubscribe(new byte[0]);
 		verify(asyncCommands, never()).punsubscribe(new byte[0]);
 		verify(asyncCommands, times(1)).punsubscribe(pattern);
-		verify(pubsub).close();
+		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
 		assertFalse(subscription.isAlive());
 		assertTrue(subscription.getChannels().isEmpty());
@@ -296,7 +300,7 @@ public class LettuceSubscriptionTests {
 		subscription.unsubscribe();
 		assertFalse(subscription.isAlive());
 		subscription.pUnsubscribe();
-		verify(pubsub, times(1)).close();
+		verify(connectionProvider, times(1)).release(pubsub);
 		verify(pubsub, times(1)).removeListener(any(LettuceMessageListener.class));
 		verify(asyncCommands, times(1)).unsubscribe(new byte[][] { "a".getBytes() });
 		verify(asyncCommands, never()).unsubscribe(new byte[0]);
