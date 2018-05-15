@@ -63,6 +63,7 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.util.ByteUtils;
@@ -876,6 +877,33 @@ abstract public class LettuceConverters extends Converters {
 		}
 
 		return args;
+	}
+
+	/**
+	 * Convert {@link ScanOptions} to {@link ScanArgs}.
+	 *
+	 * @param options the {@link ScanOptions} to convert, may be {@literal null}.
+	 * @return the converted {@link ScanArgs}. Returns {@literal null} if {@link ScanOptions} is {@literal null}.
+	 * @see 2.1
+	 */
+	@Nullable
+	static ScanArgs toScanArgs(@Nullable ScanOptions options) {
+
+		if (options == null) {
+			return null;
+		}
+
+		ScanArgs scanArgs = new ScanArgs();
+
+		if (options.getPattern() != null) {
+			scanArgs.match(options.getPattern());
+		}
+
+		if (options.getCount() != null) {
+			scanArgs.limit(options.getCount());
+		}
+
+		return scanArgs;
 	}
 
 	/**

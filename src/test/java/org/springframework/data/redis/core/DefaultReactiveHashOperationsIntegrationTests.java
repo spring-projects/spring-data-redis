@@ -382,6 +382,31 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
+	@Test // DATAREDIS-743
+	public void scan() {
+
+		assumeTrue(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory);
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
+
+		StepVerifier.create(hashOperations.scan(key).buffer(2)) //
+				.consumeNextWith(list -> {
+
+					Entry<HK, HV> entry1 = Collections.singletonMap(hashkey1, hashvalue1).entrySet().iterator().next();
+					Entry<HK, HV> entry2 = Collections.singletonMap(hashkey2, hashvalue2).entrySet().iterator().next();
+
+					assertThat(list).containsExactlyInAnyOrder(entry1, entry2);
+				}) //
+				.verifyComplete();
+	}
+
 	@Test // DATAREDIS-602
 	public void delete() {
 

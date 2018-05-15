@@ -204,7 +204,7 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 						@Override
 						protected LettuceScanIteration<byte[]> doScan(io.lettuce.core.ScanCursor cursor, ScanOptions options) {
 
-							ScanArgs scanArgs = connection.getScanArgs(options);
+							ScanArgs scanArgs = LettuceConverters.toScanArgs(options);
 
 							KeyScanCursor<byte[]> keyScanCursor = client.scan(cursor, scanArgs);
 							return new LettuceScanIteration<>(keyScanCursor, keyScanCursor.getKeys());

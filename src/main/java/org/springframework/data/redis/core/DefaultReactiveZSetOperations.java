@@ -284,6 +284,18 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#scan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Flux<TypedTuple<V>> scan(K key, ScanOptions options) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(options, "ScanOptions must not be null!");
+
+		return createFlux(connection -> connection.zScan(rawKey(key), options).map(this::readTypedTuple));
+	}
+
+	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#count(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override

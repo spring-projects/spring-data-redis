@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.Test;
+import org.springframework.data.redis.core.ScanOptions;
 
 /**
  * @author Christoph Strobl
@@ -230,6 +231,18 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 				.consumeNextWith(list -> {
 					assertTrue(list.containsAll(expected.entrySet()));
 				}) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-743
+	public void hScanShouldIterateOverHash() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
+		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
+
+		StepVerifier.create(connection.hashCommands().hScan(KEY_1_BBUFFER, ScanOptions.scanOptions().count(1).build())) //
+				.expectNextCount(3) //
 				.verifyComplete();
 	}
 

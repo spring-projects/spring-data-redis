@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.ScanStream;
 import io.lettuce.core.api.reactive.RedisKeyReactiveCommands;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,6 +35,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.util.Assert;
 
 /**
@@ -117,6 +119,18 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 			// TODO: stream elements instead of collection
 			return cmd.keys(pattern).collectList().map(value -> new MultiValueResponse<>(pattern, value));
 		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#scan(org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Flux<ByteBuffer> scan(ScanOptions options) {
+
+		Assert.notNull(options, "ScanOptions must not be null!");
+
+		return connection.execute(cmd -> ScanStream.scan(cmd, LettuceConverters.toScanArgs(options)));
 	}
 
 	/*

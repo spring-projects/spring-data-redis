@@ -31,8 +31,10 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Boolean
 import org.springframework.data.redis.connection.ReactiveRedisConnection.Command;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyScanCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -577,6 +579,45 @@ public interface ReactiveHashCommands {
 	 * @see <a href="http://redis.io/commands/hgetall">Redis Documentation: HGETALL</a>
 	 */
 	Flux<CommandResponse<KeyCommand, Flux<Map.Entry<ByteBuffer, ByteBuffer>>>> hGetAll(Publisher<KeyCommand> commands);
+
+	/**
+	 * Use a {@link Flux} to iterate over entries in the hash at {@code key}. The resulting {@link Flux} acts as a cursor
+	 * and issues {@code HSCAN} commands itself as long as the subscriber signals demand .
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
+	 * @since 2.1
+	 */
+	default Flux<Map.Entry<ByteBuffer, ByteBuffer>> hScan(ByteBuffer key) {
+		return hScan(key, ScanOptions.NONE);
+	}
+
+	/**
+	 * Use a {@link Flux} to iterate over entries in the hash at {@code key} given {@link ScanOptions}. The resulting
+	 * {@link Flux} acts as a cursor and issues {@code HSCAN} commands itself as long as the subscriber signals demand.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param options must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
+	 * @since 2.1
+	 */
+	default Flux<Map.Entry<ByteBuffer, ByteBuffer>> hScan(ByteBuffer key, ScanOptions options) {
+		return hScan(Mono.just(KeyScanCommand.key(key).withOptions(options))).map(CommandResponse::getOutput)
+				.flatMap(it -> it);
+	}
+
+	/**
+	 * Use a {@link Flux} to iterate over entries in the hash at {@code key}. The resulting {@link Flux} acts as a cursor
+	 * and issues {@code HSCAN} commands itself as long as the subscriber signals demand.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
+	 * @since 2.1
+	 */
+	Flux<CommandResponse<KeyCommand, Flux<Map.Entry<ByteBuffer, ByteBuffer>>>> hScan(Publisher<KeyScanCommand> commands);
 
 	/**
 	 * @author Christoph Strobl

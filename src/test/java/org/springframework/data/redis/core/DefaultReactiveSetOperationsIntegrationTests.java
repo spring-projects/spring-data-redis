@@ -310,6 +310,25 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 				.consumeNextWith(actual -> assertThat(actual).isIn(value1, value2)).expectNextCount(1).verifyComplete();
 	}
 
+	@Test // DATAREDIS-743
+	public void scan() {
+
+		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		StepVerifier.create(setOperations.add(key, value1, value2)) //
+				.expectNext(2L) //
+				.verifyComplete();
+
+		StepVerifier.create(setOperations.scan(key)) //
+				.consumeNextWith(actual -> assertThat(actual).isIn(value1, value2)) //
+				.expectNextCount(1) //
+				.verifyComplete();
+	}
+
 	@Test // DATAREDIS-602
 	public void randomMember() {
 

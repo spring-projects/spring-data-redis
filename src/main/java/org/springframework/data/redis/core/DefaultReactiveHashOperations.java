@@ -222,6 +222,19 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 	}
 
 	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveHashOperations#scan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Flux<Map.Entry<HK, HV>> scan(H key, ScanOptions options) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "ScanOptions must not be null!");
+
+		return createFlux(connection -> connection.hScan(rawKey(key), options) //
+				.map(this::deserializeHashEntry));
+	}
+
+	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#delete(java.lang.Object)
 	 */
 	@Override

@@ -259,7 +259,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 					throw new UnsupportedOperationException("'SCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				ScanArgs scanArgs = connection.getScanArgs(options);
+				ScanArgs scanArgs = LettuceConverters.toScanArgs(options);
 
 				KeyScanCursor<byte[]> keyScanCursor = getConnection().scan(cursor, scanArgs);
 				List<byte[]> keys = keyScanCursor.getKeys();

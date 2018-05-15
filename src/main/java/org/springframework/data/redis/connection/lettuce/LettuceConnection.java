@@ -23,7 +23,6 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisException;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;
-import io.lettuce.core.ScanArgs;
 import io.lettuce.core.TransactionResult;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -68,7 +67,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvid
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceResultBuilder;
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceStatusResult;
 import org.springframework.data.redis.core.RedisCommand;
-import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -920,26 +918,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	io.lettuce.core.ScanCursor getScanCursor(long cursorId) {
 		return io.lettuce.core.ScanCursor.of(Long.toString(cursorId));
-	}
-
-	@Nullable
-	ScanArgs getScanArgs(@Nullable ScanOptions options) {
-
-		if (options == null) {
-			return null;
-		}
-
-		ScanArgs scanArgs = new ScanArgs();
-
-		if (options.getPattern() != null) {
-			scanArgs.match(options.getPattern());
-		}
-
-		if (options.getCount() != null) {
-			scanArgs.limit(options.getCount());
-		}
-
-		return scanArgs;
 	}
 
 	private void validateCommandIfRunningInTransactionMode(CommandType cmd, byte[]... args) {

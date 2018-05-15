@@ -147,6 +147,31 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Flux<Map.Entry<HK, HV>> entries(H key);
 
 	/**
+	 * Use a {@link Flux} to iterate over entries in the hash at {@code key} given {@link ScanOptions}. The resulting
+	 * {@link Flux} acts as a cursor and issues {@code HSCAN} commands itself as long as the subscriber signals demand.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
+	 * @since 2.1
+	 */
+	default Flux<Map.Entry<HK, HV>> scan(H key) {
+		return scan(key, ScanOptions.NONE);
+	}
+
+	/**
+	 * Use a {@link Flux} to iterate over entries in the hash at {@code key} given {@link ScanOptions}. The resulting
+	 * {@link Flux} acts as a cursor and issues {@code HSCAN} commands itself as long as the subscriber signals demand.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param options must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
+	 * @since 2.1
+	 */
+	Flux<Map.Entry<HK, HV>> scan(H key, ScanOptions options);
+
+	/**
 	 * Removes the given {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
