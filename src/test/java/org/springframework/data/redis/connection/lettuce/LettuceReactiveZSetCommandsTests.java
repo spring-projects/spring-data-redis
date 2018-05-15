@@ -31,6 +31,8 @@ import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.core.ScanOptions;
 
 /**
+ * Integration tests for {@link LettuceReactiveZSetCommands}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
