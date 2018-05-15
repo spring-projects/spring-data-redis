@@ -59,6 +59,12 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 			case SIMPLE_PROPERTY:
 				sink.sismember(part.getProperty().toDotPath(), iterator.next());
 				break;
+			case TRUE:
+				sink.sismember(part.getProperty().toDotPath(), true);
+				break;
+			case FALSE:
+				sink.sismember(part.getProperty().toDotPath(), false);
+				break;
 			case WITHIN:
 			case NEAR:
 				sink.near(getNearPath(part, iterator));

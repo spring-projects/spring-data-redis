@@ -224,6 +224,24 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(repo.findBy(firstPage.nextPageable()).getContent(), hasSize(1));
 	}
 
+	@Test // DATAREDIS-771
+	public void shouldFindByBooleanIsTrue() {
+
+		Person eddard = new Person("eddard", "stark");
+		eddard.setAlive(true);
+
+		Person robb = new Person("robb", "stark");
+		robb.setAlive(false);
+		Person jon = new Person("jon", "snow");
+
+		repo.saveAll(Arrays.asList(eddard, robb, jon));
+
+		List<Person> result = repo.findPersonByAliveIsTrue();
+
+		assertThat(result, hasSize(1));
+		assertThat(result, contains(eddard));
+	}
+
 	@Test // DATAREDIS-547
 	public void shouldReturnEmptyListWhenPageableOutOfBoundsUsingFindAll() {
 
@@ -374,6 +392,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		Page<Person> findPersonByLastname(String lastname, Pageable page);
 
+		List<Person> findPersonByAliveIsTrue();
+
 		List<Person> findByFirstnameAndLastname(String firstname, String lastname);
 
 		List<Person> findByFirstnameOrLastname(String firstname, String lastname);
@@ -429,6 +449,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		@Id String id;
 		@Indexed String firstname;
+		@Indexed Boolean alive;
 		String lastname;
 		@Reference City city;
 		City hometown;
