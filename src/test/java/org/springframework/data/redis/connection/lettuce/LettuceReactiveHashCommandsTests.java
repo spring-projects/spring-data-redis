@@ -31,6 +31,8 @@ import org.junit.Test;
 import org.springframework.data.redis.core.ScanOptions;
 
 /**
+ * Integration tests for {@link LettuceReactiveHashCommands}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */

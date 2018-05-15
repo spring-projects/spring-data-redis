@@ -29,6 +29,12 @@ import java.util.Arrays;
 import org.junit.Test;
 import org.springframework.data.redis.core.ScanOptions;
 
+/**
+ * Integration tests for {@link LettuceReactiveSetCommands}.
+ *
+ * @author Christoph Strobl
+ * @author Mark Paluch
+ */
 public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTestsBase {
 
 	@Test // DATAREDIS-525
