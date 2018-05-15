@@ -38,6 +38,7 @@ import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
 
@@ -93,6 +94,26 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 
 		StepVerifier.create(connection.keyCommands().keys(ByteBuffer.wrap("key*".getBytes())).flatMapIterable(it -> it)) //
 				.expectNextCount(3).verifyComplete();
+	}
+
+	@Test // DATAREDIS-743
+	public void scanShouldShouldIterateOverKeyspace() {
+
+		nativeCommands.set(KEY_1, VALUE_2);
+		nativeCommands.set(KEY_2, VALUE_2);
+		nativeCommands.set(KEY_3, VALUE_3);
+
+		nativeCommands.set(VALUE_1, KEY_1);
+		nativeCommands.set(VALUE_2, KEY_2);
+		nativeCommands.set(VALUE_3, KEY_3);
+
+		StepVerifier.create(connection.keyCommands().scan(ScanOptions.scanOptions().count(2).build())) //
+				.expectNextCount(6) //
+				.verifyComplete();
+
+		StepVerifier.create(connection.keyCommands().scan(ScanOptions.scanOptions().count(2).match("key*").build())) //
+				.expectNextCount(3) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525

@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.Range;
 import io.lettuce.core.Range.Boundary;
+import io.lettuce.core.ScanStream;
 import io.lettuce.core.ScoredValue;
 import io.lettuce.core.ZAddArgs;
 import io.lettuce.core.ZStoreArgs;
@@ -34,6 +35,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyScanCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -289,6 +291,25 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			}
 
 			return Mono.just(new CommandResponse<>(command, Flux.from(result)));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zScan(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<KeyCommand, Flux<Tuple>>> zScan(Publisher<KeyScanCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getOptions(), "ScanOptions must not be null!");
+
+			Flux<Tuple> result = ScanStream.zscan(cmd, command.getKey(), LettuceConverters.toScanArgs(command.getOptions()))
+					.map(it -> new DefaultTuple(ByteUtils.getBytes(it.getValue()), it.getScore()));
+
+			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}
 

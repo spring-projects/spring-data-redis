@@ -30,11 +30,13 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyScanCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -996,6 +998,45 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	Flux<CommandResponse<ZRangeByScoreCommand, Flux<Tuple>>> zRangeByScore(Publisher<ZRangeByScoreCommand> commands);
+
+	/**
+	 * Use a {@link Flux} to iterate over members in the sorted set at {@code key}. The resulting {@link Flux} acts as a
+	 * cursor and issues {@code ZSCAN} commands itself as long as the subscriber signals demand.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
+	 * @since 2.1
+	 */
+	default Flux<Tuple> zScan(ByteBuffer key) {
+		return zScan(key, ScanOptions.NONE);
+	}
+
+	/**
+	 * Use a {@link Flux} to iterate over members in the sorted set at {@code key} given {@link ScanOptions}. The
+	 * resulting {@link Flux} acts as a cursor and issues {@code ZSCAN} commands itself as long as the subscriber signals.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param options must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
+	 * @since 2.1
+	 */
+	default Flux<Tuple> zScan(ByteBuffer key, ScanOptions options) {
+		return zScan(Mono.just(KeyScanCommand.key(key).withOptions(options))).map(CommandResponse::getOutput)
+				.flatMap(it -> it);
+	}
+
+	/**
+	 * Use a {@link Flux} to iterate over members in the sorted set at {@code key}. The resulting {@link Flux} acts as a
+	 * cursor and issues {@code ZSCAN} commands itself as long as the subscriber signals demand.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
+	 * @since 2.1
+	 */
+	Flux<CommandResponse<KeyCommand, Flux<Tuple>>> zScan(Publisher<KeyScanCommand> commands);
 
 	/**
 	 * {@code ZCOUNT} command parameters.

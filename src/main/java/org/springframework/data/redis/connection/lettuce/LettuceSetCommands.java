@@ -476,7 +476,7 @@ class LettuceSetCommands implements RedisSetCommands {
 				}
 
 				io.lettuce.core.ScanCursor scanCursor = connection.getScanCursor(cursorId);
-				ScanArgs scanArgs = connection.getScanArgs(options);
+				ScanArgs scanArgs = LettuceConverters.toScanArgs(options);
 
 				ValueScanCursor<byte[]> valueScanCursor = getConnection().sscan(key, scanCursor, scanArgs);
 				String nextCursorId = valueScanCursor.getCursor();

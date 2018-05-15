@@ -272,6 +272,19 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#scan(org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Flux<K> scan(ScanOptions options) {
+
+		Assert.notNull(options, "ScanOptions must not be null!");
+
+		return createFlux(connection -> connection.keyCommands().scan(options)) //
+				.map(this::readKey);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#randomKey()
 	 */
 	@Override

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
 import reactor.test.StepVerifier;
@@ -386,6 +387,29 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.create(zSetOperations.reverseRangeByScoreWithScores(key, new Range<>(0d, 100d), //
 						Limit.limit().offset(1).count(10))) //
 				.expectNext(new DefaultTypedTuple<>(value2, 10d)) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-743
+	public void scan() {
+
+		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		StepVerifier.create(zSetOperations.add(key, value1, 42.1)) //
+				.expectNext(true) //
+				.verifyComplete();
+		StepVerifier.create(zSetOperations.add(key, value2, 10)) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		StepVerifier.create(zSetOperations.scan(key)) //
+				.consumeNextWith(actual -> assertThat(actual).isIn(new DefaultTypedTuple<>(value1, 42.1),
+						new DefaultTypedTuple<>(value2, 10d))) //
+				.expectNextCount(1) //
 				.verifyComplete();
 	}
 

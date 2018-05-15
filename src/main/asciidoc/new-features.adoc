@@ -14,6 +14,7 @@ This section briefly covers items that are new and noteworthy in the latest rele
 * <<redis:reactive:pubsub,Reactive Pub/Sub>> to send and receive a message stream.
 * `BITFIELD`, `BITPOS`, and `OBJECT` command support.
 * Align return types of `BoundZSetOperations` with `ZSetOperations`.
+* Reactive `SCAN`, `HSCAN`, `SSCAN`, and `ZSCAN` support.
 
 [[new-in-2.0.0]]
 == New in Spring Data Redis 2.0

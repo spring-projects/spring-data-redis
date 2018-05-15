@@ -143,8 +143,34 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @param pattern must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
+	 * @deprecated Since 2.1. Use {@link #scan()} to iterate over the keyspace as {@link #keys(Object)} is a
+	 *             non-interruptible and expensive Redis operation.
 	 */
+	@Deprecated
 	Flux<K> keys(K pattern);
+
+	/**
+	 * Use a {@link Flux} to iterate over keys. The resulting {@link Flux} acts as a cursor and issues {@code SCAN}
+	 * commands itself as long as the subscriber signals demand.
+	 *
+	 * @return never {@literal null}.
+	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @since 2.1
+	 */
+	default Flux<K> scan() {
+		return scan(ScanOptions.NONE);
+	}
+
+	/**
+	 * Use a {@link Flux} to iterate over keys. The resulting {@link Flux} acts as a cursor and issues {@code SCAN}
+	 * commands itself as long as the subscriber signals demand.
+	 *
+	 * @param options must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @since 2.1
+	 */
+	Flux<K> scan(ScanOptions options);
 
 	/**
 	 * Return a random key from the keyspace.

@@ -27,6 +27,7 @@ import reactor.test.StepVerifier;
 import java.util.Arrays;
 
 import org.junit.Test;
+import org.springframework.data.redis.core.ScanOptions;
 
 public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -217,6 +218,21 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		StepVerifier.create(connection.setCommands().sMembers(KEY_1_BBUFFER).buffer(3)) //
 				.consumeNextWith(
 						list -> assertThat(list, containsInAnyOrder(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER))) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-743
+	public void sScanShouldIterateOverSet() {
+
+		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
+
+		StepVerifier.create(connection.setCommands().sScan(KEY_1_BBUFFER)) //
+				.expectNextCount(3) //
+				.verifyComplete();
+
+		StepVerifier
+				.create(connection.setCommands().sScan(KEY_1_BBUFFER, ScanOptions.scanOptions().match("value-3").build())) //
+				.expectNext(VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
 

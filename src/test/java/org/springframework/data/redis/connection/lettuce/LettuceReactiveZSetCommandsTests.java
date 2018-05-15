@@ -28,7 +28,7 @@ import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.Test;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.DefaultTuple;
-import org.springframework.data.redis.test.util.LettuceRedisClientProvider;
+import org.springframework.data.redis.core.ScanOptions;
 
 /**
  * @author Christoph Strobl
@@ -272,6 +272,22 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 
 		StepVerifier
 				.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false))) //
+				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-743
+	public void zScanShouldIterateOverSortedSet() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+
+		StepVerifier.create(connection.zSetCommands().zScan(KEY_1_BBUFFER, ScanOptions.scanOptions().count(1).build())) //
+				.expectNextCount(3).verifyComplete();
+
+		StepVerifier
+				.create(connection.zSetCommands().zScan(KEY_1_BBUFFER, ScanOptions.scanOptions().match(VALUE_2).build())) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
 				.verifyComplete();
 	}

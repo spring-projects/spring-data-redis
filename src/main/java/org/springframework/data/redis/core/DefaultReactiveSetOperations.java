@@ -323,6 +323,18 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 	}
 
 	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveSetOperations#scan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Flux<V> scan(K key, ScanOptions options) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(options, "ScanOptions must not be null!");
+
+		return createFlux(connection -> connection.sScan(rawKey(key)).map(this::readValue));
+	}
+
+	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveSetOperations#randomMember(java.lang.Object)
 	 */
 	@Override

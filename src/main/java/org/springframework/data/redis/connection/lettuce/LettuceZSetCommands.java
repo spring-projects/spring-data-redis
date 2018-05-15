@@ -711,7 +711,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				}
 
 				io.lettuce.core.ScanCursor scanCursor = connection.getScanCursor(cursorId);
-				ScanArgs scanArgs = connection.getScanArgs(options);
+				ScanArgs scanArgs = LettuceConverters.toScanArgs(options);
 
 				ScoredValueScanCursor<byte[]> scoredValueScanCursor = getConnection().zscan(key, scanCursor, scanArgs);
 				String nextCursorId = scoredValueScanCursor.getCursor();

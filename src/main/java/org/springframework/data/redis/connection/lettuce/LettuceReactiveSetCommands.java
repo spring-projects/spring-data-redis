@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.ScanStream;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -25,6 +26,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Boolean
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyScanCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveSetCommands;
 import org.springframework.util.Assert;
@@ -272,6 +274,25 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
 			Flux<ByteBuffer> result = cmd.smembers(command.getKey());
+			return Mono.just(new CommandResponse<>(command, result));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sScan(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> sScan(Publisher<KeyScanCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getOptions(), "ScanOptions must not be null!");
+
+			Flux<ByteBuffer> result = ScanStream.sscan(cmd, command.getKey(),
+					LettuceConverters.toScanArgs(command.getOptions()));
+
 			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}

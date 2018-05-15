@@ -25,6 +25,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -114,6 +116,23 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verifyComplete();
 
 		StepVerifier.create(redisTemplate.hasKey(key)).expectNext(true).verifyComplete();
+	}
+
+	@Test // DATAREDIS-743
+	public void scan() {
+
+		assumeFalse(valueFactory.instance() instanceof Person);
+
+		Map<K, V> tuples = new HashMap<>();
+		tuples.put(keyFactory.instance(), valueFactory.instance());
+		tuples.put(keyFactory.instance(), valueFactory.instance());
+		tuples.put(keyFactory.instance(), valueFactory.instance());
+
+		StepVerifier.create(redisTemplate.opsForValue().multiSet(tuples)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(redisTemplate.scan().collectList()) //
+				.consumeNextWith(actual -> assertThat(actual).containsAll(tuples.keySet())) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602

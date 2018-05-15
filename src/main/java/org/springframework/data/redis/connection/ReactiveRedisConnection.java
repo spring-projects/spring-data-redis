@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -206,6 +207,49 @@ public interface ReactiveRedisConnection extends Closeable {
 		@Override
 		public ByteBuffer getKey() {
 			return key;
+		}
+	}
+
+	/**
+	 * {@link Command} for key-bound scan operations like {@code HSCAN}, {@code SSCAN}, and {@code ZSCAN}, .
+	 *
+	 * @author Mark Paluch
+	 * @since 2.1
+	 */
+	class KeyScanCommand extends KeyCommand {
+
+		private ScanOptions options;
+
+		private KeyScanCommand(@Nullable ByteBuffer key, ScanOptions options) {
+
+			super(key);
+
+			Assert.notNull(options, "ScanOptions must not be null!");
+			this.options = options;
+		}
+
+		/**
+		 * Creates a new {@link KeyScanCommand} given a {@code key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link KeyScanCommand} for {@code key}.
+		 */
+		public static KeyScanCommand key(ByteBuffer key) {
+			return new KeyScanCommand(key, ScanOptions.NONE);
+		}
+
+		/**
+		 * Applies {@link ScanOptions}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param options must not be {@literal null}.
+		 * @return a new {@link KeyScanCommand} with {@link ScanOptions} applied.
+		 */
+		public KeyScanCommand withOptions(ScanOptions options) {
+			return new KeyScanCommand(getKey(), options);
+		}
+
+		public ScanOptions getOptions() {
+			return options;
 		}
 	}
 
