@@ -70,7 +70,7 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 				sink.near(getNearPath(part, iterator));
 				break;
 			default:
-				throw new IllegalArgumentException(part.getType() + "is not supported for redis query derivation");
+				throw new IllegalArgumentException(String.format("%s is not supported for Redis query derivation!", part.getType()));
 		}
 
 		return sink;

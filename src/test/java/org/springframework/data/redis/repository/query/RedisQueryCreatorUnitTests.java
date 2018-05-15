@@ -44,6 +44,8 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
+ * Unit tests for {@link RedisQueryCreator}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
