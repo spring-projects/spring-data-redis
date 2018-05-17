@@ -1,6 +1,27 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.0.M3 (2018-05-17)
+----------------------------------------
+* DATAREDIS-833 - Upgrade to Lettuce 5.1.0.M1.
+* DATAREDIS-832 - Add coverpage for epub documentation output.
+* DATAREDIS-827 - Upgrade to Lettuce 5.0.4.RELEASE.
+* DATAREDIS-825 - Full editing pass on reference documentation.
+* DATAREDIS-824 - NPE: DefaultReactiveHashOperations#multiGet on null values.
+* DATAREDIS-822 - RedisCommand does not consider optional upper argument count.
+* DATAREDIS-819 - Fix typo in ReactiveValueOperations.
+* DATAREDIS-817 - Upgrade build profile to Redis 4.0.9.
+* DATAREDIS-815 - Add method variants accepting/returning java.time.Duration.
+* DATAREDIS-812 - Release 2.1 M3 (Lovelace).
+* DATAREDIS-786 - Add ValueOperations.setIfPresent(…).
+* DATAREDIS-778 - BoundZSetOperations should match return types of ZSetOperations.
+* DATAREDIS-763 - Introduce factory methods for JDK serializer accepting ClassLoader.
+* DATAREDIS-716 - Add support for OBJECT command.
+* DATAREDIS-697 - Add support for BITPOS.
+* DATAREDIS-612 - Provide reactive RedisMessageListenerContainer.
+* DATAREDIS-562 - Add support for BITFIELD.
+
+
 Changes in version 2.0.7.RELEASE (2018-05-08)
 ---------------------------------------------
 * DATAREDIS-827 - Upgrade to Lettuce 5.0.4.RELEASE.
