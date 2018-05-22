@@ -235,11 +235,13 @@ public interface ReactiveSetOperations<K, V> {
 	Flux<V> members(K key);
 
 	/**
-	 * Use a {@link Flux} to iterate over entries in the set at {@code key} given {@link ScanOptions}. The resulting
-	 * {@link Flux} acts as a cursor and issues {@code SSCAN} commands itself as long as the subscriber signals demand.
+	 * Use a {@link Flux} to iterate over entries in the set at {@code key}. The resulting {@link Flux} acts as a cursor
+	 * and issues {@code SSCAN} commands itself as long as the subscriber signals demand.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return the {@link Flux} emitting the {@literal values} one by one or an {@link Flux#empty() empty Flux} if none
+	 *         exist.
+	 * @throws IllegalArgumentException when given {@code key} is {@literal null}.
 	 * @see <a href="http://redis.io/commands/sscan">Redis Documentation: SSCAN</a>
 	 * @since 2.1
 	 */
@@ -252,8 +254,10 @@ public interface ReactiveSetOperations<K, V> {
 	 * {@link Flux} acts as a cursor and issues {@code SSCAN} commands itself as long as the subscriber signals demand.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param options must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @param options must not be {@literal null}. Use {@link ScanOptions#NONE} instead.
+	 * @return the {@link Flux} emitting the {@literal values} one by one or an {@link Flux#empty() empty Flux} if the key
+	 *         does not exist.
+	 * @throws IllegalArgumentException when one of the required arguments is {@literal null}.
 	 * @see <a href="http://redis.io/commands/sscan">Redis Documentation: SSCAN</a>
 	 * @since 2.1
 	 */

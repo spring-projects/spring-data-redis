@@ -112,7 +112,9 @@ public interface ReactiveKeyCommands {
 	Flux<NumericResponse<Collection<ByteBuffer>, Long>> touch(Publisher<Collection<ByteBuffer>> keys);
 
 	/**
-	 * Find all keys matching the given {@literal pattern}.
+	 * Find all keys matching the given {@literal pattern}.<br />
+	 * It is recommended to use {@link #scan(ScanOptions)} to iterate over the keyspace as {@link #keys(ByteBuffer)} is a
+	 * non-interruptible and expensive Redis operation.
 	 *
 	 * @param pattern must not be {@literal null}.
 	 * @return
@@ -126,8 +128,10 @@ public interface ReactiveKeyCommands {
 	}
 
 	/**
-	 * Find all keys matching the given {@literal pattern}.
-	 *
+	 * Find all keys matching the given {@literal pattern}.<br />
+	 * It is recommended to use {@link #scan(ScanOptions)} to iterate over the keyspace as {@link #keys(Publisher)} is a
+	 * non-interruptible and expensive Redis operation.
+	 * 
 	 * @param patterns must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
@@ -151,7 +155,8 @@ public interface ReactiveKeyCommands {
 	 * commands itself as long as the subscriber signals demand.
 	 *
 	 * @param options must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return the {@link Flux} emitting {@link ByteBuffer keys} one by one.
+	 * @throws IllegalArgumentException when options is {@literal null}.
 	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 * @since 2.1
 	 */

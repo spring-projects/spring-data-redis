@@ -1020,7 +1020,8 @@ public interface ReactiveSetCommands {
 	 * and issues {@code SSCAN} commands itself as long as the subscriber signals demand.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return the {@link Flux} emitting the raw {@link ByteBuffer members} one by one.
+	 * @throws IllegalArgumentException when options is {@literal null}.
 	 * @see <a href="http://redis.io/commands/sscan">Redis Documentation: SSCAN</a>
 	 * @since 2.1
 	 */
@@ -1033,12 +1034,14 @@ public interface ReactiveSetCommands {
 	 * {@link Flux} acts as a cursor and issues {@code SSCAN} commands itself as long as the subscriber signals demand.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param options must not be {@literal null}.
-	 * @return
+	 * @param options must not be {@literal null}. Use {@link ScanOptions#NONE} instead.
+	 * @return the {@link Flux} emitting the raw {@link ByteBuffer members} one by one.
+	 * @throws IllegalArgumentException when one of the required arguments is {@literal null}.
 	 * @see <a href="http://redis.io/commands/sscan">Redis Documentation: SSCAN</a>
 	 * @since 2.1
 	 */
 	default Flux<ByteBuffer> sScan(ByteBuffer key, ScanOptions options) {
+
 		return sScan(Mono.just(KeyScanCommand.key(key).withOptions(options))).map(CommandResponse::getOutput)
 				.flatMap(it -> it);
 	}

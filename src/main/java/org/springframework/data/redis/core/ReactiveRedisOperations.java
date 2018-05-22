@@ -138,22 +138,24 @@ public interface ReactiveRedisOperations<K, V> {
 	Mono<DataType> type(K key);
 
 	/**
-	 * Find all keys matching the given {@code pattern}.
+	 * Find all keys matching the given {@code pattern}. <br />
+	 * <strong>IMPORTANT:</strong> It is recommended to use {@link #scan()} to iterate over the keyspace as
+	 * {@link #keys(Object)} is a
+	 * non-interruptible and expensive Redis operation.
 	 *
 	 * @param pattern must not be {@literal null}.
-	 * @return
+	 * @return the {@link Flux} emitting matching keys one by one.
+	 * @throws IllegalArgumentException in case the pattern is {@literal null}.
 	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
-	 * @deprecated Since 2.1. Use {@link #scan()} to iterate over the keyspace as {@link #keys(Object)} is a
-	 *             non-interruptible and expensive Redis operation.
 	 */
-	@Deprecated
 	Flux<K> keys(K pattern);
 
 	/**
 	 * Use a {@link Flux} to iterate over keys. The resulting {@link Flux} acts as a cursor and issues {@code SCAN}
 	 * commands itself as long as the subscriber signals demand.
 	 *
-	 * @return never {@literal null}.
+	 * @return the {@link Flux} emitting the {@literal keys} one by one or an {@link Flux#empty() empty flux} if none
+	 *         exist.
 	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 * @since 2.1
 	 */
@@ -165,8 +167,10 @@ public interface ReactiveRedisOperations<K, V> {
 	 * Use a {@link Flux} to iterate over keys. The resulting {@link Flux} acts as a cursor and issues {@code SCAN}
 	 * commands itself as long as the subscriber signals demand.
 	 *
-	 * @param options must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @param options must not be {@literal null}. Use {@link ScanOptions#NONE} instead.
+	 * @return the {@link Flux} emitting the {@literal keys} one by one or an {@link Flux#empty() empty flux} if none
+	 *         exist.
+	 * @throws IllegalArgumentException when the given {@code options} is {@literal null}.
 	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 * @since 2.1
 	 */

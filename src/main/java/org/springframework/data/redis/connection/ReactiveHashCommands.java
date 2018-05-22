@@ -582,10 +582,11 @@ public interface ReactiveHashCommands {
 
 	/**
 	 * Use a {@link Flux} to iterate over entries in the hash at {@code key}. The resulting {@link Flux} acts as a cursor
-	 * and issues {@code HSCAN} commands itself as long as the subscriber signals demand .
+	 * and issues {@code HSCAN} commands itself as long as the subscriber signals demand.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return the {@link Flux} emitting {@link java.util.Map.Entry entries} one by one.
+	 * @throws IllegalArgumentException in case the given key is {@literal null}.
 	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 * @since 2.1
 	 */
@@ -598,12 +599,14 @@ public interface ReactiveHashCommands {
 	 * {@link Flux} acts as a cursor and issues {@code HSCAN} commands itself as long as the subscriber signals demand.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param options must not be {@literal null}.
-	 * @return
+	 * @param options must not be {@literal null}. Use {@link ScanOptions#NONE} instead.
+	 * @return the {@link Flux} emitting the raw {@link java.util.Map.Entry entries} one by one.
+	 * @throws IllegalArgumentException in case one of the required arguments is {@literal null}.
 	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 * @since 2.1
 	 */
 	default Flux<Map.Entry<ByteBuffer, ByteBuffer>> hScan(ByteBuffer key, ScanOptions options) {
+
 		return hScan(Mono.just(KeyScanCommand.key(key).withOptions(options))).map(CommandResponse::getOutput)
 				.flatMap(it -> it);
 	}
@@ -613,7 +616,7 @@ public interface ReactiveHashCommands {
 	 * and issues {@code HSCAN} commands itself as long as the subscriber signals demand.
 	 *
 	 * @param commands must not be {@literal null}.
-	 * @return
+	 * @return the {@link Flux} emitting {@link CommandResponse} one by one.
 	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 * @since 2.1
 	 */

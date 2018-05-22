@@ -147,11 +147,13 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Flux<Map.Entry<HK, HV>> entries(H key);
 
 	/**
-	 * Use a {@link Flux} to iterate over entries in the hash at {@code key} given {@link ScanOptions}. The resulting
-	 * {@link Flux} acts as a cursor and issues {@code HSCAN} commands itself as long as the subscriber signals demand.
+	 * Use a {@link Flux} to iterate over entries in the hash at {@code key}. The resulting {@link Flux} acts as a cursor
+	 * and issues {@code HSCAN} commands itself as long as the subscriber signals demand.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return the {@link Flux} emitting the {@link java.util.Map.Entry entries} on by one or an {@link Flux#empty() empty
+	 *         flux} if the key does not exist.
+	 * @throws IllegalArgumentException when the given {@code key} is {@literal null}.
 	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 * @since 2.1
 	 */
@@ -164,8 +166,10 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * {@link Flux} acts as a cursor and issues {@code HSCAN} commands itself as long as the subscriber signals demand.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param options must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @param options must not be {@literal null}. Use {@link ScanOptions#NONE} instead.
+	 * @return the {@link Flux} emitting the {@link java.util.Map.Entry entries} on by one or an {@link Flux#empty() empty
+	 *         flux} if the key does not exist.
+	 * @throws IllegalArgumentException when one of the required arguments is {@literal null}.
 	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 * @since 2.1
 	 */

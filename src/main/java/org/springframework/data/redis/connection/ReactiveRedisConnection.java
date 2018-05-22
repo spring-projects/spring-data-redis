@@ -211,14 +211,16 @@ public interface ReactiveRedisConnection extends Closeable {
 	}
 
 	/**
-	 * {@link Command} for key-bound scan operations like {@code HSCAN}, {@code SSCAN}, and {@code ZSCAN}, .
+	 * {@link Command} for key-bound scan operations like {@code SCAN}, {@code HSCAN}, {@code SSCAN} and {@code
+	 * ZSCAN}.
 	 *
 	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 * @since 2.1
 	 */
 	class KeyScanCommand extends KeyCommand {
 
-		private ScanOptions options;
+		private final ScanOptions options;
 
 		private KeyScanCommand(@Nullable ByteBuffer key, ScanOptions options) {
 
@@ -248,6 +250,11 @@ public interface ReactiveRedisConnection extends Closeable {
 			return new KeyScanCommand(getKey(), options);
 		}
 
+		/**
+		 * Get the {@link ScanOptions} to apply.
+		 *
+		 * @return never {@literal null}.
+		 */
 		public ScanOptions getOptions() {
 			return options;
 		}

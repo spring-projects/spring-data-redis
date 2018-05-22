@@ -1004,7 +1004,8 @@ public interface ReactiveZSetCommands {
 	 * cursor and issues {@code ZSCAN} commands itself as long as the subscriber signals demand.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return the {@link Flux} emitting the raw {@link Tuple tuples} one by one.
+	 * @throws IllegalArgumentException when key is {@literal null}.
 	 * @see <a href="http://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
 	 * @since 2.1
 	 */
@@ -1017,12 +1018,14 @@ public interface ReactiveZSetCommands {
 	 * resulting {@link Flux} acts as a cursor and issues {@code ZSCAN} commands itself as long as the subscriber signals.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param options must not be {@literal null}.
-	 * @return
+	 * @param options must not be {@literal null}. Use {@link ScanOptions#NONE} instead.
+	 * @return the {@link Flux} emitting the raw {@link Tuple tuples} one by one.
+	 * @throws IllegalArgumentException when one of the required arguments is {@literal null}.
 	 * @see <a href="http://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
 	 * @since 2.1
 	 */
 	default Flux<Tuple> zScan(ByteBuffer key, ScanOptions options) {
+
 		return zScan(Mono.just(KeyScanCommand.key(key).withOptions(options))).map(CommandResponse::getOutput)
 				.flatMap(it -> it);
 	}

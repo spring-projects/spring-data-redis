@@ -75,8 +75,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 				Entry<ByteBuffer, ByteBuffer> entry = command.getFieldValueMap().entrySet().iterator().next();
 
-				result = command.isUpsert()
-						? cmd.hset(command.getKey(), entry.getKey(), entry.getValue())
+				result = command.isUpsert() ? cmd.hset(command.getKey(), entry.getKey(), entry.getValue())
 						: cmd.hsetnx(command.getKey(), entry.getKey(), entry.getValue());
 			} else {
 
@@ -246,7 +245,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 				@Override
 				public ByteBuffer setValue(ByteBuffer value) {
-					throw new UnsupportedOperationException("Cannot set value for entry in cursor");
+					throw new UnsupportedOperationException("Cannot set value for entry in cursor.");
 				}
 			});
 
