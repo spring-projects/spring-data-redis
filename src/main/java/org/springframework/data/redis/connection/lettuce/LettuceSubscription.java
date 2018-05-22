@@ -26,6 +26,7 @@ import org.springframework.data.redis.connection.util.AbstractSubscription;
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class LettuceSubscription extends AbstractSubscription {
 
@@ -82,7 +83,8 @@ class LettuceSubscription extends AbstractSubscription {
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPUnsubscribe(boolean, byte[][])
 	 */
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
-		// lettuce doesn't automatically unsubscribe from all patterns
+
+		// ignore `all` flag as Lettuce unsubscribes from all patterns if none provided.
 		pubsub.punsubscribe(patterns);
 	}
 
@@ -99,7 +101,8 @@ class LettuceSubscription extends AbstractSubscription {
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doUnsubscribe(boolean, byte[][])
 	 */
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
-		// lettuce doesn't automatically unsubscribe from all channels
+
+		// ignore `all` flag as Lettuce unsubscribes from all channels if none provided.
 		pubsub.unsubscribe(channels);
 	}
 

@@ -800,7 +800,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 
 		try {
-			subscription = new LettuceSubscription(listener, switchToPubSub(), connectionProvider);
+			subscription = initSubscription(listener);
 			subscription.pSubscribe(patterns);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
@@ -821,7 +821,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 
 		try {
-			subscription = new LettuceSubscription(listener, switchToPubSub(), connectionProvider);
+			subscription = initSubscription(listener);
 			subscription.subscribe(channels);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
@@ -866,6 +866,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		close();
 		return connectionProvider.getConnection(StatefulRedisPubSubConnection.class);
+	}
+
+	private LettuceSubscription initSubscription(MessageListener listener) {
+		return new LettuceSubscription(listener, switchToPubSub(), connectionProvider);
 	}
 
 	void pipeline(LettuceResult result) {
