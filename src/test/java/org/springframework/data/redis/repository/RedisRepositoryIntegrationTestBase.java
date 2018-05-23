@@ -232,6 +232,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		Person robb = new Person("robb", "stark");
 		robb.setAlive(false);
+
 		Person jon = new Person("jon", "snow");
 
 		repo.saveAll(Arrays.asList(eddard, robb, jon));
@@ -240,6 +241,25 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		assertThat(result, hasSize(1));
 		assertThat(result, contains(eddard));
+	}
+
+	@Test // DATAREDIS-771
+	public void shouldFindByBooleanIsFalse() {
+
+		Person eddard = new Person("eddard", "stark");
+		eddard.setAlive(true);
+
+		Person robb = new Person("robb", "stark");
+		robb.setAlive(false);
+
+		Person jon = new Person("jon", "snow");
+
+		repo.saveAll(Arrays.asList(eddard, robb, jon));
+
+		List<Person> result = repo.findPersonByAliveIsFalse();
+
+		assertThat(result, hasSize(1));
+		assertThat(result, contains(robb));
 	}
 
 	@Test // DATAREDIS-547
@@ -393,6 +413,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Page<Person> findPersonByLastname(String lastname, Pageable page);
 
 		List<Person> findPersonByAliveIsTrue();
+
+		List<Person> findPersonByAliveIsFalse();
 
 		List<Person> findByFirstnameAndLastname(String firstname, String lastname);
 

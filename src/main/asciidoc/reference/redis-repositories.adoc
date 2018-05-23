@@ -696,7 +696,9 @@ The following table provides an overview of the keywords supported for Redis and
 |Keyword|Sample|Redis snippet
 |`And`|`findByLastnameAndFirstname`|`SINTER …:firstname:rand …:lastname:al’thor`
 |`Or`|`findByLastnameOrFirstname`|`SUNION …:firstname:rand …:lastname:al’thor`
-|`Is,Equals`|`findByFirstname`,`findByFirstnameIs`,`findByFirstnameEquals`|`SINTER …:firstname:rand`
+|`Is, Equals`|`findByFirstname`, `findByFirstnameIs`, `findByFirstnameEquals`|`SINTER …:firstname:rand`
+|`IsTrue` | `FindByAliveIsTrue` | `SINTER …:alive:1`
+|`IsFalse` | `findByAliveIsFalse` | `SINTER …:alive:0`
 |`Top,First`|`findFirst10ByFirstname`,`findTop5ByFirstname`|
 |===============
 ====
