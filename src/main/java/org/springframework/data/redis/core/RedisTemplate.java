@@ -980,16 +980,18 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @param value The value to restore, as returned by {@link #dump(Object)}
 	 * @param timeToLive An expiration for the restored key, or 0 for no expiration
 	 * @param unit The time unit for timeToLive
-	 * @throws RedisSystemException if the key you are attempting to restore already exists.
+	 * @param replace use {@literal true} to replace a potentially existing value instead of erroring.
+	 * @throws RedisSystemException if the key you are attempting to restore already exists and {@code replace} is set to
+	 *           {@literal false}.
 	 */
 	@Override
-	public void restore(K key, final byte[] value, long timeToLive, TimeUnit unit) {
+	public void restore(K key, final byte[] value, long timeToLive, TimeUnit unit, boolean replace) {
 
 		byte[] rawKey = rawKey(key);
 		long rawTimeout = TimeoutUtils.toMillis(timeToLive, unit);
 
 		execute(connection -> {
-			connection.restore(rawKey, rawTimeout, value);
+			connection.restore(rawKey, rawTimeout, value, replace);
 			return null;
 		}, true);
 	}
