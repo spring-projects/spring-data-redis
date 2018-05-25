@@ -149,8 +149,8 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
-	default void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
-		keyCommands().restore(key, ttlInMillis, serializedValue);
+	default void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
+		keyCommands().restore(key, ttlInMillis, serializedValue, replace);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */

@@ -1668,11 +1668,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[])
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[], boolean)
 	 */
 	@Override
-	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
-		delegate.restore(key, ttlInMillis, serializedValue);
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
+		delegate.restore(key, ttlInMillis, serializedValue, replace);
 	}
 
 	/*

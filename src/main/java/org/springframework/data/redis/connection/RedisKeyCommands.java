@@ -303,7 +303,21 @@ public interface RedisKeyCommands {
 	 * @param serializedValue must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/restore">Redis Documentation: RESTORE</a>
 	 */
-	void restore(byte[] key, long ttlInMillis, byte[] serializedValue);
+	default void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+		restore(key, ttlInMillis, serializedValue, false);
+	}
+
+	/**
+	 * Create {@code key} using the {@code serializedValue}, previously obtained using {@link #dump(byte[])}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param ttlInMillis
+	 * @param serializedValue must not be {@literal null}.
+	 * @param replace use {@literal true} to replace a potentially existing value instead of erroring.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/restore">Redis Documentation: RESTORE</a>
+	 */
+	void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace);
 
 	/**
 	 * Get the type of internal representation used for storing the value at the given {@code key}.

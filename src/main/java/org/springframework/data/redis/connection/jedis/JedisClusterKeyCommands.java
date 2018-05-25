@@ -476,10 +476,10 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[])
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[], boolean)
 	 */
 	@Override
-	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(serializedValue, "Serialized value must not be null!");
@@ -488,9 +488,17 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 			throw new UnsupportedOperationException("Jedis does not support ttlInMillis exceeding Integer.MAX_VALUE.");
 		}
 
-		connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<String>) client -> client.restore(key,
-						Long.valueOf(ttlInMillis).intValue(), serializedValue), connection.clusterGetNodeForKey(key));
+		connection.getClusterCommandExecutor().executeCommandOnSingleNode((JedisClusterCommandCallback<String>) client -> {
+
+			if (!replace) {
+				return client.restore(key, Long.valueOf(ttlInMillis).intValue(), serializedValue);
+			}
+
+			return JedisConverters.toString(this.connection.execute("RESTORE", key,
+					Arrays.asList(JedisConverters.toBytes(ttlInMillis), serializedValue, JedisConverters.toBytes
+							("REPLACE"))));
+
+		}, connection.clusterGetNodeForKey(key));
 	}
 
 	/*

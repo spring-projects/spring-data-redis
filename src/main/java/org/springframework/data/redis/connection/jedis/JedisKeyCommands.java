@@ -21,6 +21,7 @@ import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -675,13 +676,21 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[])
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[], boolean)
 	 */
 	@Override
-	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(serializedValue, "Serialized value must not be null!");
+
+		if (replace) {
+
+			this.connection.execute("RESTORE", new byte[][] { key, JedisConverters.toBytes(ttlInMillis),
+					serializedValue,
+					JedisConverters.toBytes("REPLACE") });
+			return;
+		}
 
 		if (ttlInMillis > Integer.MAX_VALUE) {
 			throw new IllegalArgumentException("TtlInMillis must be less than Integer.MAX_VALUE for restore in Jedis.");
