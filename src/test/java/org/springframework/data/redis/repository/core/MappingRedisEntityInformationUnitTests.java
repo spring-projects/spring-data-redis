@@ -17,14 +17,11 @@ package org.springframework.data.redis.repository.core;
 
 import static org.mockito.Mockito.*;
 
-import java.io.Serializable;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.mapping.MappingException;
-import org.springframework.data.redis.core.convert.ConversionTestEntities;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 
 /**
@@ -37,11 +34,10 @@ public class MappingRedisEntityInformationUnitTests<T, ID> {
 	@Mock RedisPersistentEntity<T> entity;
 
 	@Test(expected = MappingException.class) // DATAREDIS-425
-	@SuppressWarnings("unchecked")
 	public void throwsMappingExceptionWhenNoIdPropertyPresent() {
 
 		when(entity.hasIdProperty()).thenReturn(false);
-		when(entity.getType()).thenReturn((Class<T>) ConversionTestEntities.Person.class);
+
 		new MappingRedisEntityInformation<T, ID>(entity);
 	}
 }
