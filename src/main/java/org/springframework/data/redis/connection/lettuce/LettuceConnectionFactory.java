@@ -85,6 +85,7 @@ import org.springframework.util.ClassUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Balázs Németh
+ * @author Rubén Cervilla
  */
 public class LettuceConnectionFactory
 		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
@@ -981,6 +982,7 @@ public class LettuceConnectionFactory
 		getRedisPassword().toOptional().ifPresent(redisUri::setPassword);
 		clientConfiguration.getClientName().ifPresent(redisUri::setClientName);
 		redisUri.setTimeout(clientConfiguration.getCommandTimeout());
+		redisUri.setDatabase(getDatabase());
 
 		return redisUri;
 	}
