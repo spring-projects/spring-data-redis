@@ -59,6 +59,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Balázs Németh
+ * @author Ruben Cervilla
  */
 public class LettuceConnectionFactoryUnitTests {
 
@@ -70,7 +71,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 		ConnectionFactoryTracker.cleanUp();
 	}
 
@@ -613,7 +614,8 @@ public class LettuceConnectionFactoryUnitTests {
 	@Test // DATAREDIS-842
 	public void databaseShouldBeSetCorrectlyOnSentinelClient() {
 
-		RedisSentinelConfiguration redisSentinelConfiguration = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
+		RedisSentinelConfiguration redisSentinelConfiguration = new RedisSentinelConfiguration("mymaster",
+				Collections.singleton("host:1234"));
 		redisSentinelConfiguration.setDatabase(1);
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisSentinelConfiguration);
 		connectionFactory.setClientResources(getSharedClientResources());
