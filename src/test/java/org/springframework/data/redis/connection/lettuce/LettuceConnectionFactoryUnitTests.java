@@ -29,9 +29,6 @@ import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.cluster.RedisClusterClient;
-import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
-import io.lettuce.core.codec.ByteArrayCodec;
-import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
 
 import java.security.NoSuchAlgorithmException;
@@ -41,8 +38,6 @@ import java.util.Collections;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
@@ -57,6 +52,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Balázs Németh
+ * @author Ruben Cervilla
  */
 public class LettuceConnectionFactoryUnitTests {
 
@@ -68,7 +64,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 		ConnectionFactoryTracker.cleanUp();
 	}
 
@@ -527,7 +523,8 @@ public class LettuceConnectionFactoryUnitTests {
 	@Test // DATAREDIS-842
 	public void databaseShouldBeSetCorrectlyOnSentinelClient() {
 
-		RedisSentinelConfiguration redisSentinelConfiguration = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
+		RedisSentinelConfiguration redisSentinelConfiguration = new RedisSentinelConfiguration("mymaster",
+				Collections.singleton("host:1234"));
 		redisSentinelConfiguration.setDatabase(1);
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisSentinelConfiguration);
 		connectionFactory.setClientResources(getSharedClientResources());

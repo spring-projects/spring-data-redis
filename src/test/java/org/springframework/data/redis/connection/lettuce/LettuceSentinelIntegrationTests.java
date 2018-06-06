@@ -35,6 +35,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
@@ -56,8 +57,14 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	private static final RedisServer SLAVE_0 = new RedisServer("127.0.0.1", 6380);
 	private static final RedisServer SLAVE_1 = new RedisServer("127.0.0.1", 6381);
 
-	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration() //
-			.master(MASTER_NAME).sentinel(SENTINEL_0).sentinel(SENTINEL_1);
+	private static final RedisSentinelConfiguration SENTINEL_CONFIG;
+	static {
+
+		SENTINEL_CONFIG = new RedisSentinelConfiguration() //
+				.master(MASTER_NAME).sentinel(SENTINEL_0).sentinel(SENTINEL_1);
+
+		SENTINEL_CONFIG.setDatabase(5);
+	}
 
 	public static @ClassRule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();
 	public @Rule MinimumRedisVersionRule minimumVersionRule = new MinimumRedisVersionRule();
@@ -116,6 +123,30 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		List<RedisServer> servers = (List<RedisServer>) connectionFactory.getSentinelConnection().masters();
 		assertThat(servers.size(), is(1));
 		assertThat(servers.get(0).getName(), is(MASTER_NAME));
+	}
+
+	@Test // DATAREDIS-842
+	public void shouldUseSpecifiedDatabase() {
+
+		RedisConnection connection = connectionFactory.getConnection();
+
+		connection.flushDb();
+		connection.set("foo".getBytes(), "bar".getBytes());
+		connection.close();
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setShutdownTimeout(0);
+		connectionFactory.setShareNativeConnection(false);
+		connectionFactory.afterPropertiesSet();
+
+		RedisConnection directConnection = connectionFactory.getConnection();
+		assertThat(directConnection.exists("foo".getBytes()), is(false));
+		directConnection.select(5);
+
+		assertThat(directConnection.exists("foo".getBytes()), is(true));
+		directConnection.close();
+		connectionFactory.destroy();
 	}
 
 	@Test // DATAREDIS-348
