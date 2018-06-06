@@ -861,6 +861,7 @@ public class LettuceConnectionFactory
 
 		getRedisPassword().toOptional().ifPresent(redisUri::setPassword);
 		redisUri.setTimeout(clientConfiguration.getCommandTimeout());
+		redisUri.setDatabase(getDatabase());
 
 		return redisUri;
 	}

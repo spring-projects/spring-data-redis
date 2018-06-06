@@ -29,6 +29,9 @@ import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
 
 import java.security.NoSuchAlgorithmException;
@@ -38,6 +41,8 @@ import java.util.Collections;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
@@ -517,5 +522,24 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(ReflectionTestUtils.getField(clusterConnection, "timeout"), is(equalTo(2000L)));
 
 		clusterConnection.close();
+	}
+
+	@Test // DATAREDIS-842
+	public void databaseShouldBeSetCorrectlyOnSentinelClient() {
+
+		RedisSentinelConfiguration redisSentinelConfiguration = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
+		redisSentinelConfiguration.setDatabase(1);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisSentinelConfiguration);
+		connectionFactory.setClientResources(getSharedClientResources());
+		connectionFactory.setPassword("o_O");
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClient.class));
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.getDatabase(), is(equalTo(1)));
 	}
 }
