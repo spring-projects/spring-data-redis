@@ -59,6 +59,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Balázs Németh
+ * @author Rubén Cervilla
  */
 public class LettuceConnectionFactoryUnitTests {
 

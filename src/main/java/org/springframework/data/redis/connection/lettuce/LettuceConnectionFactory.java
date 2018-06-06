@@ -85,6 +85,7 @@ import org.springframework.util.ClassUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Balázs Németh
+ * @author Rubén Cervilla
  */
 public class LettuceConnectionFactory
 		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
