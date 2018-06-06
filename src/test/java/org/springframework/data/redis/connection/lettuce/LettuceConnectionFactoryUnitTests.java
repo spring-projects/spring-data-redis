@@ -609,4 +609,23 @@ public class LettuceConnectionFactoryUnitTests {
 
 		verify(clientMock).connect(ArgumentMatchers.any(RedisCodec.class));
 	}
+
+	@Test // DATAREDIS-842
+	public void databaseShouldBeSetCorrectlyOnSentinelClient() {
+
+		RedisSentinelConfiguration redisSentinelConfiguration = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
+		redisSentinelConfiguration.setDatabase(1);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisSentinelConfiguration);
+		connectionFactory.setClientResources(getSharedClientResources());
+		connectionFactory.setPassword("o_O");
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClient.class));
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.getDatabase(), is(equalTo(1)));
+	}
 }
