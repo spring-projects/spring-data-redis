@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.listener;
 
 import static org.hamcrest.core.Is.*;
@@ -33,6 +32,8 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
 /**
+ * Unit tests for {@link RedisMessageListenerContainer}.
+ *
  * @author Mark Paluch
  * @author Christoph Strobl
  */
@@ -54,7 +55,7 @@ public class RedisMessageListenerContainerTests {
 	private Executor executorMock;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 
 		executorMock = mock(Executor.class);
 		connectionFactoryMock = mock(LettuceConnectionFactory.class);
@@ -72,14 +73,13 @@ public class RedisMessageListenerContainerTests {
 
 	@After
 	public void tearDown() throws Exception {
-
 		container.destroy();
 	}
 
 	@Test // DATAREDIS-415
-	public void interruptAtStart() throws Exception {
+	public void interruptAtStart() {
 
-		final Thread main = Thread.currentThread();
+		Thread main = Thread.currentThread();
 
 		// interrupt thread once Executor.execute is called
 		doAnswer(invocationOnMock -> {
@@ -93,7 +93,6 @@ public class RedisMessageListenerContainerTests {
 
 		// reset the interrupted flag to not destroy the teardown
 		assertThat(Thread.interrupted(), is(true));
-
 		assertThat(container.isRunning(), is(false));
 	}
 

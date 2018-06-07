@@ -87,7 +87,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	public static final long DEFAULT_RECOVERY_INTERVAL = 5000;
 
 	/**
-	 * The default subscription wait time: 2000-2018 ms = 2 seconds.
+	 * The default subscription wait time: 2000 ms = 2 seconds.
 	 */
 	public static final long DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME = 2000L;
 
