@@ -847,26 +847,39 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			if (logger.isTraceEnabled()) {
 				logger.trace("Cancelling Redis subscription...");
 			}
-			if (connection != null) {
-				Subscription sub = connection.getSubscription();
-				if (sub != null) {
-					synchronized (localMonitor) {
+
+			if (connection == null) {
+				return;
+			}
+
+			Subscription sub = connection.getSubscription();
+			if (sub != null) {
+				synchronized (localMonitor) {
+
+					if (logger.isTraceEnabled()) {
 						logger.trace("Unsubscribing from all channels");
+					}
+
+					try {
 						sub.pUnsubscribe();
 						sub.unsubscribe();
-						if (subscriptionTaskRunning) {
-							try {
-								localMonitor.wait(subscriptionWait);
-							} catch (InterruptedException e) {
-								// Stop waiting
-								Thread.currentThread().interrupt();
-							}
+					} catch (Exception e) {
+						logger.warn("Unable to unsubscribe from subscriptions", e);
+					}
+
+					if (subscriptionTaskRunning) {
+						try {
+							localMonitor.wait(subscriptionWait);
+						} catch (InterruptedException e) {
+							// Stop waiting
+							Thread.currentThread().interrupt();
 						}
-						if (!subscriptionTaskRunning) {
-							closeConnection();
-						} else {
-							logger.warn("Unable to close connection. Subscription task still running");
-						}
+					}
+
+					if (!subscriptionTaskRunning) {
+						closeConnection();
+					} else {
+						logger.warn("Unable to close connection. Subscription task still running");
 					}
 				}
 			}
