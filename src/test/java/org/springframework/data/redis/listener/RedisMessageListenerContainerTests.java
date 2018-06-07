@@ -18,7 +18,7 @@ package org.springframework.data.redis.listener;
 
 import static org.hamcrest.core.Is.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.concurrent.Executor;
@@ -29,8 +29,11 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.data.redis.SettingsUtils;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
 /**
@@ -47,28 +50,27 @@ public class RedisMessageListenerContainerTests {
 
 	private final MessageListenerAdapter adapter = new MessageListenerAdapter(handler);
 
-	private JedisConnectionFactory connectionFactory;
 	private RedisMessageListenerContainer container;
 
+	private RedisConnectionFactory connectionFactoryMock;
+	private RedisConnection connectionMock;
+	private Subscription subscriptionMock;
 	private Executor executorMock;
 
 	@Before
 	public void setUp() throws Exception {
 
 		executorMock = mock(Executor.class);
-
-		connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setPort(SettingsUtils.getPort());
-		connectionFactory.setHostName(SettingsUtils.getHost());
-		connectionFactory.setDatabase(2);
-
-		connectionFactory.afterPropertiesSet();
+		connectionFactoryMock = mock(LettuceConnectionFactory.class);
+		connectionMock = mock(RedisConnection.class);
+		subscriptionMock = mock(Subscription.class);
 
 		container = new RedisMessageListenerContainer();
-		container.setConnectionFactory(connectionFactory);
+		container.setConnectionFactory(connectionFactoryMock);
 		container.setBeanName("container");
 		container.setTaskExecutor(new SyncTaskExecutor());
 		container.setSubscriptionExecutor(executorMock);
+		container.setMaxSubscriptionRegistrationWaitingTime(1);
 		container.afterPropertiesSet();
 	}
 
@@ -76,7 +78,6 @@ public class RedisMessageListenerContainerTests {
 	public void tearDown() throws Exception {
 
 		container.destroy();
-		connectionFactory.destroy();
 	}
 
 	@Test // DATAREDIS-415
@@ -104,4 +105,41 @@ public class RedisMessageListenerContainerTests {
 		assertThat(container.isRunning(), is(false));
 	}
 
+	@Test // DATAREDIS-840
+	public void containerShouldStopGracefullyOnUnsubscribeErrors() {
+
+		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);
+		doThrow(new IllegalStateException()).when(subscriptionMock).pUnsubscribe();
+
+		doAnswer(new Answer() {
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+
+				Runnable r = invocation.getArgumentAt(0, Runnable.class);
+				new Thread(r).start();
+				return null;
+			}
+		}).when(executorMock).execute(any(Runnable.class));
+
+		doAnswer(new Answer() {
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+
+				when(connectionMock.isSubscribed()).thenReturn(true);
+				return null;
+			}
+		}).when(connectionMock).subscribe(any(MessageListener.class), any(byte[][].class));
+
+		container.addMessageListener(adapter, new ChannelTopic("a"));
+		container.start();
+
+		when(connectionMock.getSubscription()).thenReturn(subscriptionMock);
+
+		container.stop();
+
+		assertThat(container.isRunning(), is(false));
+		verify(subscriptionMock).pUnsubscribe();
+	}
 }
