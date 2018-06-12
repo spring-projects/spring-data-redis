@@ -90,4 +90,11 @@ public interface Subscription {
 	 * @return true if the subscription still applies, false otherwise.
 	 */
 	boolean isAlive();
+
+	/**
+	 * Shutdown the subscription and free any resources held.
+	 *
+	 * @since 1.8.12
+	 */
+	void close();
 }

@@ -93,6 +93,15 @@ public abstract class AbstractSubscription implements Subscription {
 	 */
 	protected abstract void doPUnsubscribe(boolean all, byte[]... patterns);
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Subscription#close()
+	 */
+	@Override
+	public void close() {
+		doClose();
+	}
+
 	/**
 	 * Shutdown the subscription and free any resources held.
 	 */
