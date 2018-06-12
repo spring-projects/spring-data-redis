@@ -729,9 +729,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		public void run() {
+
 			synchronized (localMonitor) {
 				subscriptionTaskRunning = true;
 			}
+
 			try {
 				connection = connectionFactory.getConnection();
 				if (connection.isSubscribed()) {
@@ -839,21 +841,21 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		void cancel() {
-			if (!listening) {
+
+			if (!listening || connection == null) {
 				return;
 			}
+
 			listening = false;
 
 			if (logger.isTraceEnabled()) {
 				logger.trace("Cancelling Redis subscription...");
 			}
 
-			if (connection == null) {
-				return;
-			}
-
 			Subscription sub = connection.getSubscription();
+
 			if (sub != null) {
+
 				synchronized (localMonitor) {
 
 					if (logger.isTraceEnabled()) {
@@ -861,8 +863,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					}
 
 					try {
-						sub.pUnsubscribe();
-						sub.unsubscribe();
+						sub.close();
 					} catch (Exception e) {
 						logger.warn("Unable to unsubscribe from subscriptions", e);
 					}
@@ -886,6 +887,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		void closeConnection() {
+
 			if (connection != null) {
 				logger.trace("Closing connection");
 				try {
@@ -898,6 +900,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		void subscribeChannel(byte[]... channels) {
+
 			if (channels != null && channels.length > 0) {
 				if (connection != null) {
 					synchronized (localMonitor) {
