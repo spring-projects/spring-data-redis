@@ -1,6 +1,15 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.0.8.RELEASE (2018-06-13)
+---------------------------------------------
+* DATAREDIS-842 - LettuceConnectionFactory.getSentinelRedisURI does not set database.
+* DATAREDIS-840 - Stopped Redis server increases RedisMessageListenerContainer shutdown time.
+* DATAREDIS-832 - Add coverpage for epub documentation output.
+* DATAREDIS-830 - LettucePoolingConnectionProvider contains unreleased connections while using RedisMessageListenerContainer.
+* DATAREDIS-829 - Release 2.0.8 (Kay SR8).
+
+
 Changes in version 1.8.13.RELEASE (2018-06-13)
 ----------------------------------------------
 * DATAREDIS-840 - Stopped Redis server increases RedisMessageListenerContainer shutdown time.
