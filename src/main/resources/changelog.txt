@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.13.RELEASE (2018-06-13)
+----------------------------------------------
+* DATAREDIS-840 - Stopped Redis server increases RedisMessageListenerContainer shutdown time.
+* DATAREDIS-832 - Add coverpage for epub documentation output.
+* DATAREDIS-828 - Release 1.8.13 (Ingalls SR13).
+
+
 Changes in version 2.1.0.M3 (2018-05-17)
 ----------------------------------------
 * DATAREDIS-833 - Upgrade to Lettuce 5.1.0.M1.
