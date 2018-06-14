@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -47,11 +48,13 @@ public class LettuceReactiveRedisConnectionUnitTests {
 
 	@Mock(answer = Answers.RETURNS_MOCKS) StatefulRedisConnection<ByteBuffer, ByteBuffer> sharedConnection;
 
+	@Mock RedisReactiveCommands<ByteBuffer, ByteBuffer> reactiveCommands;
 	@Mock LettuceConnectionProvider connectionProvider;
 
 	@Before
 	public void before() {
 		when(connectionProvider.getConnection(any())).thenReturn(sharedConnection);
+		when(sharedConnection.reactive()).thenReturn(reactiveCommands);
 	}
 
 	@Test // DATAREDIS-720
@@ -194,5 +197,25 @@ public class LettuceReactiveRedisConnectionUnitTests {
 		connection.close();
 
 		connection.getConnection();
+	}
+
+	@Test // DATAREDIS-659, DATAREDIS-708
+	public void bgReWriteAofShouldRespondCorrectly() {
+
+		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
+
+		when(reactiveCommands.bgrewriteaof()).thenReturn(Mono.just("OK"));
+
+		StepVerifier.create(connection.serverCommands().bgReWriteAof()).expectNextCount(1).verifyComplete();
+	}
+
+	@Test // DATAREDIS-659, DATAREDIS-667, DATAREDIS-708
+	public void bgSaveShouldRespondCorrectly() {
+
+		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
+
+		when(reactiveCommands.bgsave()).thenReturn(Mono.just("OK"));
+
+		StepVerifier.create(connection.serverCommands().bgSave()).expectNextCount(1).verifyComplete();
 	}
 }

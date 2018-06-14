@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceReactiveCommandsTestsBase.*;
 
-import org.junit.Ignore;
 import reactor.test.StepVerifier;
 
 import org.junit.Test;
@@ -38,18 +37,6 @@ public class LettuceReactiveClusterServerCommandsTests extends LettuceReactiveCl
 	@Test // DATAREDIS-659
 	public void pingShouldRespondCorrectly() {
 		StepVerifier.create(connection.ping(NODE1)).expectNext("PONG").verifyComplete();
-	}
-
-	@Test // DATAREDIS-659
-	@Ignore("DATAREDIS-708, Causes ERR Background append only file rewriting already")
-	public void bgReWriteAofShouldRespondCorrectly() {
-		StepVerifier.create(connection.serverCommands().bgReWriteAof(NODE1)).expectNextCount(1).verifyComplete();
-	}
-
-	@Test // DATAREDIS-659
-	@Ignore("DATAREDIS-708, Causes ERR Background append only file rewriting already")
-	public void bgSaveShouldRespondCorrectly() {
-		StepVerifier.create(connection.serverCommands().bgSave(NODE1)).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
