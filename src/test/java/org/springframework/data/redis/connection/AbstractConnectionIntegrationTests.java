@@ -1113,6 +1113,20 @@ public abstract class AbstractConnectionIntegrationTests {
 		getResults();
 	}
 
+	@Test // DATAREDIS-696
+	@IfProfileValue(name = "redisVersion", value = "3.0+")
+	public void testRestoreExistingKeyWithReplaceOption() {
+
+		actual.add(connection.set("testing", "12"));
+		actual.add(connection.dump("testing".getBytes()));
+		actual.add(connection.set("testing", "21"));
+		connection.restore("testing".getBytes(), 0, (byte[]) getResults().get(1), true);
+
+		initConnection();
+		actual.add(connection.get("testing"));
+		verifyResults(Arrays.asList(new Object[] { "12" }));
+	}
+
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreTtl() {
@@ -2947,14 +2961,10 @@ public abstract class AbstractConnectionIntegrationTests {
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
 
-		actual.add(
-				connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
-		actual.add(
-				connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
-		actual.add(
-				connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
-		actual.add(
-				connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
 
 		List<Object> results = getResults();
 		assertThat((List<Long>) results.get(0), contains(1L));
@@ -2969,8 +2979,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void bitfieldShouldAllowMultipleSubcommands() {
 
 		actual.add(
-				connection.bitfield(KEY_1,
-				create().incr(signed(5)).valueAt(offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)));
+				connection.bitfield(KEY_1, create().incr(signed(5)).valueAt(offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)));
 
 		assertThat((List<Long>) getResults().get(0), contains(1L, 0L));
 	}

@@ -21,6 +21,10 @@ import io.lettuce.core.ScanCursor;
 import io.lettuce.core.SortArgs;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.output.StatusOutput;
+import io.lettuce.core.protocol.CommandArgs;
+import io.lettuce.core.protocol.CommandType;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -671,23 +675,33 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[])
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[], boolean)
 	 */
 	@Override
-	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(serializedValue, "Serialized value must not be null!");
 
 		try {
+
+			if (replace) {
+
+				this.connection.execute("RESTORE", new byte[][] { key, LettuceConverters.toBytes(ttlInMillis), serializedValue,
+						LettuceConverters.toBytes("REPLACE") });
+				return;
+			}
+
 			if (isPipelined()) {
 				pipeline(connection.newLettuceStatusResult(getAsyncConnection().restore(key, ttlInMillis, serializedValue)));
 				return;
 			}
+
 			if (isQueueing()) {
 				transaction(connection.newLettuceStatusResult(getAsyncConnection().restore(key, ttlInMillis, serializedValue)));
 				return;
 			}
+
 			getConnection().restore(key, ttlInMillis, serializedValue);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);

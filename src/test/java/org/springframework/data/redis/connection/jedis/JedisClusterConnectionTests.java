@@ -355,6 +355,20 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2), is(VALUE_1));
 	}
 
+	@Test // DATAREDIS-696
+	public void dumpAndRestoreWithReplaceOptionShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		byte[] dumpedValue = clusterConnection.keyCommands().dump(KEY_1_BYTES);
+
+		nativeConnection.set(KEY_1, VALUE_2);
+
+		clusterConnection.keyCommands().restore(KEY_1_BYTES, 0, dumpedValue, true);
+
+		assertThat(nativeConnection.get(KEY_1), is(VALUE_1));
+	}
+
 	@Test // DATAREDIS-315
 	public void echoShouldReturnInputCorrectly() {
 		assertThat(clusterConnection.echo(VALUE_1_BYTES), is(VALUE_1_BYTES));

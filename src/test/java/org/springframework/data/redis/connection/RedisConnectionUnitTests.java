@@ -772,8 +772,8 @@ public class RedisConnectionUnitTests {
 			delegate.slaveOfNoOne();
 		}
 
-		public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
-			delegate.restore(key, ttlInMillis, serializedValue);
+		public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
+			delegate.restore(key, ttlInMillis, serializedValue, replace);
 		}
 
 		public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {

@@ -96,6 +96,9 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void dumpAndRestoreShouldWorkCorrectly();
 
+	// DATAREDIS-696
+	void dumpAndRestoreWithReplaceOptionShouldWorkCorrectly();
+
 	// DATAREDIS-315
 	void echoShouldReturnInputCorrectly();
 
