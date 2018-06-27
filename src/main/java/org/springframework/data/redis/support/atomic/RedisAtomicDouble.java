@@ -150,7 +150,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 		Double value = operations.get(key);
 		if (value != null) {
-			return value.doubleValue();
+			return value;
 		}
 
 		throw new DataRetrievalFailureException(String.format("The key '%s' seems to no longer exist.", key));
@@ -175,7 +175,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 		Double value = operations.getAndSet(key, newValue);
 
-		return value != null ? value.doubleValue() : 0;
+		return value != null ? value : 0;
 	}
 
 	/**
@@ -186,7 +186,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 * @return {@literal true} if successful. {@literal false} indicates that the actual value was not equal to the
 	 *         expected value.
 	 */
-	public boolean compareAndSet(final double expect, final double update) {
+	public boolean compareAndSet(double expect, double update) {
 		return generalOps.execute(new CompareAndSet<>(this::get, this::set, key, expect, update));
 	}
 
@@ -214,7 +214,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 * @param delta the value to add
 	 * @return the previous value
 	 */
-	public double getAndAdd(final double delta) {
+	public double getAndAdd(double delta) {
 		return addAndGet(delta) - delta;
 	}
 
