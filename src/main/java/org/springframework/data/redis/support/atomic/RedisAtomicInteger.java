@@ -149,7 +149,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 		Integer value = operations.get(key);
 		if (value != null) {
-			return value.intValue();
+			return value;
 		}
 
 		throw new DataRetrievalFailureException(String.format("The key '%s' seems to no longer exist.", key));
@@ -174,7 +174,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 		Integer value = operations.getAndSet(key, newValue);
 
-		return value != null ? value.intValue() : 0;
+		return value != null ? value : 0;
 	}
 
 	/**
@@ -213,7 +213,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	 * @param delta the value to add.
 	 * @return the previous value.
 	 */
-	public int getAndAdd(final int delta) {
+	public int getAndAdd(int delta) {
 		return addAndGet(delta) - delta;
 	}
 

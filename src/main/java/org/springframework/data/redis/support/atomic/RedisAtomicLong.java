@@ -155,7 +155,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 		Long value = operations.get(key);
 		if (value != null) {
-			return value.longValue();
+			return value;
 		}
 
 		throw new DataRetrievalFailureException(String.format("The key '%s' seems to no longer exist.", key));
@@ -180,7 +180,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 		Long value = operations.getAndSet(key, newValue);
 
-		return value != null ? value.longValue() : 0;
+		return value != null ? value : 0;
 	}
 
 	/**
@@ -219,7 +219,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	 * @param delta the value to add.
 	 * @return the previous value.
 	 */
-	public long getAndAdd(final long delta) {
+	public long getAndAdd(long delta) {
 		return addAndGet(delta) - delta;
 	}
 
