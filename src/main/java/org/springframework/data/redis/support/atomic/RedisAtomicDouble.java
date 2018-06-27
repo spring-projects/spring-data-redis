@@ -16,7 +16,6 @@
 package org.springframework.data.redis.support.atomic;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -26,7 +25,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundKeyOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -190,27 +188,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 *         expected value.
 	 */
 	public boolean compareAndSet(final double expect, final double update) {
-
-		return generalOps.execute(new SessionCallback<Boolean>() {
-
-			@Override
-			@SuppressWarnings({ "unchecked", "rawtypes" })
-			public Boolean execute(RedisOperations operations) {
-				for (;;) {
-					operations.watch(Collections.singleton(key));
-					if (expect == get()) {
-						generalOps.multi();
-						set(update);
-						if (operations.exec() != null) {
-							return true;
-						}
-					}
-					{
-						return false;
-					}
-				}
-			}
-		});
+		return generalOps.execute(new CompareAndSet<>(this::get, this::set, key, expect, update));
 	}
 
 	/**

@@ -69,12 +69,6 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		ConnectionFactoryTracker.add(factory);
 	}
 
-	@Before
-	public void setUp() {
-		// Most atomic Double ops involve incrByFloat, which is new as of 2.6
-		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
-	}
-
 	@After
 	public void stop() {
 		RedisConnection connection = factory.getConnection();
