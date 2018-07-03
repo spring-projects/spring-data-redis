@@ -211,7 +211,11 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			R instance = (R) conversionService.convert(partial, readType.getType());
 
 			if (entity != null && entity.hasIdProperty()) {
-				entity.getPropertyAccessor(instance).setProperty(entity.getRequiredIdProperty(), source.getId());
+
+				PersistentPropertyAccessor<R> propertyAccessor = entity.getPropertyAccessor(instance);
+
+				propertyAccessor.setProperty(entity.getRequiredIdProperty(), source.getId());
+				instance = propertyAccessor.getBean();
 			}
 			return instance;
 		}
@@ -246,7 +250,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		readAssociation(path, source, entity, accessor);
 
-		return (R) instance;
+		return (R) accessor.getBean();
 	}
 
 	@SuppressWarnings("unchecked")

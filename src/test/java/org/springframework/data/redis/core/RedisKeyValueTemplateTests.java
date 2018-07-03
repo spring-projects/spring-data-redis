@@ -19,8 +19,10 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Wither;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -805,6 +807,33 @@ public class RedisKeyValueTemplateTests {
 		assertThat(target.get().ttl, is(-1L));
 	}
 
+	@Test // DATAREDIS-849
+	public void shouldWriteImmutableType() {
+
+		ImmutableObject source = new ImmutableObject().withValue("foo").withTtl(1234L);
+
+		ImmutableObject inserted = template.insert(source);
+
+		assertThat(source.id, is(nullValue()));
+		assertThat(inserted.id, is(notNullValue()));
+	}
+
+	@Test // DATAREDIS-849
+	public void shouldReadImmutableType() {
+
+		ImmutableObject source = new ImmutableObject().withValue("foo").withTtl(1234L);
+		ImmutableObject inserted = template.insert(source);
+
+		Optional<ImmutableObject> loaded = template.findById(inserted.id, ImmutableObject.class);
+
+		assertThat(loaded.isPresent(), is(true));
+
+		ImmutableObject immutableObject = loaded.get();
+		assertThat(immutableObject.id, is(inserted.id));
+		assertThat(immutableObject.ttl, is(notNullValue()));
+		assertThat(immutableObject.value, is(inserted.value));
+	}
+
 	@EqualsAndHashCode
 	@RedisHash("template-test-type-mapping")
 	static class VariousTypes {
@@ -928,5 +957,21 @@ public class RedisKeyValueTemplateTests {
 		@Id String id;
 		String value;
 		@TimeToLive int ttl;
+	}
+
+	@Data
+	@Wither
+	@AllArgsConstructor
+	static class ImmutableObject {
+
+		final @Id String id;
+		final String value;
+		final @TimeToLive Long ttl;
+
+		ImmutableObject() {
+			this.id = null;
+			this.value = null;
+			this.ttl = null;
+		}
 	}
 }
