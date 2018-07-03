@@ -22,8 +22,12 @@ import java.util.List;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueCallback;
 import org.springframework.data.keyvalue.core.KeyValueTemplate;
+import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.redis.core.convert.RedisConverter;
+import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -127,14 +131,31 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	 * @see org.springframework.data.keyvalue.core.KeyValueTemplate#insert(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void insert(Object id, Object objectToInsert) {
+	public <T> T insert(Object id, T objectToInsert) {
 
 		if (objectToInsert instanceof PartialUpdate) {
 			doPartialUpdate((PartialUpdate<?>) objectToInsert);
-			return;
+			return objectToInsert;
 		}
 
-		super.insert(id, objectToInsert);
+		if (!(objectToInsert instanceof RedisData)) {
+
+			RedisConverter converter = adapter.getConverter();
+
+			RedisPersistentEntity<?> entity = converter.getMappingContext()
+					.getRequiredPersistentEntity(objectToInsert.getClass());
+
+			KeyValuePersistentProperty idProperty = entity.getRequiredIdProperty();
+			PersistentPropertyAccessor<T> propertyAccessor = entity.getPropertyAccessor(objectToInsert);
+
+			if (propertyAccessor.getProperty(idProperty) == null) {
+
+				propertyAccessor.setProperty(idProperty, id);
+				return super.insert(id, propertyAccessor.getBean());
+			}
+		}
+
+		return super.insert(id, objectToInsert);
 	}
 
 	/*
@@ -142,14 +163,20 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	 * @see org.springframework.data.keyvalue.core.KeyValueTemplate#update(java.lang.Object)
 	 */
 	@Override
-	public void update(Object objectToUpdate) {
+	public <T> T update(T objectToUpdate) {
 
 		if (objectToUpdate instanceof PartialUpdate) {
 			doPartialUpdate((PartialUpdate<?>) objectToUpdate);
-			return;
+
+			return objectToUpdate;
 		}
 
-		super.update(objectToUpdate);
+		return super.update(objectToUpdate);
+	}
+
+	@Override
+	public <T> T update(Object id, T objectToUpdate) {
+		return super.update(id, objectToUpdate);
 	}
 
 	protected void doPartialUpdate(final PartialUpdate<?> update) {
