@@ -333,7 +333,7 @@ public interface ReactiveStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
-		Assert.notNull(key, "ExpireTimeout must not be null!");
+		Assert.notNull(expireTimeout, "ExpireTimeout must not be null!");
 
 		return pSetEX(Mono.just(SetCommand.set(key).value(value).expiring(expireTimeout))).next()
 				.map(BooleanResponse::getOutput);
