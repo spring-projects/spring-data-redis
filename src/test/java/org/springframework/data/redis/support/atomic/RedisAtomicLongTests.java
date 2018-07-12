@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.support.atomic;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collection;
 
@@ -63,11 +62,9 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		ConnectionFactoryTracker.add(factory);
 	}
 
-	@After
-	public void stop() {
-		RedisConnection connection = factory.getConnection();
-		connection.flushDb();
-		connection.close();
+	@Parameters
+	public static Collection<Object[]> testParams() {
+		return AtomicCountersParam.testParams();
 	}
 
 	@AfterClass
@@ -75,77 +72,83 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		ConnectionFactoryTracker.cleanUp();
 	}
 
-	@Parameters
-	public static Collection<Object[]> testParams() {
-		return AtomicCountersParam.testParams();
+	@After
+	public void tearDown() {
+
+		RedisConnection connection = factory.getConnection();
+		connection.flushDb();
+		connection.close();
 	}
 
 	@Test
-	public void testCheckAndSet() throws Exception {
+	public void testCheckAndSet() {
 
 		longCounter.set(0);
-		assertFalse(longCounter.compareAndSet(1, 10));
-		assertTrue(longCounter.compareAndSet(0, 10));
-		assertTrue(longCounter.compareAndSet(10, 0));
+		assertThat(longCounter.compareAndSet(1, 10)).isFalse();
+		assertThat(longCounter.compareAndSet(0, 10)).isTrue();
+		assertThat(longCounter.compareAndSet(10, 0)).isTrue();
 	}
 
 	@Test
-	public void testIncrementAndGet() throws Exception {
+	public void testIncrementAndGet() {
+
 		longCounter.set(0);
-		assertEquals(1, longCounter.incrementAndGet());
+		assertThat(longCounter.incrementAndGet()).isOne();
 	}
 
 	@Test
-	public void testAddAndGet() throws Exception {
+	public void testAddAndGet() {
+
 		longCounter.set(0);
 		long delta = 5;
-		assertEquals(delta, longCounter.addAndGet(delta));
+		assertThat(longCounter.addAndGet(delta)).isEqualTo(delta);
 	}
 
 	@Test
-	public void testDecrementAndGet() throws Exception {
+	public void testDecrementAndGet() {
+
 		longCounter.set(1);
-		assertEquals(0, longCounter.decrementAndGet());
+		assertThat(longCounter.decrementAndGet()).isZero();
 	}
 
 	@Test // DATAREDIS-469
 	public void testGetAndIncrement() {
 
 		longCounter.set(1);
-		assertEquals(1, longCounter.getAndIncrement());
-		assertEquals(2, longCounter.get());
+		assertThat(longCounter.getAndIncrement()).isOne();
+		assertThat(longCounter.get()).isEqualTo(2);
 	}
 
 	@Test // DATAREDIS-469
 	public void testGetAndAdd() {
 
 		longCounter.set(1);
-		assertEquals(1, longCounter.getAndAdd(5));
-		assertEquals(6, longCounter.get());
+		assertThat(longCounter.getAndAdd(5)).isOne();
+		assertThat(longCounter.get()).isEqualTo(6);
 	}
 
 	@Test // DATAREDIS-469
 	public void testGetAndDecrement() {
 
 		longCounter.set(1);
-		assertEquals(1, longCounter.getAndDecrement());
-		assertEquals(0, longCounter.get());
+		assertThat(longCounter.getAndDecrement()).isOne();
+		assertThat(longCounter.get()).isZero();
 	}
 
 	@Test // DATAREDIS-469
 	public void testGetAndSet() {
 
 		longCounter.set(1);
-		assertEquals(1, longCounter.getAndSet(5));
-		assertEquals(5, longCounter.get());
+		assertThat(longCounter.getAndSet(5)).isOne();
+		assertThat(longCounter.get()).isEqualTo(5);
 	}
 
 	@Test
-	public void testGetExistingValue() throws Exception {
+	public void testGetExistingValue() {
 
 		longCounter.set(5);
 		RedisAtomicLong keyCopy = new RedisAtomicLong(longCounter.getKey(), factory);
-		assertEquals(longCounter.get(), keyCopy.get());
+		assertThat(longCounter.get()).isEqualTo(keyCopy.get());
 	}
 
 	@Test // DATAREDIS-317
@@ -181,7 +184,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		RedisAtomicLong ral = new RedisAtomicLong("DATAREDIS-317.atomicLong", template);
 		ral.set(32L);
 
-		assertThat(ral.get(), is(32L));
+		assertThat(ral.get()).isEqualTo(32L);
 	}
 
 	@Test // DATAREDIS-469
@@ -192,7 +195,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 
 		// setup long
 		RedisAtomicLong test = new RedisAtomicLong("test", factory, 1);
-		assertThat(test.get(), equalTo(1L)); // this passes
+		assertThat(test.get()).isOne();
 
 		template.delete("test");
 
@@ -204,10 +207,10 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 
 		// setup long
 		RedisAtomicLong test = new RedisAtomicLong("test", factory, 1);
-		assertThat(test.get(), equalTo(1L)); // this passes
+		assertThat(test.get()).isOne();
 
 		template.delete("test");
 
-		assertThat(test.getAndSet(2), is(0L));
+		assertThat(test.getAndSet(2)).isZero();
 	}
 }

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.support.atomic;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -24,7 +23,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -67,11 +65,9 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		ConnectionFactoryTracker.add(factory);
 	}
 
-	@After
-	public void stop() {
-		RedisConnection connection = factory.getConnection();
-		connection.flushDb();
-		connection.close();
+	@Parameters
+	public static Collection<Object[]> testParams() {
+		return AtomicCountersParam.testParams();
 	}
 
 	@AfterClass
@@ -79,73 +75,78 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		ConnectionFactoryTracker.cleanUp();
 	}
 
-	@Parameters
-	public static Collection<Object[]> testParams() {
-		return AtomicCountersParam.testParams();
+	@After
+	public void tearDown() {
+
+		RedisConnection connection = factory.getConnection();
+		connection.flushDb();
+		connection.close();
 	}
 
 	@Test
 	public void testCheckAndSet() {
 
 		intCounter.set(0);
-		assertFalse(intCounter.compareAndSet(1, 10));
-		assertTrue(intCounter.compareAndSet(0, 10));
-		assertTrue(intCounter.compareAndSet(10, 0));
+		assertThat(intCounter.compareAndSet(1, 10)).isFalse();
+		assertThat(intCounter.compareAndSet(0, 10)).isTrue();
+		assertThat(intCounter.compareAndSet(10, 0)).isTrue();
 	}
 
 	@Test
 	public void testIncrementAndGet() {
+
 		intCounter.set(0);
-		assertEquals(1, intCounter.incrementAndGet());
+		assertThat(intCounter.incrementAndGet()).isOne();
 	}
 
 	@Test
-	public void testAddAndGet() throws Exception {
+	public void testAddAndGet() {
+
 		intCounter.set(0);
 		int delta = 5;
-		assertEquals(delta, intCounter.addAndGet(delta));
+		assertThat(intCounter.addAndGet(delta)).isEqualTo(delta);
 	}
 
 	@Test
 	public void testDecrementAndGet() {
+
 		intCounter.set(1);
-		assertEquals(0, intCounter.decrementAndGet());
+		assertThat(intCounter.decrementAndGet()).isZero();
 	}
 
 	@Test // DATAREDIS-469
 	public void testGetAndIncrement() {
 
 		intCounter.set(1);
-		assertEquals(1, intCounter.getAndIncrement());
-		assertEquals(2, intCounter.get());
+		assertThat(intCounter.getAndIncrement()).isOne();
+		assertThat(intCounter.get()).isEqualTo(2);
 	}
 
 	@Test // DATAREDIS-469
 	public void testGetAndAdd() {
 
 		intCounter.set(1);
-		assertEquals(1, intCounter.getAndAdd(5));
-		assertEquals(6, intCounter.get());
+		assertThat(intCounter.getAndAdd(5)).isOne();
+		assertThat(intCounter.get()).isEqualTo(6);
 	}
 
 	@Test // DATAREDIS-469
 	public void testGetAndDecrement() {
 
 		intCounter.set(1);
-		assertEquals(1, intCounter.getAndDecrement());
-		assertEquals(0, intCounter.get());
+		assertThat(intCounter.getAndDecrement()).isOne();
+		assertThat(intCounter.get()).isZero();
 	}
 
 	@Test // DATAREDIS-469
 	public void testGetAndSet() {
 
 		intCounter.set(1);
-		assertEquals(1, intCounter.getAndSet(5));
-		assertEquals(5, intCounter.get());
+		assertThat(intCounter.getAndSet(5)).isOne();
+		assertThat(intCounter.get()).isEqualTo(5);
 	}
 
-	@Test
-	@Ignore("DATAREDIS-108 Test is intermittently failing")
+	@Test // DATAREDIS-108, DATAREDIS-843
 	public void testCompareSet() throws Exception {
 
 		final AtomicBoolean alreadySet = new AtomicBoolean(false);
@@ -154,12 +155,14 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		final CountDownLatch latch = new CountDownLatch(NUM);
 
 		final AtomicBoolean failed = new AtomicBoolean(false);
+
 		for (int i = 0; i < NUM; i++) {
+
 			new Thread(() -> {
+
 				RedisAtomicInteger atomicInteger = new RedisAtomicInteger(KEY, factory);
 				try {
 					if (atomicInteger.compareAndSet(0, 1)) {
-						System.out.println(atomicInteger.get());
 						if (alreadySet.get()) {
 							failed.set(true);
 						}
@@ -170,9 +173,10 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 				}
 			}).start();
 		}
+
 		latch.await();
 
-		assertFalse("counter already modified", failed.get());
+		assertThat(failed.get()).withFailMessage("counter already modified").isFalse();
 	}
 
 	@Test // DATAREDIS-317
@@ -201,7 +205,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		RedisAtomicInteger ral = new RedisAtomicInteger("DATAREDIS-317.atomicInteger", template);
 		ral.set(32);
 
-		assertThat(ral.get(), is(32));
+		assertThat(ral.get()).isEqualTo(32);
 	}
 
 	@Test // DATAREDIS-469
@@ -212,7 +216,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 
 		// setup integer
 		RedisAtomicInteger test = new RedisAtomicInteger("test", factory, 1);
-		assertThat(test.get(), equalTo(1)); // this passes
+		assertThat(test.get()).isOne(); // this passes
 
 		template.delete("test");
 
@@ -224,10 +228,10 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 
 		// setup integer
 		RedisAtomicInteger test = new RedisAtomicInteger("test", factory, 1);
-		assertThat(test.get(), equalTo(1)); // this passes
+		assertThat(test.get()).isOne(); // this passes
 
 		template.delete("test");
 
-		assertThat(test.getAndSet(2), is(0));
+		assertThat(test.getAndSet(2)).isZero();
 	}
 }
