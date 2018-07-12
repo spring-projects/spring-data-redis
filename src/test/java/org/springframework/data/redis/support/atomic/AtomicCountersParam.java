@@ -18,8 +18,9 @@ package org.springframework.data.redis.support.atomic;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 
@@ -27,22 +28,20 @@ import org.springframework.data.redis.connection.lettuce.LettuceTestClientResour
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
-public abstract class AtomicCountersParam {
+abstract class AtomicCountersParam {
 
-	public static Collection<Object[]> testParams() {
+	static Collection<Object[]> testParams() {
+
 		// Jedis
-		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setPort(SettingsUtils.getPort());
-		jedisConnFactory.setHostName(SettingsUtils.getHost());
-		jedisConnFactory.setUsePool(true);
+		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration());
 		jedisConnFactory.afterPropertiesSet();
 
 		// Lettuce
-		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
-		lettuceConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnFactory.setPort(SettingsUtils.getPort());
-		lettuceConnFactory.setHostName(SettingsUtils.getHost());
+		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
+				LettuceClientConfiguration.builder().clientResources(LettuceTestClientResources.getSharedClientResources())
+						.build());
 		lettuceConnFactory.afterPropertiesSet();
 
 		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory } });

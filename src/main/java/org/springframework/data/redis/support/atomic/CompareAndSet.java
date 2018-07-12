@@ -44,7 +44,7 @@ class CompareAndSet<T> implements SessionCallback<Boolean> {
 
 	private final Supplier<T> getter;
 	private final Consumer<T> setter;
-	private final String key;
+	private final Object key;
 	private final T expect;
 	private final T update;
 
@@ -56,13 +56,11 @@ class CompareAndSet<T> implements SessionCallback<Boolean> {
 	@SuppressWarnings("unchecked")
 	public <K, V> Boolean execute(RedisOperations<K, V> operations) throws DataAccessException {
 
-		RedisOperations<String, T> ops = (RedisOperations<String, T>) operations;
-
-		ops.watch(key);
+		operations.watch((K) key);
 
 		if (expect.equals(getter.get())) {
 
-			ops.multi();
+			operations.multi();
 			setter.accept(update);
 
 			if (updateSuccessful(operations.exec())) {
@@ -70,7 +68,7 @@ class CompareAndSet<T> implements SessionCallback<Boolean> {
 			}
 		}
 
-		ops.unwatch();
+		operations.unwatch();
 		return false;
 	}
 
