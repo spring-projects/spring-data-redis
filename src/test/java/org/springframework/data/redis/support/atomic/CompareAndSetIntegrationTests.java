@@ -37,6 +37,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * Integration tests for {@link CompareAndSet}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 public class CompareAndSetIntegrationTests {
@@ -62,11 +63,9 @@ public class CompareAndSetIntegrationTests {
 		ConnectionFactoryTracker.add(factory);
 	}
 
-	@After
-	public void stop() {
-		RedisConnection connection = factory.getConnection();
-		connection.flushDb();
-		connection.close();
+	@Parameters
+	public static Collection<Object[]> testParams() {
+		return AtomicCountersParam.testParams();
 	}
 
 	@AfterClass
@@ -74,9 +73,12 @@ public class CompareAndSetIntegrationTests {
 		ConnectionFactoryTracker.cleanUp();
 	}
 
-	@Parameters
-	public static Collection<Object[]> testParams() {
-		return AtomicCountersParam.testParams();
+	@After
+	public void tearDown() {
+
+		RedisConnection connection = factory.getConnection();
+		connection.flushDb();
+		connection.close();
 	}
 
 	@Test // DATAREDIS-843
@@ -89,9 +91,7 @@ public class CompareAndSetIntegrationTests {
 		CompareAndSet<Long> cas = new CompareAndSet<>(() -> actual, newValue -> valueOps.set(KEY, newValue), KEY, expected,
 				update);
 
-		Boolean executed = this.template.execute(cas);
-
-		assertThat(executed).isTrue();
+		assertThat(template.execute(cas)).isTrue();
 		assertThat(valueOps.get(KEY)).isEqualTo(update);
 	}
 
@@ -105,9 +105,7 @@ public class CompareAndSetIntegrationTests {
 		CompareAndSet<Long> cas = new CompareAndSet<>(() -> actual, newValue -> valueOps.set(KEY, newValue), KEY, expected,
 				update);
 
-		Boolean executed = this.template.execute(cas);
-
-		assertThat(executed).isFalse();
+		assertThat(template.execute(cas)).isFalse();
 		assertThat(valueOps.get(KEY)).isNull();
 	}
 
@@ -121,16 +119,14 @@ public class CompareAndSetIntegrationTests {
 
 		CompareAndSet<Long> cas = new CompareAndSet<>(() -> actual, newValue -> {
 
-			RedisConnection connection = this.factory.getConnection();
+			RedisConnection connection = factory.getConnection();
 			connection.set(KEY.getBytes(), Long.toString(concurrentlyUpdated).getBytes());
 			connection.close();
 
 			valueOps.set(KEY, newValue);
 		}, KEY, expected, update);
 
-		Boolean executed = this.template.execute(cas);
-
-		assertThat(executed).isFalse();
+		assertThat(template.execute(cas)).isFalse();
 		assertThat(valueOps.get(KEY)).isEqualTo(concurrentlyUpdated);
 	}
 }
