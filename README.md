@@ -127,3 +127,4 @@ Github is for social coding: if you want to write code, we encourage contributio
 
 Follow the project team ([@SpringData](http://twitter.com/springdata)) on Twitter. In-depth articles can be
 found at the Spring [team blog](https://spring.io/blog), and releases are announced via our [news feed](https://spring.io/blog/category/news).
+
