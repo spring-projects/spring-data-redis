@@ -2,41 +2,41 @@
 = Reactive Redis support
 :referenceDir: .
 
-This section covers reactive Redis support and how to get started. You will find certain overlaps with the <<redis,imperative Redis support>>.
+This section covers reactive Redis support and how to get started. Reactive Redis support naturally has certain overlaps with <<redis,imperative Redis support>>.
 
 [[redis:reactive:requirements]]
 == Redis Requirements
 
-Spring Data Redis requires Redis 2.6 or above and Java SE 8.0 or above. In terms of language bindings (or connectors), Spring Data Redis currently integrates with http://github.com/lettuce-io/lettuce-core[Lettuce] as the only reactive Java connector. https://projectreactor.io/[Project Reactor] is used as reactive composition library.
+Spring Data Redis currently integrates with http://github.com/lettuce-io/lettuce-core[Lettuce] as the only reactive Java connector. https://projectreactor.io/[Project Reactor] is used as reactive composition library.
 
 [[redis:reactive:connectors]]
-== Connecting to Redis using a reactive driver
+== Connecting to Redis by Using a Reactive Driver
 
-One of the first tasks when using Redis and Spring is to connect to the store through the IoC container. To do that, a Java connector (or binding) is required. No matter the library one chooses, there is only one set of Spring Data Redis API that one needs to use that behaves consistently across all connectors, namely the `org.springframework.data.redis.connection` package and its `ReactiveRedisConnection` and `ReactiveRedisConnectionFactory` interfaces for working with and retrieving active `connections` to Redis.
+One of the first tasks when using Redis and Spring is to connect to the store through the IoC container. To do that, a Java connector (or binding) is required. No matter the library you choose, you must use the `org.springframework.data.redis.connection` package and its `ReactiveRedisConnection` and `ReactiveRedisConnectionFactory` interfaces to work with and retrieve active `connections` to Redis.
 
 [[redis:reactive:connectors:operation-modes]]
 === Redis Operation Modes
 
-Redis can be run as standalone server, with <<redis:sentinel,Redis Sentinel>> or in <<cluster,Redis Cluster>> mode.
-http://github.com/lettuce-io/lettuce-core[Lettuce] supports all above mentioned connection types.
+Redis can be run as a standalone server, with <<redis:sentinel,Redis Sentinel>>, or in <<cluster,Redis Cluster>> mode.
+http://github.com/lettuce-io/lettuce-core[Lettuce] supports all of the previously mentioned connection types.
 
 [[redis:reactive:connectors:connection]]
-=== ReactiveRedisConnection and ReactiveRedisConnectionFactory
+=== `ReactiveRedisConnection` and `ReactiveRedisConnectionFactory`
 
-`ReactiveRedisConnection` provides the building block for Redis communication as it handles the communication with the Redis back-end. It also automatically translates the underlying driver exceptions to Spring's consistent DAO exception http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#dao-exceptions[hierarchy] so one can switch the connectors without any code changes as the operation semantics remain the same.
+`ReactiveRedisConnection` is the core of Redis communication, as it handles the communication with the Redis back-end. It also automatically translates the underlying driver exceptions to Spring's consistent DAO exception http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#dao-exceptions[hierarchy], so you can switch the connectors without any code changes, as the operation semantics remain the same.
 
-Active ``ReactiveRedisConnection``s are created through `ReactiveRedisConnectionFactory`. In addition, the factories act as ``PersistenceExceptionTranslator``s, meaning once declared, they allow one to do transparent exception translation. For example, exception translation through the use of the `@Repository` annotation and AOP. For more information see the dedicated http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#orm-exception-translation[section] in Spring Framework documentation.
+`ReactiveRedisConnectionFactory` creates active `ReactiveRedisConnection` instances. In addition, the factories act as `PersistenceExceptionTranslator` instances, meaning that, once declared, they let you do transparent exception translation -- for example, exception translation through the use of the `@Repository` annotation and AOP. For more information, see the dedicated http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#orm-exception-translation[section] in the Spring Framework documentation.
 
 NOTE: Depending on the underlying configuration, the factory can return a new connection or an existing connection (in case a pool or shared native connection is used).
 
-The easiest way to work with a `ReactiveRedisConnectionFactory` is to configure the appropriate connector through the IoC container and inject it into the using class.
+TIP: The easiest way to work with a `ReactiveRedisConnectionFactory` is to configure the appropriate connector through the IoC container and inject it into the using class.
 
 [[redis:reactive:connectors:lettuce]]
-=== Configuring Lettuce connector
+=== Configuring a Lettuce Connector
 
 https://github.com/lettuce-io/lettuce-core[Lettuce] is supported by Spring Data Redis through the `org.springframework.data.redis.connection.lettuce` package.
 
-Setting up `ReactiveRedisConnectionFactory` for Lettuce can be done as follows:
+You can set up `ReactiveRedisConnectionFactory` for Lettuce as follows:
 
 [source,java]
 ----
@@ -46,7 +46,7 @@ public ReactiveRedisConnectionFactory connectionFactory() {
 }
 ----
 
-A more sophisticated configuration, including SSL and timeouts, using `LettuceClientConfigurationBuilder` might look like below:
+The following example shows a more sophisticated configuration, including SSL and timeouts, that uses `LettuceClientConfigurationBuilder`:
 
 [source,java]
 ----
@@ -63,14 +63,14 @@ public ReactiveRedisConnectionFactory lettuceConnectionFactory() {
 }
 ----
 
-For more detailed client configuration tweaks have a look at `LettuceClientConfiguration`.
+For more detailed client configuration tweaks, see https://docs.spring.io/spring-data/redis/docs/{revnumber}/api/org/springframework/data/redis/connection/lettuce/LettuceClientConfiguration.html[`LettuceClientConfiguration`].
 
 [[redis:reactive:template]]
 == Working with Objects through ReactiveRedisTemplate
 
-Most users are likely to use `ReactiveRedisTemplate` and its corresponding package `org.springframework.data.redis.core` - the template is in fact the central class of the Redis module due to its rich feature set. The template offers a high-level abstraction for Redis interactions. While `ReactiveRedisConnection` offers low level methods that accept and return binary values (`ByteBuffer`), the template takes care of serialization and connection management, freeing the user from dealing with such details.
+Most users are likely to use `ReactiveRedisTemplate` and its corresponding package, `org.springframework.data.redis.core`. Due to its rich feature set, the template is, in fact, the central class of the Redis module. The template offers a high-level abstraction for Redis interactions. While `ReactiveRedisConnection` offers low-level methods that accept and return binary values (`ByteBuffer`), the template takes care of serialization and connection management, freeing you from dealing with such details.
 
-Moreover, the template provides operation views (following the grouping from Redis command http://redis.io/commands[reference]) that offer rich, generified interfaces for working against a certain type as described below:
+Moreover, the template provides operation views (following the grouping from Redis command http://redis.io/commands[reference]) that offer rich, generified interfaces for working against a certain type as described in the following table:
 
 .Operational views
 [width="80%",cols="<1,<2",options="header"]
@@ -81,13 +81,13 @@ Moreover, the template provides operation views (following the grouping from Red
 2+^|_Key Type Operations_
 
 |ReactiveGeoOperations
-|Redis geospatial operations like `GEOADD`, `GEORADIUS`,...)
+|Redis geospatial operations such as `GEOADD`, `GEORADIUS`, and others)
 
 |ReactiveHashOperations
 |Redis hash operations
 
 |ReactiveHyperLogLogOperations
-|Redis HyperLogLog operations like (`PFADD`, `PFCOUNT`,...)
+|Redis HyperLogLog operations such as (`PFADD`, `PFCOUNT`, and others)
 
 |ReactiveListOperations
 |Redis list operations
@@ -104,7 +104,9 @@ Moreover, the template provides operation views (following the grouping from Red
 
 Once configured, the template is thread-safe and can be reused across multiple instances.
 
-Out of the box, `ReactiveRedisTemplate` uses a Java-based serializer for most of its operations. This means that any object written or read by the template will be serialized/deserialized through `RedisElementWriter` respective `RedisElementReader`. The serialization context is passed to the template upon construction, and the Redis module offers several implementations available in the `org.springframework.data.redis.serializer` package - see <<redis:serializer>> for more information.
+`ReactiveRedisTemplate` uses a Java-based serializer for most of its operations. This means that any object written or read by the template is serialized or deserialized through `RedisElementWriter` or `RedisElementReader`. The serialization context is passed to the template upon construction, and the Redis module offers several implementations available in the `org.springframework.data.redis.serializer` package. See <<redis:serializer>> for more information.
+
+The following example shows a `ReactiveRedisTemplate` being used to return a `Mono`:
 
 [source,java]
 ----
@@ -132,9 +134,9 @@ public class Example {
 ----
 
 [[redis:reactive:string]]
-== String-focused convenience classes
+== String-focused Convenience Classes
 
-Since it's quite common for keys and values stored in Redis to be a `java.lang.String`, the Redis module provides a String-based extension to `ReactiveRedisTemplate`: `ReactiveStringRedisTemplate` is a convenient one-stop solution for intensive `String` operations. In addition to being bound to `String` keys, the template uses the String-based `RedisSerializationContext` underneath which means the stored keys and values are human readable (assuming the same encoding is used both in Redis and your code). For example:
+Since it is quite common for keys and values stored in Redis to be a `java.lang.String`, the Redis module provides a String-based extension to `ReactiveRedisTemplate`: `ReactiveStringRedisTemplate`. It is a convenient one-stop solution for intensive `String` operations. In addition to being bound to `String` keys, the template uses the String-based `RedisSerializationContext`, which means the stored keys and values are human readable (assuming the same encoding is used in both Redis and your code). The following example shows `ReactiveStringRedisTemplate` in use:
 
 [source,java]
 ----
@@ -161,6 +163,8 @@ public class Example {
 }
 ----
 
+include::{referenceDir}/reactive-messaging.adoc[leveloffset=+1]
+
 == Reactive Scripting
 
 Executing Redis scripts via the reactive infrastructure can be done using the `ReactiveScriptExecutor` accessed best via `ReactiveRedisTemplate`.
@@ -183,5 +187,4 @@ public class Example {
 }
 ----
 
-Please refer to the <<scripting,scripting section>> for more details on scripting commands.
-
+See to the <<scripting,scripting section>> for more details on scripting commands.

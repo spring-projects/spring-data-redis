@@ -18,8 +18,6 @@ package org.springframework.data.redis.support.collections;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -38,38 +36,11 @@ import org.springframework.lang.Nullable;
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Christian Bühler
  */
 public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	private final BoundHashOperations<String, K, V> hashOps;
-
-	private class DefaultRedisMapEntry implements Map.Entry<K, V> {
-
-		private final K key;
-		private @Nullable final V value;
-
-		public DefaultRedisMapEntry(K key, @Nullable V value) {
-
-			this.key = key;
-			this.value = value;
-		}
-
-		@Override
-		public K getKey() {
-			return key;
-		}
-
-		@Override
-		@Nullable
-		public V getValue() {
-			return value;
-		}
-
-		@Override
-		public V setValue(@Nullable V value) {
-			throw new UnsupportedOperationException();
-		}
-	}
 
 	/**
 	 * Constructs a new {@link DefaultRedisMap} instance.
@@ -156,19 +127,9 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	@Override
 	public Set<java.util.Map.Entry<K, V>> entrySet() {
 
-		Set<K> keySet = keySet();
-		checkResult(keySet);
-		Collection<V> multiGet = hashOps.multiGet(keySet);
-
-		Iterator<K> keys = keySet.iterator();
-		Iterator<V> values = multiGet.iterator();
-
-		Set<Map.Entry<K, V>> entries = new LinkedHashSet<>();
-		while (keys.hasNext()) {
-			entries.add(new DefaultRedisMapEntry(keys.next(), values.next()));
-		}
-
-		return entries;
+		Map<K, V> entries = hashOps.entries();
+		checkResult(entries);
+		return entries.entrySet();
 	}
 
 	/*
@@ -289,10 +250,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	@Override
 	public String toString() {
 
-		StringBuilder sb = new StringBuilder();
-		sb.append("RedisStore for key:");
-		sb.append(getKey());
-		return sb.toString();
+		return "RedisStore for key:" + getKey();
 	}
 
 	/*

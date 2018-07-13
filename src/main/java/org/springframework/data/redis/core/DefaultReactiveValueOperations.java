@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
@@ -41,6 +42,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Jiahe Cai
  * @since 2.0
  */
 @RequiredArgsConstructor
@@ -86,6 +88,19 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 	}
 
 	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#setIfAbsent(java.lang.Object, java.lang.Object, java.time.Duration)
+	 */
+	@Override
+	public Mono<Boolean> setIfAbsent(K key, V value, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(timeout, "Duration must not be null!");
+
+		return createMono(
+				connection -> connection.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.SET_IF_ABSENT));
+	}
+
+	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveValueOperations#setIfPresent(java.lang.Object, java.lang.Object)
 	 */
 	@Override
@@ -95,6 +110,19 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		return createMono(
 				connection -> connection.set(rawKey(key), rawValue(value), Expiration.persistent(), SetOption.SET_IF_PRESENT));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#setIfPresent(java.lang.Object, java.lang.Object, java.time.Duration)
+	 */
+	@Override
+	public Mono<Boolean> setIfPresent(K key, V value, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(timeout, "Duration must not be null!");
+
+		return createMono(
+				connection -> connection.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.SET_IF_PRESENT));
 	}
 
 	/* (non-Javadoc)
@@ -168,6 +196,61 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 	}
 
 	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#increment(java.lang.Object)
+	 */
+	@Override
+	public Mono<Long> increment(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.numberCommands().incr(rawKey(key)));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#increment(java.lang.Object, long)
+	 */
+	@Override
+	public Mono<Long> increment(K key, long delta) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.numberCommands().incrBy(rawKey(key), delta));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#increment(java.lang.Object, double)
+	 */
+	@Override
+	public Mono<Double> increment(K key, double delta) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.numberCommands().incrBy(rawKey(key), delta));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#decrement(java.lang.Object)
+	 */
+	@Override
+	public Mono<Long> decrement(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.numberCommands().decr(rawKey(key)));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#decrement(java.lang.Object, long)
+	 */
+	@Override
+	public Mono<Long> decrement(K key, long delta) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.numberCommands().decrBy(rawKey(key), delta));
+	}
+
+	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveValueOperations#append(java.lang.Object, java.lang.String)
 	 */
 	@Override
@@ -234,6 +317,18 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null!");
 
 		return createMono(connection -> connection.getBit(rawKey(key), offset));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#bitField(java.lang.Object, org.springframework.data.redis.connection.BitFieldSubCommands)
+	 */
+	@Override
+	public Mono<List<Long>> bitField(K key, BitFieldSubCommands subCommands) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(subCommands, "BitFieldSubCommands must not be null!");
+
+		return createMono(connection -> connection.bitField(rawKey(key), subCommands));
 	}
 
 	/* (non-Javadoc)

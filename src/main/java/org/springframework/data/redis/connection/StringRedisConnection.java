@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -317,6 +318,39 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	Long sort(String key, SortParameters params, String storeKey);
 
+	/**
+	 * Get the type of internal representation used for storing the value at the given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @since 2.1
+	 */
+	@Nullable
+	ValueEncoding encodingOf(String key);
+
+	/**
+	 * Get the {@link Duration} since the object stored at the given {@code key} is idle.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @since 2.1
+	 */
+	@Nullable
+	Duration idletime(String key);
+
+	/**
+	 * Get the number of references of the value associated with the specified {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @since 2.1
+	 */
+	@Nullable
+	Long refcount(String key);
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with values/Redis strings
 	// -------------------------------------------------------------------------
@@ -579,6 +613,37 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisStringCommands#bitOp(BitOperation, byte[], byte[]...)
 	 */
 	Long bitOp(BitOperation op, String destination, String... keys);
+
+	/**
+	 * Return the position of the first bit set to given {@code bit} in a string.
+	 *
+	 * @param key the key holding the actual String.
+	 * @param bit the bit value to look for.
+	 * @return {@literal null} when used in pipeline / transaction. The position of the first bit set to 1 or 0 according
+	 *         to the request.
+	 * @see <a href="http://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
+	 * @since 2.1
+	 */
+	default Long bitPos(String key, boolean bit) {
+		return bitPos(key, bit, org.springframework.data.domain.Range.unbounded());
+	}
+
+	/**
+	 * Return the position of the first bit set to given {@code bit} in a string.
+	 * {@link org.springframework.data.domain.Range} start and end can contain negative values in order to index
+	 * <strong>bytes</strong> starting from the end of the string, where {@literal -1} is the last byte, {@literal -2} is
+	 * the penultimate.
+	 *
+	 * @param key the key holding the actual String.
+	 * @param bit the bit value to look for.
+	 * @param range must not be {@literal null}. Use {@link Range#unbounded()} to not limit search.
+	 * @return {@literal null} when used in pipeline / transaction. The position of the first bit set to 1 or 0 according
+	 *         to the request.
+	 * @see <a href="http://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Long bitPos(String key, boolean bit, org.springframework.data.domain.Range<Long> range);
 
 	/**
 	 * Get the length of the value stored at {@code key}.
@@ -1880,4 +1945,14 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	List<RedisClientInfo> getClientList();
 
+
+	/**
+	 * Get / Manipulate specific integer fields of varying bit widths and arbitrary non (necessary) aligned offset stored
+	 * at a given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param command must not be {@literal null}.
+	 * @return
+	 */
+	List<Long> bitfield(String key, BitFieldSubCommands command);
 }

@@ -18,16 +18,19 @@ package org.springframework.data.redis.core;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Costin Leau
+ * @author Jiahe Cai
+ * @author Mark Paluch
  */
 class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundValueOperations<K, V> {
 
 	private final ValueOperations<K, V> ops;
 
 	/**
-	 * Constructs a new <code>DefaultBoundValueOperations</code> instance.
+	 * Constructs a new {@link DefaultBoundValueOperations} instance.
 	 *
 	 * @param key
 	 * @param operations
@@ -58,6 +61,15 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#increment()
+	 */
+	@Override
+	public Long increment() {
+		return ops.increment(getKey());
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundValueOperations#increment(long)
 	 */
 	@Override
@@ -72,6 +84,24 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 	@Override
 	public Double increment(double delta) {
 		return ops.increment(getKey(), delta);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#decrement()
+	 */
+	@Override
+	public Long decrement() {
+		return ops.decrement(getKey());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#decrement(double)
+	 */
+	@Override
+	public Long decrement(long delta) {
+		return ops.decrement(getKey(), delta);
 	}
 
 	/*
@@ -117,6 +147,35 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 	@Override
 	public Boolean setIfAbsent(V value) {
 		return ops.setIfAbsent(getKey(), value);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#setIfAbsent(java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Boolean setIfAbsent(V value, long timeout, TimeUnit unit) {
+		return ops.setIfAbsent(getKey(), value, timeout, unit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#setIfPresent(java.lang.Object)
+	 */
+	@Nullable
+	@Override
+	public Boolean setIfPresent(V value) {
+		return ops.setIfPresent(getKey(), value);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#setIfPresent(java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Boolean setIfPresent(V value, long timeout, TimeUnit unit) {
+		return ops.setIfPresent(getKey(), value, timeout, unit);
 	}
 
 	/*

@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.KeyValue;
+import io.lettuce.core.ScanStream;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -31,10 +32,10 @@ import org.springframework.data.redis.connection.ReactiveHashCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyScanCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
@@ -74,8 +75,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 				Entry<ByteBuffer, ByteBuffer> entry = command.getFieldValueMap().entrySet().iterator().next();
 
-				result = ObjectUtils.nullSafeEquals(command.isUpsert(), Boolean.TRUE)
-						? cmd.hset(command.getKey(), entry.getKey(), entry.getValue())
+				result = command.isUpsert() ? cmd.hset(command.getKey(), entry.getKey(), entry.getValue())
 						: cmd.hsetnx(command.getKey(), entry.getKey(), entry.getValue());
 			} else {
 
@@ -212,6 +212,44 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 			Mono<Map<ByteBuffer, ByteBuffer>> result = cmd.hgetall(command.getKey());
 
 			return Mono.just(new CommandResponse<>(command, result.flatMapMany(v -> Flux.fromStream(v.entrySet().stream()))));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveHashCommands#hScan(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<KeyCommand, Flux<Map.Entry<ByteBuffer, ByteBuffer>>>> hScan(
+			Publisher<KeyScanCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getOptions(), "ScanOptions must not be null!");
+
+			Flux<KeyValue<ByteBuffer, ByteBuffer>> result = ScanStream.hscan(cmd, command.getKey(),
+					LettuceConverters.toScanArgs(command.getOptions()));
+
+			Flux<Entry<ByteBuffer, ByteBuffer>> entryFlux = result.map(it -> new Entry<ByteBuffer, ByteBuffer>() {
+
+				@Override
+				public ByteBuffer getKey() {
+					return it.getKey();
+				}
+
+				@Override
+				public ByteBuffer getValue() {
+					return it.getValue();
+				}
+
+				@Override
+				public ByteBuffer setValue(ByteBuffer value) {
+					throw new UnsupportedOperationException("Cannot set value for entry in cursor.");
+				}
+			});
+
+			return Mono.just(new CommandResponse<>(command, entryFlux));
 		}));
 	}
 

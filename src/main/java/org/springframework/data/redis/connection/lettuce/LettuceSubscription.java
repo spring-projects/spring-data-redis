@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.sync.RedisPubSubCommands;
 
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.util.AbstractSubscription;
@@ -25,46 +25,85 @@ import org.springframework.data.redis.connection.util.AbstractSubscription;
  * Message subscription on top of Lettuce.
  *
  * @author Costin Leau
+ * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class LettuceSubscription extends AbstractSubscription {
 
-	final StatefulRedisPubSubConnection<byte[], byte[]> pubsub;
-	private LettuceMessageListener listener;
+	private final StatefulRedisPubSubConnection<byte[], byte[]> connection;
+	private final LettuceMessageListener listener;
+	private final LettuceConnectionProvider connectionProvider;
+	private final RedisPubSubCommands<byte[], byte[]> pubsub;
 
-	LettuceSubscription(MessageListener listener, StatefulRedisPubSubConnection<byte[], byte[]> pubsubConnection) {
+	LettuceSubscription(MessageListener listener, StatefulRedisPubSubConnection<byte[], byte[]> pubsubConnection,
+			LettuceConnectionProvider connectionProvider) {
+
 		super(listener);
-		this.pubsub = pubsubConnection;
+
+		this.connection = pubsubConnection;
 		this.listener = new LettuceMessageListener(listener);
+		this.connectionProvider = connectionProvider;
+		this.pubsub = connection.sync();
 
-		pubsub.addListener(this.listener);
+		this.connection.addListener(this.listener);
 	}
 
+	protected StatefulRedisPubSubConnection<byte[], byte[]> getNativeConnection() {
+		return connection;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doClose()
+	 */
 	protected void doClose() {
+
 		if (!getChannels().isEmpty()) {
-			pubsub.sync().unsubscribe(new byte[0]);
+			pubsub.unsubscribe(new byte[0]);
 		}
+
 		if (!getPatterns().isEmpty()) {
-			pubsub.sync().punsubscribe(new byte[0]);
+			pubsub.punsubscribe(new byte[0]);
 		}
-		pubsub.removeListener(this.listener);
-		pubsub.close();
+
+		connection.removeListener(this.listener);
+		connectionProvider.release(connection);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPsubscribe(byte[][])
+	 */
 	protected void doPsubscribe(byte[]... patterns) {
-		pubsub.sync().psubscribe(patterns);
+		pubsub.psubscribe(patterns);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPUnsubscribe(boolean, byte[][])
+	 */
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
-		// lettuce doesn't automatically subscribe from all channels
-		pubsub.sync().punsubscribe(patterns);
+
+		// ignore `all` flag as Lettuce unsubscribes from all patterns if none provided.
+		pubsub.punsubscribe(patterns);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doSubscribe(byte[][])
+	 */
 	protected void doSubscribe(byte[]... channels) {
-		pubsub.sync().subscribe(channels);
+		pubsub.subscribe(channels);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doUnsubscribe(boolean, byte[][])
+	 */
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
-		// lettuce doesn't automatically subscribe from all patterns
-		pubsub.sync().unsubscribe(channels);
+
+		// ignore `all` flag as Lettuce unsubscribes from all channels if none provided.
+		pubsub.unsubscribe(channels);
 	}
+
 }

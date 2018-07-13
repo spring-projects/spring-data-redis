@@ -44,6 +44,8 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
+ * Unit tests for {@link RedisQueryCreator}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
@@ -173,6 +175,30 @@ public class RedisQueryCreatorUnitTests {
 		creator.createQuery();
 	}
 
+	@Test // DATAREDIS-771
+	public void findByBooleanIsTrue() throws SecurityException, NoSuchMethodException {
+
+		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
+				SampleRepository.class.getMethod("findByAliveIsTrue"), new Object[0]);
+
+		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
+
+		assertThat(query.getCriteria().getSismember(), hasSize(1));
+		assertThat(query.getCriteria().getSismember(), hasItem(new PathAndValue("alive", true)));
+	}
+
+	@Test // DATAREDIS-771
+	public void findByBooleanIsFalse() throws SecurityException, NoSuchMethodException {
+
+		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
+				SampleRepository.class.getMethod("findByAliveIsFalse"), new Object[0]);
+
+		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
+
+		assertThat(query.getCriteria().getSismember(), hasSize(1));
+		assertThat(query.getCriteria().getSismember(), hasItem(new PathAndValue("alive", false)));
+	}
+
 	private RedisQueryCreator createQueryCreatorForMethodWithArgs(Method method, Object[] args) {
 
 		PartTree partTree = new PartTree(method.getName(), method.getReturnType());
@@ -189,6 +215,10 @@ public class RedisQueryCreatorUnitTests {
 		Person findByFirstnameAndAge(String firstname, Integer age);
 
 		Person findByAgeOrFirstname(Integer age, String firstname);
+
+		Person findByAliveIsTrue();
+
+		Person findByAliveIsFalse();
 
 		Person findByLocationWithin(Circle circle);
 

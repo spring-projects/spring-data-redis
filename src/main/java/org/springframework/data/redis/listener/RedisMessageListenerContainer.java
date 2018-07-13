@@ -87,7 +87,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	public static final long DEFAULT_RECOVERY_INTERVAL = 5000;
 
 	/**
-	 * The default subscription wait time: 2000-2018 ms = 2 seconds.
+	 * The default subscription wait time: 2000 ms = 2 seconds.
 	 */
 	public static final long DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME = 2000L;
 
@@ -729,9 +729,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		public void run() {
+
 			synchronized (localMonitor) {
 				subscriptionTaskRunning = true;
 			}
+
 			try {
 				connection = connectionFactory.getConnection();
 				if (connection.isSubscribed()) {
@@ -839,40 +841,53 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		void cancel() {
-			if (!listening) {
+
+			if (!listening || connection == null) {
 				return;
 			}
+
 			listening = false;
 
 			if (logger.isTraceEnabled()) {
 				logger.trace("Cancelling Redis subscription...");
 			}
-			if (connection != null) {
-				Subscription sub = connection.getSubscription();
-				if (sub != null) {
-					synchronized (localMonitor) {
+
+			Subscription sub = connection.getSubscription();
+
+			if (sub != null) {
+
+				synchronized (localMonitor) {
+
+					if (logger.isTraceEnabled()) {
 						logger.trace("Unsubscribing from all channels");
-						sub.pUnsubscribe();
-						sub.unsubscribe();
-						if (subscriptionTaskRunning) {
-							try {
-								localMonitor.wait(subscriptionWait);
-							} catch (InterruptedException e) {
-								// Stop waiting
-								Thread.currentThread().interrupt();
-							}
+					}
+
+					try {
+						sub.close();
+					} catch (Exception e) {
+						logger.warn("Unable to unsubscribe from subscriptions", e);
+					}
+
+					if (subscriptionTaskRunning) {
+						try {
+							localMonitor.wait(subscriptionWait);
+						} catch (InterruptedException e) {
+							// Stop waiting
+							Thread.currentThread().interrupt();
 						}
-						if (!subscriptionTaskRunning) {
-							closeConnection();
-						} else {
-							logger.warn("Unable to close connection. Subscription task still running");
-						}
+					}
+
+					if (!subscriptionTaskRunning) {
+						closeConnection();
+					} else {
+						logger.warn("Unable to close connection. Subscription task still running");
 					}
 				}
 			}
 		}
 
 		void closeConnection() {
+
 			if (connection != null) {
 				logger.trace("Closing connection");
 				try {
@@ -885,6 +900,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		void subscribeChannel(byte[]... channels) {
+
 			if (channels != null && channels.length > 0) {
 				if (connection != null) {
 					synchronized (localMonitor) {

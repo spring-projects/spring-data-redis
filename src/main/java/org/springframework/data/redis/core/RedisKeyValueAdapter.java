@@ -36,7 +36,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.data.keyvalue.core.AbstractKeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
-import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -217,15 +217,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 
 		if (rdo.getId() == null) {
-
 			rdo.setId(converter.getConversionService().convert(id, String.class));
-
-			if (!(item instanceof RedisData)) {
-				KeyValuePersistentProperty idProperty = converter.getMappingContext()
-						.getRequiredPersistentEntity(item.getClass()).getRequiredIdProperty();
-				converter.getMappingContext().getRequiredPersistentEntity(item.getClass()).getPropertyAccessor(item)
-						.setProperty(idProperty, id);
-			}
 		}
 
 		redisOps.execute((RedisCallback<Object>) connection -> {
@@ -624,8 +616,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			});
 
 			if (timeout != null || !ttlProperty.getType().isPrimitive()) {
-				entity.getPropertyAccessor(target).setProperty(ttlProperty,
+
+				PersistentPropertyAccessor<T> propertyAccessor = entity.getPropertyAccessor(target);
+
+				propertyAccessor.setProperty(ttlProperty,
 						converter.getConversionService().convert(timeout, ttlProperty.getType()));
+
+				target = propertyAccessor.getBean();
 			}
 		}
 

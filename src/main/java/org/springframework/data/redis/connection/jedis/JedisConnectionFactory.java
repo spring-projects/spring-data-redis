@@ -49,16 +49,10 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.ClusterCommandExecutor;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
-import org.springframework.data.redis.connection.RedisClusterConnection;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisNode;
-import org.springframework.data.redis.connection.RedisPassword;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisSentinelConnection;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration;
+import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
+import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterTopologyProvider;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -98,8 +92,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private boolean convertPipelineAndTxResults = true;
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost",
 			Protocol.DEFAULT_PORT);
-	private @Nullable RedisSentinelConfiguration sentinelConfig;
-	private @Nullable RedisClusterConfiguration clusterConfig;
+
+	private @Nullable RedisConfiguration configuration;
+
 	private @Nullable JedisCluster cluster;
 	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
 
@@ -171,7 +166,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfig, JedisPoolConfig poolConfig) {
 
-		this.sentinelConfig = sentinelConfig;
+		this.configuration = sentinelConfig;
 		this.clientConfiguration = MutableJedisClientConfiguration
 				.create(poolConfig != null ? poolConfig : new JedisPoolConfig());
 	}
@@ -198,7 +193,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		Assert.notNull(clusterConfig, "RedisClusterConfiguration must not be null!");
 
-		this.clusterConfig = clusterConfig;
+		this.configuration = clusterConfig;
 		this.clientConfiguration = MutableJedisClientConfiguration.create(poolConfig);
 	}
 
@@ -243,7 +238,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		Assert.notNull(sentinelConfig, "RedisSentinelConfiguration must not be null!");
 
-		this.sentinelConfig = sentinelConfig;
+		this.configuration = sentinelConfig;
 	}
 
 	/**
@@ -260,7 +255,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		Assert.notNull(clusterConfig, "RedisClusterConfiguration must not be null!");
 
-		this.clusterConfig = clusterConfig;
+		this.configuration = clusterConfig;
 	}
 
 	/**
@@ -354,7 +349,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private Pool<Jedis> createPool() {
 
 		if (isRedisSentinelAware()) {
-			return createRedisSentinelPool(this.sentinelConfig);
+			return createRedisSentinelPool((RedisSentinelConfiguration) this.configuration);
 		}
 		return createRedisPool();
 	}
@@ -390,7 +385,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	private JedisCluster createCluster() {
 
-		JedisCluster cluster = createCluster(this.clusterConfig, getPoolConfig());
+		JedisCluster cluster = createCluster((RedisClusterConfiguration) this.configuration, getPoolConfig());
 		JedisClusterTopologyProvider topologyProvider = new JedisClusterTopologyProvider(cluster);
 		this.clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider,
 				new JedisClusterConnection.JedisClusterNodeResourceProvider(cluster, topologyProvider), EXCEPTION_TRANSLATION);
@@ -548,16 +543,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	private RedisPassword getRedisPassword() {
-
-		if (isRedisSentinelAware()) {
-			return sentinelConfig.getPassword();
-		}
-
-		if (isRedisClusterAware()) {
-			return clusterConfig.getPassword();
-		}
-
-		return standaloneConfig.getPassword();
+		return RedisConfiguration.getPasswordOrElse(this.configuration, standaloneConfig::getPassword);
 	}
 
 	/**
@@ -570,13 +556,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	@Deprecated
 	public void setPassword(String password) {
 
-		if (isRedisSentinelAware()) {
-			sentinelConfig.setPassword(RedisPassword.of(password));
-			return;
-		}
+		if (RedisConfiguration.isPasswordAware(configuration)) {
 
-		if (isRedisClusterAware()) {
-			clusterConfig.setPassword(RedisPassword.of(password));
+			((WithPassword) configuration).setPassword(password);
 			return;
 		}
 
@@ -716,12 +698,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @return the database index.
 	 */
 	public int getDatabase() {
-
-		if (isRedisSentinelAware()) {
-			return sentinelConfig.getDatabase();
-		}
-
-		return standaloneConfig.getDatabase();
+		return RedisConfiguration.getDatabaseOrElse(configuration, standaloneConfig::getDatabase);
 	}
 
 	/**
@@ -736,8 +713,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
 
-		if (isRedisSentinelAware()) {
-			sentinelConfig.setDatabase(index);
+		if (RedisConfiguration.isDatabaseIndexAware(configuration)) {
+
+			((WithDatabaseIndex) configuration).setDatabase(index);
 			return;
 		}
 
@@ -791,7 +769,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	@Nullable
 	public RedisSentinelConfiguration getSentinelConfiguration() {
-		return sentinelConfig;
+		return RedisConfiguration.isSentinelConfiguration(configuration) ? (RedisSentinelConfiguration) configuration
+				: null;
 	}
 
 	/**
@@ -800,7 +779,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	@Nullable
 	public RedisClusterConfiguration getClusterConfiguration() {
-		return clusterConfig;
+		return RedisConfiguration.isClusterConfiguration(configuration) ? (RedisClusterConfiguration) configuration : null;
 	}
 
 	/**
@@ -830,7 +809,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @since 1.4
 	 */
 	public boolean isRedisSentinelAware() {
-		return sentinelConfig != null;
+		return RedisConfiguration.isSentinelConfiguration(configuration);
 	}
 
 	/**
@@ -838,7 +817,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @since 2.0
 	 */
 	public boolean isRedisClusterAware() {
-		return clusterConfig != null;
+		return RedisConfiguration.isClusterConfiguration(configuration);
 	}
 
 	/* (non-Javadoc)
@@ -856,9 +835,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	private Jedis getActiveSentinel() {
 
-		Assert.notNull(this.sentinelConfig, "SentinelConfig must not be null!");
+		Assert.isTrue(RedisConfiguration.isSentinelConfiguration(configuration), "SentinelConfig must not be null!");
 
-		for (RedisNode node : this.sentinelConfig.getSentinels()) {
+		for (RedisNode node : ((SentinelConfiguration) configuration).getSentinels()) {
 
 			Jedis jedis = new Jedis(node.getHost(), node.getPort(), getConnectTimeout(), getReadTimeout());
 

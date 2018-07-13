@@ -16,7 +16,6 @@
 package org.springframework.data.redis.support.atomic;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -26,11 +25,9 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundKeyOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -153,7 +150,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 		Double value = operations.get(key);
 		if (value != null) {
-			return value.doubleValue();
+			return value;
 		}
 
 		throw new DataRetrievalFailureException(String.format("The key '%s' seems to no longer exist.", key));
@@ -178,7 +175,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 		Double value = operations.getAndSet(key, newValue);
 
-		return value != null ? value.doubleValue() : 0;
+		return value != null ? value : 0;
 	}
 
 	/**
@@ -189,28 +186,8 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 * @return {@literal true} if successful. {@literal false} indicates that the actual value was not equal to the
 	 *         expected value.
 	 */
-	public boolean compareAndSet(final double expect, final double update) {
-
-		return generalOps.execute(new SessionCallback<Boolean>() {
-
-			@Override
-			@SuppressWarnings({ "unchecked", "rawtypes" })
-			public Boolean execute(RedisOperations operations) {
-				for (;;) {
-					operations.watch(Collections.singleton(key));
-					if (expect == get()) {
-						generalOps.multi();
-						set(update);
-						if (operations.exec() != null) {
-							return true;
-						}
-					}
-					{
-						return false;
-					}
-				}
-			}
-		});
+	public boolean compareAndSet(double expect, double update) {
+		return generalOps.execute(new CompareAndSet<>(this::get, this::set, key, expect, update));
 	}
 
 	/**
@@ -237,7 +214,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 * @param delta the value to add
 	 * @return the previous value
 	 */
-	public double getAndAdd(final double delta) {
+	public double getAndAdd(double delta) {
 		return addAndGet(delta) - delta;
 	}
 

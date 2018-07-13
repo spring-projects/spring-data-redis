@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -148,8 +149,8 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
-	default void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
-		keyCommands().restore(key, ttlInMillis, serializedValue);
+	default void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
+		keyCommands().restore(key, ttlInMillis, serializedValue, replace);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
@@ -220,6 +221,27 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Deprecated
 	default Long sort(byte[] key, SortParameters params, byte[] sortKey) {
 		return keyCommands().sort(key, params, sortKey);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
+	default ValueEncoding encodingOf(byte[] key) {
+		return keyCommands().encodingOf(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
+	default Duration idletime(byte[] key) {
+		return keyCommands().idletime(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
+	default Long refcount(byte[] key) {
+		return keyCommands().refcount(key);
 	}
 
 	// STRING COMMANDS
@@ -381,8 +403,22 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
+	default List<Long> bitField(byte[] key, BitFieldSubCommands subCommands) {
+		return stringCommands().bitField(key, subCommands);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
+	@Override
+	@Deprecated
 	default Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
 		return stringCommands().bitOp(op, destination, keys);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
+	@Override
+	@Deprecated
+	default Long bitPos(byte[] key, boolean bit, org.springframework.data.domain.Range<Long> range) {
+		return stringCommands().bitPos(key, bit, range);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */

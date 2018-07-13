@@ -15,6 +15,11 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
@@ -204,6 +209,27 @@ public class Bucket {
 	}
 
 	/**
+	 * Get the {@link BucketPropertyPath} leading to the current {@link Bucket}.
+	 *
+	 * @return new instance of {@link BucketPropertyPath}.
+	 * @since 2.1
+	 */
+	public BucketPropertyPath getPath() {
+		return BucketPropertyPath.from(this);
+	}
+
+	/**
+	 * Get the {@link BucketPropertyPath} for a given property within the current {@link Bucket}.
+	 *
+	 * @param property the property to look up.
+	 * @return new instance of {@link BucketPropertyPath}.
+	 * @since 2.1
+	 */
+	public BucketPropertyPath getPropertyPath(String property) {
+		return BucketPropertyPath.from(this, property);
+	}
+
+	/**
 	 * Creates a new Bucket from a given raw map.
 	 *
 	 * @param source can be {@literal null}.
@@ -256,7 +282,6 @@ public class Bucket {
 			}
 		}
 		return serialized.toString();
-
 	}
 
 	@Nullable
@@ -270,4 +295,65 @@ public class Bucket {
 		return null;
 	}
 
+	/**
+	 * Value object representing a path within a {@link Bucket}. Paths can be either top-level (if the {@code prefix} is
+	 * {@literal null} or empty) or nested with a given {@code prefix}.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.1
+	 */
+	@AllArgsConstructor(access = AccessLevel.PRIVATE)
+	@Getter
+	public static class BucketPropertyPath {
+
+		private final @NonNull Bucket bucket;
+		private final @Nullable String prefix;
+
+		/**
+		 * Creates a top-level {@link BucketPropertyPath} given {@link Bucket}.
+		 *
+		 * @param bucket the bucket, must not be {@literal null}.
+		 * @return {@link BucketPropertyPath} within the given {@link Bucket}.
+		 */
+		public static BucketPropertyPath from(Bucket bucket) {
+			return new BucketPropertyPath(bucket, null);
+		}
+
+		/**
+		 * Creates a {@link BucketPropertyPath} given {@link Bucket} and {@code prefix}. The resulting path is top-level if
+		 * {@code prefix} is empty or nested, if {@code prefix} is not empty.
+		 *
+		 * @param bucket the bucket, must not be {@literal null}.
+		 * @param prefix the prefix. Property path is top-level if {@code prefix} is {@literal null} or empty.
+		 * @return {@link BucketPropertyPath} within the given {@link Bucket} using {@code prefix}.
+		 */
+		public static BucketPropertyPath from(Bucket bucket, @Nullable String prefix) {
+			return new BucketPropertyPath(bucket, prefix);
+		}
+
+		/**
+		 * Retrieve a value at {@code key} considering top-level/nesting.
+		 *
+		 * @param key must not be {@literal null} or empty.
+		 * @return the resulting value, may be {@literal null}.
+		 */
+		@Nullable
+		public byte[] get(String key) {
+			return bucket.get(getPath(key));
+		}
+
+		/**
+		 * Write a {@code value} at {@code key} considering top-level/nesting.
+		 *
+		 * @param key must not be {@literal null} or empty.
+		 * @param value the value.
+		 */
+		public void put(String key, byte[] value) {
+			bucket.put(getPath(key), value);
+		}
+
+		private String getPath(String key) {
+			return StringUtils.hasText(prefix) ? prefix + "." + key : key;
+		}
+	}
 }

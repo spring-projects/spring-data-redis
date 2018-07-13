@@ -772,8 +772,8 @@ public class RedisConnectionUnitTests {
 			delegate.slaveOfNoOne();
 		}
 
-		public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
-			delegate.restore(key, ttlInMillis, serializedValue);
+		public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
+			delegate.restore(key, ttlInMillis, serializedValue, replace);
 		}
 
 		public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
@@ -980,6 +980,11 @@ public class RedisConnectionUnitTests {
 		@Override
 		public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption options) {
 			return delegate.set(key, value, expiration, options);
+		}
+
+		@Override
+		public List<Long> bitField(byte[] key, BitFieldSubCommands subCommands) {
+			return delegate.bitField(key, subCommands);
 		}
 	}
 }

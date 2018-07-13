@@ -88,6 +88,28 @@ public interface RedisSerializationContext<K, V> {
 	}
 
 	/**
+	 * Creates a new {@link RedisSerializationContext} using a {@link JdkSerializationRedisSerializer}.
+	 *
+	 * @return new instance of {@link RedisSerializationContext}.
+	 * @since 2.1
+	 */
+	static RedisSerializationContext<Object, Object> java() {
+		return fromSerializer(RedisSerializer.java());
+	}
+
+	/**
+	 * Creates a new {@link RedisSerializationContext} using a {@link JdkSerializationRedisSerializer} with given
+	 * {@link ClassLoader}.
+	 *
+	 * @param classLoader the {@link ClassLoader} to use for deserialization. Can be {@literal null}.
+	 * @return new instance of {@link RedisSerializationContext}.
+	 * @since 2.1
+	 */
+	static RedisSerializationContext<Object, Object> java(ClassLoader classLoader) {
+		return fromSerializer(RedisSerializer.java(classLoader));
+	}
+
+	/**
 	 * Creates a new {@link RedisSerializationContext} using a {@link StringRedisSerializer}.
 	 *
 	 * @return
@@ -115,7 +137,7 @@ public interface RedisSerializationContext<K, V> {
 	 * @return
 	 */
 	static <T> RedisSerializationContext<T, T> just(SerializationPair<T> serializationPair) {
-		return RedisSerializationContext.<T, T>newSerializationContext(serializationPair).build();
+		return RedisSerializationContext.<T, T> newSerializationContext(serializationPair).build();
 	}
 
 	/**

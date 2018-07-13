@@ -15,15 +15,19 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Value (or String in Redis terminology) operations bound to a certain key.
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author Jiahe Cai
+ * @author Christoph Strobl
  */
 public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
@@ -46,6 +50,26 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	void set(V value, long timeout, TimeUnit unit);
 
 	/**
+	 * Set the {@code value} and expiration {@code timeout} for the bound key.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
+	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 * @since 2.1
+	 */
+	default void set(V value, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		if (TimeoutUtils.hasMillis(timeout)) {
+			set(value, timeout.toMillis(), TimeUnit.MILLISECONDS);
+		} else {
+			set(value, timeout.getSeconds(), TimeUnit.SECONDS);
+		}
+	}
+
+	/**
 	 * Set the bound key to hold the string {@code value} if the bound key is absent.
 	 *
 	 * @param value must not be {@literal null}.
@@ -54,6 +78,89 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Boolean setIfAbsent(V value);
+
+	/**
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is absent.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	@Nullable
+	Boolean setIfAbsent(V value, long timeout, TimeUnit unit);
+
+	/**
+	 * Set bound key to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	default Boolean setIfAbsent(V value, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		if (TimeoutUtils.hasMillis(timeout)) {
+			return setIfAbsent(value, timeout.toMillis(), TimeUnit.MILLISECONDS);
+		}
+
+		return setIfAbsent(value, timeout.getSeconds(), TimeUnit.SECONDS);
+	}
+
+	/**
+	 * Set the bound key to hold the string {@code value} if {@code key} is present.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if {@code value} is not present.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Boolean setIfPresent(V value);
+
+	/**
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @param timeout the key expiration timeout.
+	 * @param unit must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Boolean setIfPresent(V value, long timeout, TimeUnit unit);
+
+	/**
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	default Boolean setIfPresent(V value, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		if (TimeoutUtils.hasMillis(timeout)) {
+			return setIfPresent(value, timeout.toMillis(), TimeUnit.MILLISECONDS);
+		}
+
+		return setIfPresent(value, timeout.getSeconds(), TimeUnit.SECONDS);
+	}
 
 	/**
 	 * Get the value of the bound key.
@@ -74,11 +181,21 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	V getAndSet(V value);
 
 	/**
+	 * Increment an integer value stored as string value under the bound key by one.
+	 *
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 */
+	@Nullable
+	Long increment();
+
+	/**
 	 * Increment an integer value stored as string value under the bound key by {@code delta}.
 	 *
 	 * @param delta
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 */
 	@Nullable
 	Long increment(long delta);
@@ -92,6 +209,27 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Double increment(double delta);
+
+	/**
+	 * Decrement an integer value stored as string value under the bound key by one.
+	 *
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/decr">Redis Documentation: DECR</a>
+	 */
+	@Nullable
+	Long decrement();
+
+	/**
+	 * Decrement an integer value stored as string value under the bound key by {@code delta}.
+	 *
+	 * @param delta
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
+	 */
+	@Nullable
+	Long decrement(long delta);
 
 	/**
 	 * Append a {@code value} to the bound key.

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.listener;
 
 import static org.hamcrest.core.Is.*;
@@ -27,10 +26,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
 /**
+ * Integration tests for {@link RedisMessageListenerContainer}.
+ *
  * @author Mark Paluch
  * @author Christoph Strobl
  */
@@ -50,15 +52,16 @@ public class RedisMessageListenerContainerTests {
 	private Executor executorMock;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 
 		executorMock = mock(Executor.class);
 
-		connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setPort(SettingsUtils.getPort());
-		connectionFactory.setHostName(SettingsUtils.getHost());
-		connectionFactory.setDatabase(2);
+		RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
+		configuration.setPort(SettingsUtils.getPort());
+		configuration.setHostName(SettingsUtils.getHost());
+		configuration.setDatabase(2);
 
+		connectionFactory = new JedisConnectionFactory(configuration);
 		connectionFactory.afterPropertiesSet();
 
 		container = new RedisMessageListenerContainer();
@@ -77,7 +80,7 @@ public class RedisMessageListenerContainerTests {
 	}
 
 	@Test // DATAREDIS-415
-	public void interruptAtStart() throws Exception {
+	public void interruptAtStart() {
 
 		final Thread main = Thread.currentThread();
 
@@ -96,5 +99,4 @@ public class RedisMessageListenerContainerTests {
 
 		assertThat(container.isRunning(), is(false));
 	}
-
 }

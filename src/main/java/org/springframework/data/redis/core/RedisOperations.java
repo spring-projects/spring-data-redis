@@ -328,7 +328,23 @@ public interface RedisOperations<K, V> {
 	 * @param unit must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/restore">Redis Documentation: RESTORE</a>
 	 */
-	void restore(K key, byte[] value, long timeToLive, TimeUnit unit);
+	default void restore(K key, byte[] value, long timeToLive, TimeUnit unit) {
+		restore(key, value, timeToLive, unit, false);
+	}
+
+	/**
+	 * Create {@code key} using the {@code serializedValue}, previously obtained using {@link #dump(Object)}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param timeToLive
+	 * @param unit must not be {@literal null}.
+	 * @param replace use {@literal true} to replace a potentially existing value instead of erroring.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/restore">Redis Documentation: RESTORE</a>
+	 */
+	void restore(K key, byte[] value, long timeToLive, TimeUnit unit, boolean replace);
+
 
 	/**
 	 * Get the time to live for {@code key} in seconds.
@@ -470,7 +486,7 @@ public interface RedisOperations<K, V> {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * /** Request information and statistics about connected clients.
+	 * Request information and statistics about connected clients.
 	 *
 	 * @return {@link List} of {@link RedisClientInfo} objects.
 	 * @since 1.3

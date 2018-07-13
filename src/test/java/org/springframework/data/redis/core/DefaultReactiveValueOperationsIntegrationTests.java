@@ -17,6 +17,10 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
 import reactor.test.StepVerifier;
 
@@ -24,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -135,6 +140,26 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(false).verifyComplete();
 	}
 
+	@Test // DATAREDIS-782
+	public void setIfAbsentWithExpiry() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		StepVerifier.create(valueOperations.setIfAbsent(key, value, Duration.ofSeconds(5))).expectNext(true)
+				.expectComplete().verify();
+
+		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(false).verifyComplete();
+		StepVerifier.create(valueOperations.setIfAbsent(key, value, Duration.ofSeconds(5))).expectNext(false)
+				.verifyComplete();
+
+		StepVerifier.create(redisTemplate.getExpire(key)) //
+				.assertNext(actual -> {
+
+					assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5));
+				}).verifyComplete();
+	}
+
 	@Test // DATAREDIS-602, DATAREDIS-779
 	public void setIfPresent() {
 
@@ -149,6 +174,30 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(valueOperations.setIfPresent(key, laterValue)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(valueOperations.get(key)).expectNext(laterValue).verifyComplete();
+	}
+
+	@Test // DATAREDIS-782
+	public void setIfPresentWithExpiry() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V laterValue = valueFactory.instance();
+
+		StepVerifier.create(valueOperations.setIfPresent(key, value, Duration.ofSeconds(5))).expectNext(false)
+				.verifyComplete();
+
+		StepVerifier.create(valueOperations.set(key, value, Duration.ofSeconds(5))).expectNext(true).verifyComplete();
+
+		StepVerifier.create(valueOperations.setIfPresent(key, laterValue, Duration.ofSeconds(5))).expectNext(true)
+				.verifyComplete();
+
+		StepVerifier.create(valueOperations.get(key)).expectNext(laterValue).verifyComplete();
+
+		StepVerifier.create(redisTemplate.getExpire(key)) //
+				.assertNext(actual -> {
+
+					assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5));
+				}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -328,6 +377,25 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(valueOperations.getBit(key, 1)).expectNext(false).expectComplete();
 	}
 
+	@Test // DATAREDIS-562
+	public void bitField() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier
+				.create(valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+				.expectNext(Collections.singletonList(1L)).verifyComplete();
+		StepVerifier
+				.create(valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+				.expectNext(Collections.singletonList(2L)).verifyComplete();
+		StepVerifier
+				.create(valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+				.expectNext(Collections.singletonList(3L)).verifyComplete();
+		StepVerifier
+				.create(valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+				.expectNext(Collections.singletonList(null)).verifyComplete();
+	}
+
 	@Test // DATAREDIS-602
 	public void delete() {
 
@@ -339,5 +407,61 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(valueOperations.delete(key)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(valueOperations.size(key)).expectNext(0L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-784
+	public void increment() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier.create(valueOperations.increment(key)).expectNext(1L).verifyComplete();
+
+		StepVerifier.create(valueOperations.increment(key)).expectNext(2L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-784
+	public void incrementByLongDelta() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier.create(valueOperations.increment(key, 2L)).expectNext(2L).verifyComplete();
+
+		StepVerifier.create(valueOperations.increment(key, -3L)).expectNext(-1L).verifyComplete();
+
+		StepVerifier.create(valueOperations.increment(key, 1L)).expectNext(0L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-784
+	public void incrementByFloatDelta() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier.create(valueOperations.increment(key, 0.1)).expectNext(0.1).verifyComplete();
+
+		StepVerifier.create(valueOperations.increment(key, -0.3)).expectNext(-0.2).verifyComplete();
+
+		StepVerifier.create(valueOperations.increment(key, 0.2)).expectNext(0.0).verifyComplete();
+	}
+
+	@Test // DATAREDIS-784
+	public void decrement() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier.create(valueOperations.decrement(key)).expectNext(-1L).verifyComplete();
+
+		StepVerifier.create(valueOperations.decrement(key)).expectNext(-2L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-784
+	public void decrementByLongDelta() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier.create(valueOperations.decrement(key, 2L)).expectNext(-2L).verifyComplete();
+
+		StepVerifier.create(valueOperations.decrement(key, -3L)).expectNext(1L).verifyComplete();
+
+		StepVerifier.create(valueOperations.decrement(key, 1L)).expectNext(0L).verifyComplete();
 	}
 }

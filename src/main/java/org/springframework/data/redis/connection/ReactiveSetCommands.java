@@ -31,7 +31,9 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBuf
 import org.springframework.data.redis.connection.ReactiveRedisConnection.Command;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyScanCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -1012,6 +1014,48 @@ public interface ReactiveSetCommands {
 	 * @see <a href="http://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
 	 */
 	Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> sMembers(Publisher<KeyCommand> commands);
+
+	/**
+	 * Use a {@link Flux} to iterate over members in the set at {@code key}. The resulting {@link Flux} acts as a cursor
+	 * and issues {@code SSCAN} commands itself as long as the subscriber signals demand.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return the {@link Flux} emitting the raw {@link ByteBuffer members} one by one.
+	 * @throws IllegalArgumentException when options is {@literal null}.
+	 * @see <a href="http://redis.io/commands/sscan">Redis Documentation: SSCAN</a>
+	 * @since 2.1
+	 */
+	default Flux<ByteBuffer> sScan(ByteBuffer key) {
+		return sScan(key, ScanOptions.NONE);
+	}
+
+	/**
+	 * Use a {@link Flux} to iterate over members in the set at {@code key} given {@link ScanOptions}. The resulting
+	 * {@link Flux} acts as a cursor and issues {@code SSCAN} commands itself as long as the subscriber signals demand.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param options must not be {@literal null}. Use {@link ScanOptions#NONE} instead.
+	 * @return the {@link Flux} emitting the raw {@link ByteBuffer members} one by one.
+	 * @throws IllegalArgumentException when one of the required arguments is {@literal null}.
+	 * @see <a href="http://redis.io/commands/sscan">Redis Documentation: SSCAN</a>
+	 * @since 2.1
+	 */
+	default Flux<ByteBuffer> sScan(ByteBuffer key, ScanOptions options) {
+
+		return sScan(Mono.just(KeyScanCommand.key(key).withOptions(options))).map(CommandResponse::getOutput)
+				.flatMap(it -> it);
+	}
+
+	/**
+	 * Use a {@link Flux} to iterate over members in the set at {@code key}. The resulting {@link Flux} acts as a cursor
+	 * and issues {@code SSCAN} commands itself as long as the subscriber signals demand.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/sscan">Redis Documentation: SSCAN</a>
+	 * @since 2.1
+	 */
+	Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> sScan(Publisher<KeyScanCommand> commands);
 
 	/**
 	 * {@code SRANDMEMBER} command parameters.

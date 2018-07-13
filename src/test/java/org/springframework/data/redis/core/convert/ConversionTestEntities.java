@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.time.Duration;
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
+import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.index.Indexed;
@@ -83,6 +85,24 @@ public class ConversionTestEntities {
 		Species species;
 	}
 
+	@RedisHash(KEYSPACE_PERSON)
+	@Data
+	public static class RecursiveConstructorPerson {
+
+		final @Id String id;
+		final String firstname;
+		final RecursiveConstructorPerson father;
+		String lastname;
+	}
+
+	@RedisHash(KEYSPACE_PERSON)
+	@Data
+	public static class PersonWithConstructorAndAddress {
+
+		final @Id String id;
+		final Address address;
+	}
+
 	public static class PersonWithAddressReference extends Person {
 
 		@Reference AddressWithId addressRef;
@@ -109,6 +129,7 @@ public class ConversionTestEntities {
 		}
 	}
 
+	@TypeAlias("with-post-code")
 	public static class AddressWithPostcode extends Address {
 
 		String postcode;

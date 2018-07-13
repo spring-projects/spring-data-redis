@@ -43,6 +43,10 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
+import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
+import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
+import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
@@ -59,6 +63,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
+import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
@@ -102,6 +107,8 @@ abstract public class JedisConverters extends Converters {
 	private static final ListConverter<redis.clients.jedis.GeoCoordinate, Point> LIST_GEO_COORDINATE_TO_POINT_CONVERTER;
 	private static final Converter<byte[], String> BYTES_TO_STRING_CONVERTER;
 	private static final ListConverter<byte[], String> BYTES_LIST_TO_STRING_LIST_CONVERTER;
+	private static final ListConverter<byte[], Long> BYTES_LIST_TO_LONG_LIST_CONVERTER;
+	private static final Converter<BitFieldSubCommands, List<byte[]>> BITFIELD_COMMAND_ARGUMENT_CONVERTER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -188,9 +195,52 @@ abstract public class JedisConverters extends Converters {
 		};
 
 		GEO_COORDINATE_TO_POINT_CONVERTER = geoCoordinate -> geoCoordinate != null
-				? new Point(geoCoordinate.getLongitude(), geoCoordinate.getLatitude())
-				: null;
+				? new Point(geoCoordinate.getLongitude(), geoCoordinate.getLatitude()) : null;
 		LIST_GEO_COORDINATE_TO_POINT_CONVERTER = new ListConverter<>(GEO_COORDINATE_TO_POINT_CONVERTER);
+
+		BYTES_LIST_TO_LONG_LIST_CONVERTER = new ListConverter<byte[], Long>(new Converter<byte[], Long>() {
+			@Override
+			public Long convert(byte[] source) {
+				return Long.valueOf(JedisConverters.toString(source));
+			}
+		});
+
+		BITFIELD_COMMAND_ARGUMENT_CONVERTER = new Converter<BitFieldSubCommands, List<byte[]>>() {
+			@Override
+			public List<byte[]> convert(BitFieldSubCommands source) {
+
+				if (source == null) {
+					return Collections.emptyList();
+				}
+
+				List<byte[]> args = new ArrayList<byte[]>(source.getSubCommands().size() * 4);
+
+				for (BitFieldSubCommand command : source.getSubCommands()) {
+
+					if (command instanceof BitFieldIncrBy) {
+
+						BitFieldIncrBy.Overflow overflow = ((BitFieldIncrBy) command)
+								.getOverflow();
+						if (overflow != null) {
+							args.add(JedisConverters.toBytes("OVERFLOW"));
+							args.add(JedisConverters.toBytes(overflow.name()));
+						}
+					}
+
+					args.add(JedisConverters.toBytes(command.getCommand()));
+					args.add(JedisConverters.toBytes(command.getType().asString()));
+					args.add(JedisConverters.toBytes(command.getOffset().asString()));
+
+					if (command instanceof BitFieldSet) {
+						args.add(JedisConverters.toBytes(((BitFieldSet) command).getValue()));
+					} else if (command instanceof BitFieldIncrBy) {
+						args.add(JedisConverters.toBytes(((BitFieldIncrBy) command).getValue()));
+					}
+				}
+
+				return args;
+			}
+		};
 	}
 
 	public static Converter<String, byte[]> stringToBytes() {
@@ -292,8 +342,20 @@ abstract public class JedisConverters extends Converters {
 		return STRING_TO_BYTES.convert(source);
 	}
 
-	public static String toString(byte[] source) {
+	@Nullable
+	public static String toString(@Nullable byte[] source) {
 		return source == null ? null : SafeEncoder.encode(source);
+	}
+
+	/**
+	 * Convert the given {@code source} value to the corresponding {@link ValueEncoding}.
+	 *
+	 * @param source can be {@literal null}.
+	 * @return the {@link ValueEncoding} for given {@code source}. Never {@literal null}.
+	 * @since 2.1
+	 */
+	public static ValueEncoding toEncoding(@Nullable byte[] source) {
+		return ValueEncoding.of(toString(source));
 	}
 
 	/**
@@ -536,6 +598,10 @@ abstract public class JedisConverters extends Converters {
 		return BYTES_LIST_TO_STRING_LIST_CONVERTER;
 	}
 
+	public static ListConverter<byte[], Long> getBytesListToLongListConverter() {
+		return BYTES_LIST_TO_LONG_LIST_CONVERTER;
+	}
+
 	/**
 	 * @return
 	 * @since 1.8
@@ -624,6 +690,19 @@ abstract public class JedisConverters extends Converters {
 		}
 
 		return param;
+	}
+
+	/**
+	 * Convert given {@link BitFieldSubCommands} into argument array.
+	 *
+	 * @param bitfieldOperation
+	 * @return never {@literal null}.
+	 * @since 1.8
+	 */
+	public static byte[][] toBitfieldCommandArguments(BitFieldSubCommands bitfieldOperation) {
+
+		List<byte[]> tmp = BITFIELD_COMMAND_ARGUMENT_CONVERTER.convert(bitfieldOperation);
+		return tmp.toArray(new byte[tmp.size()][]);
 	}
 
 	/**

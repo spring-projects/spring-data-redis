@@ -17,12 +17,18 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
 import io.lettuce.core.SortArgs;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.output.StatusOutput;
+import io.lettuce.core.protocol.CommandArgs;
+import io.lettuce.core.protocol.CommandType;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -31,10 +37,10 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.connection.SortParameters;
+import org.springframework.data.redis.connection.ValueEncoding;
+import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.ScanCursor;
-import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -229,7 +235,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	 * @return
 	 */
 	public Cursor<byte[]> scan() {
-		return scan(0, ScanOptions.NONE);
+		return scan(ScanOptions.NONE);
 	}
 
 	/*
@@ -238,36 +244,31 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	 */
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
-		return scan(0, options != null ? options : ScanOptions.NONE);
+		return doScan(options != null ? options : ScanOptions.NONE);
 	}
 
 	/**
 	 * @since 1.4
-	 * @param cursorId
 	 * @param options
 	 * @return
 	 */
-	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
+	private Cursor<byte[]> doScan(ScanOptions options) {
 
-		return new ScanCursor<byte[]>(cursorId, options) {
+		return new LettuceScanCursor<byte[]>(options) {
 
-			@SuppressWarnings("unchecked")
 			@Override
-			protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
+			protected LettuceScanIteration<byte[]> doScan(ScanCursor cursor, ScanOptions options) {
 
 				if (isQueueing() || isPipelined()) {
 					throw new UnsupportedOperationException("'SCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				io.lettuce.core.ScanCursor scanCursor = connection.getScanCursor(cursorId);
-				ScanArgs scanArgs = connection.getScanArgs(options);
+				ScanArgs scanArgs = LettuceConverters.toScanArgs(options);
 
-				KeyScanCursor<byte[]> keyScanCursor = getConnection().scan(scanCursor, scanArgs);
-				String nextCursorId = keyScanCursor.getCursor();
-
+				KeyScanCursor<byte[]> keyScanCursor = getConnection().scan(cursor, scanArgs);
 				List<byte[]> keys = keyScanCursor.getKeys();
 
-				return new ScanIteration<>(Long.valueOf(nextCursorId), (keys));
+				return new LettuceScanIteration<>(keyScanCursor, keys);
 			}
 
 			@Override
@@ -674,24 +675,115 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[])
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[], boolean)
 	 */
 	@Override
-	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(serializedValue, "Serialized value must not be null!");
 
 		try {
+
+			if (replace) {
+
+				this.connection.execute("RESTORE", new byte[][] { key, LettuceConverters.toBytes(ttlInMillis), serializedValue,
+						LettuceConverters.toBytes("REPLACE") });
+				return;
+			}
+
 			if (isPipelined()) {
 				pipeline(connection.newLettuceStatusResult(getAsyncConnection().restore(key, ttlInMillis, serializedValue)));
 				return;
 			}
+
 			if (isQueueing()) {
 				transaction(connection.newLettuceStatusResult(getAsyncConnection().restore(key, ttlInMillis, serializedValue)));
 				return;
 			}
+
 			getConnection().restore(key, ttlInMillis, serializedValue);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#encoding(byte[])
+	 */
+	@Nullable
+	@Override
+	public ValueEncoding encodingOf(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().objectEncoding(key), ValueEncoding::of,
+						() -> RedisValueEncoding.VACANT));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().objectEncoding(key), ValueEncoding::of,
+						() -> RedisValueEncoding.VACANT));
+				return null;
+			}
+
+			return ValueEncoding.of(getConnection().objectEncoding(key));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#idletime(byte[])
+	 */
+	@Nullable
+	@Override
+	public Duration idletime(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().objectIdletime(key), Converters::secondsToDuration));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(
+						connection.newLettuceResult(getAsyncConnection().objectIdletime(key), Converters::secondsToDuration));
+				return null;
+			}
+
+			return Converters.secondsToDuration(getConnection().objectIdletime(key));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#refcount(byte[])
+	 */
+	@Nullable
+	@Override
+	public Long refcount(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().objectRefcount(key)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().objectRefcount(key)));
+				return null;
+			}
+
+			return getConnection().objectRefcount(key);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

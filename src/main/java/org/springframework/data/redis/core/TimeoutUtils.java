@@ -15,14 +15,28 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Helper class featuring methods for calculating Redis timeouts
  *
  * @author Jennifer Hickey
+ * @author Mark Paluch
+ * @author Christoph Strobl
  */
 abstract public class TimeoutUtils {
+
+	/**
+	 * Check if a given Duration can be represented in {@code sec} or requires {@code msec} representation.
+	 *
+	 * @param duration the actual {@link Duration} to inspect. Never {@literal null}.
+	 * @return {@literal true} if the {@link Duration} contains millisecond information.
+	 * @since 2.1
+	 */
+	public static boolean hasMillis(Duration duration) {
+		return duration.toMillis() % 1000 != 0;
+	}
 
 	/**
 	 * Converts the given timeout to seconds.

@@ -24,6 +24,7 @@ import org.springframework.util.Assert;
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @EqualsAndHashCode
 public class PatternTopic implements Topic {
@@ -40,6 +41,17 @@ public class PatternTopic implements Topic {
 		Assert.notNull(pattern, "Pattern must not be null!");
 
 		this.channelPattern = pattern;
+	}
+
+	/**
+	 * Create a new {@link PatternTopic} for channel subscriptions based on a {@code pattern}.
+	 *
+	 * @param pattern the channel pattern, must not be {@literal null} or empty.
+	 * @return the {@link PatternTopic} for {@code pattern}.
+	 * @since 2.1
+	 */
+	public static PatternTopic of(String pattern) {
+		return new PatternTopic(pattern);
 	}
 
 	/**

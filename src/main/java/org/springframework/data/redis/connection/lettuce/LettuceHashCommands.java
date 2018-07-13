@@ -401,7 +401,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				}
 
 				io.lettuce.core.ScanCursor scanCursor = connection.getScanCursor(cursorId);
-				ScanArgs scanArgs = connection.getScanArgs(options);
+				ScanArgs scanArgs = LettuceConverters.toScanArgs(options);
 
 				MapScanCursor<byte[], byte[]> mapScanCursor = getConnection().hscan(key, scanCursor, scanArgs);
 				String nextCursorId = mapScanCursor.getCursor();

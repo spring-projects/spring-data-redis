@@ -18,7 +18,9 @@ package org.springframework.data.redis.connection.jedis;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.ScanParams;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,10 +39,13 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.SortParameters;
+import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterCommandCallback;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanCursor;
+import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -166,6 +171,36 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
 		throw new InvalidDataAccessApiUsageException("Scan is not supported across multiple nodes within a cluster");
+	}
+
+	/**
+	 * Use a {@link Cursor} to iterate over keys stored at the given {@link RedisClusterNode}.
+	 *
+	 * @param node must not be {@literal null}.
+	 * @param options must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.1
+	 */
+	Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
+
+		Assert.notNull(node, "RedisClusterNode must not be null!");
+		Assert.notNull(options, "Options must not be null!");
+
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<Cursor<byte[]>>) client -> {
+
+					return new ScanCursor<byte[]>(0, options) {
+
+						@Override
+						protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
+
+							ScanParams params = JedisConverters.toScanParams(options);
+							redis.clients.jedis.ScanResult<String> result = client.scan(Long.toString(cursorId), params);
+							return new ScanIteration<>(Long.valueOf(result.getStringCursor()),
+									JedisConverters.stringListToByteList().convert(result.getResult()));
+						}
+					}.open();
+				}, node).getValue();
 	}
 
 	/*
@@ -441,10 +476,10 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[])
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[], boolean)
 	 */
 	@Override
-	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(serializedValue, "Serialized value must not be null!");
@@ -453,9 +488,17 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 			throw new UnsupportedOperationException("Jedis does not support ttlInMillis exceeding Integer.MAX_VALUE.");
 		}
 
-		connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<String>) client -> client.restore(key,
-						Long.valueOf(ttlInMillis).intValue(), serializedValue), connection.clusterGetNodeForKey(key));
+		connection.getClusterCommandExecutor().executeCommandOnSingleNode((JedisClusterCommandCallback<String>) client -> {
+
+			if (!replace) {
+				return client.restore(key, Long.valueOf(ttlInMillis).intValue(), serializedValue);
+			}
+
+			return JedisConverters.toString(this.connection.execute("RESTORE", key,
+					Arrays.asList(JedisConverters.toBytes(ttlInMillis), serializedValue, JedisConverters.toBytes
+							("REPLACE"))));
+
+		}, connection.clusterGetNodeForKey(key));
 	}
 
 	/*
@@ -524,6 +567,55 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		return connection.getClusterCommandExecutor()
 				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Boolean>) BinaryJedis::exists, Arrays.asList(keys))
 				.resultsAsList().stream().mapToLong(val -> ObjectUtils.nullSafeEquals(val, Boolean.TRUE) ? 1 : 0).sum();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#encoding(byte[])
+	 */
+	@Nullable
+	@Override
+	public ValueEncoding encodingOf(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.objectEncoding(key),
+						connection.clusterGetNodeForKey(key))
+				.mapValue(JedisConverters::toEncoding);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#idletime(byte[])
+	 */
+	@Nullable
+	@Override
+	public Duration idletime(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.objectIdletime(key),
+						connection.clusterGetNodeForKey(key))
+				.mapValue(Converters::secondsToDuration);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#refcount(byte[])
+	 */
+	@Nullable
+	@Override
+	public Long refcount(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.objectRefcount(key),
+						connection.clusterGetNodeForKey(key))
+				.getValue();
+
 	}
 
 	private DataAccessException convertJedisAccessException(Exception ex) {

@@ -15,7 +15,18 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.*;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
@@ -1081,6 +1092,33 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#encoding(byte[])
+	 */
+	@Override
+	public ValueEncoding encodingOf(byte[] key) {
+		return convertAndReturn(delegate.encodingOf(key), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#idletime(byte[])
+	 */
+	@Override
+	public Duration idletime(byte[] key) {
+		return convertAndReturn(delegate.idletime(key), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#refcount(byte[])
+	 */
+	@Override
+	public Long refcount(byte[] key) {
+		return convertAndReturn(delegate.refcount(key), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisSetCommands#sPop(byte[])
 	 */
 	@Override
@@ -1158,6 +1196,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
 		return convertAndReturn(delegate.bitOp(op, destination, keys), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bitPos(byte[], boolean, org.springframework.data.domain.Range)
+	 */
+	@Nullable
+	@Override
+	public Long bitPos(byte[] key, boolean bit, org.springframework.data.domain.Range<Long> range) {
+ 		return convertAndReturn(delegate.bitPos(key, bit, range), identityConverter);
 	}
 
 	/*
@@ -1295,7 +1343,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.zIncrBy(key, increment, value), identityConverter);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
 	 */
@@ -1556,7 +1604,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.zScore(key, value), identityConverter);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
 	 */
@@ -1620,11 +1668,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[])
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[], boolean)
 	 */
 	@Override
-	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
-		delegate.restore(key, ttlInMillis, serializedValue);
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
+		delegate.restore(key, ttlInMillis, serializedValue, replace);
 	}
 
 	/*
@@ -2391,6 +2439,33 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#encoding(java.lang.String)
+	 */
+	@Override
+	public ValueEncoding encodingOf(String key) {
+		return encodingOf(serialize(key));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#idletime(java.lang.String)
+	 */
+	@Override
+	public Duration idletime(String key) {
+		return idletime(serialize(key));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#refcount(java.lang.String)
+	 */
+	@Override
+	public Long refcount(String key) {
+		return refcount(serialize(key));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#sPop(java.lang.String)
 	 */
 	@Override
@@ -2468,6 +2543,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long bitOp(BitOperation op, String destination, String... keys) {
 		return bitOp(op, serialize(destination), serializeMulti(keys));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bitPos(java.lang.String, boolean, org.springframework.data.domain.Range)
+	 */
+	@Nullable
+	@Override
+	public Long bitPos(String key, boolean bit, org.springframework.data.domain.Range<Long> range) {
+		return bitPos(serialize(key), bit, range);
 	}
 
 	/*
@@ -3571,6 +3656,29 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 			convertedResults.add(result == null ? null : converter.convert(result));
 		}
 		return convertedResults;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitfield(byte[], BitfieldCommand)
+	 */
+	@Override
+	public List<Long> bitField(byte[] key, BitFieldSubCommands subCommands) {
+		return delegate.bitField(key, subCommands);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bitfield(byte[], BitfieldCommand)
+	 */
+	@Override
+	public List<Long> bitfield(String key, BitFieldSubCommands operation) {
+
+		List<Long> results = delegate.bitField(serialize(key), operation);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
 	}
 
 	/*

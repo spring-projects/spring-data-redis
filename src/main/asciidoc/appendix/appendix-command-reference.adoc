@@ -2,8 +2,8 @@
 [appendix]
 = Command Reference
 
-== Supported commands
-.Redis commands supported by RedisTemplate.
+== Supported Commands
+.Redis commands supported by `RedisTemplate`
 [width="50%",cols="<2,^1",options="header"]
 |=========================================================
 |Command |Template Support
@@ -13,6 +13,7 @@
 |BGREWRITEAOF |X
 |BGSAVE |X
 |BITCOUNT |X
+|BITFIELD |X
 |BITOP |X
 |BLPOP |X
 |BRPOP |X

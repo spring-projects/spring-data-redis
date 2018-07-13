@@ -109,5 +109,4 @@ public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectio
 	public void testListClientsContainsAtLeastOneElement() {
 		super.testListClientsContainsAtLeastOneElement();
 	}
-
 }

@@ -21,10 +21,10 @@
 		<beanutils>1.9.2</beanutils>
 		<xstream>1.4.8</xstream>
 		<pool>2.2</pool>
-		<lettuce>5.0.2.RELEASE</lettuce>
+		<lettuce>5.1.0.M1</lettuce>
 		<jedis>2.9.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
-		<netty>4.1.15.Final</netty>
+		<netty>4.1.22.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
 	</properties>
 
@@ -114,14 +114,12 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>${jackson}</version>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>${jackson}</version>
 			<optional>true</optional>
 		</dependency>
 
@@ -228,6 +226,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
+					<!-- Retain stack traces -->
+					<argLine>-XX:-OmitStackTraceInFastThrow</argLine>
 					<includes>
 						<include>**/*Tests.java</include>
 						<include>**/*Test.java</include>

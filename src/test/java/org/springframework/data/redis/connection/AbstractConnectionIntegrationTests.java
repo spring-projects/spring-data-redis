@@ -18,15 +18,22 @@ package org.springframework.data.redis.connection;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.collection.IsCollectionWithSize.*;
 import static org.hamcrest.collection.IsEmptyCollection.*;
+import static org.hamcrest.collection.IsIterableContainingInOrder.*;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.*;
+import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CountDownLatch;
@@ -44,6 +51,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -63,6 +71,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
@@ -70,6 +79,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.test.util.HexStringUtils;
 import org.springframework.data.redis.test.util.RedisClientRule;
 import org.springframework.data.redis.test.util.RedisDriver;
 import org.springframework.data.redis.test.util.WithRedisDriver;
@@ -1101,6 +1111,20 @@ public abstract class AbstractConnectionIntegrationTests {
 		initConnection();
 		connection.restore("testing".getBytes(), 0, (byte[]) results.get(1));
 		getResults();
+	}
+
+	@Test // DATAREDIS-696
+	@IfProfileValue(name = "redisVersion", value = "3.0+")
+	public void testRestoreExistingKeyWithReplaceOption() {
+
+		actual.add(connection.set("testing", "12"));
+		actual.add(connection.dump("testing".getBytes()));
+		actual.add(connection.set("testing", "21"));
+		connection.restore("testing".getBytes(), 0, (byte[]) getResults().get(1), true);
+
+		initConnection();
+		actual.add(connection.get("testing"));
+		verifyResults(Arrays.asList(new Object[] { "12" }));
 	}
 
 	@Test
@@ -2801,8 +2825,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		actual.add(connection.hStrLen("hash-no-exist", "key-2"));
 
-		verifyResults(
-				Arrays.asList(new Object[] { 0L }));
+		verifyResults(Arrays.asList(new Object[] { 0L }));
 	}
 
 	@Test // DATAREDIS-694
@@ -2820,6 +2843,160 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.touch("touch.this", "touch.that"));
 
 		verifyResults(Arrays.asList(new Object[] { 0L }));
+	}
+
+	@Test // DATAREDIS-697
+	@IfProfileValue(name = "redisVersion", value = "2.8.7+")
+	public void bitPosShouldReturnPositionCorrectly() {
+
+		actual.add(connection.set("bitpos-1".getBytes(), HexStringUtils.hexToBytes("fff000")));
+		actual.add(connection.bitPos("bitpos-1", false));
+
+		verifyResults(Arrays.asList(new Object[] { true, 12L }));
+	}
+
+	@Test // DATAREDIS-697
+	@IfProfileValue(name = "redisVersion", value = "2.8.7+")
+	public void bitPosShouldReturnPositionInRangeCorrectly() {
+
+		actual.add(connection.set("bitpos-1".getBytes(), HexStringUtils.hexToBytes("fff0f0")));
+		actual.add(connection.bitPos("bitpos-1", true,
+				org.springframework.data.domain.Range.of(Bound.inclusive(2L), Bound.unbounded())));
+
+		verifyResults(Arrays.asList(new Object[] { true, 16L }));
+	}
+
+	@Test // DATAREDIS-716
+	public void encodingReturnsCorrectly() {
+
+		actual.add(connection.set("encode.this", "1000"));
+
+		actual.add(connection.encodingOf("encode.this"));
+
+		verifyResults(Arrays.asList(new Object[] { true, RedisValueEncoding.INT }));
+	}
+
+	@Test // DATAREDIS-716
+	public void encodingReturnsVacantWhenKeyDoesNotExist() {
+
+		actual.add(connection.encodingOf("encode.this"));
+
+		verifyResults(Arrays.asList(new Object[] { RedisValueEncoding.VACANT }));
+	}
+
+	@Test // DATAREDIS-716
+	public void idletimeReturnsCorrectly() {
+
+		actual.add(connection.set("idle.this", "1000"));
+		actual.add(connection.get("idle.this"));
+
+		actual.add(connection.idletime("idle.this"));
+
+		verifyResults(Arrays.asList(new Object[] { true, "1000", Duration.ofSeconds(0) }));
+	}
+
+	@Test // DATAREDIS-716
+	public void idldetimeReturnsNullWhenKeyDoesNotExist() {
+
+		actual.add(connection.idletime("idle.this"));
+
+		verifyResults(Arrays.asList(new Object[] { null }));
+	}
+
+	@Test // DATAREDIS-716
+	public void refcountReturnsCorrectly() {
+
+		actual.add(connection.lPush("refcount.this", "1000"));
+
+		actual.add(connection.refcount("refcount.this"));
+
+		verifyResults(Arrays.asList(new Object[] { 1L, 1L }));
+	}
+
+	@Test // DATAREDIS-716
+	public void refcountReturnsNullWhenKeyDoesNotExist() {
+
+		actual.add(connection.refcount("refcount.this"));
+
+		verifyResults(Arrays.asList(new Object[] { null }));
+	}
+
+	@Test // DATAREDIS-562
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void bitFieldSetShouldWorkCorrectly() {
+
+		actual.add(connection.bitfield(KEY_1, create().set(INT_8).valueAt(offset(0L)).to(10L)));
+		actual.add(connection.bitfield(KEY_1, create().set(INT_8).valueAt(offset(0L)).to(20L)));
+
+		List<Object> results = getResults();
+		assertThat((List<Long>) results.get(0), contains(0L));
+		assertThat((List<Long>) results.get(1), contains(10L));
+	}
+
+	@Test // DATAREDIS-562
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void bitFieldGetShouldWorkCorrectly() {
+
+		actual.add(connection.bitfield(KEY_1, create().get(INT_8).valueAt(offset(0L))));
+
+		List<Object> results = getResults();
+		assertThat((List<Long>) results.get(0), contains(0L));
+	}
+
+	@Test // DATAREDIS-562
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void bitFieldIncrByShouldWorkCorrectly() {
+
+		actual.add(connection.bitfield(KEY_1, create().incr(INT_8).valueAt(offset(100L)).by(1L)));
+
+		List<Object> results = getResults();
+		assertThat((List<Long>) results.get(0), contains(1L));
+	}
+
+	@Test // DATAREDIS-562
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
+
+		actual.add(connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+
+		List<Object> results = getResults();
+		assertThat((List<Long>) results.get(0), contains(1L));
+		assertThat((List<Long>) results.get(1), contains(2L));
+		assertThat((List<Long>) results.get(2), contains(3L));
+		assertThat(results.get(3), is(notNullValue()));
+	}
+
+	@Test // DATAREDIS-562
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void bitfieldShouldAllowMultipleSubcommands() {
+
+		actual.add(
+				connection.bitfield(KEY_1, create().incr(signed(5)).valueAt(offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)));
+
+		assertThat((List<Long>) getResults().get(0), contains(1L, 0L));
+	}
+
+	@Test // DATAREDIS-562
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void bitfieldShouldWorkUsingNonZeroBasedOffset() {
+
+		actual.add(connection.bitfield(KEY_1, create().set(INT_8).valueAt(offset(0L).multipliedByTypeLength()).to(100L)
+				.set(INT_8).valueAt(offset(1L).multipliedByTypeLength()).to(200L)));
+		actual.add(connection.bitfield(KEY_1, create().get(INT_8).valueAt(offset(0L).multipliedByTypeLength()).get(INT_8)
+				.valueAt(offset(1L).multipliedByTypeLength())));
+
+		List<Object> results = getResults();
+		assertThat((List<Long>) results.get(0), contains(0L, 0L));
+		assertThat((List<Long>) results.get(1), contains(100L, -56L));
 	}
 
 	protected void verifyResults(List<Object> expected) {
@@ -2845,4 +3022,5 @@ public abstract class AbstractConnectionIntegrationTests {
 			return (!connection.exists(key));
 		}
 	}
+
 }

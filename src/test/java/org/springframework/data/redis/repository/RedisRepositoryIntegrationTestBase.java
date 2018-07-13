@@ -19,6 +19,8 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import lombok.Data;
+import lombok.Value;
+import lombok.experimental.Wither;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -60,6 +62,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 	@Autowired PersonRepository repo;
 	@Autowired CityRepository cityRepo;
+	@Autowired ImmutableObjectRepository immutableObjectRepo;
 	@Autowired KeyValueTemplate kvTemplate;
 
 	@Before
@@ -224,6 +227,44 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(repo.findBy(firstPage.nextPageable()).getContent(), hasSize(1));
 	}
 
+	@Test // DATAREDIS-771
+	public void shouldFindByBooleanIsTrue() {
+
+		Person eddard = new Person("eddard", "stark");
+		eddard.setAlive(true);
+
+		Person robb = new Person("robb", "stark");
+		robb.setAlive(false);
+
+		Person jon = new Person("jon", "snow");
+
+		repo.saveAll(Arrays.asList(eddard, robb, jon));
+
+		List<Person> result = repo.findPersonByAliveIsTrue();
+
+		assertThat(result, hasSize(1));
+		assertThat(result, contains(eddard));
+	}
+
+	@Test // DATAREDIS-771
+	public void shouldFindByBooleanIsFalse() {
+
+		Person eddard = new Person("eddard", "stark");
+		eddard.setAlive(true);
+
+		Person robb = new Person("robb", "stark");
+		robb.setAlive(false);
+
+		Person jon = new Person("jon", "snow");
+
+		repo.saveAll(Arrays.asList(eddard, robb, jon));
+
+		List<Person> result = repo.findPersonByAliveIsFalse();
+
+		assertThat(result, hasSize(1));
+		assertThat(result, contains(robb));
+	}
+
 	@Test // DATAREDIS-547
 	public void shouldReturnEmptyListWhenPageableOutOfBoundsUsingFindAll() {
 
@@ -365,6 +406,37 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(result, not(hasItems(p1)));
 	}
 
+	@Test // DATAREDIS-849
+	public void shouldReturnNewObjectInstanceOnImmutableSave() {
+
+		Immutable object = new Immutable(null, "Walter", new Immutable("heisenberg", "White", null));
+		Immutable saved = immutableObjectRepo.save(object);
+
+		assertThat(object.id, is(nullValue()));
+		assertThat(saved.id, is(notNullValue()));
+	}
+
+	@Test // DATAREDIS-849
+	public void shouldReturnNewObjectInstanceOnImmutableSaveAll() {
+
+		Immutable object = new Immutable(null, "Walter", new Immutable("heisenberg", "White", null));
+		List<Immutable> saved = (List) immutableObjectRepo.saveAll(Collections.singleton(object));
+
+		assertThat(object.id, is(nullValue()));
+		assertThat(saved.get(0).id, is(notNullValue()));
+	}
+
+	@Test // DATAREDIS-849
+	public void shouldProperlyReadNestedImmutableObject() {
+
+		Immutable nested = new Immutable("heisenberg", "White", null);
+		Immutable object = new Immutable(null, "Walter", nested);
+		Immutable saved = immutableObjectRepo.save(object);
+
+		Immutable loaded = immutableObjectRepo.findById(saved.id).get();
+		assertThat(loaded.nested, is(nested));
+	}
+
 	public static interface PersonRepository
 			extends PagingAndSortingRepository<Person, String>, QueryByExampleExecutor<Person> {
 
@@ -373,6 +445,10 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		List<Person> findByLastname(String lastname);
 
 		Page<Person> findPersonByLastname(String lastname, Pageable page);
+
+		List<Person> findPersonByAliveIsTrue();
+
+		List<Person> findPersonByAliveIsFalse();
 
 		List<Person> findByFirstnameAndLastname(String firstname, String lastname);
 
@@ -392,10 +468,12 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		<S extends Person> List<S> findAll(Example<S> example);
 	}
 
-	public static interface CityRepository extends CrudRepository<City, String> {
+	public interface CityRepository extends CrudRepository<City, String> {
 
 		List<City> findByLocationNear(Point point, Distance distance);
 	}
+
+	public interface ImmutableObjectRepository extends CrudRepository<Immutable, String> {}
 
 	/**
 	 * Custom Redis {@link IndexConfiguration} forcing index of {@link Person#lastname}.
@@ -429,6 +507,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		@Id String id;
 		@Indexed String firstname;
+		@Indexed Boolean alive;
 		String lastname;
 		@Reference City city;
 		City hometown;
@@ -449,5 +528,15 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		String name;
 
 		@GeoIndexed Point location;
+	}
+
+	@Value
+	@Wither
+	public static class Immutable {
+
+		@Id String id;
+		String name;
+
+		Immutable nested;
 	}
 }

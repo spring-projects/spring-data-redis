@@ -15,12 +15,14 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.text.DecimalFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,6 +49,8 @@ import org.springframework.data.redis.RedisTestProfileValueSource;
  * @author Christoph Strobl
  * @author David Liu
  * @author Thomas Darimont
+ * @author Jiahe Cai
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class DefaultValueOperationsTests<K, V> {
@@ -92,181 +96,432 @@ public class DefaultValueOperationsTests<K, V> {
 		});
 	}
 
-	@Test
-	public void testIncrementLong() throws Exception {
+	@Test // DATAREDIS-784
+	public void testIncrement() {
+
 		K key = keyFactory.instance();
-		V v1 = valueFactory.instance();
-		assumeTrue(v1 instanceof Long);
-		valueOps.set(key, v1);
-		assertEquals(Long.valueOf((Long) v1 - 10), valueOps.increment(key, -10));
-		assertEquals(Long.valueOf((Long) v1 - 10), (Long) valueOps.get(key));
+		V value = valueFactory.instance();
+
+		assumeTrue(value instanceof Long);
+
+		valueOps.set(key, value);
+
+		assertEquals(Long.valueOf((Long) value + 1), valueOps.increment(key));
+		assertEquals(Long.valueOf((Long) value + 1), valueOps.get(key));
+	}
+
+	@Test
+	public void testIncrementLong() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assumeTrue(value instanceof Long);
+
+		valueOps.set(key, value);
+
+		assertEquals(Long.valueOf((Long) value - 10), valueOps.increment(key, -10));
+		assertEquals(Long.valueOf((Long) value - 10), valueOps.get(key));
+
 		valueOps.increment(key, -10);
-		assertEquals(Long.valueOf((Long) v1 - 20), (Long) valueOps.get(key));
+		assertEquals(Long.valueOf((Long) value - 20), valueOps.get(key));
 	}
 
 	@Test // DATAREDIS-247
 	public void testIncrementDouble() {
 
 		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
+
 		K key = keyFactory.instance();
-		V v1 = valueFactory.instance();
-		assumeTrue(v1 instanceof Double);
-		valueOps.set(key, v1);
+		V value = valueFactory.instance();
+
+		assumeTrue(value instanceof Double);
+
+		valueOps.set(key, value);
+
 		DecimalFormat twoDForm = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 
-		assertEquals(Double.valueOf(twoDForm.format((Double) v1 + 1.4)), valueOps.increment(key, 1.4));
-		assertEquals(Double.valueOf(twoDForm.format((Double) v1 + 1.4)), valueOps.get(key));
+		assertEquals(Double.valueOf(twoDForm.format((Double) value + 1.4)), valueOps.increment(key, 1.4));
+		assertEquals(Double.valueOf(twoDForm.format((Double) value + 1.4)), valueOps.get(key));
+
 		valueOps.increment(key, -10d);
-		assertEquals(Double.valueOf(twoDForm.format((Double) v1 + 1.4 - 10d)), valueOps.get(key));
+		assertEquals(Double.valueOf(twoDForm.format((Double) value + 1.4 - 10d)), valueOps.get(key));
+	}
+
+	@Test // DATAREDIS-784
+	public void testDecrement() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assumeTrue(value instanceof Long);
+
+		valueOps.set(key, value);
+
+		assertEquals(Long.valueOf((Long) value - 1), valueOps.decrement(key));
+		assertEquals(Long.valueOf((Long) value - 1), valueOps.get(key));
+	}
+
+	@Test // DATAREDIS-784
+	public void testDecrementByLong() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assumeTrue(value instanceof Long);
+
+		valueOps.set(key, value);
+
+		assertEquals(Long.valueOf((Long) value - 5), valueOps.decrement(key, 5));
+		assertEquals(Long.valueOf((Long) value - 5), valueOps.get(key));
 	}
 
 	@Test
 	public void testMultiSetIfAbsent() {
+
 		Map<K, V> keysAndValues = new HashMap<>();
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
+
 		keysAndValues.put(key1, value1);
 		keysAndValues.put(key2, value2);
+
 		assertTrue(valueOps.multiSetIfAbsent(keysAndValues));
 		assertThat(valueOps.multiGet(keysAndValues.keySet()), isEqual(new ArrayList<>(keysAndValues.values())));
 	}
 
 	@Test
 	public void testMultiSetIfAbsentFailure() {
+
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
+
 		valueOps.set(key1, value1);
+
 		Map<K, V> keysAndValues = new HashMap<>();
 		keysAndValues.put(key1, value2);
 		keysAndValues.put(key2, value3);
+
 		assertFalse(valueOps.multiSetIfAbsent(keysAndValues));
 	}
 
 	@Test
 	public void testMultiSet() {
+
 		Map<K, V> keysAndValues = new HashMap<>();
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
+
 		keysAndValues.put(key1, value1);
 		keysAndValues.put(key2, value2);
+
 		valueOps.multiSet(keysAndValues);
+
 		assertThat(valueOps.multiGet(keysAndValues.keySet()), isEqual(new ArrayList<>(keysAndValues.values())));
 	}
 
 	@Test
 	public void testGetSet() {
-		K key1 = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		valueOps.set(key1, value1);
-		assertThat(valueOps.get(key1), isEqual(value1));
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.get(key), isEqual(value));
 	}
 
 	@Test
 	public void testGetAndSet() {
-		K key1 = keyFactory.instance();
+
+		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
-		valueOps.set(key1, value1);
-		assertThat(valueOps.getAndSet(key1, value2), isEqual(value1));
+
+		valueOps.set(key, value1);
+
+		assertThat(valueOps.getAndSet(key, value2), isEqual(value1));
 	}
 
 	@Test
 	public void testSetWithExpiration() {
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
-		final K key1 = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		valueOps.set(key1, value1, 1, TimeUnit.SECONDS);
-		waitFor(() -> (!redisTemplate.hasKey(key1)), 1000);
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value, 5, TimeUnit.SECONDS);
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
+		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+	}
+
+	@Test // DATAREDIS-815
+	public void testSetWithExpirationEX() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value, Duration.ofSeconds(5));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
+		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+	}
+
+	@Test // DATAREDIS-815
+	public void testSetWithExpirationPX() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value, Duration.ofMillis(5500));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
+		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
 	}
 
 	@Test // DATAREDIS-271
 	public void testSetWithExpirationWithTimeUnitMilliseconds() {
 
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
-		final K key1 = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		valueOps.set(key1, value1, 1, TimeUnit.MILLISECONDS);
-		waitFor(() -> (!redisTemplate.hasKey(key1)), 500);
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value, 1, TimeUnit.MILLISECONDS);
+
+		waitFor(() -> (!redisTemplate.hasKey(key)), 500);
 	}
 
 	@Test
 	public void testAppend() {
-		K key1 = keyFactory.instance();
-		V value1 = valueFactory.instance();
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
-		valueOps.set(key1, value1);
-		assertEquals(Integer.valueOf(((String) value1).length() + 3), valueOps.append(key1, "aaa"));
-		assertEquals((String) value1 + "aaa", valueOps.get(key1));
+
+		valueOps.set(key, value);
+
+		assertEquals(Integer.valueOf(((String) value).length() + 3), valueOps.append(key, "aaa"));
+		assertEquals((String) value + "aaa", valueOps.get(key));
 	}
 
 	@Test
 	public void testGetRange() {
-		K key1 = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		assumeTrue(value1 instanceof String);
-		valueOps.set(key1, value1);
-		assertEquals(2, valueOps.get(key1, 0, 1).length());
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assumeTrue(value instanceof String);
+
+		valueOps.set(key, value);
+
+		assertEquals(2, valueOps.get(key, 0, 1).length());
 	}
 
 	@Test
 	public void testSetRange() {
-		K key1 = keyFactory.instance();
+
+		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
+
 		assumeTrue(value1 instanceof String);
-		valueOps.set(key1, value1);
-		valueOps.set(key1, value2, 0);
-		assertEquals(value2, valueOps.get(key1));
+
+		valueOps.set(key, value1);
+		valueOps.set(key, value2, 0);
+
+		assertEquals(value2, valueOps.get(key));
 	}
 
 	@Test
 	public void testSetIfAbsent() {
-		K key1 = keyFactory.instance();
+
+		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
-		assertTrue(valueOps.setIfAbsent(key1, value1));
-		assertFalse(valueOps.setIfAbsent(key1, value2));
+
+		assertTrue(valueOps.setIfAbsent(key, value1));
+		assertFalse(valueOps.setIfAbsent(key, value2));
+	}
+
+	@Test // DATAREDIS-782
+	public void testSetIfAbsentWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertTrue(valueOps.setIfAbsent(key, value1, 5, TimeUnit.SECONDS));
+		assertFalse(valueOps.setIfAbsent(key, value2, 5, TimeUnit.SECONDS));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
+		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+	}
+
+	@Test // DATAREDIS-815
+	public void testSetIfAbsentWithExpirationEX() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertTrue(valueOps.setIfAbsent(key, value1, Duration.ofSeconds(5)));
+		assertFalse(valueOps.setIfAbsent(key, value2, Duration.ofSeconds(5)));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
+		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+	}
+
+	@Test // DATAREDIS-815
+	public void testSetIfAbsentWithExpirationPX() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertTrue(valueOps.setIfAbsent(key, value1, Duration.ofMillis(5500)));
+		assertFalse(valueOps.setIfAbsent(key, value2, Duration.ofMillis(5500)));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
+		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+	}
+
+	@Test // DATAREDIS-786
+	public void setIfPresentReturnsTrueWhenKeyExists() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOps.set(key, value1);
+
+		assertTrue(valueOps.setIfPresent(key, value2));
+		assertThat(valueOps.get(key), is(value2));
+	}
+
+	@Test // DATAREDIS-786
+	public void setIfPresentReturnsFalseWhenKeyDoesNotExist() {
+		assertFalse(valueOps.setIfPresent(keyFactory.instance(), valueFactory.instance()));
+	}
+
+	@Test // DATAREDIS-786
+	public void setIfPresentShouldSetExpirationCorrectly() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertFalse(valueOps.setIfPresent(key, value1, 5, TimeUnit.SECONDS));
+		valueOps.set(key, value1);
+
+		assertTrue(valueOps.setIfPresent(key, value2, 5, TimeUnit.SECONDS));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
+		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+		assertThat(valueOps.get(key), is(value2));
+	}
+
+	@Test // DATAREDIS-815
+	public void testSetIfPresentWithExpirationEX() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertFalse(valueOps.setIfPresent(key, value1, Duration.ofSeconds(5)));
+		valueOps.set(key, value1);
+
+		assertTrue(valueOps.setIfPresent(key, value2, Duration.ofSeconds(5)));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
+		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+		assertThat(valueOps.get(key), is(value2));
+	}
+
+	@Test // DATAREDIS-815
+	public void testSetIfPresentWithExpirationPX() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertFalse(valueOps.setIfPresent(key, value1, Duration.ofMillis(5500)));
+		valueOps.set(key, value1);
+
+		assertTrue(valueOps.setIfPresent(key, value2, Duration.ofMillis(5500)));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
+		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+		assertThat(valueOps.get(key), is(value2));
 	}
 
 	@Test
 	public void testSize() {
-		K key1 = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		valueOps.set(key1, value1);
-		assertTrue(valueOps.size(key1) > 0);
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertTrue(valueOps.size(key) > 0);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testRawKeys() {
+
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
+
 		byte[][] rawKeys = ((DefaultValueOperations) valueOps).rawKeys(key1, key2);
+
 		assertEquals(2, rawKeys.length);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testRawKeysCollection() {
+
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
+
 		byte[][] rawKeys = ((DefaultValueOperations) valueOps).rawKeys(Arrays.asList(new Object[] { key1, key2 }));
+
 		assertEquals(2, rawKeys.length);
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testDeserializeKey() {
-		K key1 = keyFactory.instance();
-		assumeTrue(key1 instanceof byte[]);
-		assertNotNull(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key1));
+
+		K key = keyFactory.instance();
+
+		assumeTrue(key instanceof byte[]);
+
+		assertNotNull(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key));
 	}
 
 	@Test // DATAREDIS-197
@@ -274,11 +529,10 @@ public class DefaultValueOperationsTests<K, V> {
 
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
 
-		K key1 = keyFactory.instance();
+		K key = keyFactory.instance();
 		int bitOffset = 65;
-		valueOps.setBit(key1, bitOffset, true);
+		valueOps.setBit(key, bitOffset, true);
 
-		assertEquals(true, valueOps.getBit(key1, bitOffset));
+		assertEquals(true, valueOps.getBit(key, bitOffset));
 	}
-
 }

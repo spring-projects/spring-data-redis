@@ -26,6 +26,7 @@ import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.format.support.DefaultFormattingConversionService;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -51,9 +52,9 @@ public class RedisCacheConfiguration {
 	private final ConversionService conversionService;
 
 	@SuppressWarnings("unchecked")
-	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix,
-			CacheKeyPrefix keyPrefix, SerializationPair<String> keySerializationPair,
-			SerializationPair<?> valueSerializationPair, ConversionService conversionService) {
+	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
+			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
+			ConversionService conversionService) {
 
 		this.ttl = ttl;
 		this.cacheNullValues = cacheNullValues;
@@ -76,9 +77,9 @@ public class RedisCacheConfiguration {
 	 * <dt>default prefix</dt>
 	 * <dd>[the actual cache name]</dd>
 	 * <dt>key serializer</dt>
-	 * <dd>StringRedisSerializer.class</dd>
+	 * <dd>{@link org.springframework.data.redis.serializer.StringRedisSerializer}</dd>
 	 * <dt>value serializer</dt>
-	 * <dd>JdkSerializationRedisSerializer.class</dd>
+	 * <dd>{@link org.springframework.data.redis.serializer.JdkSerializationRedisSerializer}</dd>
 	 * <dt>conversion service</dt>
 	 * <dd>{@link DefaultFormattingConversionService} with {@link #registerDefaultConverters(ConverterRegistry) default}
 	 * cache key converters</dd>
@@ -87,6 +88,35 @@ public class RedisCacheConfiguration {
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
 	public static RedisCacheConfiguration defaultCacheConfig() {
+		return defaultCacheConfig(null);
+	}
+
+	/**
+	 * Create default {@link RedisCacheConfiguration} given {@link ClassLoader} using the following:
+	 * <dl>
+	 * <dt>key expiration</dt>
+	 * <dd>eternal</dd>
+	 * <dt>cache null values</dt>
+	 * <dd>yes</dd>
+	 * <dt>prefix cache keys</dt>
+	 * <dd>yes</dd>
+	 * <dt>default prefix</dt>
+	 * <dd>[the actual cache name]</dd>
+	 * <dt>key serializer</dt>
+	 * <dd>{@link org.springframework.data.redis.serializer.StringRedisSerializer}</dd>
+	 * <dt>value serializer</dt>
+	 * <dd>{@link org.springframework.data.redis.serializer.JdkSerializationRedisSerializer}</dd>
+	 * <dt>conversion service</dt>
+	 * <dd>{@link DefaultFormattingConversionService} with {@link #registerDefaultConverters(ConverterRegistry) default}
+	 * cache key converters</dd>
+	 * </dl>
+	 *
+	 * @param classLoader the {@link ClassLoader} used for deserialization by the
+	 *          {@link org.springframework.data.redis.serializer.JdkSerializationRedisSerializer}.
+	 * @return new {@link RedisCacheConfiguration}.
+	 * @since 2.1
+	 */
+	public static RedisCacheConfiguration defaultCacheConfig(@Nullable ClassLoader classLoader) {
 
 		DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
 
@@ -94,7 +124,7 @@ public class RedisCacheConfiguration {
 
 		return new RedisCacheConfiguration(Duration.ZERO, true, true, CacheKeyPrefix.simple(),
 				SerializationPair.fromSerializer(RedisSerializer.string()),
-				SerializationPair.fromSerializer(RedisSerializer.java()), conversionService);
+				SerializationPair.fromSerializer(RedisSerializer.java(classLoader)), conversionService);
 	}
 
 	/**

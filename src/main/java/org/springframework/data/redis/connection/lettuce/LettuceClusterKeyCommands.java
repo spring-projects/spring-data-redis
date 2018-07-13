@@ -15,18 +15,21 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.KeyScanCursor;
+import io.lettuce.core.ScanArgs;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.lettuce.LettuceClusterConnection.LettuceClusterCommandCallback;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -45,15 +48,6 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 
 		super(connection);
 		this.connection = connection;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#scan(long, org.springframework.data.redis.core.ScanOptions)
-	 */
-	@Override
-	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
-		throw new InvalidDataAccessApiUsageException("Scan is not supported across multiple nodes within a cluster.");
 	}
 
 	/*
@@ -155,8 +149,8 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	}
 
 	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.redis.connection.lettuce.LettuceConnection#move(byte[], int)
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#move(byte[], int)
 	*/
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
@@ -164,8 +158,8 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	}
 
 	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.redis.connection.RedisClusterConnection#randomKey(org.springframework.data.redis.connection.RedisClusterNode)
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterConnection#randomKey(org.springframework.data.redis.connection.RedisClusterNode)
 	*/
 	@Nullable
 	public byte[] randomKey(RedisClusterNode node) {
@@ -187,6 +181,38 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 		return LettuceConverters.toBytesSet(connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((LettuceClusterCommandCallback<List<byte[]>>) client -> client.keys(pattern), node)
 				.getValue());
+	}
+
+	/**
+	 * Use a {@link Cursor} to iterate over keys stored at the given {@link RedisClusterNode}.
+	 *
+	 * @param node must not be {@literal null}.
+	 * @param options must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.1
+	 */
+	Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
+
+		Assert.notNull(node, "RedisClusterNode must not be null!");
+		Assert.notNull(options, "Options must not be null!");
+
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode((LettuceClusterCommandCallback<ScanCursor<byte[]>>) client -> {
+
+					return new LettuceScanCursor<byte[]>(options) {
+
+						@Override
+						protected LettuceScanIteration<byte[]> doScan(io.lettuce.core.ScanCursor cursor, ScanOptions options) {
+
+							ScanArgs scanArgs = LettuceConverters.toScanArgs(options);
+
+							KeyScanCursor<byte[]> keyScanCursor = client.scan(cursor, scanArgs);
+							return new LettuceScanIteration<>(keyScanCursor, keyScanCursor.getKeys());
+						}
+
+					}.open();
+
+				}, node).getValue();
 	}
 
 	/*

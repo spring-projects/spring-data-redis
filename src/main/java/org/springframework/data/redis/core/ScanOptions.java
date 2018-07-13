@@ -19,20 +19,27 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
- * Options to be used for with {@literal SCAN} command.
+ * Options to be used for with {@literal SCAN} commands.
  *
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  * @since 1.4
  */
 public class ScanOptions {
 
-	public static ScanOptions NONE = new ScanOptions();
+	/**
+	 * Constant to apply default {@link ScanOptions} without setting a limit or matching a pattern.
+	 */
+	public static ScanOptions NONE = new ScanOptions(null, null);
 
-	private @Nullable Long count;
-	private @Nullable String pattern;
+	private final @Nullable Long count;
+	private final @Nullable String pattern;
 
-	private ScanOptions() {}
+	private ScanOptions(@Nullable Long count, @Nullable String pattern) {
+		this.count = count;
+		this.pattern = pattern;
+	}
 
 	/**
 	 * Static factory method that returns a new {@link ScanOptionsBuilder}.
@@ -73,15 +80,14 @@ public class ScanOptions {
 
 	/**
 	 * @author Christoph Strobl
+	 * @author Mark Paluch
 	 * @since 1.4
 	 */
 	public static class ScanOptionsBuilder {
 
-		ScanOptions options;
+		private @Nullable Long count;
+		private @Nullable String pattern;
 
-		public ScanOptionsBuilder() {
-			options = new ScanOptions();
-		}
 
 		/**
 		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code count}.
@@ -90,7 +96,7 @@ public class ScanOptions {
 		 * @return
 		 */
 		public ScanOptionsBuilder count(long count) {
-			options.count = count;
+			this.count = count;
 			return this;
 		}
 
@@ -101,14 +107,17 @@ public class ScanOptions {
 		 * @return
 		 */
 		public ScanOptionsBuilder match(String pattern) {
-			options.pattern = pattern;
+			this.pattern = pattern;
 			return this;
 		}
 
+		/**
+		 * Builds a new {@link ScanOptions} objects.
+		 *
+		 * @return a new {@link ScanOptions} objects.
+		 */
 		public ScanOptions build() {
-			return options;
+			return new ScanOptions(count, pattern);
 		}
-
 	}
-
 }

@@ -32,16 +32,7 @@ import java.time.LocalTime;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import org.hamcrest.core.IsEqual;
 import org.junit.Before;
@@ -91,6 +82,15 @@ public class MappingRedisConverterUnitTests {
 
 	@Test // DATAREDIS-425
 	public void writeAppendsTypeHintForRootCorrectly() {
+		assertThat(write(rand).getBucket(), isBucket().containingTypeHint("_class", Person.class));
+	}
+
+	@Test // DATAREDIS-543
+	public void writeSkipsTypeHintIfConfigured() {
+
+		converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
+		converter.afterPropertiesSet();
+
 		assertThat(write(rand).getBucket(), isBucket().containingTypeHint("_class", Person.class));
 	}
 
@@ -205,7 +205,7 @@ public class MappingRedisConverterUnitTests {
 		assertThat(target.getBucket(), isBucket().without("address._class"));
 	}
 
-	@Test // DATAREDIS-425
+	@Test // DATAREDIS-425, DATAREDIS-543
 	public void writeAddsClassTypeInformationCorrectlyForNonMatchingTypes() {
 
 		AddressWithPostcode address = new AddressWithPostcode();
@@ -216,7 +216,7 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().containingTypeHint("address._class", AddressWithPostcode.class));
+		assertThat(target.getBucket(), isBucket().containingUtf8String("address._class", "with-post-code"));
 	}
 
 	@Test // DATAREDIS-425
@@ -229,6 +229,31 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
 		assertThat(target.address, instanceOf(AddressWithPostcode.class));
+	}
+
+	@Test // DATAREDIS-544
+	public void readEntityViaConstructor() {
+
+		Map<String, String> map = new HashMap<>();
+		map.put("id", "bart");
+		map.put("firstname", "Bart");
+		map.put("lastname", "Simpson");
+
+		map.put("father.id", "homer");
+		map.put("father.firstname", "Homer");
+		map.put("father.lastname", "Simpson");
+
+		RecursiveConstructorPerson target = converter.read(RecursiveConstructorPerson.class,
+				new RedisData(Bucket.newBucketFromStringMap(map)));
+
+		assertThat(target.id, is("bart"));
+		assertThat(target.firstname, is("Bart"));
+		assertThat(target.lastname, is("Simpson"));
+		assertThat(target.father, is(notNullValue()));
+		assertThat(target.father.id, is("homer"));
+		assertThat(target.father.firstname, is("Homer"));
+		assertThat(target.father.lastname, is("Simpson"));
+		assertThat(target.father.father, is(nullValue()));
 	}
 
 	@Test // DATAREDIS-425
@@ -1087,6 +1112,25 @@ public class MappingRedisConverterUnitTests {
 		map.put("address", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
 
 		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
+
+		assertThat(target.address, notNullValue());
+		assertThat(target.address.city, is("unknown"));
+		assertThat(target.address.country, is("Tel'aran'rhiod"));
+	}
+
+	@Test // DATAREDIS-544
+	public void readShouldHonorCustomConversionOnNestedTypeViaConstructorCreation() {
+
+		this.converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
+		this.converter
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new BytesToAddressConverter())));
+		this.converter.afterPropertiesSet();
+
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("address", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
+
+		PersonWithConstructorAndAddress target = converter.read(PersonWithConstructorAndAddress.class,
+				new RedisData(Bucket.newBucketFromStringMap(map)));
 
 		assertThat(target.address, notNullValue());
 		assertThat(target.address.city, is("unknown"));

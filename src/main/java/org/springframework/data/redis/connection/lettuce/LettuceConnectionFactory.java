@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,6 +48,10 @@ import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
+import org.springframework.data.redis.connection.RedisConfiguration.DomainSocketConfiguration;
+import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
+import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
 import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -68,6 +73,7 @@ import org.springframework.util.ClassUtils;
  * {@link LettuceConnectionFactory client configuration}. Lettuce supports the following environmental configurations:
  * <ul>
  * <li>{@link RedisStandaloneConfiguration}</li>
+ * <li>{@link RedisStaticMasterSlaveConfiguration}</li>
  * <li>{@link RedisSocketConfiguration}</li>
  * <li>{@link RedisSentinelConfiguration}</li>
  * <li>{@link RedisClusterConfiguration}</li>
@@ -79,6 +85,7 @@ import org.springframework.util.ClassUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Balázs Németh
+ * @author Ruben Cervilla
  */
 public class LettuceConnectionFactory
 		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
@@ -100,10 +107,11 @@ public class LettuceConnectionFactory
 	/** Synchronization monitor for the shared Connection */
 	private final Object connectionMonitor = new Object();
 	private boolean convertPipelineAndTxResults = true;
+
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost", 6379);
-	private @Nullable RedisSocketConfiguration socketConfiguration;
-	private @Nullable RedisSentinelConfiguration sentinelConfiguration;
-	private @Nullable RedisClusterConfiguration clusterConfiguration;
+
+	private @Nullable RedisConfiguration configuration;
+
 	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
 
 	/**
@@ -116,8 +124,8 @@ public class LettuceConnectionFactory
 	/**
 	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
 	 */
-	public LettuceConnectionFactory(RedisStandaloneConfiguration config) {
-		this(config, new MutableLettuceClientConfiguration());
+	public LettuceConnectionFactory(RedisStandaloneConfiguration configuration) {
+		this(configuration, new MutableLettuceClientConfiguration());
 	}
 
 	/**
@@ -131,6 +139,7 @@ public class LettuceConnectionFactory
 		Assert.notNull(clientConfig, "LettuceClientConfiguration must not be null!");
 
 		this.clientConfiguration = clientConfig;
+		this.configuration = this.standaloneConfig;
 	}
 
 	/**
@@ -143,11 +152,11 @@ public class LettuceConnectionFactory
 	/**
 	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSocketConfiguration}.
 	 *
-	 * @param socketConfiguration must not be {@literal null}.
+	 * @param redisConfiguration must not be {@literal null}.
 	 * @since 2.1
 	 */
-	public LettuceConnectionFactory(RedisSocketConfiguration socketConfiguration) {
-		this(socketConfiguration, new MutableLettuceClientConfiguration());
+	public LettuceConnectionFactory(RedisConfiguration redisConfiguration) {
+		this(redisConfiguration, new MutableLettuceClientConfiguration());
 	}
 
 	/**
@@ -177,6 +186,7 @@ public class LettuceConnectionFactory
 	 */
 	@Deprecated
 	public LettuceConnectionFactory(LettucePool pool) {
+
 		this(new MutableLettuceClientConfiguration());
 		this.pool = pool;
 	}
@@ -197,24 +207,24 @@ public class LettuceConnectionFactory
 		Assert.notNull(standaloneConfig, "RedisStandaloneConfiguration must not be null!");
 
 		this.standaloneConfig = standaloneConfig;
+		this.configuration = this.standaloneConfig;
 	}
 
 	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSocketConfiguration} and
-	 * {@link LettuceClientConfiguration}.
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given
+	 * {@link RedisStaticMasterSlaveConfiguration} and {@link LettuceClientConfiguration}.
 	 *
-	 * @param socketConfiguration must not be {@literal null}.
+	 * @param redisConfiguration must not be {@literal null}.
 	 * @param clientConfig must not be {@literal null}.
 	 * @since 2.1
 	 */
-	public LettuceConnectionFactory(RedisSocketConfiguration socketConfiguration,
-			LettuceClientConfiguration clientConfig) {
+	public LettuceConnectionFactory(RedisConfiguration redisConfiguration, LettuceClientConfiguration clientConfig) {
 
 		this(clientConfig);
 
-		Assert.notNull(socketConfiguration, "RedisSocketConfiguration must not be null!");
+		Assert.notNull(redisConfiguration, "RedisConfiguration must not be null!");
 
-		this.socketConfiguration = socketConfiguration;
+		this.configuration = redisConfiguration;
 	}
 
 	/**
@@ -232,7 +242,7 @@ public class LettuceConnectionFactory
 
 		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration must not be null!");
 
-		this.sentinelConfiguration = sentinelConfiguration;
+		this.configuration = sentinelConfiguration;
 	}
 
 	/**
@@ -250,7 +260,7 @@ public class LettuceConnectionFactory
 
 		Assert.notNull(clusterConfiguration, "RedisClusterConfiguration must not be null!");
 
-		this.clusterConfiguration = clusterConfiguration;
+		this.configuration = clusterConfiguration;
 	}
 
 	/*
@@ -345,8 +355,14 @@ public class LettuceConnectionFactory
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
 		}
 
-		return new LettuceClusterConnection(connectionProvider, clusterCommandExecutor,
-				clientConfiguration.getCommandTimeout());
+		RedisClusterClient clusterClient = (RedisClusterClient) client;
+
+		return getShareNativeConnection()
+				? new LettuceClusterConnection(
+						(StatefulRedisClusterConnection<byte[], byte[]>) getOrCreateSharedConnection().getConnection(),
+						connectionProvider, clusterClient, clusterCommandExecutor, clientConfiguration.getCommandTimeout())
+				: new LettuceClusterConnection(null, connectionProvider, clusterClient, clusterCommandExecutor,
+						clientConfiguration.getCommandTimeout());
 	}
 
 	/*
@@ -618,16 +634,7 @@ public class LettuceConnectionFactory
 	 * @return the database index.
 	 */
 	public int getDatabase() {
-
-		if (isDomainSocketAware()) {
-			return socketConfiguration.getDatabase();
-		}
-
-		if (isRedisSentinelAware()) {
-			return sentinelConfiguration.getDatabase();
-		}
-
-		return standaloneConfig.getDatabase();
+		return RedisConfiguration.getDatabaseOrElse(configuration, standaloneConfig::getDatabase);
 	}
 
 	/**
@@ -639,13 +646,9 @@ public class LettuceConnectionFactory
 
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
 
-		if (isDomainSocketAware()) {
-			socketConfiguration.setDatabase(index);
-			return;
-		}
+		if (RedisConfiguration.isDatabaseIndexAware(configuration)) {
 
-		if (isRedisSentinelAware()) {
-			sentinelConfiguration.setDatabase(index);
+			((WithDatabaseIndex) configuration).setDatabase(index);
 			return;
 		}
 
@@ -687,20 +690,7 @@ public class LettuceConnectionFactory
 	}
 
 	private RedisPassword getRedisPassword() {
-
-		if (isDomainSocketAware()) {
-			return socketConfiguration.getPassword();
-		}
-
-		if (isRedisSentinelAware()) {
-			return sentinelConfiguration.getPassword();
-		}
-
-		if (isClusterAware()) {
-			return clusterConfiguration.getPassword();
-		}
-
-		return standaloneConfig.getPassword();
+		return RedisConfiguration.getPasswordOrElse(configuration, standaloneConfig::getPassword);
 	}
 
 	/**
@@ -713,18 +703,9 @@ public class LettuceConnectionFactory
 	@Deprecated
 	public void setPassword(String password) {
 
-		if (isDomainSocketAware()) {
-			socketConfiguration.setPassword(RedisPassword.of(password));
-			return;
-		}
+		if (RedisConfiguration.isPasswordAware(configuration)) {
 
-		if (isRedisSentinelAware()) {
-			sentinelConfiguration.setPassword(RedisPassword.of(password));
-			return;
-		}
-
-		if (isClusterAware()) {
-			clusterConfiguration.setPassword(RedisPassword.of(password));
+			((WithPassword) configuration).setPassword(password);
 			return;
 		}
 
@@ -800,7 +781,7 @@ public class LettuceConnectionFactory
 	 */
 	@Nullable
 	public RedisSocketConfiguration getSocketConfiguration() {
-		return socketConfiguration;
+		return isDomainSocketAware() ? (RedisSocketConfiguration) configuration : null;
 	}
 
 	/**
@@ -809,7 +790,7 @@ public class LettuceConnectionFactory
 	 */
 	@Nullable
 	public RedisSentinelConfiguration getSentinelConfiguration() {
-		return sentinelConfiguration;
+		return isRedisSentinelAware() ? (RedisSentinelConfiguration) configuration : null;
 	}
 
 	/**
@@ -818,7 +799,7 @@ public class LettuceConnectionFactory
 	 */
 	@Nullable
 	public RedisClusterConfiguration getClusterConfiguration() {
-		return clusterConfiguration;
+		return isClusterAware() ? (RedisClusterConfiguration) configuration : null;
 	}
 
 	/**
@@ -844,11 +825,19 @@ public class LettuceConnectionFactory
 	}
 
 	/**
+	 * @return true when {@link RedisStaticMasterSlaveConfiguration} is present.
+	 * @since 2.1
+	 */
+	private boolean isStaticMasterSlaveAware() {
+		return RedisConfiguration.isStaticMasterSlaveConfiguration(configuration);
+	}
+
+	/**
 	 * @return true when {@link RedisSentinelConfiguration} is present.
 	 * @since 1.5
 	 */
 	public boolean isRedisSentinelAware() {
-		return sentinelConfiguration != null;
+		return RedisConfiguration.isSentinelConfiguration(configuration);
 	}
 
 	/**
@@ -856,7 +845,7 @@ public class LettuceConnectionFactory
 	 * @since 2.1
 	 */
 	private boolean isDomainSocketAware() {
-		return socketConfiguration != null;
+		return RedisConfiguration.isDomainSocketConfiguration(configuration);
 	}
 
 	/**
@@ -864,7 +853,7 @@ public class LettuceConnectionFactory
 	 * @since 1.7
 	 */
 	public boolean isClusterAware() {
-		return clusterConfiguration != null;
+		return RedisConfiguration.isClusterConfiguration(configuration);
 	}
 
 	/**
@@ -914,6 +903,16 @@ public class LettuceConnectionFactory
 
 		ReadFrom readFrom = getClientConfiguration().getReadFrom().orElse(null);
 
+		if (isStaticMasterSlaveAware()) {
+
+			List<RedisURI> nodes = ((RedisStaticMasterSlaveConfiguration) configuration).getNodes().stream() //
+					.map(it -> createRedisURIAndApplySettings(it.getHostName(), it.getPort())) //
+					.peek(it -> it.setDatabase(getDatabase())) //
+					.collect(Collectors.toList());
+
+			return new StaticMasterSlaveConnectionProvider((RedisClient) client, codec, nodes, readFrom);
+		}
+
 		if (isClusterAware()) {
 			return new ClusterConnectionProvider((RedisClusterClient) client, codec, readFrom);
 		}
@@ -921,7 +920,18 @@ public class LettuceConnectionFactory
 		return new StandaloneConnectionProvider((RedisClient) client, codec, readFrom);
 	}
 
-	private AbstractRedisClient createClient() {
+	protected AbstractRedisClient createClient() {
+
+		if (isStaticMasterSlaveAware()) {
+
+			RedisClient redisClient = clientConfiguration.getClientResources() //
+					.map(RedisClient::create) //
+					.orElseGet(RedisClient::create);
+
+			clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
+
+			return redisClient;
+		}
 
 		if (isRedisSentinelAware()) {
 
@@ -937,7 +947,7 @@ public class LettuceConnectionFactory
 		if (isClusterAware()) {
 
 			List<RedisURI> initialUris = new ArrayList<>();
-			for (RedisNode node : this.clusterConfiguration.getClusterNodes()) {
+			for (RedisNode node : ((ClusterConfiguration) configuration).getClusterNodes()) {
 				initialUris.add(createRedisURIAndApplySettings(node.getHost(), node.getPort()));
 			}
 
@@ -952,7 +962,8 @@ public class LettuceConnectionFactory
 			return clusterClient;
 		}
 
-		RedisURI uri = isDomainSocketAware() ? createRedisSocketURIAndApplySettings(socketConfiguration.getSocket())
+		RedisURI uri = isDomainSocketAware()
+				? createRedisSocketURIAndApplySettings(((DomainSocketConfiguration) configuration).getSocket())
 				: createRedisURIAndApplySettings(getHostName(), getPort());
 
 		RedisClient redisClient = clientConfiguration.getClientResources() //
@@ -965,11 +976,13 @@ public class LettuceConnectionFactory
 
 	private RedisURI getSentinelRedisURI() {
 
-		RedisURI redisUri = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+		RedisURI redisUri = LettuceConverters
+				.sentinelConfigurationToRedisURI((org.springframework.data.redis.connection.RedisSentinelConfiguration) configuration);
 
 		getRedisPassword().toOptional().ifPresent(redisUri::setPassword);
 		clientConfiguration.getClientName().ifPresent(redisUri::setClientName);
 		redisUri.setTimeout(clientConfiguration.getCommandTimeout());
+		redisUri.setDatabase(getDatabase());
 
 		return redisUri;
 	}
@@ -1065,14 +1078,9 @@ public class LettuceConnectionFactory
 		 *
 		 * @return the connection.
 		 */
-		@Nullable
 		private StatefulConnection<E, E> getNativeConnection() {
 
 			try {
-
-				if (isClusterAware() && !shareNativeClusterConnection) {
-					return null;
-				}
 
 				StatefulConnection<E, E> connection = connectionProvider.getConnection(StatefulConnection.class);
 				if (connection instanceof StatefulRedisConnection && getDatabase() > 0) {

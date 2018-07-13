@@ -22,10 +22,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.redis.connection.BitFieldSubCommands;
+
 /**
  * Reactive Redis operations for simple (or in Redis terminology 'string') values.
  *
  * @author Mark Paluch
+ * @author Jiahe Cai
  * @since 2.0
  */
 public interface ReactiveValueOperations<K, V> {
@@ -59,6 +62,17 @@ public interface ReactiveValueOperations<K, V> {
 	Mono<Boolean> setIfAbsent(K key, V value);
 
 	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param timeout must not be {@literal null}.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	Mono<Boolean> setIfAbsent(K key, V value, Duration timeout);
+
+	/**
 	 * Set {@code key} to hold the string {@code value} if {@code key} is present.
 	 *
 	 * @param key must not be {@literal null}.
@@ -66,6 +80,17 @@ public interface ReactiveValueOperations<K, V> {
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	Mono<Boolean> setIfPresent(K key, V value);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param timeout must not be {@literal null}.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	Mono<Boolean> setIfPresent(K key, V value, Duration timeout);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
@@ -80,7 +105,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * not exist.
 	 *
 	 * @param map must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
+	 * @see <a href="http://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
 	Mono<Boolean> multiSetIfAbsent(Map<? extends K, ? extends V> map);
 
@@ -107,6 +132,54 @@ public interface ReactiveValueOperations<K, V> {
 	 * @see <a href="http://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 */
 	Mono<List<V>> multiGet(Collection<K> keys);
+
+	/**
+	 * Increments the number stored at {@code key} by one.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 */
+	Mono<Long> increment(K key);
+
+	/**
+	 * Increments the number stored at {@code key} by {@code delta}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param delta
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
+	 */
+	Mono<Long> increment(K key, long delta);
+
+	/**
+	 * Increment the string representing a floating point number stored at {@code key} by {@code delta}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param delta
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
+	 */
+	Mono<Double> increment(K key, double delta);
+
+	/**
+	 * Decrements the number stored at {@code key} by one.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/decr">Redis Documentation: DECR</a>
+	 */
+	Mono<Long> decrement(K key);
+
+	/**
+	 * Decrements the number stored at {@code key} by {@code delta}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param delta
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
+	 */
+	Mono<Long> decrement(K key, long delta);
 
 	/**
 	 * Append a {@code value} to {@code key}.
@@ -160,9 +233,20 @@ public interface ReactiveValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param offset
-	 * @see <a href="http://redis.io/commands/setbit">Redis Documentation: GETBIT</a>
+	 * @see <a href="http://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
 	 */
 	Mono<Boolean> getBit(K key, long offset);
+
+	/**
+	 * Get / Manipulate specific integer fields of varying bit widths and arbitrary non (necessary) aligned offset stored
+	 * at a given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param command must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 */
+	Mono<List<Long>> bitField(K key, BitFieldSubCommands command);
 
 	/**
 	 * Removes the given {@literal key}.

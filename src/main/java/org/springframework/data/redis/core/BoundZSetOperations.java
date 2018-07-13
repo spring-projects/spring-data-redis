@@ -233,36 +233,44 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param start
 	 * @param end
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zremrangebyrank">Redis Documentation: ZREMRANGEBYRANK</a>
 	 */
-	void removeRange(long start, long end);
+	@Nullable
+	Long removeRange(long start, long end);
 
 	/**
 	 * Remove elements with scores between {@code min} and {@code max} from sorted set with the bound key.
 	 *
 	 * @param min
 	 * @param max
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
 	 */
-	void removeRangeByScore(double min, double max);
+	@Nullable
+	Long removeRangeByScore(double min, double max);
 
 	/**
 	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
 	 *
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	void unionAndStore(K otherKey, K destKey);
+	@Nullable
+	Long unionAndStore(K otherKey, K destKey);
 
 	/**
 	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
 	 *
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	void unionAndStore(Collection<K> otherKeys, K destKey);
+	@Nullable
+	Long unionAndStore(Collection<K> otherKeys, K destKey);
 
 	/**
 	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
@@ -270,10 +278,12 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @param aggregate must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	void unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate);
+	@Nullable
+	Long unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate);
 
 	/**
 	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
@@ -282,28 +292,34 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param destKey must not be {@literal null}.
 	 * @param aggregate must not be {@literal null}.
 	 * @param weights must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	void unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
+	@Nullable
+	Long unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
 
 	/**
 	 * Intersect sorted sets at the bound key and {@code otherKey} and store result in destination {@code destKey}.
 	 *
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	void intersectAndStore(K otherKey, K destKey);
+	@Nullable
+	Long intersectAndStore(K otherKey, K destKey);
 
 	/**
 	 * Intersect sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
 	 *
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	void intersectAndStore(Collection<K> otherKeys, K destKey);
+	@Nullable
+	Long intersectAndStore(Collection<K> otherKeys, K destKey);
 
 	/**
 	 * Intersect sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
@@ -311,10 +327,12 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @param aggregate must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	void intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate);
+	@Nullable
+	Long intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate);
 
 	/**
 	 * Intersect sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
@@ -323,10 +341,12 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param destKey must not be {@literal null}.
 	 * @param aggregate must not be {@literal null}.
 	 * @param weights must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
 	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	void intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
+	@Nullable
+	Long intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
 
 	/**
 	 * Iterate over elements in zset at the bound key. <br />

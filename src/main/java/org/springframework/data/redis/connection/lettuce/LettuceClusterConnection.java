@@ -22,6 +22,7 @@ import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.SlotHash;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import io.lettuce.core.cluster.models.partitions.Partitions;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Duration;
@@ -46,6 +47,8 @@ import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKey
 import org.springframework.data.redis.connection.ClusterCommandExecutor.NodeResult;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -61,6 +64,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 			new LettuceExceptionConverter());
 
 	private final Log log = LogFactory.getLog(getClass());
+	private final RedisClusterClient clusterClient;
 
 	private ClusterCommandExecutor clusterCommandExecutor;
 	private ClusterTopologyProvider topologyProvider;
@@ -112,10 +116,14 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 
 		super(null, connectionProvider, RedisURI.DEFAULT_TIMEOUT_DURATION.toMillis(), 0);
 
-		topologyProvider = new LettuceClusterTopologyProvider(getClient());
-		clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider,
+		Assert.isTrue(connectionProvider instanceof ClusterConnectionProvider,
+				"LettuceConnectionProvider must be a ClusterConnectionProvider.");
+
+		this.clusterClient = getClient();
+		this.topologyProvider = new LettuceClusterTopologyProvider(this.clusterClient);
+		this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
 				new LettuceClusterNodeResourceProvider(getConnectionProvider()), exceptionConverter);
-		disposeClusterCommandExecutorOnClose = true;
+		this.disposeClusterCommandExecutorOnClose = true;
 	}
 
 	/**
@@ -136,6 +144,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	 *
 	 * @param connectionProvider must not be {@literal null}.
 	 * @param executor must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
 	 * @since 2.0
 	 */
 	public LettuceClusterConnection(LettuceConnectionProvider connectionProvider, ClusterCommandExecutor executor,
@@ -144,8 +153,37 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		super(null, connectionProvider, timeout.toMillis(), 0);
 
 		Assert.notNull(executor, "ClusterCommandExecutor must not be null.");
+		Assert.isTrue(connectionProvider instanceof ClusterConnectionProvider,
+				"LettuceConnectionProvider must be a ClusterConnectionProvider.");
 
-		this.topologyProvider = new LettuceClusterTopologyProvider(getClient());
+		this.clusterClient = getClient();
+		this.topologyProvider = new LettuceClusterTopologyProvider(this.clusterClient);
+		this.clusterCommandExecutor = executor;
+		this.disposeClusterCommandExecutorOnClose = false;
+	}
+
+	/**
+	 * Creates new {@link LettuceClusterConnection} given a shared {@link StatefulRedisClusterConnection} and
+	 * {@link LettuceConnectionProvider} running commands across the cluster via given {@link ClusterCommandExecutor}.
+	 *
+	 * @param sharedConnection may be {@literal null} if no shared connection used.
+	 * @param connectionProvider must not be {@literal null}.
+	 * @param clusterClient must not be {@literal null}.
+	 * @param executor must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @since 2.1
+	 */
+	LettuceClusterConnection(@Nullable StatefulRedisClusterConnection<byte[], byte[]> sharedConnection,
+			LettuceConnectionProvider connectionProvider, RedisClusterClient clusterClient, ClusterCommandExecutor executor,
+			Duration timeout) {
+
+		super(sharedConnection, connectionProvider, timeout.toMillis(), 0);
+
+		Assert.notNull(executor, "ClusterCommandExecutor must not be null.");
+		Assert.notNull(clusterClient, "RedisClusterClient must not be null.");
+
+		this.clusterClient = clusterClient;
+		this.topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
 		this.clusterCommandExecutor = executor;
 		this.disposeClusterCommandExecutorOnClose = false;
 	}
@@ -163,6 +201,13 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 
 		throw new IllegalStateException(String.format("Connection provider %s does not implement RedisClientProvider!",
 				connectionProvider.getClass().getName()));
+	}
+
+	/**
+	 * @return access to {@link RedisClusterClient} for non-connection access.
+	 */
+	private Partitions getPartitions() {
+		return clusterClient.getPartitions();
 	}
 
 	/*
@@ -283,7 +328,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	@Override
 	public RedisClusterNode clusterGetNodeForSlot(int slot) {
 
-		return LettuceConverters.toRedisClusterNode(getClient().getPartitions().getPartitionBySlot(slot));
+		return LettuceConverters.toRedisClusterNode(getPartitions().getPartitionBySlot(slot));
 	}
 
 	/*
@@ -317,7 +362,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 
 		clusterCommandExecutor.executeCommandOnSingleNode(
 				(LettuceClusterCommandCallback<String>) client -> client.clusterAddSlots(slots), node);
-
 	}
 
 	/*
@@ -491,6 +535,19 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		return doGetClusterKeyCommands().keys(node, pattern);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterConnection#scan(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
+		return doGetClusterKeyCommands().scan(node, options);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterConnection#randomKey(org.springframework.data.redis.connection.RedisClusterNode)
+	 */
 	public byte[] randomKey(RedisClusterNode node) {
 		return doGetClusterKeyCommands().randomKey(node);
 	}
@@ -515,7 +572,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	 */
 	@Override
 	public List<RedisClusterNode> clusterGetNodes() {
-		return LettuceConverters.partitionsToClusterNodes(getClient().getPartitions());
+		return LettuceConverters.partitionsToClusterNodes(getPartitions());
 	}
 
 	/*

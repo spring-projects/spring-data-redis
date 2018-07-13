@@ -24,7 +24,7 @@ import org.springframework.data.repository.cdi.Eager;
  * @author Mark Paluch
  */
 @Eager
-public interface PersonRepository extends CrudRepository<Person, String>, PersonRepositoryCustom {
+public interface PersonRepository extends CrudRepository<Person, String>, PersonFragment {
 
 	List<Person> findAll();
 

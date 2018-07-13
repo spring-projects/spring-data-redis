@@ -33,6 +33,7 @@ import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -54,7 +55,7 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 		super(redisTemplate, keyFactory, valueFactory);
 	}
 
-	public static @ClassRule RedisClusterRule clusterAvaialbale = new RedisClusterRule();
+	public static @ClassRule RedisClusterRule clusterAvailable = new RedisClusterRule();
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
 	@Ignore("Pipeline not supported in cluster mode")
@@ -160,8 +161,8 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 
 		// JEDIS
-		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(new RedisClusterConfiguration(
-				CLUSTER_NODES));
+		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(
+				new RedisClusterConfiguration(CLUSTER_NODES));
 
 		jedisConnectionFactory.afterPropertiesSet();
 
@@ -197,11 +198,17 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 
 		// LETTUCE
 
-		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(new RedisClusterConfiguration(
-				CLUSTER_NODES));
+		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(
+				new RedisClusterConfiguration(CLUSTER_NODES));
 		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 
 		lettuceConnectionFactory.afterPropertiesSet();
+
+		LettuceConnectionFactory pooledLettuceConnectionFactory = new LettuceConnectionFactory(
+				new RedisClusterConfiguration(CLUSTER_NODES), LettucePoolingClientConfiguration.builder()
+						.clientResources(LettuceTestClientResources.getSharedClientResources()).build());
+
+		pooledLettuceConnectionFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> lettuceStringTemplate = new RedisTemplate<>();
 		lettuceStringTemplate.setDefaultSerializer(StringRedisSerializer.UTF_8);
@@ -233,24 +240,30 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 		lettuceJackson2JsonPersonTemplate.setValueSerializer(jackson2JsonSerializer);
 		lettuceJackson2JsonPersonTemplate.afterPropertiesSet();
 
+		RedisTemplate<String, String> pooledLettuceStringTemplate = new RedisTemplate<>();
+		pooledLettuceStringTemplate.setDefaultSerializer(StringRedisSerializer.UTF_8);
+		pooledLettuceStringTemplate.setConnectionFactory(pooledLettuceConnectionFactory);
+		pooledLettuceStringTemplate.afterPropertiesSet();
+
 		return Arrays.asList(new Object[][] { //
 
-						// JEDIS
-						{ jedisStringTemplate, stringFactory, stringFactory }, //
-						{ jedisLongTemplate, stringFactory, longFactory }, //
-						{ jedisRawTemplate, rawFactory, rawFactory }, //
-						{ jedisPersonTemplate, stringFactory, personFactory }, //
-						{ jedisXstreamStringTemplate, stringFactory, stringFactory }, //
-						{ jedisJackson2JsonPersonTemplate, stringFactory, personFactory }, //
+				// JEDIS
+				{ jedisStringTemplate, stringFactory, stringFactory }, //
+				{ jedisLongTemplate, stringFactory, longFactory }, //
+				{ jedisRawTemplate, rawFactory, rawFactory }, //
+				{ jedisPersonTemplate, stringFactory, personFactory }, //
+				{ jedisXstreamStringTemplate, stringFactory, stringFactory }, //
+				{ jedisJackson2JsonPersonTemplate, stringFactory, personFactory }, //
 
-						// LETTUCE
-						{ lettuceStringTemplate, stringFactory, stringFactory }, //
-						{ lettuceLongTemplate, stringFactory, longFactory }, //
-						{ lettuceRawTemplate, rawFactory, rawFactory }, //
-						{ lettucePersonTemplate, stringFactory, personFactory }, //
-						{ lettuceXstreamStringTemplate, stringFactory, stringFactory }, //
-						{ lettuceJackson2JsonPersonTemplate, stringFactory, personFactory } //
-				});
+				// LETTUCE
+				{ lettuceStringTemplate, stringFactory, stringFactory }, //
+				{ lettuceLongTemplate, stringFactory, longFactory }, //
+				{ lettuceRawTemplate, rawFactory, rawFactory }, //
+				{ lettucePersonTemplate, stringFactory, personFactory }, //
+				{ lettuceXstreamStringTemplate, stringFactory, stringFactory }, //
+				{ lettuceJackson2JsonPersonTemplate, stringFactory, personFactory }, //
+				{ pooledLettuceStringTemplate, stringFactory, stringFactory } //
+		});
 	}
 
 }

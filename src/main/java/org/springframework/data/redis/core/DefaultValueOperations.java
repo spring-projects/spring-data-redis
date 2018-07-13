@@ -23,7 +23,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.lang.Nullable;
 
 /**
  * Default implementation of {@link ValueOperations}.
@@ -31,6 +35,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Jiahe Cai
  */
 class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
 
@@ -73,6 +78,17 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#increment(java.lang.Object)
+	 */
+	@Override
+	public Long increment(K key) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.incr(rawKey), true);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ValueOperations#increment(java.lang.Object, long)
 	 */
 	@Override
@@ -91,6 +107,28 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.incrBy(rawKey, delta), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#decrement(java.lang.Object)
+	 */
+	@Override
+	public Long decrement(K key) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.decr(rawKey), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#increment(java.lang.Object, long)
+	 */
+	@Override
+	public Long decrement(K key, long delta) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.decrBy(rawKey, delta), true);
 	}
 
 	/*
@@ -260,6 +298,49 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#setIfAbsent(java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Boolean setIfAbsent(K key, V value, long timeout, TimeUnit unit) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		Expiration expiration = Expiration.from(timeout, unit);
+		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifAbsent()), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#setIfPresent(java.lang.Object, java.lang.Object)
+	 */
+	@Nullable
+	@Override
+	public Boolean setIfPresent(K key, V value) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		return execute(connection -> connection.set(rawKey, rawValue, Expiration.persistent(), SetOption.ifPresent()), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#setIfPresent(java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Boolean setIfPresent(K key, V value, long timeout, TimeUnit unit) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		Expiration expiration = Expiration.from(timeout, unit);
+		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifPresent()), true);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ValueOperations#set(java.lang.Object, java.lang.Object, long)
 	 */
 	@Override
@@ -305,5 +386,16 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.getBit(rawKey, offset), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#bitfield(Object, RedisStringCommands.BitfieldCommand)
+	 */
+	@Override
+	public List<Long> bitField(K key, final BitFieldSubCommands subCommands) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.bitField(rawKey, subCommands), true);
 	}
 }

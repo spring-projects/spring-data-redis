@@ -1,4 +1,4 @@
-Spring Data Redis 2.1 M1
+Spring Data Redis 2.1 M3
    Copyright (c) [$copyright] Pivotal Software, Inc.
 
    ========================================================================

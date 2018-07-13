@@ -16,10 +16,15 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.*;
 
-import org.springframework.data.redis.util.ByteUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -36,6 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Test;
+import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
@@ -43,7 +49,8 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveStringCommands.SetCommand;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.data.redis.test.util.LettuceRedisClientProvider;
+import org.springframework.data.redis.test.util.HexStringUtils;
+import org.springframework.data.redis.util.ByteUtils;
 
 /**
  * @author Christoph Strobl
@@ -344,6 +351,63 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.verifyComplete();
 	}
 
+	@Test // DATAREDIS-562
+	public void bitFieldSetShouldWorkCorrectly() {
+
+		StepVerifier
+				.create(connection.stringCommands().bitField(KEY_1_BBUFFER, create().set(INT_8).valueAt(offset(0L)).to(10L)))
+				.expectNext(Collections.singletonList(0L)).verifyComplete();
+
+		StepVerifier
+				.create(connection.stringCommands().bitField(KEY_1_BBUFFER, create().set(INT_8).valueAt(offset(0L)).to(20L)))
+				.expectNext(Collections.singletonList(10L)).verifyComplete();
+	}
+
+	@Test // DATAREDIS-562
+	public void bitFieldGetShouldWorkCorrectly() {
+
+		StepVerifier.create(connection.stringCommands().bitField(KEY_1_BBUFFER, create().get(INT_8).valueAt(offset(0L))))
+				.expectNext(Collections.singletonList(0L)).verifyComplete();
+	}
+
+	@Test // DATAREDIS-562
+	public void bitFieldIncrByShouldWorkCorrectly() {
+
+		StepVerifier
+				.create(connection.stringCommands().bitField(KEY_1_BBUFFER, create().incr(INT_8).valueAt(offset(100L)).by(1L)))
+				.expectNext(Collections.singletonList(1L)).verifyComplete();
+	}
+
+	@Test // DATAREDIS-562
+	public void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
+
+		StepVerifier
+				.create(connection.stringCommands().bitField(KEY_1_BBUFFER,
+						create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+				.expectNext(Collections.singletonList(1L)).verifyComplete();
+		StepVerifier
+				.create(connection.stringCommands().bitField(KEY_1_BBUFFER,
+						create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+				.expectNext(Collections.singletonList(2L)).verifyComplete();
+		StepVerifier
+				.create(connection.stringCommands().bitField(KEY_1_BBUFFER,
+						create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+				.expectNext(Collections.singletonList(3L)).verifyComplete();
+		StepVerifier
+				.create(connection.stringCommands().bitField(KEY_1_BBUFFER,
+						create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+				.expectNext(Collections.singletonList(null)).verifyComplete();
+	}
+
+	@Test // DATAREDIS-562
+	public void bitfieldShouldAllowMultipleSubcommands() {
+
+		StepVerifier
+				.create(connection.stringCommands().bitField(KEY_1_BBUFFER,
+						create().incr(signed(5)).valueAt(offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)))
+				.expectNext(Arrays.asList(1L, 0L)).verifyComplete();
+	}
+
 	@Test // DATAREDIS-525
 	public void bitOpAndShouldWorkAsExpected() {
 
@@ -399,4 +463,22 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.expectNext(7L) //
 				.verifyComplete();
 	}
+
+	@Test // DATAREDIS-697
+	public void bitPosShouldReturnPositionCorrectly() {
+
+		nativeBinaryCommands.set(KEY_1_BBUFFER, ByteBuffer.wrap(HexStringUtils.hexToBytes("fff000")));
+
+		StepVerifier.create(connection.stringCommands().bitPos(KEY_1_BBUFFER, false)).expectNext(12L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-697
+	public void bitPosShouldReturnPositionInRangeCorrectly() {
+
+		nativeBinaryCommands.set(KEY_1_BBUFFER, ByteBuffer.wrap(HexStringUtils.hexToBytes("fff0f0")));
+
+		StepVerifier.create(connection.stringCommands().bitPos(KEY_1_BBUFFER, true,
+				org.springframework.data.domain.Range.of(Bound.inclusive(2L), Bound.unbounded()))).expectNext(16L).verifyComplete();
+	}
+
 }

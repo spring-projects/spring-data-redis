@@ -17,12 +17,14 @@ package org.springframework.data.redis.connection.jedis;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractTransactionalTestBase;
 import org.springframework.data.redis.connection.jedis.TransactionalJedisItegrationTests.JedisContextConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @ContextConfiguration(classes = { JedisContextConfiguration.class })
 public class TransactionalJedisItegrationTests extends AbstractTransactionalTestBase {
@@ -35,11 +37,9 @@ public class TransactionalJedisItegrationTests extends AbstractTransactionalTest
 		public JedisConnectionFactory redisConnectionFactory() {
 
 			JedisConnectionFactory factory = new JedisConnectionFactory();
-			factory.setHostName("localhost");
-			factory.setPort(6379);
+			factory.setHostName(SettingsUtils.getHost());
+			factory.setPort(SettingsUtils.getPort());
 			return factory;
 		}
-
 	}
-
 }

@@ -23,7 +23,6 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisException;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;
-import io.lettuce.core.ScanArgs;
 import io.lettuce.core.TransactionResult;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -68,7 +67,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvid
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceResultBuilder;
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceStatusResult;
 import org.springframework.data.redis.core.RedisCommand;
-import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -241,7 +239,20 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
 	 * @since 2.0
 	 */
-	public LettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection,
+	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection,
+			LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
+		this((StatefulConnection<byte[], byte[]>) sharedConnection, connectionProvider, timeout, defaultDbIndex);
+	}
+
+	/**
+	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s. Should not be
+	 *          used for transactions or blocking operations.
+	 * @param connectionProvider connection provider to obtain and release native connections.
+	 * @param timeout The connection timeout (in milliseconds)
+	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
+	 * @since 2.1
+	 */
+	LettuceConnection(@Nullable StatefulConnection<byte[], byte[]> sharedConnection,
 			LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
 
 		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null.");
@@ -413,6 +424,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.AbstractRedisConnection#close()
+	 */
 	@Override
 	public void close() throws DataAccessException {
 
@@ -442,26 +457,48 @@ public class LettuceConnection extends AbstractRedisConnection {
 		this.dbIndex = defaultDbIndex;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#isClosed()
+	 */
 	@Override
 	public boolean isClosed() {
 		return isClosed && !isSubscribed();
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#getNativeConnection()
+	 */
 	@Override
 	public RedisClusterAsyncCommands<byte[], byte[]> getNativeConnection() {
-		return (subscription != null ? subscription.pubsub.async() : getAsyncConnection());
+
+		LettuceSubscription subscription = this.subscription;
+		return (subscription != null ? subscription.getNativeConnection().async() : getAsyncConnection());
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#isQueueing()
+	 */
 	@Override
 	public boolean isQueueing() {
 		return isMulti;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#isPipelined()
+	 */
 	@Override
 	public boolean isPipelined() {
 		return isPipelined;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#openPipeline()
+	 */
 	@Override
 	public void openPipeline() {
 		if (!isPipelined) {
@@ -470,6 +507,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#closePipeline()
+	 */
 	@Override
 	public List<Object> closePipeline() {
 
@@ -536,7 +577,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown(org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption)
 	 */
 	@Override
-
 	public byte[] echo(byte[] message) {
 		try {
 			if (isPipelined()) {
@@ -703,62 +743,86 @@ public class LettuceConnection extends AbstractRedisConnection {
 	// Pub/Sub functionality
 	//
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#publish(byte[], byte[])
+	 */
 	@Override
 	public Long publish(byte[] channel, byte[] message) {
+
 		try {
+
 			if (isPipelined()) {
 				pipeline(newLettuceResult(getAsyncConnection().publish(channel, message)));
 				return null;
 			}
+
 			if (isQueueing()) {
 				transaction(newLettuceResult(getAsyncConnection().publish(channel, message)));
 				return null;
 			}
+
 			return getConnection().publish(channel, message);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#getSubscription()
+	 */
 	@Override
 	public Subscription getSubscription() {
 		return subscription;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#isSubscribed()
+	 */
 	@Override
 	public boolean isSubscribed() {
 		return (subscription != null && subscription.isAlive());
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#pSubscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
+	 */
 	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
+
 		checkSubscription();
 
-		if (isQueueing()) {
-			throw new UnsupportedOperationException();
+		if (isQueueing() || isPipelined()) {
+			throw new UnsupportedOperationException("Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
 		}
-		if (isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
+
 		try {
-			subscription = new LettuceSubscription(listener, switchToPubSub());
+			subscription = initSubscription(listener);
 			subscription.pSubscribe(patterns);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#subscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
+	 */
 	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
+
 		checkSubscription();
 
-		if (isPipelined()) {
-			throw new UnsupportedOperationException();
+		if (isQueueing() || isPipelined()) {
+			throw new UnsupportedOperationException("Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
 		}
-		try {
-			subscription = new LettuceSubscription(listener, switchToPubSub());
-			subscription.subscribe(channels);
 
+		try {
+			subscription = initSubscription(listener);
+			subscription.subscribe(channels);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -802,6 +866,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		close();
 		return connectionProvider.getConnection(StatefulRedisPubSubConnection.class);
+	}
+
+	private LettuceSubscription initSubscription(MessageListener listener) {
+		return new LettuceSubscription(listener, switchToPubSub(), connectionProvider);
 	}
 
 	void pipeline(LettuceResult result) {
@@ -909,26 +977,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return io.lettuce.core.ScanCursor.of(Long.toString(cursorId));
 	}
 
-	@Nullable
-	ScanArgs getScanArgs(@Nullable ScanOptions options) {
-
-		if (options == null) {
-			return null;
-		}
-
-		ScanArgs scanArgs = new ScanArgs();
-
-		if (options.getPattern() != null) {
-			scanArgs.match(options.getPattern());
-		}
-
-		if (options.getCount() != null) {
-			scanArgs.limit(options.getCount());
-		}
-
-		return scanArgs;
-	}
-
 	private void validateCommandIfRunningInTransactionMode(CommandType cmd, byte[]... args) {
 
 		if (this.isQueueing()) {
@@ -1006,6 +1054,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			// INTEGER
 			COMMAND_OUTPUT_TYPE_MAPPING.put(BITCOUNT, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(BITOP, IntegerOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(BITPOS, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(DBSIZE, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(DECR, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(DECRBY, IntegerOutput.class);

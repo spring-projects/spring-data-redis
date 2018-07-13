@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.DisposableBean;
@@ -492,6 +493,22 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 */
 		public byte[] getKey() {
 			return key.getArray();
+		}
+
+		/**
+		 * Apply the {@link Function mapper function} to the value and return the mapped value.
+		 *
+		 * @param mapper must not be {@literal null}.
+		 * @param <U> type of the mapped value.
+		 * @return the mapped value.
+		 * @since 2.1
+		 */
+		@Nullable
+		public <U> U mapValue(Function<? super T, ? extends U> mapper) {
+
+			Assert.notNull(mapper, "Mapper function must not be null!");
+
+			return mapper.apply(getValue());
 		}
 	}
 

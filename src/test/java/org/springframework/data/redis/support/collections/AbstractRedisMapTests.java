@@ -62,6 +62,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Christian Bühler
  */
 @RunWith(Parameterized.class)
 public abstract class AbstractRedisMapTests<K, V> {
@@ -82,7 +83,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	abstract RedisMap<K, V> createMap();
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		map = createMap();
 	}
 

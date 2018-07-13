@@ -18,6 +18,7 @@ package org.springframework.data.redis.listener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -93,7 +94,6 @@ public class SubscriptionConnectionTests {
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
 		jedisConnFactory.setPort(port);
 		jedisConnFactory.setHostName(host);
-		jedisConnFactory.setDatabase(2);
 		jedisConnFactory.afterPropertiesSet();
 
 		// Lettuce
@@ -101,7 +101,6 @@ public class SubscriptionConnectionTests {
 		lettuceConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		lettuceConnFactory.setPort(port);
 		lettuceConnFactory.setHostName(host);
-		lettuceConnFactory.setDatabase(2);
 		lettuceConnFactory.setValidateConnection(true);
 		lettuceConnFactory.afterPropertiesSet();
 
@@ -116,7 +115,8 @@ public class SubscriptionConnectionTests {
 			RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 			container.setConnectionFactory(connectionFactory);
 			container.setBeanName("container" + i);
-			container.addMessageListener(new MessageListenerAdapter(handler), Arrays.asList(new ChannelTopic(CHANNEL)));
+			container.addMessageListener(new MessageListenerAdapter(handler),
+					Collections.singletonList(new ChannelTopic(CHANNEL)));
 			container.setTaskExecutor(new SyncTaskExecutor());
 			container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor());
 			container.afterPropertiesSet();

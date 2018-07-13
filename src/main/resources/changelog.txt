@@ -1,6 +1,129 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.0.8.RELEASE (2018-06-13)
+---------------------------------------------
+* DATAREDIS-842 - LettuceConnectionFactory.getSentinelRedisURI does not set database.
+* DATAREDIS-840 - Stopped Redis server increases RedisMessageListenerContainer shutdown time.
+* DATAREDIS-832 - Add coverpage for epub documentation output.
+* DATAREDIS-830 - LettucePoolingConnectionProvider contains unreleased connections while using RedisMessageListenerContainer.
+* DATAREDIS-829 - Release 2.0.8 (Kay SR8).
+
+
+Changes in version 1.8.13.RELEASE (2018-06-13)
+----------------------------------------------
+* DATAREDIS-840 - Stopped Redis server increases RedisMessageListenerContainer shutdown time.
+* DATAREDIS-832 - Add coverpage for epub documentation output.
+* DATAREDIS-828 - Release 1.8.13 (Ingalls SR13).
+
+
+Changes in version 2.1.0.M3 (2018-05-17)
+----------------------------------------
+* DATAREDIS-833 - Upgrade to Lettuce 5.1.0.M1.
+* DATAREDIS-832 - Add coverpage for epub documentation output.
+* DATAREDIS-827 - Upgrade to Lettuce 5.0.4.RELEASE.
+* DATAREDIS-825 - Full editing pass on reference documentation.
+* DATAREDIS-824 - NPE: DefaultReactiveHashOperations#multiGet on null values.
+* DATAREDIS-822 - RedisCommand does not consider optional upper argument count.
+* DATAREDIS-819 - Fix typo in ReactiveValueOperations.
+* DATAREDIS-817 - Upgrade build profile to Redis 4.0.9.
+* DATAREDIS-815 - Add method variants accepting/returning java.time.Duration.
+* DATAREDIS-812 - Release 2.1 M3 (Lovelace).
+* DATAREDIS-786 - Add ValueOperations.setIfPresent(…).
+* DATAREDIS-778 - BoundZSetOperations should match return types of ZSetOperations.
+* DATAREDIS-763 - Introduce factory methods for JDK serializer accepting ClassLoader.
+* DATAREDIS-716 - Add support for OBJECT command.
+* DATAREDIS-697 - Add support for BITPOS.
+* DATAREDIS-612 - Provide reactive RedisMessageListenerContainer.
+* DATAREDIS-562 - Add support for BITFIELD.
+
+
+Changes in version 2.0.7.RELEASE (2018-05-08)
+---------------------------------------------
+* DATAREDIS-827 - Upgrade to Lettuce 5.0.4.RELEASE.
+* DATAREDIS-825 - Full editing pass on reference documentation.
+* DATAREDIS-824 - NPE: DefaultReactiveHashOperations#multiGet on null values.
+* DATAREDIS-822 - RedisCommand does not consider optional upper argument count.
+* DATAREDIS-819 - Fix typo in ReactiveValueOperations.
+* DATAREDIS-809 - Fix Javadoc.
+* DATAREDIS-808 - Fix ambiguous repository names in tests.
+* DATAREDIS-806 - Release 2.0.7 (Kay SR7).
+* DATAREDIS-803 - Work around Redis parameter limitation.
+* DATAREDIS-623 - RedisSystemException with paged queries by 2 indexed fields.
+* DATAREDIS-601 - Improve Transaction reference documentation.
+
+
+Changes in version 1.8.12.RELEASE (2018-05-08)
+----------------------------------------------
+* DATAREDIS-825 - Full editing pass on reference documentation.
+* DATAREDIS-822 - RedisCommand does not consider optional upper argument count.
+* DATAREDIS-809 - Fix Javadoc.
+* DATAREDIS-805 - Release 1.8.12 (Ingalls SR12).
+* DATAREDIS-623 - RedisSystemException with paged queries by 2 indexed fields.
+* DATAREDIS-601 - Improve Transaction reference documentation.
+
+
+Changes in version 2.1.0.M2 (2018-04-13)
+----------------------------------------
+* DATAREDIS-810 - Adapt to API changes in Spring Data Commons.
+* DATAREDIS-809 - Fix Javadoc.
+* DATAREDIS-808 - Fix ambiguous repository names in tests.
+* DATAREDIS-803 - Work around Redis parameter limitation.
+* DATAREDIS-800 - Upgrade to netty 4.1.22.Final.
+* DATAREDIS-799 - Upgrade to Lettuce 5.0.3.RELEASE.
+* DATAREDIS-798 - Remove explicit declaration of Jackson library versions.
+* DATAREDIS-791 - ReactiveHashCommands.hMSet calls HSETNX if map contains a single tuple.
+* DATAREDIS-789 - Lua script in redis-scripting.adoc contains syntax error.
+* DATAREDIS-787 - Retain stack trace in tests.
+* DATAREDIS-785 - Export composable repositories via CDI.
+* DATAREDIS-784 - Add support for increment and decrement commands via ReactiveValueOperations.
+* DATAREDIS-783 - Fix typo in LettuceReactiveRedisConnection.
+* DATAREDIS-782 - Add support for SET key value NX EX ttl.
+* DATAREDIS-780 - Up-to-date guidelines for serialization usage.
+* DATAREDIS-779 - ReactiveValueOperations.set[ifPresent|ifAbsent](…) does not return a value if value was not set.
+* DATAREDIS-775 - ClassCastException when using Redis Cluster with connection pooling.
+* DATAREDIS-773 - Upgrade to Lettuce 5.0.2.RELEASE.
+* DATAREDIS-770 - Release 2.1 M2 (Lovelace).
+* DATAREDIS-768 - Redis repositories deserialize Map<Integer, Integer> to strings.
+* DATAREDIS-767 - RedisCacheManager always returns/creates caches which is conflicting with CompositeCacheManager.
+* DATAREDIS-764 - Polish serializers section in reference documentation.
+* DATAREDIS-762 - Add support for static Master/Slave setups with provided nodes.
+* DATAREDIS-746 - Zset union and intersect operation aggregation support.
+* DATAREDIS-731 - Share native Lettuce Cluster connection across LettuceClusterConnection.
+* DATAREDIS-715 - Cannot configure RedisCache prefix.
+* DATAREDIS-635 - Implement Cluster SCAN support for Lettuce.
+* DATAREDIS-601 - Improve Transaction reference documentation.
+* DATAREDIS-545 - Support connection-pooling for Redis Cluster with Lettuce.
+* DATAREDIS-544 - Reading back nested entities fails when no default constructor present.
+* DATAREDIS-543 - Spring Data Redis should support the @TypeAlias annotation.
+
+
+Changes in version 2.0.6.RELEASE (2018-04-04)
+---------------------------------------------
+* DATAREDIS-799 - Upgrade to Lettuce 5.0.3.RELEASE.
+* DATAREDIS-798 - Remove explicit declaration of Jackson library versions.
+* DATAREDIS-791 - ReactiveHashCommands.hMSet calls HSETNX if map contains a single tuple.
+* DATAREDIS-789 - Lua script in redis-scripting.adoc contains syntax error.
+* DATAREDIS-783 - Fix typo in LettuceReactiveRedisConnection.
+* DATAREDIS-780 - Up-to-date guidelines for serialization usage.
+* DATAREDIS-776 - Release 2.0.6 (Kay SR6).
+
+
+Changes in version 1.8.11.RELEASE (2018-04-04)
+----------------------------------------------
+* DATAREDIS-798 - Remove explicit declaration of Jackson library versions.
+* DATAREDIS-790 - Backport JedisConnection always executes SELECT via RedisTemplate.
+* DATAREDIS-789 - Lua script in redis-scripting.adoc contains syntax error.
+* DATAREDIS-780 - Up-to-date guidelines for serialization usage.
+* DATAREDIS-768 - Redis repositories deserialize Map<Integer, Integer> to strings.
+* DATAREDIS-766 - SSL flag not applied if JedisConnectionFactory configured via JedisShardInfo.
+* DATAREDIS-765 - Sentinel with JedisConnectionFactory without pooling connects to localhost:6379.
+* DATAREDIS-764 - Polish serializers section in reference documentation.
+* DATAREDIS-759 - Fix line endings.
+* DATAREDIS-758 - Release 1.8.11 (Ingalls SR11).
+* DATAREDIS-673 - RedisCache.get(…) returns false positive cache hit when key is deleted in-flight.
+
+
 Changes in version 2.0.5.RELEASE (2018-02-28)
 ---------------------------------------------
 * DATAREDIS-775 - ClassCastException when using Redis Cluster with connection pooling.

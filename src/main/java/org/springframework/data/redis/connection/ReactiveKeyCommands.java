@@ -30,6 +30,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Command
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -111,7 +112,9 @@ public interface ReactiveKeyCommands {
 	Flux<NumericResponse<Collection<ByteBuffer>, Long>> touch(Publisher<Collection<ByteBuffer>> keys);
 
 	/**
-	 * Find all keys matching the given {@literal pattern}.
+	 * Find all keys matching the given {@literal pattern}.<br />
+	 * It is recommended to use {@link #scan(ScanOptions)} to iterate over the keyspace as {@link #keys(ByteBuffer)} is a
+	 * non-interruptible and expensive Redis operation.
 	 *
 	 * @param pattern must not be {@literal null}.
 	 * @return
@@ -125,13 +128,39 @@ public interface ReactiveKeyCommands {
 	}
 
 	/**
-	 * Find all keys matching the given {@literal pattern}.
-	 *
+	 * Find all keys matching the given {@literal pattern}.<br />
+	 * It is recommended to use {@link #scan(ScanOptions)} to iterate over the keyspace as {@link #keys(Publisher)} is a
+	 * non-interruptible and expensive Redis operation.
+	 * 
 	 * @param patterns must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
 	 */
 	Flux<MultiValueResponse<ByteBuffer, ByteBuffer>> keys(Publisher<ByteBuffer> patterns);
+
+	/**
+	 * Use a {@link Flux} to iterate over keys. The resulting {@link Flux} acts as a cursor and issues {@code SCAN}
+	 * commands itself as long as the subscriber signals demand.
+	 *
+	 * @return never {@literal null}.
+	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @since 2.1
+	 */
+	default Flux<ByteBuffer> scan() {
+		return scan(ScanOptions.NONE);
+	}
+
+	/**
+	 * Use a {@link Flux} to iterate over keys. The resulting {@link Flux} acts as a cursor and issues {@code SCAN}
+	 * commands itself as long as the subscriber signals demand.
+	 *
+	 * @param options must not be {@literal null}.
+	 * @return the {@link Flux} emitting {@link ByteBuffer keys} one by one.
+	 * @throws IllegalArgumentException when options is {@literal null}.
+	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @since 2.1
+	 */
+	Flux<ByteBuffer> scan(ScanOptions options);
 
 	/**
 	 * Return a random key from the keyspace.
@@ -692,4 +721,37 @@ public interface ReactiveKeyCommands {
 	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 */
 	Flux<BooleanResponse<MoveCommand>> move(Publisher<MoveCommand> commands);
+
+	/**
+	 * Get the type of internal representation used for storing the value at the given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return the {@link Mono} emitting {@link org.springframework.data.redis.connection.ValueEncoding}.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @see <a href="http://redis.io/commands/object">Redis Documentation: OBJECT ENCODING</a>
+	 * @since 2.1
+	 */
+	Mono<ValueEncoding> encodingOf(ByteBuffer key);
+
+	/**
+	 * Get the {@link Duration} since the object stored at the given {@code key} is idle.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return the {@link Mono} emitting the idletime of the key of {@link Mono#empty()} if the key does not exist.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @see <a href="http://redis.io/commands/object">Redis Documentation: OBJECT IDLETIME</a>
+	 * @since 2.1
+	 */
+	Mono<Duration> idletime(ByteBuffer key);
+
+	/**
+	 * Get the number of references of the value associated with the specified {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@link Mono#empty()} if key does not exist.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @see <a href="http://redis.io/commands/object">Redis Documentation: OBJECT REFCOUNT</a>
+	 * @since 2.1
+	 */
+	Mono<Long> refcount(ByteBuffer key);
 }

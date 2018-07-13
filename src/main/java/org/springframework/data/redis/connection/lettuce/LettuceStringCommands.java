@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.BitFieldArgs;
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 import lombok.NonNull;
@@ -25,9 +27,12 @@ import java.util.Map;
 import java.util.concurrent.Future;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -602,6 +607,33 @@ class LettuceStringCommands implements RedisStringCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitfield(byte[], BitfieldCommand)
+	 */
+	@Override
+	public List<Long> bitField(byte[] key, BitFieldSubCommands subCommands) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(subCommands, "Command must not be null!");
+
+		BitFieldArgs args = LettuceConverters.toBitFieldArgs(subCommands);
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().bitfield(key, args)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().bitfield(key, args)));
+				return null;
+			}
+			return getConnection().bitfield(key, args);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitOp(org.springframework.data.redis.connection.RedisStringCommands.BitOperation, byte[], byte[][])
 	 */
 	@Override
@@ -668,6 +700,55 @@ class LettuceStringCommands implements RedisStringCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitPos(byte[], boolean, org.springframework.data.domain.Range)
+	 */
+	@Nullable
+	@Override
+	public Long bitPos(byte[] key, boolean bit, Range<Long> range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null! Use Range.unbounded() instead.");
+
+		try {
+			if (isPipelined() || isQueueing()) {
+
+				RedisFuture<Long> futureResult;
+				RedisClusterAsyncCommands<byte[], byte[]> connection = getAsyncConnection();
+
+				if (range.getLowerBound().isBounded()) {
+					if (range.getUpperBound().isBounded()) {
+						futureResult = connection.bitpos(key, bit, getLowerValue(range), getUpperValue(range));
+					} else {
+						futureResult = connection.bitpos(key, bit, getLowerValue(range));
+					}
+				} else {
+					futureResult = connection.bitpos(key, bit);
+				}
+
+				if (isPipelined()) {
+					pipeline(this.connection.newLettuceResult(futureResult));
+				}
+				else if (isQueueing()) {
+					transaction(this.connection.newLettuceResult(futureResult));
+				}
+				return null;
+			}
+
+			if (range.getLowerBound().isBounded()) {
+				if (range.getUpperBound().isBounded()) {
+					return getConnection().bitpos(key, bit, getLowerValue(range), getUpperValue(range));
+				}
+				return getConnection().bitpos(key, bit, getLowerValue(range));
+			}
+
+			return getConnection().bitpos(key, bit);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#strLen(byte[])
 	 */
 	@Override
@@ -716,5 +797,15 @@ class LettuceStringCommands implements RedisStringCommands {
 
 	private DataAccessException convertLettuceAccessException(Exception ex) {
 		return connection.convertLettuceAccessException(ex);
+	}
+
+	private static <T extends Comparable<T>> T getUpperValue(Range<T> range) {
+		return range.getUpperBound().getValue()
+				.orElseThrow(() -> new IllegalArgumentException("Range does not contain upper bound value!"));
+	}
+
+	private static <T extends Comparable<T>> T getLowerValue(Range<T> range) {
+		return range.getLowerBound().getValue()
+				.orElseThrow(() -> new IllegalArgumentException("Range does not contain lower bound value!"));
 	}
 }

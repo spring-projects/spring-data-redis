@@ -229,6 +229,36 @@ public interface ReactiveZSetOperations<K, V> {
 	Flux<TypedTuple<V>> reverseRangeByScoreWithScores(K key, Range<Double> range, Limit limit);
 
 	/**
+	 * Use a {@link Flux} to iterate over entries in the sorted set at {@code key}. The resulting {@link Flux} acts as a
+	 * cursor and issues {@code ZSCAN} commands itself as long as the subscriber signals demand.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return the {@link Flux} emitting the {@literal values} one by one or an {@link Flux#empty() empty Flux} if none
+	 *         exist.
+	 * @throws IllegalArgumentException when given {@code key} is {@literal null}.
+	 * @see <a href="http://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
+	 * @since 2.1
+	 */
+	default Flux<TypedTuple<V>> scan(K key) {
+		return scan(key, ScanOptions.NONE);
+	}
+
+	/**
+	 * Use a {@link Flux} to iterate over entries in the sorted set at {@code key} given {@link ScanOptions}. The
+	 * resulting {@link Flux} acts as a cursor and issues {@code ZSCAN} commands itself as long as the subscriber signals
+	 * demand.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param options must not be {@literal null}. Use {@link ScanOptions#NONE} instead.
+	 * @return the {@link Flux} emitting the {@literal values} one by one or an {@link Flux#empty() empty Flux} if none
+	 *         exist.
+	 * @throws IllegalArgumentException when one of the required arguments is {@literal null}.
+	 * @see <a href="http://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
+	 * @since 2.1
+	 */
+	Flux<TypedTuple<V>> scan(K key, ScanOptions options);
+
+	/**
 	 * Count number of elements within sorted set with scores between {@code min} and {@code max}.
 	 *
 	 * @param key must not be {@literal null}.

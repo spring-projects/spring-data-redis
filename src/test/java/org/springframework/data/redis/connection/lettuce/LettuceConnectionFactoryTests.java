@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsNull.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 
@@ -43,6 +41,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisStaticMasterSlaveConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.StringRedisConnection;
 
@@ -383,6 +382,65 @@ public class LettuceConnectionFactoryTests {
 		assertThat(connection.ping(), is(equalTo("PONG")));
 
 		connection.close();
+		factory.destroy();
+	}
+
+	@Test // DATAREDIS-762
+	public void factoryUsesElastiCacheMasterSlaveConnections() {
+
+		assumeThat(String.format("No slaves connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
+				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0, is(true));
+
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
+				.build();
+
+		RedisStaticMasterSlaveConfiguration elastiCache = new RedisStaticMasterSlaveConfiguration(SettingsUtils.getHost())
+				.node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache,
+				configuration);
+		factory.afterPropertiesSet();
+
+		RedisConnection connection = factory.getConnection();
+
+		try {
+			assertThat(connection.ping(), is(equalTo("PONG")));
+			assertThat(connection.info().getProperty("role"), is(equalTo("slave")));
+		} finally {
+			connection.close();
+		}
+
+		factory.destroy();
+	}
+
+	@Test // DATAREDIS-762
+	public void factoryUsesElastiCacheMasterWithoutMaster() {
+
+		assumeThat(String.format("No slaves connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
+				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0, is(true));
+
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.MASTER)
+				.build();
+
+		RedisStaticMasterSlaveConfiguration elastiCache = new RedisStaticMasterSlaveConfiguration(SettingsUtils.getHost(),
+				SettingsUtils.getPort() + 1);
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache, configuration);
+		factory.afterPropertiesSet();
+
+		RedisConnection connection = factory.getConnection();
+
+		try {
+			connection.ping();
+			fail("Expected RedisException: Master is currently unknown");
+		} catch (RedisSystemException e) {
+
+			assertThat(e.getCause(), is(instanceOf(RedisException.class)));
+			assertThat(e.getCause().getMessage(), containsString("Master is currently unknown"));
+		} finally {
+			connection.close();
+		}
+
 		factory.destroy();
 	}
 

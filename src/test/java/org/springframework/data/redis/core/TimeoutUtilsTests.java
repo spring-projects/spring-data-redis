@@ -15,78 +15,95 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.assertj.core.api.Assertions.*;
+
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Unit test of {@link TimeoutUtils}
  *
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 public class TimeoutUtilsTests {
 
 	@Test
 	public void testConvertMoreThanOneSecond() {
-		assertEquals(2, TimeoutUtils.toSeconds(2010, TimeUnit.MILLISECONDS));
+		assertThat(TimeoutUtils.toSeconds(2010, TimeUnit.MILLISECONDS)).isEqualTo(2);
 	}
 
 	@Test
 	public void testConvertLessThanOneSecond() {
-		assertEquals(1, TimeoutUtils.toSeconds(999, TimeUnit.NANOSECONDS));
+		assertThat(TimeoutUtils.toSeconds(999, TimeUnit.NANOSECONDS)).isOne();
 	}
 
 	@Test
 	public void testConvertZeroSeconds() {
-		assertEquals(0, TimeoutUtils.toSeconds(0, TimeUnit.MINUTES));
+		assertThat(TimeoutUtils.toSeconds(0, TimeUnit.MINUTES)).isZero();
 	}
 
 	@Test
 	public void testConvertNegativeSecondsGreaterThanNegativeOne() {
 		// Ensure we convert this to 0 as before, though ideally we wouldn't accept negative values
-		assertEquals(0, TimeoutUtils.toSeconds(-123, TimeUnit.MILLISECONDS));
+		assertThat(TimeoutUtils.toSeconds(-123, TimeUnit.MILLISECONDS)).isZero();
 	}
 
 	@Test
 	public void testConvertNegativeSecondsEqualNegativeOne() {
-		assertEquals(-1, TimeoutUtils.toSeconds(-1111, TimeUnit.MILLISECONDS));
+		assertThat(TimeoutUtils.toSeconds(-1111, TimeUnit.MILLISECONDS)).isEqualTo(-1);
 	}
 
 	@Test
 	public void testConvertNegativeSecondsLessThanNegativeOne() {
-		assertEquals(-2, TimeoutUtils.toSeconds(-2344, TimeUnit.MILLISECONDS));
+		assertThat(TimeoutUtils.toSeconds(-2344, TimeUnit.MILLISECONDS)).isEqualTo(-2);
 	}
 
 	@Test
 	public void testConvertMoreThanOneMilli() {
-		assertEquals(2, TimeoutUtils.toMillis(2010, TimeUnit.MICROSECONDS));
+		assertThat(TimeoutUtils.toMillis(2010, TimeUnit.MICROSECONDS)).isEqualTo(2);
 	}
 
 	@Test
 	public void testConvertLessThanOneMilli() {
-		assertEquals(1, TimeoutUtils.toMillis(999, TimeUnit.NANOSECONDS));
+		assertThat(TimeoutUtils.toMillis(999, TimeUnit.NANOSECONDS)).isOne();
 	}
 
 	@Test
 	public void testConvertZeroMillis() {
-		assertEquals(0, TimeoutUtils.toMillis(0, TimeUnit.SECONDS));
+		assertThat(TimeoutUtils.toMillis(0, TimeUnit.SECONDS)).isZero();
 	}
 
 	@Test
 	public void testConvertNegativeMillisGreaterThanNegativeOne() {
 		// Ensure we convert this to 0 as before, though ideally we wouldn't accept negative values
-		assertEquals(0, TimeoutUtils.toMillis(-123, TimeUnit.MICROSECONDS));
+		assertThat(TimeoutUtils.toMillis(-123, TimeUnit.MICROSECONDS)).isZero();
 	}
 
 	@Test
 	public void testConvertNegativeMillisEqualNegativeOne() {
-		assertEquals(-1, TimeoutUtils.toMillis(-1111, TimeUnit.MICROSECONDS));
+		assertThat(TimeoutUtils.toMillis(-1111, TimeUnit.MICROSECONDS)).isEqualTo(-1);
 	}
 
 	@Test
 	public void testConvertNegativeMillisLessThanNegativeOne() {
-		assertEquals(-2, TimeoutUtils.toMillis(-2344, TimeUnit.MICROSECONDS));
+		assertThat(TimeoutUtils.toMillis(-2344, TimeUnit.MICROSECONDS)).isEqualTo(-2);
+	}
+
+	@Test // DATAREDIS-815
+	public void hasMillisReturnsFalseForTimeoutOfExactSeconds() {
+		assertThat(TimeoutUtils.hasMillis(Duration.ofSeconds(1))).isFalse();
+	}
+
+	@Test // DATAREDIS-815
+	public void hasMillisReturnsTrueForTimeoutWithMsec() {
+		assertThat(TimeoutUtils.hasMillis(Duration.ofMillis(1500))).isTrue();
+	}
+
+	@Test // DATAREDIS-815
+	public void hasMillisReturnsTrueForTimeoutLessThanOneSecond() {
+		assertThat(TimeoutUtils.hasMillis(Duration.ofMillis(500))).isTrue();
 	}
 }

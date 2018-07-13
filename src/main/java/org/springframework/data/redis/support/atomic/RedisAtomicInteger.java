@@ -16,7 +16,6 @@
 package org.springframework.data.redis.support.atomic;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -26,11 +25,9 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundKeyOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -151,7 +148,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 		Integer value = operations.get(key);
 		if (value != null) {
-			return value.intValue();
+			return value;
 		}
 
 		throw new DataRetrievalFailureException(String.format("The key '%s' seems to no longer exist.", key));
@@ -176,7 +173,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 		Integer value = operations.getAndSet(key, newValue);
 
-		return value != null ? value.intValue() : 0;
+		return value != null ? value : 0;
 	}
 
 	/**
@@ -188,27 +185,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	 *         expected value.
 	 */
 	public boolean compareAndSet(int expect, int update) {
-
-		return generalOps.execute(new SessionCallback<Boolean>() {
-
-			@Override
-			@SuppressWarnings("unchecked")
-			public Boolean execute(RedisOperations operations) {
-				for (;;) {
-					operations.watch(Collections.singleton(key));
-					if (expect == get()) {
-						generalOps.multi();
-						set(update);
-						if (operations.exec() != null) {
-							return true;
-						}
-					}
-					{
-						return false;
-					}
-				}
-			}
-		});
+		return generalOps.execute(new CompareAndSet<>(this::get, this::set, key, expect, update));
 	}
 
 	/**
@@ -235,7 +212,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	 * @param delta the value to add.
 	 * @return the previous value.
 	 */
-	public int getAndAdd(final int delta) {
+	public int getAndAdd(int delta) {
 		return addAndGet(delta) - delta;
 	}
 
@@ -245,7 +222,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	 * @return the updated value.
 	 */
 	public int incrementAndGet() {
-		return operations.increment(key, 1).intValue();
+		return operations.increment(key).intValue();
 	}
 
 	/**
@@ -254,7 +231,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	 * @return the updated value.
 	 */
 	public int decrementAndGet() {
-		return operations.increment(key, -1).intValue();
+		return operations.decrement(key).intValue();
 	}
 
 	/**

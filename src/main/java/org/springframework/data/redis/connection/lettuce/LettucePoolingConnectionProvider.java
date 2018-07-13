@@ -99,7 +99,7 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 		}
 
 		throw new IllegalStateException(
-				String.format("Undyerlying connection provider %s does not implement RedisClientProvider!",
+				String.format("Underlying connection provider %s does not implement RedisClientProvider!",
 						connectionProvider.getClass().getName()));
 	}
 

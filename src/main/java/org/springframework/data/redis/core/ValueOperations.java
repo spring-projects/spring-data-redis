@@ -15,12 +15,15 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Redis operations for simple (or in Redis terminology 'string') values.
@@ -28,6 +31,7 @@ import org.springframework.lang.Nullable;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jiahe Cai
  */
 public interface ValueOperations<K, V> {
 
@@ -35,7 +39,7 @@ public interface ValueOperations<K, V> {
 	 * Set {@code value} for {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
+	 * @param value must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	void set(K key, V value);
@@ -44,23 +48,132 @@ public interface ValueOperations<K, V> {
 	 * Set the {@code value} and expiration {@code timeout} for {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
-	 * @param timeout
+	 * @param value must not be {@literal null}.
+	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
 	void set(K key, V value, long timeout, TimeUnit unit);
 
 	/**
+	 * Set the {@code value} and expiration {@code timeout} for {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
+	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 * @since 2.1
+	 */
+	default void set(K key, V value, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		if (TimeoutUtils.hasMillis(timeout)) {
+			set(key, value, timeout.toMillis(), TimeUnit.MILLISECONDS);
+		} else {
+			set(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
+		}
+	}
+
+	/**
 	 * Set {@code key} to hold the string {@code value} if {@code key} is absent.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value
+	 * @param value must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
 	@Nullable
 	Boolean setIfAbsent(K key, V value);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param timeout the key expiration timeout.
+	 * @param unit must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	@Nullable
+	Boolean setIfAbsent(K key, V value, long timeout, TimeUnit unit);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	default Boolean setIfAbsent(K key, V value, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		if (TimeoutUtils.hasMillis(timeout)) {
+			return setIfAbsent(key, value, timeout.toMillis(), TimeUnit.MILLISECONDS);
+		}
+
+		return setIfAbsent(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
+	}
+
+	/**
+	 * Set {@code key} to hold the string {@code value} if {@code key} is present.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code key} or {@code value} is not present.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Boolean setIfPresent(K key, V value);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param timeout the key expiration timeout.
+	 * @param unit must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Boolean setIfPresent(K key, V value, long timeout, TimeUnit unit);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	default Boolean setIfPresent(K key, V value, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		if (TimeoutUtils.hasMillis(timeout)) {
+			return setIfPresent(key, value, timeout.toMillis(), TimeUnit.MILLISECONDS);
+		}
+
+		return setIfPresent(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
+	}
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
@@ -112,12 +225,23 @@ public interface ValueOperations<K, V> {
 	List<V> multiGet(Collection<K> keys);
 
 	/**
+	 * Increment an integer value stored as string value under {@code key} by one.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 */
+	@Nullable
+	Long increment(K key);
+
+	/**
 	 * Increment an integer value stored as string value under {@code key} by {@code delta}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param delta
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 */
 	@Nullable
 	Long increment(K key, long delta);
@@ -132,6 +256,29 @@ public interface ValueOperations<K, V> {
 	 */
 	@Nullable
 	Double increment(K key, double delta);
+
+	/**
+	 * Decrement an integer value stored as string value under {@code key} by one.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/decr">Redis Documentation: DECR</a>
+	 */
+	@Nullable
+	Long decrement(K key);
+
+	/**
+	 * Decrement an integer value stored as string value under {@code key} by {@code delta}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param delta
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
+	 */
+	@Nullable
+	Long decrement(K key, long delta);
 
 	/**
 	 * Append a {@code value} to {@code key}.
@@ -201,6 +348,18 @@ public interface ValueOperations<K, V> {
 	@Nullable
 	Boolean getBit(K key, long offset);
 
-	RedisOperations<K, V> getOperations();
+	/**
+	 * Get / Manipulate specific integer fields of varying bit widths and arbitrary non (necessary) aligned offset stored
+	 * at a given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param subCommands must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
+	 */
+	@Nullable
+	List<Long> bitField(K key, BitFieldSubCommands subCommands);
 
+	RedisOperations<K, V> getOperations();
 }

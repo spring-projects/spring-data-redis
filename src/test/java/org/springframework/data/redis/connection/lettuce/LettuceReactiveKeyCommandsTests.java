@@ -37,6 +37,8 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
 
@@ -92,6 +94,26 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 
 		StepVerifier.create(connection.keyCommands().keys(ByteBuffer.wrap("key*".getBytes())).flatMapIterable(it -> it)) //
 				.expectNextCount(3).verifyComplete();
+	}
+
+	@Test // DATAREDIS-743
+	public void scanShouldShouldIterateOverKeyspace() {
+
+		nativeCommands.set(KEY_1, VALUE_2);
+		nativeCommands.set(KEY_2, VALUE_2);
+		nativeCommands.set(KEY_3, VALUE_3);
+
+		nativeCommands.set(VALUE_1, KEY_1);
+		nativeCommands.set(VALUE_2, KEY_2);
+		nativeCommands.set(VALUE_3, KEY_3);
+
+		StepVerifier.create(connection.keyCommands().scan(ScanOptions.scanOptions().count(2).build())) //
+				.expectNextCount(6) //
+				.verifyComplete();
+
+		StepVerifier.create(connection.keyCommands().scan(ScanOptions.scanOptions().count(2).match("key*").build())) //
+				.expectNextCount(3) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -189,9 +211,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		Flux<List<ByteBuffer>> input = Flux.just(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER),
 				Collections.singletonList(KEY_1_BBUFFER));
 
-		Flux<Long> result = connection.keyCommands()
-				.mDel(input)
-				.map(NumericResponse::getOutput);
+		Flux<Long> result = connection.keyCommands().mDel(input).map(NumericResponse::getOutput);
 
 		StepVerifier.create(result).expectNextCount(2).verifyComplete();
 	}
@@ -240,9 +260,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		Flux<List<ByteBuffer>> input = Flux.just(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER),
 				Collections.singletonList(KEY_1_BBUFFER));
 
-		Flux<Long> result = connection.keyCommands()
-				.mUnlink(input)
-				.map(NumericResponse::getOutput);
+		Flux<Long> result = connection.keyCommands().mUnlink(input).map(NumericResponse::getOutput);
 
 		StepVerifier.create(result).expectNextCount(2).verifyComplete();
 	}
@@ -373,5 +391,49 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		StepVerifier.create(connection.keyCommands().touch(Collections.singletonList(KEY_1_BBUFFER))) //
 				.expectNext(0L) //
 				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-716
+	public void encodingReturnsCorrectly() {
+
+		nativeCommands.set(KEY_1, "1000");
+
+		connection.keyCommands().encodingOf(KEY_1_BBUFFER).as(StepVerifier::create).expectNext(RedisValueEncoding.INT)
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-716
+	public void encodingReturnsVacantWhenKeyDoesNotExist() {
+
+		connection.keyCommands().encodingOf(KEY_1_BBUFFER).as(StepVerifier::create).expectNext(RedisValueEncoding.VACANT)
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-716
+	public void idletimeReturnsCorrectly() {
+
+		nativeCommands.set(KEY_1, "1000");
+		nativeCommands.get(KEY_1);
+
+		connection.keyCommands().idletime(KEY_1_BBUFFER).as(StepVerifier::create).expectNext(Duration.ofSeconds(0))
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-716
+	public void idldetimeReturnsNullWhenKeyDoesNotExist() {
+		connection.keyCommands().idletime(KEY_1_BBUFFER).as(StepVerifier::create).verifyComplete();
+	}
+
+	@Test // DATAREDIS-716
+	public void refcountReturnsCorrectly() {
+
+		nativeCommands.lpush(KEY_1, "1000");
+
+		connection.keyCommands().refcount(KEY_1_BBUFFER).as(StepVerifier::create).expectNext(1L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-716
+	public void refcountReturnsNullWhenKeyDoesNotExist() {
+		connection.keyCommands().refcount(KEY_1_BBUFFER).as(StepVerifier::create).verifyComplete();
 	}
 }

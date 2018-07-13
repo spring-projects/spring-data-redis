@@ -46,7 +46,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 	private final @NonNull ReactiveRedisTemplate<?, ?> template;
 	private final @NonNull RedisSerializationContext<H, ?> serializationContext;
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#delete(java.lang.Object, java.lang.Object[])
 	 */
 	@Override
@@ -64,7 +65,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 				.flatMap(hks -> connection.hDel(rawKey(key), hks)));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#hasKey(java.lang.Object, java.lang.Object)
 	 */
 	@Override
@@ -77,7 +79,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		return createMono(connection -> connection.hExists(rawKey(key), rawHashKey((HK) hashKey)));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#get(java.lang.Object, java.lang.Object)
 	 */
 	@Override
@@ -90,7 +93,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		return createMono(connection -> connection.hGet(rawKey(key), rawHashKey((HK) hashKey)).map(this::readHashValue));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#multiGet(java.lang.Object, java.util.Collection)
 	 */
 	@Override
@@ -106,7 +110,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 				.flatMap(hks -> connection.hMGet(rawKey(key), hks)).map(this::deserializeHashValues));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#increment(java.lang.Object, java.lang.Object, long)
 	 */
 	@Override
@@ -120,7 +125,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 				.hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#increment(java.lang.Object, java.lang.Object, double)
 	 */
 	@Override
@@ -134,7 +140,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 				.hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#keys(java.lang.Object)
 	 */
 	@Override
@@ -146,7 +153,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 				.map(this::readHashKey));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#size(java.lang.Object)
 	 */
 	@Override
@@ -157,7 +165,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		return createMono(connection -> connection.hLen(rawKey(key)));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#putAll(java.lang.Object, java.util.Map)
 	 */
 	@Override
@@ -171,7 +180,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 				.flatMap(serialized -> connection.hMSet(rawKey(key), serialized)));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#put(java.lang.Object, java.lang.Object, java.lang.Object)
 	 */
 	@Override
@@ -184,7 +194,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		return createMono(connection -> connection.hSet(rawKey(key), rawHashKey(hashKey), rawHashValue(value)));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#putIfAbsent(java.lang.Object, java.lang.Object, java.lang.Object)
 	 */
 	@Override
@@ -197,7 +208,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		return createMono(connection -> connection.hSetNX(rawKey(key), rawHashKey(hashKey), rawHashValue(value)));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#values(java.lang.Object)
 	 */
 	@Override
@@ -209,7 +221,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 				.map(this::readHashValue));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#entries(java.lang.Object)
 	 */
 	@Override
@@ -221,7 +234,22 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 				.map(this::deserializeHashEntry));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveHashOperations#scan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Flux<Map.Entry<HK, HV>> scan(H key, ScanOptions options) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "ScanOptions must not be null!");
+
+		return createFlux(connection -> connection.hScan(rawKey(key), options) //
+				.map(this::deserializeHashEntry));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#delete(java.lang.Object)
 	 */
 	@Override
@@ -265,7 +293,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 	@SuppressWarnings("unchecked")
 	private HV readHashValue(ByteBuffer value) {
-		return (HV) serializationContext.getHashValueSerializationPair().read(value);
+		return (HV) (value == null ? value : serializationContext.getHashValueSerializationPair().read(value));
 	}
 
 	private Map.Entry<HK, HV> deserializeHashEntry(Map.Entry<ByteBuffer, ByteBuffer> source) {

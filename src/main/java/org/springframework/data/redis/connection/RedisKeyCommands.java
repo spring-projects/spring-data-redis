@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -302,5 +303,57 @@ public interface RedisKeyCommands {
 	 * @param serializedValue must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/restore">Redis Documentation: RESTORE</a>
 	 */
-	void restore(byte[] key, long ttlInMillis, byte[] serializedValue);
+	default void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+		restore(key, ttlInMillis, serializedValue, false);
+	}
+
+	/**
+	 * Create {@code key} using the {@code serializedValue}, previously obtained using {@link #dump(byte[])}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param ttlInMillis
+	 * @param serializedValue must not be {@literal null}.
+	 * @param replace use {@literal true} to replace a potentially existing value instead of erroring.
+	 * @since 2.1
+	 * @see <a href="http://redis.io/commands/restore">Redis Documentation: RESTORE</a>
+	 */
+	void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace);
+
+	/**
+	 * Get the type of internal representation used for storing the value at the given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@link org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding#VACANT} if key does not
+	 *         exist or {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @see <a href="http://redis.io/commands/object">Redis Documentation: OBJECT ENCODING</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	ValueEncoding encodingOf(byte[] key);
+
+	/**
+	 * Get the {@link Duration} since the object stored at the given {@code key} is idle.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @see <a href="http://redis.io/commands/object">Redis Documentation: OBJECT IDLETIME</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Duration idletime(byte[] key);
+
+	/**
+	 * Get the number of references of the value associated with the specified {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
+	 * @see <a href="http://redis.io/commands/object">Redis Documentation: OBJECT REFCOUNT</a>
+	 * @since 2.1
+	 */
+	@Nullable
+	Long refcount(byte[] key);
+
 }

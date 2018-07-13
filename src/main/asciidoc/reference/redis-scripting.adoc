@@ -1,18 +1,18 @@
 [[scripting]]
 = Redis Scripting
 
-Redis versions 2.6 and higher provide support for execution of Lua scripts through the http://redis.io/commands/eval[eval] and http://redis.io/commands/evalsha[evalsha] commands. Spring Data Redis provides a high-level abstraction for script execution that handles serialization and automatically makes use of the Redis script cache.
+Redis versions 2.6 and higher provide support for execution of Lua scripts through the http://redis.io/commands/eval[eval] and http://redis.io/commands/evalsha[evalsha] commands. Spring Data Redis provides a high-level abstraction for script execution that handles serialization and automatically uses the Redis script cache.
 
-Scripts can be run through the `execute` methods of `RedisTemplate` and `ReactiveRedisTemplate`. Both use a configurable `ScriptExecutor` / `ReactiveScriptExecutor` to run the provided script. By default, the `ScriptExecutor` takes care of serializing the provided keys and arguments and deserializing the script result. This is done via the key and value serializers of the template. There is an additional overload that allows you to pass custom serializers for the script arguments and result.
+Scripts can be run by calling the `execute` methods of `RedisTemplate` and `ReactiveRedisTemplate`. Both use a configurable `ScriptExecutor` (or `ReactiveScriptExecutor`) to run the provided script. By default, the `ScriptExecutor` (or `ReactiveScriptExecutor`) takes care of serializing the provided keys and arguments and deserializing the script result. This is done through the key and value serializers of the template. There is an additional overload that lets you pass custom serializers for the script arguments and the result.
 
 The default `ScriptExecutor` optimizes performance by retrieving the SHA1 of the script and attempting first to run `evalsha`, falling back to `eval` if the script is not yet present in the Redis script cache.
 
-Here's an example that executes a common "check-and-set" scenario using a Lua script. This is an ideal use case for a Redis script, as it requires that we execute a set of commands atomically and the behavior of one command is influenced by the result of another.
+The following example runs a common "`check-and-set`" scenario by using a Lua script. This is an ideal use case for a Redis script, as it requires that running a set of commands atomically, and the behavior of one command is influenced by the result of another.
 
 [source,java]
 ----
-@Bean 
-public RedisScript<Boolean> script() { 
+@Bean
+public RedisScript<Boolean> script() {
 
   ScriptSource scriptSource = new ResourceScriptSource(new ClassPathResource("META-INF/scripts/checkandset.lua");
   return RedisScript.of(scriptSource, Boolean.class);
@@ -23,30 +23,30 @@ public RedisScript<Boolean> script() {
 ----
 public class Example {
 
-  @Autowired 
+  @Autowired
   RedisScript<Boolean> script;
 
-  public boolean checkAndSet(String expectedValue, String newValue) { 
+  public boolean checkAndSet(String expectedValue, String newValue) {
     return redisTemplate.execute(script, singletonList("key"), asList(expectedValue, newValue));
-  } 
+  }
 }
 ----
 
 [source,lua]
 ----
- -- checkandset.lua local 
- current = redis.call('GET', KEYS[1]) 
- if current == ARGV[1]
-   then redis.call('SET', KEYS[1], ARGV[2])
-   return true
- end
- return false 
+-- checkandset.lua
+local current = redis.call('GET', KEYS[1])
+if current == ARGV[1]
+  then redis.call('SET', KEYS[1], ARGV[2])
+  return true
+end
+return false
 ----
 
-The code above configures a `RedisScript` pointing to a file called `checkandset.lua`, which is expected to return a boolean value. The script `resultType` should be one of `Long`, `Boolean`, `List`, or deserialized value type. It can also be `null` if the script returns a throw-away status (i.e "OK"). It is ideal to configure a single instance of `DefaultRedisScript` in your application context to avoid re-calculation of the script's SHA1 on every script execution.
+The preceding code configures a `RedisScript` pointing to a file called `checkandset.lua`, which is expected to return a boolean value. The script `resultType` should be one of `Long`, `Boolean`, `List`, or a deserialized value type. It can also be `null` if the script returns a throw-away status (specifically, `OK`).
 
-The checkAndSet method above then executes th
-Scripts can be executed within a `SessionCallback` as part of a transaction or pipeline. See <<tx>> and <<pipeline>> for more information.
+TIP: It is ideal to configure a single instance of `DefaultRedisScript` in your application context to avoid re-calculation of the script's SHA1 on every script execution.
 
-The scripting support provided by Spring Data Redis also allows you to schedule Redis scripts for periodic execution using the Spring Task and Scheduler abstractions. See the `Spring Framework` documentation for more details.
+The `checkAndSet` method above then runs the scripts. Scripts can be run within a `SessionCallback` as part of a transaction or pipeline. See "`<<tx>>`" and "`<<pipeline>>`" for more information.
 
+The scripting support provided by Spring Data Redis also lets you schedule Redis scripts for periodic execution by using the Spring Task and Scheduler abstractions. See the http://projects.spring.io/spring-framework/[Spring Framework] documentation for more details.

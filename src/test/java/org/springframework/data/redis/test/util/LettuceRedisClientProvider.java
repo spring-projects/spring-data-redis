@@ -19,15 +19,17 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 
 import org.junit.rules.ExternalResource;
+import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class LettuceRedisClientProvider extends ExternalResource {
 
-	String host = "127.0.0.1";
-	int port = 6379;
+	String host = SettingsUtils.getHost();
+	int port = SettingsUtils.getPort();
 
 	RedisClient client;
 
