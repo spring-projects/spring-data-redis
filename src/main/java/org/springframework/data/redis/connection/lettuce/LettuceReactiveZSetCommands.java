@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Michele Mancioppi
  * @since 2.0
  */
 class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
@@ -186,28 +187,28 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				if (command.isWithScores()) {
 
 					result = cmd
-							.zrangeWithScores(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
-									command.getRange().getUpperBound().getValue().orElse(null))
+							.zrangeWithScores(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
+									command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
 							.map(sc -> (Tuple) new DefaultTuple(getBytes(sc), sc.getScore()));
 				} else {
 
 					result = cmd
-							.zrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
-									command.getRange().getUpperBound().getValue().orElse(null))
+							.zrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
+									command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
 							.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 				}
 			} else {
 				if (command.isWithScores()) {
 
 					result = cmd
-							.zrevrangeWithScores(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
-									command.getRange().getUpperBound().getValue().orElse(null))
+							.zrevrangeWithScores(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
+									command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
 							.map(sc -> (Tuple) new DefaultTuple(getBytes(sc), sc.getScore()));
 				} else {
 
 					result = cmd
-							.zrevrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
-									command.getRange().getUpperBound().getValue().orElse(null))
+							.zrevrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
+									command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
 							.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 				}
 			}
@@ -355,8 +356,8 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getRange(), "Range must not be null!");
 
 			return cmd
-					.zremrangebyrank(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
-							command.getRange().getUpperBound().getValue().orElse(null))
+					.zremrangebyrank(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
+							command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -525,10 +526,13 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				Boolean upper) {
 
 			return (source) -> {
-
 				Boolean inclusive = upper ? source.getUpperBound().isInclusive() : source.getLowerBound().isInclusive();
 				Object value = upper ? source.getUpperBound().getValue().orElse(null)
 						: source.getLowerBound().getValue().orElse(null);
+
+				if (value == null) {
+					return Boundary.unbounded();
+				}
 
 				if (value instanceof Number) {
 					return inclusive ? Boundary.including((Number) value) : Boundary.excluding((Number) value);
