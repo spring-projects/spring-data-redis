@@ -38,6 +38,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Michele Mancioppi
  * @since 2.0
  */
 class LettuceReactiveListCommands implements ReactiveListCommands {
@@ -116,8 +117,8 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
 
-			Flux<ByteBuffer> result = cmd.lrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
-					command.getRange().getUpperBound().getValue().orElse(null));
+			Flux<ByteBuffer> result = cmd.lrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
+					command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE));
 			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}
@@ -135,8 +136,8 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 			Assert.notNull(command.getRange(), "Range must not be null!");
 
 			return cmd
-					.ltrim(command.getKey(), command.getRange().getLowerBound().getValue().orElse(null),
-							command.getRange().getUpperBound().getValue().orElse(null))
+					.ltrim(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
+							command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
 					.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
