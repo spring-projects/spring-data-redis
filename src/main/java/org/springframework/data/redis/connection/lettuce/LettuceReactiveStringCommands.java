@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Jiahe Cai
+ * @author Michele Mancioppi
  * @since 2.0
  */
 class LettuceReactiveStringCommands implements ReactiveStringCommands {
@@ -251,8 +252,8 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Range<Long> range = command.getRange();
 
-			return cmd.getrange(command.getKey(), range.getLowerBound().getValue().orElse(null),
-					range.getUpperBound().getValue().orElse(null)).map((value) -> new ByteBufferResponse<>(command, value));
+			return cmd.getrange(command.getKey(), range.getLowerBound().getValue().orElse(0L),
+					range.getUpperBound().getValue().orElse(Long.MAX_VALUE)).map((value) -> new ByteBufferResponse<>(command, value));
 		}));
 	}
 
@@ -323,7 +324,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Range<Long> range = command.getRange();
 
 			return (!Range.unbounded().equals(range) ? cmd.bitcount(command.getKey(),
-					range.getLowerBound().getValue().orElse(null), range.getUpperBound().getValue().orElse(null))
+					range.getLowerBound().getValue().orElse(0L), range.getUpperBound().getValue().orElse(Long.MAX_VALUE))
 					: cmd.bitcount(command.getKey())).map(responseValue -> new NumericResponse<>(command, responseValue));
 		}));
 	}
