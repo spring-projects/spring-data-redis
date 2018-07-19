@@ -190,13 +190,13 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				if (command.isWithScores()) {
 
 					result = cmd
-							.zrangeWithScores(command.getKey(), command.getRange().getLowerBound().getValue().orElse(Long.MIN_VALUE),
+							.zrangeWithScores(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
 									command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
 							.map(sc -> (Tuple) new DefaultTuple(getBytes(sc), sc.getScore()));
 				} else {
 
 					result = cmd
-							.zrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(Long.MIN_VALUE),
+							.zrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
 									command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
 							.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 				}
@@ -204,13 +204,13 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				if (command.isWithScores()) {
 
 					result = cmd
-							.zrevrangeWithScores(command.getKey(), command.getRange().getLowerBound().getValue().orElse(Long.MIN_VALUE),
+							.zrevrangeWithScores(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
 									command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
 							.map(sc -> (Tuple) new DefaultTuple(getBytes(sc), sc.getScore()));
 				} else {
 
 					result = cmd
-							.zrevrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(Long.MIN_VALUE),
+							.zrevrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
 									command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
 							.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 				}
@@ -378,7 +378,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getRange(), "Range must not be null!");
 
 			return cmd
-					.zremrangebyrank(command.getKey(), command.getRange().getLowerBound().getValue().orElse(Long.MIN_VALUE),
+					.zremrangebyrank(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
 							command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
