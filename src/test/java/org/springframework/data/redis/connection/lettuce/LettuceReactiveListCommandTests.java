@@ -21,24 +21,28 @@ import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsNot.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeThat;
+import static org.springframework.data.domain.Range.Bound.*;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Arrays;
 
-import org.junit.Assume;
 import org.junit.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveListCommands.PopResult;
 import org.springframework.data.redis.connection.ReactiveListCommands.PushCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-
-import org.springframework.data.redis.test.util.LettuceRedisClientProvider;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Michele Mancioppi
  */
 public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTestsBase {
 
@@ -106,6 +110,32 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 				contains(VALUE_2_BBUFFER, VALUE_3_BBUFFER));
 	}
 
+	@Test // DATAREDIS-852
+	public void lRangeShouldReturnValuesCorrectlyWithMinUnbounded() {
+
+		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
+
+		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(unbounded(), inclusive(1L)));
+
+		StepVerifier.create(connection.listCommands().lRange(Mono.just(rangeCommand)).flatMap(CommandResponse::getOutput)) //
+				.expectNext(VALUE_1_BBUFFER)
+				.expectNext(VALUE_2_BBUFFER)
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-852
+	public void lRangeShouldReturnValuesCorrectlyWithMaxUnbounded() {
+
+		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
+
+		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(inclusive(1L), unbounded()));
+
+		StepVerifier.create(connection.listCommands().lRange(Mono.just(rangeCommand)).flatMap(CommandResponse::getOutput)) //
+				.expectNext(VALUE_2_BBUFFER)
+				.expectNext(VALUE_3_BBUFFER)
+				.verifyComplete();
+	}
+
 	@Test // DATAREDIS-525
 	public void lTrimShouldReturnValuesCorrectly() {
 
@@ -113,6 +143,30 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		assertThat(connection.listCommands().lTrim(KEY_1_BBUFFER, 1, 2).block(), is(true));
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), not(contains(VALUE_1_BBUFFER)));
+	}
+
+	@Test // DATAREDIS-852
+	public void lTrimShouldReturnValuesCorrectlyWithMinUnbounded() {
+
+		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
+
+		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(unbounded(), inclusive(1L)));
+
+		StepVerifier.create(connection.listCommands().lTrim(Mono.just(rangeCommand))) //
+				.expectNext(new ReactiveRedisConnection.BooleanResponse<>(rangeCommand, true)) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-852
+	public void lTrimShouldReturnValuesCorrectlyWithMaxUnbounded() {
+
+		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
+
+		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(inclusive(1L), unbounded()));
+
+		StepVerifier.create(connection.listCommands().lTrim(Mono.just(rangeCommand))) //
+				.expectNext(new ReactiveRedisConnection.BooleanResponse<>(rangeCommand, true)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525

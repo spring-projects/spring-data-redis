@@ -41,11 +41,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Test;
+import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.ReactiveStringCommands.SetCommand;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.core.types.Expiration;
@@ -55,6 +58,7 @@ import org.springframework.data.redis.util.ByteUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Michele Mancioppi
  */
 public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -292,6 +296,30 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		StepVerifier.create(connection.stringCommands().getRange(KEY_1_BBUFFER, 2, 3)) //
 				.expectNext(ByteBuffer.wrap("lu".getBytes())) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-525
+	public void getRangeShouldReturnSubstringCorrectlyWithMinUnbound() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(Bound.unbounded(), Bound.inclusive(2L)));
+
+		StepVerifier.create(connection.stringCommands().getRange(Mono.just(rangeCommand))) //
+				.expectNext(new ReactiveRedisConnection.ByteBufferResponse<>(rangeCommand, ByteBuffer.wrap("val".getBytes())))
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-525
+	public void getRangeShouldReturnSubstringCorrectlyWithMaxUnbound() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(Bound.inclusive(0L), Bound.unbounded()));
+
+		StepVerifier.create(connection.stringCommands().getRange(Mono.just(rangeCommand))) //
+				.expectNext(new ReactiveRedisConnection.ByteBufferResponse<>(rangeCommand, ByteBuffer.wrap(VALUE_1.getBytes())))
 				.verifyComplete();
 	}
 

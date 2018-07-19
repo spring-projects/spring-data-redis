@@ -35,6 +35,7 @@ import org.springframework.data.redis.core.ScanOptions;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Michele Mancioppi
  */
 public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -139,6 +140,32 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 
 		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D))) //
 				.expectNext(VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-852
+	public void zRangeByScoreShouldReturnValuesCorrectlyWithMinUnbounded() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+
+		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, Range.of(Range.Bound.unbounded(),
+				Range.Bound.inclusive(3D)))) //
+				.expectNext(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-852
+	public void zRangeByScoreShouldReturnValuesCorrectlyWithMaxUnbounded() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+
+		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, Range.of(Range.Bound.inclusive(0D),
+				Range.Bound.unbounded()))) //
+				.expectNext(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
 
