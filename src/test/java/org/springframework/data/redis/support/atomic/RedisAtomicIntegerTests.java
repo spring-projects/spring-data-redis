@@ -149,18 +149,17 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 	@Test // DATAREDIS-108, DATAREDIS-843
 	public void testCompareSet() throws Exception {
 
-		final AtomicBoolean alreadySet = new AtomicBoolean(false);
-		final int NUM = 50;
-		final String KEY = getClass().getSimpleName() + ":atomic:counter";
-		final CountDownLatch latch = new CountDownLatch(NUM);
-
-		final AtomicBoolean failed = new AtomicBoolean(false);
+		AtomicBoolean alreadySet = new AtomicBoolean(false);
+		int NUM = 50;
+		String KEY = getClass().getSimpleName() + ":atomic:counter";
+		CountDownLatch latch = new CountDownLatch(NUM);
+		AtomicBoolean failed = new AtomicBoolean(false);
+		RedisAtomicInteger atomicInteger = new RedisAtomicInteger(KEY, factory);
 
 		for (int i = 0; i < NUM; i++) {
 
 			new Thread(() -> {
 
-				RedisAtomicInteger atomicInteger = new RedisAtomicInteger(KEY, factory);
 				try {
 					if (atomicInteger.compareAndSet(0, 1)) {
 						if (alreadySet.get()) {
