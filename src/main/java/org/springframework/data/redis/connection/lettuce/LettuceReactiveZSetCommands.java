@@ -186,33 +186,31 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 			Flux<Tuple> result;
 
+			long start = LettuceConverters.getLowerBoundIndex(command.getRange());
+			long stop = LettuceConverters.getUpperBoundIndex(command.getRange());
+
 			if (ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)) {
 				if (command.isWithScores()) {
 
 					result = cmd
-							.zrangeWithScores(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
-									command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
-							.map(sc -> (Tuple) new DefaultTuple(getBytes(sc), sc.getScore()));
+							.zrangeWithScores(command.getKey(), start, stop).map(sc -> new DefaultTuple(getBytes(sc), sc.getScore()));
 				} else {
 
 					result = cmd
-							.zrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
-									command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
-							.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
+							.zrange(command.getKey(), start, stop)
+							.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 				}
 			} else {
 				if (command.isWithScores()) {
 
 					result = cmd
-							.zrevrangeWithScores(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
-									command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
-							.map(sc -> (Tuple) new DefaultTuple(getBytes(sc), sc.getScore()));
+							.zrevrangeWithScores(command.getKey(), start, stop)
+							.map(sc -> new DefaultTuple(getBytes(sc), sc.getScore()));
 				} else {
 
 					result = cmd
-							.zrevrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
-									command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
-							.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
+							.zrevrange(command.getKey(), start, stop)
+							.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 				}
 			}
 
@@ -245,21 +243,21 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 					if (!isLimited) {
 						result = cmd.zrangebyscoreWithScores(command.getKey(), range)
-								.map(sc -> (Tuple) new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore()));
+								.map(sc -> new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore()));
 					} else {
 						result = cmd
 								.zrangebyscoreWithScores(command.getKey(), range, LettuceConverters.toLimit(command.getLimit().get()))
-								.map(sc -> (Tuple) new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore()));
+								.map(sc -> new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore()));
 					}
 				} else {
 
 					if (!isLimited) {
 						result = cmd.zrangebyscore(command.getKey(), range)
-								.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
+								.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 					} else {
 
 						result = cmd.zrangebyscore(command.getKey(), range, LettuceConverters.toLimit(command.getLimit().get()))
-								.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
+								.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 					}
 				}
 			} else {
@@ -270,23 +268,23 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 					if (!isLimited) {
 						result = cmd.zrevrangebyscoreWithScores(command.getKey(), range)
-								.map(sc -> (Tuple) new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore()));
+								.map(sc -> new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore()));
 					} else {
 
 						result = cmd
 								.zrevrangebyscoreWithScores(command.getKey(), range,
 										LettuceConverters.toLimit(command.getLimit().get()))
-								.map(sc -> (Tuple) new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore()));
+								.map(sc -> new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore()));
 					}
 				} else {
 
 					if (!isLimited) {
 						result = cmd.zrevrangebyscore(command.getKey(), range)
-								.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
+								.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 					} else {
 
 						result = cmd.zrevrangebyscore(command.getKey(), range, LettuceConverters.toLimit(command.getLimit().get()))
-								.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
+								.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 					}
 				}
 			}
@@ -377,9 +375,11 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
 
-			return cmd
-					.zremrangebyrank(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
-							command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
+			Mono<Long> result = cmd.zremrangebyrank(command.getKey(), //
+					LettuceConverters.getLowerBoundIndex(command.getRange()), //
+					LettuceConverters.getUpperBoundIndex(command.getRange()));
+
+			return result
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -546,8 +546,8 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 			return (source) -> {
 				Boolean inclusive = upper ? source.getUpperBound().isInclusive() : source.getLowerBound().isInclusive();
-				Object value = upper ? source.getUpperBound().getValue().orElse(null)
-						: source.getLowerBound().getValue().orElse(null);
+				Object value = upper ? LettuceConverters.getUpperBound(source).orElse(null)
+						: LettuceConverters.getLowerBound(source).orElse(null);
 
 				if (value == null) {
 					return Boundary.unbounded();

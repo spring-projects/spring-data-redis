@@ -150,8 +150,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, Range.of(Range.Bound.unbounded(),
-				Range.Bound.inclusive(3D)))) //
+		StepVerifier
+				.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER,
+						Range.of(Range.Bound.unbounded(), Range.Bound.inclusive(3D)))) //
 				.expectNext(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -163,8 +164,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, Range.of(Range.Bound.inclusive(0D),
-				Range.Bound.unbounded()))) //
+		StepVerifier
+				.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER,
+						Range.of(Range.Bound.inclusive(0D), Range.Bound.unbounded()))) //
 				.expectNext(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}

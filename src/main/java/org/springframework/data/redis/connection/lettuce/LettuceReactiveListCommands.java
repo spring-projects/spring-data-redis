@@ -24,6 +24,7 @@ import java.util.Arrays;
 
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveListCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
@@ -74,7 +75,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 						String.format("%s PUSHX only allows one value!", command.getDirection()));
 			}
 
-			Mono<Long> pushResult = null;
+			Mono<Long> pushResult;
 
 			if (ObjectUtils.nullSafeEquals(Direction.RIGHT, command.getDirection())) {
 				pushResult = command.getUpsert()
@@ -117,8 +118,12 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
 
-			Flux<ByteBuffer> result = cmd.lrange(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
-					command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE));
+			Range<Long> range = command.getRange();
+
+			Flux<ByteBuffer> result = cmd.lrange(command.getKey(), //
+					LettuceConverters.getLowerBoundIndex(range), //
+					LettuceConverters.getUpperBoundIndex(range));
+
 			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}
@@ -135,9 +140,13 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
 
-			return cmd
-					.ltrim(command.getKey(), command.getRange().getLowerBound().getValue().orElse(0L),
-							command.getRange().getUpperBound().getValue().orElse(Long.MAX_VALUE))
+			Range<Long> range = command.getRange();
+
+			Mono<String> result = cmd.ltrim(command.getKey(), //
+					LettuceConverters.getLowerBoundIndex(range), //
+					LettuceConverters.getUpperBoundIndex(range));
+
+			return result
 					.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
