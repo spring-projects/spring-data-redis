@@ -106,6 +106,9 @@ abstract public class LettuceConverters extends Converters {
 	public static final byte[] POSITIVE_INFINITY_BYTES;
 	public static final byte[] NEGATIVE_INFINITY_BYTES;
 
+	private static final long INDEXED_RANGE_START = 0;
+	private static final long INDEXED_RANGE_END = -1;
+
 	static {
 
 		DATE_TO_LONG = source -> source != null ? source.getTime() : null;
@@ -866,6 +869,54 @@ abstract public class LettuceConverters extends Converters {
 
 	public static Converter<TransactionResult, List<Object>> transactionResultUnwrapper() {
 		return TRANSACTION_RESULT_UNWRAPPER;
+	}
+
+	/**
+	 * Return {@link Optional} lower bound from {@link Range}.
+	 *
+	 * @param range
+	 * @param <T>
+	 * @return
+	 * @since 2.0.9
+	 */
+	static <T extends Comparable<T>> Optional<T> getLowerBound(org.springframework.data.domain.Range<T> range) {
+		return range.getLowerBound().getValue();
+	}
+
+	/**
+	 * Return {@link Optional} upper bound from {@link Range}.
+	 *
+	 * @param range
+	 * @param <T>
+	 * @return
+	 * @since 2.0.9
+	 */
+	static <T extends Comparable<T>> Optional<T> getUpperBound(org.springframework.data.domain.Range<T> range) {
+		return range.getUpperBound().getValue();
+	}
+
+	/**
+	 * Return the lower bound index from {@link Range} or {@literal 0} (zero) if the lower range is not bounded to point
+	 * to the first element. To be used with index-based commands such as {@code LRANGE}, {@code GETRANGE}.
+	 *
+	 * @param range
+	 * @return the lower index bound value or {@literal 0} for the first element if not bounded.
+	 * @since 2.0.9
+	 */
+	static long getLowerBoundIndex(org.springframework.data.domain.Range<Long> range) {
+		return getLowerBound(range).orElse(INDEXED_RANGE_START);
+	}
+
+	/**
+	 * Return the upper bound index from {@link Range} or {@literal -1} (minus one) if the upper range is not bounded to
+	 * point to the last element. To be used with index-based commands such as {@code LRANGE}, {@code GETRANGE}.
+	 *
+	 * @param range
+	 * @return the upper index bound value or {@literal -1} for the last element if not bounded.
+	 * @since 2.0.9
+	 */
+	static long getUpperBoundIndex(org.springframework.data.domain.Range<Long> range) {
+		return getUpperBound(range).orElse(INDEXED_RANGE_END);
 	}
 
 	/**

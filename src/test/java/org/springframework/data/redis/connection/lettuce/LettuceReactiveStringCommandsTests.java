@@ -19,7 +19,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 
-import org.springframework.data.redis.util.ByteUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -47,6 +46,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCo
 import org.springframework.data.redis.connection.ReactiveStringCommands.SetCommand;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.util.ByteUtils;
 
 /**
  * @author Christoph Strobl
@@ -297,7 +297,8 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(Bound.unbounded(), Bound.inclusive(2L)));
+		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER)
+				.within(Range.of(Bound.unbounded(), Bound.inclusive(2L)));
 
 		StepVerifier.create(connection.stringCommands().getRange(Mono.just(rangeCommand))) //
 				.expectNext(new ReactiveRedisConnection.ByteBufferResponse<>(rangeCommand, ByteBuffer.wrap("val".getBytes())))
@@ -309,7 +310,8 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(Bound.inclusive(0L), Bound.unbounded()));
+		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER)
+				.within(Range.of(Bound.inclusive(0L), Bound.unbounded()));
 
 		StepVerifier.create(connection.stringCommands().getRange(Mono.just(rangeCommand))) //
 				.expectNext(new ReactiveRedisConnection.ByteBufferResponse<>(rangeCommand, ByteBuffer.wrap(VALUE_1.getBytes())))

@@ -42,7 +42,8 @@ import org.springframework.util.Assert;
  */
 class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
-	private final static ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.wrap(new byte[0]);
+	private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.wrap(new byte[0]);
+
 	private final LettuceReactiveRedisConnection connection;
 
 	/**
@@ -111,7 +112,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Assert.notNull(command.getValue(), "Value must not be null!");
 
 			if (command.getExpiration().isPresent() || command.getOption().isPresent()) {
-				throw new IllegalArgumentException("Command must not define exipiration nor option for GETSET.");
+				throw new IllegalArgumentException("Command must not define expiration nor option for GETSET.");
 			}
 
 			return cmd.getset(command.getKey(), command.getValue()).map((value) -> new ByteBufferResponse<>(command, value))
@@ -248,8 +249,11 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Range<Long> range = command.getRange();
 
-			return cmd.getrange(command.getKey(), range.getLowerBound().getValue().orElse(0L),
-					range.getUpperBound().getValue().orElse(Long.MAX_VALUE)).map((value) -> new ByteBufferResponse<>(command, value));
+			Mono<ByteBuffer> result = cmd.getrange(command.getKey(), //
+					LettuceConverters.getLowerBoundIndex(range), //
+					LettuceConverters.getUpperBoundIndex(range));
+
+			return result.map((value) -> new ByteBufferResponse<>(command, value));
 		}));
 	}
 
@@ -319,8 +323,10 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Range<Long> range = command.getRange();
 
-			return (!Range.unbounded().equals(range) ? cmd.bitcount(command.getKey(), range.getLowerBound().getValue().orElse(0L),
-					range.getUpperBound().getValue().orElse(Long.MAX_VALUE)) : cmd.bitcount(command.getKey()))
+			return (!Range.unbounded().equals(range)
+					? cmd.bitcount(command.getKey(), LettuceConverters.getLowerBoundIndex(range), //
+							LettuceConverters.getUpperBoundIndex(range))
+					: cmd.bitcount(command.getKey()))
 							.map(responseValue -> new NumericResponse<>(command, responseValue));
 		}));
 	}

@@ -20,8 +20,11 @@ import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsNot.*;
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeThat;
+import static org.junit.Assume.*;
 import static org.springframework.data.domain.Range.Bound.*;
+
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -36,8 +39,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 /**
  * @author Christoph Strobl
@@ -118,9 +119,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(unbounded(), inclusive(1L)));
 
 		StepVerifier.create(connection.listCommands().lRange(Mono.just(rangeCommand)).flatMap(CommandResponse::getOutput)) //
-				.expectNext(VALUE_1_BBUFFER)
-				.expectNext(VALUE_2_BBUFFER)
-				.verifyComplete();
+				.expectNext(VALUE_1_BBUFFER).expectNext(VALUE_2_BBUFFER).verifyComplete();
 	}
 
 	@Test // DATAREDIS-852
@@ -131,9 +130,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(inclusive(1L), unbounded()));
 
 		StepVerifier.create(connection.listCommands().lRange(Mono.just(rangeCommand)).flatMap(CommandResponse::getOutput)) //
-				.expectNext(VALUE_2_BBUFFER)
-				.expectNext(VALUE_3_BBUFFER)
-				.verifyComplete();
+				.expectNext(VALUE_2_BBUFFER).expectNext(VALUE_3_BBUFFER).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
