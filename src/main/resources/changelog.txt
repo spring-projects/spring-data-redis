@@ -1,6 +1,22 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.0.RC1 (2018-07-26)
+-----------------------------------------
+* DATAREDIS-852 - NullPointerException using Lettuce with Range.Bound.unbounded().
+* DATAREDIS-850 - Wrong assertion in ReactiveStringCommands.pSetEX(…).
+* DATAREDIS-849 - Add support for immutable objects.
+* DATAREDIS-843 - RedisAtomic[*].compareAndSet is not atomic.
+* DATAREDIS-842 - LettuceConnectionFactory.getSentinelRedisURI does not set database.
+* DATAREDIS-840 - Stopped Redis server increases RedisMessageListenerContainer shutdown time.
+* DATAREDIS-839 - Get rid of unnecessary stubbings the break the build.
+* DATAREDIS-836 - Release 2.1 RC1 (Lovelace).
+* DATAREDIS-830 - LettucePoolingConnectionProvider contains unreleased connections while using RedisMessageListenerContainer.
+* DATAREDIS-771 - IsTrue and IsFalse Query Method Support for Boolean Attributes.
+* DATAREDIS-743 - Add support for reactive keyspace scanning with SCAN commands.
+* DATAREDIS-696 - Add support for RESTORE with REPLACE option.
+
+
 Changes in version 2.0.8.RELEASE (2018-06-13)
 ---------------------------------------------
 * DATAREDIS-842 - LettuceConnectionFactory.getSentinelRedisURI does not set database.
