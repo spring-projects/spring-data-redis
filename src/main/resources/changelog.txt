@@ -1,6 +1,14 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.0.9.RELEASE (2018-07-26)
+---------------------------------------------
+* DATAREDIS-852 - NullPointerException using Lettuce with Range.Bound.unbounded().
+* DATAREDIS-850 - Wrong assertion in ReactiveStringCommands.pSetEX(…).
+* DATAREDIS-845 - Release 2.0.9 (Kay SR9).
+* DATAREDIS-843 - RedisAtomic[*].compareAndSet is not atomic.
+
+
 Changes in version 2.1.0.RC1 (2018-07-26)
 -----------------------------------------
 * DATAREDIS-852 - NullPointerException using Lettuce with Range.Bound.unbounded().
