@@ -1,6 +1,11 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.14.RELEASE (2018-07-27)
+----------------------------------------------
+* DATAREDIS-844 - Release 1.8.14 (Ingalls SR14).
+
+
 Changes in version 2.0.9.RELEASE (2018-07-26)
 ---------------------------------------------
 * DATAREDIS-852 - NullPointerException using Lettuce with Range.Bound.unbounded().
