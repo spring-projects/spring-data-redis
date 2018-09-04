@@ -793,11 +793,33 @@ A Redis Repository requires `RedisKeyValueAdapter` and `RedisKeyValueTemplate` i
 
 == Redis Repositories Anatomy
 
-Redis as a store itself offers a very narrow low level interface leaving higher level functions such as secondary indexes and
-query operations up to the user.
+Redis as a store itself offers a very narrow low-level API leaving higher level functions, such as secondary indexes and
+query operations, up to the user.
 
-This section provides a more detailed view on commands issues by the repository abstraction for better understanding of
+This section provides a more detailed view of commands issued by the repository abstraction for a better understanding of
 potential performance implications.
+
+Consider the following entity class as the starting point for all operations:
+
+.Example entity
+====
+[source,java]
+----
+@RedisHash("people")
+public class Person {
+
+  @Id String id;
+  @Indexed String firstname;
+  String lastname;
+  Address hometown;
+}
+
+public class Address {
+
+  @GeoIndexed Point location;
+}
+----
+====
 
 === Insert new
 
@@ -809,14 +831,14 @@ repository.save(new Person("rand", "al'thor"));
 
 [source, text]
 ----
-HMSET "persons:19315449-cda2-4f5c-b696-9cb8018fa1f9" "_class" "person" "id" "19315449-cda2-4f5c-b696-9cb8018fa1f9" "firstname" "rand" "lastname" "al'thor" <1>
-SADD  "persons" "19315449-cda2-4f5c-b696-9cb8018fa1f9" <2>
-SADD  "persons:firstname:rand" "19315449-cda2-4f5c-b696-9cb8018fa1f9" <3>
-SADD  "persons:19315449-cda2-4f5c-b696-9cb8018fa1f9:idx" "persons:firstname:rand" <4>
+HMSET "people:19315449-cda2-4f5c-b696-9cb8018fa1f9" "_class" "Person" "id" "19315449-cda2-4f5c-b696-9cb8018fa1f9" "firstname" "rand" "lastname" "al'thor" <1>
+SADD  "people" "19315449-cda2-4f5c-b696-9cb8018fa1f9"                           <2>
+SADD  "people:firstname:rand" "19315449-cda2-4f5c-b696-9cb8018fa1f9"            <3>
+SADD  "people:19315449-cda2-4f5c-b696-9cb8018fa1f9:idx" "people:firstname:rand" <4>
 ----
-<1> Save the flatened entry as hash.
-<2> Add the key of the hash added in <1> to the helper index of entities of same keyspace.
-<3> Add the key of the hash added in <2> to the secondary index of firstnames with the properties value.
+<1> Save the flattened entry as hash.
+<2> Add the key of the hash written in <1> to the helper index of entities in the same keyspace.
+<3> Add the key of the hash written in <2> to the secondary index of firstnames with the properties value.
 <4> Add the index of <3> to the set of helper structures for entry to keep track of indexes to clean on delete/update.
 ====
 
@@ -830,36 +852,37 @@ repository.save(new Person("e82908cf-e7d3-47c2-9eec-b4e0967ad0c9", "Dragon Rebor
 
 [source, text]
 ----
-DEL       "persons:e82908cf-e7d3-47c2-9eec-b4e0967ad0c9" <1>
-HMSET     "persons:e82908cf-e7d3-47c2-9eec-b4e0967ad0c9" "_class" "person" "id" "e82908cf-e7d3-47c2-9eec-b4e0967ad0c9" "firstname" "Dragon Reborn" "lastname" "al'thor" <2>
-SADD      "persons" "e82908cf-e7d3-47c2-9eec-b4e0967ad0c9" <3>
-SMEMBERS  "persons:e82908cf-e7d3-47c2-9eec-b4e0967ad0c9:idx" <4>
-TYPE      "persons:firstname:rand" <5>
-SREM      "persons:firstname:rand" "e82908cf-e7d3-47c2-9eec-b4e0967ad0c9" <6>
-DEL       "persons:e82908cf-e7d3-47c2-9eec-b4e0967ad0c9:idx" <7>
-SADD      "persons:firstname:Dragon Reborn" "e82908cf-e7d3-47c2-9eec-b4e0967ad0c9"
-SADD      "persons:e82908cf-e7d3-47c2-9eec-b4e0967ad0c9:idx" "persons:firstname:Dragon Reborn"
+DEL       "people:e82908cf-e7d3-47c2-9eec-b4e0967ad0c9"                           <1>
+HMSET     "people:e82908cf-e7d3-47c2-9eec-b4e0967ad0c9" "_class" "Person" "id" "e82908cf-e7d3-47c2-9eec-b4e0967ad0c9" "firstname" "Dragon Reborn" "lastname" "al'thor" <2>
+SADD      "people" "e82908cf-e7d3-47c2-9eec-b4e0967ad0c9"                         <3>
+SMEMBERS  "people:e82908cf-e7d3-47c2-9eec-b4e0967ad0c9:idx"                       <4>
+TYPE      "people:firstname:rand"                                                 <5>
+SREM      "people:firstname:rand" "e82908cf-e7d3-47c2-9eec-b4e0967ad0c9"          <6>
+DEL       "people:e82908cf-e7d3-47c2-9eec-b4e0967ad0c9:idx"                       <7>
+SADD      "people:firstname:Dragon Reborn" "e82908cf-e7d3-47c2-9eec-b4e0967ad0c9" <8>
+SADD      "people:e82908cf-e7d3-47c2-9eec-b4e0967ad0c9:idx" "people:firstname:Dragon Reborn" <9>
 ----
 <1> Remove the existing hash to avoid leftovers of hash keys potentially no longer present.
-<2> Save the flatened entry as hash.
-<3> Add the key of the hash added in <1> to the helper index of entities of same keyspace.
+<2> Save the flattened entry as hash.
+<3> Add the key of the hash written in <1> to the helper index of entities in the same keyspace.
 <4> Get existing index structures that might need to be updated.
-<5> Check if the index exists and what type it is (text, geo,...)
+<5> Check if the index exists and what type it is (text, geo, …).
 <6> Remove a potentially existing key from the index.
 <7> Remove the helper holding index information.
-<6> Add the key of the hash added in <2> to the secondary index of firstnames with the properties value.
-<4> Add the index of <6> to the set of helper structures for entry to keep track of indexes to clean on delete/update.
+<8> Add the key of the hash added in <2> to the secondary index of firstnames with the properties value.
+<9> Add the index of <6> to the set of helper structures for entry to keep track of indexes to clean on delete/update.
 ====
 
 === Save Geo Data
 
-Geo indexes follow the same rules as normal text based ones but use geo structure to store values.
+Geo indexes follow the same rules as normal text based ones but use geo structure to store values. Saving an entity that
+uses a Geo-indexed property results in the following commands:
 
 ====
 [source, text]
 ----
-GEOADD "persons:hometown:location" "13.361389" "38.115556" "76900e94-b057-44bc-abcf-8126d51a621b"
-SADD   "persons:76900e94-b057-44bc-abcf-8126d51a621b:idx" "persons:hometown:location"
+GEOADD "people:hometown:location" "13.361389" "38.115556" "76900e94-b057-44bc-abcf-8126d51a621b"  <1>
+SADD   "people:76900e94-b057-44bc-abcf-8126d51a621b:idx" "people:hometown:location"               <2>
 ----
 <1> Add the key of the saved entry to the the geo index.
 <2> Keep track of the index structure.
@@ -875,12 +898,12 @@ repository.findByFirstname("egwene");
 
 [source, text]
 ----
-SINTER  "persons:firstname:egwene" <1>
-HGETALL "persons:d70091b5-0b9a-4c0a-9551-519e61bc9ef3" <2>
+SINTER  "people:firstname:egwene"                     <1>
+HGETALL "people:d70091b5-0b9a-4c0a-9551-519e61bc9ef3" <2>
 HGETALL ...
 ----
 <1> Fetch keys contained in the secondary index.
-<2> Fetch each and every key returned by <1> individually.
+<2> Fetch each key returned by <1> individually.
 ====
 
 === Find using Geo Index
@@ -893,7 +916,10 @@ repository.findByHometownLocationNear(new Point(15, 37), new Distance(200, KILOM
 
 [source, text]
 ----
-GEORADIUS "persons:hometown:location" "15.0" "37.0" "200.0" "km"
-HGETALL   "persons:76900e94-b057-44bc-abcf-8126d51a621b"
+GEORADIUS "people:hometown:location" "15.0" "37.0" "200.0" "km" <1>
+HGETALL   "people:76900e94-b057-44bc-abcf-8126d51a621b"         <2>
+HGETALL   ...
 ----
+<1> Fetch keys contained in the secondary index.
+<2> Fetch each key returned by <1> individually.
 ====
