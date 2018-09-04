@@ -3,7 +3,7 @@
 
 Working with Redis Repositories lets you seamlessly convert and store domain objects in Redis Hashes, apply custom mapping strategies, and use secondary indexes.
 
-IMPORTANT: Redis Repositories requires at least Redis Server version 2.8.0.
+IMPORTANT: Redis Repositories require at least Redis Server version 2.8.0 and do not work with transactions. Make sure to use a `RedisTemplate` with <<tx.spring,disabled transaction support>>.
 
 [[redis.repositories.usage]]
 == Usage
