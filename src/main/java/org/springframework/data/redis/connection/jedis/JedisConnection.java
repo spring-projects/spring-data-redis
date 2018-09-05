@@ -158,6 +158,15 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#streamCommands()
+	 */
+	@Override
+	public RedisStreamCommands streamCommands() {
+		throw new UnsupportedOperationException("Streams not supported using Jedis!");
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConnection#stringCommands()
 	 */
 	@Override

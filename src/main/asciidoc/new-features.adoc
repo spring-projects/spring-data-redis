@@ -3,6 +3,11 @@
 
 This section briefly covers items that are new and noteworthy in the latest releases.
 
+[[new-in-2.2.0]]
+== New in Spring Data Redis 2.2
+
+* <<redis.streams>>
+
 [[new-in-2.1.0]]
 == New in Spring Data Redis 2.1
 

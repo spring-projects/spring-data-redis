@@ -1,0 +1,190 @@
+[[redis.streams]]
+= Redis Streams
+
+Redis Streams model a log data structure in an abstract approach. Typically, logs are append-only data structures and are consumed from the beginning on, at a random position, or by streaming new messages.
+
+NOTE: Learn more about Redis Streams in the https://redis.io/topics/streams-intro[Redis reference documentation].
+
+Redis Streams can be roughly divided into two areas of functionality:
+
+* Appending or sending messages
+* Consuming or receiving messages
+
+Although this pattern has similarities to <<pubsub, Pub/Sub>>, the main difference lies in the persistence of messages and how they are consumed.
+
+While Pub/Sub relies on the broadcasting of transient messages (i.e. if you don't listen, you miss a message), Redis Stream use a persistent, append-only data type that retains messages until the stream is trimmed. Another difference in consumption is that Pub/Sub registers a server-side subscription. Redis pushes arriving messages to the client while Redis Streams require active polling.
+
+The `org.springframework.data.redis.connection` and `org.springframework.data.redis.stream` packages provide the core functionality for Redis Streams.
+
+
+[[redis.streams.publish]]
+== Appending (Sending Messages)
+
+To publish a message, you can use, as with the other operations, either the low-level `RedisConnection` or the high-level `StreamOperations`. Both entities offer the `add` (`xAdd`) method, which accepts the message and the destination stream as arguments. While `RedisConnection` requires raw data (array of bytes), the `StreamOperations` lets arbitrary objects be passed in as messages, as shown in the following example:
+
+[source,java]
+----
+// append message through connection 
+RedisConnection con = …
+byte[] stream = …
+Map<byte[], byte[]> msg = …
+con.xAdd(stream, msg); 
+
+// append message through RedisTemplate
+RedisTemplate template = …
+template.streamOps().add("my-stream", Collections.singletonMap("Hello", "World!"));
+----
+
+Stream messages carry a `Map`, key-value tuples, as their payload. Appending a message to a stream returns the message Id that can be used as further reference.
+
+[[redis.streams.receive]]
+== Consuming (Receiving Messages)
+
+On the consuming side, one can consume one or multiple streams. Redis Streams provide read commands that allow consumption of the stream from an arbitrary position (random access) within the known stream content and beyond the stream end to consume new stream messages. 
+
+At the low-level, `RedisConnection` offers the `xRead` and `xReadGroup` methods that map the Redis commands for reading and reading within a consumer group, respectively. Note that multiple streams can be used as arguments.
+
+NOTE: Subscription commands in Redis can be blocking. That is, calling `xRead` on a connection causes the current thread to block as it starts waiting for messages. The thread is released only if the read command times out or receives a message.
+
+To consume stream messages, one can either poll for messages in application code, or use one of the two <<redis.streams.receive.containers>>, the imperative or the reactive one. Each time a new message arrives, the container notifies the application code.
+
+[[redis.streams.receive.synchronous]]
+=== Synchronous reception
+
+While stream consumption is typically associated with asynchronous processing, it is possible to consume messages synchronously. The overloaded `StreamOperations.read(…)` methods provide this functionality. During a synchronous receive, the calling thread potentially blocks until a message becomes available. The property `StreamReadOptions.block` specifies how long the receiver should wait before giving up waiting for a message.
+
+[source,java]
+----
+// Read message through RedisTemplate
+RedisTemplate template = …
+
+List<StreamMessage<K, V>> messages = template.streamOps().read(StreamReadOptions.empty().count(2),
+				StreamOffset.create("my-stream", ReadOffset.latest()));
+
+List<StreamMessage<K, V>> messages = template.streamOps().read(Consumer.from("my-group", "my-consumer"), 
+				StreamReadOptions.empty().count(2),
+				StreamOffset.create("my-stream", ReadOffset.lastConsumed()))
+----
+
+[[redis.streams.receive.containers]]
+=== Asynchronous reception through Message Listener Containers
+
+Due to its blocking nature, low-level polling is not attractive, as it requires connection and thread management for every single consumer. To alleviate this problem, Spring Data offers message listeners, which do all the heavy lifting. If you are familiar with EJB and JMS, you should find the concepts familiar, as it is designed to be as close as possible to the support in Spring Framework and its message-driven POJOs (MDPs).
+
+Spring Data ships with two implementations tailored to the used programming model:
+
+* `StreamMessageListenerContainer` acts as message listener container for imperative programming models. It is used to consume messages from a Redis Stream and drive the `StreamListener` instances that are injected into it.
+* `StreamReceiver` provides a reactive variant of a message listener. It is used to consume messages from a Redis Stream as potentially infinite stream and emit stream messages through a `Flux`.
+
+`StreamMessageListenerContainer` and `StreamReceiver` are responsible for all threading of message reception and dispatch into the listener for processing. A message listener container/receiver is the intermediary between an MDP and a messaging provider and takes care of registering to receive messages, resource acquisition and release, exception conversion, and the like. This lets you as an application developer write the (possibly complex) business logic associated with receiving a message (and reacting to it) and delegates boilerplate Redis infrastructure concerns to the framework.
+
+Both containers allow runtime configuration changes so that you can add or remove subscriptions while an application is running without the need for a restart. Additionally, the container uses a lazy subscription approach, using a `RedisConnection` only when needed. If all the listeners are unsubscribed, it automatically performs a cleanup, and the thread is released.
+
+
+==== Imperative `StreamMessageListenerContainer`
+
+In a fashion similar to a Message-Driven Bean (MDB) in the EJB world, the Stream-Driven POJO (SDP) acts as a receiver for Stream messages. The one restriction on an SDP is that it must implement the `org.springframework.data.redis.stream.StreamListener` interface. Please also be aware that in the case where your POJO receives messages on multiple threads, it is important to ensure that your implementation is thread-safe.
+
+[source,java]
+----
+class ExampleStreamListener implements StreamListener<String, String> {
+
+	@Override
+	public void onMessage(StreamMessage<String, String> message) {
+
+		System.out.println("MessageId: " + message.getId());
+		System.out.println("Stream: " + message.getStream());
+		System.out.println("Body: " + message.getBody());
+	}
+}
+----
+
+`StreamListener` represents a functional interface so implementations can be rewritten using their Lambda form:
+
+[source,java]
+----
+message -> {
+
+    System.out.println("MessageId: " + message.getId());
+    System.out.println("Stream: " + message.getStream());
+    System.out.println("Body: " + message.getBody());
+};
+----
+
+Once you’ve implemented your `StreamListener`, it’s time to create a message listener container and register a subscription:
+ 
+[source,java]
+----
+RedisConnectionFactory connectionFactory = …
+StreamListener<String, String> streamListener = …
+ 
+StreamMessageListenerContainerOptions<String, String> containerOptions = StreamMessageListenerContainerOptions
+			.builder().pollTimeout(Duration.ofMillis(100)).build();
+			
+StreamMessageListenerContainer<String, String> container = StreamMessageListenerContainer.create(connectionFactory,
+				containerOptions);
+				
+Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), streamListener);
+----
+
+Please refer to the Javadoc of the various message listener containers for a full description of the features supported by each implementation.
+
+==== Reactive `StreamReceiver`
+
+Reactive consumption of streaming data sources typically happens through a `Flux` of events or messages. The reactive receiver implementation is provided with `StreamReceiver` and its overloaded `receive(…)` messages. The reactive approach requires fewer infrastructure resources such as threads in comparison to `StreamMessageListenerContainer` as it is leveraging threading resources provided by the driver. The receiving stream is a demand-driven publisher of ``StreamMessage``:  
+
+[source,java]
+----
+Flux<StreamMessage<String, String>> messages = …
+
+return messages.doOnNext(it -> {
+    System.out.println("MessageId: " + message.getId());
+    System.out.println("Stream: " + message.getStream());
+    System.out.println("Body: " + message.getBody());
+});
+----
+
+Now we need to create the `StreamReceiver` and register a subscription to consume stream messages:
+
+[source,java]
+----
+ReactiveRedisConnectionFactory connectionFactory = …
+
+StreamReceiverOptions<String, String> options = StreamReceiverOptions.builder().pollTimeout(Duration.ofMillis(100))
+				.build();
+StreamReceiver<String, String> receiver = StreamReceiver.create(connectionFactory, options);
+				
+Flux<StreamMessage<String, String>> messages = receiver.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")));
+----
+
+Please refer to the Javadoc of the various message listener containers for a full description of the features supported by each implementation.
+
+NOTE: Demand-driven consumption uses backpressure signals to activate and deactivate polling. `StreamReceiver` subscriptions pause polling if the demand is satisfied until subscribers signal further demand. Depending on the `ReadOffset` strategy, this can cause messages to be skipped.
+
+[[redis.streams.receive.readoffset]]
+=== `ReadOffset` strategies
+
+Stream read operations accept a read offset specification to consume messages from the given offset on. `ReadOffset` represents the read offset specification. Redis supports 3 variants of offsets, depending on whether you consume the stream standalone or within a consumer group:
+
+* `ReadOffset.latest()` – Read the latest message.
+* `ReadOffset.from(…)` – Read after a specific message Id.
+* `ReadOffset.lastConsumed()` – Read after the last consumed message Id (consumer-group only).
+
+In the context of a message container-based consumption, we need to advance (or increment) the read offset when consuming a message. Advancing depends on the requested `ReadOffset` and consumption mode (with/without consumer groups). The following matrix explains how containers advance `ReadOffset`:
+
+.ReadOffset Advancing
+[options="header,footer,autowidth"]
+|===
+| Read offset         | Standalone          | Consumer Group
+| Latest              | Read latest message | Read latest message
+| Specific Message Id | Use last seen message as the next MessageId | Use last seen message as the next MessageId
+| Last Consumed       | Use last seen message as the next MessageId | Last consumed message as per consumer group
+|===
+
+Reading from a specific message id and the last consumed message can be considered safe operations that ensure consumption of all messages that were appended to the stream.
+Using the latest message for read can skip messages that were added to the stream while the poll operation was in the state of dead time. Polling introduces a dead time in which messages can arrive between individual polling commands. Stream consumption is not a linear contiguous read but split into repeating `XREAD` calls.
+
+[[redis.streams.receive.serialization]]
+=== Serialization
+
+TBD.  

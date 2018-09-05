@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection;
 
 import java.util.EnumSet;
@@ -24,12 +23,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * Enumeration of the Redis data types.
  *
  * @author Costin Leau
+ * @author Mark Paluch
  */
 public enum DataType {
 
-	NONE("none"), STRING("string"), LIST("list"), SET("set"), ZSET("zset"), HASH("hash");
+	NONE("none"), STRING("string"), LIST("list"), SET("set"), ZSET("zset"), HASH("hash"),
+	/**
+	 * @since 2.2
+	 */
+	STREAM("stream");
 
-	private static final Map<String, DataType> codeLookup = new ConcurrentHashMap<>(6);
+	private static final Map<String, DataType> codeLookup = new ConcurrentHashMap<>(7);
 
 	static {
 		for (DataType type : EnumSet.allOf(DataType.class))

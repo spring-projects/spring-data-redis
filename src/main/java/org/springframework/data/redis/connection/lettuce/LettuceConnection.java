@@ -333,6 +333,15 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#streamCommands()
+	 */
+	@Override
+	public RedisStreamCommands streamCommands() {
+		return new LettuceStreamCommands(this);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConnection#stringCommands()
 	 */
 	@Override
@@ -424,7 +433,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.AbstractRedisConnection#close()
 	 */
@@ -457,7 +466,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		this.dbIndex = defaultDbIndex;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConnection#isClosed()
 	 */
@@ -466,7 +475,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return isClosed && !isSubscribed();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConnection#getNativeConnection()
 	 */
@@ -477,7 +486,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return (subscription != null ? subscription.getNativeConnection().async() : getAsyncConnection());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConnection#isQueueing()
 	 */
@@ -486,7 +495,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return isMulti;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConnection#isPipelined()
 	 */
@@ -495,7 +504,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return isPipelined;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConnection#openPipeline()
 	 */
@@ -507,7 +516,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConnection#closePipeline()
 	 */
@@ -743,7 +752,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	// Pub/Sub functionality
 	//
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#publish(byte[], byte[])
 	 */
@@ -768,7 +777,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#getSubscription()
 	 */
@@ -777,7 +786,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return subscription;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#isSubscribed()
 	 */
@@ -786,7 +795,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return (subscription != null && subscription.isAlive());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#pSubscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
 	 */
@@ -807,7 +816,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#subscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
 	 */

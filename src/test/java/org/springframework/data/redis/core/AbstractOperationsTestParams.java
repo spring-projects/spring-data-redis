@@ -27,7 +27,7 @@ import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -65,7 +65,7 @@ abstract public class AbstractOperationsTestParams {
 			throw new RuntimeException("Cannot init XStream", ex);
 		}
 
-		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(standaloneConfiguration);
+		LettuceConnectionFactory jedisConnectionFactory = new LettuceConnectionFactory(standaloneConfiguration);
 		jedisConnectionFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate();

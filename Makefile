@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REDIS_VERSION:=4.0.11
+REDIS_VERSION:=5.0-rc4
 SPRING_PROFILE?=ci
 
 #######

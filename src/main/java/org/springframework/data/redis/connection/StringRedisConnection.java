@@ -1945,7 +1945,6 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	List<RedisClientInfo> getClientList();
 
-
 	/**
 	 * Get / Manipulate specific integer fields of varying bit widths and arbitrary non (necessary) aligned offset stored
 	 * at a given {@code key}.
@@ -1955,4 +1954,271 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 */
 	List<Long> bitfield(String key, BitFieldSubCommands command);
+
+	// -------------------------------------------------------------------------
+	// Methods dealing with Redis Streams
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Acknowledge one or more messages as processed.
+	 *
+	 * @param key the stream key.
+	 * @param group name of the consumer group.
+	 * @param messageIds message Id's to acknowledge.
+	 * @return length of acknowledged messages. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xack">Redis Documentation: XACK</a>
+	 */
+	@Nullable
+	Long xAck(String key, String group, String... messageIds);
+
+	/**
+	 * Append a message to the stream {@code key}.
+	 *
+	 * @param key the stream key.
+	 * @param body message body.
+	 * @return the message Id. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 */
+	@Nullable
+	String xAdd(String key, Map<String, String> body);
+
+	/**
+	 * Removes the specified entries from the stream. Returns the number of items deleted, that may be different from the
+	 * number of IDs passed in case certain IDs do not exist.
+	 *
+	 * @param key the stream key.
+	 * @param messageIds stream message Id's.
+	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xdel">Redis Documentation: XDEL</a>
+	 */
+	@Nullable
+	Long xDel(String key, String... messageIds);
+
+	/**
+	 * Create a consumer group.
+	 *
+	 * @param key
+	 * @param readOffset
+	 * @param group name of the consumer group.
+	 * @since 2.2
+	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
+	 */
+	@Nullable
+	String xGroupCreate(String key, ReadOffset readOffset, String group);
+
+	/**
+	 * Delete a consumer from a consumer group.
+	 *
+	 * @param key the stream key.
+	 * @param consumer consumer identified by group name and consumer key.
+	 * @since 2.2
+	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
+	 */
+	@Nullable
+	Boolean xGroupDelConsumer(String key, Consumer consumer);
+
+	/**
+	 * Destroy a consumer group.
+	 *
+	 * @param key the stream key.
+	 * @param group name of the consumer group.
+	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 */
+	@Nullable
+	Boolean xGroupDestroy(String key, String group);
+
+	/**
+	 * Get the length of a stream.
+	 *
+	 * @param key the stream key.
+	 * @return length of the stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xlen">Redis Documentation: XLEN</a>
+	 */
+	@Nullable
+	Long xLen(String key);
+
+	/**
+	 * Read messages from a stream within a specific {@link Range}.
+	 *
+	 * @param key the stream key.
+	 * @param range must not be {@literal null}.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
+	 */
+	@Nullable
+	default List<StreamMessage<String, String>> xRange(String key, org.springframework.data.domain.Range<String> range) {
+		return xRange(key, range, Limit.unlimited());
+	}
+
+	/**
+	 * Read messages from a stream within a specific {@link Range} applying a {@link Limit}.
+	 *
+	 * @param key the stream key.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
+	 */
+	@Nullable
+	List<StreamMessage<String, String>> xRange(String key, org.springframework.data.domain.Range<String> range,
+			Limit limit);
+
+	/**
+	 * Read messages from one or more {@link StreamOffset}s.
+	 *
+	 * @param streams the streams to read from.
+	 * @return list ith members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
+	 */
+	@Nullable
+	default List<StreamMessage<String, String>> xReadAsString(StreamOffset<String> stream) {
+		return xReadAsString(StreamReadOptions.empty(), new StreamOffset[] { stream });
+	}
+
+	/**
+	 * Read messages from one or more {@link StreamOffset}s.
+	 *
+	 * @param streams the streams to read from.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
+	 */
+	@Nullable
+	default List<StreamMessage<String, String>> xReadAsString(StreamOffset<String>... streams) {
+		return xReadAsString(StreamReadOptions.empty(), streams);
+	}
+
+	/**
+	 * Read messages from one or more {@link StreamOffset}s.
+	 *
+	 * @param readOptions read arguments.
+	 * @param stream the streams to read from.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
+	 */
+	@Nullable
+	default List<StreamMessage<String, String>> xReadAsString(StreamReadOptions readOptions,
+			StreamOffset<String> stream) {
+		return xReadAsString(readOptions, new StreamOffset[] { stream });
+	}
+
+	/**
+	 * Read messages from one or more {@link StreamOffset}s.
+	 *
+	 * @param readOptions read arguments.
+	 * @param streams the streams to read from.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
+	 */
+	@Nullable
+	List<StreamMessage<String, String>> xReadAsString(StreamReadOptions readOptions, StreamOffset<String>... streams);
+
+	/**
+	 * Read messages from one or more {@link StreamOffset}s using a consumer group.
+	 *
+	 * @param consumer consumer/group.
+	 * @param stream the streams to read from.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
+	 */
+	@Nullable
+	default List<StreamMessage<String, String>> xReadGroupAsString(Consumer consumer, StreamOffset<String> stream) {
+		return xReadGroupAsString(consumer, StreamReadOptions.empty(), new StreamOffset[] { stream });
+	}
+
+	/**
+	 * Read messages from one or more {@link StreamOffset}s using a consumer group.
+	 *
+	 * @param consumer consumer/group.
+	 * @param streams the streams to read from.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
+	 */
+	@Nullable
+	default List<StreamMessage<String, String>> xReadGroupAsString(Consumer consumer, StreamOffset<String>... streams) {
+		return xReadGroupAsString(consumer, StreamReadOptions.empty(), streams);
+	}
+
+	/**
+	 * Read messages from one or more {@link StreamOffset}s using a consumer group.
+	 *
+	 * @param consumer consumer/group.
+	 * @param readOptions read arguments.
+	 * @param stream the streams to read from.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
+	 */
+	@Nullable
+	default List<StreamMessage<String, String>> xReadGroupAsString(Consumer consumer, StreamReadOptions readOptions,
+			StreamOffset<String> stream) {
+		return xReadGroupAsString(consumer, readOptions, new StreamOffset[] { stream });
+	}
+
+	/**
+	 * Read messages from one or more {@link StreamOffset}s using a consumer group.
+	 *
+	 * @param consumer consumer/group.
+	 * @param readOptions read arguments.
+	 * @param streams the streams to read from.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
+	 */
+	@Nullable
+	List<StreamMessage<String, String>> xReadGroupAsString(Consumer consumer, StreamReadOptions readOptions,
+			StreamOffset<String>... streams);
+
+	/**
+	 * Read messages from a stream within a specific {@link Range} in reverse order.
+	 *
+	 * @param key the stream key.
+	 * @param range must not be {@literal null}.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
+	 */
+	@Nullable
+	default List<StreamMessage<String, String>> xRevRange(String key,
+			org.springframework.data.domain.Range<String> range) {
+		return xRevRange(key, range, Limit.unlimited());
+	}
+
+	/**
+	 * Read messages from a stream within a specific {@link Range} applying a {@link Limit} in reverse order.
+	 *
+	 * @param key the stream key.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
+	 */
+	@Nullable
+	List<StreamMessage<String, String>> xRevRange(String key, org.springframework.data.domain.Range<String> range,
+			Limit limit);
+
+	/**
+	 * Trims the stream to {@code count} elements.
+	 *
+	 * @param key the stream key.
+	 * @param count length of the stream.
+	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="http://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
+	@Nullable
+	Long xTrim(String key, long count);
 }

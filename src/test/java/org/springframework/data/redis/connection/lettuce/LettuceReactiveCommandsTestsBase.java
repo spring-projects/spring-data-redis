@@ -83,7 +83,7 @@ public abstract class LettuceReactiveCommandsTestsBase {
 	RedisClusterCommands<String, String> nativeCommands;
 	RedisClusterCommands<ByteBuffer, ByteBuffer> nativeBinaryCommands;
 
-	@Parameterized.Parameters(name = "{2}")
+	@Parameterized.Parameters(name = "{3}")
 	public static List<Object[]> parameters() {
 
 		LettuceRedisClientProvider standalone = LettuceRedisClientProvider.local();
