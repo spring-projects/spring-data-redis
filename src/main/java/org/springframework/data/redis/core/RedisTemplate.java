@@ -104,6 +104,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private @Nullable ValueOperations<K, V> valueOps;
 	private @Nullable ListOperations<K, V> listOps;
 	private @Nullable SetOperations<K, V> setOps;
+	private @Nullable StreamOperations<K, V> streamOps;
 	private @Nullable ZSetOperations<K, V> zSetOps;
 	private @Nullable GeoOperations<K, V> geoOps;
 	private @Nullable HyperLogLogOperations<K, V> hllOps;
@@ -1298,6 +1299,28 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			setOps = new DefaultSetOperations<>(this);
 		}
 		return setOps;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#opsForStream()
+	 */
+	@Override
+	public StreamOperations<K, V> opsForStream() {
+
+		if (streamOps == null) {
+			streamOps = new DefaultStreamOperations<>(this);
+		}
+		return streamOps;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#boundStreamOps(java.lang.Object)
+	 */
+	@Override
+	public BoundStreamOperations<K, V> boundStreamOps(K key) {
+		return new DefaultBoundStreamOperations<>(key, this);
 	}
 
 	/*

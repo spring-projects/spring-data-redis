@@ -342,6 +342,11 @@ public class RedisTemplateTests<K, V> {
 				operations.opsForList().rightPop(key1);
 				operations.opsForList().size(key1);
 				operations.exec();
+
+				try {
+					// Await EXEC completion as it's executed on a dedicated connection.
+					Thread.sleep(100);
+				} catch (InterruptedException e) {}
 				operations.opsForValue().set(key1, value1);
 				operations.opsForValue().get(key1);
 				return null;
@@ -704,11 +709,7 @@ public class RedisTemplateTests<K, V> {
 			}
 		});
 
-		if (redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory) {
-			assertThat(results, is(empty()));
-		} else {
-			assertNull(results);
-		}
+		assertThat(results, is(empty()));
 
 		assertThat(redisTemplate.opsForValue().get(key1), isEqual(value2));
 	}
@@ -777,11 +778,7 @@ public class RedisTemplateTests<K, V> {
 			}
 		});
 
-		if (redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory) {
 			assertThat(results, is(empty()));
-		} else {
-			assertNull(results);
-		}
 
 		assertThat(redisTemplate.opsForValue().get(key1), isEqual(value2));
 	}

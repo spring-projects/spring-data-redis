@@ -29,6 +29,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
@@ -37,7 +38,9 @@ import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
+import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -45,6 +48,8 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  */
+@RunWith(RelaxedJUnit4ClassRunner.class)
+@ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
 public class JedisSentinelIntegrationTests extends AbstractConnectionIntegrationTests {
 
 	private static final String MASTER_NAME = "mymaster";

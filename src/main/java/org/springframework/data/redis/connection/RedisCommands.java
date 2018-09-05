@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection;
 
 import org.springframework.lang.Nullable;
@@ -23,10 +22,11 @@ import org.springframework.lang.Nullable;
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface RedisCommands extends RedisKeyCommands, RedisStringCommands, RedisListCommands, RedisSetCommands,
 		RedisZSetCommands, RedisHashCommands, RedisTxCommands, RedisPubSubCommands, RedisConnectionCommands,
-		RedisServerCommands, RedisScriptingCommands, RedisGeoCommands, RedisHyperLogLogCommands {
+		RedisServerCommands, RedisStreamCommands, RedisScriptingCommands, RedisGeoCommands, RedisHyperLogLogCommands {
 
 	/**
 	 * 'Native' or 'raw' execution of the given command along-side the given arguments. The command is executed as is,

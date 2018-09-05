@@ -64,6 +64,10 @@ import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
+import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -1156,11 +1160,11 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "redisVersion", value = "4.0+")
 	public void unlinkReturnsNrOfKeysRemoved() {
 
-		connection.set("unlink.this", "Can't track this!");
+		actual.add(connection.set("unlink.this", "Can't track this!"));
 
 		actual.add(connection.unlink("unlink.this", "unlink.that"));
 
-		verifyResults(Arrays.asList(new Object[] { 1L }));
+		verifyResults(Arrays.asList(new Object[] { true, 1L }));
 	}
 
 	@Test // DATAREDIS-693
@@ -2997,6 +3001,101 @@ public abstract class AbstractConnectionIntegrationTests {
 		List<Object> results = getResults();
 		assertThat((List<Long>) results.get(0), contains(0L, 0L));
 		assertThat((List<Long>) results.get(1), contains(100L, -56L));
+	}
+
+
+	@Test // DATAREDIS-864
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xAddShouldCreateStream() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.type(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results, hasSize(2));
+		assertThat((String) results.get(0), containsString("-"));
+		assertThat(results.get(1), is(DataType.STREAM));
+	}
+
+	@Test // DATAREDIS-864
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xReadShouldReadMessage() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xReadAsString(StreamOffset.create(KEY_1, ReadOffset.from("0"))));
+
+		List<Object> results = getResults();
+
+		List<StreamMessage<String, String>> messages = (List) results.get(1);
+
+		assertThat(messages.get(0).getStream(), is(KEY_1));
+		assertThat(messages.get(0).getBody(), is(Collections.singletonMap(KEY_2, VALUE_2)));
+	}
+
+	@Test // DATAREDIS-864
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xReadGroupShouldReadMessage() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"), StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"), StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+
+		List<Object> results = getResults();
+
+		List<StreamMessage<String, String>> messages = (List) results.get(2);
+
+		assertThat(messages.get(0).getStream(), is(KEY_1));
+		assertThat(messages.get(0).getBody(), is(Collections.singletonMap(KEY_2, VALUE_2)));
+
+		assertThat((List<StreamMessage>) results.get(3), is(empty()));
+	}
+
+	@Test // DATAREDIS-864
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xRangeShouldReportMessages() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
+		actual.add(connection.xRange(KEY_1, org.springframework.data.domain.Range.unbounded()));
+
+		List<Object> results = getResults();
+		assertThat(results, hasSize(3));
+		assertThat((String) results.get(0), containsString("-"));
+
+		List<StreamMessage<String, String>> messages = (List) results.get(2);
+
+		assertThat(messages.get(0).getStream(), is(KEY_1));
+		assertThat(messages.get(0).getBody(), is(Collections.singletonMap(KEY_2, VALUE_2)));
+
+		assertThat(messages.get(1).getStream(), is(KEY_1));
+		assertThat(messages.get(1).getBody(), is(Collections.singletonMap(KEY_3, VALUE_3)));
+	}
+
+	@Test // DATAREDIS-864
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xRevRangeShouldReportMessages() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
+		actual.add(connection.xRevRange(KEY_1, org.springframework.data.domain.Range.unbounded()));
+
+		List<Object> results = getResults();
+		assertThat(results, hasSize(3));
+		assertThat((String) results.get(0), containsString("-"));
+
+		List<StreamMessage<String, String>> messages = (List) results.get(2);
+
+		assertThat(messages.get(0).getStream(), is(KEY_1));
+		assertThat(messages.get(0).getBody(), is(Collections.singletonMap(KEY_3, VALUE_3)));
+
+		assertThat(messages.get(1).getStream(), is(KEY_1));
+		assertThat(messages.get(1).getBody(), is(Collections.singletonMap(KEY_2, VALUE_2)));
 	}
 
 	protected void verifyResults(List<Object> expected) {

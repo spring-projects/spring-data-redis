@@ -199,6 +199,15 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#streamCommands()
+	 */
+	@Override
+	public ReactiveStreamCommands streamCommands() {
+		return new LettuceReactiveStreamCommands(this);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#ping()
 	 */
 	@Override

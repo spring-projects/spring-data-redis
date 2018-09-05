@@ -428,6 +428,124 @@ public interface DefaultedRedisConnection extends RedisConnection {
 		return stringCommands().strLen(key);
 	}
 
+	// STREAM COMMANDS
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default Long xAck(byte[] key, String group, String... messageIds) {
+		return streamCommands().xAck(key, group, messageIds);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default String xAdd(byte[] key, Map<byte[], byte[]> body) {
+		return streamCommands().xAdd(key, body);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default Long xDel(byte[] key, String... messageIds) {
+		return streamCommands().xDel(key, messageIds);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default String xGroupCreate(byte[] key, ReadOffset readOffset, String group) {
+		return streamCommands().xGroupCreate(key, readOffset, group);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default Boolean xGroupDelConsumer(byte[] key, Consumer consumer) {
+		return streamCommands().xGroupDelConsumer(key, consumer);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default Boolean xGroupDestroy(byte[] key, String group) {
+		return streamCommands().xGroupDestroy(key, group);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default Long xLen(byte[] key) {
+		return streamCommands().xLen(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default List<StreamMessage<byte[], byte[]>> xRange(byte[] key, org.springframework.data.domain.Range<String> range) {
+		return streamCommands().xRange(key, range);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default List<StreamMessage<byte[], byte[]>> xRange(byte[] key, org.springframework.data.domain.Range<String> range,
+			Limit limit) {
+		return streamCommands().xRange(key, range, limit);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default List<StreamMessage<byte[], byte[]>> xRead(StreamOffset<byte[]>... streams) {
+		return streamCommands().xRead(streams);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default List<StreamMessage<byte[], byte[]>> xRead(StreamReadOptions readOptions, StreamOffset<byte[]>... streams) {
+		return streamCommands().xRead(readOptions, streams);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default List<StreamMessage<byte[], byte[]>> xReadGroup(Consumer consumer, StreamOffset<byte[]>... streams) {
+		return streamCommands().xReadGroup(consumer, streams);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default List<StreamMessage<byte[], byte[]>> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
+			StreamOffset<byte[]>... streams) {
+		return streamCommands().xReadGroup(consumer, readOptions, streams);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default List<StreamMessage<byte[], byte[]>> xRevRange(byte[] key,
+			org.springframework.data.domain.Range<String> range) {
+		return streamCommands().xRevRange(key, range);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default List<StreamMessage<byte[], byte[]>> xRevRange(byte[] key, org.springframework.data.domain.Range<String> range,
+			Limit limit) {
+		return streamCommands().xRevRange(key, range, limit);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default Long xTrim(byte[] key, long count) {
+		return streamCommands().xTrim(key, count);
+	}
+
 	// LIST COMMANDS
 
 	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */

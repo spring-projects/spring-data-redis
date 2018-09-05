@@ -429,6 +429,23 @@ public interface ReactiveRedisOperations<K, V> {
 	<K, V> ReactiveSetOperations<K, V> opsForSet(RedisSerializationContext<K, V> serializationContext);
 
 	/**
+	 * Returns the operations performed on streams.
+	 *
+	 * @return stream operations.
+	 * @since 2.2
+	 */
+	ReactiveStreamOperations<K, V> opsForStream();
+
+	/**
+	 * Returns the operations performed on streams given a {@link RedisSerializationContext}.
+	 *
+	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
+	 * @return stream operations.
+	 * @since 2.2
+	 */
+	<K, V> ReactiveStreamOperations<K, V> opsForStream(RedisSerializationContext<K, V> serializationContext);
+
+	/**
 	 * Returns the operations performed on simple values (or Strings in Redis terminology).
 	 *
 	 * @return value operations

@@ -18,16 +18,7 @@ package org.springframework.data.redis.connection.convert;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
@@ -45,6 +36,7 @@ import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
@@ -378,6 +370,24 @@ abstract public class Converters {
 	public static <V> Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<V>>> deserializingGeoResultsConverter(
 			RedisSerializer<V> serializer) {
 		return new DeserializingGeoResultsConverter<>(serializer);
+	}
+
+	/**
+	 * {@link Converter} capable of deserializing {@link StreamMessage}.
+	 *
+	 * @param serializer
+	 * @return
+	 * @since 2.2
+	 */
+	public static <S, T> Converter<StreamMessage<S, S>, StreamMessage<T, T>> deserializingStreamMessageConverter(
+			Converter<S, T> serializer) {
+
+		MapConverter<S, T> mapConverter = new MapConverter<>(serializer);
+		return message -> {
+
+			return new StreamMessage<>(serializer.convert(message.getStream()), message.getId(),
+					mapConverter.convert(message.getBody()));
+		};
 	}
 
 	/**

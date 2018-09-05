@@ -482,6 +482,8 @@ NOTE: Flattening requires all property names to not interfere with the JSON path
 :leveloffset: 2
 include::{referenceDir}/redis-messaging.adoc[]
 
+include::{referenceDir}/redis-streams.adoc[]
+
 include::{referenceDir}/redis-transactions.adoc[]
 
 include::{referenceDir}/pipelining.adoc[]

@@ -841,11 +841,13 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		try {
 			if (isPipelined()) {
 				if (limit.isUnlimited()) {
-					pipeline(connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range)),
+					pipeline(
+							connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true)),
 							LettuceConverters.bytesListToBytesSet()));
 				} else {
 					pipeline(connection.newLettuceResult(
-							getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
+							getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true),
+									LettuceConverters.toLimit(limit)),
 							LettuceConverters.bytesListToBytesSet()));
 				}
 				return null;
@@ -853,11 +855,12 @@ class LettuceZSetCommands implements RedisZSetCommands {
 			if (isQueueing()) {
 				if (limit.isUnlimited()) {
 					transaction(
-							connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range)),
+							connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true)),
 									LettuceConverters.bytesListToBytesSet()));
 				} else {
 					transaction(connection.newLettuceResult(
-							getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
+							getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true),
+									LettuceConverters.toLimit(limit)),
 							LettuceConverters.bytesListToBytesSet()));
 				}
 				return null;
@@ -865,10 +868,10 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 			if (limit.isUnlimited()) {
 				return LettuceConverters.bytesListToBytesSet()
-						.convert(getConnection().zrangebylex(key, LettuceConverters.toRange(range)));
+						.convert(getConnection().zrangebylex(key, LettuceConverters.toRange(range, true)));
 			}
 			return LettuceConverters.bytesListToBytesSet().convert(
-					getConnection().zrangebylex(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)));
+					getConnection().zrangebylex(key, LettuceConverters.toRange(range, true), LettuceConverters.toLimit(limit)));
 
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);

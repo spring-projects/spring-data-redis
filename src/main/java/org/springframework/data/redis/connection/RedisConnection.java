@@ -111,6 +111,16 @@ public interface RedisConnection extends RedisCommands {
 	}
 
 	/**
+	 * Get {@link RedisStreamCommands}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.2
+	 */
+	default RedisStreamCommands streamCommands() {
+		return this;
+	}
+
+	/**
 	 * Get {@link RedisStringCommands}.
 	 *
 	 * @return never {@literal null}.

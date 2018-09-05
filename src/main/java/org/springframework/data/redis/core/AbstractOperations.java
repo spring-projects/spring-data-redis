@@ -91,8 +91,8 @@ abstract class AbstractOperations<K, V> {
 	}
 
 	@Nullable
-	<T> T execute(RedisCallback<T> callback, boolean b) {
-		return template.execute(callback, b);
+	<T> T execute(RedisCallback<T> callback, boolean exposeConnection) {
+		return template.execute(callback, exposeConnection);
 	}
 
 	public RedisOperations<K, V> getOperations() {

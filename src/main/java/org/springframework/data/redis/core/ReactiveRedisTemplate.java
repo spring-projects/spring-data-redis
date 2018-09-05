@@ -623,6 +623,25 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForStream()
+	 */
+	@Override
+	public ReactiveStreamOperations<K, V> opsForStream() {
+		return opsForStream(serializationContext);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForStream(org.springframework.data.redis.serializer.RedisSerializationContext)
+	 */
+	@Override
+	public <K1, V1> ReactiveStreamOperations<K1, V1> opsForStream(
+			RedisSerializationContext<K1, V1> serializationContext) {
+		return new DefaultReactiveStreamOperations<>(this, serializationContext);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForValue()
 	 */
 	@Override

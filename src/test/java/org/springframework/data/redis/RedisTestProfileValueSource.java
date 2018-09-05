@@ -40,6 +40,7 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 	private static final String REDIS_28 = "2.8";
 	private static final String REDIS_30 = "3.0";
 	private static final String REDIS_32 = "3.2";
+	private static final String REDIS_50 = "4.9";
 	private static final String REDIS_VERSION_KEY = "redisVersion";
 
 	private static RedisTestProfileValueSource INSTANCE;
@@ -94,6 +95,10 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 
 		if (!REDIS_VERSION_KEY.equals(key)) {
 			return System.getProperty(key);
+		}
+
+		if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_50)) >= 0) {
+			return REDIS_50;
 		}
 
 		if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_32)) >= 0) {
