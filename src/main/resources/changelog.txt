@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.15.RELEASE (2018-09-10)
+----------------------------------------------
+* DATAREDIS-862 - Document that Redis Repositories do not support transactions.
+* DATAREDIS-856 - Release 1.8.15 (Ingalls SR15).
+* DATAREDIS-741 - Improve repository operation documentation.
+
+
 Changes in version 2.1.0.RC2 (2018-08-20)
 -----------------------------------------
 * DATAREDIS-853 - Release 2.1 RC2 (Lovelace).
