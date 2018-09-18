@@ -94,6 +94,8 @@ public void basicCrudOperations() {
 <4> Removes the key for the given object from Redis.
 ====
 
+include::../{spring-data-commons-include}/object-mapping.adoc[leveloffset=+1]
+
 [[redis.repositories.mapping]]
 == Object-to-Hash Mapping
 The Redis Repository support persists Objects to Hashes. This requires an Object-to-Hash conversion which is done by a `RedisConverter`. The default implementation uses `Converter` for mapping property values to and from Redis native `byte[]`.
