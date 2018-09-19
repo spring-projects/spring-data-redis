@@ -73,7 +73,7 @@ import org.springframework.util.ClassUtils;
  * {@link LettuceConnectionFactory client configuration}. Lettuce supports the following environmental configurations:
  * <ul>
  * <li>{@link RedisStandaloneConfiguration}</li>
- * <li>{@link RedisStaticMasterSlaveConfiguration}</li>
+ * <li>{@link RedisStaticMasterReplicaConfiguration}</li>
  * <li>{@link RedisSocketConfiguration}</li>
  * <li>{@link RedisSentinelConfiguration}</li>
  * <li>{@link RedisClusterConfiguration}</li>
@@ -212,7 +212,7 @@ public class LettuceConnectionFactory
 
 	/**
 	 * Constructs a new {@link LettuceConnectionFactory} instance using the given
-	 * {@link RedisStaticMasterSlaveConfiguration} and {@link LettuceClientConfiguration}.
+	 * {@link RedisStaticMasterReplicaConfiguration} and {@link LettuceClientConfiguration}.
 	 *
 	 * @param redisConfiguration must not be {@literal null}.
 	 * @param clientConfig must not be {@literal null}.
@@ -825,11 +825,11 @@ public class LettuceConnectionFactory
 	}
 
 	/**
-	 * @return true when {@link RedisStaticMasterSlaveConfiguration} is present.
+	 * @return true when {@link RedisStaticMasterReplicaConfiguration} is present.
 	 * @since 2.1
 	 */
-	private boolean isStaticMasterSlaveAware() {
-		return RedisConfiguration.isStaticMasterSlaveConfiguration(configuration);
+	private boolean isStaticMasterReplicaAware() {
+		return RedisConfiguration.isStaticMasterReplicaConfiguration(configuration);
 	}
 
 	/**
@@ -903,14 +903,14 @@ public class LettuceConnectionFactory
 
 		ReadFrom readFrom = getClientConfiguration().getReadFrom().orElse(null);
 
-		if (isStaticMasterSlaveAware()) {
+		if (isStaticMasterReplicaAware()) {
 
-			List<RedisURI> nodes = ((RedisStaticMasterSlaveConfiguration) configuration).getNodes().stream() //
+			List<RedisURI> nodes = ((RedisStaticMasterReplicaConfiguration) configuration).getNodes().stream() //
 					.map(it -> createRedisURIAndApplySettings(it.getHostName(), it.getPort())) //
 					.peek(it -> it.setDatabase(getDatabase())) //
 					.collect(Collectors.toList());
 
-			return new StaticMasterSlaveConnectionProvider((RedisClient) client, codec, nodes, readFrom);
+			return new StaticMasterReplicaConnectionProvider((RedisClient) client, codec, nodes, readFrom);
 		}
 
 		if (isClusterAware()) {
@@ -922,7 +922,7 @@ public class LettuceConnectionFactory
 
 	protected AbstractRedisClient createClient() {
 
-		if (isStaticMasterSlaveAware()) {
+		if (isStaticMasterReplicaAware()) {
 
 			RedisClient redisClient = clientConfiguration.getClientResources() //
 					.map(RedisClient::create) //

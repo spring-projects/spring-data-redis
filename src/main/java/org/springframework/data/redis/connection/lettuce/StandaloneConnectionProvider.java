@@ -109,7 +109,7 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
 
-			return connectionType.cast(readFrom.map(it -> this.masterSlaveConnection(redisURISupplier.get(), it))
+			return connectionType.cast(readFrom.map(it -> this.masterReplicaConnection(redisURISupplier.get(), it))
 					.orElseGet(() -> client.connect(codec)));
 		}
 
@@ -135,14 +135,15 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
 
 			return connectionType
-					.cast(readFrom.map(it -> this.masterSlaveConnection(redisURI, it)).orElseGet(() -> client.connect(codec)));
+					.cast(readFrom.map(it -> this.masterReplicaConnection(redisURI, it)).orElseGet(() -> client.connect(codec)));
 		}
 
 		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");
 	}
 
-	private StatefulRedisConnection masterSlaveConnection(RedisURI redisUri, ReadFrom readFrom) {
+	private StatefulRedisConnection masterReplicaConnection(RedisURI redisUri, ReadFrom readFrom) {
 
+		// See https://github.com/lettuce-io/lettuce-core/issues/845 for MasterSlave -> MasterReplica change.
 		StatefulRedisMasterSlaveConnection<?, ?> connection = MasterSlave.connect(client, codec, redisUri);
 		connection.setReadFrom(readFrom);
 
