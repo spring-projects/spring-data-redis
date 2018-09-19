@@ -67,7 +67,7 @@ NOTE: The initial configuration points driver libraries to an initial set of clu
 
 == Working With Redis Cluster Connection
 
-As mentioned earlier, Redis Cluster behaves differently from single-node Redis or even a Sentinel-monitored master-slave environment. This is because the automatic sharding maps a key to one of 16384 slots, which are distributed across the nodes. Therefore, commands that involve more than one key must assert all keys map to the exact same slot to avoid cross-slot execution errors.
+As mentioned earlier, Redis Cluster behaves differently from single-node Redis or even a Sentinel-monitored master-replica environment. This is because the automatic sharding maps a key to one of 16384 slots, which are distributed across the nodes. Therefore, commands that involve more than one key must assert all keys map to the exact same slot to avoid cross-slot execution errors.
 A single cluster node serves only a dedicated set of keys. Commands issued against one particular server return results only for those keys served by that server. As a simple example, consider the `KEYS` command. When issued to a server in a cluster environment, it returns only the keys served by the node the request is sent to and not necessarily all keys within the cluster. So, to get all keys in a cluster environment, you must read the keys from all the known master nodes.
 
 While redirects for specific keys to the corresponding slot-serving node are handled by the driver libraries, higher-level functions, such as collecting information across nodes or sending commands to all nodes in the cluster, are covered by `RedisClusterConnection`. Picking up the keys example from earlier, this means that the `keys(pattern)` method picks up every master node in the cluster and simultaneously executes the `KEYS` command on every master node while picking up the results and returning the cumulated set of keys. To just request the keys of a single node `RedisClusterConnection` provides overloads for those methods (for example, `keys(node, pattern)`).
@@ -102,10 +102,10 @@ connection.keys(NODE_7380, "*");                                               <
 connection.keys(NODE_7381, "*");                                               <10>
 connection.keys(NODE_7382, "*");                                               <11>
 ----
-<1> Master node serving slots 0 to 5460 replicated to slave at 7382
+<1> Master node serving slots 0 to 5460 replicated to replica at 7382
 <2> Master node serving slots 5461 to 10922
 <3> Master node serving slots 10923 to 16383
-<4> Slave node holding replicants of the master at 7379
+<4> Replica node holding replicants of the master at 7379
 <5> Request routed to node at 7381 serving slot 12182
 <6> Request routed to node at 7379 serving slot 5061
 <7> Request routed to nodes at 7379, 7380, 7381 -> [thing1, thing2]
@@ -166,5 +166,5 @@ The following example shows how to access `RedisClusterConnection` with `RedisTe
 ClusterOperations clusterOps = redisTemplate.opsForCluster();
 clusterOps.shutdown(NODE_7379);                                              <1>
 ----
-<1> Shut down node at 7379 and cross fingers there is a slave in place that can take over.
+<1> Shut down node at 7379 and cross fingers there is a replica in place that can take over.
 ====
