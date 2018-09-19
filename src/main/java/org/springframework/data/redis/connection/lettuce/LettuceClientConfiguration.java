@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * <li>Optional {@link ClientResources}</li>
  * <li>Optional {@link ClientOptions}</li>
  * <li>Optional client name</li>
- * <li>Optional {@link ReadFrom}. Enables Master/Slave operations if configured.</li>
+ * <li>Optional {@link ReadFrom}. Enables Master/Replica operations if configured.</li>
  * <li>Client {@link Duration timeout}</li>
  * <li>Shutdown {@link Duration timeout}</li>
  * </ul>
@@ -85,6 +85,8 @@ public interface LettuceClientConfiguration {
 	Optional<String> getClientName();
 
 	/**
+	 * Note: Redis is undergoing a nomenclature change where the term replica is used synonymously to slave.
+	 *
 	 * @return the optional {@link io.lettuce.core.ReadFrom} setting.
 	 * @since 2.1
 	 */
@@ -200,7 +202,8 @@ public interface LettuceClientConfiguration {
 		}
 
 		/**
-		 * Configure {@link ReadFrom}. Enables Master/Slave operations if configured.
+		 * Configure {@link ReadFrom}. Enables Master/Replica operations if configured. <br/>
+		 * Note: Redis is undergoing a nomenclature change where the term replica is used synonymously to slave.
 		 *
 		 * @param readFrom must not be {@literal null}.
 		 * @return {@literal this} builder.

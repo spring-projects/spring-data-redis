@@ -19,19 +19,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.data.redis.connection.RedisConfiguration.StaticMasterSlaveConfiguration;
+import org.springframework.data.redis.connection.RedisConfiguration.StaticMasterReplicaConfiguration;
 import org.springframework.util.Assert;
 
 /**
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using the provided
- * Master / Slave configuration to nodes know to not change address. Eg. when connecting to
- * <a href="https://aws.amazon.com/documentation/elasticache/">AWS ElastiCache with Read Replicas</a> .
+ * Master / Replica configuration to nodes know to not change address. Eg. when connecting to
+ * <a href="https://aws.amazon.com/documentation/elasticache/">AWS ElastiCache with Read Replicas</a>. <br/>
+ * Note: Redis is undergoing a nomenclature change where the term replica is used synonymously to slave.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
  * @since 2.1
  */
-public class RedisStaticMasterSlaveConfiguration implements RedisConfiguration, StaticMasterSlaveConfiguration {
+public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration, StaticMasterReplicaConfiguration {
 
 	private static final int DEFAULT_PORT = 6379;
 
@@ -40,21 +41,21 @@ public class RedisStaticMasterSlaveConfiguration implements RedisConfiguration, 
 	private RedisPassword password = RedisPassword.none();
 
 	/**
-	 * Create a new {@link StaticMasterSlaveConfiguration} given {@code hostName}.
+	 * Create a new {@link StaticMasterReplicaConfiguration} given {@code hostName}.
 	 *
 	 * @param hostName must not be {@literal null} or empty.
 	 */
-	public RedisStaticMasterSlaveConfiguration(String hostName) {
+	public RedisStaticMasterReplicaConfiguration(String hostName) {
 		this(hostName, DEFAULT_PORT);
 	}
 
 	/**
-	 * Create a new {@link StaticMasterSlaveConfiguration} given {@code hostName} and {@code port}.
+	 * Create a new {@link StaticMasterReplicaConfiguration} given {@code hostName} and {@code port}.
 	 *
 	 * @param hostName must not be {@literal null} or empty.
 	 * @param port a valid TCP port (1-65535).
 	 */
-	public RedisStaticMasterSlaveConfiguration(String hostName, int port) {
+	public RedisStaticMasterReplicaConfiguration(String hostName, int port) {
 		addNode(hostName, port);
 	}
 
@@ -86,9 +87,9 @@ public class RedisStaticMasterSlaveConfiguration implements RedisConfiguration, 
 	 * Add a {@link RedisStandaloneConfiguration node} to the list of nodes given {@code hostName}.
 	 *
 	 * @param hostName must not be {@literal null} or empty.
-	 * @return {@code this} {@link StaticMasterSlaveConfiguration}.
+	 * @return {@code this} {@link StaticMasterReplicaConfiguration}.
 	 */
-	public StaticMasterSlaveConfiguration node(String hostName) {
+	public StaticMasterReplicaConfiguration node(String hostName) {
 		return node(hostName, DEFAULT_PORT);
 	}
 
@@ -97,9 +98,9 @@ public class RedisStaticMasterSlaveConfiguration implements RedisConfiguration, 
 	 *
 	 * @param hostName must not be {@literal null} or empty.
 	 * @param port a valid TCP port (1-65535).
-	 * @return {@code this} {@link StaticMasterSlaveConfiguration}.
+	 * @return {@code this} {@link StaticMasterReplicaConfiguration}.
 	 */
-	public RedisStaticMasterSlaveConfiguration node(String hostName, int port) {
+	public RedisStaticMasterReplicaConfiguration node(String hostName, int port) {
 
 		addNode(hostName, port);
 		return this;
@@ -151,7 +152,7 @@ public class RedisStaticMasterSlaveConfiguration implements RedisConfiguration, 
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.StaticMasterSlaveConfiguration#getNodes()
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.StaticMasterReplicaConfiguration#getNodes()
 	 */
 	@Override
 	public List<RedisStandaloneConfiguration> getNodes() {

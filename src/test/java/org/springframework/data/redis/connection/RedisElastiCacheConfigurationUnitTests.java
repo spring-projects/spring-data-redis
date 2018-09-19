@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link RedisStaticMasterSlaveConfiguration}.
+ * Unit tests for {@link RedisStaticMasterReplicaConfiguration}.
  *
  * @author Mark Paluch
  */
@@ -29,7 +29,7 @@ public class RedisElastiCacheConfigurationUnitTests {
 	@Test // DATAREDIS-762
 	public void shouldCreateSingleHostConfiguration() {
 
-		RedisStaticMasterSlaveConfiguration singleHost = new RedisStaticMasterSlaveConfiguration("localhost");
+		RedisStaticMasterReplicaConfiguration singleHost = new RedisStaticMasterReplicaConfiguration("localhost");
 
 		assertThat(singleHost.getNodes()).hasSize(1);
 
@@ -42,7 +42,7 @@ public class RedisElastiCacheConfigurationUnitTests {
 	@Test // DATAREDIS-762
 	public void shouldCreateMultiHostConfiguration() {
 
-		RedisStaticMasterSlaveConfiguration multiHost = new RedisStaticMasterSlaveConfiguration("localhost");
+		RedisStaticMasterReplicaConfiguration multiHost = new RedisStaticMasterReplicaConfiguration("localhost");
 		multiHost.node("other-host", 6479);
 
 		assertThat(multiHost.getNodes()).hasSize(2);
@@ -61,7 +61,7 @@ public class RedisElastiCacheConfigurationUnitTests {
 	@Test // DATAREDIS-762
 	public void shouldApplyPasswordToNodes() {
 
-		RedisStaticMasterSlaveConfiguration multiHost = new RedisStaticMasterSlaveConfiguration("localhost").node("other-host", 6479);
+		RedisStaticMasterReplicaConfiguration multiHost = new RedisStaticMasterReplicaConfiguration("localhost").node("other-host", 6479);
 
 		multiHost.setPassword(RedisPassword.of("foobar"));
 		multiHost.node("third", 1234);
@@ -73,7 +73,7 @@ public class RedisElastiCacheConfigurationUnitTests {
 	@Test // DATAREDIS-762
 	public void shouldApplyDatabaseToNodes() {
 
-		RedisStaticMasterSlaveConfiguration multiHost = new RedisStaticMasterSlaveConfiguration("localhost").node("other-host", 6479);
+		RedisStaticMasterReplicaConfiguration multiHost = new RedisStaticMasterReplicaConfiguration("localhost").node("other-host", 6479);
 
 		multiHost.setDatabase(4);
 		multiHost.node("third", 1234);

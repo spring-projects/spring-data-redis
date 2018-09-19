@@ -41,7 +41,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisStaticMasterSlaveConfiguration;
+import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.StringRedisConnection;
 
@@ -385,8 +385,8 @@ public class LettuceConnectionFactoryTests {
 		factory.destroy();
 	}
 
-	@Test // DATAREDIS-762
-	public void factoryUsesElastiCacheMasterSlaveConnections() {
+	@Test // DATAREDIS-762, DATAREDIS-869
+	public void factoryUsesElastiCacheMasterReplicaConnections() {
 
 		assumeThat(String.format("No slaves connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
 				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0, is(true));
@@ -394,7 +394,7 @@ public class LettuceConnectionFactoryTests {
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
 				.build();
 
-		RedisStaticMasterSlaveConfiguration elastiCache = new RedisStaticMasterSlaveConfiguration(SettingsUtils.getHost())
+		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(SettingsUtils.getHost())
 				.node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache,
@@ -413,16 +413,16 @@ public class LettuceConnectionFactoryTests {
 		factory.destroy();
 	}
 
-	@Test // DATAREDIS-762
+	@Test // DATAREDIS-762, DATAREDIS-869
 	public void factoryUsesElastiCacheMasterWithoutMaster() {
 
-		assumeThat(String.format("No slaves connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
+		assumeThat(String.format("No replicas connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
 				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0, is(true));
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.MASTER)
 				.build();
 
-		RedisStaticMasterSlaveConfiguration elastiCache = new RedisStaticMasterSlaveConfiguration(SettingsUtils.getHost(),
+		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(SettingsUtils.getHost(),
 				SettingsUtils.getPort() + 1);
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache, configuration);
@@ -444,10 +444,10 @@ public class LettuceConnectionFactoryTests {
 		factory.destroy();
 	}
 
-	@Test // DATAREDIS-580
-	public void factoryUsesMasterSlaveConnections() {
+	@Test // DATAREDIS-580, DATAREDIS-869
+	public void factoryUsesMasterReplicaConnections() {
 
-		assumeThat(String.format("No slaves connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
+		assumeThat(String.format("No replicas connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
 				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0, is(true));
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)

@@ -29,7 +29,7 @@ import java.util.Optional;
 import org.springframework.lang.Nullable;
 
 /**
- * {@link LettuceConnectionProvider} implementation for a static Master/Slave connection suitable for eg. AWS
+ * {@link LettuceConnectionProvider} implementation for a static Master/Replica connection suitable for eg. AWS
  * ElastiCache with replicas setup.<br/>
  * Lettuce auto-discovers node roles from the static {@link RedisURI} collection.
  *
@@ -37,7 +37,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @since 2.1
  */
-class StaticMasterSlaveConnectionProvider implements LettuceConnectionProvider {
+class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider {
 
 	private final RedisClient client;
 	private final RedisCodec<?, ?> codec;
@@ -45,14 +45,14 @@ class StaticMasterSlaveConnectionProvider implements LettuceConnectionProvider {
 	private final Collection<RedisURI> nodes;
 
 	/**
-	 * Create new {@link StaticMasterSlaveConnectionProvider}.
+	 * Create new {@link StaticMasterReplicaConnectionProvider}.
 	 *
 	 * @param client must not be {@literal null}.
 	 * @param codec must not be {@literal null}.
 	 * @param nodes must not be {@literal null}.
 	 * @param readFrom can be {@literal null}.
 	 */
-	StaticMasterSlaveConnectionProvider(RedisClient client, RedisCodec<?, ?> codec, Collection<RedisURI> nodes,
+	StaticMasterReplicaConnectionProvider(RedisClient client, RedisCodec<?, ?> codec, Collection<RedisURI> nodes,
 			@Nullable ReadFrom readFrom) {
 
 		this.client = client;
@@ -70,6 +70,7 @@ class StaticMasterSlaveConnectionProvider implements LettuceConnectionProvider {
 
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
 
+			// See https://github.com/lettuce-io/lettuce-core/issues/845 for MasterSlave -> MasterReplica change.
 			StatefulRedisMasterSlaveConnection<?, ?> connection = MasterSlave.connect(client, codec, nodes);
 			readFrom.ifPresent(connection::setReadFrom);
 

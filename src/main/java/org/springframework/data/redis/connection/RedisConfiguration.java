@@ -95,10 +95,10 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link StaticMasterSlaveConfiguration}.
+	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link StaticMasterReplicaConfiguration}.
 	 */
-	static boolean isStaticMasterSlaveConfiguration(@Nullable RedisConfiguration configuration) {
-		return configuration instanceof StaticMasterSlaveConfiguration;
+	static boolean isStaticMasterReplicaConfiguration(@Nullable RedisConfiguration configuration) {
+		return configuration instanceof StaticMasterReplicaConfiguration;
 	}
 
 	/**
@@ -323,12 +323,14 @@ public interface RedisConfiguration {
 	}
 
 	/**
-	 * Configuration interface suitable for Redis master/slave environments with fixed hosts.
+	 * Configuration interface suitable for Redis master/slave environments with fixed hosts. <br/>
+	 * Redis is undergoing a nomenclature change where the term replica is used synonymously to slave.
 	 *
 	 * @author Christoph Strobl
+	 * @author Mark Paluch
 	 * @since 2.1
 	 */
-	interface StaticMasterSlaveConfiguration extends WithDatabaseIndex, WithPassword {
+	interface StaticMasterReplicaConfiguration extends WithDatabaseIndex, WithPassword {
 
 		/**
 		 * @return unmodifiable {@link List} of {@link RedisStandaloneConfiguration nodes}.
