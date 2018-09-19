@@ -7,7 +7,7 @@ This section briefly covers items that are new and noteworthy in the latest rele
 == New in Spring Data Redis 2.1
 
 * Unix domain socket connections using <<redis:connectors:lettuce,Lettuce>>.
-* <<redis:write-to-master-read-from-slave, Write to Master, read from Slave>> support using Lettuce.
+* <<redis:write-to-master-read-from-replica, Write to Master, read from Replica>> support using Lettuce.
 * <<query-by-example,Query by Example>> integration.
 * `@TypeAlias` Support for Redis repositories.
 * Cluster-wide `SCAN` using Lettuce and `SCAN` execution on a selected node supported by both drivers.

@@ -105,7 +105,7 @@ cluster-start: work/cluster-7379.pid work/cluster-7380.pid work/cluster-7381.pid
 work/meet-%:
 	-work/redis/bin/redis-cli -p $* cluster meet 127.0.0.1 7379
 
-# Handled separately because this node is a slave
+# Handled separately because this node is a replica
 work/meet-7382:
 	-work/redis/bin/redis-cli -p 7382 cluster meet 127.0.0.1 7379
 	sleep 2

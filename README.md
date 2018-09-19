@@ -104,8 +104,8 @@ Running the tests requires you to have a RedisServer running at its default port
 You can alternatively use the provided `Makefile` which runs the build plus downloads and spins up the following environment:
 
 * 1 Single Node
-* HA Redis (1 Master, 2 Slaves, 3 Sentinels).
-* Redis Cluster (3 Masters, 1 Slave) 
+* HA Redis (1 Master, 2 Replicas, 3 Sentinels).
+* Redis Cluster (3 Masters, 1 Replica) 
 
 ```bash
     make test
