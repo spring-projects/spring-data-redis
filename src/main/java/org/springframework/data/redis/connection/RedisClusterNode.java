@@ -326,6 +326,16 @@ public class RedisClusterNode extends RedisNode {
 			return this;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder#replicaOf(java.lang.String)
+		 */
+		@Override
+		public RedisClusterNodeBuilder replicaOf(String masterId) {
+			super.replicaOf(masterId);
+			return this;
+		}
+
 		/**
 		 * Set flags for node.
 		 *

@@ -174,10 +174,10 @@ public interface RedisClusterCommands {
 	 * Assign a {@literal slave} to given {@literal master}.
 	 *
 	 * @param master must not be {@literal null}.
-	 * @param slave must not be {@literal null}.
+	 * @param replica must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-replicate">Redis Documentation: CLUSTER REPLICATE</a>
 	 */
-	void clusterReplicate(RedisClusterNode master, RedisClusterNode slave);
+	void clusterReplicate(RedisClusterNode master, RedisClusterNode replica);
 
 	enum AddSlots {
 		MIGRATING, IMPORTING, STABLE, NODE
