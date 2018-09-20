@@ -641,12 +641,12 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterReplicate(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
-	public void clusterReplicate(RedisClusterNode master, RedisClusterNode slave) {
+	public void clusterReplicate(RedisClusterNode master, RedisClusterNode replica) {
 
 		RedisClusterNode masterNode = topologyProvider.getTopology().lookup(master);
 
 		clusterCommandExecutor.executeCommandOnSingleNode(
-				(JedisClusterCommandCallback<String>) client -> client.clusterReplicate(masterNode.getId()), slave);
+				(JedisClusterCommandCallback<String>) client -> client.clusterReplicate(masterNode.getId()), replica);
 
 	}
 

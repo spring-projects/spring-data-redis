@@ -166,6 +166,16 @@ public class RedisServer extends RedisNode {
 	}
 
 	public Long getNumberSlaves() {
+		return getNumberReplicas();
+	}
+
+	/**
+	 * Get the number of connected replicas.
+	 *
+	 * @return
+	 * @since 2.1
+	 */
+	public Long getNumberReplicas() {
 		return getLongValueOf(INFO.NUMBER_SLAVES);
 	}
 
