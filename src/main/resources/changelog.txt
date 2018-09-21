@@ -1,6 +1,17 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.0.RELEASE (2018-09-21)
+---------------------------------------------
+* DATAREDIS-870 - Upgrade to Lettuce 5.1.0.RELEASE.
+* DATAREDIS-869 - Track and reflect nomenclature changes re replication.
+* DATAREDIS-868 - Include documentation about Repository Object Mapping Fundamentals.
+* DATAREDIS-862 - Document that Redis Repositories do not support transactions.
+* DATAREDIS-861 - Release 2.1 GA (Lovelace).
+* DATAREDIS-741 - Improve repository operation documentation.
+* DATAREDIS-708 - Extract BGREWRITEAOF and BGSAVE tests to unit tests.
+
+
 Changes in version 2.0.10.RELEASE (2018-09-10)
 ----------------------------------------------
 * DATAREDIS-862 - Document that Redis Repositories do not support transactions.
