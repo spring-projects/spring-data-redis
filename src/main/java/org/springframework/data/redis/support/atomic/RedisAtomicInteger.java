@@ -110,9 +110,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 		this.operations = generalOps.opsForValue();
 
 		if (initialValue == null) {
-			if (this.operations.get(redisCounter) == null) {
-				set(0);
-			}
+			setIfAbsent(0);
 		} else {
 			set(initialValue);
 		}
@@ -131,9 +129,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 		this.operations = generalOps.opsForValue();
 
 		if (initialValue == null) {
-			if (this.operations.get(redisCounter) == null) {
-				set(0);
-			}
+			setIfAbsent(0);
 		} else {
 			set(initialValue);
 		}
@@ -163,6 +159,16 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 		operations.set(key, newValue);
 	}
 
+	/**
+	 * Sets to the given value, only if {@code key} does not exist.
+	 *
+	 * @param newValue the new value.
+	 * @return  true if successful. False return indicates that {@code key} already existed.
+	 */
+	public Boolean setIfAbsent(int newValue) {
+		operations.setIfAbsent(key, newValue);
+	}
+	
 	/**
 	 * Set to the give value and return the old value.
 	 *
