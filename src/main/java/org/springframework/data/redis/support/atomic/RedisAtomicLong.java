@@ -171,7 +171,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	 * Sets to the given value, only if {@code key} does not exist.
 	 *
 	 * @param newValue the new value.
-	 * @return  true if successful. False return indicates that {@code key} already existed.
+	 * @return true if successful. False return indicates that {@code key} already existed.
 	 */
 	public Boolean setIfAbsent(long newValue) {
 		operations.setIfAbsent(key, newValue);
