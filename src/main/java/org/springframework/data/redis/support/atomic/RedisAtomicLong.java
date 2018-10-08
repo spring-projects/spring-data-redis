@@ -88,9 +88,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 		this.operations = generalOps.opsForValue();
 
 		if (initialValue == null) {
-			if (this.operations.get(redisCounter) == null) {
-				set(0);
-			}
+			setIfAbsent(0);
 		} else {
 			set(initialValue);
 		}
@@ -138,9 +136,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 		this.operations = generalOps.opsForValue();
 
 		if (initialValue == null) {
-			if (this.operations.get(redisCounter) == null) {
-				set(0);
-			}
+			setIfAbsent(0);
 		} else {
 			set(initialValue);
 		}
@@ -170,6 +166,16 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 		operations.set(key, newValue);
 	}
 
+	/**
+	 * Sets to the given value, only if {@code key} does not exist.
+	 *
+	 * @param newValue the new value.
+	 * @return  true if successful. False return indicates that {@code key} already existed.
+	 */
+	public Boolean setIfAbsent(long newValue) {
+		operations.setIfAbsent(key, newValue);
+	}
+	
 	/**
 	 * Atomically sets to the given value and returns the old value.
 	 *
