@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Ning Wei
  * @see java.util.concurrent.atomic.AtomicLong
  */
 public class RedisAtomicLong extends Number implements Serializable, BoundKeyOperations<String> {
