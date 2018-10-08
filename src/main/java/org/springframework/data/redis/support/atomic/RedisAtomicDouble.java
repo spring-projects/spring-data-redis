@@ -166,7 +166,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 * Sets to the given value, only if {@code key} does not exist.
 	 *
 	 * @param newValue the new value.
-	 * @return  true if successful. False return indicates that {@code key} already existed.
+	 * @return true if successful. False return indicates that {@code key} already existed.
 	 */
 	public Boolean setIfAbsent(double newValue) {
 		operations.setIfAbsent(key, newValue);
