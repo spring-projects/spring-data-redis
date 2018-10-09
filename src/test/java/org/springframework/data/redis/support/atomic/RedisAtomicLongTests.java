@@ -41,6 +41,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Ning Wei
  */
 @RunWith(Parameterized.class)
 public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
