@@ -174,7 +174,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	 * @return true if successful. False return indicates that {@code key} already existed.
 	 */
 	public Boolean setIfAbsent(long newValue) {
-		operations.setIfAbsent(key, newValue);
+		return operations.setIfAbsent(key, newValue);
 	}
 	
 	/**
