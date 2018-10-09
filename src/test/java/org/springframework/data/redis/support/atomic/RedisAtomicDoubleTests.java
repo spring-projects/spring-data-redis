@@ -228,7 +228,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 	}
 	
 	@Test // DATAREDIS-872
-	public void testUseSetIfAbsentRedisAtomicIntegerForTemplate() {
+	public void testUseSetIfAbsentRedisAtomicDoubleForTemplate() {
 
 		RedisAtomicDouble ral = new RedisAtomicDouble("DATAREDIS-872.atomicDouble", template);
 		assertThat(ral.get()).isEqualTo(0);//should be true
