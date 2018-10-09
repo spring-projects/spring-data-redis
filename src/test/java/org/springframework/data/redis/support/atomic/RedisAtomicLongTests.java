@@ -220,21 +220,21 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 	public void testUseSetIfAbsentRedisAtomicLongForTemplate() {
 
 		RedisAtomicLong ral = new RedisAtomicLong("DATAREDIS-872.atomicLong", template);
-		assertThat(ral.get()).isEqualTo(0);//should be true
+		assertThat(ral.get()).isEqualTo(0);
 		ral.set(32L);
 
 		RedisAtomicLong ral1 = new RedisAtomicLong("DATAREDIS-872.atomicLong", template);
-		assertThat(ral1.get()).isEqualTo(0);//should be false
+		assertThat(ral1.get()).isEqualTo(32L);
 	}
 	
 	@Test // DATAREDIS-872
 	public void testUseSetIfAbsentRedisAtomicLongForFactory() {
 
 		RedisAtomicLong ral = new RedisAtomicLong("DATAREDIS-872.atomicLong", factory);
-		assertThat(ral.get()).isEqualTo(0);//should be true
+		assertThat(ral.get()).isEqualTo(0);
 		ral.set(32L);
 
 		RedisAtomicLong ral1 = new RedisAtomicLong("DATAREDIS-872.atomicLong", factory);
-		assertThat(ral1.get()).isEqualTo(0);//should be false
+		assertThat(ral1.get()).isEqualTo(32L);
 	}
 }
