@@ -167,7 +167,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	 * @return true if successful. False return indicates that {@code key} already existed.
 	 */
 	public Boolean setIfAbsent(int newValue) {
-		operations.setIfAbsent(key, newValue);
+		return operations.setIfAbsent(key, newValue);
 	}
 	
 	/**
