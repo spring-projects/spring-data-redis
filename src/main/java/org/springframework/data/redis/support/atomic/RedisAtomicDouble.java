@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Ning Wei
  * @author Mark Paluch
  */
 public class RedisAtomicDouble extends Number implements Serializable, BoundKeyOperations<String> {
