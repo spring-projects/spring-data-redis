@@ -232,7 +232,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 		RedisAtomicDouble ral = new RedisAtomicDouble("DATAREDIS-872.atomicDouble", template);
 		assertThat(ral.get()).isEqualTo(0);//should be true
-		ral.set(32.23);
+		ral.set(32.13);
 
 		RedisAtomicDouble ral1 = new RedisAtomicDouble("DATAREDIS-872.atomicDouble", template);
 		assertThat(ral1.get()).isEqualTo(0);//should be false
@@ -243,7 +243,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 		RedisAtomicDouble ral = new RedisAtomicDouble("DATAREDIS-872.atomicDouble", factory);
 		assertThat(ral.get()).isEqualTo(0);//should be true
-		ral.set(32.23);
+		ral.set(32.13);
 
 		RedisAtomicDouble ral1 = new RedisAtomicDouble("DATAREDIS-872.atomicDouble", factory);
 		assertThat(ral1.get()).isEqualTo(0);//should be false
