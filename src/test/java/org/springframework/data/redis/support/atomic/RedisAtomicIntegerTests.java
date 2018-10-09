@@ -43,6 +43,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Ning Wei
  */
 @RunWith(Parameterized.class)
 public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
@@ -232,5 +233,27 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		template.delete("test");
 
 		assertThat(test.getAndSet(2)).isZero();
+	}
+	
+	@Test // DATAREDIS-872
+	public void testUseSetIfAbsentRedisAtomicIntegerForTemplate() {
+
+		RedisAtomicInteger ral = new RedisAtomicInteger("DATAREDIS-872.atomicInteger", template);
+		assertThat(ral.get()).isEqualTo(0);//should be true
+		ral.set(31);
+
+		RedisAtomicInteger ral1 = new RedisAtomicInteger("DATAREDIS-872.atomicInteger", template);
+		assertThat(ral1.get()).isEqualTo(0);//should be false
+	}
+	
+	@Test // DATAREDIS-872
+	public void testUseSetIfAbsentRedisAtomicIntegerForFactory() {
+
+		RedisAtomicInteger ral = new RedisAtomicInteger("DATAREDIS-872.atomicInteger", factory);
+		assertThat(ral.get()).isEqualTo(0);//should be true
+		ral.set(31);
+
+		RedisAtomicInteger ral1 = new RedisAtomicInteger("DATAREDIS-872.atomicInteger", factory);
+		assertThat(ral1.get()).isEqualTo(0);//should be false
 	}
 }
