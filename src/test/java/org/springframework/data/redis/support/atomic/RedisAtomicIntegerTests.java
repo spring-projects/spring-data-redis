@@ -239,21 +239,21 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 	public void testUseSetIfAbsentRedisAtomicIntegerForTemplate() {
 
 		RedisAtomicInteger ral = new RedisAtomicInteger("DATAREDIS-872.atomicInteger", template);
-		assertThat(ral.get()).isEqualTo(0);//should be true
+		assertThat(ral.get()).isEqualTo(0);
 		ral.set(31);
 
 		RedisAtomicInteger ral1 = new RedisAtomicInteger("DATAREDIS-872.atomicInteger", template);
-		assertThat(ral1.get()).isEqualTo(0);//should be false
+		assertThat(ral1.get()).isEqualTo(31);
 	}
 	
 	@Test // DATAREDIS-872
 	public void testUseSetIfAbsentRedisAtomicIntegerForFactory() {
 
 		RedisAtomicInteger ral = new RedisAtomicInteger("DATAREDIS-872.atomicInteger", factory);
-		assertThat(ral.get()).isEqualTo(0);//should be true
+		assertThat(ral.get()).isEqualTo(0);
 		ral.set(31);
 
 		RedisAtomicInteger ral1 = new RedisAtomicInteger("DATAREDIS-872.atomicInteger", factory);
-		assertThat(ral1.get()).isEqualTo(0);//should be false
+		assertThat(ral1.get()).isEqualTo(31);
 	}
 }
