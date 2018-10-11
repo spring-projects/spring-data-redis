@@ -6,3 +6,8 @@ _site
 *.sw[op]
 .project
 sample-pages
+*.iml
+*.ipr
+*.iws
+target
+build
