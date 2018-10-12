@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Dominys
  */
 class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements SetOperations<K, V> {
 
@@ -55,7 +56,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	@Override
 	public Set<V> difference(K key, K otherKey) {
-		return difference(key, Collections.singleton(otherKey));
+		return difference(Arrays.asList(key, otherKey));
 	}
 
 	/*
@@ -64,8 +65,19 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	@Override
 	public Set<V> difference(K key, Collection<K> otherKeys) {
-
 		byte[][] rawKeys = rawKeys(key, otherKeys);
+		Set<byte[]> rawValues = execute(connection -> connection.sDiff(rawKeys), true);
+
+		return deserializeValues(rawValues);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.SetOperations#difference(java.util.Collection)
+	 */
+	@Override
+	public Set<V> difference(Collection<K> keys) {
+		byte[][] rawKeys = rawKeys(keys);
 		Set<byte[]> rawValues = execute(connection -> connection.sDiff(rawKeys), true);
 
 		return deserializeValues(rawValues);
@@ -77,7 +89,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	@Override
 	public Long differenceAndStore(K key, K otherKey, K destKey) {
-		return differenceAndStore(key, Collections.singleton(otherKey), destKey);
+		return differenceAndStore(Arrays.asList(key, otherKey), destKey);
 	}
 
 	/*
@@ -94,11 +106,22 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.SetOperations#differenceAndStore(java.util.Collection, java.lang.Object)
+	 */
+	@Override
+	public Long differenceAndStore(Collection<K> keys, K destKey) {
+		byte[][] rawKeys = rawKeys(keys);
+		byte[] rawDestKey = rawKey(destKey);
+		return execute(connection -> connection.sDiffStore(rawDestKey, rawKeys), true);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.SetOperations#intersect(java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public Set<V> intersect(K key, K otherKey) {
-		return intersect(key, Collections.singleton(otherKey));
+		return intersect(Arrays.asList(key, otherKey));
 	}
 
 	/*
@@ -116,11 +139,22 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.SetOperations#intersect(java.util.Collection)
+	 */
+	@Override
+	public Set<V> intersect(Collection<K> keys) {
+		byte[][] rawKeys = rawKeys(keys);
+		Set<byte[]> rawValues = execute(connection -> connection.sInter(rawKeys), true);
+
+		return deserializeValues(rawValues);	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.SetOperations#intersectAndStore(java.lang.Object, java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public Long intersectAndStore(K key, K otherKey, K destKey) {
-		return intersectAndStore(key, Collections.singleton(otherKey), destKey);
+		return intersectAndStore(Arrays.asList(key, otherKey), destKey);
 	}
 
 	/*
@@ -134,6 +168,16 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		byte[] rawDestKey = rawKey(destKey);
 		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys), true);
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.SetOperations#intersectAndStore(java.util.Collection, java.lang.Object)
+	 */
+	@Override
+	public Long intersectAndStore(Collection<K> keys, K destKey) {
+		byte[][] rawKeys = rawKeys(keys);
+		byte[] rawDestKey = rawKey(destKey);
+		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys), true);	}
 
 	/*
 	 * (non-Javadoc)
@@ -280,7 +324,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	@Override
 	public Set<V> union(K key, K otherKey) {
-		return union(key, Collections.singleton(otherKey));
+		return union(Arrays.asList(key, otherKey));
 	}
 
 	/*
@@ -298,11 +342,23 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.SetOperations#union(java.util.Collection)
+	 */
+	@Override
+	public Set<V> union(Collection<K> keys) {
+		byte[][] rawKeys = rawKeys(keys);
+		Set<byte[]> rawValues = execute(connection -> connection.sUnion(rawKeys), true);
+
+		return deserializeValues(rawValues);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.SetOperations#union(java.lang.Object, java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public Long unionAndStore(K key, K otherKey, K destKey) {
-		return unionAndStore(key, Collections.singleton(otherKey), destKey);
+		return unionAndStore(Arrays.asList(key, otherKey), destKey);
 	}
 
 	/*
@@ -316,6 +372,16 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		byte[] rawDestKey = rawKey(destKey);
 		return execute(connection -> connection.sUnionStore(rawDestKey, rawKeys), true);
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.SetOperations#union(java.util.Collection, java.lang.Object)
+	 */
+	@Override
+	public Long unionAndStore(Collection<K> keys, K destKey) {
+		byte[][] rawKeys = rawKeys(keys);
+		byte[] rawDestKey = rawKey(destKey);
+		return execute(connection -> connection.sUnionStore(rawDestKey, rawKeys), true);	}
 
 	/*
 	 * (non-Javadoc)
