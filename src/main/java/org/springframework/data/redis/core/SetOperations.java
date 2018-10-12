@@ -27,6 +27,7 @@ import org.springframework.lang.Nullable;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Roman Bezpalko
  */
 public interface SetOperations<K, V> {
 
@@ -130,6 +131,16 @@ public interface SetOperations<K, V> {
 	Set<V> intersect(K key, Collection<K> otherKeys);
 
 	/**
+	 * Returns the members intersecting all given sets at {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 */
+	@Nullable
+	Set<V> intersect(Collection<K> keys);
+
+	/**
 	 * Intersect all given sets at {@code key} and {@code otherKey} and store result in {@code destKey}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -154,6 +165,17 @@ public interface SetOperations<K, V> {
 	Long intersectAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	/**
+	 * Intersect all given sets at {@code keys} and store result in {@code destKey}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 */
+	@Nullable
+	Long intersectAndStore(Collection<K> keys, K destKey);
+
+	/**
 	 * Union all sets at given {@code keys} and {@code otherKey}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -174,6 +196,16 @@ public interface SetOperations<K, V> {
 	 */
 	@Nullable
 	Set<V> union(K key, Collection<K> otherKeys);
+
+	/**
+	 * Union all sets at given {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 */
+	@Nullable
+	Set<V> union(Collection<K> keys);
 
 	/**
 	 * Union all sets at given {@code key} and {@code otherKey} and store result in {@code destKey}.
@@ -200,6 +232,17 @@ public interface SetOperations<K, V> {
 	Long unionAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	/**
+	 * Union all sets at given {@code keys} and store result in {@code destKey}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 */
+	@Nullable
+	Long unionAndStore(Collection<K> keys, K destKey);
+
+	/**
 	 * Diff all sets for given {@code key} and {@code otherKey}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -220,6 +263,16 @@ public interface SetOperations<K, V> {
 	 */
 	@Nullable
 	Set<V> difference(K key, Collection<K> otherKeys);
+
+	/**
+	 * Diff all sets for given {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 */
+	@Nullable
+	Set<V> difference(Collection<K> keys);
 
 	/**
 	 * Diff all sets for given {@code key} and {@code otherKey} and store result in {@code destKey}.
@@ -244,6 +297,17 @@ public interface SetOperations<K, V> {
 	 */
 	@Nullable
 	Long differenceAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Diff all sets for given {@code keys} and store result in {@code destKey}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 */
+	@Nullable
+	Long differenceAndStore(Collection<K> keys, K destKey);
 
 	/**
 	 * Get all elements of set at {@code key}.
