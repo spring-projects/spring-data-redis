@@ -1,6 +1,11 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.16.RELEASE (2018-10-15)
+----------------------------------------------
+* DATAREDIS-866 - Release 1.8.16 (Ingalls SR16).
+
+
 Changes in version 2.0.11.RELEASE (2018-10-15)
 ----------------------------------------------
 * DATAREDIS-867 - Release 2.0.11 (Kay SR11).
