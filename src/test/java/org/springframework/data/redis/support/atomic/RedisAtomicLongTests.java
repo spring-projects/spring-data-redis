@@ -18,6 +18,9 @@ package org.springframework.data.redis.support.atomic;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.LongBinaryOperator;
+import java.util.function.LongUnaryOperator;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -41,6 +44,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Graham MacMaster
  */
 @RunWith(Parameterized.class)
 public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
@@ -213,5 +217,97 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		template.delete("test");
 
 		assertThat(test.getAndSet(2)).isZero();
+	}
+
+	@Test // DATAREDIS-874
+	public void updateAndGetAppliesGivenUpdateFunctionAndReturnsUpdatedValue() {
+
+		// Arrange
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		long initialValue = 5;
+		long expectedNewValue = 10;
+		longCounter.set(initialValue);
+
+		LongUnaryOperator updateFunction = input -> {
+			operatorHasBeenApplied.set(true);
+			return expectedNewValue;
+		};
+
+		// Act
+		long result = longCounter.updateAndGet(updateFunction);
+
+		// Assert
+		assertThat(result).isEqualTo(expectedNewValue);
+		assertThat(longCounter.get()).isEqualTo(expectedNewValue);
+		assertThat(operatorHasBeenApplied.get()).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void getAndUpdateAppliesGivenUpdateFunctionAndReturnsOriginalValue() {
+
+		// Arrange
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		long initialValue = 5;
+		long expectedNewValue = 10;
+		longCounter.set(initialValue);
+
+		LongUnaryOperator updateFunction = input -> {
+			operatorHasBeenApplied.set(true);
+			return expectedNewValue;
+		};
+
+		// Act
+		long result = longCounter.getAndUpdate(updateFunction);
+
+		// Assert
+		assertThat(result).isEqualTo(initialValue);
+		assertThat(longCounter.get()).isEqualTo(expectedNewValue);
+		assertThat(operatorHasBeenApplied.get()).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void accumulateAndGetAppliesGivenAccumulatorFunctionAndReturnsUpdatedValue() {
+
+		// Arrange
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		long initialValue = 5;
+		long expectedNewValue = 10;
+		longCounter.set(initialValue);
+
+		LongBinaryOperator accumulatorFunction = (x, y) -> {
+			operatorHasBeenApplied.set(true);
+			return expectedNewValue;
+		};
+
+		// Act
+		long result = longCounter.accumulateAndGet(15L, accumulatorFunction);
+
+		// Assert
+		assertThat(result).isEqualTo(expectedNewValue);
+		assertThat(longCounter.get()).isEqualTo(expectedNewValue);
+		assertThat(operatorHasBeenApplied.get()).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void getAndAccumulateAppliesGivenAccumulatorFunctionAndReturnsOriginalValue() {
+
+		// Arrange
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		long initialValue = 5;
+		long expectedNewValue = 10;
+		longCounter.set(initialValue);
+
+		LongBinaryOperator accumulatorFunction = (x, y) -> {
+			operatorHasBeenApplied.set(true);
+			return expectedNewValue;
+		};
+
+		// Act
+		long result = longCounter.getAndAccumulate(15L, accumulatorFunction);
+
+		// Assert
+		assertThat(result).isEqualTo(initialValue);
+		assertThat(longCounter.get()).isEqualTo(expectedNewValue);
+		assertThat(operatorHasBeenApplied.get()).isTrue();
 	}
 }

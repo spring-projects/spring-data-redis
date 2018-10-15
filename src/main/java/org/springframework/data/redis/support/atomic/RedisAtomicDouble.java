@@ -18,6 +18,8 @@ package org.springframework.data.redis.support.atomic;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.DoubleBinaryOperator;
 
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.connection.DataType;
@@ -39,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Graham MacMaster
  */
 public class RedisAtomicDouble extends Number implements Serializable, BoundKeyOperations<String> {
 
@@ -219,6 +222,44 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
+	 * Atomically update the current value using the given update function.
+	 *
+	 * @param updateFunction the function which calculates the value to set. Should be a pure function (no side effects),
+	 *                       because it will be applied several times if update attempts fail due to concurrent calls.
+	 * @return the previous value.
+	 */
+	public double getAndUpdate(DoubleUnaryOperator updateFunction) {
+
+		double previousValue, newValue;
+		do {
+			previousValue = get();
+			newValue = updateFunction.applyAsDouble(previousValue);
+		} while (!compareAndSet(previousValue, newValue));
+		return previousValue;
+	}
+
+	/**
+	 * Atomically update the current value using the given accumulator function.
+	 * The new value is calculated by applying the accumulator function to the current value and the
+	 * given `updateValue`.
+	 *
+	 * @param updateValue the value which will be passed into the accumulator function.
+	 * @param accumulatorFunction the function which calculates the value to set. Should be a pure function (no side
+	 *                            effects), because it will be applied several times if update attempts fail due to
+	 *                            concurrent calls.
+	 * @return the previous value.
+	 */
+	public double getAndAccumulate(double updateValue, DoubleBinaryOperator accumulatorFunction) {
+
+		double previousValue, newValue;
+		do {
+			previousValue = get();
+			newValue = accumulatorFunction.applyAsDouble(previousValue, updateValue);
+		} while (!compareAndSet(previousValue, newValue));
+		return previousValue;
+	}
+
+	/**
 	 * Atomically increments by one the current value.
 	 *
 	 * @return the updated value
@@ -244,6 +285,44 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 */
 	public double addAndGet(double delta) {
 		return operations.increment(key, delta);
+	}
+
+	/**
+	 * Atomically update the current value using the given update function.
+	 *
+	 * @param updateFunction the function which calculates the value to set. Should be a pure function (no side effects),
+	 *                       because it will be applied several times if update attempts fail due to concurrent calls.
+	 * @return the updated value.
+	 */
+	public double updateAndGet(DoubleUnaryOperator updateFunction) {
+
+		double previousValue, newValue;
+		do {
+			previousValue = get();
+			newValue = updateFunction.applyAsDouble(previousValue);
+		} while (!compareAndSet(previousValue, newValue));
+		return newValue;
+	}
+
+	/**
+	 * Atomically update the current value using the given accumulator function.
+	 * The new value is calculated by applying the accumulator function to the current value and the
+	 * given `updateValue`.
+	 *
+	 * @param updateValue the value which will be passed into the accumulator function.
+	 * @param accumulatorFunction the function which calculates the value to set. Should be a pure function (no side
+	 *                            effects), because it will be applied several times if update attempts fail due to
+	 *                            concurrent calls.
+	 * @return the updated value.
+	 */
+	public double accumulateAndGet(double updateValue, DoubleBinaryOperator accumulatorFunction) {
+
+		double previousValue, newValue;
+		do {
+			previousValue = get();
+			newValue = accumulatorFunction.applyAsDouble(previousValue, updateValue);
+		} while (!compareAndSet(previousValue, newValue));
+		return newValue;
 	}
 
 	/**

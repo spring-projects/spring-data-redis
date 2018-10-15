@@ -20,6 +20,9 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.DoubleBinaryOperator;
 
 import org.assertj.core.data.Offset;
 import org.junit.After;
@@ -43,6 +46,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Graham MacMaster
  */
 @RunWith(Parameterized.class)
 public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
@@ -224,5 +228,97 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		template.delete("test");
 
 		assertThat(test.getAndSet(2)).isZero();
+	}
+
+	@Test // DATAREDIS-874
+	public void updateAndGetAppliesGivenUpdateFunctionAndReturnsUpdatedValue() {
+
+		// Arrange
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		double initialValue = 5.3;
+		double expectedNewValue = 10.6;
+		doubleCounter.set(initialValue);
+
+		DoubleUnaryOperator updateFunction = input -> {
+			operatorHasBeenApplied.set(true);
+			return expectedNewValue;
+		};
+
+		// Act
+		double result = doubleCounter.updateAndGet(updateFunction);
+
+		// Assert
+		assertThat(result).isEqualTo(expectedNewValue);
+		assertThat(doubleCounter.get()).isEqualTo(expectedNewValue);
+		assertThat(operatorHasBeenApplied.get()).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void getAndUpdateAppliesGivenUpdateFunctionAndReturnsOriginalValue() {
+
+		// Arrange
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		double initialValue = 5.3;
+		double expectedNewValue = 10.6;
+		doubleCounter.set(initialValue);
+
+		DoubleUnaryOperator updateFunction = input -> {
+			operatorHasBeenApplied.set(true);
+			return expectedNewValue;
+		};
+
+		// Act
+		double result = doubleCounter.getAndUpdate(updateFunction);
+
+		// Assert
+		assertThat(result).isEqualTo(initialValue);
+		assertThat(doubleCounter.get()).isEqualTo(expectedNewValue);
+		assertThat(operatorHasBeenApplied.get()).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void accumulateAndGetAppliesGivenAccumulatorFunctionAndReturnsUpdatedValue() {
+
+		// Arrange
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		double initialValue = 5.3;
+		double expectedNewValue = 10.6;
+		doubleCounter.set(initialValue);
+
+		DoubleBinaryOperator accumulatorFunction = (x, y) -> {
+			operatorHasBeenApplied.set(true);
+			return expectedNewValue;
+		};
+
+		// Act
+		double result = doubleCounter.accumulateAndGet(15.9, accumulatorFunction);
+
+		// Assert
+		assertThat(result).isEqualTo(expectedNewValue);
+		assertThat(doubleCounter.get()).isEqualTo(expectedNewValue);
+		assertThat(operatorHasBeenApplied.get()).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void getAndAccumulateAppliesGivenAccumulatorFunctionAndReturnsOriginalValue() {
+
+		// Arrange
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		double initialValue = 5.3;
+		double expectedNewValue = 10.6;
+		doubleCounter.set(initialValue);
+
+		DoubleBinaryOperator accumulatorFunction = (x, y) -> {
+			operatorHasBeenApplied.set(true);
+			return expectedNewValue;
+		};
+
+		// Act
+		double result = doubleCounter.getAndAccumulate(15.9, accumulatorFunction);
+
+		// Assert
+		assertThat(result).isEqualTo(initialValue);
+		assertThat(doubleCounter.get()).isEqualTo(expectedNewValue);
+		assertThat(operatorHasBeenApplied.get()).isTrue();
 	}
 }
