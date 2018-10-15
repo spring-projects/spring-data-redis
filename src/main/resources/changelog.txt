@@ -1,6 +1,11 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.1.RELEASE (2018-10-15)
+---------------------------------------------
+* DATAREDIS-871 - Release 2.1.1 (Lovelace SR1).
+
+
 Changes in version 2.1.0.RELEASE (2018-09-21)
 ---------------------------------------------
 * DATAREDIS-870 - Upgrade to Lettuce 5.1.0.RELEASE.
