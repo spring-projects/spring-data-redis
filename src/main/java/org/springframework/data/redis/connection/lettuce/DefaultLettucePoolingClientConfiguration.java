@@ -126,6 +126,15 @@ class DefaultLettucePoolingClientConfiguration implements LettucePoolingClientCo
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getShutdownQuietPeriod()
+	 */
+	@Override
+	public Duration getShutdownQuietPeriod() {
+		return clientConfiguration.getShutdownQuietPeriod();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettucePoolingClientConfiguration#getPoolConfig()
 	 */
 	@Override

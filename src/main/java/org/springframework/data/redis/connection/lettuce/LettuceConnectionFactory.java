@@ -302,8 +302,9 @@ public class LettuceConnectionFactory
 		}
 
 		try {
+			Duration quietPeriod = clientConfiguration.getShutdownQuietPeriod();
 			Duration timeout = clientConfiguration.getShutdownTimeout();
-			client.shutdown(timeout.toMillis(), timeout.toMillis(), TimeUnit.MILLISECONDS);
+			client.shutdown(quietPeriod.toMillis(), timeout.toMillis(), TimeUnit.MILLISECONDS);
 		} catch (Exception e) {
 
 			if (log.isWarnEnabled()) {
@@ -1275,6 +1276,15 @@ public class LettuceConnectionFactory
 
 		void setShutdownTimeout(Duration shutdownTimeout) {
 			this.shutdownTimeout = shutdownTimeout;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getShutdownQuietPeriod()
+		 */
+		@Override
+		public Duration getShutdownQuietPeriod() {
+			return shutdownTimeout;
 		}
 	}
 }
