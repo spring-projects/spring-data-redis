@@ -147,7 +147,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Gets the current value.
+	 * Get the current value.
 	 *
 	 * @return the current value.
 	 */
@@ -162,16 +162,16 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Sets to the given value.
+	 * Set to the given value.
 	 *
-	 * @param newValue the new value
+	 * @param newValue the new value.
 	 */
 	public void set(long newValue) {
 		operations.set(key, newValue);
 	}
 
 	/**
-	 * Atomically sets to the given value and returns the old value.
+	 * Set to the given value and return the old value.
 	 *
 	 * @param newValue the new value.
 	 * @return the previous value.
@@ -184,7 +184,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically sets the value to the given updated value if the current value {@code ==} the expected value.
+	 * Atomically set the value to the given updated value if the current value {@code ==} the expected value.
 	 *
 	 * @param expect the expected value.
 	 * @param update the new value.
@@ -196,7 +196,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically increments by one the current value.
+	 * Atomically increment by one the current value.
 	 *
 	 * @return the previous value.
 	 */
@@ -205,7 +205,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically decrements by one the current value.
+	 * Atomically decrement by one the current value.
 	 *
 	 * @return the previous value.
 	 */
@@ -214,7 +214,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically adds the given value to the current value.
+	 * Atomically add the given value to current value.
 	 *
 	 * @param delta the value to add.
 	 * @return the previous value.
@@ -224,7 +224,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically increments by one the current value.
+	 * Atomically increment by one the current value.
 	 *
 	 * @return the updated value.
 	 */
@@ -233,7 +233,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically decrements by one the current value.
+	 * Atomically decrement by one the current value.
 	 *
 	 * @return the updated value.
 	 */
@@ -242,7 +242,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically adds the given value to the current value.
+	 * Atomically add the given value to current value.
 	 *
 	 * @param delta the value to add.
 	 * @return the updated value.
