@@ -142,7 +142,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Gets the current value.
+	 * Get the current value.
 	 *
 	 * @return the current value.
 	 */
@@ -157,7 +157,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Sets to the given value.
+	 * Set to the given value.
 	 *
 	 * @param newValue the new value.
 	 */
@@ -166,7 +166,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Atomically sets to the given value and returns the old value.
+	 * Set to the given value and return the old value.
 	 *
 	 * @param newValue the new value.
 	 * @return the previous value.
@@ -179,7 +179,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Atomically sets the value to the given updated value if the current value {@code ==} the expected value.
+	 * Atomically set the value to the given updated value if the current value {@code ==} the expected value.
 	 *
 	 * @param expect the expected value.
 	 * @param update the new value.
@@ -191,56 +191,56 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Atomically increments by one the current value.
+	 * Atomically increment by one the current value.
 	 *
-	 * @return the previous value
+	 * @return the previous value.
 	 */
 	public double getAndIncrement() {
 		return incrementAndGet() - 1.0;
 	}
 
 	/**
-	 * Atomically decrements by one the current value.
+	 * Atomically decrement by one the current value.
 	 *
-	 * @return the previous value
+	 * @return the previous value.
 	 */
 	public double getAndDecrement() {
 		return decrementAndGet() + 1.0;
 	}
 
 	/**
-	 * Atomically adds the given value to the current value.
+	 * Atomically add the given value to current value.
 	 *
-	 * @param delta the value to add
-	 * @return the previous value
+	 * @param delta the value to add.
+	 * @return the previous value.
 	 */
 	public double getAndAdd(double delta) {
 		return addAndGet(delta) - delta;
 	}
 
 	/**
-	 * Atomically increments by one the current value.
+	 * Atomically increment by one the current value.
 	 *
-	 * @return the updated value
+	 * @return the updated value.
 	 */
 	public double incrementAndGet() {
 		return operations.increment(key, 1.0);
 	}
 
 	/**
-	 * Atomically decrements by one the current value.
+	 * Atomically decrement by one the current value.
 	 *
-	 * @return the updated value
+	 * @return the updated value.
 	 */
 	public double decrementAndGet() {
 		return operations.increment(key, -1.0);
 	}
 
 	/**
-	 * Atomically adds the given value to the current value.
+	 * Atomically add the given value to current value.
 	 *
-	 * @param delta the value to add
-	 * @return the updated value
+	 * @param delta the value to add.
+	 * @return the updated value.
 	 */
 	public double addAndGet(double delta) {
 		return operations.increment(key, delta);

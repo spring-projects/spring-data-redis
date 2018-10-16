@@ -164,7 +164,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Set to the give value and return the old value.
+	 * Set to the given value and return the old value.
 	 *
 	 * @param newValue the new value.
 	 * @return the previous value.
@@ -177,7 +177,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Atomically set the value to the given updated value if the current value <tt>==</tt> the expected value.
+	 * Atomically set the value to the given updated value if the current value {@code ==} the expected value.
 	 *
 	 * @param expect the expected value.
 	 * @param update the new value.
