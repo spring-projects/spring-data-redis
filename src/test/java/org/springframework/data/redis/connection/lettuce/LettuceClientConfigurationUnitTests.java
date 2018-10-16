@@ -29,6 +29,7 @@ import org.junit.Test;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Yanming Zhou
  */
 public class LettuceClientConfigurationUnitTests {
 
@@ -75,6 +76,16 @@ public class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofMinutes(5));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofHours(2));
 		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofMinutes(5));
+	}
+
+	@Test // DATAREDIS-881
+	public void shutdownQuietPeriodShouldDefaultToTimeout() {
+
+		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
+				.shutdownTimeout(Duration.ofSeconds(42)).build();
+
+		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofSeconds(42));
+		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofSeconds(42));
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-576

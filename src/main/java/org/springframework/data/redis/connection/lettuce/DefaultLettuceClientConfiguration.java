@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Yanming Zhou
  * @since 2.0
  */
 class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
@@ -46,9 +47,7 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 
 	DefaultLettuceClientConfiguration(boolean useSsl, boolean verifyPeer, boolean startTls,
 			@Nullable ClientResources clientResources, @Nullable ClientOptions clientOptions, @Nullable String clientName,
-			@Nullable ReadFrom readFrom,
-			Duration timeout, Duration shutdownTimeout,
-			@Nullable Duration shutdownQuietPeriod) {
+			@Nullable ReadFrom readFrom, Duration timeout, Duration shutdownTimeout, @Nullable Duration shutdownQuietPeriod) {
 
 		this.useSsl = useSsl;
 		this.verifyPeer = verifyPeer;

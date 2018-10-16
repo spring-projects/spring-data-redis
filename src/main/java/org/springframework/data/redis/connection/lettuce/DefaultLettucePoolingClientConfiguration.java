@@ -29,6 +29,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Yanming Zhou
  * @since 2.0
  */
 class DefaultLettucePoolingClientConfiguration implements LettucePoolingClientConfiguration {

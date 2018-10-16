@@ -42,10 +42,12 @@ import org.springframework.util.Assert;
  * <li>Optional {@link ReadFrom}. Enables Master/Replica operations if configured.</li>
  * <li>Client {@link Duration timeout}</li>
  * <li>Shutdown {@link Duration timeout}</li>
+ * <li>Shutdown quiet {@link Duration period}</li>
  * </ul>
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Yanming Zhou
  * @since 2.0
  * @see org.springframework.data.redis.connection.RedisStandaloneConfiguration
  * @see org.springframework.data.redis.connection.RedisSentinelConfiguration
@@ -140,6 +142,8 @@ public interface LettuceClientConfiguration {
 	 * <dt>Connect Timeout</dt>
 	 * <dd>60 Seconds</dd>
 	 * <dt>Shutdown Timeout</dt>
+	 * <dd>100 Milliseconds</dd>
+	 * <dt>Shutdown Quiet Period</dt>
 	 * <dd>100 Milliseconds</dd>
 	 * </dl>
 	 *
@@ -273,7 +277,7 @@ public interface LettuceClientConfiguration {
 		}
 
 		/**
-		 * Configure a shutdown timeout.
+		 * Configure the shutdown quiet period.
 		 *
 		 * @param shutdownQuietPeriod must not be {@literal null}.
 		 * @return {@literal this} builder.

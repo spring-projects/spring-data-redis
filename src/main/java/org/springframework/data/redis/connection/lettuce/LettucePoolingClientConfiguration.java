@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Yanming Zhou
  * @since 2.0
  */
 public interface LettucePoolingClientConfiguration extends LettuceClientConfiguration {
@@ -64,6 +65,8 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 	 * <dt>Connect Timeout</dt>
 	 * <dd>60 Seconds</dd>
 	 * <dt>Shutdown Timeout</dt>
+	 * <dd>100 Milliseconds</dd>
+	 * <dt>Shutdown Quiet Period</dt>
 	 * <dd>100 Milliseconds</dd>
 	 * <dt>pool config</dt>
 	 * <dd>default {@link GenericObjectPoolConfig}</dd>
