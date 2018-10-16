@@ -142,6 +142,17 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 			return this;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#shutdownQuietPeriod(java.time.Duration)
+		 */
+		@Override
+		public LettucePoolingClientConfigurationBuilder shutdownQuietPeriod(Duration shutdownQuietPeriod) {
+
+			super.shutdownQuietPeriod(shutdownQuietPeriod);
+			return this;
+		}
+
 		/**
 		 * Set the {@link GenericObjectPoolConfig} used by the driver.
 		 *

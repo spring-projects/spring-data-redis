@@ -42,11 +42,13 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	private final Optional<ReadFrom> readFrom;
 	private final Duration timeout;
 	private final Duration shutdownTimeout;
+	private final Duration shutdownQuietPeriod;
 
 	DefaultLettuceClientConfiguration(boolean useSsl, boolean verifyPeer, boolean startTls,
 			@Nullable ClientResources clientResources, @Nullable ClientOptions clientOptions, @Nullable String clientName,
 			@Nullable ReadFrom readFrom,
-			Duration timeout, Duration shutdownTimeout) {
+			Duration timeout, Duration shutdownTimeout,
+			@Nullable Duration shutdownQuietPeriod) {
 
 		this.useSsl = useSsl;
 		this.verifyPeer = verifyPeer;
@@ -57,6 +59,7 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 		this.readFrom = Optional.ofNullable(readFrom);
 		this.timeout = timeout;
 		this.shutdownTimeout = shutdownTimeout;
+		this.shutdownQuietPeriod = shutdownQuietPeriod != null ? shutdownQuietPeriod : shutdownTimeout;
 	}
 
 	/*
@@ -138,5 +141,14 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	@Override
 	public Duration getShutdownTimeout() {
 		return shutdownTimeout;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getShutdownQuietPeriod()
+	 */
+	@Override
+	public Duration getShutdownQuietPeriod() {
+		return shutdownQuietPeriod;
 	}
 }

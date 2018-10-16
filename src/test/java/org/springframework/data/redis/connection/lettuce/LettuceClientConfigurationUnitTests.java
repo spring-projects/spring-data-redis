@@ -45,6 +45,7 @@ public class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getClientName()).isEmpty();
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofMillis(100));
+		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofMillis(100));
 	}
 
 	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667
@@ -62,6 +63,7 @@ public class LettuceClientConfigurationUnitTests {
 				.clientName("foo") //
 				.commandTimeout(Duration.ofMinutes(5)) //
 				.shutdownTimeout(Duration.ofHours(2)) //
+				.shutdownQuietPeriod(Duration.ofMinutes(5)) //
 				.build();
 
 		assertThat(configuration.isUseSsl()).isTrue();
@@ -72,6 +74,7 @@ public class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getClientName()).contains("foo");
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofMinutes(5));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofHours(2));
+		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofMinutes(5));
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-576
