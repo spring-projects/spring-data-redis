@@ -104,6 +104,13 @@ public interface LettuceClientConfiguration {
 	Duration getShutdownTimeout();
 
 	/**
+	 * @return the shutdown quiet period used to close the client.
+	 * @since 2.2
+	 * @see io.lettuce.core.AbstractRedisClient#shutdown(long, long, TimeUnit)
+	 */
+	Duration getShutdownQuietPeriod();
+
+	/**
 	 * Creates a new {@link LettuceClientConfigurationBuilder} to build {@link LettuceClientConfiguration} to be used with
 	 * the Lettuce client.
 	 *
@@ -157,6 +164,7 @@ public interface LettuceClientConfiguration {
 		@Nullable ReadFrom readFrom;
 		Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 		Duration shutdownTimeout = Duration.ofMillis(100);
+		@Nullable Duration shutdownQuietPeriod;
 
 		LettuceClientConfigurationBuilder() {}
 
@@ -258,9 +266,25 @@ public interface LettuceClientConfiguration {
 		 */
 		public LettuceClientConfigurationBuilder shutdownTimeout(Duration shutdownTimeout) {
 
-			Assert.notNull(timeout, "Duration must not be null!");
+			Assert.notNull(shutdownTimeout, "Duration must not be null!");
 
 			this.shutdownTimeout = shutdownTimeout;
+			return this;
+		}
+
+		/**
+		 * Configure a shutdown timeout.
+		 *
+		 * @param shutdownQuietPeriod must not be {@literal null}.
+		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if shutdownQuietPeriod is {@literal null}.
+		 * @since 2.2
+		 */
+		public LettuceClientConfigurationBuilder shutdownQuietPeriod(Duration shutdownQuietPeriod) {
+
+			Assert.notNull(shutdownQuietPeriod, "Duration must not be null!");
+
+			this.shutdownQuietPeriod = shutdownQuietPeriod;
 			return this;
 		}
 
@@ -272,7 +296,7 @@ public interface LettuceClientConfiguration {
 		public LettuceClientConfiguration build() {
 
 			return new DefaultLettuceClientConfiguration(useSsl, verifyPeer, startTls, clientResources, clientOptions,
-					clientName, readFrom, timeout, shutdownTimeout);
+					clientName, readFrom, timeout, shutdownTimeout, shutdownQuietPeriod);
 		}
 	}
 

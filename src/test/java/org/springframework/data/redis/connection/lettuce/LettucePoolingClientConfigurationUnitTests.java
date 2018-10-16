@@ -46,6 +46,7 @@ public class LettucePoolingClientConfigurationUnitTests {
 		assertThat(configuration.getClientResources()).isEmpty();
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofMillis(100));
+		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofMillis(100));
 	}
 
 	@Test // DATAREDIS-667
@@ -64,6 +65,7 @@ public class LettucePoolingClientConfigurationUnitTests {
 				.clientResources(sharedClientResources) //
 				.commandTimeout(Duration.ofMinutes(5)) //
 				.shutdownTimeout(Duration.ofHours(2)) //
+				.shutdownQuietPeriod(Duration.ofMinutes(5)) //
 				.build();
 
 		assertThat(configuration.getPoolConfig()).isEqualTo(poolConfig);
@@ -74,5 +76,6 @@ public class LettucePoolingClientConfigurationUnitTests {
 		assertThat(configuration.getClientResources()).contains(sharedClientResources);
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofMinutes(5));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofHours(2));
+		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofMinutes(5));
 	}
 }
