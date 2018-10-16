@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
- * @author Dominys
+ * @author Roman Bezpalko
  */
 class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements SetOperations<K, V> {
 

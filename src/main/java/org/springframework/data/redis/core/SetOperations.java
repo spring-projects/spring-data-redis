@@ -27,7 +27,7 @@ import org.springframework.lang.Nullable;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
- * @author Dominys
+ * @author Roman Bezpalko
  */
 public interface SetOperations<K, V> {
 

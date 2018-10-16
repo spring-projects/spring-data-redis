@@ -25,6 +25,7 @@ import java.util.Collection;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Roman Bezpalko
  * @see <a href="http://redis.io/commands#set">Redis Documentation: Set Commands</a>
  * @since 2.0
  */
@@ -120,6 +121,15 @@ public interface ReactiveSetOperations<K, V> {
 	Flux<V> intersect(K key, Collection<K> otherKeys);
 
 	/**
+	 * Returns the members intersecting all given sets at {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 */
+	Flux<V> intersect(Collection<K> keys);
+
+	/**
 	 * Intersect all given sets at {@code key} and {@code otherKey} and store result in {@code destKey}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -142,6 +152,16 @@ public interface ReactiveSetOperations<K, V> {
 	Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	/**
+	 * Intersect all given sets at {@code keys} and store result in {@code destKey}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 */
+	Mono<Long> intersectAndStore(Collection<K> keys, K destKey);
+
+	/**
 	 * Union all sets at given {@code keys} and {@code otherKey}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -160,6 +180,15 @@ public interface ReactiveSetOperations<K, V> {
 	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
 	Flux<V> union(K key, Collection<K> otherKeys);
+
+	/**
+	 * Union all sets at given {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 */
+	Flux<V> union(Collection<K> keys);
 
 	/**
 	 * Union all sets at given {@code key} and {@code otherKey} and store result in {@code destKey}.
@@ -184,6 +213,16 @@ public interface ReactiveSetOperations<K, V> {
 	Mono<Long> unionAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	/**
+	 * Union all sets at given {@code keys} and store result in {@code destKey}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 */
+	Mono<Long> unionAndStore(Collection<K> keys, K destKey);
+
+	/**
 	 * Diff all sets for given {@code key} and {@code otherKey}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -202,6 +241,15 @@ public interface ReactiveSetOperations<K, V> {
 	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
 	Flux<V> difference(K key, Collection<K> otherKeys);
+
+	/**
+	 * Diff all sets for given {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 */
+	Flux<V> difference(Collection<K> keys);
 
 	/**
 	 * Diff all sets for given {@code key} and {@code otherKey} and store result in {@code destKey}.
@@ -224,6 +272,16 @@ public interface ReactiveSetOperations<K, V> {
 	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 */
 	Mono<Long> differenceAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Diff all sets for given {@code keys} and store result in {@code destKey}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 */
+	Mono<Long> differenceAndStore(Collection<K> keys, K destKey);
 
 	/**
 	 * Get all elements of set at {@code key}.

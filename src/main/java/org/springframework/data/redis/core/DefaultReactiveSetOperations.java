@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Roman Bezpalko
  * @since 2.0
  */
 @RequiredArgsConstructor
@@ -169,10 +170,22 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 
-		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+		return intersect(getKeys(key, otherKeys));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveSetOperations#intersect(java.util.Collection)
+	 */
+	@Override
+	public Flux<V> intersect(Collection<K> keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		return createFlux(connection -> Flux.fromIterable(keys)
 				.map(this::rawKey) //
 				.collectList() //
-				.flatMapMany(connection::sInter) //
+				.flatMapMany(connection::sInter)
 				.map(this::readValue));
 	}
 
@@ -200,9 +213,22 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 		Assert.notNull(destKey, "Destination key must not be null!");
 
-		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
-				.map(this::rawKey) //
-				.collectList() //
+		return intersectAndStore(getKeys(key, otherKeys), destKey);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveSetOperations#intersectAndStore(java.util.Collection, java.lang.Object)
+	 */
+	@Override
+	public Mono<Long> intersectAndStore(Collection<K> keys, K destKey) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(destKey, "Destination key must not be null!");
+
+		return createMono(connection -> Flux.fromIterable(keys)
+				.map(this::rawKey)
+				.collectList()
 				.flatMap(rawKeys -> connection.sInterStore(rawKey(destKey), rawKeys)));
 	}
 
@@ -229,10 +255,22 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 
-		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
-				.map(this::rawKey) //
-				.collectList() //
-				.flatMapMany(connection::sUnion) //
+		return union(getKeys(key, otherKeys));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveSetOperations#union(java.util.Collection)
+	 */
+	@Override
+	public Flux<V> union(Collection<K> keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		return createFlux(connection -> Flux.fromIterable(keys)
+				.map(this::rawKey)
+				.collectList()
+				.flatMapMany(connection::sUnion)
 				.map(this::readValue));
 	}
 
@@ -261,9 +299,22 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 		Assert.notNull(destKey, "Destination key must not be null!");
 
-		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
-				.map(this::rawKey) //
-				.collectList() //
+		return unionAndStore(getKeys(key, otherKeys), destKey);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveSetOperations#unionAndStore(java.util.Collection, java.lang.Object)
+	 */
+	@Override
+	public Mono<Long> unionAndStore(Collection<K> keys, K destKey) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(destKey, "Destination key must not be null!");
+
+		return createMono(connection -> Flux.fromIterable(keys)
+				.map(this::rawKey)
+				.collectList()
 				.flatMap(rawKeys -> connection.sUnionStore(rawKey(destKey), rawKeys)));
 	}
 
@@ -290,10 +341,22 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 
-		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
-				.map(this::rawKey) //
-				.collectList() //
-				.flatMapMany(connection::sDiff) //
+		return difference(getKeys(key, otherKeys));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveSetOperations#difference(java.util.Collection)
+	 */
+	@Override
+	public Flux<V> difference(Collection<K> keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		return createFlux(connection -> Flux.fromIterable(keys)
+				.map(this::rawKey)
+				.collectList()
+				.flatMapMany(connection::sDiff)
 				.map(this::readValue));
 	}
 
@@ -322,9 +385,22 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 		Assert.notNull(destKey, "Destination key must not be null!");
 
-		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
-				.map(this::rawKey) //
-				.collectList() //
+		return differenceAndStore(getKeys(key, otherKeys), destKey);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveSetOperations#differenceAndStore(java.util.Collection, java.lang.Object)
+	 */
+	@Override
+	public Mono<Long> differenceAndStore(Collection<K> keys, K destKey) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(destKey, "Destination key must not be null!");
+
+		return createMono(connection -> Flux.fromIterable(keys)
+				.map(this::rawKey)
+				.collectList()
 				.flatMap(rawKeys -> connection.sDiffStore(rawKey(destKey), rawKeys)));
 	}
 
