@@ -167,7 +167,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Set to the give value and return the old value.
+	 * Set to the given value and return the old value.
 	 *
 	 * @param newValue the new value.
 	 * @return the previous value.
@@ -180,7 +180,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Atomically set the value to the given updated value if the current value <tt>==</tt> the expected value.
+	 * Atomically set the value to the given updated value if the current value {@code ==} the expected value.
 	 *
 	 * @param expect the expected value.
 	 * @param update the new value.
@@ -220,40 +220,50 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Atomically update the current value using the given update function.
+	 * Atomically update the current value using the given {@link IntUnaryOperator update function}.
 	 *
 	 * @param updateFunction the function which calculates the value to set. Should be a pure function (no side effects),
-	 *                       because it will be applied several times if update attempts fail due to concurrent calls.
+	 *          because it will be applied several times if update attempts fail due to concurrent calls. Must not be
+	 *          {@literal null}.
 	 * @return the previous value.
+	 * @since 2.2
 	 */
 	public int getAndUpdate(IntUnaryOperator updateFunction) {
 
+		Assert.notNull(updateFunction, "Update function must not be null!");
+
 		int previousValue, newValue;
+
 		do {
 			previousValue = get();
 			newValue = updateFunction.applyAsInt(previousValue);
 		} while (!compareAndSet(previousValue, newValue));
+
 		return previousValue;
 	}
 
 	/**
-	 * Atomically update the current value using the given accumulator function.
-	 * The new value is calculated by applying the accumulator function to the current value and the
-	 * given `updateValue`.
+	 * Atomically update the current value using the given {@link IntBinaryOperator accumulator function}. The new value
+	 * is calculated by applying the accumulator function to the current value and the given {@code updateValue}.
 	 *
 	 * @param updateValue the value which will be passed into the accumulator function.
 	 * @param accumulatorFunction the function which calculates the value to set. Should be a pure function (no side
-	 *                            effects), because it will be applied several times if update attempts fail due to
-	 *                            concurrent calls.
+	 *          effects), because it will be applied several times if update attempts fail due to concurrent calls. Must
+	 *          not be {@literal null}.
 	 * @return the previous value.
+	 * @since 2.2
 	 */
 	public int getAndAccumulate(int updateValue, IntBinaryOperator accumulatorFunction) {
 
+		Assert.notNull(accumulatorFunction, "Accumulator function must not be null!");
+
 		int previousValue, newValue;
+
 		do {
 			previousValue = get();
 			newValue = accumulatorFunction.applyAsInt(previousValue, updateValue);
 		} while (!compareAndSet(previousValue, newValue));
+
 		return previousValue;
 	}
 
@@ -286,40 +296,50 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Atomically update the current value using the given update function.
+	 * Atomically update the current value using the given {@link IntUnaryOperator update function}.
 	 *
 	 * @param updateFunction the function which calculates the value to set. Should be a pure function (no side effects),
-	 *                       because it will be applied several times if update attempts fail due to concurrent calls.
+	 *          because it will be applied several times if update attempts fail due to concurrent calls. Must not be
+	 *          {@literal null}.
 	 * @return the updated value.
+	 * @since 2.2
 	 */
 	public int updateAndGet(IntUnaryOperator updateFunction) {
 
+		Assert.notNull(updateFunction, "Update function must not be null!");
+
 		int previousValue, newValue;
+
 		do {
 			previousValue = get();
 			newValue = updateFunction.applyAsInt(previousValue);
 		} while (!compareAndSet(previousValue, newValue));
+
 		return newValue;
 	}
 
 	/**
-	 * Atomically update the current value using the given accumulator function.
-	 * The new value is calculated by applying the accumulator function to the current value and the
-	 * given `updateValue`.
+	 * Atomically update the current value using the given {@link IntBinaryOperator accumulator function}. The new value
+	 * is calculated by applying the accumulator function to the current value and the given {@code updateValue}.
 	 *
 	 * @param updateValue the value which will be passed into the accumulator function.
 	 * @param accumulatorFunction the function which calculates the value to set. Should be a pure function (no side
-	 *                            effects), because it will be applied several times if update attempts fail due to
-	 *                            concurrent calls.
+	 *          effects), because it will be applied several times if update attempts fail due to concurrent calls. Must
+	 *          not be {@literal null}.
 	 * @return the updated value.
+	 * @since 2.2
 	 */
 	public int accumulateAndGet(int updateValue, IntBinaryOperator accumulatorFunction) {
 
+		Assert.notNull(accumulatorFunction, "Accumulator function must not be null!");
+
 		int previousValue, newValue;
+
 		do {
 			previousValue = get();
 			newValue = accumulatorFunction.applyAsInt(previousValue, updateValue);
 		} while (!compareAndSet(previousValue, newValue));
+
 		return newValue;
 	}
 

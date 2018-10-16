@@ -21,8 +21,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.DoubleUnaryOperator;
 import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
 
 import org.assertj.core.data.Offset;
 import org.junit.After;
@@ -233,92 +233,174 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 	@Test // DATAREDIS-874
 	public void updateAndGetAppliesGivenUpdateFunctionAndReturnsUpdatedValue() {
 
-		// Arrange
-		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
 		double initialValue = 5.3;
 		double expectedNewValue = 10.6;
 		doubleCounter.set(initialValue);
 
 		DoubleUnaryOperator updateFunction = input -> {
+
 			operatorHasBeenApplied.set(true);
+
 			return expectedNewValue;
 		};
 
-		// Act
 		double result = doubleCounter.updateAndGet(updateFunction);
 
-		// Assert
 		assertThat(result).isEqualTo(expectedNewValue);
-		assertThat(doubleCounter.get()).isEqualTo(expectedNewValue);
-		assertThat(operatorHasBeenApplied.get()).isTrue();
+		assertThat(doubleCounter.get()).isCloseTo(expectedNewValue, Offset.offset(0.001));
+		assertThat(operatorHasBeenApplied).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void updateAndGetUsesCorrectArguments() {
+
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
+		double initialValue = 5.3;
+		doubleCounter.set(initialValue);
+
+		DoubleUnaryOperator updateFunction = input -> {
+
+			operatorHasBeenApplied.set(true);
+
+			assertThat(input).isCloseTo(initialValue, Offset.offset(0.001));
+
+			return -1;
+		};
+
+		doubleCounter.updateAndGet(updateFunction);
+
+		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
 	@Test // DATAREDIS-874
 	public void getAndUpdateAppliesGivenUpdateFunctionAndReturnsOriginalValue() {
 
-		// Arrange
-		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
 		double initialValue = 5.3;
 		double expectedNewValue = 10.6;
 		doubleCounter.set(initialValue);
 
 		DoubleUnaryOperator updateFunction = input -> {
+
 			operatorHasBeenApplied.set(true);
+
 			return expectedNewValue;
 		};
 
-		// Act
 		double result = doubleCounter.getAndUpdate(updateFunction);
 
-		// Assert
 		assertThat(result).isEqualTo(initialValue);
-		assertThat(doubleCounter.get()).isEqualTo(expectedNewValue);
-		assertThat(operatorHasBeenApplied.get()).isTrue();
+		assertThat(doubleCounter.get()).isCloseTo(expectedNewValue, Offset.offset(0.001));
+		assertThat(operatorHasBeenApplied).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void getAndUpdateUsesCorrectArguments() {
+
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
+		double initialValue = 5.3;
+		doubleCounter.set(initialValue);
+
+		DoubleUnaryOperator updateFunction = input -> {
+
+			operatorHasBeenApplied.set(true);
+
+			assertThat(input).isCloseTo(initialValue, Offset.offset(0.001));
+
+			return -1;
+		};
+
+		doubleCounter.getAndUpdate(updateFunction);
+
+		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
 	@Test // DATAREDIS-874
 	public void accumulateAndGetAppliesGivenAccumulatorFunctionAndReturnsUpdatedValue() {
 
-		// Arrange
-		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
 		double initialValue = 5.3;
 		double expectedNewValue = 10.6;
 		doubleCounter.set(initialValue);
 
 		DoubleBinaryOperator accumulatorFunction = (x, y) -> {
+
 			operatorHasBeenApplied.set(true);
+
 			return expectedNewValue;
 		};
 
-		// Act
 		double result = doubleCounter.accumulateAndGet(15.9, accumulatorFunction);
 
-		// Assert
 		assertThat(result).isEqualTo(expectedNewValue);
-		assertThat(doubleCounter.get()).isEqualTo(expectedNewValue);
-		assertThat(operatorHasBeenApplied.get()).isTrue();
+		assertThat(doubleCounter.get()).isCloseTo(expectedNewValue, Offset.offset(0.001));
+		assertThat(operatorHasBeenApplied).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void accumulateAndGetUsesCorrectArguments() {
+
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
+		double initialValue = 5.3;
+		doubleCounter.set(initialValue);
+
+		DoubleBinaryOperator accumulatorFunction = (x, y) -> {
+
+			operatorHasBeenApplied.set(true);
+
+			assertThat(x).isCloseTo(initialValue, Offset.offset(0.001));
+			assertThat(y).isCloseTo(15, Offset.offset(0.001));
+
+			return -1;
+		};
+
+		doubleCounter.accumulateAndGet(15, accumulatorFunction);
+
+		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
 	@Test // DATAREDIS-874
 	public void getAndAccumulateAppliesGivenAccumulatorFunctionAndReturnsOriginalValue() {
 
-		// Arrange
-		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
 		double initialValue = 5.3;
 		double expectedNewValue = 10.6;
 		doubleCounter.set(initialValue);
 
 		DoubleBinaryOperator accumulatorFunction = (x, y) -> {
+
 			operatorHasBeenApplied.set(true);
+
 			return expectedNewValue;
 		};
 
-		// Act
 		double result = doubleCounter.getAndAccumulate(15.9, accumulatorFunction);
 
-		// Assert
 		assertThat(result).isEqualTo(initialValue);
-		assertThat(doubleCounter.get()).isEqualTo(expectedNewValue);
-		assertThat(operatorHasBeenApplied.get()).isTrue();
+		assertThat(doubleCounter.get()).isCloseTo(expectedNewValue, Offset.offset(0.001));
+		assertThat(operatorHasBeenApplied).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void getAndAccumulateUsesCorrectArguments() {
+
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
+		double initialValue = 5.3;
+		doubleCounter.set(initialValue);
+
+		DoubleBinaryOperator accumulatorFunction = (x, y) -> {
+
+			operatorHasBeenApplied.set(true);
+
+			assertThat(x).isCloseTo(initialValue, Offset.offset(0.001));
+			assertThat(y).isCloseTo(15, Offset.offset(0.001));
+
+			return -1;
+		};
+
+		doubleCounter.getAndAccumulate(15, accumulatorFunction);
+
+		assertThat(operatorHasBeenApplied).isTrue();
 	}
 }

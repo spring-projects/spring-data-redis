@@ -150,7 +150,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Gets the current value.
+	 * Get the current value.
 	 *
 	 * @return the current value.
 	 */
@@ -165,16 +165,16 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Sets to the given value.
+	 * Set to the given value.
 	 *
-	 * @param newValue the new value
+	 * @param newValue the new value.
 	 */
 	public void set(long newValue) {
 		operations.set(key, newValue);
 	}
 
 	/**
-	 * Atomically sets to the given value and returns the old value.
+	 * Set to the given value and return the old value.
 	 *
 	 * @param newValue the new value.
 	 * @return the previous value.
@@ -187,7 +187,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically sets the value to the given updated value if the current value {@code ==} the expected value.
+	 * Atomically set the value to the given updated value if the current value {@code ==} the expected value.
 	 *
 	 * @param expect the expected value.
 	 * @param update the new value.
@@ -199,7 +199,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically increments by one the current value.
+	 * Atomically increment by one the current value.
 	 *
 	 * @return the previous value.
 	 */
@@ -208,7 +208,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically decrements by one the current value.
+	 * Atomically decrement by one the current value.
 	 *
 	 * @return the previous value.
 	 */
@@ -217,7 +217,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically adds the given value to the current value.
+	 * Atomically add the given value to current value.
 	 *
 	 * @param delta the value to add.
 	 * @return the previous value.
@@ -227,45 +227,53 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically update the current value using the given update function.
+	 * Atomically update the current value using the given {@link LongUnaryOperator update function}.
 	 *
 	 * @param updateFunction the function which calculates the value to set. Should be a pure function (no side effects),
-	 *                       because it will be applied several times if update attempts fail due to concurrent calls.
+	 *          because it will be applied several times if update attempts fail due to concurrent calls.
 	 * @return the previous value.
+	 * @since 2.2
 	 */
 	public long getAndUpdate(LongUnaryOperator updateFunction) {
 
+		Assert.notNull(updateFunction, "Update function must not be null!");
+
 		long previousValue, newValue;
+
 		do {
 			previousValue = get();
 			newValue = updateFunction.applyAsLong(previousValue);
 		} while (!compareAndSet(previousValue, newValue));
+
 		return previousValue;
 	}
 
 	/**
-	 * Atomically update the current value using the given accumulator function.
-	 * The new value is calculated by applying the accumulator function to the current value and the
-	 * given `updateValue`.
+	 * Atomically update the current value using the given {@link LongBinaryOperator accumulator function}. The new value
+	 * is calculated by applying the accumulator function to the current value and the given {@code updateValue}.
 	 *
 	 * @param updateValue the value which will be passed into the accumulator function.
 	 * @param accumulatorFunction the function which calculates the value to set. Should be a pure function (no side
-	 *                            effects), because it will be applied several times if update attempts fail due to
-	 *                            concurrent calls.
+	 *          effects), because it will be applied several times if update attempts fail due to concurrent calls.
 	 * @return the previous value.
+	 * @since 2.2
 	 */
 	public long getAndAccumulate(long updateValue, LongBinaryOperator accumulatorFunction) {
 
+		Assert.notNull(accumulatorFunction, "Accumulator function must not be null!");
+
 		long previousValue, newValue;
+
 		do {
 			previousValue = get();
 			newValue = accumulatorFunction.applyAsLong(previousValue, updateValue);
 		} while (!compareAndSet(previousValue, newValue));
+
 		return previousValue;
 	}
 
 	/**
-	 * Atomically increments by one the current value.
+	 * Atomically increment by one the current value.
 	 *
 	 * @return the updated value.
 	 */
@@ -274,7 +282,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically decrements by one the current value.
+	 * Atomically decrement by one the current value.
 	 *
 	 * @return the updated value.
 	 */
@@ -283,7 +291,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically adds the given value to the current value.
+	 * Atomically add the given value to current value.
 	 *
 	 * @param delta the value to add.
 	 * @return the updated value.
@@ -293,40 +301,48 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically update the current value using the given update function.
+	 * Atomically update the current value using the given {@link LongUnaryOperator update function}.
 	 *
 	 * @param updateFunction the function which calculates the value to set. Should be a pure function (no side effects),
-	 *                       because it will be applied several times if update attempts fail due to concurrent calls.
+	 *          because it will be applied several times if update attempts fail due to concurrent calls.
 	 * @return the updated value.
+	 * @since 2.2
 	 */
 	public long updateAndGet(LongUnaryOperator updateFunction) {
 
+		Assert.notNull(updateFunction, "Update function must not be null!");
+
 		long previousValue, newValue;
+
 		do {
 			previousValue = get();
 			newValue = updateFunction.applyAsLong(previousValue);
 		} while (!compareAndSet(previousValue, newValue));
+
 		return newValue;
 	}
 
 	/**
-	 * Atomically update the current value using the given accumulator function.
-	 * The new value is calculated by applying the accumulator function to the current value and the
-	 * given `updateValue`.
+	 * Atomically update the current value using the given {@link LongBinaryOperator accumulator function}. The new value
+	 * is calculated by applying the accumulator function to the current value and the given {@code updateValue}.
 	 *
 	 * @param updateValue the value which will be passed into the accumulator function.
 	 * @param accumulatorFunction the function which calculates the value to set. Should be a pure function (no side
-	 *                            effects), because it will be applied several times if update attempts fail due to
-	 *                            concurrent calls.
+	 *          effects), because it will be applied several times if update attempts fail due to concurrent calls.
 	 * @return the updated value.
+	 * @since 2.2
 	 */
 	public long accumulateAndGet(long updateValue, LongBinaryOperator accumulatorFunction) {
 
+		Assert.notNull(accumulatorFunction, "Accumulator function must not be null!");
+
 		long previousValue, newValue;
+
 		do {
 			previousValue = get();
 			newValue = accumulatorFunction.applyAsLong(previousValue, updateValue);
 		} while (!compareAndSet(previousValue, newValue));
+
 		return newValue;
 	}
 

@@ -18,8 +18,8 @@ package org.springframework.data.redis.support.atomic;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-import java.util.function.DoubleUnaryOperator;
 import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
 
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.connection.DataType;
@@ -145,7 +145,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Gets the current value.
+	 * Get the current value.
 	 *
 	 * @return the current value.
 	 */
@@ -160,7 +160,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Sets to the given value.
+	 * Set to the given value.
 	 *
 	 * @param newValue the new value.
 	 */
@@ -169,7 +169,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Atomically sets to the given value and returns the old value.
+	 * Set to the given value and return the old value.
 	 *
 	 * @param newValue the new value.
 	 * @return the previous value.
@@ -182,7 +182,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Atomically sets the value to the given updated value if the current value {@code ==} the expected value.
+	 * Atomically set the value to the given updated value if the current value {@code ==} the expected value.
 	 *
 	 * @param expect the expected value.
 	 * @param update the new value.
@@ -194,134 +194,154 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Atomically increments by one the current value.
+	 * Atomically increment by one the current value.
 	 *
-	 * @return the previous value
+	 * @return the previous value.
 	 */
 	public double getAndIncrement() {
 		return incrementAndGet() - 1.0;
 	}
 
 	/**
-	 * Atomically decrements by one the current value.
+	 * Atomically decrement by one the current value.
 	 *
-	 * @return the previous value
+	 * @return the previous value.
 	 */
 	public double getAndDecrement() {
 		return decrementAndGet() + 1.0;
 	}
 
 	/**
-	 * Atomically adds the given value to the current value.
+	 * Atomically add the given value to current value.
 	 *
-	 * @param delta the value to add
-	 * @return the previous value
+	 * @param delta the value to add.
+	 * @return the previous value.
 	 */
 	public double getAndAdd(double delta) {
 		return addAndGet(delta) - delta;
 	}
 
 	/**
-	 * Atomically update the current value using the given update function.
+	 * Atomically update the current value using the given {@link DoubleUnaryOperator update function}.
 	 *
 	 * @param updateFunction the function which calculates the value to set. Should be a pure function (no side effects),
-	 *                       because it will be applied several times if update attempts fail due to concurrent calls.
+	 *          because it will be applied several times if update attempts fail due to concurrent calls. Must not be
+	 *          {@literal null}.
 	 * @return the previous value.
+	 * @since 2.2
 	 */
 	public double getAndUpdate(DoubleUnaryOperator updateFunction) {
 
+		Assert.notNull(updateFunction, "Update function must not be null!");
+
 		double previousValue, newValue;
+
 		do {
 			previousValue = get();
 			newValue = updateFunction.applyAsDouble(previousValue);
 		} while (!compareAndSet(previousValue, newValue));
+
 		return previousValue;
 	}
 
 	/**
-	 * Atomically update the current value using the given accumulator function.
-	 * The new value is calculated by applying the accumulator function to the current value and the
-	 * given `updateValue`.
+	 * Atomically update the current value using the given {@link DoubleBinaryOperator accumulator function}. The new
+	 * value is calculated by applying the accumulator function to the current value and the given {@code updateValue}.
 	 *
 	 * @param updateValue the value which will be passed into the accumulator function.
 	 * @param accumulatorFunction the function which calculates the value to set. Should be a pure function (no side
-	 *                            effects), because it will be applied several times if update attempts fail due to
-	 *                            concurrent calls.
+	 *          effects), because it will be applied several times if update attempts fail due to concurrent calls. Must
+	 *          not be {@literal null}.
 	 * @return the previous value.
+	 * @since 2.2
 	 */
 	public double getAndAccumulate(double updateValue, DoubleBinaryOperator accumulatorFunction) {
 
+		Assert.notNull(accumulatorFunction, "Accumulator function must not be null!");
+
 		double previousValue, newValue;
+
 		do {
 			previousValue = get();
 			newValue = accumulatorFunction.applyAsDouble(previousValue, updateValue);
 		} while (!compareAndSet(previousValue, newValue));
+
 		return previousValue;
 	}
 
 	/**
-	 * Atomically increments by one the current value.
+	 * Atomically increment by one the current value.
 	 *
-	 * @return the updated value
+	 * @return the updated value.
 	 */
 	public double incrementAndGet() {
 		return operations.increment(key, 1.0);
 	}
 
 	/**
-	 * Atomically decrements by one the current value.
+	 * Atomically decrement by one the current value.
 	 *
-	 * @return the updated value
+	 * @return the updated value.
 	 */
 	public double decrementAndGet() {
 		return operations.increment(key, -1.0);
 	}
 
 	/**
-	 * Atomically adds the given value to the current value.
+	 * Atomically add the given value to current value.
 	 *
-	 * @param delta the value to add
-	 * @return the updated value
+	 * @param delta the value to add.
+	 * @return the updated value.
 	 */
 	public double addAndGet(double delta) {
 		return operations.increment(key, delta);
 	}
 
 	/**
-	 * Atomically update the current value using the given update function.
+	 * Atomically update the current value using the given {@link DoubleUnaryOperator update function}.
 	 *
 	 * @param updateFunction the function which calculates the value to set. Should be a pure function (no side effects),
-	 *                       because it will be applied several times if update attempts fail due to concurrent calls.
+	 *          because it will be applied several times if update attempts fail due to concurrent calls. Must not be
+	 *          {@literal null}.
 	 * @return the updated value.
+	 * @since 2.2
 	 */
 	public double updateAndGet(DoubleUnaryOperator updateFunction) {
 
+		Assert.notNull(updateFunction, "Update function must not be null!");
+
 		double previousValue, newValue;
+
 		do {
 			previousValue = get();
 			newValue = updateFunction.applyAsDouble(previousValue);
 		} while (!compareAndSet(previousValue, newValue));
+
 		return newValue;
 	}
 
 	/**
-	 * Atomically update the current value using the given accumulator function.
-	 * The new value is calculated by applying the accumulator function to the current value and the
-	 * given `updateValue`.
+	 * Atomically update the current value using the given {@link DoubleBinaryOperator accumulator function}. The new
+	 * value is calculated by applying the accumulator function to the current value and the given {@code updateValue}.
 	 *
 	 * @param updateValue the value which will be passed into the accumulator function.
 	 * @param accumulatorFunction the function which calculates the value to set. Should be a pure function (no side
-	 *                            effects), because it will be applied several times if update attempts fail due to
-	 *                            concurrent calls.
+	 *          effects), because it will be applied several times if update attempts fail due to concurrent calls. Must
+	 *          not be {@literal null}.
 	 * @return the updated value.
+	 * @since 2.2
 	 */
 	public double accumulateAndGet(double updateValue, DoubleBinaryOperator accumulatorFunction) {
 
+		Assert.notNull(accumulatorFunction, "Accumulator function must not be null!");
+
 		double previousValue, newValue;
+
 		do {
 			previousValue = get();
 			newValue = accumulatorFunction.applyAsDouble(previousValue, updateValue);
 		} while (!compareAndSet(previousValue, newValue));
+
 		return newValue;
 	}
 

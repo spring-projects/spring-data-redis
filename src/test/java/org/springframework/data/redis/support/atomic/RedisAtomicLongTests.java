@@ -222,92 +222,174 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 	@Test // DATAREDIS-874
 	public void updateAndGetAppliesGivenUpdateFunctionAndReturnsUpdatedValue() {
 
-		// Arrange
-		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
 		long initialValue = 5;
 		long expectedNewValue = 10;
 		longCounter.set(initialValue);
 
 		LongUnaryOperator updateFunction = input -> {
+
 			operatorHasBeenApplied.set(true);
+
 			return expectedNewValue;
 		};
 
-		// Act
 		long result = longCounter.updateAndGet(updateFunction);
 
-		// Assert
 		assertThat(result).isEqualTo(expectedNewValue);
 		assertThat(longCounter.get()).isEqualTo(expectedNewValue);
-		assertThat(operatorHasBeenApplied.get()).isTrue();
+		assertThat(operatorHasBeenApplied).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void updateAndGetUsesCorrectArguments() {
+
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
+		long initialValue = 5;
+		longCounter.set(initialValue);
+
+		LongUnaryOperator updateFunction = input -> {
+
+			operatorHasBeenApplied.set(true);
+
+			assertThat(input).isEqualTo(initialValue);
+
+			return -1;
+		};
+
+		longCounter.updateAndGet(updateFunction);
+
+		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
 	@Test // DATAREDIS-874
 	public void getAndUpdateAppliesGivenUpdateFunctionAndReturnsOriginalValue() {
 
-		// Arrange
-		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
 		long initialValue = 5;
 		long expectedNewValue = 10;
 		longCounter.set(initialValue);
 
 		LongUnaryOperator updateFunction = input -> {
+
 			operatorHasBeenApplied.set(true);
+
 			return expectedNewValue;
 		};
 
-		// Act
 		long result = longCounter.getAndUpdate(updateFunction);
 
-		// Assert
 		assertThat(result).isEqualTo(initialValue);
 		assertThat(longCounter.get()).isEqualTo(expectedNewValue);
-		assertThat(operatorHasBeenApplied.get()).isTrue();
+		assertThat(operatorHasBeenApplied).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void getAndUpdateUsesCorrectArguments() {
+
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
+		long initialValue = 5;
+		longCounter.set(initialValue);
+
+		LongUnaryOperator updateFunction = input -> {
+
+			operatorHasBeenApplied.set(true);
+
+			assertThat(input).isEqualTo(initialValue);
+
+			return -1;
+		};
+
+		longCounter.getAndUpdate(updateFunction);
+
+		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
 	@Test // DATAREDIS-874
 	public void accumulateAndGetAppliesGivenAccumulatorFunctionAndReturnsUpdatedValue() {
 
-		// Arrange
-		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
 		long initialValue = 5;
 		long expectedNewValue = 10;
 		longCounter.set(initialValue);
 
 		LongBinaryOperator accumulatorFunction = (x, y) -> {
+
 			operatorHasBeenApplied.set(true);
+
 			return expectedNewValue;
 		};
 
-		// Act
 		long result = longCounter.accumulateAndGet(15L, accumulatorFunction);
 
-		// Assert
 		assertThat(result).isEqualTo(expectedNewValue);
 		assertThat(longCounter.get()).isEqualTo(expectedNewValue);
-		assertThat(operatorHasBeenApplied.get()).isTrue();
+		assertThat(operatorHasBeenApplied).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void accumulateAndGetUsesCorrectArguments() {
+
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
+		long initialValue = 5;
+		longCounter.set(initialValue);
+
+		LongBinaryOperator accumulatorFunction = (x, y) -> {
+
+			operatorHasBeenApplied.set(true);
+
+			assertThat(x).isEqualTo(initialValue);
+			assertThat(y).isEqualTo(15);
+
+			return -1;
+		};
+
+		longCounter.accumulateAndGet(15L, accumulatorFunction);
+
+		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
 	@Test // DATAREDIS-874
 	public void getAndAccumulateAppliesGivenAccumulatorFunctionAndReturnsOriginalValue() {
 
-		// Arrange
-		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
 		long initialValue = 5;
 		long expectedNewValue = 10;
 		longCounter.set(initialValue);
 
 		LongBinaryOperator accumulatorFunction = (x, y) -> {
+
 			operatorHasBeenApplied.set(true);
+
 			return expectedNewValue;
 		};
 
-		// Act
 		long result = longCounter.getAndAccumulate(15L, accumulatorFunction);
 
-		// Assert
 		assertThat(result).isEqualTo(initialValue);
 		assertThat(longCounter.get()).isEqualTo(expectedNewValue);
-		assertThat(operatorHasBeenApplied.get()).isTrue();
+		assertThat(operatorHasBeenApplied).isTrue();
+	}
+
+	@Test // DATAREDIS-874
+	public void getAndAccumulateUsesCorrectArguments() {
+
+		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
+		long initialValue = 5;
+		longCounter.set(initialValue);
+
+		LongBinaryOperator accumulatorFunction = (x, y) -> {
+
+			operatorHasBeenApplied.set(true);
+
+			assertThat(x).isEqualTo(initialValue);
+			assertThat(y).isEqualTo(15);
+
+			return -1;
+		};
+
+		longCounter.getAndAccumulate(15L, accumulatorFunction);
+
+		assertThat(operatorHasBeenApplied).isTrue();
 	}
 }
