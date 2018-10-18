@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Ning Wei
  */
 public class RedisAtomicDouble extends Number implements Serializable, BoundKeyOperations<String> {
 
@@ -87,9 +88,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 		this.operations = generalOps.opsForValue();
 
 		if (initialValue == null) {
-			if (this.operations.get(redisCounter) == null) {
-				set(0);
-			}
+			setIfAbsent(0);
 		} else {
 			set(initialValue);
 		}
@@ -133,9 +132,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 		this.operations = generalOps.opsForValue();
 
 		if (initialValue == null) {
-			if (this.operations.get(redisCounter) == null) {
-				set(0);
-			}
+			setIfAbsent(0);
 		} else {
 			set(initialValue);
 		}
@@ -163,6 +160,16 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 */
 	public void set(double newValue) {
 		operations.set(key, newValue);
+	}
+
+	/**
+	 * Sets to the given value, only if {@code key} does not exist.
+	 *
+	 * @param newValue the new value.
+	 * @return true if successful. False return indicates that {@code key} already existed.
+	 */
+	public Boolean setIfAbsent(double newValue) {
+		return operations.setIfAbsent(key, newValue);
 	}
 
 	/**
