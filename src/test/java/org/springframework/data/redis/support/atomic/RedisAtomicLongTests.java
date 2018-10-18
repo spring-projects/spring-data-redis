@@ -45,6 +45,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Graham MacMaster
+ * @author Ning Wei
  */
 @RunWith(Parameterized.class)
 public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
@@ -391,5 +392,23 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		longCounter.getAndAccumulate(15L, accumulatorFunction);
 
 		assertThat(operatorHasBeenApplied).isTrue();
+	}
+
+	@Test // DATAREDIS-872
+	public void testUseSetIfAbsentRedisAtomicLongForTemplate() {
+ 		RedisAtomicLong ral = new RedisAtomicLong("DATAREDIS-872.atomicLong", template);
+		assertThat(ral.get()).isEqualTo(0);
+		ral.set(32L);
+ 		RedisAtomicLong ral1 = new RedisAtomicLong("DATAREDIS-872.atomicLong", template);
+		assertThat(ral1.get()).isEqualTo(32L);
+	}
+
+	@Test // DATAREDIS-872
+	public void testUseSetIfAbsentRedisAtomicLongForFactory() {
+ 		RedisAtomicLong ral = new RedisAtomicLong("DATAREDIS-872.atomicLong", factory);
+		assertThat(ral.get()).isEqualTo(0);
+		ral.set(32L);
+ 		RedisAtomicLong ral1 = new RedisAtomicLong("DATAREDIS-872.atomicLong", factory);
+		assertThat(ral1.get()).isEqualTo(32L);
 	}
 }
