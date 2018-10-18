@@ -47,6 +47,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Graham MacMaster
+ * @author Ning Wei
  */
 @RunWith(Parameterized.class)
 public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
@@ -402,5 +403,23 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		doubleCounter.getAndAccumulate(15, accumulatorFunction);
 
 		assertThat(operatorHasBeenApplied).isTrue();
+	}
+
+	@Test // DATAREDIS-872
+	public void testUseSetIfAbsentRedisAtomicDoubleForTemplate() {
+ 		RedisAtomicDouble ral = new RedisAtomicDouble("DATAREDIS-872.atomicDouble", template);
+		assertThat(ral.get()).isEqualTo(0);
+		ral.set(32.13);
+ 		RedisAtomicDouble ral1 = new RedisAtomicDouble("DATAREDIS-872.atomicDouble", template);
+		assertThat(ral1.get()).isEqualTo(32.13);
+	}
+
+	@Test // DATAREDIS-872
+	public void testUseSetIfAbsentRedisAtomicDoubleForFactory() {
+ 		RedisAtomicDouble ral = new RedisAtomicDouble("DATAREDIS-872.atomicDouble", factory);
+		assertThat(ral.get()).isEqualTo(0);
+		ral.set(32.13);
+ 		RedisAtomicDouble ral1 = new RedisAtomicDouble("DATAREDIS-872.atomicDouble", factory);
+		assertThat(ral1.get()).isEqualTo(32.13);
 	}
 }
