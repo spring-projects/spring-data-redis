@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Graham MacMaster
+ * @author Ning Wei
  * @see java.util.concurrent.atomic.AtomicLong
  */
 public class RedisAtomicLong extends Number implements Serializable, BoundKeyOperations<String> {
@@ -91,9 +92,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 		this.operations = generalOps.opsForValue();
 
 		if (initialValue == null) {
-			if (this.operations.get(redisCounter) == null) {
-				set(0);
-			}
+			setIfAbsent(0);
 		} else {
 			set(initialValue);
 		}
@@ -141,9 +140,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 		this.operations = generalOps.opsForValue();
 
 		if (initialValue == null) {
-			if (this.operations.get(redisCounter) == null) {
-				set(0);
-			}
+			setIfAbsent(0);
 		} else {
 			set(initialValue);
 		}
@@ -171,6 +168,16 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	 */
 	public void set(long newValue) {
 		operations.set(key, newValue);
+	}
+
+	/**
+	 * Sets to the given value, only if {@code key} does not exist.
+	 *
+	 * @param newValue the new value.
+	 * @return true if successful. False return indicates that {@code key} already existed.
+	 */
+	public Boolean setIfAbsent(long newValue) {
+		return operations.setIfAbsent(key, newValue);
 	}
 
 	/**
