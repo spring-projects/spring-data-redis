@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 		this.operations = generalOps.opsForValue();
 
 		if (initialValue == null) {
-			setIfAbsent(0);
+			initializeIfAbsent();
 		} else {
 			set(initialValue);
 		}
@@ -131,10 +131,14 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 		this.operations = generalOps.opsForValue();
 
 		if (initialValue == null) {
-			setIfAbsent(0);
+			initializeIfAbsent();
 		} else {
 			set(initialValue);
 		}
+	}
+
+	private void initializeIfAbsent() {
+		operations.setIfAbsent(key, (double) 0);
 	}
 
 	/**
@@ -159,16 +163,6 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 */
 	public void set(double newValue) {
 		operations.set(key, newValue);
-	}
-
-	/**
-	 * Sets to the given value, only if {@code key} does not exist.
-	 *
-	 * @param newValue the new value.
-	 * @return true if successful. False return indicates that {@code key} already existed.
-	 */
-	public Boolean setIfAbsent(double newValue) {
-		return operations.setIfAbsent(key, newValue);
 	}
 
 	/**

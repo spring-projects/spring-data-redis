@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 		this.operations = generalOps.opsForValue();
 
 		if (initialValue == null) {
-			setIfAbsent(0);
+			initializeIfAbsent();
 		} else {
 			set(initialValue);
 		}
@@ -138,10 +138,14 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 		this.operations = generalOps.opsForValue();
 
 		if (initialValue == null) {
-			setIfAbsent(0);
+			initializeIfAbsent();
 		} else {
 			set(initialValue);
 		}
+	}
+
+	private void initializeIfAbsent() {
+		operations.setIfAbsent(key, (long) 0);
 	}
 
 	/**
@@ -166,16 +170,6 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	 */
 	public void set(long newValue) {
 		operations.set(key, newValue);
-	}
-
-	/**
-	 * Sets to the given value, only if {@code key} does not exist.
-	 *
-	 * @param newValue the new value.
-	 * @return true if successful. False return indicates that {@code key} already existed.
-	 */
-	public Boolean setIfAbsent(long newValue) {
-		return operations.setIfAbsent(key, newValue);
 	}
 
 	/**
