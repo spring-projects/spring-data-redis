@@ -1,0 +1,6 @@
+== Testing Locally
+
+To test things out locally:
+
+. `docker build -t 8-jdk-with-redis -f ci/Dockerfile .` to build the Docker image used to run things
+. `docker run -v ~/src/spring-data-redis:/spring-data-redis-github -it 8-jdk-with-redis` to run the container locally (swap out `~/src/spring-data-redis` with your own path to the source)
