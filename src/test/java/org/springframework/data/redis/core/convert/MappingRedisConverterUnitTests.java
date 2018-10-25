@@ -1814,6 +1814,24 @@ public class MappingRedisConverterUnitTests {
 		assertThat(write(update).getBucket().get("_class"), is(nullValue()));
 	}
 
+	@Test // DATAREDIS-875
+	public void shouldNotWriteTypeHintForPrimitveTypes() {
+
+		Size source = new Size();
+		source.height = 1;
+
+		assertThat(write(source).getBucket().get("height._class"), is(nullValue()));
+	}
+
+	@Test // DATAREDIS-875
+	public void shouldReadPrimitveTypes() {
+
+		Map<String, String> source = new LinkedHashMap<>();
+		source.put("height", "1000");
+
+		assertThat(read(Size.class, source).height, is(equalTo(1000)));
+	}
+
 	private RedisData write(Object source) {
 
 		RedisData rdo = new RedisData();
