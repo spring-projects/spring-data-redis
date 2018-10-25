@@ -298,6 +298,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		byte[] sourceBytes = source.getBucket().get(currentPath);
 
+		if(typeInformation.getType().isPrimitive() && sourceBytes == null) {
+			return null;
+		}
+
 		if (persistentProperty.isIdProperty() && StringUtils.isEmpty(path.isEmpty())) {
 			return sourceBytes == null ? fromBytes(sourceBytes, typeInformation.getActualType().getType()) : source.getId();
 		}
@@ -739,7 +743,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			Optional<Class<?>> targetType = customConversions.getCustomWriteTarget(value.getClass());
 
-			if (!targetType.filter(it -> ClassUtils.isAssignable(Map.class, it)).isPresent()
+			if (!propertyType.isPrimitive() && !targetType.filter(it -> ClassUtils.isAssignable(Map.class, it)).isPresent()
 					&& customConversions.isSimpleType(value.getClass()) && value.getClass() != propertyType) {
 				typeMapper.writeType(value.getClass(), sink.getBucket().getPropertyPath(path));
 			}
