@@ -298,7 +298,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		byte[] sourceBytes = source.getBucket().get(currentPath);
 
-		if(typeInformation.getType().isPrimitive() && sourceBytes == null) {
+		if (typeInformation.getType().isPrimitive() && sourceBytes == null) {
 			return null;
 		}
 
