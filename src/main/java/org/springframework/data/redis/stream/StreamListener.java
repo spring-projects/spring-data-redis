@@ -15,10 +15,10 @@
  */
 package org.springframework.data.redis.stream;
 
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage;
+import org.springframework.data.redis.connection.RedisStreamCommands.Record;
 
 /**
- * Listener interface to receive delivery of {@link StreamMessage messages}.
+ * Listener interface to receive delivery of {@link Record messages}.
  *
  * @author Mark Paluch
  * @param <K> Stream key and Stream field type.
@@ -29,9 +29,9 @@ import org.springframework.data.redis.connection.RedisStreamCommands.StreamMessa
 public interface StreamListener<K, V> {
 
 	/**
-	 * Callback invoked on receiving a {@link StreamMessage}.
+	 * Callback invoked on receiving a {@link Record}.
 	 *
 	 * @param message never {@literal null}.
 	 */
-	void onMessage(StreamMessage<K, V> message);
+	void onMessage(Record<K, V> message);
 }

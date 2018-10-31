@@ -7,8 +7,8 @@ NOTE: Learn more about Redis Streams in the https://redis.io/topics/streams-intr
 
 Redis Streams can be roughly divided into two areas of functionality:
 
-* Appending or sending messages
-* Consuming or receiving messages
+* Appending records
+* Consuming records
 
 Although this pattern has similarities to <<pubsub, Pub/Sub>>, the main difference lies in the persistence of messages and how they are consumed.
 
@@ -17,36 +17,37 @@ While Pub/Sub relies on the broadcasting of transient messages (i.e. if you don'
 The `org.springframework.data.redis.connection` and `org.springframework.data.redis.stream` packages provide the core functionality for Redis Streams.
 
 
-[[redis.streams.publish]]
-== Appending (Sending Messages)
+[[redis.streams.send]]
+== Appending
 
-To publish a message, you can use, as with the other operations, either the low-level `RedisConnection` or the high-level `StreamOperations`. Both entities offer the `add` (`xAdd`) method, which accepts the message and the destination stream as arguments. While `RedisConnection` requires raw data (array of bytes), the `StreamOperations` lets arbitrary objects be passed in as messages, as shown in the following example:
+To send a record, you can use, as with the other operations, either the low-level `RedisConnection` or the high-level `StreamOperations`. Both entities offer the `add` (`xAdd`) method, which accepts the record and the destination stream as arguments. While `RedisConnection` requires raw data (array of bytes), the `StreamOperations` lets arbitrary objects be passed in as recods, as shown in the following example:
 
 [source,java]
 ----
 // append message through connection 
-RedisConnection con = …
-byte[] stream = …
-Map<byte[], byte[]> msg = …
-con.xAdd(stream, msg); 
+RedisConnection con = //…
+byte[] stream = //…
+ByteRecord record = StreamRecords.rawBytes(...).withStreamKey(stream);
+con.xAdd(record);
 
 // append message through RedisTemplate
-RedisTemplate template = …
-template.streamOps().add("my-stream", Collections.singletonMap("Hello", "World!"));
+RedisTemplate template = //…
+StringRecord record = StreamRecods.ofStrings(...).withStreamKey("my-stream");
+template.streamOps().add(recod);
 ----
 
-Stream messages carry a `Map`, key-value tuples, as their payload. Appending a message to a stream returns the message Id that can be used as further reference.
+Stream records carry a `Map`, key-value tuples, as their payload. Appending a record to a stream returns the `RecordId` that can be used as further reference.
 
 [[redis.streams.receive]]
-== Consuming (Receiving Messages)
+== Consuming
 
-On the consuming side, one can consume one or multiple streams. Redis Streams provide read commands that allow consumption of the stream from an arbitrary position (random access) within the known stream content and beyond the stream end to consume new stream messages. 
+On the consuming side, one can consume one or multiple streams. Redis Streams provide read commands that allow consumption of the stream from an arbitrary position (random access) within the known stream content and beyond the stream end to consume new stream record.
 
 At the low-level, `RedisConnection` offers the `xRead` and `xReadGroup` methods that map the Redis commands for reading and reading within a consumer group, respectively. Note that multiple streams can be used as arguments.
 
 NOTE: Subscription commands in Redis can be blocking. That is, calling `xRead` on a connection causes the current thread to block as it starts waiting for messages. The thread is released only if the read command times out or receives a message.
 
-To consume stream messages, one can either poll for messages in application code, or use one of the two <<redis.streams.receive.containers>>, the imperative or the reactive one. Each time a new message arrives, the container notifies the application code.
+To consume stream messages, one can either poll for messages in application code, or use one of the two <<redis.streams.receive.containers>>, the imperative or the reactive one. Each time a new records arrives, the container notifies the application code.
 
 [[redis.streams.receive.synchronous]]
 === Synchronous reception
@@ -58,10 +59,10 @@ While stream consumption is typically associated with asynchronous processing, i
 // Read message through RedisTemplate
 RedisTemplate template = …
 
-List<StreamMessage<K, V>> messages = template.streamOps().read(StreamReadOptions.empty().count(2),
+List<MapRecord<K, HK, HV>> messages = template.streamOps().read(StreamReadOptions.empty().count(2),
 				StreamOffset.create("my-stream", ReadOffset.latest()));
 
-List<StreamMessage<K, V>> messages = template.streamOps().read(Consumer.from("my-group", "my-consumer"), 
+List<MapRecord<K, HK, HV>> messages = template.streamOps().read(Consumer.from("my-group", "my-consumer"),
 				StreamReadOptions.empty().count(2),
 				StreamOffset.create("my-stream", ReadOffset.lastConsumed()))
 ----
@@ -73,7 +74,7 @@ Due to its blocking nature, low-level polling is not attractive, as it requires 
 
 Spring Data ships with two implementations tailored to the used programming model:
 
-* `StreamMessageListenerContainer` acts as message listener container for imperative programming models. It is used to consume messages from a Redis Stream and drive the `StreamListener` instances that are injected into it.
+* `StreamMessageListenerContainer` acts as message listener container for imperative programming models. It is used to consume records from a Redis Stream and drive the `StreamListener` instances that are injected into it.
 * `StreamReceiver` provides a reactive variant of a message listener. It is used to consume messages from a Redis Stream as potentially infinite stream and emit stream messages through a `Flux`.
 
 `StreamMessageListenerContainer` and `StreamReceiver` are responsible for all threading of message reception and dispatch into the listener for processing. A message listener container/receiver is the intermediary between an MDP and a messaging provider and takes care of registering to receive messages, resource acquisition and release, exception conversion, and the like. This lets you as an application developer write the (possibly complex) business logic associated with receiving a message (and reacting to it) and delegates boilerplate Redis infrastructure concerns to the framework.
@@ -124,7 +125,7 @@ StreamMessageListenerContainerOptions<String, String> containerOptions = StreamM
 StreamMessageListenerContainer<String, String> container = StreamMessageListenerContainer.create(connectionFactory,
 				containerOptions);
 				
-Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), streamListener);
+Subscription subscription = container.receive(StreamOffset.fromStart("my-stream"), streamListener);
 ----
 
 Please refer to the Javadoc of the various message listener containers for a full description of the features supported by each implementation.
@@ -154,7 +155,7 @@ StreamReceiverOptions<String, String> options = StreamReceiverOptions.builder().
 				.build();
 StreamReceiver<String, String> receiver = StreamReceiver.create(connectionFactory, options);
 				
-Flux<StreamMessage<String, String>> messages = receiver.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")));
+Flux<StreamMessage<String, String>> messages = receiver.receive(StreamOffset.fromStart("my-stream"));
 ----
 
 Please refer to the Javadoc of the various message listener containers for a full description of the features supported by each implementation.
@@ -187,4 +188,80 @@ Using the latest message for read can skip messages that were added to the strea
 [[redis.streams.receive.serialization]]
 === Serialization
 
-TBD.  
+Any Record sent to the stream needs to be serialized to its binary format. Due to the streams closeness to the hash data structure the stream key, field names and values use the according serializers configured on the `RedisTemplate`.
+
+.Stream Serialization
+[options="header,footer,autowidth"]
+|===
+| Stream Property  | Serializer | Description
+| key | keySerializer | used for `Record#getStream()`
+| field | hashKeySerializer | used for each map key in the payload
+| value | hashValueSerializer | used for each map value in the payload
+|===
+
+Please make sure to review ``RedisSerializer``s in use and note that if you decide to not use any serializer you need to make sure those values are binary already.
+
+[[redis.streams.hashing]]
+=== Object Mapping
+
+==== Simple Values
+
+`StreamOperations` allows to append simple values, via `ObjectRecord`, directly to the stream without having to put those values into a `Map` structure.
+The value will then be assigned to an _payload_ field and can be extracted when reading back the value.
+
+[source,java]
+----
+ObjectRecord<String, String> record = StreamRecords.newRecord()
+    .in("my-stream")
+    .ofObject("my-value");
+
+redisTemplate()
+    .opsForStream()
+    .add(record); <1>
+
+List<ObjectRecord<String, String>> records = redisTemplate()
+    .opsForStream()
+    .read(String.class, StreamOffset.fromStart("my-stream"));
+----
+<1> XADD my-stream * "_class" "com.example.User" "firstname" "night" "lastname" "angel"
+
+``ObjectRecord``s pass through the very same serialization process as the all other records, thus the Record can also obtained using the untyped read operation returning a `MapRecord`.
+
+==== Complex Values
+
+Adding a complex value to the stream can be done in 3 ways:
+
+. Convert to simple value using eg. a String Json representation.
+. Serialize the value with a suitable `RedisSerializer`.
+. Convert the value into a `Map` suitable for serialization using a `HashMapper`.
+
+The first variant is the most straight forward one but neglects the field value capabilities offered by the stream structure, still the values in the stream will be readable for other consumers.
+The 2nd option holds the same benefits as the first one, but may lead to a very specific consumer limitations as the all consumers must implement the very same serialization mechanism.
+The `HashMapper` approach is the a bit more complex one making use of the steams hash structure, but flattening the source. Still other consumers remain able to read the records as long as suitable serializer combinations are chosen.
+
+[source,java]
+----
+ObjectRecord<String, User> record = StreamRecords.newRecord()
+    .in("user-logon")
+    .ofObject(new User("night", "angel"));
+
+redisTemplate()
+    .opsForStream()
+    .add(record); <1>
+
+List<ObjectRecord<String, User>> records = redisTemplate()
+    .opsForStream()
+    .read(User.class, StreamOffset.fromStart("user-logon"));
+----
+<1> XADD user-logon * "_class" "com.example.User" "firstname" "night" "lastname" "angel"
+
+By default `StreamOperations` use an <<redis.repositories.mapping, ObjectHashMapper>>.
+You may provide the `HashMapper` suitable for your requirements when obtaining `StreamOperations`.
+
+[source,java]
+----
+redisTemplate()
+    .opsForStream(new Jackson2HashMapper(true))
+    .add(record); <1>
+----
+<1> XADD user-logon * "firstname" "night" "@class" "com.example.User" "lastname" "angel"

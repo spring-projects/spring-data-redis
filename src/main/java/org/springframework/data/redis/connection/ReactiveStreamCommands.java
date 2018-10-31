@@ -30,8 +30,10 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.connection.RedisStreamCommands.ByteBufferRecord;
 import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage;
+import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
+import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
@@ -42,6 +44,7 @@ import org.springframework.util.Assert;
  * Stream-specific Redis commands executed using reactive infrastructure.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
 public interface ReactiveStreamCommands {
@@ -54,13 +57,13 @@ public interface ReactiveStreamCommands {
 	class AcknowledgeCommand extends KeyCommand {
 
 		private final @Nullable String group;
-		private final List<String> messageIds;
+		private final List<RecordId> recordIds;
 
-		private AcknowledgeCommand(@Nullable ByteBuffer key, @Nullable String group, List<String> messageIds) {
+		private AcknowledgeCommand(@Nullable ByteBuffer key, @Nullable String group, List<RecordId> recordIds) {
 
 			super(key);
 			this.group = group;
-			this.messageIds = messageIds;
+			this.recordIds = recordIds;
 		}
 
 		/**
@@ -77,33 +80,46 @@ public interface ReactiveStreamCommands {
 		}
 
 		/**
-		 * Applies the {@literal messageIds}. Constructs a new command instance with all previously configured properties.
+		 * Applies the {@literal recordIds}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param messageIds must not be {@literal null}.
-		 * @return a new {@link AcknowledgeCommand} with {@literal messageIds} applied.
+		 * @param recordIds must not be {@literal null}.
+		 * @return a new {@link AcknowledgeCommand} with {@literal recordIds} applied.
 		 */
-		public AcknowledgeCommand forMessage(String... messageIds) {
+		public AcknowledgeCommand forRecords(String... recordIds) {
 
-			Assert.notNull(messageIds, "MessageIds must not be null!");
+			Assert.notNull(recordIds, "recordIds must not be null!");
 
-			List<String> newMessageIds = new ArrayList<>(getMessageIds().size() + messageIds.length);
-			newMessageIds.addAll(getMessageIds());
-			newMessageIds.addAll(Arrays.asList(messageIds));
+			return forRecords(Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
+		}
 
-			return new AcknowledgeCommand(getKey(), getGroup(), newMessageIds);
+		/**
+		 * Applies the {@literal recordIds}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param recordIds must not be {@literal null}.
+		 * @return a new {@link AcknowledgeCommand} with {@literal recordIds} applied.
+		 */
+		public AcknowledgeCommand forRecords(RecordId... recordIds) {
+
+			Assert.notNull(recordIds, "recordIds must not be null!");
+
+			List<RecordId> newrecordIds = new ArrayList<>(getRecordIds().size() + recordIds.length);
+			newrecordIds.addAll(getRecordIds());
+			newrecordIds.addAll(Arrays.asList(recordIds));
+
+			return new AcknowledgeCommand(getKey(), getGroup(), newrecordIds);
 		}
 
 		/**
 		 * Applies the {@literal group}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param messageIds must not be {@literal null}.
+		 * @param group must not be {@literal null}.
 		 * @return a new {@link AcknowledgeCommand} with {@literal group} applied.
 		 */
 		public AcknowledgeCommand inGroup(String group) {
 
 			Assert.notNull(group, "Group must not be null!");
 
-			return new AcknowledgeCommand(getKey(), group, getMessageIds());
+			return new AcknowledgeCommand(getKey(), group, getRecordIds());
 		}
 
 		@Nullable
@@ -111,31 +127,49 @@ public interface ReactiveStreamCommands {
 			return group;
 		}
 
-		public List<String> getMessageIds() {
-			return messageIds;
+		public List<RecordId> getRecordIds() {
+			return recordIds;
 		}
 	}
 
 	/**
-	 * Acknowledge one or more messages as processed.
+	 * Acknowledge one or more records as processed.
 	 *
 	 * @param key the stream key.
 	 * @param group name of the consumer group.
-	 * @param messageIds message Id's to acknowledge.
+	 * @param recordIds record Id's to acknowledge.
 	 * @return
 	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
-	default Mono<Long> xAck(ByteBuffer key, String group, String... messageIds) {
+	default Mono<Long> xAck(ByteBuffer key, String group, String... recordIds) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(messageIds, "MessageIds must not be null!");
+		Assert.notNull(recordIds, "recordIds must not be null!");
 
-		return xAck(Mono.just(AcknowledgeCommand.stream(key).inGroup(group).forMessage(messageIds))).next()
+		return xAck(Mono.just(AcknowledgeCommand.stream(key).inGroup(group).forRecords(recordIds))).next()
 				.map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Acknowledge one or more messages as processed.
+	 * Acknowledge one or more records as processed.
+	 *
+	 * @param key the stream key.
+	 * @param group name of the consumer group.
+	 * @param recordIds record Id's to acknowledge.
+	 * @return
+	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 */
+	default Mono<Long> xAck(ByteBuffer key, String group, RecordId... recordIds) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(recordIds, "recordIds must not be null!");
+
+		return xAck(Mono.just(AcknowledgeCommand.stream(key).inGroup(group).forRecords(recordIds))).next()
+				.map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Acknowledge one or more records as processed.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
@@ -148,28 +182,40 @@ public interface ReactiveStreamCommands {
 	 *
 	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
-	class AddStreamMessage extends KeyCommand {
+	class AddStreamRecord extends KeyCommand {
 
-		private final Map<ByteBuffer, ByteBuffer> body;
+		private final ByteBufferRecord record;
 
-		private AddStreamMessage(@Nullable ByteBuffer key, Map<ByteBuffer, ByteBuffer> body) {
+		private AddStreamRecord(ByteBufferRecord record) {
 
-			super(key);
-
-			this.body = body;
+			super(record.getStream());
+			this.record = record;
 		}
 
 		/**
-		 * Creates a new {@link AddStreamMessage} given {@link Map body}.
+		 * Creates a new {@link AddStreamRecord} given {@link Map body}.
+		 *
+		 * @param record must not be {@literal null}.
+		 * @return a new {@link AddStreamRecord}.
+		 */
+		public static AddStreamRecord of(ByteBufferRecord record) {
+
+			Assert.notNull(record, "Record must not be null!");
+
+			return new AddStreamRecord(record);
+		}
+
+		/**
+		 * Creates a new {@link AddStreamRecord} given {@link Map body}.
 		 *
 		 * @param body must not be {@literal null}.
-		 * @return a new {@link AddStreamMessage} for {@link Map}.
+		 * @return a new {@link AddStreamRecord} for {@link Map}.
 		 */
-		public static AddStreamMessage body(Map<ByteBuffer, ByteBuffer> body) {
+		public static AddStreamRecord body(Map<ByteBuffer, ByteBuffer> body) {
 
-			Assert.notNull(body, "GeoLocation must not be null!");
+			Assert.notNull(body, "Body must not be null!");
 
-			return new AddStreamMessage(null, body);
+			return new AddStreamRecord(StreamRecords.rawBuffer(body));
 		}
 
 		/**
@@ -178,42 +224,60 @@ public interface ReactiveStreamCommands {
 		 * @param key must not be {@literal null}.
 		 * @return a new {@link ReactiveGeoCommands.GeoAddCommand} with {@literal key} applied.
 		 */
-		public AddStreamMessage to(ByteBuffer key) {
-			return new AddStreamMessage(key, body);
+		public AddStreamRecord to(ByteBuffer key) {
+			return new AddStreamRecord(record.withStreamKey(key));
 		}
 
 		/**
 		 * @return
 		 */
 		public Map<ByteBuffer, ByteBuffer> getBody() {
-			return body;
+			return record.getValue();
+		}
+
+		public ByteBufferRecord getRecord() {
+			return record;
 		}
 	}
 
 	/**
-	 * Add stream message with given {@literal body} to {@literal key}.
+	 * Add stream record with given {@literal body} to {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param body must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
-	default Mono<String> xAdd(ByteBuffer key, Map<ByteBuffer, ByteBuffer> body) {
+	default Mono<RecordId> xAdd(ByteBuffer key, Map<ByteBuffer, ByteBuffer> body) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(body, "Body must not be null!");
 
-		return xAdd(Mono.just(AddStreamMessage.body(body).to(key))).next().map(CommandResponse::getOutput);
+		return xAdd(StreamRecords.newRecord().in(key).ofBuffer(body));
 	}
 
 	/**
-	 * Add stream message with given {@literal body} to {@literal key}.
+	 * Add stream record with given {@literal body} to {@literal key}.
+	 *
+	 * @param record must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 */
+	default Mono<RecordId> xAdd(ByteBufferRecord record) {
+
+		Assert.notNull(record, "Record must not be null!");
+
+		return xAdd(Mono.just(AddStreamRecord.of(record))).next().map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Add stream record with given {@literal body} to {@literal key}.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
-	Flux<CommandResponse<AddStreamMessage, String>> xAdd(Publisher<AddStreamMessage> commands);
+	Flux<CommandResponse<AddStreamRecord, RecordId>> xAdd(Publisher<AddStreamRecord> commands);
 
 	/**
 	 * {@code XDEL} command parameters.
@@ -222,12 +286,12 @@ public interface ReactiveStreamCommands {
 	 */
 	class DeleteCommand extends KeyCommand {
 
-		private final List<String> messageIds;
+		private final List<RecordId> recordIds;
 
-		private DeleteCommand(@Nullable ByteBuffer key, List<String> messageIds) {
+		private DeleteCommand(@Nullable ByteBuffer key, List<RecordId> recordIds) {
 
 			super(key);
-			this.messageIds = messageIds;
+			this.recordIds = recordIds;
 		}
 
 		/**
@@ -244,24 +308,37 @@ public interface ReactiveStreamCommands {
 		}
 
 		/**
-		 * Applies the {@literal messageIds}. Constructs a new command instance with all previously configured properties.
+		 * Applies the {@literal recordIds}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param messageIds must not be {@literal null}.
-		 * @return a new {@link DeleteCommand} with {@literal messageIds} applied.
+		 * @param recordIds must not be {@literal null}.
+		 * @return a new {@link DeleteCommand} with {@literal recordIds} applied.
 		 */
-		public DeleteCommand messages(String... messageIds) {
+		public DeleteCommand records(String... recordIds) {
 
-			Assert.notNull(messageIds, "MessageIds must not be null!");
+			Assert.notNull(recordIds, "RecordIds must not be null!");
 
-			List<String> newMessageIds = new ArrayList<>(getMessageIds().size() + messageIds.length);
-			newMessageIds.addAll(getMessageIds());
-			newMessageIds.addAll(Arrays.asList(messageIds));
-
-			return new DeleteCommand(getKey(), newMessageIds);
+			return records(Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
 		}
 
-		public List<String> getMessageIds() {
-			return messageIds;
+		/**
+		 * Applies the {@literal recordIds}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param recordIds must not be {@literal null}.
+		 * @return a new {@link DeleteCommand} with {@literal recordIds} applied.
+		 */
+		public DeleteCommand records(RecordId... recordIds) {
+
+			Assert.notNull(recordIds, "RecordIds must not be null!");
+
+			List<RecordId> newrecordIds = new ArrayList<>(getRecordIds().size() + recordIds.length);
+			newrecordIds.addAll(getRecordIds());
+			newrecordIds.addAll(Arrays.asList(recordIds));
+
+			return new DeleteCommand(getKey(), newrecordIds);
+		}
+
+		public List<RecordId> getRecordIds() {
+			return recordIds;
 		}
 	}
 
@@ -270,16 +347,33 @@ public interface ReactiveStreamCommands {
 	 * number of IDs passed in case certain IDs do not exist.
 	 *
 	 * @param key the stream key.
-	 * @param messageIds stream message Id's.
+	 * @param recordIds stream record Id's.
 	 * @return number of removed entries.
 	 * @see <a href="http://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
-	default Mono<Long> xDel(ByteBuffer key, String... messageIds) {
+	default Mono<Long> xDel(ByteBuffer key, String... recordIds) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(messageIds, "Body must not be null!");
+		Assert.notNull(recordIds, "RecordIds must not be null!");
 
-		return xDel(Mono.just(DeleteCommand.stream(key).messages(messageIds))).next().map(CommandResponse::getOutput);
+		return xDel(Mono.just(DeleteCommand.stream(key).records(recordIds))).next().map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Removes the specified entries from the stream. Returns the number of items deleted, that may be different from the
+	 * number of IDs passed in case certain IDs do not exist.
+	 *
+	 * @param key the stream key.
+	 * @param recordIds stream record Id's.
+	 * @return number of removed entries.
+	 * @see <a href="http://redis.io/commands/xdel">Redis Documentation: XDEL</a>
+	 */
+	default Mono<Long> xDel(ByteBuffer key, RecordId... recordIds) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(recordIds, "RecordIds must not be null!");
+
+		return xDel(Mono.just(DeleteCommand.stream(key).records(recordIds))).next().map(CommandResponse::getOutput);
 	}
 
 	/**
@@ -402,19 +496,19 @@ public interface ReactiveStreamCommands {
 	}
 
 	/**
-	 * Read messages from a stream within a specific {@link Range}.
+	 * Read records from a stream within a specific {@link Range}.
 	 *
 	 * @param key the stream key.
 	 * @param range must not be {@literal null}.
 	 * @return list with members of the resulting stream.
 	 * @see <a href="http://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	default Flux<StreamMessage<ByteBuffer, ByteBuffer>> xRange(ByteBuffer key, Range<String> range) {
+	default Flux<ByteBufferRecord> xRange(ByteBuffer key, Range<String> range) {
 		return xRange(key, range, Limit.unlimited());
 	}
 
 	/**
-	 * Read messages from a stream within a specific {@link Range} applying a {@link Limit}.
+	 * Read records from a stream within a specific {@link Range} applying a {@link Limit}.
 	 *
 	 * @param key the stream key.
 	 * @param range must not be {@literal null}.
@@ -422,7 +516,7 @@ public interface ReactiveStreamCommands {
 	 * @return list with members of the resulting stream.
 	 * @see <a href="http://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	default Flux<StreamMessage<ByteBuffer, ByteBuffer>> xRange(ByteBuffer key, Range<String> range, Limit limit) {
+	default Flux<ByteBufferRecord> xRange(ByteBuffer key, Range<String> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
@@ -433,14 +527,13 @@ public interface ReactiveStreamCommands {
 	}
 
 	/**
-	 * Read messages from a stream within a specific {@link Range} applying a {@link Limit}.
+	 * Read records from a stream within a specific {@link Range} applying a {@link Limit}.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	Flux<CommandResponse<RangeCommand, Flux<StreamMessage<ByteBuffer, ByteBuffer>>>> xRange(
-			Publisher<RangeCommand> commands);
+	Flux<CommandResponse<RangeCommand, Flux<ByteBufferRecord>>> xRange(Publisher<RangeCommand> commands);
 
 	/**
 	 * {@code XRANGE}/{@code XREVRANGE} command parameters.
@@ -456,7 +549,7 @@ public interface ReactiveStreamCommands {
 
 		/**
 		 * @param streamOffsets must not be {@literal null}.
-		 * @param readArgs
+		 * @param readOptions
 		 * @param consumer
 		 */
 		public ReadCommand(List<StreamOffset<ByteBuffer>> streamOffsets, @Nullable StreamReadOptions readOptions,
@@ -507,9 +600,10 @@ public interface ReactiveStreamCommands {
 		}
 
 		/**
-		 * Applies a {@link Consumer}. Constructs a new command instance with all previously configured properties.
+		 * Applies the given {@link StreamReadOptions}. Constructs a new command instance with all previously configured
+		 * properties.
 		 *
-		 * @param consumer must not be {@literal null}.
+		 * @param options must not be {@literal null}.
 		 * @return a new {@link ReadCommand} with {@link Consumer} applied.
 		 */
 		public ReadCommand withOptions(StreamReadOptions options) {
@@ -535,54 +629,25 @@ public interface ReactiveStreamCommands {
 	}
 
 	/**
-	 * Read messages from one or more {@link StreamOffset}s.
-	 *
-	 * @param stream the streams to read from.
-	 * @return list with members of the resulting stream.
-	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
-	 */
-	default Flux<StreamMessage<ByteBuffer, ByteBuffer>> xRead(StreamOffset<ByteBuffer> stream) {
-		return xRead(StreamReadOptions.empty(), new StreamOffset[] { stream });
-	}
-
-	/**
-	 * Read messages from one or more {@link StreamOffset}s.
+	 * Read records from one or more {@link StreamOffset}s.
 	 *
 	 * @param streams the streams to read from.
 	 * @return list with members of the resulting stream.
 	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	default Flux<StreamMessage<ByteBuffer, ByteBuffer>> xRead(StreamOffset<ByteBuffer>... streams) {
+	default Flux<ByteBufferRecord> xRead(StreamOffset<ByteBuffer>... streams) {
 		return xRead(StreamReadOptions.empty(), streams);
 	}
 
 	/**
-	 * Read messages from one or more {@link StreamOffset}s.
-	 *
-	 * @param readOptions read arguments.
-	 * @param stream the streams to read from.
-	 * @return list with members of the resulting stream.
-	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
-	 */
-	default Flux<StreamMessage<ByteBuffer, ByteBuffer>> xRead(StreamReadOptions readOptions,
-			StreamOffset<ByteBuffer> stream) {
-
-		Assert.notNull(readOptions, "StreamReadOptions must not be null!");
-		Assert.notNull(stream, "StreamOffset must not be null!");
-
-		return xRead(readOptions, new StreamOffset[] { stream });
-	}
-
-	/**
-	 * Read messages from one or more {@link StreamOffset}s.
+	 * Read records from one or more {@link StreamOffset}s.
 	 *
 	 * @param readOptions read arguments.
 	 * @param streams the streams to read from.
 	 * @return list with members of the resulting stream.
 	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	default Flux<StreamMessage<ByteBuffer, ByteBuffer>> xRead(StreamReadOptions readOptions,
-			StreamOffset<ByteBuffer>... streams) {
+	default Flux<ByteBufferRecord> xRead(StreamReadOptions readOptions, StreamOffset<ByteBuffer>... streams) {
 
 		Assert.notNull(readOptions, "StreamReadOptions must not be null!");
 		Assert.notNull(streams, "StreamOffsets must not be null!");
@@ -592,56 +657,166 @@ public interface ReactiveStreamCommands {
 	}
 
 	/**
-	 * Read messages from one or more {@link StreamOffset}s.
+	 * Read records from one or more {@link StreamOffset}s.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return list with members of the resulting stream.
 	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	Flux<CommandResponse<ReadCommand, Flux<StreamMessage<ByteBuffer, ByteBuffer>>>> read(Publisher<ReadCommand> commands);
+	Flux<CommandResponse<ReadCommand, Flux<ByteBufferRecord>>> read(Publisher<ReadCommand> commands);
 
-	/**
-	 * Read messages from one or more {@link StreamOffset}s using a consumer group.
-	 *
-	 * @param consumer consumer/group.
-	 * @param stream the streams to read from.
-	 * @return list with members of the resulting stream.
-	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
-	 */
-	default Flux<StreamMessage<ByteBuffer, ByteBuffer>> xReadGroup(Consumer consumer, StreamOffset<ByteBuffer> stream) {
-		return xReadGroup(consumer, StreamReadOptions.empty(), new StreamOffset[] { stream });
+	class GroupCommand extends KeyCommand {
+
+		private final GroupCommandAction action;
+		private final @Nullable String groupName;
+		private final @Nullable String consumerName;
+		private final @Nullable ReadOffset offset;
+
+		public GroupCommand(@Nullable ByteBuffer key, GroupCommandAction action, @Nullable String groupName,
+				@Nullable String consumerName, ReadOffset offset) {
+
+			super(key);
+			this.action = action;
+			this.groupName = groupName;
+			this.consumerName = consumerName;
+			this.offset = offset;
+		}
+
+		public static GroupCommand createGroup(String group) {
+			return new GroupCommand(null, GroupCommandAction.CREATE, group, null, ReadOffset.latest());
+		}
+
+		public static GroupCommand destroyGroup(String group) {
+			return new GroupCommand(null, GroupCommandAction.DESTROY, group, null, null);
+		}
+
+		public static GroupCommand deleteConsumer(String consumerName) {
+			return new GroupCommand(null, GroupCommandAction.DELETE_CONSUMER, null, consumerName, null);
+		}
+
+		public static GroupCommand deleteConsumer(Consumer consumer) {
+			return new GroupCommand(null, GroupCommandAction.DELETE_CONSUMER, consumer.getGroup(), consumer.getName(), null);
+		}
+
+		public GroupCommand at(ReadOffset offset) {
+			return new GroupCommand(getKey(), action, groupName, consumerName, offset);
+		}
+
+		public GroupCommand forStream(ByteBuffer key) {
+			return new GroupCommand(key, action, groupName, consumerName, offset);
+		}
+
+		public GroupCommand fromGroup(String groupName) {
+			return new GroupCommand(getKey(), action, groupName, consumerName, offset);
+		}
+
+		@Nullable
+		public ReadOffset getReadOffset() {
+			return this.offset;
+		}
+
+		@Nullable
+		public String getGroupName() {
+			return groupName;
+		}
+
+		@Nullable
+		public String getConsumerName() {
+			return consumerName;
+		}
+
+		public GroupCommandAction getAction() {
+			return action;
+		}
+
+		public enum GroupCommandAction {
+			CREATE, SET_ID, DESTROY, DELETE_CONSUMER;
+		}
 	}
 
 	/**
-	 * Read messages from one or more {@link StreamOffset}s using a consumer group.
+	 * Create a consumer group.
+	 *
+	 * @param key key the {@literal key} the stream is stored at.
+	 * @param groupName name of the consumer group to create.
+	 * @param readOffset the offset to start at.
+	 * @return the {@link Mono} emitting {@literal ok} if successful.
+	 */
+	default Mono<String> xGroupCreate(ByteBuffer key, String groupName, ReadOffset readOffset) {
+
+		return xGroup(Mono.just(GroupCommand.createGroup(groupName).forStream(key).at(readOffset))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Delete a consumer from a consumer group.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param groupName the name of the group to remove the consumer from.
+	 * @param consumerName the name of the consumer to remove from the group.
+	 * @return the {@link Mono} emitting {@literal ok} if successful.
+	 */
+	@Nullable
+	default Mono<String> xGroupDelConsumer(ByteBuffer key, String groupName, String consumerName) {
+		return xGroupDelConsumer(key, Consumer.from(groupName, consumerName));
+	}
+
+	/**
+	 * Delete a consumer from a consumer group.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param consumer the {@link Consumer}.
+	 * @return the {@link Mono} emitting {@literal ok} if successful.
+	 */
+	default Mono<String> xGroupDelConsumer(ByteBuffer key, Consumer consumer) {
+		return xGroup(GroupCommand.deleteConsumer(consumer).forStream(key));
+	}
+
+	/**
+	 * Destroy a consumer group.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param groupName name of the consumer group.
+	 * @return the {@link Mono} emitting {@literal ok} if successful.
+	 */
+	@Nullable
+	default Mono<String> xGroupDestroy(ByteBuffer key, String groupName) {
+		return xGroup(GroupCommand.destroyGroup(groupName).forStream(key));
+	}
+
+	/**
+	 * Execute the given {@link GroupCommand} to {@literal create, destroy,... } groups.
+	 *
+	 * @param command the {@link GroupCommand} to run.
+	 * @return the {@link Mono} emitting the command result.
+	 */
+	default Mono<String> xGroup(GroupCommand command) {
+		return xGroup(Mono.just(command)).next().map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Execute the given {@link GroupCommand} to {@literal create, destroy,... } groups.
+	 *
+	 * @param commands
+	 * @return
+	 */
+	Flux<CommandResponse<GroupCommand, String>> xGroup(Publisher<GroupCommand> commands);
+
+	/**
+	 * Read records from one or more {@link StreamOffset}s using a consumer group.
 	 *
 	 * @param consumer consumer/group.
 	 * @param streams the streams to read from.
 	 * @return list with members of the resulting stream.
 	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	default Flux<StreamMessage<ByteBuffer, ByteBuffer>> xReadGroup(Consumer consumer,
-			StreamOffset<ByteBuffer>... streams) {
+	default Flux<ByteBufferRecord> xReadGroup(Consumer consumer, StreamOffset<ByteBuffer>... streams) {
 		return xReadGroup(consumer, StreamReadOptions.empty(), streams);
 	}
 
 	/**
-	 * Read messages from one or more {@link StreamOffset}s using a consumer group.
-	 *
-	 * @param consumer consumer/group.
-	 * @param readOptions read arguments.
-	 * @param stream the streams to read from.
-	 * @return list with members of the resulting stream.
-	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
-	 */
-	default Flux<StreamMessage<ByteBuffer, ByteBuffer>> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
-			StreamOffset<ByteBuffer> stream) {
-		return xReadGroup(consumer, readOptions, new StreamOffset[] { stream });
-	}
-
-	/**
-	 * Read messages from one or more {@link StreamOffset}s using a consumer group.
+	 * Read records from one or more {@link StreamOffset}s using a consumer group.
 	 *
 	 * @param consumer consumer/group.
 	 * @param readOptions read arguments.
@@ -649,7 +824,7 @@ public interface ReactiveStreamCommands {
 	 * @return list with members of the resulting stream.
 	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	default Flux<StreamMessage<ByteBuffer, ByteBuffer>> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
+	default Flux<ByteBufferRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
 			StreamOffset<ByteBuffer>... streams) {
 
 		Assert.notNull(consumer, "Consumer must not be null!");
@@ -661,19 +836,19 @@ public interface ReactiveStreamCommands {
 	}
 
 	/**
-	 * Read messages from a stream within a specific {@link Range} in reverse order.
+	 * Read records from a stream within a specific {@link Range} in reverse order.
 	 *
 	 * @param key the stream key.
 	 * @param range must not be {@literal null}.
 	 * @return list with members of the resulting stream.
 	 * @see <a href="http://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	default Flux<StreamMessage<ByteBuffer, ByteBuffer>> xRevRange(ByteBuffer key, Range<String> range) {
+	default Flux<ByteBufferRecord> xRevRange(ByteBuffer key, Range<String> range) {
 		return xRevRange(key, range, Limit.unlimited());
 	}
 
 	/**
-	 * Read messages from a stream within a specific {@link Range} applying a {@link Limit} in reverse order.
+	 * Read records from a stream within a specific {@link Range} applying a {@link Limit} in reverse order.
 	 *
 	 * @param key the stream key.
 	 * @param range must not be {@literal null}.
@@ -681,7 +856,7 @@ public interface ReactiveStreamCommands {
 	 * @return list with members of the resulting stream.
 	 * @see <a href="http://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	default Flux<StreamMessage<ByteBuffer, ByteBuffer>> xRevRange(ByteBuffer key, Range<String> range, Limit limit) {
+	default Flux<ByteBufferRecord> xRevRange(ByteBuffer key, Range<String> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
@@ -692,14 +867,13 @@ public interface ReactiveStreamCommands {
 	}
 
 	/**
-	 * Read messages from a stream within a specific {@link Range} applying a {@link Limit} in reverse order.
+	 * Read records from a stream within a specific {@link Range} applying a {@link Limit} in reverse order.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	Flux<CommandResponse<RangeCommand, Flux<StreamMessage<ByteBuffer, ByteBuffer>>>> xRevRange(
-			Publisher<RangeCommand> commands);
+	Flux<CommandResponse<RangeCommand, Flux<ByteBufferRecord>>> xRevRange(Publisher<RangeCommand> commands);
 
 	/**
 	 * {@code XTRIM} command parameters.

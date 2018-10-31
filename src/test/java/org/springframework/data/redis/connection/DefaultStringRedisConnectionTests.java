@@ -30,9 +30,10 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -44,8 +45,14 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
+import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
+import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
+import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
+import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
@@ -64,7 +71,8 @@ public class DefaultStringRedisConnectionTests {
 
 	protected List<Object> actual = new ArrayList<>();
 
-	@Mock protected RedisConnection nativeConnection;
+//	@Mock protected RedisConnection nativeConnection;
+	protected RedisConnection nativeConnection;
 
 	protected DefaultStringRedisConnection connection;
 
@@ -108,7 +116,11 @@ public class DefaultStringRedisConnectionTests {
 
 	@Before
 	public void setUp() {
+
+
 		MockitoAnnotations.initMocks(this);
+//		this.nativeConnection = mock(RedisConnection.class, withSettings().verboseLogging());
+		this.nativeConnection = mock(RedisConnection.class);
 		this.connection = new DefaultStringRedisConnection(nativeConnection);
 		bytesMap.put(fooBytes, barBytes);
 		stringMap.put(foo, bar);
@@ -2029,6 +2041,129 @@ public class DefaultStringRedisConnectionTests {
 
 		actual.add(connection.geoRadiusByMember(foo, bar, new Distance(38.115556, DistanceUnit.FEET), geoRadiusParam));
 		verifyResults(Arrays.asList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
+	}
+
+	@Test // DATAREDIS-864
+	public void xAckShouldDelegateAndConvertCorrectly() {
+
+		doReturn(1L).when(nativeConnection).xAck(any(byte[].class), any(String.class), eq(RecordId.of("1-1")));
+
+		actual.add(connection.xAck("key", "group", RecordId.of("1-1")));
+		Assertions.assertThat(getResults()).containsExactly(1L);
+	}
+
+	@Test // DATAREDIS-864
+	public void xAddShouldAppendRecordCorrectly() {
+
+		doReturn(RecordId.of("1-1")).when(nativeConnection).xAdd(any());
+		actual.add(connection
+				.xAdd(StreamRecords.newRecord().in("stream-1").ofStrings(Collections.singletonMap("field", "value"))));
+
+		Assertions.assertThat(getResults()).containsExactly(RecordId.of("1-1"));
+	}
+
+	@Test // DATAREDIS-864
+	public void xDelShouldDelegateAndConvertCorrectly() {
+
+		doReturn(1L).when(nativeConnection).xDel(any(byte[].class), eq(RecordId.of("1-1")));
+
+		actual.add(connection.xDel("key", RecordId.of("1-1")));
+		Assertions.assertThat(getResults()).containsExactly(1L);
+	}
+
+	@Test // DATAREDIS-864
+	public void xGroupCreateShouldDelegateAndConvertCorrectly() {
+
+		doReturn("OK").when(nativeConnection).xGroupCreate(any(), any(), any());
+
+		actual.add(connection.xGroupCreate("key", ReadOffset.latest(), "consumer-group"));
+		Assertions.assertThat(getResults()).containsExactly("OK");
+	}
+
+	@Test // DATAREDIS-864
+	@Ignore("Why Mockito? Why?")
+	public void xGroupDelConsumerShouldDelegateAndConvertCorrectly() {
+
+		Consumer consumer = Consumer.from("consumer-group", "one");
+
+		doReturn(Boolean.TRUE).when(nativeConnection).xGroupDelConsumer(eq(fooBytes), eq(consumer));
+
+		actual.add(connection.xGroupDelConsumer(foo, consumer));
+		Assertions.assertThat(getResults()).containsExactly(Boolean.TRUE);
+	}
+
+	@Test // DATAREDIS-864
+	public void xGroupDestroyShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Boolean.TRUE).when(nativeConnection).xGroupDestroy(any(), any());
+
+		actual.add(connection.xGroupDestroy("key", "comsumer-group"));
+		Assertions.assertThat(getResults()).containsExactly(Boolean.TRUE);
+	}
+
+	@Test // DATAREDIS-864
+	public void xLenShouldDelegateAndConvertCorrectly() {
+
+		doReturn(1L).when(nativeConnection).xLen(any());
+
+		actual.add(connection.xLen("key"));
+		Assertions.assertThat(getResults()).containsExactly(1L);
+	}
+
+	@Test // DATAREDIS-864
+	public void xRangeShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))
+				.when(nativeConnection).xRange(any(), any(), any());
+
+		actual.add(connection.xRange("stream-1", org.springframework.data.domain.Range.unbounded(), Limit.unlimited()));
+
+		Assertions.assertThat(getResults()).containsExactly(
+				Collections.singletonList(StreamRecords.newRecord().in(bar2).withId("stream-1").ofStrings(stringMap)));
+	}
+
+
+	@Test // DATAREDIS-864
+	public void xReadShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))
+				.when(nativeConnection).xRead(any(), any());
+		actual.add(connection.xReadAsString(StreamReadOptions.empty(), StreamOffset.create("stream-1", ReadOffset.latest())));
+
+		Assertions.assertThat(getResults()).containsExactly(
+				Collections.singletonList(StreamRecords.newRecord().in(bar2).withId("stream-1").ofStrings(stringMap)));
+	}
+
+	@Test // DATAREDIS-864
+	public void xReadGroupShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))
+				.when(nativeConnection).xReadGroup(any(), any(), any());
+		actual.add(connection.xReadGroupAsString(Consumer.from("groupe", "one"), StreamReadOptions.empty(), StreamOffset.create("stream-1", ReadOffset.latest())));
+
+		Assertions.assertThat(getResults()).containsExactly(
+				Collections.singletonList(StreamRecords.newRecord().in(bar2).withId("stream-1").ofStrings(stringMap)));
+	}
+
+	@Test // DATAREDIS-864
+	public void xRevRangeShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))
+				.when(nativeConnection).xRevRange(any(), any(), any());
+
+		actual.add(connection.xRevRange("stream-1", org.springframework.data.domain.Range.unbounded(), Limit.unlimited()));
+
+		Assertions.assertThat(getResults()).containsExactly(
+				Collections.singletonList(StreamRecords.newRecord().in(bar2).withId("stream-1").ofStrings(stringMap)));
+	}
+
+	@Test // DATAREDIS-864
+	public void xTrimShouldDelegateAndConvertCorrectly() {
+
+		doReturn(1L).when(nativeConnection).xTrim(any(), anyLong());
+
+		actual.add(connection.xTrim("key", 2L));
+		Assertions.assertThat(getResults()).containsExactly(1L);
 	}
 
 	protected List<Object> getResults() {

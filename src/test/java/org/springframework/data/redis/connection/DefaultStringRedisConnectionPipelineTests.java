@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
+import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
 
 /**
  * Unit test of {@link DefaultStringRedisConnection} that executes commands in a pipeline
@@ -1638,6 +1639,90 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 
 		doReturn(Arrays.asList(1L)).when(nativeConnection).closePipeline();
 		super.testTimeIsDelegatedCorrectlyToNativeConnection();
+	}
+
+	@Test // DATAREDIS-864
+	public void xAckShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList(1L)).when(nativeConnection).closePipeline();
+		super.xAckShouldDelegateAndConvertCorrectly();
+	}
+
+	@Override // DATAREDIS-864
+	public void xAddShouldAppendRecordCorrectly() {
+
+		doReturn(Arrays.asList(RecordId.of("1-1"))).when(nativeConnection).closePipeline();
+		super.xAddShouldAppendRecordCorrectly();
+	}
+
+	@Test // DATAREDIS-864
+	public void xDelShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList(1L)).when(nativeConnection).closePipeline();
+		super.xAckShouldDelegateAndConvertCorrectly();
+	}
+
+	@Test // DATAREDIS-864
+	public void xGroupCreateShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList("OK")).when(nativeConnection).closePipeline();
+		super.xGroupCreateShouldDelegateAndConvertCorrectly();
+	}
+
+	@Test // DATAREDIS-864
+	public void xGroupDelComsumerShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList(Boolean.TRUE)).when(nativeConnection).closePipeline();
+		super.xGroupDelConsumerShouldDelegateAndConvertCorrectly();
+	}
+
+	@Test // DATAREDIS-864
+	public void xLenShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList(1L)).when(nativeConnection).closePipeline();
+		super.xLenShouldDelegateAndConvertCorrectly();
+	}
+
+	@Test // DATAREDIS-864
+	public void xGroupDestroyShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList(Boolean.TRUE)).when(nativeConnection).closePipeline();
+		super.xGroupDestroyShouldDelegateAndConvertCorrectly();
+	}
+
+	@Test // DATAREDIS-864
+	public void xRangeShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList(Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))).when(nativeConnection).closePipeline();
+		super.xRangeShouldDelegateAndConvertCorrectly();
+	}
+
+	@Test // DATAREDIS-864
+	public void xReadShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList(Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))).when(nativeConnection).closePipeline();
+		super.xReadShouldDelegateAndConvertCorrectly();
+	}
+
+	@Test // DATAREDIS-864
+	public void xReadGroupShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList(Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))).when(nativeConnection).closePipeline();
+		super.xReadGroupShouldDelegateAndConvertCorrectly();
+	}
+
+	@Test // DATAREDIS-864
+	public void xRevRangeShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList(Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))).when(nativeConnection).closePipeline();
+		super.xRevRangeShouldDelegateAndConvertCorrectly();
+	}
+
+	@Test // DATAREDIS-864
+	public void xTrimShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList(1L)).when(nativeConnection).closePipeline();
+		super.xTrimShouldDelegateAndConvertCorrectly();
 	}
 
 	protected List<Object> getResults() {

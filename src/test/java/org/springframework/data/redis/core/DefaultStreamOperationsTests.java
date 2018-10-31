@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.assertj.core.api.Assumptions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,13 +33,17 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.Person;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
+import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
+import org.springframework.data.redis.connection.RedisStreamCommands.MapRecord;
+import org.springframework.data.redis.connection.RedisStreamCommands.ObjectRecord;
 import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
+import org.springframework.data.redis.connection.StreamRecords;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
 /**
@@ -47,29 +52,32 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
  * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
-public class DefaultStreamOperationsTests<K, V> {
+public class DefaultStreamOperationsTests<K, HK, HV> {
 
-	private RedisTemplate<K, V> redisTemplate;
+	private RedisTemplate<K, ?> redisTemplate;
 
 	private ObjectFactory<K> keyFactory;
 
-	private ObjectFactory<V> valueFactory;
+	private ObjectFactory<HK> hashKeyFactory;
 
-	private StreamOperations<K, V> streamOps;
+	private ObjectFactory<HV> hashValueFactory;
 
-	public DefaultStreamOperationsTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
-			ObjectFactory<V> valueFactory) {
+	private StreamOperations<K, HK, HV> streamOps;
+
+	public DefaultStreamOperationsTests(RedisTemplate<K, ?> redisTemplate, ObjectFactory<K> keyFactory,
+			ObjectFactory<?> objectFactory) {
 
 		// Currently, only Lettuce supports Redis Streams.
 		// See https://github.com/xetorthio/jedis/issues/1820
 		assumeTrue(redisTemplate.getConnectionFactory() instanceof LettuceConnectionFactory);
 
 		// TODO: Change to 5.0 after Redis 5 GA
-		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "4.9"));
+		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "5.0"));
 
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
-		this.valueFactory = valueFactory;
+		this.hashKeyFactory = (ObjectFactory<HK>) keyFactory;
+		this.hashValueFactory = (ObjectFactory<HV>) objectFactory;
 
 		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
@@ -98,39 +106,84 @@ public class DefaultStreamOperationsTests<K, V> {
 	public void addShouldAddMessage() {
 
 		K key = keyFactory.instance();
-		V value = valueFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
 
-		String messageId = streamOps.add(key, Collections.singletonMap(key, value));
+		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
 
-		List<StreamMessage<K, V>> messages = streamOps.range(key, Range.unbounded());
+		List<MapRecord<K, HK, HV>> messages = streamOps.range(key, Range.unbounded());
 
 		assertThat(messages).hasSize(1);
 
-		StreamMessage<K, V> message = messages.get(0);
+		MapRecord<K, HK, HV> message = messages.get(0);
 
 		assertThat(message.getId()).isEqualTo(messageId);
 		assertThat(message.getStream()).isEqualTo(key);
 
 		if (!(key instanceof byte[] || value instanceof byte[])) {
-			assertThat(message.getBody()).containsEntry(key, value);
+			assertThat(message.getValue()).containsEntry(hashKey, value);
 		}
+	}
+
+	@Test // DATAREDIS-864
+	public void addShouldAddReadSimpleMessage() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+
+		List<ObjectRecord<K, HV>> messages = streamOps.range(key, Range.unbounded(), (Class<HV>) value.getClass());
+
+		assertThat(messages).hasSize(1);
+
+		ObjectRecord<K, HV> message = messages.get(0);
+
+		assertThat(message.getId()).isEqualTo(messageId);
+		assertThat(message.getStream()).isEqualTo(key);
+
+		assertThat(message.getValue()).isEqualTo(value);
+	}
+
+	@Test // DATAREDIS-864
+	public void simpleMessageReadWriteSymmetry() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		Assumptions.assumeThat(value).isNotInstanceOf(Person.class);
+
+		RecordId messageId = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+
+		List<MapRecord<K, HK, HV>> messages = streamOps.range(key, Range.unbounded());
+
+		assertThat(messages).hasSize(1);
+
+		MapRecord<K, HK, HV> message = messages.get(0);
+
+		assertThat(message.getId()).isEqualTo(messageId);
+		assertThat(message.getStream()).isEqualTo(key);
+
+		assertThat(message.getValue().values()).containsExactly(value);
 	}
 
 	@Test // DATAREDIS-864
 	public void rangeShouldReportMessages() {
 
 		K key = keyFactory.instance();
-		V value = valueFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
 
-		String messageId1 = streamOps.add(key, Collections.singletonMap(key, value));
-		String messageId2 = streamOps.add(key, Collections.singletonMap(key, value));
+		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
 
-		List<StreamMessage<K, V>> messages = streamOps.range(key,
-				Range.from(Bound.inclusive(messageId1)).to(Bound.inclusive(messageId2)), Limit.limit().count(1));
+		List<MapRecord<K, HK, HV>> messages = streamOps.range(key,
+				Range.from(Bound.inclusive(messageId1.getValue())).to(Bound.inclusive(messageId2.getValue())),
+				Limit.limit().count(1));
 
 		assertThat(messages).hasSize(1);
 
-		StreamMessage<K, V> message = messages.get(0);
+		MapRecord<K, HK, HV> message = messages.get(0);
 
 		assertThat(message.getId()).isEqualTo(messageId1);
 	}
@@ -139,48 +192,93 @@ public class DefaultStreamOperationsTests<K, V> {
 	public void reverseRangeShouldReportMessages() {
 
 		K key = keyFactory.instance();
-		V value = valueFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
 
-		String messageId1 = streamOps.add(key, Collections.singletonMap(key, value));
-		String messageId2 = streamOps.add(key, Collections.singletonMap(key, value));
+		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
 
-		List<StreamMessage<K, V>> messages = streamOps.reverseRange(key, Range.unbounded());
+		List<MapRecord<K, HK, HV>> messages = streamOps.reverseRange(key, Range.unbounded());
 
 		assertThat(messages).hasSize(2).extracting("id").containsSequence(messageId2, messageId1);
+	}
+
+	@Test // DATAREDIS-864
+	public void reverseRangeShouldConvertSimpleMessages() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId1 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		RecordId messageId2 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+
+		List<ObjectRecord<K, HV>> messages = streamOps.reverseRange(key, Range.unbounded(), (Class<HV>) value.getClass());
+
+		assertThat(messages).hasSize(2).extracting("id").containsSequence(messageId2, messageId1);
+
+		ObjectRecord<K, HV> message = messages.get(0);
+
+		assertThat(message.getId()).isEqualTo(messageId2);
+		assertThat(message.getStream()).isEqualTo(key);
+
+		assertThat(message.getValue()).isEqualTo(value);
 	}
 
 	@Test // DATAREDIS-864
 	public void readShouldReadMessage() {
 
 		K key = keyFactory.instance();
-		V value = valueFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
 
-		String messageId = streamOps.add(key, Collections.singletonMap(key, value));
+		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
 
-		List<StreamMessage<K, V>> messages = streamOps.read(StreamOffset.create(key, ReadOffset.from("0-0")));
+		List<MapRecord<K, HK, HV>> messages = streamOps.read(StreamOffset.create(key, ReadOffset.from("0-0")));
 
 		assertThat(messages).hasSize(1);
 
-		StreamMessage<K, V> message = messages.get(0);
+		MapRecord<K, HK, HV> message = messages.get(0);
 
 		assertThat(message.getId()).isEqualTo(messageId);
 		assertThat(message.getStream()).isEqualTo(key);
 
 		if (!(key instanceof byte[] || value instanceof byte[])) {
-			assertThat(message.getBody()).containsEntry(key, value);
+			assertThat(message.getValue()).containsEntry(hashKey, value);
 		}
+	}
+
+	@Test // DATAREDIS-864
+	public void readShouldReadSimpleMessage() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId1 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		RecordId messageId2 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+
+		List<ObjectRecord<K, HV>> messages = streamOps.read((Class<HV>) value.getClass(), StreamOffset.create(key, ReadOffset.from("0-0")));
+
+		assertThat(messages).hasSize(2);
+
+		ObjectRecord<K, HV> message = messages.get(0);
+
+		assertThat(message.getId()).isEqualTo(messageId1);
+		assertThat(message.getStream()).isEqualTo(key);
+
+		assertThat(message.getValue()).isEqualTo(value);
 	}
 
 	@Test // DATAREDIS-864
 	public void readShouldReadMessages() {
 
 		K key = keyFactory.instance();
-		V value = valueFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
 
-		streamOps.add(key, Collections.singletonMap(key, value));
-		streamOps.add(key, Collections.singletonMap(key, value));
+		streamOps.add(key, Collections.singletonMap(hashKey, value));
+		streamOps.add(key, Collections.singletonMap(hashKey, value));
 
-		List<StreamMessage<K, V>> messages = streamOps.read(StreamReadOptions.empty().count(2),
+		List<MapRecord<K, HK, HV>> messages = streamOps.read(StreamReadOptions.empty().count(2),
 				StreamOffset.create(key, ReadOffset.from("0-0")));
 
 		assertThat(messages).hasSize(2);
@@ -190,23 +288,24 @@ public class DefaultStreamOperationsTests<K, V> {
 	public void readShouldReadMessageWithConsumerGroup() {
 
 		K key = keyFactory.instance();
-		V value = valueFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
 
-		String messageId = streamOps.add(key, Collections.singletonMap(key, value));
+		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
 		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
 
-		List<StreamMessage<K, V>> messages = streamOps.read(Consumer.from("my-group", "my-consumer"),
+		List<MapRecord<K, HK, HV>> messages = streamOps.read(Consumer.from("my-group", "my-consumer"),
 				StreamOffset.create(key, ReadOffset.lastConsumed()));
 
 		assertThat(messages).hasSize(1);
 
-		StreamMessage<K, V> message = messages.get(0);
+		MapRecord<K, HK, HV> message = messages.get(0);
 
 		assertThat(message.getId()).isEqualTo(messageId);
 		assertThat(message.getStream()).isEqualTo(key);
 
 		if (!(key instanceof byte[] || value instanceof byte[])) {
-			assertThat(message.getBody()).containsEntry(key, value);
+			assertThat(message.getValue()).containsEntry(hashKey, value);
 		}
 	}
 
@@ -214,12 +313,13 @@ public class DefaultStreamOperationsTests<K, V> {
 	public void sizeShouldReportStreamSize() {
 
 		K key = keyFactory.instance();
-		V value = valueFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
 
-		streamOps.add(key, Collections.singletonMap(key, value));
+		streamOps.add(key, Collections.singletonMap(hashKey, value));
 		assertThat(streamOps.size(key)).isEqualTo(1);
 
-		streamOps.add(key, Collections.singletonMap(key, value));
+		streamOps.add(key, Collections.singletonMap(hashKey, value));
 		assertThat(streamOps.size(key)).isEqualTo(2);
 	}
 }

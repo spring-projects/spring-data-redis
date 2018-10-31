@@ -16,6 +16,7 @@
 package org.springframework.data.redis.serializer;
 
 import org.springframework.lang.Nullable;
+import org.springframework.util.ClassUtils;
 
 /**
  * Basic interface serialization and deserialization of Objects to byte arrays (binary data). It is recommended that
@@ -89,5 +90,13 @@ public interface RedisSerializer<T> {
 	 */
 	static RedisSerializer<String> string() {
 		return StringRedisSerializer.UTF_8;
+	}
+
+	default boolean canSerialize(Class<?> type) {
+		return ClassUtils.isAssignable(getTargetType(), type);
+	}
+
+	default Class<?> getTargetType() {
+		return Object.class;
 	}
 }

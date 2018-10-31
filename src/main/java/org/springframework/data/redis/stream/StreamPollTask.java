@@ -26,7 +26,7 @@ import java.util.function.Predicate;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
 import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage;
+import org.springframework.data.redis.connection.RedisStreamCommands.Record;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.ConsumerStreamReadRequest;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamReadRequest;
@@ -44,13 +44,13 @@ class StreamPollTask<K, V> implements Task {
 	private final StreamListener<K, V> listener;
 	private final ErrorHandler errorHandler;
 	private final Predicate<Throwable> cancelSubscriptionOnError;
-	private final BiFunction<K, ReadOffset, List<StreamMessage<K, V>>> readFunction;
+	private final BiFunction<K, ReadOffset, List<Record<K, V>>> readFunction;
 
 	private final PollState pollState;
 	private volatile boolean isInEventLoop = false;
 
 	StreamPollTask(StreamReadRequest<K> streamRequest, StreamListener<K, V> listener, ErrorHandler errorHandler,
-			BiFunction<K, ReadOffset, List<StreamMessage<K, V>>> readFunction) {
+			BiFunction<K, ReadOffset, List<Record<K, V>>> readFunction) {
 
 		this.request = streamRequest;
 		this.listener = listener;
@@ -135,12 +135,12 @@ class StreamPollTask<K, V> implements Task {
 				// allow interruption
 				Thread.sleep(0);
 
-				List<StreamMessage<K, V>> read = readFunction.apply(key, pollState.getCurrentReadOffset());
+				List<Record<K, V>> read = readFunction.apply(key, pollState.getCurrentReadOffset());
 
-				for (StreamMessage<K, V> message : read) {
+				for (Record<K, V> message : read) {
 
 					listener.onMessage(message);
-					pollState.updateReadOffset(message.getId());
+					pollState.updateReadOffset(message.getId().getValue());
 				}
 			} catch (InterruptedException e) {
 

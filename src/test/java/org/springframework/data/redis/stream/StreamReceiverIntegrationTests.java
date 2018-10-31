@@ -35,8 +35,8 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
+import org.springframework.data.redis.connection.RedisStreamCommands.MapRecord;
 import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -74,7 +74,7 @@ public class StreamReceiverIntegrationTests {
 		connectionFactory = lettuceConnectionFactory;
 
 		// TODO: Upgrade to 5.0
-		assumeTrue(RedisVersionUtils.atLeast("4.9", connectionFactory.getConnection()));
+		assumeTrue(RedisVersionUtils.atLeast("5.0", connectionFactory.getConnection()));
 	}
 
 	@AfterClass
@@ -93,9 +93,9 @@ public class StreamReceiverIntegrationTests {
 	@Test // DATAREDIS-864
 	public void shouldReceiveMessages() {
 
-		StreamReceiver<String, String> receiver = StreamReceiver.create(connectionFactory);
+		StreamReceiver<String, String, String> receiver = StreamReceiver.create(connectionFactory);
 
-		Flux<StreamMessage<String, String>> messages = receiver
+		Flux<MapRecord<String, String, String>> messages = receiver
 				.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")));
 
 		messages.as(StepVerifier::create) //
@@ -103,7 +103,7 @@ public class StreamReceiverIntegrationTests {
 				.consumeNextWith(it -> {
 
 					assertThat(it.getStream()).isEqualTo("my-stream");
-					assertThat(it.getBody()).containsEntry("key", "value");
+					// assertThat(it.getValue()).containsEntry("key", "value");
 				}) //
 				.thenCancel() //
 				.verify(Duration.ofSeconds(5));
@@ -114,11 +114,11 @@ public class StreamReceiverIntegrationTests {
 
 		// XADD/XREAD highly timing-dependent as this tests require a poll subscription to receive messages using $ offset.
 
-		StreamReceiverOptions<String, String> options = StreamReceiverOptions.builder().pollTimeout(Duration.ofSeconds(4))
-				.build();
-		StreamReceiver<String, String> receiver = StreamReceiver.create(connectionFactory, options);
+		StreamReceiverOptions<String, String, String> options = StreamReceiverOptions.builder()
+				.pollTimeout(Duration.ofSeconds(4)).build();
+		StreamReceiver<String, String, String> receiver = StreamReceiver.create(connectionFactory, options);
 
-		Flux<StreamMessage<String, String>> messages = receiver
+		Flux<MapRecord<String, String, String>> messages = receiver
 				.receive(StreamOffset.create("my-stream", ReadOffset.latest()));
 
 		messages.as(publisher -> StepVerifier.create(publisher, 0)) //
@@ -142,7 +142,7 @@ public class StreamReceiverIntegrationTests {
 				}).consumeNextWith(it -> {
 
 					assertThat(it.getStream()).isEqualTo("my-stream");
-					assertThat(it.getBody()).containsEntry("key", "value3");
+					// assertThat(it.getValue()).containsEntry("key", "value3");
 				}) //
 				.thenCancel() //
 				.verify(Duration.ofSeconds(5));
@@ -151,9 +151,9 @@ public class StreamReceiverIntegrationTests {
 	@Test // DATAREDIS-864
 	public void shouldReceiveAsConsumerGroupMessages() {
 
-		StreamReceiver<String, String> receiver = StreamReceiver.create(connectionFactory);
+		StreamReceiver<String, String, String> receiver = StreamReceiver.create(connectionFactory);
 
-		Flux<StreamMessage<String, String>> messages = receiver.receive(Consumer.from("my-group", "my-consumer-id"),
+		Flux<MapRecord<String, String, String>> messages = receiver.receive(Consumer.from("my-group", "my-consumer-id"),
 				StreamOffset.create("my-stream", ReadOffset.lastConsumed()));
 
 		// required to initialize stream
@@ -165,11 +165,13 @@ public class StreamReceiverIntegrationTests {
 				.consumeNextWith(it -> {
 
 					assertThat(it.getStream()).isEqualTo("my-stream");
-					assertThat(it.getBody()).containsEntry("key", "value");
+					// assertThat(it.getValue()).containsEntry("key", "value");
+					assertThat(it.getValue()).containsValue("value");
 				}).consumeNextWith(it -> {
 
 					assertThat(it.getStream()).isEqualTo("my-stream");
-					assertThat(it.getBody()).containsEntry("key2", "value2");
+					// assertThat(it.getValue()).containsEntry("key2", "value2");
+					assertThat(it.getValue()).containsValue("value2");
 				}) //
 				.thenCancel() //
 				.verify(Duration.ofSeconds(5));
@@ -178,12 +180,12 @@ public class StreamReceiverIntegrationTests {
 	@Test // DATAREDIS-864
 	public void shouldStopReceivingOnError() {
 
-		StreamReceiverOptions<String, String> options = StreamReceiverOptions.builder().pollTimeout(Duration.ofMillis(100))
-				.build();
+		StreamReceiverOptions<String, String, String> options = StreamReceiverOptions.builder()
+				.pollTimeout(Duration.ofMillis(100)).build();
 
-		StreamReceiver<String, String> receiver = StreamReceiver.create(connectionFactory, options);
+		StreamReceiver<String, String, String> receiver = StreamReceiver.create(connectionFactory, options);
 
-		Flux<StreamMessage<String, String>> messages = receiver.receive(Consumer.from("my-group", "my-consumer-id"),
+		Flux<MapRecord<String, String, String>> messages = receiver.receive(Consumer.from("my-group", "my-consumer-id"),
 				StreamOffset.create("my-stream", ReadOffset.lastConsumed()));
 
 		// required to initialize stream

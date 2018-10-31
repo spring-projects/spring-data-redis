@@ -45,6 +45,7 @@ import org.springframework.data.redis.core.script.DefaultScriptExecutor;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.core.script.ScriptExecutor;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
@@ -104,7 +105,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private @Nullable ValueOperations<K, V> valueOps;
 	private @Nullable ListOperations<K, V> listOps;
 	private @Nullable SetOperations<K, V> setOps;
-	private @Nullable StreamOperations<K, V> streamOps;
+	private @Nullable StreamOperations<K, ?, ?> streamOps;
 	private @Nullable ZSetOperations<K, V> zSetOps;
 	private @Nullable GeoOperations<K, V> geoOps;
 	private @Nullable HyperLogLogOperations<K, V> hllOps;
@@ -1306,12 +1307,22 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#opsForStream()
 	 */
 	@Override
-	public StreamOperations<K, V> opsForStream() {
+	public <HK, HV> StreamOperations<K, HK, HV> opsForStream() {
 
 		if (streamOps == null) {
-			streamOps = new DefaultStreamOperations<>(this);
+			streamOps = new DefaultStreamOperations<>(this, null);
 		}
-		return streamOps;
+		return (StreamOperations<K, HK, HV>) streamOps;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#opsForStream()
+	 */
+	@Override
+	public <HK, HV> StreamOperations<K, HK, HV> opsForStream(HashMapper<? super K, ? super HK, ? super HV> hashMapper) {
+
+		return new DefaultStreamOperations<>(this, hashMapper);
 	}
 
 	/*
@@ -1319,7 +1330,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#boundStreamOps(java.lang.Object)
 	 */
 	@Override
-	public BoundStreamOperations<K, V> boundStreamOps(K key) {
+	public <HK, HV> BoundStreamOperations<K, HK, HV> boundStreamOps(K key) {
 		return new DefaultBoundStreamOperations<>(key, this);
 	}
 
