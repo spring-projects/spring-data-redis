@@ -19,6 +19,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
@@ -27,7 +28,6 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
 import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -41,7 +41,7 @@ import org.springframework.util.ErrorHandler;
  * implemented externally.
  * <p/>
  * Once created, a {@link StreamMessageListenerContainer} can subscribe to a Redis Stream and consume incoming
- * {@link StreamMessage messages}. {@link StreamMessageListenerContainer} allows multiple stream read requests and
+ * {@link Record messages}. {@link StreamMessageListenerContainer} allows multiple stream read requests and
  * returns a {@link Subscription} handle per read request. Cancelling the {@link Subscription} terminates eventually
  * background polling. Messages are converted using {@link RedisSerializer key and value serializers} to support various
  * serialization strategies. <br/>
@@ -58,9 +58,9 @@ import org.springframework.util.ErrorHandler;
  * <strong>Standalone</strong>
  * <ul>
  * <li>{@link ReadOffset#from(String)} Offset using a particular message Id: Start with the given offset and use the
- * last seen {@link StreamMessage#getId() message Id}.</li>
+ * last seen {@link Record#getId() message Id}.</li>
  * <li>{@link ReadOffset#lastConsumed()} Last consumed: Start with the latest offset ({@code $}) and use the last seen
- * {@link StreamMessage#getId() message Id}.</li>
+ * {@link Record#getId() message Id}.</li>
  * <li>{@link ReadOffset#latest()} Last consumed: Start with the latest offset ({@code $}) and use latest offset
  * ({@code $}) for subsequent reads.</li>
  * </ul>
@@ -68,7 +68,7 @@ import org.springframework.util.ErrorHandler;
  * <strong>Using {@link Consumer}</strong>
  * <ul>
  * <li>{@link ReadOffset#from(String)} Offset using a particular message Id: Start with the given offset and use the
- * last seen {@link StreamMessage#getId() message Id}.</li>
+ * last seen {@link Record#getId() message Id}.</li>
  * <li>{@link ReadOffset#lastConsumed()} Last consumed: Start with the last consumed message by the consumer ({@code >})
  * and use the last consumed message by the consumer ({@code >}) for subsequent reads.</li>
  * <li>{@link ReadOffset#latest()} Last consumed: Start with the latest offset ({@code $}) and use latest offset
@@ -80,10 +80,10 @@ import org.springframework.util.ErrorHandler;
  * <p/>
  * {@link StreamMessageListenerContainer} requires a {@link Executor} to fork long-running polling tasks on a different
  * {@link Thread}. This thread is used as event loop to poll for stream messages and invoke the
- * {@link StreamListener#onMessage(StreamMessage) listener callback}.
+ * {@link StreamListener#onMessage(Record) listener callback}.
  * <p/>
  * {@link StreamMessageListenerContainer} tasks propagate errors during stream reads and
- * {@link StreamListener#onMessage(StreamMessage) listener notification} to a configurable {@link ErrorHandler}. Errors
+ * {@link StreamListener#onMessage(Record) listener notification} to a configurable {@link ErrorHandler}. Errors
  * stop a {@link Subscription} by default. Configuring a {@link Predicate} for a {@link StreamReadRequest} allows
  * conditional subscription cancelling or continuing on all errors.
  * <p/>
@@ -124,7 +124,7 @@ public interface StreamMessageListenerContainer<K, V> extends SmartLifecycle {
 	 * @param connectionFactory must not be {@literal null}.
 	 * @return the new {@link StreamMessageListenerContainer}.
 	 */
-	static StreamMessageListenerContainer<String, String> create(RedisConnectionFactory connectionFactory) {
+	static StreamMessageListenerContainer<String, Map<String, String>> create(RedisConnectionFactory connectionFactory) {
 
 		Assert.notNull(connectionFactory, "RedisConnectionFactory must not be null!");
 
@@ -481,7 +481,7 @@ public interface StreamMessageListenerContainer<K, V> extends SmartLifecycle {
 		/**
 		 * @return a new builder for {@link StreamMessageListenerContainerOptions}.
 		 */
-		static StreamMessageListenerContainerOptionsBuilder<String, String> builder() {
+		static StreamMessageListenerContainerOptionsBuilder<String, Map<String, String>> builder() {
 			return new StreamMessageListenerContainerOptionsBuilder<>().serializer(StringRedisSerializer.UTF_8);
 		}
 
@@ -606,7 +606,7 @@ public interface StreamMessageListenerContainer<K, V> extends SmartLifecycle {
 		 * @param serializer must not be {@literal null}.
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
-		public <T> StreamMessageListenerContainerOptionsBuilder<T, T> serializer(RedisSerializer<T> serializer) {
+		public <T> StreamMessageListenerContainerOptionsBuilder<T, Map<T, T>> serializer(RedisSerializer<T> serializer) {
 
 			this.keySerializer = (RedisSerializer) serializer;
 			this.bodySerializer = (RedisSerializer) serializer;

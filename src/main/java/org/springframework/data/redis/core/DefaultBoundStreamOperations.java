@@ -21,8 +21,9 @@ import java.util.Map;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
+import org.springframework.data.redis.connection.RedisStreamCommands.MapRecord;
 import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage;
+import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
@@ -32,11 +33,13 @@ import org.springframework.lang.Nullable;
  * Default implementation for {@link BoundStreamOperations}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
-class DefaultBoundStreamOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundStreamOperations<K, V> {
+class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<K>
+		implements BoundStreamOperations<K, HK, HV> {
 
-	private final StreamOperations<K, V> ops;
+	private final StreamOperations<K, HK, HV> ops;
 
 	/**
 	 * Constructs a new <code>DefaultBoundSetOperations</code> instance.
@@ -44,7 +47,7 @@ class DefaultBoundStreamOperations<K, V> extends DefaultBoundKeyOperations<K> im
 	 * @param key
 	 * @param operations
 	 */
-	DefaultBoundStreamOperations(K key, RedisOperations<K, V> operations) {
+	DefaultBoundStreamOperations(K key, RedisOperations<K, ?> operations) {
 
 		super(key, operations);
 		this.ops = operations.opsForStream();
@@ -56,8 +59,8 @@ class DefaultBoundStreamOperations<K, V> extends DefaultBoundKeyOperations<K> im
 	 */
 	@Nullable
 	@Override
-	public Long acknowledge(String group, String... messageIds) {
-		return ops.acknowledge(getKey(), group, messageIds);
+	public Long acknowledge(String group, String... recordIds) {
+		return ops.acknowledge(getKey(), group, recordIds);
 	}
 
 	/* 
@@ -66,7 +69,7 @@ class DefaultBoundStreamOperations<K, V> extends DefaultBoundKeyOperations<K> im
 	 */
 	@Nullable
 	@Override
-	public String add(Map<K, V> body) {
+	public RecordId add(Map<HK, HV> body) {
 		return ops.add(getKey(), body);
 	}
 
@@ -76,8 +79,8 @@ class DefaultBoundStreamOperations<K, V> extends DefaultBoundKeyOperations<K> im
 	 */
 	@Nullable
 	@Override
-	public Long delete(String... messageIds) {
-		return ops.delete(getKey(), messageIds);
+	public Long delete(String... recordIds) {
+		return ops.delete(getKey(), recordIds);
 	}
 
 	/* 
@@ -126,7 +129,7 @@ class DefaultBoundStreamOperations<K, V> extends DefaultBoundKeyOperations<K> im
 	 */
 	@Nullable
 	@Override
-	public List<StreamMessage<K, V>> range(Range<String> range, Limit limit) {
+	public List<MapRecord<K, HK, HV>> range(Range<String> range, Limit limit) {
 		return ops.range(getKey(), range, limit);
 	}
 
@@ -136,7 +139,7 @@ class DefaultBoundStreamOperations<K, V> extends DefaultBoundKeyOperations<K> im
 	 */
 	@Nullable
 	@Override
-	public List<StreamMessage<K, V>> read(StreamReadOptions readOptions, ReadOffset readOffset) {
+	public List<MapRecord<K, HK, HV>> read(StreamReadOptions readOptions, ReadOffset readOffset) {
 		return ops.read(readOptions, StreamOffset.create(getKey(), readOffset));
 	}
 
@@ -146,7 +149,7 @@ class DefaultBoundStreamOperations<K, V> extends DefaultBoundKeyOperations<K> im
 	 */
 	@Nullable
 	@Override
-	public List<StreamMessage<K, V>> read(Consumer consumer, StreamReadOptions readOptions, ReadOffset readOffset) {
+	public List<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, ReadOffset readOffset) {
 		return ops.read(consumer, readOptions, StreamOffset.create(getKey(), readOffset));
 	}
 
@@ -156,7 +159,7 @@ class DefaultBoundStreamOperations<K, V> extends DefaultBoundKeyOperations<K> im
 	 */
 	@Nullable
 	@Override
-	public List<StreamMessage<K, V>> reverseRange(Range<String> range, Limit limit) {
+	public List<MapRecord<K, HK, HV>> reverseRange(Range<String> range, Limit limit) {
 		return ops.reverseRange(getKey(), range, limit);
 	}
 

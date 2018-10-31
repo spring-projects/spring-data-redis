@@ -51,7 +51,7 @@ class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 			return (ByteBuffer) value;
 		}
 
-		throw new IllegalStateException("Cannot serialize value without a serializer");
+		throw new IllegalStateException(String.format("Cannot serialize value of type %s without a serializer", value.getClass()));
 
 	}
 }

@@ -36,7 +36,6 @@ import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
@@ -370,24 +369,6 @@ abstract public class Converters {
 	public static <V> Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<V>>> deserializingGeoResultsConverter(
 			RedisSerializer<V> serializer) {
 		return new DeserializingGeoResultsConverter<>(serializer);
-	}
-
-	/**
-	 * {@link Converter} capable of deserializing {@link StreamMessage}.
-	 *
-	 * @param serializer
-	 * @return
-	 * @since 2.2
-	 */
-	public static <S, T> Converter<StreamMessage<S, S>, StreamMessage<T, T>> deserializingStreamMessageConverter(
-			Converter<S, T> serializer) {
-
-		MapConverter<S, T> mapConverter = new MapConverter<>(serializer);
-		return message -> {
-
-			return new StreamMessage<>(serializer.convert(message.getStream()), message.getId(),
-					mapConverter.convert(message.getBody()));
-		};
 	}
 
 	/**

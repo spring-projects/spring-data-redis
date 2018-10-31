@@ -16,9 +16,13 @@
 package org.springframework.data.redis.hash;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.core.convert.ConverterNotFoundException;
+import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.data.redis.core.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.IndexResolver;
 import org.springframework.data.redis.core.convert.IndexedData;
@@ -27,6 +31,7 @@ import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolver;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 
@@ -145,6 +150,33 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 	 */
 	public <T> T fromHash(Map<byte[], byte[]> hash, Class<T> type) {
 		return type.cast(fromHash(hash));
+	}
+
+	public Map<String, Object> toObjectHash(Object source) {
+
+		Map<byte[], byte[]> raw = toHash(source);
+
+		RedisPersistentEntity<?> entity = converter.getMappingContext().getPersistentEntity(source.getClass());
+		Map<String, Object> result = new LinkedHashMap<>();
+
+		for(Map.Entry<byte[], byte[]> entry : raw.entrySet()) {
+
+			String key = converter.fromBytes(entry.getKey(), String.class);
+			Object value = entry.getValue();
+
+			try {
+				value = converter.fromBytes(entry.getValue(), PropertyPath.from(key, entity.getTypeInformation()).getType());
+			} catch (PropertyReferenceException e) {
+				value = converter.fromBytes(entry.getValue(), String.class);
+			} catch (ConverterNotFoundException cnfe) {
+//				value = fromHash(entry)
+				// TODO: nested ones!
+			}
+
+			result.put(key, value);
+		}
+
+		return result;
 	}
 
 	/**

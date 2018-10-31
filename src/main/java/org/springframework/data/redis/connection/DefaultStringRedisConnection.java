@@ -63,14 +63,25 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	private final RedisConnection delegate;
 	private final RedisSerializer<String> serializer;
 	private Converter<byte[], String> bytesToString = new DeserializingConverter();
+	private Converter<String, byte[]> stringToBytes = new SerializingConverter();
 	private SetConverter<Tuple, StringTuple> tupleToStringTuple = new SetConverter<>(new TupleConverter());
 	private SetConverter<StringTuple, Tuple> stringTupleToTuple = new SetConverter<>(new StringTupleConverter());
 	private ListConverter<byte[], String> byteListToStringList = new ListConverter<>(bytesToString);
 	private MapConverter<byte[], String> byteMapToStringMap = new MapConverter<>(bytesToString);
+	private MapConverter<String, byte[]> stringMapToByteMap = new MapConverter<>(stringToBytes);
 	private SetConverter<byte[], String> byteSetToStringSet = new SetConverter<>(bytesToString);
 	private Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<String>>> byteGeoResultsToStringGeoResults;
-	private Converter<StreamMessage<byte[], byte[]>, StreamMessage<String, String>> byteStreamMessageToStringStreamMessageConverter;
-	private ListConverter<StreamMessage<byte[], byte[]>, StreamMessage<String, String>> byteStreamMessageListToStringStreamMessageConverter;
+	private Converter<ByteRecord, StringRecord> byteMapRecordToStringMapRecordConverter = new Converter<ByteRecord, StringRecord>() {
+
+		@Nullable
+		@Override
+		public StringRecord convert(ByteRecord source) {
+			return StringRecord.of(source.deserialize(serializer));
+		}
+	};
+
+	private ListConverter<ByteRecord, StringRecord> listByteMapRecordToStringMapRecordConverter = new ListConverter<>(
+			byteMapRecordToStringMapRecordConverter);
 
 	@SuppressWarnings("rawtypes") private Queue<Converter> pipelineConverters = new LinkedList<>();
 	@SuppressWarnings("rawtypes") private Queue<Converter> txConverters = new LinkedList<>();
@@ -80,6 +91,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	private class DeserializingConverter implements Converter<byte[], String> {
 		public String convert(byte[] source) {
 			return serializer.deserialize(source);
+		}
+	}
+
+	private class SerializingConverter implements Converter<String, byte[]> {
+
+		@Nullable
+		@Override
+		public byte[] convert(String source) {
+			return serializer.serialize(source);
 		}
 	}
 
@@ -138,11 +158,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		this.delegate = connection;
 		this.serializer = serializer;
 		this.byteGeoResultsToStringGeoResults = Converters.deserializingGeoResultsConverter(serializer);
-
-		this.byteStreamMessageToStringStreamMessageConverter = Converters
-				.deserializingStreamMessageConverter(serializer::deserialize);
-		this.byteStreamMessageListToStringStreamMessageConverter = new ListConverter<>(
-				byteStreamMessageToStringStreamMessageConverter);
 	}
 
 	/*
@@ -3610,20 +3625,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#xAck(java.lang.String, java.lang.String, java.lang.String[])
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xAck(java.lang.String, java.lang.String, RecordId[])
 	 */
 	@Override
-	public Long xAck(String key, String group, String... messageIds) {
-		return convertAndReturn(delegate.xAck(this.serialize(key), group, messageIds), identityConverter);
+	public Long xAck(String key, String group, RecordId... recordIds) {
+		return convertAndReturn(delegate.xAck(this.serialize(key), group, recordIds), identityConverter);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#xAdd(java.lang.String, java.util.Map)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xAdd(StringRecord)
 	 */
 	@Override
-	public String xAdd(String key, Map<String, String> body) {
-		return convertAndReturn(delegate.xAdd(serialize(key), serialize(body)), identityConverter);
+	public RecordId xAdd(StringRecord record) {
+		return convertAndReturn(delegate.xAdd(record.serialize(serializer)), identityConverter);
 	}
 
 	/*
@@ -3631,8 +3646,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#xDel(java.lang.String, java.lang.String[])
 	 */
 	@Override
-	public Long xDel(String key, String... messageIds) {
-		return convertAndReturn(delegate.xDel(serialize(key), messageIds), identityConverter);
+	public Long xDel(String key, RecordId... recordIds) {
+		return convertAndReturn(delegate.xDel(serialize(key), recordIds), identityConverter);
 	}
 
 	/*
@@ -3641,7 +3656,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public String xGroupCreate(String key, ReadOffset readOffset, String group) {
-		return convertAndReturn(delegate.xGroupCreate(serialize(key), readOffset, group), identityConverter);
+		return convertAndReturn(delegate.xGroupCreate(serialize(key), group, readOffset), identityConverter);
 	}
 
 	/*
@@ -3676,11 +3691,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#xRange(java.lang.String, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public List<StreamMessage<String, String>> xRange(String key, org.springframework.data.domain.Range<String> range,
-			Limit limit) {
-
-		return convertAndReturn(delegate.xRange(serialize(key), range, limit),
-				byteStreamMessageListToStringStreamMessageConverter);
+	public List<StringRecord> xRange(String key, org.springframework.data.domain.Range<String> range, Limit limit) {
+		return convertAndReturn(delegate.xRange(serialize(key), range, limit), listByteMapRecordToStringMapRecordConverter);
 	}
 
 	/*
@@ -3688,10 +3700,9 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#xReadAsString(org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset[])
 	 */
 	@Override
-	public List<StreamMessage<String, String>> xReadAsString(StreamReadOptions readOptions,
-			StreamOffset<String>... streams) {
+	public List<StringRecord> xReadAsString(StreamReadOptions readOptions, StreamOffset<String>... streams) {
 		return convertAndReturn(delegate.xRead(readOptions, serialize(streams)),
-				byteStreamMessageListToStringStreamMessageConverter);
+				listByteMapRecordToStringMapRecordConverter);
 	}
 
 	/*
@@ -3699,11 +3710,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#xReadGroupAsString(org.springframework.data.redis.connection.RedisStreamCommands.Consumer, org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset[])
 	 */
 	@Override
-	public List<StreamMessage<String, String>> xReadGroupAsString(Consumer consumer, StreamReadOptions readOptions,
-			StreamOffset<String>... streams) {
+	public List<StringRecord> xReadGroupAsString(Consumer consumer, StreamReadOptions readOptions,
+												 StreamOffset<String>... streams) {
 
 		return convertAndReturn(delegate.xReadGroup(consumer, readOptions, serialize(streams)),
-				byteStreamMessageListToStringStreamMessageConverter);
+				listByteMapRecordToStringMapRecordConverter);
 	}
 
 	/*
@@ -3711,11 +3722,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#xRevRange(java.lang.String, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public List<StreamMessage<String, String>> xRevRange(String key, org.springframework.data.domain.Range<String> range,
-			Limit limit) {
+	public List<StringRecord> xRevRange(String key, org.springframework.data.domain.Range<String> range, Limit limit) {
 
 		return convertAndReturn(delegate.xRevRange(serialize(key), range, limit),
-				byteStreamMessageListToStringStreamMessageConverter);
+				listByteMapRecordToStringMapRecordConverter);
 	}
 
 	/*
@@ -3732,26 +3742,26 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAck(byte[], java.lang.String, java.lang.String[])
 	 */
 	@Override
-	public Long xAck(byte[] key, String group, String... messageIds) {
-		return delegate.xAck(key, group, messageIds);
+	public Long xAck(byte[] key, String group, RecordId... recordIds) {
+		return delegate.xAck(key, group, recordIds);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAdd(byte[], java.util.Map)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAdd(byte[], MapRecord)
 	 */
 	@Override
-	public String xAdd(byte[] key, Map<byte[], byte[]> body) {
-		return delegate.xAdd(key, body);
+	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
+		return delegate.xAdd(record);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xDel(byte[], java.lang.String[])
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xDel(byte[], RecordId)
 	 */
 	@Override
-	public Long xDel(byte[] key, String... messageIds) {
-		return delegate.xDel(key, messageIds);
+	public Long xDel(byte[] key, RecordId... recordIds) {
+		return delegate.xDel(key, recordIds);
 	}
 
 	/*
@@ -3759,8 +3769,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupCreate(byte[], org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String)
 	 */
 	@Override
-	public String xGroupCreate(byte[] key, ReadOffset readOffset, String group) {
-		return delegate.xGroupCreate(key, readOffset, group);
+	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset) {
+		return delegate.xGroupCreate(key, groupName, readOffset);
 	}
 
 	/*
@@ -3777,8 +3787,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupDestroy(byte[], java.lang.String)
 	 */
 	@Override
-	public Boolean xGroupDestroy(byte[] key, String group) {
-		return delegate.xGroupDestroy(key, group);
+	public Boolean xGroupDestroy(byte[] key, String groupName) {
+		return delegate.xGroupDestroy(key, groupName);
 	}
 
 	/*
@@ -3795,8 +3805,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xRange(byte[], org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public List<StreamMessage<byte[], byte[]>> xRange(byte[] key, org.springframework.data.domain.Range<String> range,
-			Limit limit) {
+	public List<ByteRecord> xRange(byte[] key, org.springframework.data.domain.Range<String> range, Limit limit) {
 		return delegate.xRange(key, range, limit);
 	}
 
@@ -3805,7 +3814,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xRead(org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset[])
 	 */
 	@Override
-	public List<StreamMessage<byte[], byte[]>> xRead(StreamReadOptions readOptions, StreamOffset<byte[]>... streams) {
+	public List<ByteRecord> xRead(StreamReadOptions readOptions, StreamOffset<byte[]>... streams) {
 		return delegate.xRead(readOptions, streams);
 	}
 
@@ -3814,8 +3823,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xReadGroup(org.springframework.data.redis.connection.RedisStreamCommands.Consumer, org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset[])
 	 */
 	@Override
-	public List<StreamMessage<byte[], byte[]>> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
-			StreamOffset<byte[]>... streams) {
+	public List<ByteRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
+									   StreamOffset<byte[]>... streams) {
 		return delegate.xReadGroup(consumer, readOptions, streams);
 	}
 
@@ -3824,8 +3833,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xRevRange(byte[], org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public List<StreamMessage<byte[], byte[]>> xRevRange(byte[] key, org.springframework.data.domain.Range<String> range,
-			Limit limit) {
+	public List<ByteRecord> xRevRange(byte[] key, org.springframework.data.domain.Range<String> range, Limit limit) {
 		return delegate.xRevRange(key, range, limit);
 	}
 
@@ -3856,6 +3864,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 			addResultConverter(converter);
 			return null;
+		}
+
+		if (!(converter instanceof ListConverter) && value instanceof List) {
+			return (T) new ListConverter<>(converter).convert((List) value);
 		}
 
 		return value == null ? null
@@ -3924,5 +3936,4 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	public RedisConnection getDelegate() {
 		return delegate;
 	}
-
 }

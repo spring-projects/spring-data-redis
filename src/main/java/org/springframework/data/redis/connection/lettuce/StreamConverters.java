@@ -21,8 +21,9 @@ import io.lettuce.core.XReadArgs;
 import java.util.List;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands.ByteRecord;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions;
+import org.springframework.data.redis.connection.StreamRecords;
 import org.springframework.data.redis.connection.convert.ListConverter;
 
 /**
@@ -32,33 +33,11 @@ import org.springframework.data.redis.connection.convert.ListConverter;
  * serialization/deserialization happens here).
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
 class StreamConverters {
-
-	private static final ListConverter<StreamMessage<Object, Object>, RedisStreamCommands.StreamMessage<Object, Object>> STREAM_LIST_CONVERTER = new ListConverter<>(
-			StreamMessageConverter.INSTANCE);
-
-	/**
-	 * Convert Lettuce's {@link StreamMessage} to {@link RedisStreamCommands.StreamMessage}.
-	 *
-	 * @param source must not be {@literal null}.
-	 * @return the converted {@link RedisStreamCommands.StreamMessage}.
-	 */
-	static <K, V> RedisStreamCommands.StreamMessage<K, V> toStreamMessage(StreamMessage<K, V> source) {
-		return StreamMessageConverter.INSTANCE.convert((StreamMessage) source);
-	}
-
-	/**
-	 * Convert Lettuce's {@link List} of {@link StreamMessage} to {@link RedisStreamCommands.StreamMessage}s.
-	 *
-	 * @param source must not be {@literal null}.
-	 * @return the converted {@link List}.
-	 */
-	static <K, V> List<RedisStreamCommands.StreamMessage<K, V>> toStreamMessages(List<StreamMessage<K, V>> source) {
-		return (List) STREAM_LIST_CONVERTER.convert((List) source);
-	}
 
 	/**
 	 * Convert {@link StreamReadOptions} to Lettuce's {@link XReadArgs}.
@@ -70,37 +49,12 @@ class StreamConverters {
 		return StreamReadOptionsToXReadArgsConverter.INSTANCE.convert(readOptions);
 	}
 
-	/**
-	 * @return {@link Converter} to convert Lettuce {@link StreamMessage} into
-	 *         {@link org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage}.
-	 */
-	public static <K, V> Converter<StreamMessage<K, V>, RedisStreamCommands.StreamMessage<K, V>> streamMessageConverter() {
-		return (Converter) StreamMessageConverter.INSTANCE;
+	public static Converter<StreamMessage<byte[], byte[]>, ByteRecord> byteRecordConverter() {
+		return (it) -> StreamRecords.newRecord().in(it.getStream()).withId(it.getId()).ofBytes(it.getBody());
 	}
 
-	/**
-	 * @return {@link Converter} to convert a{@link List} of Lettuce {@link StreamMessage}s into a {@link List} of
-	 *         {@link org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage}.
-	 */
-	public static <K, V> Converter<List<StreamMessage<K, V>>, List<RedisStreamCommands.StreamMessage<K, V>>> streamMessageListConverter() {
-		return (Converter) STREAM_LIST_CONVERTER;
-	}
-
-	/**
-	 * {@link Converter} to convert Lettuce's {@link StreamMessage} to {@link RedisStreamCommands.StreamMessage}.
-	 */
-	enum StreamMessageConverter
-			implements Converter<StreamMessage<Object, Object>, RedisStreamCommands.StreamMessage<Object, Object>> {
-		INSTANCE;
-
-		/* 
-		 * (non-Javadoc)
-		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
-		 */
-		@Override
-		public RedisStreamCommands.StreamMessage<Object, Object> convert(StreamMessage<Object, Object> source) {
-			return new RedisStreamCommands.StreamMessage<>(source.getStream(), source.getId(), source.getBody());
-		}
+	public static Converter<List<StreamMessage<byte[], byte[]>>, List<ByteRecord>> byteRecordListConverter() {
+		return new ListConverter<>(byteRecordConverter());
 	}
 
 	/**

@@ -20,6 +20,7 @@ import static org.junit.Assume.*;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -35,8 +36,9 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
+import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
 import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage;
+import org.springframework.data.redis.connection.RedisStreamCommands.Record;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -58,7 +60,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	private static RedisConnectionFactory connectionFactory;
 
 	StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
-	StreamMessageListenerContainerOptions<String, String> containerOptions = StreamMessageListenerContainerOptions
+	StreamMessageListenerContainerOptions<String, Map<String,String>> containerOptions = StreamMessageListenerContainerOptions
 			.builder().pollTimeout(Duration.ofMillis(100)).build();
 
 	@BeforeClass
@@ -97,9 +99,9 @@ public class StreamMessageListenerContainerIntegrationTests {
 	@Test // DATAREDIS-864
 	public void shouldReceiveMessages() throws InterruptedException {
 
-		StreamMessageListenerContainer<String, String> container = StreamMessageListenerContainer.create(connectionFactory,
+		StreamMessageListenerContainer<String, Map<String,String>> container = StreamMessageListenerContainer.create(connectionFactory,
 				containerOptions);
-		BlockingQueue<StreamMessage<String, String>> queue = new LinkedBlockingQueue<>();
+		BlockingQueue<Record<String, Map<String, String>>> queue = new LinkedBlockingQueue<>();
 
 		container.start();
 		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::add);
@@ -122,10 +124,10 @@ public class StreamMessageListenerContainerIntegrationTests {
 	@Test // DATAREDIS-864
 	public void shouldReceiveMessagesInConsumerGroup() throws InterruptedException {
 
-		StreamMessageListenerContainer<String, String> container = StreamMessageListenerContainer.create(connectionFactory,
+		StreamMessageListenerContainer<String, Map<String, String>> container = StreamMessageListenerContainer.create(connectionFactory,
 				containerOptions);
-		BlockingQueue<StreamMessage<String, String>> queue = new LinkedBlockingQueue<>();
-		String messageId = redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
+		BlockingQueue<Record<String, Map<String, String>>> queue = new LinkedBlockingQueue<>();
+		RecordId messageId = redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
 		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from(messageId), "my-group");
 
 		container.start();
@@ -136,9 +138,9 @@ public class StreamMessageListenerContainerIntegrationTests {
 
 		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value2"));
 
-		StreamMessage<String, String> message = queue.poll(1, TimeUnit.SECONDS);
+		Record<String, Map<String, String>> message = queue.poll(1, TimeUnit.SECONDS);
 		assertThat(message).isNotNull();
-		assertThat(message.getBody()).containsEntry("key", "value2");
+		assertThat(message.getValue()).containsEntry("key", "value2");
 
 		cancelAwait(subscription);
 	}
@@ -148,9 +150,9 @@ public class StreamMessageListenerContainerIntegrationTests {
 
 		BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
 
-		StreamMessageListenerContainerOptions<String, String> containerOptions = StreamMessageListenerContainerOptions
+		StreamMessageListenerContainerOptions<String, Map<String, String>> containerOptions = StreamMessageListenerContainerOptions
 				.builder().errorHandler(failures::add).pollTimeout(Duration.ofMillis(100)).build();
-		StreamMessageListenerContainer<String, String> container = StreamMessageListenerContainer.create(connectionFactory,
+		StreamMessageListenerContainer<String, Map<String, String>> container = StreamMessageListenerContainer.create(connectionFactory,
 				containerOptions);
 
 		container.start();
@@ -171,14 +173,14 @@ public class StreamMessageListenerContainerIntegrationTests {
 
 		BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
 
-		StreamMessageListenerContainer<String, String> container = StreamMessageListenerContainer.create(connectionFactory,
+		StreamMessageListenerContainer<String, Map<String, String>> container = StreamMessageListenerContainer.create(connectionFactory,
 				containerOptions);
 
 		StreamReadRequest<String> readRequest = StreamReadRequest
 				.builder(StreamOffset.create("my-stream", ReadOffset.lastConsumed())).errorHandler(failures::add)
 				.consumer(Consumer.from("my-group", "my-consumer")).build();
 
-		String messageId = redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
+		RecordId messageId = redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
 		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from(messageId), "my-group");
 
 		container.start();
@@ -201,7 +203,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 
 		BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
 
-		StreamMessageListenerContainer<String, String> container = StreamMessageListenerContainer.create(connectionFactory,
+		StreamMessageListenerContainer<String, Map<String, String>> container = StreamMessageListenerContainer.create(connectionFactory,
 				containerOptions);
 
 		StreamReadRequest<String> readRequest = StreamReadRequest
@@ -211,7 +213,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 				.consumer(Consumer.from("my-group", "my-consumer")) //
 				.build();
 
-		String messageId = redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
+		RecordId messageId = redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
 		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from(messageId), "my-group");
 
 		container.start();
@@ -231,9 +233,9 @@ public class StreamMessageListenerContainerIntegrationTests {
 	@Test // DATAREDIS-864
 	public void cancelledStreamShouldNotReceiveMessages() throws InterruptedException {
 
-		StreamMessageListenerContainer<String, String> container = StreamMessageListenerContainer.create(connectionFactory,
+		StreamMessageListenerContainer<String, Map<String, String>> container = StreamMessageListenerContainer.create(connectionFactory,
 				containerOptions);
-		BlockingQueue<StreamMessage<String, String>> queue = new LinkedBlockingQueue<>();
+		BlockingQueue<Record<String,Map<String, String>>> queue = new LinkedBlockingQueue<>();
 
 		container.start();
 		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::add);
@@ -249,9 +251,9 @@ public class StreamMessageListenerContainerIntegrationTests {
 	@Test // DATAREDIS-864
 	public void containerRestartShouldRestartSubscription() throws InterruptedException {
 
-		StreamMessageListenerContainer<String, String> container = StreamMessageListenerContainer.create(connectionFactory,
+		StreamMessageListenerContainer<String, Map<String, String>> container = StreamMessageListenerContainer.create(connectionFactory,
 				containerOptions);
-		BlockingQueue<StreamMessage<String, String>> queue = new LinkedBlockingQueue<>();
+		BlockingQueue<Record<String,Map<String, String>>> queue = new LinkedBlockingQueue<>();
 
 		container.start();
 		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::add);

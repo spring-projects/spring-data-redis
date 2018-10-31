@@ -97,4 +97,9 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 	public byte[] serialize(@Nullable String string) {
 		return (string == null ? null : string.getBytes(charset));
 	}
+
+	@Override
+	public Class<?> getTargetType() {
+		return String.class;
+	}
 }

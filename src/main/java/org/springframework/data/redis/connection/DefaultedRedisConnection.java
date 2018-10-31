@@ -433,29 +433,29 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default Long xAck(byte[] key, String group, String... messageIds) {
+	default Long xAck(byte[] key, String group, RecordId... messageIds) {
 		return streamCommands().xAck(key, group, messageIds);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default String xAdd(byte[] key, Map<byte[], byte[]> body) {
-		return streamCommands().xAdd(key, body);
+	default RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
+		return streamCommands().xAdd(record);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default Long xDel(byte[] key, String... messageIds) {
-		return streamCommands().xDel(key, messageIds);
+	default Long xDel(byte[] key, RecordId... recordIds) {
+		return streamCommands().xDel(key, recordIds);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default String xGroupCreate(byte[] key, ReadOffset readOffset, String group) {
-		return streamCommands().xGroupCreate(key, readOffset, group);
+	default String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset) {
+		return streamCommands().xGroupCreate(key, groupName, readOffset);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
@@ -468,8 +468,8 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default Boolean xGroupDestroy(byte[] key, String group) {
-		return streamCommands().xGroupDestroy(key, group);
+	default Boolean xGroupDestroy(byte[] key, String groupName) {
+		return streamCommands().xGroupDestroy(key, groupName);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
@@ -482,60 +482,57 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default List<StreamMessage<byte[], byte[]>> xRange(byte[] key, org.springframework.data.domain.Range<String> range) {
+	default List<ByteRecord> xRange(byte[] key, org.springframework.data.domain.Range<String> range) {
 		return streamCommands().xRange(key, range);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default List<StreamMessage<byte[], byte[]>> xRange(byte[] key, org.springframework.data.domain.Range<String> range,
-			Limit limit) {
+	default List<ByteRecord> xRange(byte[] key, org.springframework.data.domain.Range<String> range, Limit limit) {
 		return streamCommands().xRange(key, range, limit);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default List<StreamMessage<byte[], byte[]>> xRead(StreamOffset<byte[]>... streams) {
+	default List<ByteRecord> xRead(StreamOffset<byte[]>... streams) {
 		return streamCommands().xRead(streams);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default List<StreamMessage<byte[], byte[]>> xRead(StreamReadOptions readOptions, StreamOffset<byte[]>... streams) {
+	default List<ByteRecord> xRead(StreamReadOptions readOptions, StreamOffset<byte[]>... streams) {
 		return streamCommands().xRead(readOptions, streams);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default List<StreamMessage<byte[], byte[]>> xReadGroup(Consumer consumer, StreamOffset<byte[]>... streams) {
+	default List<ByteRecord> xReadGroup(Consumer consumer, StreamOffset<byte[]>... streams) {
 		return streamCommands().xReadGroup(consumer, streams);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default List<StreamMessage<byte[], byte[]>> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
-			StreamOffset<byte[]>... streams) {
+	default List<ByteRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
+										StreamOffset<byte[]>... streams) {
 		return streamCommands().xReadGroup(consumer, readOptions, streams);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default List<StreamMessage<byte[], byte[]>> xRevRange(byte[] key,
-			org.springframework.data.domain.Range<String> range) {
+	default List<ByteRecord> xRevRange(byte[] key, org.springframework.data.domain.Range<String> range) {
 		return streamCommands().xRevRange(key, range);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default List<StreamMessage<byte[], byte[]>> xRevRange(byte[] key, org.springframework.data.domain.Range<String> range,
-			Limit limit) {
+	default List<ByteRecord> xRevRange(byte[] key, org.springframework.data.domain.Range<String> range, Limit limit) {
 		return streamCommands().xRevRange(key, range, limit);
 	}
 
