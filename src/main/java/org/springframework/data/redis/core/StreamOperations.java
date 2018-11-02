@@ -247,8 +247,15 @@ public interface StreamOperations<K, HK, HV> {
 		return read(StreamReadOptions.empty(), new StreamOffset[] { stream });
 	}
 
-	default <V> List<ObjectRecord<K, V>> read(StreamOffset<K> stream, Class<V> targetType) {
-		return read(StreamReadOptions.empty(), targetType, new StreamOffset[] { stream });
+	/**
+	 * Read records from one or more {@link StreamOffset}s.
+	 *
+	 * @param streams the streams to read from.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
+	 */
+	default <V> List<ObjectRecord<K, V>> read(Class<V> targetType, StreamOffset<K>... streams) {
+		return read(targetType, StreamReadOptions.empty(), streams);
 	}
 
 	/**
@@ -287,7 +294,17 @@ public interface StreamOperations<K, HK, HV> {
 	@Nullable
 	List<MapRecord<K, HK, HV>> read(StreamReadOptions readOptions, StreamOffset<K>... streams);
 
-	default <V> List<ObjectRecord<K, V>> read(StreamReadOptions readOptions, Class<V> targetType,
+	/**
+	 * Read records from one or more {@link StreamOffset}s.
+	 *
+	 * @param targetType the target type of the payload.
+	 * @param readOptions read arguments.
+	 * @param streams the streams to read from.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
+	 */
+	@Nullable
+	default <V> List<ObjectRecord<K, V>> read(Class<V> targetType, StreamReadOptions readOptions,
 			StreamOffset<K>... streams) {
 		return read(readOptions, streams).stream().map(it -> toObjectRecord(it, targetType)).collect(Collectors.toList());
 	}
@@ -321,6 +338,20 @@ public interface StreamOperations<K, HK, HV> {
 	/**
 	 * Read records from one or more {@link StreamOffset}s using a consumer group.
 	 *
+	 * @param targetType the target type of the payload.
+	 * @param consumer consumer/group.
+	 * @param streams the streams to read from.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
+	 */
+	@Nullable
+	default <V> List<ObjectRecord<K, V>> read(Class<V> targetType, Consumer consumer, StreamOffset<K>... streams) {
+		return read(targetType, consumer, StreamReadOptions.empty(), streams);
+	}
+
+	/**
+	 * Read records from one or more {@link StreamOffset}s using a consumer group.
+	 *
 	 * @param consumer consumer/group.
 	 * @param readOptions read arguments.
 	 * @param stream the streams to read from.
@@ -344,7 +375,18 @@ public interface StreamOperations<K, HK, HV> {
 	@Nullable
 	List<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, StreamOffset<K>... streams);
 
-	default <V> List<ObjectRecord<K, V>> read(Consumer consumer, StreamReadOptions readOptions, Class<V> targetType,
+	/**
+	 * Read records from one or more {@link StreamOffset}s using a consumer group.
+	 *
+	 * @param targetType the target type of the payload.
+	 * @param consumer consumer/group.
+	 * @param readOptions read arguments.
+	 * @param streams the streams to read from.
+	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
+	 */
+	@Nullable
+	default <V> List<ObjectRecord<K, V>> read(Class<V> targetType, Consumer consumer, StreamReadOptions readOptions,
 			StreamOffset<K>... streams) {
 		return read(consumer, readOptions, streams).stream().map(it -> toObjectRecord(it, targetType))
 				.collect(Collectors.toList());

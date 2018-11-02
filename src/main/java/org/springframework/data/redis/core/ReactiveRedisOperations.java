@@ -28,6 +28,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.Topic;
@@ -140,8 +141,7 @@ public interface ReactiveRedisOperations<K, V> {
 	/**
 	 * Find all keys matching the given {@code pattern}. <br />
 	 * <strong>IMPORTANT:</strong> It is recommended to use {@link #scan()} to iterate over the keyspace as
-	 * {@link #keys(Object)} is a
-	 * non-interruptible and expensive Redis operation.
+	 * {@link #keys(Object)} is a non-interruptible and expensive Redis operation.
 	 *
 	 * @param pattern must not be {@literal null}.
 	 * @return the {@link Flux} emitting matching keys one by one.
@@ -435,6 +435,15 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @since 2.2
 	 */
 	<HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream();
+
+	/**
+	 * Returns the operations performed on streams.
+	 *
+	 * @param hashMapper the {@link HashMapper} to use when mapping complex objects.
+	 * @return stream operations.
+	 * @since 2.2
+	 */
+	<HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream(HashMapper<? super K, ? super HK, ? super HV> hashMapper);
 
 	/**
 	 * Returns the operations performed on streams given a {@link RedisSerializationContext}.

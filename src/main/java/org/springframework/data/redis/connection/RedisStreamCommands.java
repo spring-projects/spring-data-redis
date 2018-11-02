@@ -179,8 +179,8 @@ public interface RedisStreamCommands {
 	Long xLen(byte[] key);
 
 	/**
-	 * Retrieve all {@link ByteRecord records} within a specific {@link Range} from the stream stored at
-	 * {@literal key}. <br />
+	 * Retrieve all {@link ByteRecord records} within a specific {@link Range} from the stream stored at {@literal key}.
+	 * <br />
 	 * Use {@link Range#unbounded()} to read from the minimum and the maximum ID possible.
 	 *
 	 * @param key the {@literal key} the stream is stored at.
@@ -366,16 +366,45 @@ public interface RedisStreamCommands {
 		/**
 		 * Create a {@link StreamOffset} given {@code key} and {@link ReadOffset}.
 		 *
-		 * @return
+		 * @param key the stream key.
+		 * @param readOffset the {@link ReadOffset} to use.
+		 * @return new instance of {@link StreamOffset}.
 		 */
 		public static <K> StreamOffset<K> create(K key, ReadOffset readOffset) {
 			return new StreamOffset<>(key, readOffset);
 		}
 
+		/**
+		 * Create a {@link StreamOffset} given {@code key} starting at {@link ReadOffset#latest()}.
+		 *
+		 * @param key he stream key.
+		 * @param <K>
+		 * @return new instance of {@link StreamOffset}.
+		 */
 		public static <K> StreamOffset latest(K key) {
 			return new StreamOffset(key, ReadOffset.latest());
 		}
 
+		/**
+		 * Create a {@link StreamOffset} given {@code key} starting at {@link ReadOffset#from(String)
+		 * ReadOffset#from("0-0")}.
+		 *
+		 * @param key he stream key.
+		 * @param <K>
+		 * @return new instance of {@link StreamOffset}.
+		 */
+		public static <K> StreamOffset fromStart(K key) {
+			return new StreamOffset(key, ReadOffset.from("0-0"));
+		}
+
+		/**
+		 * Create a {@link StreamOffset} using the given {@link Record#getId() record id} as reference to create the
+		 * {@link ReadOffset#from(String)}.
+		 * 
+		 * @param reference the record to be used as refrence point.
+		 * @param <K>
+		 * @return new instance of {@link StreamOffset}.
+		 */
 		public static <K> StreamOffset<K> of(Record<K, ?> reference) {
 			return create(reference.getStream(), ReadOffset.from(reference.getId()));
 		}
@@ -802,7 +831,7 @@ public interface RedisStreamCommands {
 		 * @return new {@link ByteRecord} holding the serialized values.
 		 */
 		default ByteRecord serialize(@Nullable RedisSerializer<? super S> streamSerializer,
-									 @Nullable RedisSerializer<? super K> fieldSerializer, @Nullable RedisSerializer<? super V> valueSerializer) {
+				@Nullable RedisSerializer<? super K> fieldSerializer, @Nullable RedisSerializer<? super V> valueSerializer) {
 
 			MapRecord<S, byte[], byte[]> x = mapEntries(it -> Collections
 					.singletonMap(fieldSerializer != null ? fieldSerializer.serialize(it.getKey()) : (byte[]) it.getKey(),
@@ -866,14 +895,15 @@ public interface RedisStreamCommands {
 		 * @return new {@link MapRecord} holding the deserialized values.
 		 */
 		default <K, HK, HV> MapRecord<K, HK, HV> deserialize(@Nullable RedisSerializer<? extends K> streamSerializer,
-															 @Nullable RedisSerializer<? extends HK> fieldSerializer,
-															 @Nullable RedisSerializer<? extends HV> valueSerializer) {
+				@Nullable RedisSerializer<? extends HK> fieldSerializer,
+				@Nullable RedisSerializer<? extends HV> valueSerializer) {
 
-			return mapEntries(it -> Collections
-					.<HK, HV> singletonMap(fieldSerializer != null ? fieldSerializer.deserialize(ByteUtils.getBytes(it.getKey())) : (HK) it.getKey(),
-							valueSerializer != null ? valueSerializer.deserialize(ByteUtils.getBytes(it.getValue())) : (HV) it.getValue())
+			return mapEntries(it -> Collections.<HK, HV> singletonMap(
+					fieldSerializer != null ? fieldSerializer.deserialize(ByteUtils.getBytes(it.getKey())) : (HK) it.getKey(),
+					valueSerializer != null ? valueSerializer.deserialize(ByteUtils.getBytes(it.getValue())) : (HV) it.getValue())
 					.entrySet().iterator().next())
-					.withStreamKey(streamSerializer != null ? streamSerializer.deserialize(ByteUtils.getBytes(getStream())) : (K) getStream());
+							.withStreamKey(streamSerializer != null ? streamSerializer.deserialize(ByteUtils.getBytes(getStream()))
+									: (K) getStream());
 		}
 
 		/**
@@ -882,9 +912,10 @@ public interface RedisStreamCommands {
 		 * @param source must not be {@literal null}.
 		 * @return new instance of {@link ByteRecord}.
 		 */
-//		static ByteBufferRecord of(MapRecord<byte[], byte[], byte[]> source) {
-//			return StreamRecords.newRecord().in(ByteBuffer.wrap(source.getStream())).withId(ByteBuffer.wrap(source.getId())).ofBytes(ByteBuffer.wrap(source.getValue()));
-//		}
+		// static ByteBufferRecord of(MapRecord<byte[], byte[], byte[]> source) {
+		// return
+		// StreamRecords.newRecord().in(ByteBuffer.wrap(source.getStream())).withId(ByteBuffer.wrap(source.getId())).ofBytes(ByteBuffer.wrap(source.getValue()));
+		// }
 
 		/**
 		 * Turn a binary {@link MapRecord} into a {@link ByteRecord}.
@@ -896,15 +927,16 @@ public interface RedisStreamCommands {
 			return StreamRecords.newRecord().in(source.getStream()).withId(source.getId()).ofBuffer(source.getValue());
 		}
 
-		default <OV> ObjectRecord<ByteBuffer, OV> toObjectRecord(HashMapper<? super OV, ? super ByteBuffer, ? super ByteBuffer> mapper) {
+		default <OV> ObjectRecord<ByteBuffer, OV> toObjectRecord(
+				HashMapper<? super OV, ? super ByteBuffer, ? super ByteBuffer> mapper) {
 
-			Map<byte[], byte[]> targetMap = getValue().entrySet().stream().collect(Collectors.toMap(entry -> ByteUtils.getBytes(entry.getKey()), entry -> ByteUtils.getBytes(entry.getValue())));
+			Map<byte[], byte[]> targetMap = getValue().entrySet().stream().collect(
+					Collectors.toMap(entry -> ByteUtils.getBytes(entry.getKey()), entry -> ByteUtils.getBytes(entry.getValue())));
 
-			return Record.<ByteBuffer, OV> of((OV) (mapper).fromHash((Map) targetMap)).withId(getId()).withStreamKey(getStream());
+			return Record.<ByteBuffer, OV> of((OV) (mapper).fromHash((Map) targetMap)).withId(getId())
+					.withStreamKey(getStream());
 		}
 	}
-
-
 
 	/**
 	 * A {@link Record} within the stream backed by a collection of binary {@literal field/value} paris.

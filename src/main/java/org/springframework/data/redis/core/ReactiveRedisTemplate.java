@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.hash.HashMapper;
+import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -632,11 +634,25 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForStream(HashMapper)
+	 */
+	@Override
+	public <HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream(HashMapper<? super K, ? super HK, ? super HV> hashMapper) {
+		return opsForStream(serializationContext, hashMapper);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForStream(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	public <HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream(
 			RedisSerializationContext<K, ?> serializationContext) {
-		return new DefaultReactiveStreamOperations<>(this, serializationContext);
+		return opsForStream(serializationContext, null);
+	}
+
+	protected <HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream(
+			RedisSerializationContext<K, ?> serializationContext, @Nullable HashMapper<? super K, ? super HK, ? super HV> hashMapper) {
+		return new DefaultReactiveStreamOperations<>(this, serializationContext, hashMapper);
 	}
 
 	/*

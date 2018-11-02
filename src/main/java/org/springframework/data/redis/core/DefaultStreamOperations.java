@@ -52,14 +52,14 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 
 	private final RedisCustomConversions rcc = new RedisCustomConversions();
 	private DefaultConversionService conversionService;
-	private HashMapper<?, HK, HV> mapper;
+	private HashMapper<?, ? super HK, ? super HV> mapper;
 
-	DefaultStreamOperations(RedisTemplate<K, ?> template) {
+	DefaultStreamOperations(RedisTemplate<K, ?> template,
+			@Nullable HashMapper<? super K, ? super HK, ? super HV> mapper) {
 		super((RedisTemplate<K, Object>) template);
 
 		this.conversionService = new DefaultConversionService();
-		this.mapper = mapper != null ? mapper
-				: (HashMapper<?, HK, HV>) new ObjectHashMapper(); /* TODO: HashMapper should be configurable */
+		this.mapper = mapper != null ? mapper : (HashMapper<?, HK, HV>) new ObjectHashMapper();
 		rcc.registerConvertersIn(conversionService);
 	}
 
@@ -268,17 +268,13 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 							.collect(Collectors.toMap(e -> conversionService.convert((Object) e.getKey(), byte[].class),
 									e -> conversionService.convert((Object) e.getValue(), byte[].class)));
 
-					return (V) mapper.fromHash((Map<HK, HV>) map);
+					return (V) mapper.fromHash((Map) map);
 				}
 			};
 
 		}
 
 		return (HashMapper<V, HK, HV>) mapper;
-	}
-
-	protected boolean hashKeySerializerPresent() {
-		return hashValueSerializer() != null;
 	}
 
 	protected byte[] serializeHashValueIfRequires(HV value) {

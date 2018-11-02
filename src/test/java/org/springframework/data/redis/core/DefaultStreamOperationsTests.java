@@ -256,8 +256,7 @@ public class DefaultStreamOperationsTests<K, HK, HV> {
 		RecordId messageId1 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
 		RecordId messageId2 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
 
-		List<ObjectRecord<K, HV>> messages = streamOps.read(StreamOffset.create(key, ReadOffset.from("0-0")),
-				(Class<HV>) value.getClass());
+		List<ObjectRecord<K, HV>> messages = streamOps.read((Class<HV>) value.getClass(), StreamOffset.create(key, ReadOffset.from("0-0")));
 
 		assertThat(messages).hasSize(2);
 

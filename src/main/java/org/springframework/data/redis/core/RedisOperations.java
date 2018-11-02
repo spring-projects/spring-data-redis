@@ -27,6 +27,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.query.SortQuery;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
 
@@ -345,7 +346,6 @@ public interface RedisOperations<K, V> {
 	 */
 	void restore(K key, byte[] value, long timeToLive, TimeUnit unit, boolean replace);
 
-
 	/**
 	 * Get the time to live for {@code key} in seconds.
 	 *
@@ -563,7 +563,7 @@ public interface RedisOperations<K, V> {
 	BoundGeoOperations<K, V> boundGeoOps(K key);
 
 	/**
-	 *Returns the operations performed on hash values.
+	 * Returns the operations performed on hash values.
 	 *
 	 * @param <HK> hash key (or field) type
 	 * @param <HV> hash value type
@@ -572,8 +572,8 @@ public interface RedisOperations<K, V> {
 	<HK, HV> HashOperations<K, HK, HV> opsForHash();
 
 	/**
-	 * Returns the operations performed on hash values bound to the given key.
-	 * * @param <HK> hash key (or field) type
+	 * Returns the operations performed on hash values bound to the given key. * @param <HK> hash key (or field) type
+	 * 
 	 * @param <HV> hash value type
 	 * @param key Redis key
 	 * @return hash operations bound to the given key.
@@ -623,6 +623,16 @@ public interface RedisOperations<K, V> {
 	 * @since 2.2
 	 */
 	<HK, HV> StreamOperations<K, HK, HV> opsForStream();
+
+	/**
+	 * Returns the operations performed on Streams.
+	 *
+	 * @param hashMapper the {@link HashMapper} to use when converting
+	 *          {@link org.springframework.data.redis.connection.RedisStreamCommands.ObjectRecord}.
+	 * @return stream operations.
+	 * @since 2.2
+	 */
+	<HK, HV> StreamOperations<K, HK, HV> opsForStream(HashMapper<? super K, ? super HK, ? super HV> hashMapper);
 
 	/**
 	 * Returns the operations performed on Streams bound to the given key.

@@ -45,6 +45,7 @@ import org.springframework.data.redis.core.script.DefaultScriptExecutor;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.core.script.ScriptExecutor;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
@@ -1309,9 +1310,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public <HK, HV> StreamOperations<K, HK, HV> opsForStream() {
 
 		if (streamOps == null) {
-			streamOps = new DefaultStreamOperations<>(this);
+			streamOps = new DefaultStreamOperations<>(this, null);
 		}
 		return (StreamOperations<K, HK, HV>) streamOps;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#opsForStream()
+	 */
+	@Override
+	public <HK, HV> StreamOperations<K, HK, HV> opsForStream(HashMapper<? super K, ? super HK, ? super HV> hashMapper) {
+
+		return new DefaultStreamOperations<>(this, hashMapper);
 	}
 
 	/*

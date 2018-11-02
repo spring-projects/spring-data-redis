@@ -43,6 +43,7 @@ import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.hash.ObjectHashMapper;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -60,15 +61,16 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 	private final RedisCustomConversions rcc = new RedisCustomConversions();
 	private DefaultConversionService conversionService;
-	private HashMapper<?, HK, HV> mapper;
+	private HashMapper<? super K, ? super HK, ? super HV> mapper;
 
 	public DefaultReactiveStreamOperations(ReactiveRedisTemplate<?, ?> template,
-			RedisSerializationContext<K, ?> serializationContext) { // TODO: HashMapper should be configurable
+			RedisSerializationContext<K, ?> serializationContext,
+			@Nullable HashMapper<? super K, ? super HK, ? super HV> hashMapper) {
 		this.template = template;
 		this.serializationContext = serializationContext;
 
 		this.conversionService = new DefaultConversionService();
-		this.mapper = mapper != null ? mapper : (HashMapper<?, HK, HV>) new ObjectHashMapper();
+		this.mapper = mapper != null ? mapper : (HashMapper<? super K, ? super HK, ? super HV>) new ObjectHashMapper();
 		rcc.registerConvertersIn(conversionService);
 	}
 
@@ -283,7 +285,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 							.collect(Collectors.toMap(e -> conversionService.convert((Object) e.getKey(), byte[].class),
 									e -> conversionService.convert((Object) e.getValue(), byte[].class)));
 
-					return (V) mapper.fromHash((Map<HK, HV>) map);
+					return (V) mapper.fromHash((Map) map);
 				}
 			};
 
