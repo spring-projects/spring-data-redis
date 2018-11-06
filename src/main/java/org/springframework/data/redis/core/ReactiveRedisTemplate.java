@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import org.springframework.data.redis.hash.HashMapper;
+import org.springframework.data.redis.hash.ObjectHashMapper;
 import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -645,9 +646,10 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForStream(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
+	@SuppressWarnings("unchecked")
 	public <HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream(
 			RedisSerializationContext<K, ?> serializationContext) {
-		return opsForStream(serializationContext, null);
+		return opsForStream(serializationContext, (HashMapper) new ObjectHashMapper());
 	}
 
 	protected <HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream(

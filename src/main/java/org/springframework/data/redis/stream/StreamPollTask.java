@@ -24,10 +24,10 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
-import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.Record;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.Record;
+import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.ConsumerStreamReadRequest;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamReadRequest;
 import org.springframework.util.ErrorHandler;
@@ -38,19 +38,19 @@ import org.springframework.util.ErrorHandler;
  * @author Mark Paluch
  * @see 2.2
  */
-class StreamPollTask<K, V> implements Task {
+class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 
 	private final StreamReadRequest<K> request;
 	private final StreamListener<K, V> listener;
 	private final ErrorHandler errorHandler;
 	private final Predicate<Throwable> cancelSubscriptionOnError;
-	private final BiFunction<K, ReadOffset, List<Record<K, V>>> readFunction;
+	private final BiFunction<K, ReadOffset, List<V>> readFunction;
 
 	private final PollState pollState;
 	private volatile boolean isInEventLoop = false;
 
 	StreamPollTask(StreamReadRequest<K> streamRequest, StreamListener<K, V> listener, ErrorHandler errorHandler,
-			BiFunction<K, ReadOffset, List<Record<K, V>>> readFunction) {
+			BiFunction<K, ReadOffset, List<V>> readFunction) {
 
 		this.request = streamRequest;
 		this.listener = listener;
@@ -135,9 +135,9 @@ class StreamPollTask<K, V> implements Task {
 				// allow interruption
 				Thread.sleep(0);
 
-				List<Record<K, V>> read = readFunction.apply(key, pollState.getCurrentReadOffset());
+				List<V> read = readFunction.apply(key, pollState.getCurrentReadOffset());
 
-				for (Record<K, V> message : read) {
+				for (V message : read) {
 
 					listener.onMessage(message);
 					pollState.updateReadOffset(message.getId().getValue());

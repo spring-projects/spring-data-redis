@@ -1,4 +1,19 @@
-package org.springframework.data.redis.connection;
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.data.redis.connection.stream;
 
 import lombok.EqualsAndHashCode;
 
@@ -7,20 +22,14 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.springframework.data.redis.connection.RedisStreamCommands.ByteBufferRecord;
-import org.springframework.data.redis.connection.RedisStreamCommands.ByteRecord;
-import org.springframework.data.redis.connection.RedisStreamCommands.MapRecord;
-import org.springframework.data.redis.connection.RedisStreamCommands.ObjectRecord;
-import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
-import org.springframework.data.redis.connection.RedisStreamCommands.StringRecord;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
- * {@link StreamRecords} provides utilities to create specific
- * {@link org.springframework.data.redis.connection.RedisStreamCommands.Record} instances.
+ * {@link StreamRecords} provides utilities to create specific {@link Record} instances.
  *
  * @author Christoph Strobl
  * @since 2.2
@@ -83,15 +92,22 @@ public class StreamRecords {
 	}
 
 	/**
-	 * Obtain new instance of {@link RecordBuilder} to fluently create
-	 * {@link org.springframework.data.redis.connection.RedisStreamCommands.Record records}.
+	 * Obtain new instance of {@link RecordBuilder} to fluently create {@link Record records}.
 	 *
 	 * @return
 	 */
-	public static RecordBuilder newRecord() {
-		return new RecordBuilder(null, RecordId.autoGenerate());
+	public static RecordBuilder<?> newRecord() {
+		return new RecordBuilder<>(null, RecordId.autoGenerate());
 	}
 
+	// Utility constructor
+	private StreamRecords() {}
+
+	/**
+	 * Builder for {@link Record}.
+	 * 
+	 * @param <S> stream keyy type.
+	 */
 	public static class RecordBuilder<S> {
 
 		private RecordId id;
@@ -103,21 +119,49 @@ public class StreamRecords {
 			this.id = recordId;
 		}
 
+		/**
+		 * Configure a stream key.
+		 * 
+		 * @param stream the stream key, must not be null.
+		 * @param <STREAM_KEY>
+		 * @return {@literal this} {@link RecordBuilder}.
+		 */
 		public <STREAM_KEY> RecordBuilder<STREAM_KEY> in(STREAM_KEY stream) {
+
+			Assert.notNull(stream, "Stream key must not be null");
+
 			return new RecordBuilder<>(stream, id);
 		}
 
+		/**
+		 * Configure a record Id given a {@link String}. Associates a user-supplied record id instead of using
+		 * server-generated record Id's.
+		 * 
+		 * @param id the record id.
+		 * @return {@literal this} {@link RecordBuilder}.
+		 * @see RecordId
+		 */
 		public RecordBuilder<S> withId(String id) {
 			return withId(RecordId.of(id));
 		}
 
+		/**
+		 * Configure a {@link RecordId}. Associates a user-supplied record id instead of using server-generated record Id's.
+		 * 
+		 * @param id the record id.
+		 * @return {@literal this} {@link RecordBuilder}.
+		 */
 		public RecordBuilder<S> withId(RecordId id) {
+
+			Assert.notNull(id, "RecordId must not be null");
 
 			this.id = id;
 			return this;
 		}
 
 		/**
+		 * Create a {@link MapRecord}.
+		 * 
 		 * @param map
 		 * @param <K>
 		 * @param <V>
@@ -128,17 +172,22 @@ public class StreamRecords {
 		}
 
 		/**
+		 * Create a {@link StringRecord}.
+		 * 
 		 * @param map
 		 * @return new instance of {@link StringRecord}.
+		 * @see MapRecord
 		 */
 		public StringRecord ofStrings(Map<String, String> map) {
 			return new StringMapBackedRecord(ObjectUtils.nullSafeToString(stream), id, map);
 		}
 
 		/**
+		 * Create an {@link ObjectRecord}.
+		 * 
 		 * @param value
 		 * @param <V>
-		 * @return ni instance of {@link ObjectRecord}.
+		 * @return new instance of {@link ObjectRecord}.
 		 */
 		public <V> ObjectRecord<S, V> ofObject(V value) {
 			return new ObjectBackedRecord<>(stream, id, value);
@@ -160,7 +209,7 @@ public class StreamRecords {
 		 */
 		public ByteBufferRecord ofBuffer(Map<ByteBuffer, ByteBuffer> value) {
 
-			ByteBuffer streamKey = null;
+			ByteBuffer streamKey;
 
 			if (stream instanceof ByteBuffer) {
 				streamKey = (ByteBuffer) stream;
@@ -176,13 +225,20 @@ public class StreamRecords {
 		}
 	}
 
+	/**
+	 * Default implementation of {@link MapRecord}.
+	 *
+	 * @param <S>
+	 * @param <K>
+	 * @param <V>
+	 */
 	static class MapBackedRecord<S, K, V> implements MapRecord<S, K, V> {
 
 		private @Nullable S stream;
 		private RecordId recordId;
 		private final Map<K, V> kvMap;
 
-		MapBackedRecord(S stream, RecordId recordId, Map<K, V> kvMap) {
+		MapBackedRecord(@Nullable S stream, RecordId recordId, Map<K, V> kvMap) {
 
 			this.stream = stream;
 			this.recordId = recordId;
@@ -263,6 +319,9 @@ public class StreamRecords {
 		}
 	}
 
+	/**
+	 * Default implementation of {@link ByteRecord}.
+	 */
 	static class ByteMapBackedRecord extends MapBackedRecord<byte[], byte[], byte[]> implements ByteRecord {
 
 		ByteMapBackedRecord(byte[] stream, RecordId recordId, Map<byte[], byte[]> map) {
@@ -274,11 +333,15 @@ public class StreamRecords {
 			return new ByteMapBackedRecord(key, getId(), getValue());
 		}
 
+		@Override
 		public ByteMapBackedRecord withId(RecordId id) {
 			return new ByteMapBackedRecord(getStream(), id, getValue());
 		}
 	}
 
+	/**
+	 * Default implementation of {@link ByteBufferRecord}.
+	 */
 	static class ByteBufferMapBackedRecord extends MapBackedRecord<ByteBuffer, ByteBuffer, ByteBuffer>
 			implements ByteBufferRecord {
 
@@ -291,11 +354,15 @@ public class StreamRecords {
 			return new ByteBufferMapBackedRecord(key, getId(), getValue());
 		}
 
+		@Override
 		public ByteBufferMapBackedRecord withId(RecordId id) {
 			return new ByteBufferMapBackedRecord(getStream(), id, getValue());
 		}
 	}
 
+	/**
+	 * Default implementation of StringRecord.
+	 */
 	static class StringMapBackedRecord extends MapBackedRecord<String, String, String> implements StringRecord {
 
 		StringMapBackedRecord(String stream, RecordId recordId, Map<String, String> stringStringMap) {
@@ -307,11 +374,18 @@ public class StreamRecords {
 			return new StringMapBackedRecord(key, getId(), getValue());
 		}
 
+		@Override
 		public StringMapBackedRecord withId(RecordId id) {
 			return new StringMapBackedRecord(getStream(), id, getValue());
 		}
 	}
 
+	/**
+	 * Default implementation of {@link ObjectRecord}.
+	 *
+	 * @param <S>
+	 * @param <V>
+	 */
 	@EqualsAndHashCode
 	static class ObjectBackedRecord<S, V> implements ObjectRecord<S, V> {
 
@@ -319,7 +393,7 @@ public class StreamRecords {
 		private RecordId recordId;
 		private final V value;
 
-		public ObjectBackedRecord(@Nullable S stream, RecordId recordId, V value) {
+		ObjectBackedRecord(@Nullable S stream, RecordId recordId, V value) {
 
 			this.stream = stream;
 			this.recordId = recordId;
@@ -349,7 +423,7 @@ public class StreamRecords {
 		}
 
 		@Override
-		public <S1> ObjectRecord<S1, V> withStreamKey(S1 key) {
+		public <SK> ObjectRecord<SK, V> withStreamKey(SK key) {
 			return new ObjectBackedRecord<>(key, recordId, value);
 		}
 

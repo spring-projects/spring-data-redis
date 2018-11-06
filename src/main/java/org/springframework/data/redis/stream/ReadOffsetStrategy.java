@@ -17,8 +17,8 @@ package org.springframework.data.redis.stream;
 
 import java.util.Optional;
 
-import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
-import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.ReadOffset;
 
 /**
  * Strategy to determine the first and subsequent {@link ReadOffset}.

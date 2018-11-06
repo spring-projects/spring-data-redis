@@ -20,7 +20,7 @@ import static org.junit.Assume.*;
 
 import io.lettuce.core.XReadArgs;
 import org.junit.Ignore;
-import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
+import org.springframework.data.redis.connection.stream.RecordId;
 import reactor.test.StepVerifier;
 
 import java.util.Collections;
@@ -29,9 +29,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.RedisTestProfileValueSource;
-import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
-import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 
 /**
