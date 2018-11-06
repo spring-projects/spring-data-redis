@@ -26,7 +26,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
-import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
+import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamRecords;
 
 /**
  * Unit test of {@link DefaultStringRedisConnection} that executes commands in a pipeline

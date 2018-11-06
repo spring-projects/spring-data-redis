@@ -32,12 +32,11 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyComm
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveStreamCommands;
 import org.springframework.data.redis.connection.ReactiveStreamCommands.GroupCommand.GroupCommandAction;
-import org.springframework.data.redis.connection.RedisStreamCommands;
-import org.springframework.data.redis.connection.RedisStreamCommands.ByteBufferRecord;
-import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
-import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions;
-import org.springframework.data.redis.connection.StreamRecords;
+import org.springframework.data.redis.connection.stream.ByteBufferRecord;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
@@ -270,7 +269,8 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> StreamOffset<T>[] toStreamOffsets(Collection<RedisStreamCommands.StreamOffset<T>> streams) {
+	private static <T> StreamOffset<T>[] toStreamOffsets(
+			Collection<org.springframework.data.redis.connection.stream.StreamOffset<T>> streams) {
 
 		return streams.stream().map(it -> StreamOffset.from(it.getKey(), it.getOffset().getOffset()))
 				.toArray(StreamOffset[]::new);

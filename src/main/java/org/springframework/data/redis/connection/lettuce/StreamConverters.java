@@ -21,9 +21,9 @@ import io.lettuce.core.XReadArgs;
 import java.util.List;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.redis.connection.RedisStreamCommands.ByteRecord;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions;
-import org.springframework.data.redis.connection.StreamRecords;
+import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.connection.convert.ListConverter;
 
 /**

@@ -39,7 +39,7 @@ class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 	@Override
 	public ByteBuffer write(T value) {
 
-		if (serializer != null) {
+		if (serializer != null && (value == null || serializer.canSerialize(value.getClass()))) {
 			return ByteBuffer.wrap(serializer.serialize(value));
 		}
 

@@ -35,21 +35,22 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.RedisTestProfileValueSource;
-import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
-import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
-import org.springframework.data.redis.connection.RedisStreamCommands.MapRecord;
-import org.springframework.data.redis.connection.RedisStreamCommands.ObjectRecord;
-import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.ObjectRecord;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
-import org.springframework.data.redis.connection.StreamRecords;
+import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
 /**
  * Integration test of {@link DefaultStreamOperations}
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 public class DefaultStreamOperationsTests<K, HK, HV> {
@@ -71,7 +72,6 @@ public class DefaultStreamOperationsTests<K, HK, HV> {
 		// See https://github.com/xetorthio/jedis/issues/1820
 		assumeTrue(redisTemplate.getConnectionFactory() instanceof LettuceConnectionFactory);
 
-		// TODO: Change to 5.0 after Redis 5 GA
 		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "5.0"));
 
 		this.redisTemplate = redisTemplate;
@@ -133,7 +133,7 @@ public class DefaultStreamOperationsTests<K, HK, HV> {
 
 		RecordId messageId = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
 
-		List<ObjectRecord<K, HV>> messages = streamOps.range(key, Range.unbounded(), (Class<HV>) value.getClass());
+		List<ObjectRecord<K, HV>> messages = streamOps.range((Class<HV>) value.getClass(), key, Range.unbounded());
 
 		assertThat(messages).hasSize(1);
 
@@ -212,7 +212,7 @@ public class DefaultStreamOperationsTests<K, HK, HV> {
 		RecordId messageId1 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
 		RecordId messageId2 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
 
-		List<ObjectRecord<K, HV>> messages = streamOps.reverseRange(key, Range.unbounded(), (Class<HV>) value.getClass());
+		List<ObjectRecord<K, HV>> messages = streamOps.reverseRange((Class<HV>) value.getClass(), key, Range.unbounded());
 
 		assertThat(messages).hasSize(2).extracting("id").containsSequence(messageId2, messageId1);
 
@@ -254,7 +254,7 @@ public class DefaultStreamOperationsTests<K, HK, HV> {
 		HV value = hashValueFactory.instance();
 
 		RecordId messageId1 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
-		RecordId messageId2 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
 
 		List<ObjectRecord<K, HV>> messages = streamOps.read((Class<HV>) value.getClass(), StreamOffset.create(key, ReadOffset.from("0-0")));
 

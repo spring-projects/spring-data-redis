@@ -46,6 +46,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.core.script.ScriptExecutor;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.hash.HashMapper;
+import org.springframework.data.redis.hash.ObjectHashMapper;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
@@ -1310,7 +1311,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public <HK, HV> StreamOperations<K, HK, HV> opsForStream() {
 
 		if (streamOps == null) {
-			streamOps = new DefaultStreamOperations<>(this, null);
+			streamOps = new DefaultStreamOperations<>(this, new ObjectHashMapper());
 		}
 		return (StreamOperations<K, HK, HV>) streamOps;
 	}

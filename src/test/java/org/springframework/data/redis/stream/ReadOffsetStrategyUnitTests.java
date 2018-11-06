@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Optional;
 
 import org.junit.Test;
-import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
-import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.ReadOffset;
 
 /**
  * Unit tests for {@link ReadOffsetStrategy}.

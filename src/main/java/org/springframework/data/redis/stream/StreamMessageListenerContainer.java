@@ -15,20 +15,21 @@
  */
 package org.springframework.data.redis.stream;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-
 import java.time.Duration;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
-import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.ObjectRecord;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.Record;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.hash.HashMapper;
+import org.springframework.data.redis.hash.ObjectHashMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.stream.DefaultStreamMessageListenerContainer.LoggingErrorHandler;
@@ -41,9 +42,9 @@ import org.springframework.util.ErrorHandler;
  * implemented externally.
  * <p/>
  * Once created, a {@link StreamMessageListenerContainer} can subscribe to a Redis Stream and consume incoming
- * {@link Record messages}. {@link StreamMessageListenerContainer} allows multiple stream read requests and
- * returns a {@link Subscription} handle per read request. Cancelling the {@link Subscription} terminates eventually
- * background polling. Messages are converted using {@link RedisSerializer key and value serializers} to support various
+ * {@link Record messages}. {@link StreamMessageListenerContainer} allows multiple stream read requests and returns a
+ * {@link Subscription} handle per read request. Cancelling the {@link Subscription} terminates eventually background
+ * polling. Messages are converted using {@link RedisSerializer key and value serializers} to support various
  * serialization strategies. <br/>
  * {@link StreamMessageListenerContainer} supports multiple modes of stream consumption:
  * <ul>
@@ -83,17 +84,17 @@ import org.springframework.util.ErrorHandler;
  * {@link StreamListener#onMessage(Record) listener callback}.
  * <p/>
  * {@link StreamMessageListenerContainer} tasks propagate errors during stream reads and
- * {@link StreamListener#onMessage(Record) listener notification} to a configurable {@link ErrorHandler}. Errors
- * stop a {@link Subscription} by default. Configuring a {@link Predicate} for a {@link StreamReadRequest} allows
- * conditional subscription cancelling or continuing on all errors.
+ * {@link StreamListener#onMessage(Record) listener notification} to a configurable {@link ErrorHandler}. Errors stop a
+ * {@link Subscription} by default. Configuring a {@link Predicate} for a {@link StreamReadRequest} allows conditional
+ * subscription cancelling or continuing on all errors.
  * <p/>
  * See the following example code how to use {@link StreamMessageListenerContainer}:
  *
  * <pre class="code">
  * RedisConnectionFactory factory = …;
  *
- * StreamMessageListenerContainer<String, String> container = StreamMessageListenerContainer.create(factory);
- * Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), message -> …);
+ * StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer.create(factory);
+ * Subscription subscription = container.receive(StreamOffset.fromStart("my-stream"), message -> …);
  *
  * container.start();
  *
@@ -115,7 +116,7 @@ import org.springframework.util.ErrorHandler;
  * @see RedisConnectionFactory
  * @see StreamReceiver
  */
-public interface StreamMessageListenerContainer<K, V> extends SmartLifecycle {
+public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> extends SmartLifecycle {
 
 	/**
 	 * Create a new {@link StreamMessageListenerContainer} using {@link StringRedisSerializer string serializers} given
@@ -124,7 +125,8 @@ public interface StreamMessageListenerContainer<K, V> extends SmartLifecycle {
 	 * @param connectionFactory must not be {@literal null}.
 	 * @return the new {@link StreamMessageListenerContainer}.
 	 */
-	static StreamMessageListenerContainer<String, Map<String, String>> create(RedisConnectionFactory connectionFactory) {
+	static StreamMessageListenerContainer<String, MapRecord<String, String, String>> create(
+			RedisConnectionFactory connectionFactory) {
 
 		Assert.notNull(connectionFactory, "RedisConnectionFactory must not be null!");
 
@@ -140,7 +142,8 @@ public interface StreamMessageListenerContainer<K, V> extends SmartLifecycle {
 	 * @param options must not be {@literal null}.
 	 * @return the new {@link StreamMessageListenerContainer}.
 	 */
-	static <K, V> StreamMessageListenerContainer<K, V> create(RedisConnectionFactory connectionFactory,
+	static <K, V extends Record<K, ?>> StreamMessageListenerContainer<K, V> create(
+			RedisConnectionFactory connectionFactory,
 			StreamMessageListenerContainerOptions<K, V> options) {
 
 		Assert.notNull(connectionFactory, "RedisConnectionFactory must not be null!");
@@ -468,20 +471,38 @@ public interface StreamMessageListenerContainer<K, V> extends SmartLifecycle {
 	 * @param <V> Stream value type.
 	 * @see StreamMessageListenerContainerOptionsBuilder
 	 */
-	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-	class StreamMessageListenerContainerOptions<K, V> {
+	class StreamMessageListenerContainerOptions<K, V extends Record<K, ?>> {
 
 		private final Duration pollTimeout;
 		private final int batchSize;
 		private final RedisSerializer<K> keySerializer;
-		private final RedisSerializer<V> bodySerializer;
+		private final RedisSerializer<Object> hashKeySerializer;
+		private final RedisSerializer<Object> hashValueSerializer;
+		private final @Nullable Class<Object> targetType;
+		private final @Nullable HashMapper<Object, Object, Object> hashMapper;
 		private final ErrorHandler errorHandler;
 		private final Executor executor;
+
+		@SuppressWarnings("unchecked")
+		private StreamMessageListenerContainerOptions(Duration pollTimeout, int batchSize, RedisSerializer<K> keySerializer,
+				RedisSerializer<Object> hashKeySerializer, RedisSerializer<Object> hashValueSerializer,
+				@Nullable Class<?> targetType, @Nullable HashMapper<V, ?, ?> hashMapper, ErrorHandler errorHandler,
+				Executor executor) {
+			this.pollTimeout = pollTimeout;
+			this.batchSize = batchSize;
+			this.keySerializer = keySerializer;
+			this.hashKeySerializer = hashKeySerializer;
+			this.hashValueSerializer = hashValueSerializer;
+			this.targetType = (Class) targetType;
+			this.hashMapper = (HashMapper) hashMapper;
+			this.errorHandler = errorHandler;
+			this.executor = executor;
+		}
 
 		/**
 		 * @return a new builder for {@link StreamMessageListenerContainerOptions}.
 		 */
-		static StreamMessageListenerContainerOptionsBuilder<String, Map<String, String>> builder() {
+		static StreamMessageListenerContainerOptionsBuilder<String, MapRecord<String, String, String>> builder() {
 			return new StreamMessageListenerContainerOptionsBuilder<>().serializer(StringRedisSerializer.UTF_8);
 		}
 
@@ -507,8 +528,26 @@ public interface StreamMessageListenerContainer<K, V> extends SmartLifecycle {
 			return keySerializer;
 		}
 
-		public RedisSerializer<V> getBodySerializer() {
-			return bodySerializer;
+		public RedisSerializer<Object> getHashKeySerializer() {
+			return hashKeySerializer;
+		}
+
+		public RedisSerializer<Object> getHashValueSerializer() {
+			return hashValueSerializer;
+		}
+
+		@Nullable
+		public HashMapper<Object, Object, Object> getHashMapper() {
+			return hashMapper;
+		}
+
+		public Class<Object> getTargetType() {
+
+			if (this.targetType != null) {
+				return targetType;
+			}
+
+			return Object.class;
 		}
 
 		/**
@@ -532,12 +571,16 @@ public interface StreamMessageListenerContainer<K, V> extends SmartLifecycle {
 	 * @param <K> Stream key and Stream field type
 	 * @param <V> Stream value type
 	 */
-	class StreamMessageListenerContainerOptionsBuilder<K, V> {
+	@SuppressWarnings("unchecked")
+	class StreamMessageListenerContainerOptionsBuilder<K, V extends Record<K, ?>> {
 
 		private Duration pollTimeout = Duration.ofSeconds(2);
 		private int batchSize = 1;
 		private RedisSerializer<K> keySerializer;
-		private RedisSerializer<V> bodySerializer;
+		private RedisSerializer<Object> hashKeySerializer;
+		private RedisSerializer<Object> hashValueSerializer;
+		private @Nullable HashMapper<V, ?, ?> hashMapper;
+		private @Nullable Class<?> targetType;
 		private ErrorHandler errorHandler = LoggingErrorHandler.INSTANCE;
 		private Executor executor = new SimpleAsyncTaskExecutor();
 
@@ -601,15 +644,19 @@ public interface StreamMessageListenerContainer<K, V> extends SmartLifecycle {
 		}
 
 		/**
-		 * Configure a key and value serializer.
+		 * Configure a key, hash key and hash value serializer.
 		 *
 		 * @param serializer must not be {@literal null}.
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
-		public <T> StreamMessageListenerContainerOptionsBuilder<T, Map<T, T>> serializer(RedisSerializer<T> serializer) {
+		public <T> StreamMessageListenerContainerOptionsBuilder<T, MapRecord<T, T, T>> serializer(
+				RedisSerializer<T> serializer) {
+
+			Assert.notNull(serializer, "RedisSerializer must not be null");
 
 			this.keySerializer = (RedisSerializer) serializer;
-			this.bodySerializer = (RedisSerializer) serializer;
+			this.hashKeySerializer = (RedisSerializer) serializer;
+			this.hashValueSerializer = (RedisSerializer) serializer;
 			return (StreamMessageListenerContainerOptionsBuilder) this;
 		}
 
@@ -619,21 +666,81 @@ public interface StreamMessageListenerContainer<K, V> extends SmartLifecycle {
 		 * @param serializer must not be {@literal null}.
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
-		public <NK> StreamMessageListenerContainerOptionsBuilder<NK, V> keySerializer(RedisSerializer<NK> serializer) {
+		public <NK, NV extends Record<NK, ?>> StreamMessageListenerContainerOptionsBuilder<NK, NV> keySerializer(
+				RedisSerializer<NK> serializer) {
+
+			Assert.notNull(serializer, "RedisSerializer must not be null");
 
 			this.keySerializer = (RedisSerializer) serializer;
 			return (StreamMessageListenerContainerOptionsBuilder) this;
 		}
 
 		/**
-		 * Configure a value serializer.
+		 * Configure a hash key serializer.
 		 *
 		 * @param serializer must not be {@literal null}.
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
-		public <NV> StreamMessageListenerContainerOptionsBuilder<K, NV> bodySerializer(RedisSerializer<NV> serializer) {
+		public <HK, HV> StreamMessageListenerContainerOptionsBuilder<K, MapRecord<K, HK, HV>> hashKeySerializer(
+				RedisSerializer<HK> serializer) {
 
-			this.bodySerializer = (RedisSerializer) serializer;
+			Assert.notNull(serializer, "RedisSerializer must not be null");
+
+			this.hashKeySerializer = (RedisSerializer) serializer;
+			return (StreamMessageListenerContainerOptionsBuilder) this;
+		}
+
+		/**
+		 * Configure a hash value serializer.
+		 *
+		 * @param serializer must not be {@literal null}.
+		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
+		 */
+		public <HK, HV> StreamMessageListenerContainerOptionsBuilder<K, MapRecord<K, HK, HV>> hashValueSerializer(
+				RedisSerializer<HK> serializer) {
+
+			Assert.notNull(serializer, "RedisSerializer must not be null");
+
+			this.hashValueSerializer = (RedisSerializer) serializer;
+			return (StreamMessageListenerContainerOptionsBuilder) this;
+		}
+
+		/**
+		 * Configure a hash target type. Changes the emitted {@link Record} type to {@link ObjectRecord}.
+		 *
+		 * @param pair must not be {@literal null}.
+		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
+		 */
+		@SuppressWarnings("unchecked")
+		public <NV> StreamMessageListenerContainerOptionsBuilder<K, ObjectRecord<K, NV>> targetType(Class<NV> targetType) {
+
+			Assert.notNull(targetType, "Target type must not be null");
+
+			this.targetType = targetType;
+
+			if (this.hashMapper == null) {
+
+				hashKeySerializer(RawRedisSerializer.INSTANCE);
+				hashValueSerializer(RawRedisSerializer.INSTANCE);
+				return (StreamMessageListenerContainerOptionsBuilder) objectMapper(new ObjectHashMapper());
+			}
+
+			return (StreamMessageListenerContainerOptionsBuilder) this;
+		}
+
+		/**
+		 * Configure a hash mapper. Changes the emitted {@link Record} type to {@link ObjectRecord}.
+		 *
+		 * @param hashMapper must not be {@literal null}.
+		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
+		 */
+		@SuppressWarnings("unchecked")
+		public <NV> StreamMessageListenerContainerOptionsBuilder<K, ObjectRecord<K, NV>> objectMapper(
+				HashMapper<NV, ?, ?> hashMapper) {
+
+			Assert.notNull(hashMapper, "HashMapper must not be null");
+
+			this.hashMapper = (HashMapper) hashMapper;
 			return (StreamMessageListenerContainerOptionsBuilder) this;
 		}
 
@@ -643,7 +750,8 @@ public interface StreamMessageListenerContainer<K, V> extends SmartLifecycle {
 		 * @return new {@link StreamMessageListenerContainerOptions}.
 		 */
 		public StreamMessageListenerContainerOptions<K, V> build() {
-			return new StreamMessageListenerContainerOptions<>(pollTimeout, batchSize, keySerializer, bodySerializer,
+			return new StreamMessageListenerContainerOptions<>(pollTimeout, batchSize, keySerializer, hashKeySerializer,
+					hashValueSerializer, targetType, hashMapper,
 					errorHandler, executor);
 		}
 	}

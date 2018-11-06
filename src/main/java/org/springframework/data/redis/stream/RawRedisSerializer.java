@@ -15,23 +15,26 @@
  */
 package org.springframework.data.redis.stream;
 
-import org.springframework.data.redis.connection.stream.Record;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.lang.Nullable;
 
 /**
- * Listener interface to receive delivery of {@link Record messages}.
- *
  * @author Mark Paluch
- * @param <K> Stream key and Stream field type.
- * @param <V> Stream value type.
- * @since 2.2
  */
-@FunctionalInterface
-public interface StreamListener<K, V extends Record<K, ?>> {
+enum RawRedisSerializer implements RedisSerializer<byte[]> {
 
-	/**
-	 * Callback invoked on receiving a {@link Record}.
-	 *
-	 * @param message never {@literal null}.
-	 */
-	void onMessage(V message);
+	INSTANCE;
+
+	@Nullable
+	@Override
+	public byte[] serialize(@Nullable byte[] bytes) throws SerializationException {
+		return bytes;
+	}
+
+	@Nullable
+	@Override
+	public byte[] deserialize(@Nullable byte[] bytes) throws SerializationException {
+		return bytes;
+	}
 }

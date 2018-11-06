@@ -25,23 +25,21 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
-import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveStreamCommands;
-import org.springframework.data.redis.connection.RedisStreamCommands.ByteBufferRecord;
-import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
-import org.springframework.data.redis.connection.RedisStreamCommands.MapRecord;
-import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
-import org.springframework.data.redis.core.convert.RedisCustomConversions;
+import org.springframework.data.redis.connection.stream.ByteBufferRecord;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.Record;
+import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.hash.HashMapper;
-import org.springframework.data.redis.hash.ObjectHashMapper;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -58,20 +56,60 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 	private final ReactiveRedisTemplate<?, ?> template;
 	private final RedisSerializationContext<K, ?> serializationContext;
+	private final StreamObjectMapper objectMapper;
 
-	private final RedisCustomConversions rcc = new RedisCustomConversions();
-	private DefaultConversionService conversionService;
-	private HashMapper<? super K, ? super HK, ? super HV> mapper;
-
-	public DefaultReactiveStreamOperations(ReactiveRedisTemplate<?, ?> template,
+	DefaultReactiveStreamOperations(ReactiveRedisTemplate<?, ?> template,
 			RedisSerializationContext<K, ?> serializationContext,
 			@Nullable HashMapper<? super K, ? super HK, ? super HV> hashMapper) {
+
 		this.template = template;
 		this.serializationContext = serializationContext;
+		this.objectMapper = new StreamObjectMapper(hashMapper) {
 
-		this.conversionService = new DefaultConversionService();
-		this.mapper = mapper != null ? mapper : (HashMapper<? super K, ? super HK, ? super HV>) new ObjectHashMapper();
-		rcc.registerConvertersIn(conversionService);
+			@Override
+			protected HashMapper<?, ?, ?> doGetHashMapper(ConversionService conversionService, Class<?> targetType) {
+
+				if (objectMapper.isSimpleType(targetType) || ClassUtils.isAssignable(ByteBuffer.class, targetType)) {
+
+					return new HashMapper<Object, Object, Object>() {
+
+						@Override
+						public Map<Object, Object> toHash(Object object) {
+
+							Object key = "payload";
+							Object value = object;
+
+							if (serializationContext.getHashKeySerializationPair() == null) {
+								key = key.toString().getBytes(StandardCharsets.UTF_8);
+							}
+							if (serializationContext.getHashValueSerializationPair() == null) {
+								value = conversionService.convert(value, byte[].class);
+							}
+
+							return Collections.singletonMap(key, value);
+						}
+
+						@Override
+						public Object fromHash(Map<Object, Object> hash) {
+							Object value = hash.values().iterator().next();
+							if (ClassUtils.isAssignableValue(targetType, value)) {
+								return value;
+							}
+
+							HV deserialized = deserializeHashValue((ByteBuffer) value);
+
+							if (ClassUtils.isAssignableValue(targetType, deserialized)) {
+								return value;
+							}
+
+							return conversionService.convert(deserialized, targetType);
+						}
+					};
+				}
+
+				return super.doGetHashMapper(conversionService, targetType);
+			}
+		};
 	}
 
 	/*
@@ -94,12 +132,14 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#add(java.lang.Object, java.util.Map)
 	 */
 	@Override
-	public Mono<RecordId> add(MapRecord<K, HK, HV> record) {
+	public Mono<RecordId> add(Record<K, ?> record) {
 
 		Assert.notNull(record.getStream(), "Key must not be null!");
-		Assert.notEmpty(record.getValue(), "Body must not be null!");
+		Assert.notNull(record.getValue(), "Body must not be null!");
 
-		return createMono(connection -> connection.xAdd(serializeRecord(record)));
+		MapRecord<K, HK, HV> input = StreamObjectMapper.toMapRecord(this, record);
+
+		return createMono(connection -> connection.xAdd(serializeRecord(input)));
 	}
 
 	/*
@@ -234,64 +274,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 	@Override
 	public <V> HashMapper<V, HK, HV> getHashMapper(Class<V> targetType) {
-
-		if (rcc.isSimpleType(targetType) || ClassUtils.isAssignable(ByteBuffer.class, targetType)) {
-
-			return new HashMapper<V, HK, HV>() {
-
-				@Override
-				public Map<HK, HV> toHash(V object) {
-
-					HK key = (HK) "payload";
-					HV value = (HV) object;
-
-					if (serializationContext.getHashKeySerializationPair() == null) {
-						key = (HK) key.toString().getBytes(StandardCharsets.UTF_8);
-					}
-					if (serializationContext.getHashValueSerializationPair() == null) {
-						value = (HV) conversionService.convert(value, byte[].class);
-					}
-
-					return Collections.singletonMap(key, value);
-
-					// return (Map<HK, HV>) Collections.singletonMap("payload".getBytes(StandardCharsets.UTF_8),
-					// serializeHashValueIfRequires((HV) object));
-				}
-
-				@Override
-				public V fromHash(Map<HK, HV> hash) {
-					Object value = hash.values().iterator().next();
-					if (ClassUtils.isAssignableValue(targetType, value)) {
-						return (V) value;
-					}
-					return (V) deserializeHashValue((ByteBuffer) value);
-				}
-			};
-		}
-
-		if (mapper instanceof ObjectHashMapper) {
-
-			return new HashMapper<V, HK, HV>() {
-
-				@Override
-				public Map<HK, HV> toHash(V object) {
-					return (Map<HK, HV>) ((ObjectHashMapper) mapper).toObjectHash(object);
-				}
-
-				@Override
-				public V fromHash(Map<HK, HV> hash) {
-
-					Map<byte[], byte[]> map = hash.entrySet().stream()
-							.collect(Collectors.toMap(e -> conversionService.convert((Object) e.getKey(), byte[].class),
-									e -> conversionService.convert((Object) e.getValue(), byte[].class)));
-
-					return (V) mapper.fromHash((Map) map);
-				}
-			};
-
-		}
-
-		return (HashMapper<V, HK, HV>) mapper;
+		return objectMapper.getHashMapper(targetType);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -319,21 +302,24 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return serializationContext.getKeySerializationPair().write(key);
 	}
 
+	@SuppressWarnings("unchecked")
 	private ByteBuffer rawHashKey(HK key) {
 		try {
 			return serializationContext.getHashKeySerializationPair().write(key);
 		} catch (IllegalStateException e) {}
-		return ByteBuffer.wrap(conversionService.convert(key, byte[].class));
+		return ByteBuffer.wrap(objectMapper.getConversionService().convert(key, byte[].class));
 	}
 
+	@SuppressWarnings("unchecked")
 	private ByteBuffer rawValue(HV value) {
 
 		try {
 			return serializationContext.getHashValueSerializationPair().write(value);
 		} catch (IllegalStateException e) {}
-		return ByteBuffer.wrap(conversionService.convert(value, byte[].class));
+		return ByteBuffer.wrap(objectMapper.getConversionService().convert(value, byte[].class));
 	}
 
+	@SuppressWarnings("unchecked")
 	private HK readHashKey(ByteBuffer buffer) {
 		return (HK) serializationContext.getHashKeySerializationPair().getReader().read(buffer);
 	}
@@ -342,6 +328,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return serializationContext.getKeySerializationPair().read(buffer);
 	}
 
+	@SuppressWarnings("unchecked")
 	private HV deserializeHashValue(ByteBuffer buffer) {
 		return (HV) serializationContext.getHashValueSerializationPair().read(buffer);
 	}
@@ -355,12 +342,12 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 				.next();
 	}
 
-	private ByteBufferRecord serializeRecord(MapRecord<K, HK, HV> record) {
+	private ByteBufferRecord serializeRecord(MapRecord<K, ? extends HK, ? extends HV> record) {
 		return ByteBufferRecord
 				.of(record.map(it -> it.mapEntries(this::serializeRecordFields).withStreamKey(rawKey(record.getStream()))));
 	}
 
-	private Entry<ByteBuffer, ByteBuffer> serializeRecordFields(Entry<HK, HV> it) {
+	private Entry<ByteBuffer, ByteBuffer> serializeRecordFields(Entry<? extends HK, ? extends HV> it) {
 		return Collections.singletonMap(rawHashKey(it.getKey()), rawValue(it.getValue())).entrySet().iterator().next();
 	}
 }

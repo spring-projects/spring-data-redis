@@ -16,24 +16,25 @@ While Pub/Sub relies on the broadcasting of transient messages (i.e. if you don'
 
 The `org.springframework.data.redis.connection` and `org.springframework.data.redis.stream` packages provide the core functionality for Redis Streams.
 
+NOTE: Redis Stream support is currently only available through the <<redis:connectors:lettuce, Lettuce client>> as it is not yet supported by <<redis:connectors:jedis, Jedis>>.
 
 [[redis.streams.send]]
 == Appending
 
-To send a record, you can use, as with the other operations, either the low-level `RedisConnection` or the high-level `StreamOperations`. Both entities offer the `add` (`xAdd`) method, which accepts the record and the destination stream as arguments. While `RedisConnection` requires raw data (array of bytes), the `StreamOperations` lets arbitrary objects be passed in as recods, as shown in the following example:
+To send a record, you can use, as with the other operations, either the low-level `RedisConnection` or the high-level `StreamOperations`. Both entities offer the `add` (`xAdd`) method, which accepts the record and the destination stream as arguments. While `RedisConnection` requires raw data (array of bytes), the `StreamOperations` lets arbitrary objects be passed in as records, as shown in the following example:
 
 [source,java]
 ----
 // append message through connection 
-RedisConnection con = //…
-byte[] stream = //…
-ByteRecord record = StreamRecords.rawBytes(...).withStreamKey(stream);
+RedisConnection con = …
+byte[] stream = …
+ByteRecord record = StreamRecords.rawBytes(…).withStreamKey(stream);
 con.xAdd(record);
 
 // append message through RedisTemplate
-RedisTemplate template = //…
-StringRecord record = StreamRecods.ofStrings(...).withStreamKey("my-stream");
-template.streamOps().add(recod);
+RedisTemplate template = …
+StringRecord record = StreamRecords.string(…).withStreamKey("my-stream");
+template.streamOps().add(record);
 ----
 
 Stream records carry a `Map`, key-value tuples, as their payload. Appending a record to a stream returns the `RecordId` that can be used as further reference.
@@ -60,7 +61,7 @@ While stream consumption is typically associated with asynchronous processing, i
 RedisTemplate template = …
 
 List<MapRecord<K, HK, HV>> messages = template.streamOps().read(StreamReadOptions.empty().count(2),
-				StreamOffset.create("my-stream", ReadOffset.latest()));
+				StreamOffset.latest("my-stream"));
 
 List<MapRecord<K, HK, HV>> messages = template.streamOps().read(Consumer.from("my-group", "my-consumer"),
 				StreamReadOptions.empty().count(2),
@@ -88,14 +89,14 @@ In a fashion similar to a Message-Driven Bean (MDB) in the EJB world, the Stream
 
 [source,java]
 ----
-class ExampleStreamListener implements StreamListener<String, String> {
+class ExampleStreamListener implements StreamListener<String, MapRecord<String, String, String>> {
 
 	@Override
-	public void onMessage(StreamMessage<String, String> message) {
+	public void onMessage(MapRecord<String, String, String> message) {
 
 		System.out.println("MessageId: " + message.getId());
 		System.out.println("Stream: " + message.getStream());
-		System.out.println("Body: " + message.getBody());
+		System.out.println("Body: " + message.getValue());
 	}
 }
 ----
@@ -108,7 +109,7 @@ message -> {
 
     System.out.println("MessageId: " + message.getId());
     System.out.println("Stream: " + message.getStream());
-    System.out.println("Body: " + message.getBody());
+    System.out.println("Body: " + message.getValue());
 };
 ----
 
@@ -117,12 +118,12 @@ Once you’ve implemented your `StreamListener`, it’s time to create a message
 [source,java]
 ----
 RedisConnectionFactory connectionFactory = …
-StreamListener<String, String> streamListener = …
+StreamListener<String, MapRecord<String, String, String>> streamListener = …
  
-StreamMessageListenerContainerOptions<String, String> containerOptions = StreamMessageListenerContainerOptions
+StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> containerOptions = StreamMessageListenerContainerOptions
 			.builder().pollTimeout(Duration.ofMillis(100)).build();
 			
-StreamMessageListenerContainer<String, String> container = StreamMessageListenerContainer.create(connectionFactory,
+StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer.create(connectionFactory,
 				containerOptions);
 				
 Subscription subscription = container.receive(StreamOffset.fromStart("my-stream"), streamListener);
@@ -136,12 +137,12 @@ Reactive consumption of streaming data sources typically happens through a `Flux
 
 [source,java]
 ----
-Flux<StreamMessage<String, String>> messages = …
+Flux<MapRecord<String, String, String>> messages = …
 
 return messages.doOnNext(it -> {
     System.out.println("MessageId: " + message.getId());
     System.out.println("Stream: " + message.getStream());
-    System.out.println("Body: " + message.getBody());
+    System.out.println("Body: " + message.getValue());
 });
 ----
 
@@ -151,11 +152,11 @@ Now we need to create the `StreamReceiver` and register a subscription to consum
 ----
 ReactiveRedisConnectionFactory connectionFactory = …
 
-StreamReceiverOptions<String, String> options = StreamReceiverOptions.builder().pollTimeout(Duration.ofMillis(100))
+StreamReceiverOptions<String, MapRecord<String, String, String>> options = StreamReceiverOptions.builder().pollTimeout(Duration.ofMillis(100))
 				.build();
-StreamReceiver<String, String> receiver = StreamReceiver.create(connectionFactory, options);
+StreamReceiver<String, MapRecord<String, String, String>> receiver = StreamReceiver.create(connectionFactory, options);
 				
-Flux<StreamMessage<String, String>> messages = receiver.receive(StreamOffset.fromStart("my-stream"));
+Flux<MapRecord<String, String, String>> messages = receiver.receive(StreamOffset.fromStart("my-stream"));
 ----
 
 Please refer to the Javadoc of the various message listener containers for a full description of the features supported by each implementation.
@@ -193,10 +194,10 @@ Any Record sent to the stream needs to be serialized to its binary format. Due t
 .Stream Serialization
 [options="header,footer,autowidth"]
 |===
-| Stream Property  | Serializer | Description
-| key | keySerializer | used for `Record#getStream()`
-| field | hashKeySerializer | used for each map key in the payload
-| value | hashValueSerializer | used for each map value in the payload
+| Stream Property  | Serializer          | Description
+| key              | keySerializer       | used for `Record#getStream()`
+| field            | hashKeySerializer   | used for each map key in the payload
+| value            | hashValueSerializer | used for each map value in the payload
 |===
 
 Please make sure to review ``RedisSerializer``s in use and note that if you decide to not use any serializer you need to make sure those values are binary already.
@@ -231,13 +232,15 @@ List<ObjectRecord<String, String>> records = redisTemplate()
 
 Adding a complex value to the stream can be done in 3 ways:
 
-. Convert to simple value using eg. a String Json representation.
-. Serialize the value with a suitable `RedisSerializer`.
-. Convert the value into a `Map` suitable for serialization using a `HashMapper`.
+* Convert to simple value using eg. a String JSON representation.
+* Serialize the value with a suitable `RedisSerializer`.
+* Convert the value into a `Map` suitable for serialization using a `HashMapper`.
 
 The first variant is the most straight forward one but neglects the field value capabilities offered by the stream structure, still the values in the stream will be readable for other consumers.
 The 2nd option holds the same benefits as the first one, but may lead to a very specific consumer limitations as the all consumers must implement the very same serialization mechanism.
 The `HashMapper` approach is the a bit more complex one making use of the steams hash structure, but flattening the source. Still other consumers remain able to read the records as long as suitable serializer combinations are chosen.
+
+NOTE: HashMappers convert the payload to a `Map` with specific types. Make sure to use Hash-Key and Hash-Value serializers that are capable of (de-)serializing the hash.
 
 [source,java]
 ----
@@ -255,8 +258,8 @@ List<ObjectRecord<String, User>> records = redisTemplate()
 ----
 <1> XADD user-logon * "_class" "com.example.User" "firstname" "night" "lastname" "angel"
 
-By default `StreamOperations` use an <<redis.repositories.mapping, ObjectHashMapper>>.
-You may provide the `HashMapper` suitable for your requirements when obtaining `StreamOperations`.
+`StreamOperations` use by default <<redis.repositories.mapping, ObjectHashMapper>>.
+You may provide a `HashMapper` suitable for your requirements when obtaining `StreamOperations`.
 
 [source,java]
 ----

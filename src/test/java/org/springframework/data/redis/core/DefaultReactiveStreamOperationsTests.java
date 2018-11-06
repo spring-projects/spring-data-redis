@@ -33,23 +33,27 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStreamCommands.MapRecord;
-import org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.RecordId;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
-import org.springframework.data.redis.connection.StreamRecords;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration tests for {@link DefaultReactiveStreamOperations}.
@@ -93,8 +97,7 @@ public class DefaultReactiveStreamOperationsTests<K, HK, HV> {
 		// See https://github.com/xetorthio/jedis/issues/1820
 		assumeTrue(redisTemplate.getConnectionFactory() instanceof LettuceConnectionFactory);
 
-		// TODO: Change to 5.0 after Redis 5 GA
-		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "4.9"));
+		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "5.0"));
 
 		RedisSerializationContext<K, ?> context = null;
 		if (serializer != null) {
@@ -150,20 +153,51 @@ public class DefaultReactiveStreamOperationsTests<K, HK, HV> {
 	public void addShouldAddReadSimpleMessage() {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
-				&& !(serializer instanceof GenericJackson2JsonRedisSerializer));
+				&& !(serializer instanceof GenericJackson2JsonRedisSerializer)
+				&& !(serializer instanceof JdkSerializationRedisSerializer) && !(serializer instanceof OxmSerializer));
 
 		K key = keyFactory.instance();
 		HV value = valueFactory.instance();
 
 		RecordId messageId = streamOperations.add(StreamRecords.objectBacked(value).withStreamKey(key)).block();
 
-		streamOperations.range(key, Range.unbounded(), (Class<HV>) value.getClass()).as(StepVerifier::create) //
+		streamOperations.range((Class<HV>) value.getClass(), key, Range.unbounded()).as(StepVerifier::create) //
 				.consumeNextWith(it -> {
 					assertThat(it.getId()).isEqualTo(messageId);
 					assertThat(it.getStream()).isEqualTo(key);
 
 					assertThat(it.getValue()).isEqualTo(value);
 
+				}) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-864
+	public void addShouldAddReadSimpleMessageWithRawSerializer() {
+
+		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
+				&& !(serializer instanceof GenericJackson2JsonRedisSerializer));
+
+		SerializationPair<K> keySerializer = redisTemplate.getSerializationContext().getKeySerializationPair();
+
+		RedisSerializationContext<K, String> serializationContext = RedisSerializationContext
+				.<K, String> newSerializationContext(StringRedisSerializer.UTF_8).key(keySerializer)
+				.hashValue(SerializationPair.raw()).hashKey(SerializationPair.raw()).build();
+
+		ReactiveRedisTemplate<K, String> raw = new ReactiveRedisTemplate<>(redisTemplate.getConnectionFactory(),
+				serializationContext);
+
+		K key = keyFactory.instance();
+		Person value = new PersonObjectFactory().instance();
+
+		RecordId messageId = raw.opsForStream().add(StreamRecords.objectBacked(value).withStreamKey(key)).block();
+
+		raw.opsForStream().range((Class<HV>) value.getClass(), key, Range.unbounded()).as(StepVerifier::create) //
+				.consumeNextWith(it -> {
+
+					assertThat(it.getId()).isEqualTo(messageId);
+					assertThat(it.getStream()).isEqualTo(key);
+					assertThat(it.getValue()).isEqualTo(value);
 				}) //
 				.verifyComplete();
 	}

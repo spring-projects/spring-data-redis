@@ -22,15 +22,17 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.function.BiFunction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStreamCommands.Consumer;
-import org.springframework.data.redis.connection.RedisStreamCommands.Record;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.Record;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.util.Assert;
@@ -45,7 +47,7 @@ import org.springframework.util.ErrorHandler;
  * @author Mark Paluch
  * @since 2.2
  */
-class DefaultStreamMessageListenerContainer<K, V> implements StreamMessageListenerContainer<K, V> {
+class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implements StreamMessageListenerContainer<K, V> {
 
 	private final Object lifecycleMonitor = new Object();
 
@@ -53,6 +55,8 @@ class DefaultStreamMessageListenerContainer<K, V> implements StreamMessageListen
 	private final ErrorHandler errorHandler;
 	private final StreamReadOptions readOptions;
 	private final RedisTemplate<K, ?> template;
+	private final StreamOperations<K, Object, Object> streamOperations;
+	private final StreamMessageListenerContainerOptions<K, V> containerOptions;
 
 	private final List<Subscription> subscriptions = new ArrayList<>();
 
@@ -74,6 +78,13 @@ class DefaultStreamMessageListenerContainer<K, V> implements StreamMessageListen
 		this.errorHandler = containerOptions.getErrorHandler();
 		this.readOptions = getStreamReadOptions(containerOptions);
 		this.template = createRedisTemplate(connectionFactory, containerOptions);
+		this.containerOptions = containerOptions;
+
+		if (containerOptions.getHashMapper() != null) {
+			this.streamOperations = this.template.opsForStream(containerOptions.getHashMapper());
+		} else {
+			this.streamOperations = this.template.opsForStream();
+		}
 	}
 
 	private static StreamReadOptions getStreamReadOptions(StreamMessageListenerContainerOptions<?, ?> options) {
@@ -92,9 +103,9 @@ class DefaultStreamMessageListenerContainer<K, V> implements StreamMessageListen
 
 		RedisTemplate<K, V> template = new RedisTemplate<>();
 		template.setKeySerializer(containerOptions.getKeySerializer());
-		template.setValueSerializer(containerOptions.getBodySerializer());
-		template.setHashKeySerializer(containerOptions.getKeySerializer());
-		template.setHashValueSerializer(containerOptions.getBodySerializer());
+		template.setValueSerializer(containerOptions.getKeySerializer());
+		template.setHashKeySerializer(containerOptions.getHashKeySerializer());
+		template.setHashValueSerializer(containerOptions.getHashValueSerializer());
 		template.setConnectionFactory(connectionFactory);
 		template.afterPropertiesSet();
 
@@ -193,9 +204,16 @@ class DefaultStreamMessageListenerContainer<K, V> implements StreamMessageListen
 		return doRegister(getReadTask(streamRequest, listener));
 	}
 
+	@SuppressWarnings("unchecked")
 	private StreamPollTask<K, V> getReadTask(StreamReadRequest<K> streamRequest, StreamListener<K, V> listener) {
 
-		StreamOperations<K, ?, ?> streamOperations = template.opsForStream();
+		BiFunction<K, ReadOffset, List<? extends Record<?, ?>>> readFunction = getReadFunction(streamRequest);
+
+		return new StreamPollTask<>(streamRequest, listener, errorHandler, (BiFunction) readFunction);
+	}
+
+	@SuppressWarnings("unchecked")
+	private BiFunction<K, ReadOffset, List<? extends Record<?, ?>>> getReadFunction(StreamReadRequest<K> streamRequest) {
 
 		if (streamRequest instanceof StreamMessageListenerContainer.ConsumerStreamReadRequest) {
 
@@ -204,20 +222,20 @@ class DefaultStreamMessageListenerContainer<K, V> implements StreamMessageListen
 			StreamReadOptions readOptions = consumerStreamRequest.isAutoAck() ? this.readOptions : this.readOptions.noack();
 			Consumer consumer = consumerStreamRequest.getConsumer();
 
-			return new StreamPollTask<K, V>(consumerStreamRequest, listener, errorHandler, (key, offset) -> {
-
-				return (List<Record<K, V>>) (List) streamOperations.read(consumer, readOptions,
+			if (this.containerOptions.getHashMapper() != null) {
+				return (key, offset) -> streamOperations.read(this.containerOptions.getTargetType(), consumer, readOptions,
 						StreamOffset.create(key, offset));
-				// List<StreamMessage<K, V>> x = (List<StreamMessage<K, V>>)(List) streamOperations.read(consumer, readOptions,
-				// StreamOffset.create(key, offset));
-				// return x;
+			}
 
-			});
+			return (key, offset) -> streamOperations.read(consumer, readOptions, StreamOffset.create(key, offset));
 		}
 
-		return new StreamPollTask<>(streamRequest, listener, errorHandler, (key, offset) -> {
-			return (List<Record<K, V>>) (List) streamOperations.read(readOptions, StreamOffset.create(key, offset));
-		});
+		if (this.containerOptions.getHashMapper() != null) {
+			return (key, offset) -> streamOperations.read(this.containerOptions.getTargetType(), readOptions,
+					StreamOffset.create(key, offset));
+		}
+
+		return (key, offset) -> streamOperations.read(readOptions, StreamOffset.create(key, offset));
 	}
 
 	private Subscription doRegister(Task task) {

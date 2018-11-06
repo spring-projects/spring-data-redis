@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.core.query.SortQuery;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -627,8 +628,7 @@ public interface RedisOperations<K, V> {
 	/**
 	 * Returns the operations performed on Streams.
 	 *
-	 * @param hashMapper the {@link HashMapper} to use when converting
-	 *          {@link org.springframework.data.redis.connection.RedisStreamCommands.ObjectRecord}.
+	 * @param hashMapper the {@link HashMapper} to use when converting {@link ObjectRecord}.
 	 * @return stream operations.
 	 * @since 2.2
 	 */
