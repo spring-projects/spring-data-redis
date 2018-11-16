@@ -89,13 +89,17 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 
 	private static StreamReadOptions getStreamReadOptions(StreamMessageListenerContainerOptions<?, ?> options) {
 
-		StreamReadOptions streamReadOptions = StreamReadOptions.empty().count(options.getBatchSize());
+		StreamReadOptions readOptions = StreamReadOptions.empty();
 
-		if (!options.getPollTimeout().isZero()) {
-			streamReadOptions = streamReadOptions.block(options.getPollTimeout());
+		if (options.getBatchSize().isPresent()) {
+			readOptions = readOptions.count(options.getBatchSize().getAsInt());
 		}
 
-		return streamReadOptions;
+		if (!options.getPollTimeout().isZero()) {
+			readOptions = readOptions.block(options.getPollTimeout());
+		}
+
+		return readOptions;
 	}
 
 	private RedisTemplate<K, V> createRedisTemplate(RedisConnectionFactory connectionFactory,
