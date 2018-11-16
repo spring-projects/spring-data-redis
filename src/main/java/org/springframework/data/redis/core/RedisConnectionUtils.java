@@ -131,7 +131,7 @@ public abstract class RedisConnectionUtils {
 
 		RedisConnection conn = factory.getConnection();
 
-		if (bind) {
+		if (bind && TransactionSynchronizationManager.isActualTransactionActive()) {
 
 			RedisConnection connectionToBind = conn;
 			if (enableTransactionSupport && isActualNonReadonlyTransactionActive()) {
