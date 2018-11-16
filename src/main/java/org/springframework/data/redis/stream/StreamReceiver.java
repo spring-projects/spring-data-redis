@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.OptionalInt;
 
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -186,14 +187,14 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 	class StreamReceiverOptions<K, V extends Record<K, ?>> {
 
 		private final Duration pollTimeout;
-		private final int batchSize;
+		private final @Nullable Integer batchSize;
 		private final SerializationPair<K> keySerializer;
 		private final SerializationPair<Object> hashKeySerializer;
 		private final SerializationPair<Object> hashValueSerializer;
 		private final @Nullable Class<Object> targetType;
 		private final @Nullable HashMapper<Object, Object, Object> hashMapper;
 
-		private StreamReceiverOptions(Duration pollTimeout, int batchSize, SerializationPair<K> keySerializer,
+		private StreamReceiverOptions(Duration pollTimeout, @Nullable Integer batchSize, SerializationPair<K> keySerializer,
 				SerializationPair<Object> hashKeySerializer, SerializationPair<Object> hashValueSerializer,
 				@Nullable Class<?> targetType, @Nullable HashMapper<V, ?, ?> hashMapper) {
 
@@ -240,10 +241,10 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		/**
 		 * Batch size polling using the {@code COUNT} option during reads.
 		 *
-		 * @return
+		 * @return the batch size.
 		 */
-		public int getBatchSize() {
-			return batchSize;
+		public OptionalInt getBatchSize() {
+			return batchSize != null ? OptionalInt.of(batchSize) : OptionalInt.empty();
 		}
 
 		public SerializationPair<K> getKeySerializer() {
@@ -281,7 +282,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 	class StreamReceiverOptionsBuilder<K, V extends Record<K, ?>> {
 
 		private Duration pollTimeout = Duration.ofSeconds(2);
-		private int batchSize = 1;
+		private @Nullable Integer batchSize;
 		private SerializationPair<K> keySerializer;
 		private SerializationPair<Object> hashKeySerializer;
 		private SerializationPair<Object> hashValueSerializer;

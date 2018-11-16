@@ -73,7 +73,11 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 				.key(options.getKeySerializer()).hashKey(options.getHashKeySerializer())
 				.hashValue(options.getHashValueSerializer()).build();
 
-		StreamReadOptions readOptions = StreamReadOptions.empty().count(options.getBatchSize());
+		StreamReadOptions readOptions = StreamReadOptions.empty();
+
+		if (options.getBatchSize().isPresent()) {
+			readOptions = readOptions.count(options.getBatchSize().getAsInt());
+		}
 		if (!options.getPollTimeout().isZero()) {
 			readOptions = readOptions.block(options.getPollTimeout());
 		}

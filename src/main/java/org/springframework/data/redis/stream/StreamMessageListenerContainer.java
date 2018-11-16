@@ -16,6 +16,7 @@
 package org.springframework.data.redis.stream;
 
 import java.time.Duration;
+import java.util.OptionalInt;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
@@ -474,7 +475,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	class StreamMessageListenerContainerOptions<K, V extends Record<K, ?>> {
 
 		private final Duration pollTimeout;
-		private final int batchSize;
+		private final @Nullable Integer batchSize;
 		private final RedisSerializer<K> keySerializer;
 		private final RedisSerializer<Object> hashKeySerializer;
 		private final RedisSerializer<Object> hashValueSerializer;
@@ -484,7 +485,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		private final Executor executor;
 
 		@SuppressWarnings("unchecked")
-		private StreamMessageListenerContainerOptions(Duration pollTimeout, int batchSize, RedisSerializer<K> keySerializer,
+		private StreamMessageListenerContainerOptions(Duration pollTimeout, @Nullable Integer batchSize,
+				RedisSerializer<K> keySerializer,
 				RedisSerializer<Object> hashKeySerializer, RedisSerializer<Object> hashValueSerializer,
 				@Nullable Class<?> targetType, @Nullable HashMapper<V, ?, ?> hashMapper, ErrorHandler errorHandler,
 				Executor executor) {
@@ -518,10 +520,10 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		/**
 		 * Batch size polling using the {@code COUNT} option during reads.
 		 *
-		 * @return
+		 * @return the batch size.
 		 */
-		public int getBatchSize() {
-			return batchSize;
+		public OptionalInt getBatchSize() {
+			return batchSize != null ? OptionalInt.of(batchSize) : OptionalInt.empty();
 		}
 
 		public RedisSerializer<K> getKeySerializer() {
@@ -575,7 +577,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	class StreamMessageListenerContainerOptionsBuilder<K, V extends Record<K, ?>> {
 
 		private Duration pollTimeout = Duration.ofSeconds(2);
-		private int batchSize = 1;
+		private @Nullable Integer batchSize;
 		private RedisSerializer<K> keySerializer;
 		private RedisSerializer<Object> hashKeySerializer;
 		private RedisSerializer<Object> hashValueSerializer;
