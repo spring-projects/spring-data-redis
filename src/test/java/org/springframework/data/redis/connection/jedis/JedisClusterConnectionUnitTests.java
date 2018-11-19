@@ -103,6 +103,8 @@ public class JedisClusterConnectionUnitTests {
 		when(node3PoolMock.getResource()).thenReturn(con3Mock);
 
 		when(con1Mock.clusterNodes()).thenReturn(CLUSTER_NODES_RESPONSE);
+		when(con2Mock.clusterNodes()).thenReturn(CLUSTER_NODES_RESPONSE);
+		when(con3Mock.clusterNodes()).thenReturn(CLUSTER_NODES_RESPONSE);
 		clusterMock.setConnectionHandler(connectionHandlerMock);
 
 		connection = new JedisClusterConnection(clusterMock);
@@ -140,7 +142,6 @@ public class JedisClusterConnectionUnitTests {
 		connection.clusterForget(CLUSTER_NODE_2);
 
 		verify(con1Mock, times(1)).clusterForget(CLUSTER_NODE_2.getId());
-		verifyZeroInteractions(con2Mock);
 		verify(con3Mock, times(1)).clusterForget(CLUSTER_NODE_2.getId());
 	}
 
@@ -150,8 +151,8 @@ public class JedisClusterConnectionUnitTests {
 		connection.clusterReplicate(CLUSTER_NODE_1, CLUSTER_NODE_2);
 
 		verify(con2Mock, times(1)).clusterReplicate(CLUSTER_NODE_1.getId());
-		verify(con1Mock, times(1)).clusterNodes();
-		verify(con1Mock, times(1)).close();
+		verify(con1Mock, atMost(1)).clusterNodes();
+		verify(con1Mock, atMost(1)).close();
 		verifyZeroInteractions(con1Mock);
 	}
 
@@ -312,10 +313,10 @@ public class JedisClusterConnectionUnitTests {
 		connection.time(CLUSTER_NODE_2);
 
 		verify(con2Mock, times(1)).time();
-		verify(con2Mock, times(1)).close();
-		verify(con1Mock, times(1)).clusterNodes();
-		verify(con1Mock, times(1)).close();
-		verifyZeroInteractions(con1Mock, con3Mock);
+		verify(con2Mock, atLeast(1)).close();
+		verify(con1Mock, atMost(1)).clusterNodes();
+		verify(con1Mock, atMost(1)).close();
+
 	}
 
 	@Test // DATAREDIS-315
@@ -334,7 +335,7 @@ public class JedisClusterConnectionUnitTests {
 		connection.resetConfigStats(CLUSTER_NODE_2);
 
 		verify(con2Mock, times(1)).configResetStat();
-		verify(con2Mock, times(1)).close();
+		verify(con2Mock, atLeast(1)).close();
 		verify(con1Mock, never()).configResetStat();
 		verify(con3Mock, never()).configResetStat();
 	}
