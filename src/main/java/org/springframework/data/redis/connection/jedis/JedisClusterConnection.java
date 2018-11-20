@@ -24,7 +24,9 @@ import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisClusterConnectionHandler;
 import redis.clients.jedis.JedisPool;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -64,6 +66,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Tao Chen
  * @since 1.7
  */
 public class JedisClusterConnection implements DefaultedRedisClusterConnection {
@@ -982,7 +985,9 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 			Map<String, Exception> errors = new LinkedHashMap<>();
 
-			for (Entry<String, JedisPool> entry : cluster.getClusterNodes().entrySet()) {
+			List<Entry<String, JedisPool>> list = new ArrayList<>(cluster.getClusterNodes().entrySet());
+			Collections.shuffle(list);
+			for (Entry<String, JedisPool> entry : list) {
 
 				Jedis jedis = null;
 
