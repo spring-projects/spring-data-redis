@@ -194,6 +194,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		private final @Nullable Class<Object> targetType;
 		private final @Nullable HashMapper<Object, Object, Object> hashMapper;
 
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		private StreamReceiverOptions(Duration pollTimeout, @Nullable Integer batchSize, SerializationPair<K> keySerializer,
 				SerializationPair<Object> hashKeySerializer, SerializationPair<Object> hashValueSerializer,
 				@Nullable Class<?> targetType, @Nullable HashMapper<V, ?, ?> hashMapper) {
@@ -232,7 +233,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		/**
 		 * Timeout for blocking polling using the {@code BLOCK} option during reads.
 		 *
-		 * @return
+		 * @return the actual timeout.
 		 */
 		public Duration getPollTimeout() {
 			return pollTimeout;
@@ -326,6 +327,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
+		@SuppressWarnings("unchecked")
 		public <T> StreamReceiverOptionsBuilder<T, MapRecord<T, T, T>> serializer(SerializationPair<T> pair) {
 
 			Assert.notNull(pair, "SerializationPair must not be null");
@@ -339,9 +341,10 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		/**
 		 * Configure a key, hash key and hash value serializer.
 		 *
-		 * @param pair must not be {@literal null}.
+		 * @param serializationContext must not be {@literal null}.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
+		@SuppressWarnings("unchecked")
 		public <T> StreamReceiverOptionsBuilder<T, MapRecord<T, T, T>> serializer(
 				RedisSerializationContext<T, ?> serializationContext) {
 
@@ -360,6 +363,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
+		@SuppressWarnings("unchecked")
 		public <NK, NV extends Record<NK, ?>> StreamReceiverOptionsBuilder<NK, NV> keySerializer(
 				SerializationPair<NK> pair) {
 
@@ -375,6 +379,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
+		@SuppressWarnings("unchecked")
 		public <HK, HV> StreamReceiverOptionsBuilder<K, MapRecord<K, HK, HV>> hashKeySerializer(
 				SerializationPair<HK> pair) {
 
@@ -390,6 +395,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
+		@SuppressWarnings("unchecked")
 		public <HK, HV> StreamReceiverOptionsBuilder<K, MapRecord<K, HK, HV>> hashValueSerializer(
 				SerializationPair<HK> pair) {
 

@@ -184,8 +184,8 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 		/**
 		 * Create a new state object for standalone-read.
 		 *
-		 * @param offset
-		 * @return
+		 * @param offset the {@link ReadOffset} to use.
+		 * @return new instance of {@link PollState}.
 		 */
 		static PollState standalone(ReadOffset offset) {
 
@@ -196,9 +196,9 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 		/**
 		 * Create a new state object for consumergroup-read.
 		 *
-		 * @param consumer
-		 * @param offset
-		 * @return
+		 * @param consumer the {@link Consumer} to use.
+		 * @param offset the {@link ReadOffset} to apply.
+		 * @return new instance of {@link PollState}.
 		 */
 		static PollState consumer(Consumer consumer, ReadOffset offset) {
 

@@ -94,7 +94,7 @@ public class StreamRecords {
 	/**
 	 * Obtain new instance of {@link RecordBuilder} to fluently create {@link Record records}.
 	 *
-	 * @return
+	 * @return new instance of {@link RecordBuilder}.
 	 */
 	public static RecordBuilder<?> newRecord() {
 		return new RecordBuilder<>(null, RecordId.autoGenerate());

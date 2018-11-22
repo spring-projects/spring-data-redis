@@ -164,7 +164,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	/**
 	 * Create a consumer group at the {@link ReadOffset#latest() latest offset}.
 	 *
-	 * @param key
+	 * @param key the {@literal key} the stream is stored at.
 	 * @param group name of the consumer group.
 	 * @return the {@link Mono} emitting {@literal OK} if successful.. {@literal null} when used in pipeline /
 	 *         transaction.
@@ -176,8 +176,8 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	/**
 	 * Create a consumer group.
 	 *
-	 * @param key
-	 * @param readOffset
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param readOffset the {@link ReadOffset} to apply.
 	 * @param group name of the consumer group.
 	 * @return the {@link Mono} emitting {@literal OK} if successful.
 	 */
@@ -270,6 +270,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
+	@SuppressWarnings("unchecked")
 	default Flux<MapRecord<K, HK, HV>> read(StreamOffset<K> stream) {
 
 		Assert.notNull(stream, "StreamOffset must not be null");
@@ -285,6 +286,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
+	@SuppressWarnings("unchecked")
 	default <V> Flux<ObjectRecord<K, V>> read(Class<V> targetType, StreamOffset<K> stream) {
 
 		Assert.notNull(stream, "StreamOffset must not be null");

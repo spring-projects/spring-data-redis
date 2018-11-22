@@ -152,33 +152,6 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 		return type.cast(fromHash(hash));
 	}
 
-	public Map<String, Object> toObjectHash(Object source) {
-
-		Map<byte[], byte[]> raw = toHash(source);
-
-		RedisPersistentEntity<?> entity = converter.getMappingContext().getPersistentEntity(source.getClass());
-		Map<String, Object> result = new LinkedHashMap<>();
-
-		for(Map.Entry<byte[], byte[]> entry : raw.entrySet()) {
-
-			String key = converter.fromBytes(entry.getKey(), String.class);
-			Object value = entry.getValue();
-
-			try {
-				value = converter.fromBytes(entry.getValue(), PropertyPath.from(key, entity.getTypeInformation()).getType());
-			} catch (PropertyReferenceException e) {
-				value = converter.fromBytes(entry.getValue(), String.class);
-			} catch (ConverterNotFoundException cnfe) {
-//				value = fromHash(entry)
-				// TODO: nested ones!
-			}
-
-			result.put(key, value);
-		}
-
-		return result;
-	}
-
 	/**
 	 * {@link ReferenceResolver} implementation always returning an empty {@link Map}.
 	 *

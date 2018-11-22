@@ -120,6 +120,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 	}
 
 	@Override
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public Flux<CommandResponse<GroupCommand, String>> xGroup(Publisher<GroupCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {

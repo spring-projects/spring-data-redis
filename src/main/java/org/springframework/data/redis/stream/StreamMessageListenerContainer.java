@@ -511,7 +511,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		/**
 		 * Timeout for blocking polling using the {@code BLOCK} option during reads.
 		 *
-		 * @return
+		 * @return the timeout.
 		 */
 		public Duration getPollTimeout() {
 			return pollTimeout;

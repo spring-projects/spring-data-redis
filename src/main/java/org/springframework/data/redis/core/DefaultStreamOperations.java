@@ -123,6 +123,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	 */
 	@Nullable
 	@Override
+	@SuppressWarnings("unchecked")
 	public RecordId add(Record<K, ?> record) {
 
 		Assert.notNull(record, "Record must not be null");
@@ -278,11 +279,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return hashValueSerializer() != null;
 	}
 
-	protected HV deserializeHashValue(byte[] bytes, Class<HV> targetType) {
-		return hashValueSerializerPresent() ? (HV) hashValueSerializer().deserialize(bytes)
-				: objectMapper.getConversionService().convert(bytes, targetType);
-	}
-
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	private byte[] serialize(Object value, RedisSerializer serializer) {
 
 		Object _value = value;
@@ -302,9 +299,13 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 
 	abstract class RecordDeserializingRedisCallback implements RedisCallback<List<MapRecord<K, HK, HV>>> {
 
+		@SuppressWarnings("unchecked")
 		public final List<MapRecord<K, HK, HV>> doInRedis(RedisConnection connection) {
 
 			List<ByteRecord> raw = inRedis(connection);
+			if(raw == null) {
+				return Collections.emptyList();
+			}
 
 			List<MapRecord<K, HK, HV>> result = new ArrayList<>();
 			for (ByteRecord record : raw) {

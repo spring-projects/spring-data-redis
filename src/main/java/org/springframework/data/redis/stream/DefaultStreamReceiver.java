@@ -193,8 +193,6 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 
 		/**
 		 * Arm the subscription so {@link Subscription#request(long) demand} activates polling.
-		 *
-		 * @return
 		 */
 		void arm() {
 
@@ -456,8 +454,8 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		/**
 		 * Create a new state object for standalone-read.
 		 *
-		 * @param offset
-		 * @return
+		 * @param offset the {@link ReadOffset} from where to start. Must not be {@literal null}.
+		 * @return new instance of {@link PollState}.
 		 */
 		static PollState standalone(ReadOffset offset) {
 
@@ -468,9 +466,9 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		/**
 		 * Create a new state object for consumergroup-read.
 		 *
-		 * @param consumer
-		 * @param offset
-		 * @return
+		 * @param consumer the {@link Consumer}. Must not be {@literal null}.
+		 * @param offset the {@link ReadOffset} from where to start. Must not be {@literal null}.
+		 * @return new instance of {@link PollState}.
 		 */
 		static PollState consumer(Consumer consumer, ReadOffset offset) {
 
@@ -496,7 +494,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		/**
 		 * Decrement request count to indicate that an element was emitted.
 		 *
-		 * @return
+		 * @return {@literal true} if there are still requests pending and the decrement has been successful.
 		 */
 		boolean decrementRequested() {
 
@@ -526,9 +524,9 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		/**
 		 * Update demand.
 		 *
-		 * @param expect
-		 * @param update
-		 * @return
+		 * @param expect the number of requests still pending.
+		 * @param update the increment to apply
+		 * @return {@literal true} if successful.
 		 */
 		boolean setRequested(long expect, long update) {
 			return requestsPending.compareAndSet(expect, update);

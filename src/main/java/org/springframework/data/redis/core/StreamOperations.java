@@ -162,7 +162,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	/**
 	 * Create a consumer group at the {@link ReadOffset#latest() latest offset}.
 	 *
-	 * @param key
+	 * @param key the {@literal key} the stream is stored at.
 	 * @param group name of the consumer group.
 	 * @return {@literal OK} if successful. {@literal null} when used in pipeline / transaction.
 	 */
@@ -173,8 +173,8 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	/**
 	 * Create a consumer group.
 	 *
-	 * @param key
-	 * @param readOffset
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param readOffset the {@link ReadOffset} to apply.
 	 * @param group name of the consumer group.
 	 * @return {@literal OK} if successful. {@literal null} when used in pipeline / transaction.
 	 */

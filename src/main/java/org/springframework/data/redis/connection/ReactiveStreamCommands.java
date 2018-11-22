@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import org.springframework.data.redis.connection.stream.StreamRecords;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -31,13 +30,14 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
-import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
+import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -139,7 +139,7 @@ public interface ReactiveStreamCommands {
 	 * @param key the stream key.
 	 * @param group name of the consumer group.
 	 * @param recordIds record Id's to acknowledge.
-	 * @return
+	 * @return {@link Mono} emitting the nr of acknowledged messages.
 	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
 	default Mono<Long> xAck(ByteBuffer key, String group, String... recordIds) {
@@ -157,7 +157,7 @@ public interface ReactiveStreamCommands {
 	 * @param key the stream key.
 	 * @param group name of the consumer group.
 	 * @param recordIds record Id's to acknowledge.
-	 * @return
+	 * @return {@link Mono} emitting the nr of acknowledged messages.
 	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
 	default Mono<Long> xAck(ByteBuffer key, String group, RecordId... recordIds) {
@@ -173,7 +173,7 @@ public interface ReactiveStreamCommands {
 	 * Acknowledge one or more records as processed.
 	 *
 	 * @param commands must not be {@literal null}.
-	 * @return
+	 * @return {@link Flux} emitting the nr of acknowledged messages per {@link AcknowledgeCommand}.
 	 * @see <a href="http://redis.io/commands/xack">Redis Documentation: XACK</a>
 	 */
 	Flux<NumericResponse<AcknowledgeCommand, Long>> xAck(Publisher<AcknowledgeCommand> commands);
@@ -230,7 +230,7 @@ public interface ReactiveStreamCommands {
 		}
 
 		/**
-		 * @return
+		 * @return the actual {@link ByteBufferRecord#getValue()}
 		 */
 		public Map<ByteBuffer, ByteBuffer> getBody() {
 			return record.getValue();
@@ -246,7 +246,7 @@ public interface ReactiveStreamCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param body must not be {@literal null}.
-	 * @return
+	 * @return {@link Mono} emitting the server generated {@link RecordId id}.
 	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
 	default Mono<RecordId> xAdd(ByteBuffer key, Map<ByteBuffer, ByteBuffer> body) {
@@ -261,7 +261,7 @@ public interface ReactiveStreamCommands {
 	 * Add stream record with given {@literal body} to {@literal key}.
 	 *
 	 * @param record must not be {@literal null}.
-	 * @return
+	 * @return {@link Mono} the {@link RecordId id}.
 	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
 	default Mono<RecordId> xAdd(ByteBufferRecord record) {
@@ -275,7 +275,7 @@ public interface ReactiveStreamCommands {
 	 * Add stream record with given {@literal body} to {@literal key}.
 	 *
 	 * @param commands must not be {@literal null}.
-	 * @return
+	 * @return {@link Flux} emitting the {@link RecordId} on by for for the given {@link AddStreamRecord} commands.
 	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
 	Flux<CommandResponse<AddStreamRecord, RecordId>> xAdd(Publisher<AddStreamRecord> commands);
@@ -349,7 +349,7 @@ public interface ReactiveStreamCommands {
 	 *
 	 * @param key the stream key.
 	 * @param recordIds stream record Id's.
-	 * @return number of removed entries.
+	 * @return {@link Mono} emitting the number of removed entries.
 	 * @see <a href="http://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
 	default Mono<Long> xDel(ByteBuffer key, String... recordIds) {
@@ -366,7 +366,7 @@ public interface ReactiveStreamCommands {
 	 *
 	 * @param key the stream key.
 	 * @param recordIds stream record Id's.
-	 * @return number of removed entries.
+	 * @return {@link Mono} emitting the number of removed entries.
 	 * @see <a href="http://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
 	default Mono<Long> xDel(ByteBuffer key, RecordId... recordIds) {
@@ -382,7 +382,7 @@ public interface ReactiveStreamCommands {
 	 * number of IDs passed in case certain IDs do not exist.
 	 *
 	 * @param commands must not be {@literal null}.
-	 * @return
+	 * @return {@link Mono} emitting the number of removed entries.
 	 * @see <a href="http://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
 	Flux<CommandResponse<DeleteCommand, Long>> xDel(Publisher<DeleteCommand> commands);
@@ -391,7 +391,7 @@ public interface ReactiveStreamCommands {
 	 * Get the size of the stream stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return length of the stream.
+	 * @return {@link Mono} emitting the length of the stream.
 	 * @see <a href="http://redis.io/commands/xlen">Redis Documentation: XLEN</a>
 	 */
 	default Mono<Long> xLen(ByteBuffer key) {
@@ -405,7 +405,7 @@ public interface ReactiveStreamCommands {
 	 * Get the size of the stream stored at {@link KeyCommand#getKey()}
 	 *
 	 * @param commands must not be {@literal null}.
-	 * @return
+	 * @return {@link Flux} emitting the length of the stream per {@link KeyCommand}.
 	 * @see <a href="http://redis.io/commands/xlen">Redis Documentation: XLEN</a>
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> xLen(Publisher<KeyCommand> commands);
@@ -501,7 +501,7 @@ public interface ReactiveStreamCommands {
 	 *
 	 * @param key the stream key.
 	 * @param range must not be {@literal null}.
-	 * @return list with members of the resulting stream.
+	 * @return {@link Flux} emitting with members of the stream.
 	 * @see <a href="http://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
 	default Flux<ByteBufferRecord> xRange(ByteBuffer key, Range<String> range) {
@@ -514,7 +514,7 @@ public interface ReactiveStreamCommands {
 	 * @param key the stream key.
 	 * @param range must not be {@literal null}.
 	 * @param limit must not be {@literal null}.
-	 * @return list with members of the resulting stream.
+	 * @return {@link Flux} emitting with members of the stream.
 	 * @see <a href="http://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
 	default Flux<ByteBufferRecord> xRange(ByteBuffer key, Range<String> range, Limit limit) {
@@ -531,7 +531,7 @@ public interface ReactiveStreamCommands {
 	 * Read records from a stream within a specific {@link Range} applying a {@link Limit}.
 	 *
 	 * @param commands must not be {@literal null}.
-	 * @return
+	 * @return {@link Flux} emitting with members of the stream per {@link RangeCommand}.
 	 * @see <a href="http://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
 	Flux<CommandResponse<RangeCommand, Flux<ByteBufferRecord>>> xRange(Publisher<RangeCommand> commands);
@@ -633,7 +633,7 @@ public interface ReactiveStreamCommands {
 	 * Read records from one or more {@link StreamOffset}s.
 	 *
 	 * @param streams the streams to read from.
-	 * @return list with members of the resulting stream.
+	 * @return {@link Flux} emitting with members of the stream.
 	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
 	default Flux<ByteBufferRecord> xRead(StreamOffset<ByteBuffer>... streams) {
@@ -645,7 +645,7 @@ public interface ReactiveStreamCommands {
 	 *
 	 * @param readOptions read arguments.
 	 * @param streams the streams to read from.
-	 * @return list with members of the resulting stream.
+	 * @return {@link Flux} emitting with members of the stream.
 	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
 	default Flux<ByteBufferRecord> xRead(StreamReadOptions readOptions, StreamOffset<ByteBuffer>... streams) {
@@ -661,7 +661,7 @@ public interface ReactiveStreamCommands {
 	 * Read records from one or more {@link StreamOffset}s.
 	 *
 	 * @param commands must not be {@literal null}.
-	 * @return list with members of the resulting stream.
+	 * @return {@link Flux} emitting the members of the stream per {@link ReadCommand}.
 	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
@@ -675,7 +675,7 @@ public interface ReactiveStreamCommands {
 		private final @Nullable ReadOffset offset;
 
 		public GroupCommand(@Nullable ByteBuffer key, GroupCommandAction action, @Nullable String groupName,
-				@Nullable String consumerName, ReadOffset offset) {
+				@Nullable String consumerName, @Nullable ReadOffset offset) {
 
 			super(key);
 			this.action = action;
@@ -732,7 +732,7 @@ public interface ReactiveStreamCommands {
 		}
 
 		public enum GroupCommandAction {
-			CREATE, SET_ID, DESTROY, DELETE_CONSUMER;
+			CREATE, SET_ID, DESTROY, DELETE_CONSUMER
 		}
 	}
 
@@ -800,7 +800,7 @@ public interface ReactiveStreamCommands {
 	 * Execute the given {@link GroupCommand} to {@literal create, destroy,... } groups.
 	 *
 	 * @param commands
-	 * @return
+	 * @return {@link Flux} emitting the results of the {@link GroupCommand} one by one.
 	 */
 	Flux<CommandResponse<GroupCommand, String>> xGroup(Publisher<GroupCommand> commands);
 
@@ -809,7 +809,7 @@ public interface ReactiveStreamCommands {
 	 *
 	 * @param consumer consumer/group.
 	 * @param streams the streams to read from.
-	 * @return list with members of the resulting stream.
+	 * @return {@link Flux} emitting the members of the stream
 	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
 	default Flux<ByteBufferRecord> xReadGroup(Consumer consumer, StreamOffset<ByteBuffer>... streams) {
@@ -822,7 +822,7 @@ public interface ReactiveStreamCommands {
 	 * @param consumer consumer/group.
 	 * @param readOptions read arguments.
 	 * @param streams the streams to read from.
-	 * @return list with members of the resulting stream.
+	 * @return {@link Flux} emitting the members of the stream.
 	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
 	default Flux<ByteBufferRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
@@ -841,7 +841,7 @@ public interface ReactiveStreamCommands {
 	 *
 	 * @param key the stream key.
 	 * @param range must not be {@literal null}.
-	 * @return list with members of the resulting stream.
+	 * @return {@link Flux} emitting the members of the stream in reverse.
 	 * @see <a href="http://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
 	default Flux<ByteBufferRecord> xRevRange(ByteBuffer key, Range<String> range) {
@@ -854,7 +854,7 @@ public interface ReactiveStreamCommands {
 	 * @param key the stream key.
 	 * @param range must not be {@literal null}.
 	 * @param limit must not be {@literal null}.
-	 * @return list with members of the resulting stream.
+	 * @return {@link Flux} emitting the members of the stream in reverse.
 	 * @see <a href="http://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
 	default Flux<ByteBufferRecord> xRevRange(ByteBuffer key, Range<String> range, Limit limit) {
@@ -871,7 +871,7 @@ public interface ReactiveStreamCommands {
 	 * Read records from a stream within a specific {@link Range} applying a {@link Limit} in reverse order.
 	 *
 	 * @param commands must not be {@literal null}.
-	 * @return
+	 * @return {@link Flux} emitting the members of the stream in reverse.
 	 * @see <a href="http://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
 	Flux<CommandResponse<RangeCommand, Flux<ByteBufferRecord>>> xRevRange(Publisher<RangeCommand> commands);
@@ -929,7 +929,7 @@ public interface ReactiveStreamCommands {
 	 *
 	 * @param key the stream key.
 	 * @param count length of the stream.
-	 * @return number of removed entries.
+	 * @return {@link Mono} emitting the number of removed entries.
 	 * @see <a href="http://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
 	default Mono<Long> xTrim(ByteBuffer key, long count) {
@@ -943,7 +943,7 @@ public interface ReactiveStreamCommands {
 	 * Trims the stream to {@code count} elements.
 	 *
 	 * @param commands must not be {@literal null}.
-	 * @return
+	 * @return {@link Flux} emitting the number of removed entries per {@link TrimCommand}.
 	 * @see <a href="http://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> xTrim(Publisher<TrimCommand> commands);

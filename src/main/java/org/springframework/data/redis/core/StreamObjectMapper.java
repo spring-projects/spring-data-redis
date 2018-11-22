@@ -137,7 +137,7 @@ class StreamObjectMapper {
 	 * single-element and multi-element list transformation.l
 	 * 
 	 * @param records the {@link MapRecord} that should be mapped.
-	 * @param hashMapperProvider
+	 * @param hashMapperProvider the provider to obtain the actual {@link HashMapper} from. Must not be {@literal null}.
 	 * @param targetType the requested {@link Class target type}.
 	 * @return the resulting {@link List} of {@link ObjectRecord} or {@literal null} if {@code records} was
 	 *         {@literal null}.
@@ -178,14 +178,17 @@ class StreamObjectMapper {
 	 * 
 	 * @param conversionService the used {@link ConversionService}.
 	 * @param targetType the target type.
-	 * @return
+	 * @return obtain the {@link HashMapper} for a certain type.
 	 */
 	protected HashMapper<?, ?, ?> doGetHashMapper(ConversionService conversionService, Class<?> targetType) {
 		return this.objectHashMapper != null ? objectHashMapper : this.mapper;
 	}
 
 	/**
-	 * @param targetType
+	 * Check if the given type is a simple type as in
+	 * {@link org.springframework.data.convert.CustomConversions#isSimpleType(Class)}.
+	 *
+	 * @param targetType the type to inspect. Must not be {@literal null}.
 	 * @return {@literal true} if {@link Class targetType} is a simple type.
 	 * @see org.springframework.data.convert.CustomConversions#isSimpleType(Class)
 	 */
