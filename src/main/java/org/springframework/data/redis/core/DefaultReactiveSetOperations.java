@@ -182,10 +182,10 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return createFlux(connection -> Flux.fromIterable(keys)
+		return createFlux(connection -> Flux.fromIterable(keys) //
 				.map(this::rawKey) //
 				.collectList() //
-				.flatMapMany(connection::sInter)
+				.flatMapMany(connection::sInter) //
 				.map(this::readValue));
 	}
 
@@ -226,9 +226,9 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(keys, "Keys must not be null!");
 		Assert.notNull(destKey, "Destination key must not be null!");
 
-		return createMono(connection -> Flux.fromIterable(keys)
-				.map(this::rawKey)
-				.collectList()
+		return createMono(connection -> Flux.fromIterable(keys) //
+				.map(this::rawKey) //
+				.collectList() //
 				.flatMap(rawKeys -> connection.sInterStore(rawKey(destKey), rawKeys)));
 	}
 
@@ -267,10 +267,10 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return createFlux(connection -> Flux.fromIterable(keys)
-				.map(this::rawKey)
-				.collectList()
-				.flatMapMany(connection::sUnion)
+		return createFlux(connection -> Flux.fromIterable(keys) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMapMany(connection::sUnion) //
 				.map(this::readValue));
 	}
 
@@ -312,9 +312,9 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(keys, "Keys must not be null!");
 		Assert.notNull(destKey, "Destination key must not be null!");
 
-		return createMono(connection -> Flux.fromIterable(keys)
-				.map(this::rawKey)
-				.collectList()
+		return createMono(connection -> Flux.fromIterable(keys) //
+				.map(this::rawKey) //
+				.collectList() //
 				.flatMap(rawKeys -> connection.sUnionStore(rawKey(destKey), rawKeys)));
 	}
 
@@ -353,10 +353,10 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return createFlux(connection -> Flux.fromIterable(keys)
-				.map(this::rawKey)
-				.collectList()
-				.flatMapMany(connection::sDiff)
+		return createFlux(connection -> Flux.fromIterable(keys) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMapMany(connection::sDiff) //
 				.map(this::readValue));
 	}
 
@@ -398,9 +398,9 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(keys, "Keys must not be null!");
 		Assert.notNull(destKey, "Destination key must not be null!");
 
-		return createMono(connection -> Flux.fromIterable(keys)
-				.map(this::rawKey)
-				.collectList()
+		return createMono(connection -> Flux.fromIterable(keys) //
+				.map(this::rawKey) //
+				.collectList() //
 				.flatMap(rawKeys -> connection.sDiffStore(rawKey(destKey), rawKeys)));
 	}
 

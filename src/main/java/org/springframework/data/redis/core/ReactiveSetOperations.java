@@ -126,6 +126,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param keys must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 * @since 2.2
 	 */
 	Flux<V> intersect(Collection<K> keys);
 
@@ -158,6 +159,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param destKey must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 * @since 2.2
 	 */
 	Mono<Long> intersectAndStore(Collection<K> keys, K destKey);
 
@@ -187,6 +189,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param keys must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 * @since 2.2
 	 */
 	Flux<V> union(Collection<K> keys);
 
@@ -219,6 +222,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param destKey must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 * @since 2.2
 	 */
 	Mono<Long> unionAndStore(Collection<K> keys, K destKey);
 
@@ -248,6 +252,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param keys must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 * @since 2.2
 	 */
 	Flux<V> difference(Collection<K> keys);
 
@@ -280,6 +285,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param destKey must not be {@literal null}.
 	 * @return
 	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 * @since 2.2
 	 */
 	Mono<Long> differenceAndStore(Collection<K> keys, K destKey);
 

@@ -7,6 +7,7 @@ This section briefly covers items that are new and noteworthy in the latest rele
 == New in Spring Data Redis 2.2
 
 * <<redis.streams>>
+* Refined `union`/`diff`/`intersect` set-operation methods accepting a single collection of keys.
 
 [[new-in-2.1.0]]
 == New in Spring Data Redis 2.1

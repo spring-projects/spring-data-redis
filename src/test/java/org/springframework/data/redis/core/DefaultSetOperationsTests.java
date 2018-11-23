@@ -22,6 +22,7 @@ import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -49,6 +50,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class DefaultSetOperationsTests<K, V> {
@@ -243,7 +245,94 @@ public class DefaultSetOperationsTests<K, V> {
 		assertThat(count, is(setOps.size(key)));
 	}
 
-	@Test // DATAREDIS-448
+	@Test // DATAREDIS-873
+	public void diffShouldReturnDifference() {
+
+		K sourceKey1 = keyFactory.instance();
+		K sourceKey2 = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+
+		setOps.add(sourceKey1, v1, v2, v3);
+		setOps.add(sourceKey2, v2, v3, v4);
+
+		assertThat(setOps.difference(Arrays.asList(sourceKey1, sourceKey2)), hasItems(v1));
+	}
+
+	@Test // DATAREDIS-873
+	public void diffAndStoreShouldReturnDifferenceShouldReturnNumberOfElementsInDestination() {
+
+		K sourceKey1 = keyFactory.instance();
+		K sourceKey2 = keyFactory.instance();
+		K destinationKey = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+
+		setOps.add(sourceKey1, v1, v2, v3);
+		setOps.add(sourceKey2, v2, v3, v4);
+
+		assertThat(setOps.differenceAndStore(Arrays.asList(sourceKey1, sourceKey2), destinationKey), isEqual(1L));
+	}
+
+	@Test // DATAREDIS-873
+	public void unionShouldConcatSets() {
+
+		K sourceKey1 = keyFactory.instance();
+		K sourceKey2 = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+
+		setOps.add(sourceKey1, v1, v2, v3);
+		setOps.add(sourceKey2, v2, v3, v4);
+
+		assertThat(setOps.union(Arrays.asList(sourceKey1, sourceKey2)), hasItems(v1, v2, v3, v4));
+	}
+
+	@Test // DATAREDIS-873
+	public void unionAndStoreShouldReturnDifferenceShouldReturnNumberOfElementsInDestination() {
+
+		K sourceKey1 = keyFactory.instance();
+		K sourceKey2 = keyFactory.instance();
+		K destinationKey = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+
+		setOps.add(sourceKey1, v1, v2, v3);
+		setOps.add(sourceKey2, v2, v3, v4);
+
+		assertThat(setOps.unionAndStore(Arrays.asList(sourceKey1, sourceKey2), destinationKey), isEqual(4L));
+	}
+
+	@Test // DATAREDIS-873
+	public void intersectShouldReturnElements() {
+
+		K sourceKey1 = keyFactory.instance();
+		K sourceKey2 = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+
+		setOps.add(sourceKey1, v1, v2, v3);
+		setOps.add(sourceKey2, v2, v3, v4);
+
+		assertThat(setOps.intersect(Arrays.asList(sourceKey1, sourceKey2)), hasSize(2));
+	}
+
+	@Test // DATAREDIS-448, DATAREDIS-873
 	public void intersectAndStoreShouldReturnNumberOfElementsInDestination() {
 
 		K sourceKey1 = keyFactory.instance();
@@ -259,5 +348,6 @@ public class DefaultSetOperationsTests<K, V> {
 		setOps.add(sourceKey2, v2, v3, v4);
 
 		assertThat(setOps.intersectAndStore(sourceKey1, sourceKey2, destinationKey), is(2L));
+		assertThat(setOps.intersectAndStore(Arrays.asList(sourceKey1, sourceKey2), destinationKey), is(2L));
 	}
 }

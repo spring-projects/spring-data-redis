@@ -65,6 +65,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	@Override
 	public Set<V> difference(K key, Collection<K> otherKeys) {
+
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		Set<byte[]> rawValues = execute(connection -> connection.sDiff(rawKeys), true);
 
@@ -77,6 +78,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	@Override
 	public Set<V> difference(Collection<K> keys) {
+
 		byte[][] rawKeys = rawKeys(keys);
 		Set<byte[]> rawValues = execute(connection -> connection.sDiff(rawKeys), true);
 
@@ -101,6 +103,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		byte[] rawDestKey = rawKey(destKey);
+
 		return execute(connection -> connection.sDiffStore(rawDestKey, rawKeys), true);
 	}
 
@@ -110,8 +113,10 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	@Override
 	public Long differenceAndStore(Collection<K> keys, K destKey) {
+
 		byte[][] rawKeys = rawKeys(keys);
 		byte[] rawDestKey = rawKey(destKey);
+
 		return execute(connection -> connection.sDiffStore(rawDestKey, rawKeys), true);
 	}
 
@@ -143,10 +148,12 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	@Override
 	public Set<V> intersect(Collection<K> keys) {
+
 		byte[][] rawKeys = rawKeys(keys);
 		Set<byte[]> rawValues = execute(connection -> connection.sInter(rawKeys), true);
 
-		return deserializeValues(rawValues);	}
+		return deserializeValues(rawValues);
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -166,6 +173,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		byte[] rawDestKey = rawKey(destKey);
+
 		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys), true);
 	}
 
@@ -175,9 +183,12 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	@Override
 	public Long intersectAndStore(Collection<K> keys, K destKey) {
+
 		byte[][] rawKeys = rawKeys(keys);
 		byte[] rawDestKey = rawKey(destKey);
-		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys), true);	}
+
+		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys), true);
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -188,6 +199,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(o);
+
 		return execute(connection -> connection.sIsMember(rawKey, rawValue), true);
 	}
 
@@ -346,6 +358,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	@Override
 	public Set<V> union(Collection<K> keys) {
+
 		byte[][] rawKeys = rawKeys(keys);
 		Set<byte[]> rawValues = execute(connection -> connection.sUnion(rawKeys), true);
 
@@ -370,6 +383,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		byte[] rawDestKey = rawKey(destKey);
+
 		return execute(connection -> connection.sUnionStore(rawDestKey, rawKeys), true);
 	}
 
@@ -379,9 +393,12 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 */
 	@Override
 	public Long unionAndStore(Collection<K> keys, K destKey) {
+
 		byte[][] rawKeys = rawKeys(keys);
 		byte[] rawDestKey = rawKey(destKey);
-		return execute(connection -> connection.sUnionStore(rawDestKey, rawKeys), true);	}
+
+		return execute(connection -> connection.sUnionStore(rawDestKey, rawKeys), true);
+	}
 
 	/*
 	 * (non-Javadoc)

@@ -136,6 +136,7 @@ public interface SetOperations<K, V> {
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 * @since 2.2
 	 */
 	@Nullable
 	Set<V> intersect(Collection<K> keys);
@@ -171,6 +172,7 @@ public interface SetOperations<K, V> {
 	 * @param destKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 * @since 2.2
 	 */
 	@Nullable
 	Long intersectAndStore(Collection<K> keys, K destKey);
@@ -203,6 +205,7 @@ public interface SetOperations<K, V> {
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 * @since 2.2
 	 */
 	@Nullable
 	Set<V> union(Collection<K> keys);
@@ -238,6 +241,7 @@ public interface SetOperations<K, V> {
 	 * @param destKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 * @since 2.2
 	 */
 	@Nullable
 	Long unionAndStore(Collection<K> keys, K destKey);
@@ -270,6 +274,7 @@ public interface SetOperations<K, V> {
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 * @since 2.2
 	 */
 	@Nullable
 	Set<V> difference(Collection<K> keys);
@@ -305,6 +310,7 @@ public interface SetOperations<K, V> {
 	 * @param destKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 * @since 2.2
 	 */
 	@Nullable
 	Long differenceAndStore(Collection<K> keys, K destKey);

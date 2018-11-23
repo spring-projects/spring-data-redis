@@ -20,6 +20,7 @@ import static org.junit.Assume.*;
 
 import reactor.test.StepVerifier;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.junit.AfterClass;
@@ -171,7 +172,7 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(setOperations.isMember(key, value1)).expectNext(true).verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-873
 	public void intersect() {
 
 		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
@@ -191,9 +192,15 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 					assertThat(actual).isEqualTo(shared);
 				}) //
 				.verifyComplete();
+
+		StepVerifier.create(setOperations.intersect(Arrays.asList(key, otherKey))) //
+				.consumeNextWith(actual -> {
+					assertThat(actual).isEqualTo(shared);
+				}) //
+				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-873
 	public void intersectAndStore() {
 
 		K key = keyFactory.instance();
@@ -211,9 +218,16 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 				.verify();
 
 		StepVerifier.create(setOperations.isMember(destKey, shared)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(setOperations.delete(destKey)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(setOperations.intersectAndStore(Arrays.asList(key, otherKey), destKey)).expectNext(1L)
+				.expectComplete().verify();
+
+		StepVerifier.create(setOperations.isMember(destKey, shared)).expectNext(true).verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-873
 	public void difference() {
 
 		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
@@ -233,9 +247,15 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 					assertThat(actual).isEqualTo(onlyInKey);
 				}) //
 				.verifyComplete();
+
+		StepVerifier.create(setOperations.difference(Arrays.asList(key, otherKey))) //
+				.consumeNextWith(actual -> {
+					assertThat(actual).isEqualTo(onlyInKey);
+				}) //
+				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-873
 	public void differenceAndStore() {
 
 		K key = keyFactory.instance();
@@ -252,10 +272,13 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(setOperations.differenceAndStore(key, otherKey, destKey)).expectNext(1L).expectComplete()
 				.verify();
 
+		StepVerifier.create(setOperations.differenceAndStore(Arrays.asList(key, otherKey), destKey)).expectNext(1L)
+				.expectComplete().verify();
+
 		StepVerifier.create(setOperations.isMember(destKey, onlyInKey)).expectNext(true).verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-873
 	public void union() {
 
 		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
@@ -273,9 +296,13 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(setOperations.union(key, otherKey)) //
 				.expectNextCount(3) //
 				.verifyComplete();
+
+		StepVerifier.create(setOperations.union(Arrays.asList(key, otherKey))) //
+				.expectNextCount(3) //
+				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-873
 	public void unionAndStore() {
 
 		K key = keyFactory.instance();
@@ -290,6 +317,11 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).verifyComplete();
 
 		StepVerifier.create(setOperations.unionAndStore(key, otherKey, destKey)).expectNext(3L).verifyComplete();
+
+		StepVerifier.create(setOperations.delete(destKey)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(setOperations.unionAndStore(Arrays.asList(key, otherKey), destKey)).expectNext(3L)
+				.verifyComplete();
 
 		StepVerifier.create(setOperations.isMember(destKey, onlyInKey)).expectNext(true).verifyComplete();
 		StepVerifier.create(setOperations.isMember(destKey, shared)).expectNext(true).verifyComplete();
