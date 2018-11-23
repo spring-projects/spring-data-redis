@@ -57,6 +57,7 @@ import org.springframework.data.redis.connection.jedis.JedisClusterConnection.Je
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Chen Guanqun
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class JedisClusterConnectionUnitTests {
@@ -136,7 +137,7 @@ public class JedisClusterConnectionUnitTests {
 		connection.clusterMeet(null);
 	}
 
-	@Test // DATAREDIS-315
+	@Test // DATAREDIS-315, DATAREDIS-890
 	public void clusterForgetShouldSendCommandsToRemainingNodesCorrectly() {
 
 		connection.clusterForget(CLUSTER_NODE_2);
@@ -145,7 +146,7 @@ public class JedisClusterConnectionUnitTests {
 		verify(con3Mock, times(1)).clusterForget(CLUSTER_NODE_2.getId());
 	}
 
-	@Test // DATAREDIS-315
+	@Test // DATAREDIS-315, DATAREDIS-890
 	public void clusterReplicateShouldSendCommandsCorrectly() {
 
 		connection.clusterReplicate(CLUSTER_NODE_1, CLUSTER_NODE_2);
@@ -305,7 +306,7 @@ public class JedisClusterConnectionUnitTests {
 		assertThat(result, is(42L));
 	}
 
-	@Test // DATAREDIS-315
+	@Test // DATAREDIS-315, DATAREDIS-890
 	public void timeShouldBeExecutedOnSingleNode() {
 
 		when(con2Mock.time()).thenReturn(Arrays.asList("1449655759", "92217"));
@@ -329,7 +330,7 @@ public class JedisClusterConnectionUnitTests {
 		verify(con3Mock, times(1)).configResetStat();
 	}
 
-	@Test // DATAREDIS-315
+	@Test // DATAREDIS-315, DATAREDIS-890
 	public void resetConfigStatsShouldBeExecutedOnSingleNodeCorrectly() {
 
 		connection.resetConfigStats(CLUSTER_NODE_2);
