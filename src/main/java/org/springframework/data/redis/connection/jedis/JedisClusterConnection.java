@@ -63,6 +63,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Ninad Divadkar
  * @author Tao Chen
+ * @author Chen Guanqun
  * @since 1.7
  */
 public class JedisClusterConnection implements DefaultedRedisClusterConnection {
@@ -889,12 +890,10 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 			List<Entry<String, JedisPool>> list = new ArrayList<>(cluster.getClusterNodes().entrySet());
 			Collections.shuffle(list);
+
 			for (Entry<String, JedisPool> entry : list) {
 
-				Jedis jedis = null;
-
-				try {
-					jedis = entry.getValue().getResource();
+				try (Jedis jedis = entry.getValue().getResource()) {
 
 					time = System.currentTimeMillis();
 					Set<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(jedis.clusterNodes());
@@ -905,17 +904,15 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 					return cached;
 				} catch (Exception ex) {
 					errors.put(entry.getKey(), ex);
-				} finally {
-					if (jedis != null) {
-						jedis.close();
-					}
 				}
 			}
 
 			StringBuilder sb = new StringBuilder();
+
 			for (Entry<String, Exception> entry : errors.entrySet()) {
 				sb.append(String.format("\r\n\t- %s failed: %s", entry.getKey(), entry.getValue().getMessage()));
 			}
+
 			throw new ClusterStateFailureException(
 					"Could not retrieve cluster information. CLUSTER NODES returned with error." + sb.toString());
 		}
