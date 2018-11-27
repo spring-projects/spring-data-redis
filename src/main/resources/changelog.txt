@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.0.12.RELEASE (2018-11-27)
+----------------------------------------------
+* DATAREDIS-890 - JedisClusterTopologyProvider sends nodes operation always to the same node.
+* DATAREDIS-879 - Release 2.0.12 (Kay SR12).
+* DATAREDIS-872 - InitialValue is not specified when two threads use the RedisAtomicInteger constructor concurrently, and two threads can cause thread safety issues.
+
+
 Changes in version 1.8.17.RELEASE (2018-11-27)
 ----------------------------------------------
 * DATAREDIS-880 - Release 1.8.17 (Ingalls SR17).
