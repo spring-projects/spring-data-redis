@@ -1,6 +1,12 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.17.RELEASE (2018-11-27)
+----------------------------------------------
+* DATAREDIS-880 - Release 1.8.17 (Ingalls SR17).
+* DATAREDIS-872 - InitialValue is not specified when two threads use the RedisAtomicInteger constructor concurrently, and two threads can cause thread safety issues.
+
+
 Changes in version 2.1.2.RELEASE (2018-10-29)
 ---------------------------------------------
 * DATAREDIS-884 - Upgrade to Lettuce 5.1.2.RELEASE.
