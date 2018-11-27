@@ -1,4 +1,4 @@
-Spring Data Redis 2.0.11
+Spring Data Redis 2.0.12
    Copyright (c) [$copyright] Pivotal Software, Inc.
 
    ========================================================================
