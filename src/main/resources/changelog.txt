@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.3.RELEASE (2018-11-27)
+---------------------------------------------
+* DATAREDIS-897 - Upgrade to Lettuce 5.1.3.
+* DATAREDIS-890 - JedisClusterTopologyProvider sends nodes operation always to the same node.
+* DATAREDIS-885 - Release 2.1.3 (Lovelace SR3).
+
+
 Changes in version 2.0.12.RELEASE (2018-11-27)
 ----------------------------------------------
 * DATAREDIS-890 - JedisClusterTopologyProvider sends nodes operation always to the same node.
