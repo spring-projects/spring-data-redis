@@ -12,12 +12,12 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.9.17.BUILD-SNAPSHOT</version>
+		<version>1.9.17.RELEASE</version>
 	</parent>
 
 	<properties>
 		<dist.key>DATAREDIS</dist.key>
-		<springdata.keyvalue>1.2.17.BUILD-SNAPSHOT</springdata.keyvalue>
+		<springdata.keyvalue>1.2.17.RELEASE</springdata.keyvalue>
 		<jta>1.1</jta>
 		<beanutils>1.9.2</beanutils>
 		<xstream>1.4.8</xstream>
@@ -273,8 +273,8 @@
 
 	<repositories>
 		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>https://repo.spring.io/libs-snapshot</url>
+			<id>spring-libs-release</id>
+			<url>https://repo.spring.io/libs-release</url>
 		</repository>
 	</repositories>
 
