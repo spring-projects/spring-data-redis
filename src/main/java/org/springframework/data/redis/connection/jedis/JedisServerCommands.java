@@ -495,15 +495,15 @@ class JedisServerCommands implements RedisServerCommands {
 			if (isPipelined()) {
 
 				pipeline(connection.newJedisResult(connection.getRequiredPipeline()
-						.migrate(JedisConverters.toBytes(target.getHost()), target.getPort(), key, dbIndex, timeoutToUse)));
+						.migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse)));
 				return;
 			}
 			if (isQueueing()) {
 				transaction(connection.newJedisResult(connection.getRequiredTransaction()
-						.migrate(JedisConverters.toBytes(target.getHost()), target.getPort(), key, dbIndex, timeoutToUse)));
+						.migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse)));
 				return;
 			}
-			connection.getJedis().migrate(JedisConverters.toBytes(target.getHost()), target.getPort(), key, dbIndex,
+			connection.getJedis().migrate(target.getHost(), target.getPort(), key, dbIndex,
 					timeoutToUse);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);

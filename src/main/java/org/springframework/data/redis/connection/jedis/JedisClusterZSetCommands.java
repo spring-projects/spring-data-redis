@@ -642,7 +642,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
-			ZParams zparams = new ZParams().weightsByDouble(weights.toArray())
+			ZParams zparams = new ZParams().weights(weights.toArray())
 					.aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			try {
@@ -698,7 +698,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
-			ZParams zparams = new ZParams().weightsByDouble(weights.toArray())
+			ZParams zparams = new ZParams().weights(weights.toArray())
 					.aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			try {
@@ -729,7 +729,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 				redis.clients.jedis.ScanResult<redis.clients.jedis.Tuple> result = connection.getCluster().zscan(key,
 						JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<>(Long.valueOf(result.getStringCursor()),
+				return new ScanIteration<>(Long.valueOf(result.getCursor()),
 						JedisConverters.tuplesToTuples().convert(result.getResult()));
 			}
 		}.open();

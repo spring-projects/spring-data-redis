@@ -19,7 +19,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.GeoUnit;
-import redis.clients.jedis.params.geo.GeoRadiusParam;
+import redis.clients.jedis.params.GeoRadiusParam;
 
 import java.util.HashMap;
 import java.util.List;
@@ -258,7 +258,7 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 		Assert.notNull(args, "Args must not be null!");
 
 		GeoUnit geoUnit = JedisConverters.toGeoUnit(radius.getMetric());
-		redis.clients.jedis.params.geo.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(args);
+		redis.clients.jedis.params.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(args);
 
 		try {
 			return JedisConverters.geoRadiusResponseToGeoResultsConverter(radius.getMetric())

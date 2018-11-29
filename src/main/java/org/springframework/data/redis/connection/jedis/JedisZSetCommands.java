@@ -594,7 +594,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
 
 		try {
-			ZParams zparams = new ZParams().weightsByDouble(weights.toArray())
+			ZParams zparams = new ZParams().weights(weights.toArray())
 					.aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			if (isPipelined()) {
@@ -651,7 +651,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
 
 		try {
-			ZParams zparams = new ZParams().weightsByDouble(weights.toArray())
+			ZParams zparams = new ZParams().weights(weights.toArray())
 					.aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			if (isPipelined()) {
@@ -727,7 +727,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 				ScanResult<redis.clients.jedis.Tuple> result = connection.getJedis().zscan(key,
 						JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<>(Long.valueOf(result.getStringCursor()),
+				return new ScanIteration<>(Long.valueOf(result.getCursor()),
 						JedisConverters.tuplesToTuples().convert(result.getResult()));
 			}
 

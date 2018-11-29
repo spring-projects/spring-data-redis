@@ -479,7 +479,7 @@ class JedisSetCommands implements RedisSetCommands {
 
 				redis.clients.jedis.ScanResult<byte[]> result = connection.getJedis().sscan(key,
 						JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<>(Long.valueOf(result.getStringCursor()), result.getResult());
+				return new ScanIteration<>(Long.valueOf(result.getCursor()), result.getResult());
 			}
 
 			protected void doClose() {

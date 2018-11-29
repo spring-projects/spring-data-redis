@@ -306,7 +306,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.notNull(within, "Within must not be null!");
 		Assert.notNull(args, "Args must not be null!");
 
-		redis.clients.jedis.params.geo.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(args);
+		redis.clients.jedis.params.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(args);
 		Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
 				.geoRadiusResponseToGeoResultsConverter(within.getRadius().getMetric());
 
@@ -381,7 +381,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 		GeoUnit geoUnit = JedisConverters.toGeoUnit(radius.getMetric());
 		Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
 				.geoRadiusResponseToGeoResultsConverter(radius.getMetric());
-		redis.clients.jedis.params.geo.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(args);
+		redis.clients.jedis.params.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(args);
 
 		try {
 			if (isPipelined()) {
