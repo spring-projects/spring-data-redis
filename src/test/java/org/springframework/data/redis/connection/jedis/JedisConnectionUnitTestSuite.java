@@ -270,7 +270,7 @@ public class JedisConnectionUnitTestSuite {
 		public void doesNotSelectDbWhenCurrentDbDoesNotMatchDesiredOne() {
 
 			Jedis jedisSpy = spy(new MockedClientJedis("http://localhost:1234", getNativeRedisConnectionMock()));
-			when(jedisSpy.getDB()).thenReturn(3L);
+			when(jedisSpy.getDB()).thenReturn(3);
 
 			new JedisConnection(jedisSpy);
 

@@ -16,14 +16,14 @@
 
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryClient.LIST_POSITION;
 import redis.clients.jedis.BinaryJedisPubSub;
+import redis.clients.jedis.ListPosition;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.jedis.exceptions.JedisException;
-import redis.clients.util.SafeEncoder;
+import redis.clients.jedis.util.SafeEncoder;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -215,9 +215,9 @@ public abstract class JedisUtils {
 		return (value ? ONE : ZERO);
 	}
 
-	static LIST_POSITION convertPosition(Position where) {
+	static ListPosition convertPosition(Position where) {
 		Assert.notNull(where, "list positions are mandatory");
-		return (Position.AFTER.equals(where) ? LIST_POSITION.AFTER : LIST_POSITION.BEFORE);
+		return (Position.AFTER.equals(where) ? ListPosition.AFTER : ListPosition.BEFORE);
 	}
 
 	/**

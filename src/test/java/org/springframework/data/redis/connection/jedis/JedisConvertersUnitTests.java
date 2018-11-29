@@ -20,6 +20,8 @@ import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 
+import redis.clients.jedis.params.SetParams;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -48,7 +50,8 @@ public class JedisConvertersUnitTests {
 
 	@Test // DATAREDIS-268
 	public void convertingNullToListOfRedisClientInfoShouldReturnEmptyList() {
-		assertThat(JedisConverters.toListOfRedisClientInformation(null), equalTo(Collections.<RedisClientInfo> emptyList()));
+		assertThat(JedisConverters.toListOfRedisClientInformation(null),
+				equalTo(Collections.<RedisClientInfo> emptyList()));
 	}
 
 	@Test // DATAREDIS-268
@@ -168,8 +171,7 @@ public class JedisConvertersUnitTests {
 	@Test // DATAREDIS-352
 	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsIncluing() {
 
-		assertThat(
-				JedisConverters.boundaryToBytesForZRange(Range.range().gte(JedisConverters.toBytes("a")).getMin(), null),
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gte(JedisConverters.toBytes("a")).getMin(), null),
 				is(JedisConverters.toBytes("a")));
 	}
 
@@ -201,34 +203,35 @@ public class JedisConvertersUnitTests {
 
 	@Test // DATAREDIS-316
 	public void toSetCommandExPxOptionShouldReturnEXforSeconds() {
-		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.seconds(100)), equalTo(JedisConverters.toBytes("EX")));
+		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.seconds(100)),
+				equalTo(JedisConverters.toBytes("EX")));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandExPxOptionShouldReturnEXforMilliseconds() {
 
 		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.milliseconds(100)),
-				equalTo(JedisConverters.toBytes("PX")));
+				equalTo(SetParams.setParams().px(100)));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandExPxOptionShouldReturnEmptyArrayForNull() {
-		assertThat(JedisConverters.toSetCommandExPxArgument(null), equalTo(new byte[] {}));
+		assertThat(JedisConverters.toSetCommandExPxArgument(null), equalTo(SetParams.setParams()));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandNxXxOptionShouldReturnNXforAbsent() {
-		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent()), equalTo(JedisConverters.toBytes("NX")));
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent()), equalTo(SetParams.setParams().nx()));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandNxXxOptionShouldReturnXXforAbsent() {
-		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent()), equalTo(JedisConverters.toBytes("XX")));
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent()), equalTo(SetParams.setParams().xx()));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandNxXxOptionShouldReturnEmptyArrayforUpsert() {
-		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert()), equalTo(new byte[] {}));
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert()), equalTo(SetParams.setParams()));
 	}
 
 	private void verifyRedisServerInfo(RedisServer server, Map<String, String> values) {

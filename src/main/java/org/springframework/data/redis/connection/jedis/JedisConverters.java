@@ -15,15 +15,16 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryClient.LIST_POSITION;
 import redis.clients.jedis.BitOP;
 import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.GeoRadiusResponse;
 import redis.clients.jedis.GeoUnit;
+import redis.clients.jedis.ListPosition;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
-import redis.clients.jedis.params.geo.GeoRadiusParam;
-import redis.clients.util.SafeEncoder;
+import redis.clients.jedis.params.GeoRadiusParam;
+import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.util.SafeEncoder;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -402,9 +403,9 @@ abstract public class JedisConverters extends Converters {
 		return EXCEPTION_CONVERTER.convert(ex);
 	}
 
-	public static LIST_POSITION toListPosition(Position source) {
+	public static ListPosition toListPosition(Position source) {
 		Assert.notNull(source, "list positions are mandatory");
-		return (Position.AFTER.equals(source) ? LIST_POSITION.AFTER : LIST_POSITION.BEFORE);
+		return (Position.AFTER.equals(source) ? ListPosition.AFTER : ListPosition.BEFORE);
 	}
 
 	public static byte[][] toByteArrays(Map<byte[], byte[]> source) {
@@ -509,9 +510,13 @@ abstract public class JedisConverters extends Converters {
 	 * @return
 	 * @since 1.7
 	 */
-	public static byte[] toSetCommandExPxArgument(Expiration expiration) {
-		return EXPIRATION_TO_COMMAND_OPTION_CONVERTER.convert(expiration);
-	}
+	public static SetParams toSetCommandExPxArgument(Expiration expiration, SetParams params) {
+      params = params==null? SetParams.setParams() : params;
+      if(expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+        return params.px(expiration.getExpirationTime());
+      }
+      return params.ex((int)expiration.getExpirationTime());
+    }
 
 	/**
 	 * Converts a given {@link SetOption} to the according {@code SET} command argument.<br />
@@ -528,8 +533,16 @@ abstract public class JedisConverters extends Converters {
 	 * @return
 	 * @since 1.7
 	 */
-	public static byte[] toSetCommandNxXxArgument(SetOption option) {
-		return SET_OPTION_TO_COMMAND_OPTION_CONVERTER.convert(option);
+	public static SetParams toSetCommandNxXxArgument(SetOption option, SetParams params) {
+	  params = params==null? SetParams.setParams() : params;
+      switch(option) {
+      case SET_IF_PRESENT:
+        return params.xx();
+      case SET_IF_ABSENT:
+        return params.nx();
+      default:
+        return params;
+      }
 	}
 
 	private static byte[] boundaryToBytes(Boundary boundary, byte[] inclPrefix, byte[] exclPrefix) {

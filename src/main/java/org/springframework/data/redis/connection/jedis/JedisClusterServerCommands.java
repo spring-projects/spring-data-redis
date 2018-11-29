@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.Jedis;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -447,7 +448,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	public List<RedisClientInfo> getClientList() {
 
 		Collection<String> map = connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) BinaryJedis::clientList).resultsAsList();
+				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) Jedis::clientList).resultsAsList();
 
 		ArrayList<RedisClientInfo> result = new ArrayList<>();
 		for (String infos : map) {
@@ -464,7 +465,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	public List<RedisClientInfo> getClientList(RedisClusterNode node) {
 
 		return JedisConverters
-				.toListOfRedisClientInformation(executeCommandOnSingleNode(BinaryJedis::clientList, node).getValue());
+				.toListOfRedisClientInformation(executeCommandOnSingleNode(Jedis::clientList, node).getValue());
 	}
 
 	/*
@@ -510,7 +511,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 		RedisClusterNode node = connection.getTopologyProvider().getTopology().lookup(target.getHost(), target.getPort());
 
-		executeCommandOnSingleNode(client -> client.migrate(JedisConverters.toBytes(target.getHost()), target.getPort(),
+		executeCommandOnSingleNode(client -> client.migrate(target.getHost(), target.getPort(),
 				key, dbIndex, timeoutToUse), node);
 	}
 
