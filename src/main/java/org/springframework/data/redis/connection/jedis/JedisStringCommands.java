@@ -19,6 +19,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.BitPosParams;
 import redis.clients.jedis.Client;
+import redis.clients.jedis.params.SetParams;
 
 import java.util.List;
 import java.util.Map;
@@ -165,8 +166,7 @@ class JedisStringCommands implements RedisStringCommands {
 			} else {
 
 				try {
-
-					byte[] nxxx = JedisConverters.toSetCommandNxXxArgument(option);
+				    SetParams nxxx = JedisConverters.toSetCommandNxXxArgument(option, null);
 
 					if (isPipelined()) {
 
@@ -198,8 +198,8 @@ class JedisStringCommands implements RedisStringCommands {
 				}
 			} else {
 
-				byte[] nxxx = JedisConverters.toSetCommandNxXxArgument(option);
-				byte[] expx = JedisConverters.toSetCommandExPxArgument(expiration);
+			    SetParams params = JedisConverters.toSetCommandNxXxArgument(option, null);
+				JedisConverters.toSetCommandExPxArgument(expiration, params);
 
 				try {
 					if (isPipelined()) {
@@ -211,7 +211,7 @@ class JedisStringCommands implements RedisStringCommands {
 						}
 
 						pipeline(connection.newJedisResult(
-								connection.getRequiredPipeline().set(key, value, nxxx, expx, (int) expiration.getExpirationTime()),
+								connection.getRequiredPipeline().set(key, value, params),
 								Converters.stringToBooleanConverter(), () -> false));
 						return null;
 					}
@@ -223,13 +223,12 @@ class JedisStringCommands implements RedisStringCommands {
 						}
 
 						transaction(connection.newJedisResult(
-								connection.getRequiredTransaction().set(key, value, nxxx, expx, (int) expiration.getExpirationTime()),
+								connection.getRequiredTransaction().set(key, value, params),
 								Converters.stringToBooleanConverter(), () -> false));
 						return null;
 					}
 
-					return Converters
-							.stringToBoolean(connection.getJedis().set(key, value, nxxx, expx, expiration.getExpirationTime()));
+					return Converters.stringToBoolean(connection.getJedis().set(key, value, params));
 
 				} catch (Exception ex) {
 					throw convertJedisAccessException(ex);

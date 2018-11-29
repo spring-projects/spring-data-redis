@@ -19,6 +19,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.Connection;
+import redis.clients.jedis.params.SetParams;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -157,12 +158,12 @@ class JedisClusterStringCommands implements RedisStringCommands {
 				}
 			} else {
 
-				byte[] nxxx = JedisConverters.toSetCommandNxXxArgument(option);
-				byte[] expx = JedisConverters.toSetCommandExPxArgument(expiration);
+			  SetParams params = JedisConverters.toSetCommandNxXxArgument(option, null);
+			  JedisConverters.toSetCommandExPxArgument(expiration, params);
 
 				try {
 					return Converters
-							.stringToBoolean(connection.getCluster().set(key, value, nxxx, expx, expiration.getExpirationTime()));
+							.stringToBoolean(connection.getCluster().set(key, value, params));
 				} catch (Exception ex) {
 					throw convertJedisAccessException(ex);
 				}

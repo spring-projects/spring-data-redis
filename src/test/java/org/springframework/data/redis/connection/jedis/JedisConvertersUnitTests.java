@@ -201,34 +201,34 @@ public class JedisConvertersUnitTests {
 
 	@Test // DATAREDIS-316
 	public void toSetCommandExPxOptionShouldReturnEXforSeconds() {
-		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.seconds(100)), equalTo(JedisConverters.toBytes("EX")));
+		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.seconds(100), null), equalTo(JedisConverters.toBytes("EX")));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandExPxOptionShouldReturnEXforMilliseconds() {
 
-		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.milliseconds(100)),
+		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.milliseconds(100), null),
 				equalTo(JedisConverters.toBytes("PX")));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandExPxOptionShouldReturnEmptyArrayForNull() {
-		assertThat(JedisConverters.toSetCommandExPxArgument(null), equalTo(new byte[] {}));
+		assertThat(JedisConverters.toSetCommandExPxArgument(null, null), equalTo(new byte[] {}));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandNxXxOptionShouldReturnNXforAbsent() {
-		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent()), equalTo(JedisConverters.toBytes("NX")));
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent(), null), equalTo(JedisConverters.toBytes("NX")));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandNxXxOptionShouldReturnXXforAbsent() {
-		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent()), equalTo(JedisConverters.toBytes("XX")));
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent(), null), equalTo(JedisConverters.toBytes("XX")));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandNxXxOptionShouldReturnEmptyArrayforUpsert() {
-		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert()), equalTo(new byte[] {}));
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert(), null), equalTo(new byte[] {}));
 	}
 
 	private void verifyRedisServerInfo(RedisServer server, Map<String, String> values) {

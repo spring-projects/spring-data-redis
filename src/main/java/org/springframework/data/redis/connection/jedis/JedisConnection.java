@@ -23,7 +23,7 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisDataException;
-import redis.clients.util.Pool;
+import redis.clients.jedis.util.Pool;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,7 +74,6 @@ public class JedisConnection extends AbstractRedisConnection {
 	/**
 	 * flag indicating whether the connection needs to be dropped or not
 	 */
-	private boolean broken = false;
 	private volatile @Nullable JedisSubscription subscription;
 	private volatile @Nullable Pipeline pipeline;
 	private final int dbIndex;
@@ -133,17 +132,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
-
-		if (ex instanceof NullPointerException) {
-			// An NPE before flush will leave data in the OutputStream of a pooled connection
-			broken = true;
-		}
-
 		DataAccessException exception = EXCEPTION_TRANSLATION.translate(ex);
-		if (exception instanceof RedisConnectionFailureException) {
-			broken = true;
-		}
-
 		return exception != null ? exception : new RedisSystemException(ex.getMessage(), ex);
 	}
 
@@ -293,12 +282,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		// return the connection to the pool
 		if (pool != null) {
-
-			if (broken) {
-				pool.returnBrokenResource(jedis);
-			} else {
-				jedis.close();
-			}
+			jedis.close();
 			return;
 		}
 		// else close the connection normally (doing the try/catch dance)

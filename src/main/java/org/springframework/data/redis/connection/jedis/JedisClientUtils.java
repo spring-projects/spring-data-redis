@@ -24,8 +24,8 @@ import redis.clients.jedis.Protocol;
 import redis.clients.jedis.Protocol.Command;
 import redis.clients.jedis.Queable;
 import redis.clients.jedis.Response;
-import redis.clients.util.RedisOutputStream;
-import redis.clients.util.SafeEncoder;
+import redis.clients.jedis.util.RedisOutputStream;
+import redis.clients.jedis.util.SafeEncoder;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

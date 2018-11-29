@@ -403,7 +403,7 @@ class JedisHashCommands implements RedisHashCommands {
 
 				ScanResult<Entry<byte[], byte[]>> result = connection.getJedis().hscan(key, JedisConverters.toBytes(cursorId),
 						params);
-				return new ScanIteration<>(Long.valueOf(result.getStringCursor()), result.getResult());
+				return new ScanIteration<>(Long.valueOf(result.getCursor()), result.getResult());
 			}
 
 			@Override
