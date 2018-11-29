@@ -34,6 +34,8 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
+import redis.clients.jedis.params.SetParams;
+
 /**
  * @author Christoph Strobl
  */
@@ -208,27 +210,27 @@ public class JedisConvertersUnitTests {
 	public void toSetCommandExPxOptionShouldReturnEXforMilliseconds() {
 
 		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.milliseconds(100), null),
-				equalTo(JedisConverters.toBytes("PX")));
+				equalTo(SetParams.setParams().px(100)));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandExPxOptionShouldReturnEmptyArrayForNull() {
-		assertThat(JedisConverters.toSetCommandExPxArgument(null, null), equalTo(new byte[] {}));
+		assertThat(JedisConverters.toSetCommandExPxArgument(null, null), equalTo(SetParams.setParams()));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandNxXxOptionShouldReturnNXforAbsent() {
-		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent(), null), equalTo(JedisConverters.toBytes("NX")));
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent(), null), equalTo(SetParams.setParams().nx()));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandNxXxOptionShouldReturnXXforAbsent() {
-		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent(), null), equalTo(JedisConverters.toBytes("XX")));
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent(), null), equalTo(SetParams.setParams().xx()));
 	}
 
 	@Test // DATAREDIS-316
 	public void toSetCommandNxXxOptionShouldReturnEmptyArrayforUpsert() {
-		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert(), null), equalTo(new byte[] {}));
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert(), null), equalTo(SetParams.setParams()));
 	}
 
 	private void verifyRedisServerInfo(RedisServer server, Map<String, String> values) {
