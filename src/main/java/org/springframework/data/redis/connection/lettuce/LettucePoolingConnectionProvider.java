@@ -126,12 +126,12 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 		CompletableFuture<StatefulConnection<?, ?>> acquire = pool.acquire();
 
 		inProgressAsyncPoolRef.put(acquire, pool);
-		return acquire.whenComplete((conn, e) -> {
+		return acquire.whenComplete((connection, e) -> {
 
 			inProgressAsyncPoolRef.remove(acquire);
 
-			if (conn != null) {
-				asyncPoolRef.put(conn, pool);
+			if (connection != null) {
+				asyncPoolRef.put(connection, pool);
 			}
 		}).thenApply(connectionType::cast);
 	}

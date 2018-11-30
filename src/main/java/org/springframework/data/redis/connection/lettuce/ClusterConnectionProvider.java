@@ -94,16 +94,20 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 		}
 
 		if (connectionType.equals(StatefulRedisPubSubConnection.class)) {
-			return client.connectPubSubAsync(codec).thenApply(connectionType::cast);
+
+			return client.connectPubSubAsync(codec) //
+					.thenApply(connectionType::cast);
 		}
 
 		if (StatefulRedisClusterConnection.class.isAssignableFrom(connectionType)
 				|| connectionType.equals(StatefulConnection.class)) {
 
-			return client.connectAsync(codec).thenApply(conn -> {
-				readFrom.ifPresent(conn::setReadFrom);
-				return connectionType.cast(conn);
-			});
+			return client.connectAsync(codec) //
+					.thenApply(connection -> {
+
+						readFrom.ifPresent(connection::setReadFrom);
+						return connectionType.cast(connection);
+					});
 		}
 
 		return LettuceFutureUtils

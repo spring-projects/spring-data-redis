@@ -36,15 +36,15 @@ class LettuceFutureUtils {
 	 * exceptionally} given {@link Throwable}. This utility method allows exceptionally future creation with a single
 	 * invocation.
 	 *
-	 * @param t must not be {@literal null}.
+	 * @param throwable must not be {@literal null}.
 	 * @return the completed {@link CompletableFuture future}.
 	 */
-	static <T> CompletableFuture<T> failed(Throwable t) {
+	static <T> CompletableFuture<T> failed(Throwable throwable) {
 
-		Assert.notNull(t, "Throwable must not be null!");
+		Assert.notNull(throwable, "Throwable must not be null!");
 
 		CompletableFuture<T> future = new CompletableFuture<>();
-		future.completeExceptionally(t);
+		future.completeExceptionally(throwable);
 
 		return future;
 	}

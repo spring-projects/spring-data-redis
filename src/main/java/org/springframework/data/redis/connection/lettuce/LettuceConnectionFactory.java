@@ -276,6 +276,7 @@ public class LettuceConnectionFactory
 		this.reactiveConnectionProvider = createConnectionProvider(client, LettuceReactiveRedisConnection.CODEC);
 
 		if (isClusterAware()) {
+
 			this.clusterCommandExecutor = new ClusterCommandExecutor(
 					new LettuceClusterTopologyProvider((RedisClusterClient) client),
 					new LettuceClusterConnection.LettuceClusterNodeResourceProvider(this.connectionProvider),
