@@ -81,9 +81,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 * <pre>
 	 * <code>
 	 * spring.redis.cluster.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
-	 * spring.redis.cluster.timeout=5
 	 * spring.redis.cluster.max-redirects=3
-	 * spring.redis.cluster.password=foobar
 	 * </code>
 	 * </pre>
 	 *
