@@ -115,11 +115,11 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 	public void run() {
 
 		pollState.starting();
-		pollState.running();
 
 		try {
 
 			isInEventLoop = true;
+			pollState.running();
 			doLoop(request.getStreamOffset().getKey());
 		} finally {
 			isInEventLoop = false;
@@ -144,8 +144,7 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 				}
 			} catch (InterruptedException e) {
 
-				pollState.cancel();
-
+				cancel();
 				Thread.currentThread().interrupt();
 			} catch (RuntimeException e) {
 

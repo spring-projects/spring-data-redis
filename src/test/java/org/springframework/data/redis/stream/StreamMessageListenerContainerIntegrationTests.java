@@ -53,7 +53,7 @@ import org.springframework.data.redis.stream.StreamMessageListenerContainer.Stre
 
 /**
  * Integration tests for {@link StreamMessageListenerContainer}.
- * 
+ *
  * @author Mark Paluch
  */
 public class StreamMessageListenerContainerIntegrationTests {
