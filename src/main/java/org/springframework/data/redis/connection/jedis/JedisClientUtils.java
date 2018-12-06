@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.Builder;
 import redis.clients.jedis.Client;
-import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.Protocol.Command;
@@ -35,8 +34,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -50,7 +47,6 @@ import org.springframework.util.ReflectionUtils;
 class JedisClientUtils {
 
 	private static final Field CLIENT_FIELD;
-	private static final Method SEND_COMMAND;
 	private static final Method GET_RESPONSE;
 	private static final Method PROTOCOL_SEND_COMMAND;
 	private static final Set<String> KNOWN_COMMANDS;
@@ -64,20 +60,6 @@ class JedisClientUtils {
 		PROTOCOL_SEND_COMMAND = ReflectionUtils.findMethod(Protocol.class, "sendCommand", RedisOutputStream.class,
 				byte[].class, byte[][].class);
 		ReflectionUtils.makeAccessible(PROTOCOL_SEND_COMMAND);
-
-		try {
-
-			Class<?> commandType = ClassUtils.isPresent("redis.clients.jedis.ProtocolCommand", null)
-					? ClassUtils.forName("redis.clients.jedis.ProtocolCommand", null)
-					: ClassUtils.forName("redis.clients.jedis.Protocol$Command", null);
-
-			SEND_COMMAND = ReflectionUtils.findMethod(Connection.class, "sendCommand", commandType, byte[][].class);
-		} catch (Exception e) {
-			throw new NoClassDefFoundError(
-					"Could not find required flavor of command required by 'redis.clients.jedis.Connection#sendCommand'.");
-		}
-
-		ReflectionUtils.makeAccessible(SEND_COMMAND);
 
 		GET_RESPONSE = ReflectionUtils.findMethod(Queable.class, "getResponse", Builder.class);
 		ReflectionUtils.makeAccessible(GET_RESPONSE);
@@ -149,24 +131,10 @@ class JedisClientUtils {
 	private static void sendCommand(Client client, String command, byte[][] args) {
 
 		if (isKnownCommand(command)) {
-			ReflectionUtils.invokeMethod(SEND_COMMAND, client, Command.valueOf(command.trim().toUpperCase()), args);
+			client.sendCommand(Command.valueOf(command.trim().toUpperCase()), args);
 		} else {
-			sendProtocolCommand(client, command, args);
+			client.sendCommand(() -> SafeEncoder.encode(command.trim().toUpperCase()), args);
 		}
-	}
-
-	private static void sendProtocolCommand(Client client, String command, byte[][] args) {
-
-		// quite expensive to construct for each command invocation
-		DirectFieldAccessor dfa = new DirectFieldAccessor(client);
-
-		client.connect();
-
-		RedisOutputStream os = (RedisOutputStream) dfa.getPropertyValue("outputStream");
-		ReflectionUtils.invokeMethod(PROTOCOL_SEND_COMMAND, null, os, SafeEncoder.encode(command), args);
-
-		Integer pipelinedCommands = (Integer) dfa.getPropertyValue("pipelinedCommands");
-		dfa.setPropertyValue("pipelinedCommands", pipelinedCommands + 1);
 	}
 
 	private static boolean isKnownCommand(String command) {

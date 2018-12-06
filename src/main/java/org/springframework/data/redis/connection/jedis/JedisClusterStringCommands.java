@@ -158,12 +158,11 @@ class JedisClusterStringCommands implements RedisStringCommands {
 				}
 			} else {
 
-			  SetParams params = JedisConverters.toSetCommandNxXxArgument(option, null);
-			  JedisConverters.toSetCommandExPxArgument(expiration, params);
+				SetParams params = JedisConverters.toSetCommandNxXxArgument(option);
+				JedisConverters.toSetCommandExPxArgument(expiration, params);
 
 				try {
-					return Converters
-							.stringToBoolean(connection.getCluster().set(key, value, params));
+					return Converters.stringToBoolean(connection.getCluster().set(key, value, params));
 				} catch (Exception ex) {
 					throw convertJedisAccessException(ex);
 				}
@@ -490,7 +489,6 @@ class JedisClusterStringCommands implements RedisStringCommands {
 			throw convertJedisAccessException(ex);
 		}
 	}
-
 
 	/*
 	 * (non-Javadoc)

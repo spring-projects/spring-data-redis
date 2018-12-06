@@ -88,6 +88,7 @@ import org.springframework.util.StringUtils;
  * @author Jungtaek Lim
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Guy Korland
  */
 abstract public class JedisConverters extends Converters {
 
@@ -196,7 +197,8 @@ abstract public class JedisConverters extends Converters {
 		};
 
 		GEO_COORDINATE_TO_POINT_CONVERTER = geoCoordinate -> geoCoordinate != null
-				? new Point(geoCoordinate.getLongitude(), geoCoordinate.getLatitude()) : null;
+				? new Point(geoCoordinate.getLongitude(), geoCoordinate.getLatitude())
+				: null;
 		LIST_GEO_COORDINATE_TO_POINT_CONVERTER = new ListConverter<>(GEO_COORDINATE_TO_POINT_CONVERTER);
 
 		BYTES_LIST_TO_LONG_LIST_CONVERTER = new ListConverter<byte[], Long>(new Converter<byte[], Long>() {
@@ -220,8 +222,7 @@ abstract public class JedisConverters extends Converters {
 
 					if (command instanceof BitFieldIncrBy) {
 
-						BitFieldIncrBy.Overflow overflow = ((BitFieldIncrBy) command)
-								.getOverflow();
+						BitFieldIncrBy.Overflow overflow = ((BitFieldIncrBy) command).getOverflow();
 						if (overflow != null) {
 							args.add(JedisConverters.toBytes("OVERFLOW"));
 							args.add(JedisConverters.toBytes(overflow.name()));
@@ -498,51 +499,94 @@ abstract public class JedisConverters extends Converters {
 	}
 
 	/**
-	 * Converts a given {@link Expiration} to the according {@code SET} command argument.<br />
+	 * Converts a given {@link Expiration} to the according {@code SET} command argument.
 	 * <dl>
-	 * <dt>{@link TimeUnit#SECONDS}</dt>
-	 * <dd>{@code EX}</dd>
 	 * <dt>{@link TimeUnit#MILLISECONDS}</dt>
 	 * <dd>{@code PX}</dd>
+	 * <dt>{@link TimeUnit#SECONDS}</dt>
+	 * <dd>{@code EX}</dd>
 	 * </dl>
 	 *
-	 * @param expiration
+	 * @param expiration must not be {@literal null}.
 	 * @return
-	 * @since 1.7
+	 * @since 2.2
+	 */
+	public static SetParams toSetCommandExPxArgument(Expiration expiration) {
+		return toSetCommandExPxArgument(expiration, SetParams.setParams());
+	}
+
+	/**
+	 * Converts a given {@link Expiration} to the according {@code SET} command argument.
+	 * <dl>
+	 * <dt>{@link TimeUnit#MILLISECONDS}</dt>
+	 * <dd>{@code PX}</dd>
+	 * <dt>{@link TimeUnit#SECONDS}</dt>
+	 * <dd>{@code EX}</dd>
+	 * </dl>
+	 *
+	 * @param expiration must not be {@literal null}.
+	 * @param params
+	 * @return
+	 * @since 2.2
 	 */
 	public static SetParams toSetCommandExPxArgument(Expiration expiration, SetParams params) {
-      params = params==null? SetParams.setParams() : params;
-      if(expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-        return params.px(expiration.getExpirationTime());
-      }
-      return params.ex((int)expiration.getExpirationTime());
-    }
+
+		SetParams paramsToUse = params == null ? SetParams.setParams() : params;
+
+		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			return paramsToUse.px(expiration.getExpirationTime());
+		}
+
+		return paramsToUse.ex((int) expiration.getExpirationTime());
+	}
 
 	/**
 	 * Converts a given {@link SetOption} to the according {@code SET} command argument.<br />
 	 * <dl>
-	 * <dt>{@link SetOption#UPSERT}</dt>
-	 * <dd>{@code byte[0]}</dd>
-	 * <dt>{@link SetOption#SET_IF_ABSENT}</dt>
-	 * <dd>{@code NX}</dd>
 	 * <dt>{@link SetOption#SET_IF_PRESENT}</dt>
 	 * <dd>{@code XX}</dd>
+	 * <dt>{@link SetOption#SET_IF_ABSENT}</dt>
+	 * <dd>{@code NX}</dd>
+	 * <dt>{@link SetOption#UPSERT}</dt>
+	 * <dd>{@code byte[0]}</dd>
 	 * </dl>
 	 *
-	 * @param option
+	 * @param option must not be {@literal null}.
 	 * @return
-	 * @since 1.7
+	 * @since 2.2
+	 */
+	public static SetParams toSetCommandNxXxArgument(SetOption option) {
+		return toSetCommandNxXxArgument(option, SetParams.setParams());
+	}
+
+	/**
+	 * Converts a given {@link SetOption} to the according {@code SET} command argument.<br />
+	 * <dl>
+	 * <dt>{@link SetOption#SET_IF_PRESENT}</dt>
+	 * <dd>{@code XX}</dd>
+	 * <dt>{@link SetOption#SET_IF_ABSENT}</dt>
+	 * <dd>{@code NX}</dd>
+	 * <dt>{@link SetOption#UPSERT}</dt>
+	 * <dd>{@code byte[0]}</dd>
+	 * </dl>
+	 *
+	 * @param option must not be {@literal null}.
+	 * @param params
+	 * @return
+	 * @since 2.2
 	 */
 	public static SetParams toSetCommandNxXxArgument(SetOption option, SetParams params) {
-	  params = params==null? SetParams.setParams() : params;
-      switch(option) {
-      case SET_IF_PRESENT:
-        return params.xx();
-      case SET_IF_ABSENT:
-        return params.nx();
-      default:
-        return params;
-      }
+
+		SetParams paramsToUse = params == null ? SetParams.setParams() : params;
+
+		switch (option) {
+			case SET_IF_PRESENT:
+				return paramsToUse.xx();
+			case SET_IF_ABSENT:
+				return paramsToUse.nx();
+			default:
+				return paramsToUse;
+		}
 	}
 
 	private static byte[] boundaryToBytes(Boundary boundary, byte[] inclPrefix, byte[] exclPrefix) {

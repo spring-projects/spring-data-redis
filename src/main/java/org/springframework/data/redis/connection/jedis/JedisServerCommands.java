@@ -494,17 +494,16 @@ class JedisServerCommands implements RedisServerCommands {
 		try {
 			if (isPipelined()) {
 
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline()
-						.migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse)));
+				pipeline(connection.newJedisResult(
+						connection.getRequiredPipeline().migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse)));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction()
-						.migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse)));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().migrate(target.getHost(),
+						target.getPort(), key, dbIndex, timeoutToUse)));
 				return;
 			}
-			connection.getJedis().migrate(target.getHost(), target.getPort(), key, dbIndex,
-					timeoutToUse);
+			connection.getJedis().migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

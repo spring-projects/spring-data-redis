@@ -166,7 +166,7 @@ class JedisStringCommands implements RedisStringCommands {
 			} else {
 
 				try {
-				    SetParams nxxx = JedisConverters.toSetCommandNxXxArgument(option, null);
+					SetParams nxxx = JedisConverters.toSetCommandNxXxArgument(option);
 
 					if (isPipelined()) {
 

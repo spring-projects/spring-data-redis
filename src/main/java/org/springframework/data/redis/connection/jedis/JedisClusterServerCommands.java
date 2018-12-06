@@ -335,8 +335,10 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 		Assert.notNull(pattern, "Pattern must not be null!");
 
-		return connection.getClusterCommandExecutor().executeCommandOnSingleNode(
-				(JedisClusterCommandCallback<Properties>) client -> Converters.toProperties(client.configGet(pattern)), node)
+		return connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode(
+						(JedisClusterCommandCallback<Properties>) client -> Converters.toProperties(client.configGet(pattern)),
+						node)
 				.getValue();
 	}
 
@@ -502,8 +504,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption, long)
 	 */
 	@Override
-	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option,
-			long timeout) {
+	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(target, "Target node must not be null!");
@@ -511,8 +512,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 		RedisClusterNode node = connection.getTopologyProvider().getTopology().lookup(target.getHost(), target.getPort());
 
-		executeCommandOnSingleNode(client -> client.migrate(target.getHost(), target.getPort(),
-				key, dbIndex, timeoutToUse), node);
+		executeCommandOnSingleNode(client -> client.migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse),
+				node);
 	}
 
 	private Long convertListOfStringToTime(List<String> serverTimeInformation) {
