@@ -34,7 +34,10 @@ import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 /**
+ * Generic Jackson 2-based {@link RedisSerializer} that maps {@link Object objects} to JSON using dynamic typing.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.6
  */
 public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Object> {
@@ -61,7 +64,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		// simply setting {@code mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)} does not help here since we need
 		// the type hint embedded for deserialization using the default typing feature.
-		mapper.registerModule(new SimpleModule().addSerializer(new NullValueSerializer(classPropertyTypeName)));
+		registerNullValueSerializer(mapper, classPropertyTypeName);
 
 		if (StringUtils.hasText(classPropertyTypeName)) {
 			mapper.enableDefaultTypingAsProperty(DefaultTyping.NON_FINAL, classPropertyTypeName);
@@ -81,6 +84,22 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		Assert.notNull(mapper, "ObjectMapper must not be null!");
 		this.mapper = mapper;
+	}
+
+	/**
+	 * Register {@link NullValueSerializer} in the given {@link ObjectMapper} with an optional
+	 * {@code classPropertyTypeName}. This method should be called by code that customizes
+	 * {@link GenericJackson2JsonRedisSerializer} by providing an external {@link ObjectMapper}.
+	 *
+	 * @param objectMapper the object mapper to customize.
+	 * @param classPropertyTypeName name of the type property. Defaults to {@code @class} if {@literal null}/empty.
+	 * @since 2.2
+	 */
+	public static void registerNullValueSerializer(ObjectMapper objectMapper, @Nullable String classPropertyTypeName) {
+
+		// simply setting {@code mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)} does not help here since we need
+		// the type hint embedded for deserialization using the default typing feature.
+		objectMapper.registerModule(new SimpleModule().addSerializer(new NullValueSerializer(classPropertyTypeName)));
 	}
 
 	/*
@@ -140,7 +159,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	private class NullValueSerializer extends StdSerializer<NullValue> {
+	private static class NullValueSerializer extends StdSerializer<NullValue> {
 
 		private static final long serialVersionUID = 1999052150548658808L;
 		private final String classIdentifier;

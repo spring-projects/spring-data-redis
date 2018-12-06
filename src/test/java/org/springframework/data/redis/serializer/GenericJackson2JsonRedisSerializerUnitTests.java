@@ -20,6 +20,7 @@ import static org.hamcrest.core.IsInstanceOf.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 import static org.springframework.util.ObjectUtils.*;
 
@@ -31,15 +32,20 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.cache.support.NullValue;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 /**
+ * Unit tests for {@link GenericJackson2JsonRedisSerializer}.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class GenericJackson2JsonRedisSerializerUnitTests {
 
@@ -122,10 +128,27 @@ public class GenericJackson2JsonRedisSerializerUnitTests {
 		new GenericJackson2JsonRedisSerializer(objectMapperMock).deserialize(new byte[] { 1 });
 	}
 
-	@Test // DATAREDIS-553
+	@Test // DATAREDIS-553, DATAREDIS-865
 	public void shouldSerializeNullValueSoThatItCanBeDeserializedWithDefaultTypingEnabled() {
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		serializeAndDeserializeNullValue(serializer);
+	}
+
+	@Test // DATAREDIS-865
+	public void shouldSerializeNullValueWithCustomObjectMapper() {
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
+
+		GenericJackson2JsonRedisSerializer.registerNullValueSerializer(mapper, null);
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
+
+		serializeAndDeserializeNullValue(serializer);
+	}
+
+	private static void serializeAndDeserializeNullValue(GenericJackson2JsonRedisSerializer serializer) {
 
 		NullValue nv = BeanUtils.instantiateClass(NullValue.class);
 
