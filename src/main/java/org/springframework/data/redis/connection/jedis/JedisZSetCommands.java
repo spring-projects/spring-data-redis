@@ -579,7 +579,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
 	 */
@@ -594,8 +594,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
 
 		try {
-			ZParams zparams = new ZParams().weights(weights.toArray())
-					.aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+			ZParams zparams = new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			if (isPipelined()) {
 				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zunionstore(destKey, zparams, sets)));
@@ -637,7 +636,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
 	 */
@@ -651,8 +650,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
 
 		try {
-			ZParams zparams = new ZParams().weights(weights.toArray())
-					.aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+			ZParams zparams = new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			if (isPipelined()) {
 				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zinterstore(destKey, zparams, sets)));

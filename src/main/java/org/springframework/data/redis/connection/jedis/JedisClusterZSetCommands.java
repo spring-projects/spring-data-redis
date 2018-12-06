@@ -642,8 +642,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
-			ZParams zparams = new ZParams().weights(weights.toArray())
-					.aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+			ZParams zparams = new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			try {
 				return connection.getCluster().zunionstore(destKey, zparams, sets);
@@ -680,7 +679,6 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		throw new InvalidDataAccessApiUsageException("ZINTERSTORE can only be executed when all keys map to the same slot");
 	}
 
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
@@ -698,8 +696,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
-			ZParams zparams = new ZParams().weights(weights.toArray())
-					.aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+			ZParams zparams = new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			try {
 				return connection.getCluster().zinterstore(destKey, zparams, sets);

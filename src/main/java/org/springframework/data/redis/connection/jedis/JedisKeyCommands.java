@@ -21,7 +21,6 @@ import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -686,8 +685,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		if (replace) {
 
-			this.connection.execute("RESTORE", new byte[][] { key, JedisConverters.toBytes(ttlInMillis),
-					serializedValue,
+			this.connection.execute("RESTORE", new byte[][] { key, JedisConverters.toBytes(ttlInMillis), serializedValue,
 					JedisConverters.toBytes("REPLACE") });
 			return;
 		}

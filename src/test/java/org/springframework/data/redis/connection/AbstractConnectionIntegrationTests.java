@@ -64,11 +64,6 @@ import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-import org.springframework.data.redis.connection.stream.Consumer;
-import org.springframework.data.redis.connection.stream.MapRecord;
-import org.springframework.data.redis.connection.stream.ReadOffset;
-import org.springframework.data.redis.connection.stream.RecordId;
-import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -77,7 +72,11 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -844,14 +843,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.exec());
 		actual.add(connection.get("testitnow"));
 
-		if (connectionFactory instanceof JedisConnectionFactory) {
-			verifyResults(Arrays.asList(new Object[] { true, Collections.emptyList(), "something" }));
-		} else {
-			verifyResults(Arrays.asList(new Object[] { true, null, "something" }));
-		}
+		verifyResults(Arrays.asList(new Object[] { true, null, "something" }));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testUnwatch() throws Exception {
 
