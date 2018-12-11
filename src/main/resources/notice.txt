@@ -1,4 +1,4 @@
-Spring Data Redis 2.1 GA
+Spring Data Redis 2.2 M1
    Copyright (c) [$copyright] Pivotal Software, Inc.
 
    ========================================================================
