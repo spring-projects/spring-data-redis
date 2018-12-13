@@ -1472,6 +1472,18 @@ public class MappingRedisConverterUnitTests {
 		assertThat(result.list.get(2), instanceOf(Date.class));
 	}
 
+	@Test // DATAREDIS-909
+	public void shouldWriteReadObjectWithConstructorConversion() {
+
+		Device sample = new Device(Instant.now(), Collections.singleton("foo"));
+
+		RedisData rd = write(sample);
+
+		Device result = converter.read(Device.class, rd);
+		assertThat(result.now, equalTo(sample.now));
+		assertThat(result.profiles, equalTo(sample.profiles));
+	}
+
 	@Test // DATAREDIS-509
 	public void writeHandlesArraysOfPrimitivesProperly() {
 
