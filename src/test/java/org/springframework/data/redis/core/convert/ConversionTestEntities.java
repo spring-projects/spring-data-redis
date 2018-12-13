@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -31,6 +32,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.annotation.Id;
@@ -212,5 +214,12 @@ public class ConversionTestEntities {
 		Map<Integer, Integer> integerMapKeyMapping;
 		Map<Double, String> decimalMapKeyMapping;
 		Map<Date, String> dateMapKeyMapping;
+	}
+
+	@AllArgsConstructor
+	static class Device {
+
+		final Instant now;
+		final Set<String> profiles;
 	}
 }

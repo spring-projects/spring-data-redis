@@ -21,17 +21,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -253,7 +244,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		return (R) accessor.getBean();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Nullable
 	protected Object readProperty(String path, RedisData source, RedisPersistentProperty persistentProperty) {
 
@@ -466,10 +456,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			targetProperty = getTargetPropertyOrNullForPath(path.replaceAll("\\.\\[.*\\]", ""), update.getTarget());
 
 			TypeInformation<?> ti = targetProperty == null ? ClassTypeInformation.OBJECT
-					: (targetProperty.isMap()
-							? (targetProperty.getTypeInformation().getMapValueType() != null
-									? targetProperty.getTypeInformation().getRequiredMapValueType() : ClassTypeInformation.OBJECT)
-							: targetProperty.getTypeInformation().getActualType());
+					: (targetProperty.isMap() ? (targetProperty.getTypeInformation().getMapValueType() != null
+							? targetProperty.getTypeInformation().getRequiredMapValueType()
+							: ClassTypeInformation.OBJECT) : targetProperty.getTypeInformation().getActualType());
 
 			writeInternal(entity.getKeySpace(), pUpdate.getPropertyPath(), pUpdate.getValue(), ti, sink);
 			return;
@@ -1055,11 +1044,11 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			Object value = readProperty(path, source, property);
 
-			if (value != null && !property.getActualType().isInstance(value)) {
-				return (T) conversionService.convert(value, property.getActualType());
+			if (value == null || ClassUtils.isAssignableValue(property.getType(), value)) {
+				return (T) value;
 			}
 
-			return (T) value;
+			return (T) conversionService.convert(value, property.getType());
 		}
 	}
 
