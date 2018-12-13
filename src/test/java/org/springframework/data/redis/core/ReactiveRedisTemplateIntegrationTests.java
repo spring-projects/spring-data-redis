@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
+import org.springframework.data.redis.StringObjectFactory;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -213,6 +214,44 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verifyComplete();
 
 		StepVerifier.create(redisTemplate.unlink(key1, key2)).expectNext(2L).verifyComplete();
+
+		StepVerifier.create(redisTemplate.hasKey(key1)).expectNext(false).verifyComplete();
+		StepVerifier.create(redisTemplate.hasKey(key2)).expectNext(false).verifyComplete();
+	}
+	
+	@Test // DATAREDIS-913
+	public void unlinkManyPublisher() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		
+		assumeTrue(key1 instanceof String && valueFactory instanceof StringObjectFactory);
+
+		StepVerifier.create(redisTemplate.opsForValue().set(key1, valueFactory.instance())).expectNext(true)
+				.verifyComplete();
+		StepVerifier.create(redisTemplate.opsForValue().set(key2, valueFactory.instance())).expectNext(true)
+				.verifyComplete();
+
+		StepVerifier.create(redisTemplate.unlink(redisTemplate.keys((K) "*"))).expectNext(2L).verifyComplete();
+
+		StepVerifier.create(redisTemplate.hasKey(key1)).expectNext(false).verifyComplete();
+		StepVerifier.create(redisTemplate.hasKey(key2)).expectNext(false).verifyComplete();
+	}
+	
+	@Test // DATAREDIS-913
+	public void deleteManyPublisher() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		
+		assumeTrue(key1 instanceof String && valueFactory instanceof StringObjectFactory);
+
+		StepVerifier.create(redisTemplate.opsForValue().set(key1, valueFactory.instance())).expectNext(true)
+				.verifyComplete();
+		StepVerifier.create(redisTemplate.opsForValue().set(key2, valueFactory.instance())).expectNext(true)
+				.verifyComplete();
+
+		StepVerifier.create(redisTemplate.delete(redisTemplate.keys((K) "*"))).expectNext(2L).verifyComplete();
 
 		StepVerifier.create(redisTemplate.hasKey(key1)).expectNext(false).verifyComplete();
 		StepVerifier.create(redisTemplate.hasKey(key2)).expectNext(false).verifyComplete();
