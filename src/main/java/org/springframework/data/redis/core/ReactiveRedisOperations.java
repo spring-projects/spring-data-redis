@@ -213,7 +213,8 @@ public interface ReactiveRedisOperations<K, V> {
 	Mono<Long> delete(K... key);
 
 	/**
-	 * Delete given {@code keys}.
+	 * Delete given {@code keys}. This command buffers keys received from {@link Publisher} into chunks of 128 keys to
+	 * delete to reduce the number of issued {@code DEL} commands.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return The number of keys that were removed.
@@ -234,7 +235,8 @@ public interface ReactiveRedisOperations<K, V> {
 
 	/**
 	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #delete(Publisher)} the actual memory reclaiming here
-	 * happens asynchronously.
+	 * happens asynchronously. This command buffers keys received from {@link Publisher} into chunks of 128 keys to delete
+	 * to reduce the number of issued {@code UNLINK} commands.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.

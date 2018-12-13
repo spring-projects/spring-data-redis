@@ -25,12 +25,12 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
-import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.core.script.DefaultReactiveScriptExecutor;
@@ -347,9 +347,10 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return createMono(connection -> connection.keyCommands() //
-				.del(Flux.from(keys).map(this::rawKey).map(KeyCommand::new)) //
-				.map(CommandResponse::getOutput));
+		return createFlux(connection -> connection.keyCommands() //
+				.mDel(Flux.from(keys).map(this::rawKey).buffer(128)) //
+				.map(CommandResponse::getOutput)) //
+				.collect(Collectors.summingLong(value -> value));
 	}
 
 	/*
@@ -381,9 +382,10 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return createMono(connection -> connection.keyCommands() //
-				.unlink(Flux.from(keys).map(this::rawKey).map(KeyCommand::new)) //
-				.map(CommandResponse::getOutput));
+		return createFlux(connection -> connection.keyCommands() //
+				.mUnlink(Flux.from(keys).map(this::rawKey).buffer(128)) //
+				.map(CommandResponse::getOutput)) //
+				.collect(Collectors.summingLong(value -> value));
 	}
 
 	/*
