@@ -524,7 +524,7 @@ public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) 
 ----
 RedisCacheManager cm = RedisCacheManager.builder(connectionFactory)
 	.cacheDefaults(defaultCacheConfig())
-	.initialCacheConfigurations(singletonMap("predefined", defaultCacheConfig().disableCachingNullValues()))
+	.withInitialCacheConfigurations(singletonMap("predefined", defaultCacheConfig().disableCachingNullValues()))
 	.transactionAware()
 	.build();
 ----
