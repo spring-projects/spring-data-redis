@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.TimeoutOptions;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
@@ -37,6 +38,7 @@ public class LettuceClientConfigurationUnitTests {
 	public void shouldCreateEmptyConfiguration() {
 
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.defaultConfiguration();
+
 
 		assertThat(configuration.isUseSsl()).isFalse();
 		assertThat(configuration.isVerifyPeer()).isTrue();
