@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.TimeoutOptions;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
@@ -33,7 +34,7 @@ import org.junit.Test;
  */
 public class LettucePoolingClientConfigurationUnitTests {
 
-	@Test // DATAREDIS-667
+	@Test // DATAREDIS-667, DATAREDIS-918
 	public void shouldCreateEmptyConfiguration() {
 
 		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.defaultConfiguration();
@@ -42,7 +43,11 @@ public class LettucePoolingClientConfigurationUnitTests {
 		assertThat(configuration.isUseSsl()).isFalse();
 		assertThat(configuration.isVerifyPeer()).isTrue();
 		assertThat(configuration.isStartTls()).isFalse();
-		assertThat(configuration.getClientOptions()).isEmpty();
+		assertThat(configuration.getClientOptions()).hasValueSatisfying(actual -> {
+
+			TimeoutOptions timeoutOptions = actual.getTimeoutOptions();
+			assertThat(timeoutOptions.isTimeoutCommands()).isTrue();
+		});
 		assertThat(configuration.getClientResources()).isEmpty();
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofMillis(100));
