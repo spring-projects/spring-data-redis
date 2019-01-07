@@ -58,7 +58,7 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 	 * <dt>Start TLS</dt>
 	 * <dd>no</dd>
 	 * <dt>Client Options</dt>
-	 * <dd>none</dd>
+	 * <dd>{@link ClientOptions} with enabled {@link io.lettuce.core.TimeoutOptions}</dd>
 	 * <dt>Client Resources</dt>
 	 * <dd>none</dd>
 	 * <dt>Connect Timeout</dt>
