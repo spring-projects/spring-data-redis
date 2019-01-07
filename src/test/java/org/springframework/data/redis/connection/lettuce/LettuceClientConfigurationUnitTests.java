@@ -34,7 +34,7 @@ import org.junit.Test;
  */
 public class LettuceClientConfigurationUnitTests {
 
-	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667
+	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667, DATAREDIS-918
 	public void shouldCreateEmptyConfiguration() {
 
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.defaultConfiguration();
@@ -43,7 +43,11 @@ public class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.isUseSsl()).isFalse();
 		assertThat(configuration.isVerifyPeer()).isTrue();
 		assertThat(configuration.isStartTls()).isFalse();
-		assertThat(configuration.getClientOptions()).isEmpty();
+		assertThat(configuration.getClientOptions()).hasValueSatisfying(actual -> {
+
+			TimeoutOptions timeoutOptions = actual.getTimeoutOptions();
+			assertThat(timeoutOptions.isTimeoutCommands()).isTrue();
+		});
 		assertThat(configuration.getClientResources()).isEmpty();
 		assertThat(configuration.getClientName()).isEmpty();
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(60));

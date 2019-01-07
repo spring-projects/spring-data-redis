@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.TimeoutOptions;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
@@ -37,7 +38,7 @@ import org.springframework.util.Assert;
  * <li>Whether to verify peers using SSL</li>
  * <li>Whether to use StartTLS</li>
  * <li>Optional {@link ClientResources}</li>
- * <li>Optional {@link ClientOptions}</li>
+ * <li>Optional {@link ClientOptions}, defaults to {@link ClientOptions} with enabled {@link TimeoutOptions}.</li>
  * <li>Optional client name</li>
  * <li>Optional {@link ReadFrom}. Enables Master/Replica operations if configured.</li>
  * <li>Client {@link Duration timeout}</li>
@@ -132,7 +133,7 @@ public interface LettuceClientConfiguration {
 	 * <dt>Start TLS</dt>
 	 * <dd>no</dd>
 	 * <dt>Client Options</dt>
-	 * <dd>none</dd>
+	 * <dd>{@link ClientOptions} with enabled {@link io.lettuce.core.TimeoutOptions}</dd>
 	 * <dt>Client Resources</dt>
 	 * <dd>none</dd>
 	 * <dt>Client name</dt>
@@ -163,7 +164,7 @@ public interface LettuceClientConfiguration {
 		boolean verifyPeer = true;
 		boolean startTls;
 		@Nullable ClientResources clientResources;
-		@Nullable ClientOptions clientOptions;
+		ClientOptions clientOptions = ClientOptions.builder().timeoutOptions(TimeoutOptions.enabled()).build();
 		@Nullable String clientName;
 		@Nullable ReadFrom readFrom;
 		Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
