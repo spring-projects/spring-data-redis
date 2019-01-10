@@ -1,6 +1,12 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.18.RELEASE (2019-01-10)
+----------------------------------------------
+* DATAREDIS-917 - Update copyright years to 2019.
+* DATAREDIS-899 - Release 1.8.18 (Ingalls SR18).
+
+
 Changes in version 2.2.0.M1 (2018-12-11)
 ----------------------------------------
 * DATAREDIS-907 - Simplify reference documentation setup.
