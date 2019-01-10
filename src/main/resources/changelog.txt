@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.0.13.RELEASE (2019-01-10)
+----------------------------------------------
+* DATAREDIS-917 - Update copyright years to 2019.
+* DATAREDIS-903 - Unused configuration keys are in RedisClusterConfiguration Javadoc.
+* DATAREDIS-900 - Release 2.0.13 (Kay SR13).
+
+
 Changes in version 1.8.18.RELEASE (2019-01-10)
 ----------------------------------------------
 * DATAREDIS-917 - Update copyright years to 2019.
