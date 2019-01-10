@@ -1,6 +1,16 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.4.RELEASE (2019-01-10)
+---------------------------------------------
+* DATAREDIS-918 - Enable global timeout for Lettuce by default.
+* DATAREDIS-917 - Update copyright years to 2019.
+* DATAREDIS-913 - ReactiveRedisTemplate.delete(Publisher) and ReactiveRedisTemplate.unlink(Publisher) consider only first element.
+* DATAREDIS-909 - Using a collection in the RedisHash is broken.
+* DATAREDIS-903 - Unused configuration keys are in RedisClusterConfiguration Javadoc.
+* DATAREDIS-901 - Release 2.1.4 (Lovelace SR4).
+
+
 Changes in version 2.0.13.RELEASE (2019-01-10)
 ----------------------------------------------
 * DATAREDIS-917 - Update copyright years to 2019.
