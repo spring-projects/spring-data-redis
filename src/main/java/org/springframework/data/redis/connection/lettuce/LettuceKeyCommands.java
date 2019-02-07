@@ -16,15 +16,13 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.KeyScanCursor;
+import io.lettuce.core.RestoreArgs;
+import io.lettuce.core.RestoreArgs.Builder;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScanCursor;
 import io.lettuce.core.SortArgs;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
-import io.lettuce.core.codec.ByteArrayCodec;
-import io.lettuce.core.output.StatusOutput;
-import io.lettuce.core.protocol.CommandArgs;
-import io.lettuce.core.protocol.CommandType;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -685,24 +683,23 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 		try {
 
-			if (replace) {
+			RestoreArgs restoreArgs = Builder.ttl(ttlInMillis);
 
-				this.connection.execute("RESTORE", new byte[][] { key, LettuceConverters.toBytes(ttlInMillis), serializedValue,
-						LettuceConverters.toBytes("REPLACE") });
-				return;
+			if (replace) {
+				restoreArgs = restoreArgs.replace();
 			}
 
 			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().restore(key, ttlInMillis, serializedValue)));
+				pipeline(connection.newLettuceStatusResult(getAsyncConnection().restore(key, serializedValue, restoreArgs)));
 				return;
 			}
 
 			if (isQueueing()) {
-				transaction(connection.newLettuceStatusResult(getAsyncConnection().restore(key, ttlInMillis, serializedValue)));
+				transaction(connection.newLettuceStatusResult(getAsyncConnection().restore(key, serializedValue, restoreArgs)));
 				return;
 			}
 
-			getConnection().restore(key, ttlInMillis, serializedValue);
+			getConnection().restore(key, serializedValue, restoreArgs);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
