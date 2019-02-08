@@ -88,7 +88,7 @@ public class LettuceConvertersUnitTests {
 		partition.setUri(RedisURI.create("redis://" + CLUSTER_HOST + ":" + MASTER_NODE_1_PORT));
 		partition.setSlots(Arrays.<Integer> asList(1, 2, 3, 4, 5));
 
-		partitions.addPartition(partition);
+		partitions.add(partition);
 
 		List<RedisClusterNode> nodes = LettuceConverters.partitionsToClusterNodes(partitions);
 		assertThat(nodes.size(), is(1));
