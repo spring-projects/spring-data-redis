@@ -223,7 +223,7 @@ abstract public class LettuceConverters extends Converters {
 					return Collections.emptyList();
 				}
 				List<RedisClusterNode> nodes = new ArrayList<>();
-				for (io.lettuce.core.cluster.models.partitions.RedisClusterNode node : source.getPartitions()) {
+				for (io.lettuce.core.cluster.models.partitions.RedisClusterNode node : source) {
 					nodes.add(CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER.convert(node));
 				}
 
