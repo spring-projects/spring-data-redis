@@ -309,8 +309,9 @@ public class JedisConnectionFactoryUnitTests {
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisClusterConfiguration clusterConfig,
 			JedisPoolConfig poolConfig) {
 
+		JedisCluster clusterMock = mock(JedisCluster.class);
 		JedisConnectionFactory factorySpy = spy(new JedisConnectionFactory(clusterConfig));
-		doReturn(null).when(factorySpy).createCluster(any(RedisClusterConfiguration.class),
+		doReturn(clusterMock).when(factorySpy).createCluster(any(RedisClusterConfiguration.class),
 				any(GenericObjectPoolConfig.class));
 		doReturn(null).when(factorySpy).createRedisPool();
 		return factorySpy;

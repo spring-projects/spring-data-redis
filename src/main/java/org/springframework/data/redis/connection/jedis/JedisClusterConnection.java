@@ -24,6 +24,7 @@ import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisClusterConnectionHandler;
 import redis.clients.jedis.JedisPool;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -83,7 +84,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 	private boolean closed;
 
-	private final JedisClusterTopologyProvider topologyProvider;
+	private final ClusterTopologyProvider topologyProvider;
 	private ClusterCommandExecutor clusterCommandExecutor;
 	private final boolean disposeClusterCommandExecutorOnClose;
 
@@ -116,19 +117,34 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 	/**
 	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link JedisCluster} running commands
-	 * across the cluster via given {@link ClusterCommandExecutor}.
+	 * across the cluster via given {@link ClusterCommandExecutor}. Uses {@link JedisClusterTopologyProvider} by default.
 	 *
 	 * @param cluster must not be {@literal null}.
 	 * @param executor must not be {@literal null}.
 	 */
 	public JedisClusterConnection(JedisCluster cluster, ClusterCommandExecutor executor) {
+		this(cluster, executor, new JedisClusterTopologyProvider(cluster));
+	}
+
+	/**
+	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link JedisCluster} running commands
+	 * across the cluster via given {@link ClusterCommandExecutor} and using the given {@link ClusterTopologyProvider}.
+	 *
+	 * @param cluster must not be {@literal null}.
+	 * @param executor must not be {@literal null}.
+	 * @param topologyProvider must not be {@literal null}.
+	 * @since 2.2
+	 */
+	public JedisClusterConnection(JedisCluster cluster, ClusterCommandExecutor executor,
+			ClusterTopologyProvider topologyProvider) {
 
 		Assert.notNull(cluster, "JedisCluster must not be null.");
 		Assert.notNull(executor, "ClusterCommandExecutor must not be null.");
+		Assert.notNull(topologyProvider, "ClusterTopologyProvider must not be null.");
 
 		this.closed = false;
 		this.cluster = cluster;
-		this.topologyProvider = new JedisClusterTopologyProvider(cluster);
+		this.topologyProvider = topologyProvider;
 		this.clusterCommandExecutor = executor;
 		this.disposeClusterCommandExecutorOnClose = false;
 	}
@@ -955,22 +971,41 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	 * Jedis specific implementation of {@link ClusterTopologyProvider}.
 	 *
 	 * @author Christoph Strobl
+	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	static class JedisClusterTopologyProvider implements ClusterTopologyProvider {
+	public static class JedisClusterTopologyProvider implements ClusterTopologyProvider {
 
 		private final Object lock = new Object();
 		private final JedisCluster cluster;
+		private final long cacheTimeMs;
 		private long time = 0;
 		private @Nullable ClusterTopology cached;
 
 		/**
-		 * Create new {@link JedisClusterTopologyProvider}.s
+		 * Create new {@link JedisClusterTopologyProvider}. Uses a default cache timeout of 100 milliseconds.
 		 *
-		 * @param cluster
+		 * @param cluster must not be {@literal null}.
 		 */
 		public JedisClusterTopologyProvider(JedisCluster cluster) {
+			this(cluster, Duration.ofMillis(100));
+		}
+
+		/**
+		 * Create new {@link JedisClusterTopologyProvider}.
+		 *
+		 * @param cluster must not be {@literal null}.
+		 * @param cacheTimeout must not be {@literal null}.
+		 * @since 2.2
+		 */
+		public JedisClusterTopologyProvider(JedisCluster cluster, Duration cacheTimeout) {
+
+			Assert.notNull(cluster, "JedisCluster must not be null!");
+			Assert.notNull(cacheTimeout, "Cache timeout must not be null!");
+			Assert.isTrue(!cacheTimeout.isNegative(), "Cache timeout must not be negative.");
+
 			this.cluster = cluster;
+			this.cacheTimeMs = cacheTimeout.toMillis();
 		}
 
 		/*
@@ -980,7 +1015,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		@Override
 		public ClusterTopology getTopology() {
 
-			if (cached != null && time + 100 > System.currentTimeMillis()) {
+			if (cached != null && shouldUseCachedValue()) {
 				return cached;
 			}
 
@@ -1014,6 +1049,19 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 			throw new ClusterStateFailureException(
 					"Could not retrieve cluster information. CLUSTER NODES returned with error." + sb.toString());
 		}
+
+		/**
+		 * Returns whether {@link #getTopology()} should return the cached {@link ClusterTopology}. Uses a time-based
+		 * caching.
+		 *
+		 * @return {@literal true} to use the cached {@link ClusterTopology}; {@literal false} to fetch a new cluster
+		 *         topology.
+		 * @see #JedisClusterTopologyProvider(JedisCluster, Duration)
+		 * @since 2.2
+		 */
+		protected boolean shouldUseCachedValue() {
+			return time + cacheTimeMs > System.currentTimeMillis();
+		}
 	}
 
 	protected JedisCluster getCluster() {
@@ -1024,7 +1072,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		return clusterCommandExecutor;
 	}
 
-	protected JedisClusterTopologyProvider getTopologyProvider() {
+	protected ClusterTopologyProvider getTopologyProvider() {
 		return topologyProvider;
 	}
 }

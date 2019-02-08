@@ -96,6 +96,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private @Nullable RedisConfiguration configuration;
 
 	private @Nullable JedisCluster cluster;
+	private @Nullable ClusterTopologyProvider topologyProvider;
 	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
 
 	/**
@@ -342,7 +343,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		if (isRedisClusterAware()) {
+
 			this.cluster = createCluster();
+			this.topologyProvider = createTopologyProvider(this.cluster);
+			this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
+					new JedisClusterConnection.JedisClusterNodeResourceProvider(this.cluster, this.topologyProvider),
+					EXCEPTION_TRANSLATION);
 		}
 	}
 
@@ -384,12 +390,20 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	private JedisCluster createCluster() {
+		return createCluster((RedisClusterConfiguration) this.configuration, getPoolConfig());
+	}
 
-		JedisCluster cluster = createCluster((RedisClusterConfiguration) this.configuration, getPoolConfig());
-		JedisClusterTopologyProvider topologyProvider = new JedisClusterTopologyProvider(cluster);
-		this.clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider,
-				new JedisClusterConnection.JedisClusterNodeResourceProvider(cluster, topologyProvider), EXCEPTION_TRANSLATION);
-		return cluster;
+	/**
+	 * Template method to create a {@link ClusterTopologyProvider} given {@link JedisCluster}. Creates
+	 * {@link JedisClusterTopologyProvider} by default.
+	 *
+	 * @param cluster the {@link JedisCluster}, must not be {@literal null}.
+	 * @return the {@link ClusterTopologyProvider}.
+	 * @see JedisClusterTopologyProvider
+	 * @see 2.2
+	 */
+	protected ClusterTopologyProvider createTopologyProvider(JedisCluster cluster) {
+		return new JedisClusterTopologyProvider(cluster);
 	}
 
 	/**
@@ -479,7 +493,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		if (!isRedisClusterAware()) {
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
 		}
-		return new JedisClusterConnection(cluster, clusterCommandExecutor);
+		return new JedisClusterConnection(this.cluster, this.clusterCommandExecutor, this.topologyProvider);
 	}
 
 	/*
