@@ -30,6 +30,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -368,6 +369,32 @@ public class JedisClusterConnectionUnitTests {
 		doThrow(exception).when(clusterMock).set("foo".getBytes(), "bar".getBytes());
 
 		connection.set("foo".getBytes(), "bar".getBytes());
+	}
+
+	@Test // DATAREDIS-794
+	public void clusterTopologyProviderShouldUseCachedTopology() {
+
+		when(clusterMock.getClusterNodes()).thenReturn(Collections.singletonMap("mock", node1PoolMock));
+		when(con1Mock.clusterNodes()).thenReturn(CLUSTER_NODES_RESPONSE);
+
+		JedisClusterTopologyProvider provider = new JedisClusterTopologyProvider(clusterMock, Duration.ofSeconds(5));
+		provider.getTopology();
+		provider.getTopology();
+
+		verify(con1Mock).clusterNodes();
+	}
+
+	@Test // DATAREDIS-794
+	public void clusterTopologyProviderShouldRequestTopology() {
+
+		when(clusterMock.getClusterNodes()).thenReturn(Collections.singletonMap("mock", node1PoolMock));
+		when(con1Mock.clusterNodes()).thenReturn(CLUSTER_NODES_RESPONSE);
+
+		JedisClusterTopologyProvider provider = new JedisClusterTopologyProvider(clusterMock, Duration.ZERO);
+		provider.getTopology();
+		provider.getTopology();
+
+		verify(con1Mock, times(2)).clusterNodes();
 	}
 
 	static class StubJedisCluster extends JedisCluster {
