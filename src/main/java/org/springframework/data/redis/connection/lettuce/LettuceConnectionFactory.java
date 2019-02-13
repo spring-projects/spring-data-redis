@@ -86,6 +86,7 @@ import org.springframework.util.ClassUtils;
  * @author Mark Paluch
  * @author Balázs Németh
  * @author Ruben Cervilla
+ * @author Luis De Bello
  */
 public class LettuceConnectionFactory
 		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
@@ -492,7 +493,7 @@ public class LettuceConnectionFactory
 	 * @return the port.
 	 */
 	public int getPort() {
-		return standaloneConfig.getPort();
+		return RedisConfiguration.getPortOrElse(configuration, standaloneConfig::getPort);
 	}
 
 	/**

@@ -50,6 +50,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.data.redis.connection.RedisConfiguration;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSocketConfiguration;
@@ -63,14 +64,20 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Mark Paluch
  * @author Balázs Németh
  * @author Ruben Cervilla
+ * @author Luis De Bello
  */
 public class LettuceConnectionFactoryUnitTests {
 
+	private static final int NOT_DEFAULT_PORT = 16379;
+
 	RedisClusterConfiguration clusterConfig;
+	RedisStandaloneConfiguration standaloneConfiguration;
 
 	@Before
 	public void setUp() {
 		clusterConfig = new RedisClusterConfiguration().clusterNode("127.0.0.1", 6379).clusterNode("127.0.0.1", 6380);
+		standaloneConfiguration = new RedisStandaloneConfiguration();
+		standaloneConfiguration.setPort(NOT_DEFAULT_PORT);
 	}
 
 	@After
@@ -107,6 +114,17 @@ public class LettuceConnectionFactoryUnitTests {
 		for (RedisURI uri : initialUris) {
 			assertThat(uri.getTimeout(), is(equalTo(Duration.ofMillis(connectionFactory.getTimeout()))));
 		}
+	}
+
+	@Test // DATAREDIS-930
+	public void portShouldBeReturnedProperlyBasedOnConfiguration() {
+
+		RedisConfiguration redisConfiguration = standaloneConfiguration;
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
+				LettuceClientConfiguration.defaultConfiguration());
+
+		assertThat(connectionFactory.getPort(), is(NOT_DEFAULT_PORT));
 	}
 
 	@Test // DATAREDIS-315

@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
  * configurations for the individual purposes.
  *
  * @author Christoph Strobl
+ * @author Luis De Bello
  * @since 2.1
  */
 public interface RedisConfiguration {
@@ -87,6 +88,14 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
+	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link WithHostAndPort}.
+	 */
+	static boolean isHostAndPortAware(@Nullable RedisConfiguration configuration) {
+		return configuration instanceof WithHostAndPort;
+	}
+
+	/**
+	 * @param configuration can be {@literal null}.
 	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link ClusterConfiguration}.
 	 */
 	static boolean isClusterConfiguration(@Nullable RedisConfiguration configuration) {
@@ -133,6 +142,32 @@ public interface RedisConfiguration {
 
 		Assert.notNull(other, "Other must not be null!");
 		return isPasswordAware(configuration) ? ((WithPassword) configuration).getPassword() : other.get();
+	}
+
+	/**
+	 * @param configuration can be {@literal null}.
+	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
+	 *          {@link #isHostAndPortAware(RedisConfiguration) port aware}.
+	 * @return never {@literal null}.
+	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
+	 */
+	static Integer getPortOrElse(@Nullable RedisConfiguration configuration, Supplier<Integer> other) {
+
+		Assert.notNull(other, "Other must not be null!");
+		return isHostAndPortAware(configuration) ? ((WithHostAndPort) configuration).getPort() : other.get();
+	}
+
+	/**
+	 * @param configuration can be {@literal null}.
+	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
+	 *          {@link #isHostAndPortAware(RedisConfiguration) host aware}.
+	 * @return never {@literal null}.
+	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
+	 */
+	static String getHostOrElse(@Nullable RedisConfiguration configuration, Supplier<String> other) {
+
+		Assert.notNull(other, "Other must not be null!");
+		return isHostAndPortAware(configuration) ? ((WithHostAndPort) configuration).getHostName() : other.get();
 	}
 
 	/**
