@@ -473,7 +473,7 @@ public class LettuceConnectionFactory
 	 * @return the host.
 	 */
 	public String getHostName() {
-		return standaloneConfig.getHostName();
+		return RedisConfiguration.getHostOrElse(configuration, standaloneConfig::getHostName);
 	}
 
 	/**

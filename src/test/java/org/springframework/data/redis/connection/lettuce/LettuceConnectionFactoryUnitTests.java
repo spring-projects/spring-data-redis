@@ -122,6 +122,17 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getPort(), is(16379));
 	}
 
+	@Test // DATAREDIS-930
+	public void hostNameShouldBeReturnedProperlyBasedOnConfiguration() {
+
+		RedisConfiguration redisConfiguration = new RedisStandaloneConfiguration("external");
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
+				LettuceClientConfiguration.defaultConfiguration());
+
+		assertThat(connectionFactory.getHostName(), is("external"));
+	}
+
 	@Test // DATAREDIS-315
 	@SuppressWarnings("unchecked")
 	public void passwordShouldBeSetCorrectlyOnClusterClient() {
