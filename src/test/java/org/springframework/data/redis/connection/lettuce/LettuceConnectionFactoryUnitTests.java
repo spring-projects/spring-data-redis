@@ -68,16 +68,11 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 public class LettuceConnectionFactoryUnitTests {
 
-	private static final int NOT_DEFAULT_PORT = 16379;
-
 	RedisClusterConfiguration clusterConfig;
-	RedisStandaloneConfiguration standaloneConfiguration;
 
 	@Before
 	public void setUp() {
 		clusterConfig = new RedisClusterConfiguration().clusterNode("127.0.0.1", 6379).clusterNode("127.0.0.1", 6380);
-		standaloneConfiguration = new RedisStandaloneConfiguration();
-		standaloneConfiguration.setPort(NOT_DEFAULT_PORT);
 	}
 
 	@After
@@ -119,12 +114,12 @@ public class LettuceConnectionFactoryUnitTests {
 	@Test // DATAREDIS-930
 	public void portShouldBeReturnedProperlyBasedOnConfiguration() {
 
-		RedisConfiguration redisConfiguration = standaloneConfiguration;
+		RedisConfiguration redisConfiguration = new RedisStandaloneConfiguration("localhost", 16379);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getPort(), is(NOT_DEFAULT_PORT));
+		assertThat(connectionFactory.getPort(), is(16379));
 	}
 
 	@Test // DATAREDIS-315
