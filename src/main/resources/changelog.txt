@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.5.RELEASE (2019-02-13)
+---------------------------------------------
+* DATAREDIS-929 - Upgrade to Lettuce 5.1.4.
+* DATAREDIS-923 - Release 2.1.5 (Lovelace SR5).
+* DATAREDIS-915 - RedisCacheManager documentation contains incorrect example.
+
+
 Changes in version 2.1.4.RELEASE (2019-01-10)
 ---------------------------------------------
 * DATAREDIS-918 - Enable global timeout for Lettuce by default.
