@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 import org.springframework.lang.Nullable;
@@ -151,10 +152,10 @@ public interface RedisConfiguration {
 	 * @return never {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
 	 */
-	static Integer getPortOrElse(@Nullable RedisConfiguration configuration, Supplier<Integer> other) {
+	static int getPortOrElse(@Nullable RedisConfiguration configuration, IntSupplier other) {
 
 		Assert.notNull(other, "Other must not be null!");
-		return isHostAndPortAware(configuration) ? ((WithHostAndPort) configuration).getPort() : other.get();
+		return isHostAndPortAware(configuration) ? ((WithHostAndPort) configuration).getPort() : other.getAsInt();
 	}
 
 	/**

@@ -22,6 +22,7 @@ import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
+import static org.springframework.data.redis.connection.RedisConfiguration.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceTestClientResources.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
@@ -123,6 +124,18 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-930
+	public void portShouldBeReturnedProperlyBasedOnCustomRedisConfiguration() {
+
+		RedisConfiguration redisConfiguration = new CustomRedisConfiguration("localhost", 16379);
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
+				LettuceClientConfiguration.defaultConfiguration());
+
+		assertThat(connectionFactory.getPort(), is(16379));
+		assertThat(connectionFactory.getHostName(), is("localhost"));
+	}
+
+	@Test // DATAREDIS-930
 	public void hostNameShouldBeReturnedProperlyBasedOnConfiguration() {
 
 		RedisConfiguration redisConfiguration = new RedisStandaloneConfiguration("external");
@@ -130,6 +143,18 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
 				LettuceClientConfiguration.defaultConfiguration());
 
+		assertThat(connectionFactory.getHostName(), is("external"));
+	}
+
+	@Test // DATAREDIS-930
+	public void hostNameShouldBeReturnedProperlyBasedOnCustomRedisConfiguration() {
+
+		RedisConfiguration redisConfiguration = new CustomRedisConfiguration("external");
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
+				LettuceClientConfiguration.defaultConfiguration());
+
+		assertThat(connectionFactory.getPort(), is(6379));
 		assertThat(connectionFactory.getHostName(), is("external"));
 	}
 
@@ -680,5 +705,43 @@ public class LettuceConnectionFactoryUnitTests {
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
 		assertThat(redisUri.getDatabase(), is(equalTo(1)));
+	}
+
+	private static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {
+
+		private static final String DEFAULT_HOST = "localhost";
+		private static final int DEFAULT_PORT = 6379;
+
+		private String hostName = DEFAULT_HOST;
+		private int port = DEFAULT_PORT;
+
+		public CustomRedisConfiguration(String hostName) {
+			this(hostName, DEFAULT_PORT);
+		}
+
+		public CustomRedisConfiguration(String hostName, int port) {
+			this.hostName = hostName;
+			this.port = port;
+		}
+
+		@Override
+		public String getHostName() {
+			return hostName;
+		}
+
+		@Override
+		public void setHostName(String hostName) {
+			this.hostName = hostName;
+		}
+
+		@Override
+		public int getPort() {
+			return port;
+		}
+
+		@Override
+		public void setPort(int port) {
+			this.port = port;
+		}
 	}
 }
