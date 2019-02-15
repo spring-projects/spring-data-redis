@@ -90,6 +90,7 @@ public interface RedisConfiguration {
 	/**
 	 * @param configuration can be {@literal null}.
 	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link WithHostAndPort}.
+	 * @since 2.1.6
 	 */
 	static boolean isHostAndPortAware(@Nullable RedisConfiguration configuration) {
 		return configuration instanceof WithHostAndPort;
@@ -151,6 +152,7 @@ public interface RedisConfiguration {
 	 *          {@link #isHostAndPortAware(RedisConfiguration) port aware}.
 	 * @return never {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
+	 * @since 2.1.6
 	 */
 	static int getPortOrElse(@Nullable RedisConfiguration configuration, IntSupplier other) {
 
@@ -164,6 +166,7 @@ public interface RedisConfiguration {
 	 *          {@link #isHostAndPortAware(RedisConfiguration) host aware}.
 	 * @return never {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
+	 * @since 2.1.6
 	 */
 	static String getHostOrElse(@Nullable RedisConfiguration configuration, Supplier<String> other) {
 

@@ -1008,8 +1008,8 @@ public class LettuceConnectionFactory
 
 	private RedisURI getSentinelRedisURI() {
 
-		RedisURI redisUri = LettuceConverters
-				.sentinelConfigurationToRedisURI((org.springframework.data.redis.connection.RedisSentinelConfiguration) configuration);
+		RedisURI redisUri = LettuceConverters.sentinelConfigurationToRedisURI(
+				(org.springframework.data.redis.connection.RedisSentinelConfiguration) configuration);
 
 		getRedisPassword().toOptional().ifPresent(redisUri::setPassword);
 		clientConfiguration.getClientName().ifPresent(redisUri::setClientName);
