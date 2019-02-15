@@ -35,6 +35,8 @@ import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -44,6 +46,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
@@ -639,7 +642,8 @@ public class LettuceConnectionFactoryUnitTests {
 
 		RedisClusterClient clientMock = mock(RedisClusterClient.class);
 		StatefulRedisClusterConnection<byte[], byte[]> connectionMock = mock(StatefulRedisClusterConnection.class);
-		when(clientMock.connect(ByteArrayCodec.INSTANCE)).thenReturn(connectionMock);
+		when(clientMock.connect(ByteArrayCodec.INSTANCE))
+				.thenReturn(connectionMock);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
 				LettuceClientConfiguration.defaultConfiguration()) {
@@ -680,41 +684,15 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(redisUri.getDatabase(), is(equalTo(1)));
 	}
 
-	private static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {
+	@Data
+	@AllArgsConstructor
+	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {
 
-		private static final String DEFAULT_HOST = "localhost";
-		private static final int DEFAULT_PORT = 6379;
+		private String hostName;
+		private int port;
 
-		private String hostName = DEFAULT_HOST;
-		private int port = DEFAULT_PORT;
-
-		public CustomRedisConfiguration(String hostName) {
-			this(hostName, DEFAULT_PORT);
-		}
-
-		public CustomRedisConfiguration(String hostName, int port) {
-			this.hostName = hostName;
-			this.port = port;
-		}
-
-		@Override
-		public String getHostName() {
-			return hostName;
-		}
-
-		@Override
-		public void setHostName(String hostName) {
-			this.hostName = hostName;
-		}
-
-		@Override
-		public int getPort() {
-			return port;
-		}
-
-		@Override
-		public void setPort(int port) {
-			this.port = port;
+		CustomRedisConfiguration(String hostName) {
+			this(hostName, 6379);
 		}
 	}
 }
