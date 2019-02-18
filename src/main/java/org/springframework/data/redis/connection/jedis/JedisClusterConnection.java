@@ -252,7 +252,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	 */
 	@Override
 	public void multi() {
-		throw new InvalidDataAccessApiUsageException("MUTLI is currently not supported in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("MULTI is currently not supported in cluster mode.");
 	}
 
 	/*
