@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
@@ -163,6 +164,21 @@ public interface RedisZSetCommands {
 		 */
 		public List<Double> toList() {
 			return Collections.unmodifiableList(weights);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (!(o instanceof Weights))
+				return false;
+			Weights weights1 = (Weights) o;
+			return Objects.equals(weights, weights1.weights);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(weights);
 		}
 	}
 
