@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.cache.Cache;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
+import org.springframework.data.redis.cache.RedisCacheManager.RedisCacheManagerBuilder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -109,5 +110,44 @@ public class RedisCacheManagerUnitTests {
 		cacheManager.afterPropertiesSet();
 
 		assertThat(cacheManager.getCache("configured")).isNotNull();
+	}
+
+	@Test // DATAREDIS-935
+	public void cacheManagerBuilderReturnsConfiguredCaches() {
+
+		RedisCacheManagerBuilder cmb = RedisCacheManager.builder(cacheWriter)
+				.initialCacheNames(Collections.singleton("configured")).disableCreateOnMissingCache();
+
+		assertThat(cmb.getConfiguredCaches()).containsExactly("configured");
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(() -> cmb.getConfiguredCaches().add("another"));
+	}
+
+	@Test // DATAREDIS-935
+	public void cacheManagerBuilderDoesNotAllowSneakingInConfiguration() {
+
+		RedisCacheManagerBuilder cmb = RedisCacheManager.builder(cacheWriter)
+				.initialCacheNames(Collections.singleton("configured")).disableCreateOnMissingCache();
+
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(() -> cmb.getConfiguredCaches().add("another"));
+	}
+
+	@Test // DATAREDIS-935
+	public void cacheManagerBuilderReturnsConfigurationForKnownCache() {
+
+		RedisCacheManagerBuilder cmb = RedisCacheManager.builder(cacheWriter)
+				.initialCacheNames(Collections.singleton("configured")).disableCreateOnMissingCache();
+
+		assertThat(cmb.getCacheConfigurationFor("configured")).isPresent();
+	}
+
+	@Test // DATAREDIS-935
+	public void cacheManagerBuilderReturnsEmptyOptionalForUnknownCache() {
+
+		RedisCacheManagerBuilder cmb = RedisCacheManager.builder(cacheWriter)
+				.initialCacheNames(Collections.singleton("configured")).disableCreateOnMissingCache();
+
+		assertThat(cmb.getCacheConfigurationFor("unknown")).isNotPresent();
 	}
 }
