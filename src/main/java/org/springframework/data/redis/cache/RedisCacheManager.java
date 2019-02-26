@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager;
@@ -352,10 +353,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 			Assert.notNull(cacheNames, "CacheNames must not be null!");
 
-			Map<String, RedisCacheConfiguration> cacheConfigMap = new LinkedHashMap<>(cacheNames.size());
-			cacheNames.forEach(it -> cacheConfigMap.put(it, defaultCacheConfiguration));
-
-			return withInitialCacheConfigurations(cacheConfigMap);
+			cacheNames.forEach(it -> withCacheConfiguration(it, defaultCacheConfiguration));
+			return this;
 		}
 
 		/**
@@ -372,7 +371,22 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 					String.format("RedisCacheConfiguration for cache %s must not be null!", cacheName)));
 
 			this.initialCaches.putAll(cacheConfigurations);
+			return this;
+		}
 
+		/**
+		 * @param cacheName
+		 * @param cacheConfiguration
+		 * @return this {@link RedisCacheManagerBuilder}.
+		 * @since 2.2
+		 */
+		public RedisCacheManagerBuilder withCacheConfiguration(String cacheName,
+				RedisCacheConfiguration cacheConfiguration) {
+
+			Assert.notNull(cacheName, "CacheName must not be null!");
+			Assert.notNull(cacheConfiguration, "CacheConfiguration must not be null!");
+
+			this.initialCaches.put(cacheName, cacheConfiguration);
 			return this;
 		}
 
@@ -390,6 +404,28 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 			this.allowInFlightCacheCreation = false;
 			return this;
+		}
+
+		/**
+		 * Get the {@link Set} of cache names for which the builder holds {@link RedisCacheConfiguration configuration}.
+		 *
+		 * @return an unmodifiable {@link Set} holding the name of caches for which a {@link RedisCacheConfiguration
+		 *         configuration} has been set.
+		 * @since 2.2
+		 */
+		public Set<String> getConfiguredCaches() {
+			return Collections.unmodifiableSet(this.initialCaches.keySet());
+		}
+
+		/**
+		 * Get the {@link RedisCacheConfiguration} for a given cache by its name.
+		 *
+		 * @param cacheName must not be {@literal null}.
+		 * @return {@link Optional#empty()} if no {@link RedisCacheConfiguration} set for the given cache name.
+		 * @since 2.2
+		 */
+		public Optional<RedisCacheConfiguration> getCacheConfigurationFor(String cacheName) {
+			return Optional.ofNullable(this.initialCaches.get(cacheName));
 		}
 
 		/**
