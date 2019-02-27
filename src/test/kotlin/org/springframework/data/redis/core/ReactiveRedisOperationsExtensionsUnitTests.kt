@@ -30,6 +30,7 @@ import java.time.Instant
  * Unit tests for [ReactiveRedisOperationsExtensions].
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class ReactiveRedisOperationsExtensionsUnitTests {
 
@@ -86,6 +87,21 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 
 		runBlocking {
 			assertThat(operations.randomKeyAndAwait()).isEqualTo("foo")
+		}
+
+		verify {
+			operations.randomKey()
+		}
+	}
+
+	@Test // DATAREDIS-937
+	fun `randomKey returning an empty Mono`() {
+
+		val operations = mockk<ReactiveRedisOperations<String, String>>()
+		every { operations.randomKey() } returns Mono.empty()
+
+		runBlocking {
+			assertThat(operations.randomKeyAndAwait()).isNull();
 		}
 
 		verify {

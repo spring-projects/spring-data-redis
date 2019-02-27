@@ -31,6 +31,7 @@ import reactor.core.publisher.Mono
  * Unit tests for [ReactiveGeoOperationsExtensions].
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class ReactiveGeoOperationsExtensionsUnitTests {
 
@@ -110,6 +111,21 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-937
+	fun `distance returning an empty Mono`() {
+
+		val operations = mockk<ReactiveGeoOperations<String, String>>()
+		every { operations.distance(any(), any(), any()) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(operations.distanceAndAwait("foo", "from", "to")).isNull()
+		}
+
+		verify {
+			operations.distance("foo", "from", "to")
+		}
+	}
+
+	@Test // DATAREDIS-937
 	fun distanceWithMetric() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -125,6 +141,21 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-937
+	fun `distance with Metric returning an empty Mono`() {
+
+		val operations = mockk<ReactiveGeoOperations<String, String>>()
+		every { operations.distance(any(), any(), any(), any()) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(operations.distanceAndAwait("foo", "from", "to", Metrics.KILOMETERS)).isNull()
+		}
+
+		verify {
+			operations.distance("foo", "from", "to", Metrics.KILOMETERS)
+		}
+	}
+
+	@Test // DATAREDIS-937
 	fun hash() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -132,6 +163,21 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 
 		runBlocking {
 			assertThat(operations.hashAndAwait("foo", "bar")).isEqualTo("baz")
+		}
+
+		verify {
+			operations.hash("foo", "bar")
+		}
+	}
+
+	@Test // DATAREDIS-937
+	fun `hash returning an empty Mono`() {
+
+		val operations = mockk<ReactiveGeoOperations<String, String>>()
+		every { operations.hash(any(), any()) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(operations.hashAndAwait("foo", "bar")).isNull()
 		}
 
 		verify {
@@ -163,6 +209,21 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 
 		runBlocking {
 			assertThat(operations.positionAndAwait("foo", "bar")).isEqualTo(Point(1.0, 2.0))
+		}
+
+		verify {
+			operations.position("foo", "bar")
+		}
+	}
+
+	@Test // DATAREDIS-937
+	fun `position returning an empty Mono`() {
+
+		val operations = mockk<ReactiveGeoOperations<String, String>>()
+		every { operations.position(any(), any()) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(operations.positionAndAwait("foo", "bar")).isNull()
 		}
 
 		verify {

@@ -62,28 +62,31 @@ suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M
  * Coroutines variant of [ReactiveGeoOperations.distance].
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.distanceAndAwait(key: K, member1: M, member2: M): Distance =
-		distance(key, member1, member2).awaitSingle()
+suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.distanceAndAwait(key: K, member1: M, member2: M): Distance? =
+		distance(key, member1, member2).awaitFirstOrNull()
 
 /**
  * Coroutines variant of [ReactiveGeoOperations.distance].
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.distanceAndAwait(key: K, member1: M, member2: M, metric: Metric): Distance =
-		distance(key, member1, member2, metric).awaitSingle()
+suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.distanceAndAwait(key: K, member1: M, member2: M, metric: Metric): Distance? =
+		distance(key, member1, member2, metric).awaitFirstOrNull()
 
 /**
  * Coroutines variant of [ReactiveGeoOperations.hash].
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.hashAndAwait(key: K, member: M): String =
-		hash(key, member).awaitSingle()
+suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.hashAndAwait(key: K, member: M): String? =
+		hash(key, member).awaitFirstOrNull()
 
 /**
  * Coroutines variant of [ReactiveGeoOperations.hash].

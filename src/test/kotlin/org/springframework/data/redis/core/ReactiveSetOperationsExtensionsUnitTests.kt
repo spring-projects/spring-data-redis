@@ -27,6 +27,7 @@ import reactor.core.publisher.Mono
  * Unit tests for [ReactiveSetOperationsExtensions].
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class ReactiveSetOperationsExtensionsUnitTests {
 
@@ -68,6 +69,21 @@ class ReactiveSetOperationsExtensionsUnitTests {
 
 		runBlocking {
 			assertThat(operations.popAndAwait("foo")).isEqualTo("bar")
+		}
+
+		verify {
+			operations.pop("foo")
+		}
+	}
+
+	@Test // DATAREDIS-937
+	fun `pop returning an empty Mono`() {
+
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.pop(any()) } returns Mono.empty();
+
+		runBlocking {
+			assertThat(operations.popAndAwait("foo")).isNull()
 		}
 
 		verify {
@@ -218,6 +234,21 @@ class ReactiveSetOperationsExtensionsUnitTests {
 
 		runBlocking {
 			assertThat(operations.randomMemberAndAwait("foo")).isEqualTo("bar")
+		}
+
+		verify {
+			operations.randomMember("foo")
+		}
+	}
+
+	@Test // DATAREDIS-937
+	fun `randomMember returning an empty Mono`() {
+
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.randomMember(any()) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(operations.randomMemberAndAwait("foo")).isNull()
 		}
 
 		verify {

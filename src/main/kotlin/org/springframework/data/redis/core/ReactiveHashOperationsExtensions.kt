@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core
 
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 
 /**
@@ -30,10 +31,11 @@ suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> Reactiv
  * Coroutines variant of [ReactiveHashOperations.get].
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
-suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.getAndAwait(key: H, hashKey: HK): HV =
-		get(key, hashKey).awaitSingle()
+suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.getAndAwait(key: H, hashKey: HK): HV? =
+		get(key, hashKey).awaitFirstOrNull()
 
 /**
  * Coroutines variant of [ReactiveHashOperations.multiGet].
@@ -106,3 +108,12 @@ suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> Reactiv
  */
 suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.removeAndAwait(key: H, vararg hashKeys: Any): Long =
 		remove(key, *hashKeys).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveListOperations.delete].
+ *
+ * @author Christoph Strobl
+ * @since 2.2
+ */
+suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.deleteAndAwait(key: H): Boolean =
+		delete(key).awaitSingle()

@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono
 import java.time.Duration
 
 /**
- * Unit tests for [ReactiveHyperLogLogOperationsExtensions]
+ * Unit tests for [ReactiveListOperationsExtensions]
  *
  * @author Mark Paluch
  */
