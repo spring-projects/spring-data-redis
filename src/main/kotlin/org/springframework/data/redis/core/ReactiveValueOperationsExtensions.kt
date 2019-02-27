@@ -105,10 +105,11 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * Coroutines variant of [ReactiveValueOperations.getAndSet].
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
 suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.getAndSetAndAwait(key: K, value: V): V? =
-		getAndSet(key, value).awaitSingle()
+		getAndSet(key, value).awaitFirstOrNull()
 
 /**
  * Coroutines variant of [ReactiveValueOperations.multiGet].
@@ -204,10 +205,11 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * Coroutines variant of [ReactiveValueOperations.size].
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.sizeAndAwait(key: K): Long? =
-		size(key).awaitFirstOrNull()
+suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.sizeAndAwait(key: K): Long =
+		size(key).awaitSingle()
 
 /**
  * Coroutines variant of [ReactiveValueOperations.setBit].

@@ -30,6 +30,7 @@ import reactor.core.publisher.Mono
  * Unit tests for [ReactiveZSetOperationsExtensions].
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class ReactiveZSetOperationsExtensionsUnitTests {
 
@@ -109,6 +110,21 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-937
+	fun `rank returning an empty Mono`() {
+
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.rank(any(), any()) } returns Mono.empty();
+
+		runBlocking {
+			assertThat(operations.rankAndAwait("foo", "bar")).isNull()
+		}
+
+		verify {
+			operations.rank("foo", "bar")
+		}
+	}
+
+	@Test // DATAREDIS-937
 	fun reverseRank() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -116,6 +132,21 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 
 		runBlocking {
 			assertThat(operations.reverseRankAndAwait("foo", "bar")).isEqualTo(1)
+		}
+
+		verify {
+			operations.reverseRank("foo", "bar")
+		}
+	}
+
+	@Test // DATAREDIS-937
+	fun `reverseRank returning an enpty Mono`() {
+
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.reverseRank(any(), any()) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(operations.reverseRankAndAwait("foo", "bar")).isNull()
 		}
 
 		verify {
@@ -146,6 +177,21 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 
 		runBlocking {
 			assertThat(operations.scoreAndAwait("foo", "bar")).isEqualTo(1.0)
+		}
+
+		verify {
+			operations.score("foo", "bar")
+		}
+	}
+
+	@Test // DATAREDIS-937
+	fun `score returning an empty Mono`() {
+
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.score(any(), any()) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(operations.scoreAndAwait("foo", "bar")).isNull()
 		}
 
 		verify {

@@ -27,6 +27,7 @@ import reactor.core.publisher.Mono
  * Unit tests for [ReactiveHashOperationsExtensions].
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class ReactiveHashOperationsExtensionsUnitTests {
 
@@ -53,6 +54,21 @@ class ReactiveHashOperationsExtensionsUnitTests {
 
 		runBlocking {
 			assertThat(operations.getAndAwait("foo", "bar")).isEqualTo("baz")
+		}
+
+		verify {
+			operations.get("foo", "bar")
+		}
+	}
+
+	@Test // DATAREDIS-937
+	fun `get returning an empty Mono`() {
+
+		val operations = mockk<ReactiveHashOperations<String, String, String>>()
+		every { operations.get(any(), any()) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(operations.getAndAwait("foo", "bar")).isNull()
 		}
 
 		verify {
@@ -177,6 +193,21 @@ class ReactiveHashOperationsExtensionsUnitTests {
 
 		verify {
 			operations.remove("foo", "bar")
+		}
+	}
+
+	@Test // DATAREDIS-937
+	fun delete() {
+
+		val operations = mockk<ReactiveHashOperations<String, String, String>>()
+		every { operations.delete(any()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.deleteAndAwait("foo")).isTrue()
+		}
+
+		verify {
+			operations.delete("foo")
 		}
 	}
 }

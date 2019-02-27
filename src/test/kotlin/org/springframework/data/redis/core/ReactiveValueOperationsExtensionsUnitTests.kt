@@ -29,6 +29,7 @@ import java.time.Duration
  * Unit tests for [ReactiveValueOperationsExtensions].
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class ReactiveValueOperationsExtensionsUnitTests {
 
@@ -168,6 +169,21 @@ class ReactiveValueOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-937
+	fun `get returning an empty Mono`() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.get(any()) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(operations.getAndAwait("foo")).isNull()
+		}
+
+		verify {
+			operations.get("foo")
+		}
+	}
+
+	@Test // DATAREDIS-937
 	fun getAndSet() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -175,6 +191,21 @@ class ReactiveValueOperationsExtensionsUnitTests {
 
 		runBlocking {
 			assertThat(operations.getAndSetAndAwait("foo", "bar")).isEqualTo("baz")
+		}
+
+		verify {
+			operations.getAndSet("foo", "bar")
+		}
+	}
+
+	@Test // DATAREDIS-937
+	fun `getAndSet returning an empty Mono`() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.getAndSet(any(), any()) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(operations.getAndSetAndAwait("foo", "bar")).isNull()
 		}
 
 		verify {
@@ -295,6 +326,21 @@ class ReactiveValueOperationsExtensionsUnitTests {
 
 		runBlocking {
 			assertThat(operations.getAndAwait("foo", 1, 2)).isEqualTo("foo")
+		}
+
+		verify {
+			operations.get("foo", 1, 2)
+		}
+	}
+
+	@Test // DATAREDIS-937
+	fun `getSubstring returning an empty Mono`() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.get(any(), any(), any()) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(operations.getAndAwait("foo", 1, 2)).isNull()
 		}
 
 		verify {

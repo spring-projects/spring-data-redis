@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
@@ -30,6 +29,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * ZSet(SortedSet)-specific commands supported by Redis.
@@ -166,19 +166,32 @@ public interface RedisZSetCommands {
 			return Collections.unmodifiableList(weights);
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
 		@Override
 		public boolean equals(Object o) {
-			if (this == o)
+
+			if (this == o) {
 				return true;
-			if (!(o instanceof Weights))
+			}
+
+			if (!(o instanceof Weights)) {
 				return false;
-			Weights weights1 = (Weights) o;
-			return Objects.equals(weights, weights1.weights);
+			}
+
+			Weights that = (Weights) o;
+			return ObjectUtils.nullSafeEquals(this.weights, that.weights);
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
 		@Override
 		public int hashCode() {
-			return Objects.hash(weights);
+			return ObjectUtils.nullSafeHashCode(weights);
 		}
 	}
 
