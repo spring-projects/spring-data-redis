@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.RestoreArgs;
-import io.lettuce.core.RestoreArgs.Builder;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScanCursor;
 import io.lettuce.core.SortArgs;
@@ -683,11 +682,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 		try {
 
-			RestoreArgs restoreArgs = Builder.ttl(ttlInMillis);
-
-			if (replace) {
-				restoreArgs = restoreArgs.replace();
-			}
+			RestoreArgs restoreArgs = RestoreArgs.Builder.ttl(ttlInMillis).replace(replace);
 
 			if (isPipelined()) {
 				pipeline(connection.newLettuceStatusResult(getAsyncConnection().restore(key, serializedValue, restoreArgs)));
