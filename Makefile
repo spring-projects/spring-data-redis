@@ -149,5 +149,5 @@ stop: redis-stop sentinel-stop cluster-stop
 test:
 	$(MAKE) start
 	sleep 2
-	./mvnw clean install -DrunLongTests=true -P$(SPRING_PROFILE)
+	./mvnw clean dependency:list test -P${PROFILE} -Dsort -DrunLongTests=true
 	$(MAKE) stop

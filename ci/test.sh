@@ -10,6 +10,5 @@ cd spring-data-redis-github
 
 ln -s /work  x
 
+# Maven run from inside Makefile to interact with Redis server.
 make test SPRING_PROFILE=spring5-next
-
-./mvnw clean dependency:list test -P${PROFILE} -Dsort
