@@ -10,7 +10,7 @@ rm -rf $HOME/.m2/repository/org/springframework/data 2> /dev/null || :
 
 cd spring-data-redis-github
 
-ln -s /work
+ln -s /work  x
 
 make test SPRING_PROFILE=spring5-next
 
