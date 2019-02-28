@@ -102,9 +102,10 @@ public class LettuceClusterConnectionUnitTests {
 		partition3.setFlags(Collections.singleton(NodeFlag.MASTER));
 		partition3.setUri(RedisURI.create("redis://" + CLUSTER_HOST + ":" + MASTER_NODE_3_PORT));
 
-		partitions.add(partition1);
-		partitions.add(partition2);
-		partitions.add(partition3);
+		partitions.addPartition(partition1);
+		partitions.addPartition(partition2);
+		partitions.addPartition(partition3);
+		partitions.updateCache();
 
 		when(resourceProvider.getResourceForSpecificNode(CLUSTER_NODE_1)).thenReturn(clusterConnection1Mock);
 		when(resourceProvider.getResourceForSpecificNode(CLUSTER_NODE_2)).thenReturn(clusterConnection2Mock);
