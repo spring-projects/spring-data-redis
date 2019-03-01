@@ -4,7 +4,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: gregturn/8-jdk-with-redis
+    repository: springci/spring-data-8-jdk-with-redis
 
 inputs:
 - name: spring-data-redis-github
