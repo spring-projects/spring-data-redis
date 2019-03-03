@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.hamcrest.core.IsNull.*;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsInstanceOf.*;
@@ -45,6 +46,7 @@ import com.lambdaworks.redis.cluster.RedisClusterClient;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Balázs Németh
+ * @author Dmytro Liash
  */
 public class LettuceConnectionFactoryUnitTests {
 
@@ -292,5 +294,23 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat((Long) ReflectionTestUtils.getField(clusterConnection, "timeout"), is(equalTo(2000L)));
 
 		clusterConnection.close();
+	}
+
+	@Test // DATAREDIS-939
+	public void timeoutShouldBePassedOnToSentinelConnection() {
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration()
+				.master("test")
+				.sentinel("sentinel", 26379);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration);
+		connectionFactory.setTimeout(5);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClient.class));
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+		assertThat(redisUri, is(notNullValue()));
+		assertThat(redisUri.getTimeout(), is(equalTo(connectionFactory.getTimeout())));
+		assertThat(redisUri.getUnit(), is(equalTo(TimeUnit.MILLISECONDS)));
 	}
 }
