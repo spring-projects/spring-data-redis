@@ -68,6 +68,7 @@ import com.lambdaworks.redis.resource.ClientResources;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Balázs Németh
+ * @author Dmytro Liash
  */
 public class LettuceConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
@@ -601,6 +602,9 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		if (StringUtils.hasText(password)) {
 			redisUri.setPassword(password);
 		}
+
+		redisUri.setTimeout(timeout);
+		redisUri.setUnit(TimeUnit.MILLISECONDS);
 
 		return redisUri;
 	}
