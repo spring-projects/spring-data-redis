@@ -15,10 +15,10 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.IsNull.*;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsInstanceOf.*;
+import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceTestClientResources.*;
@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
@@ -40,7 +41,6 @@ import com.lambdaworks.redis.AbstractRedisClient;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.cluster.RedisClusterClient;
-
 
 /**
  * @author Christoph Strobl
@@ -297,9 +297,9 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-939
-	public void timeoutShouldBePassedOnToSentinelConnection() {
-		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration()
-				.master("test")
+	public void timeoutShouldBePassedOnToSentinelURI() {
+
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master("test")
 				.sentinel("sentinel", 26379);
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration);
 		connectionFactory.setTimeout(5);
@@ -310,7 +310,7 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(client, instanceOf(RedisClient.class));
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 		assertThat(redisUri, is(notNullValue()));
-		assertThat(redisUri.getTimeout(), is(equalTo(connectionFactory.getTimeout())));
+		assertThat(redisUri.getTimeout(), is(equalTo(5L)));
 		assertThat(redisUri.getUnit(), is(equalTo(TimeUnit.MILLISECONDS)));
 	}
 }
