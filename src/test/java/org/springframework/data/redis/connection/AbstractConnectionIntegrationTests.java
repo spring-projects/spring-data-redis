@@ -839,11 +839,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.exec());
 		actual.add(connection.get("testitnow"));
 
-		if (connectionFactory instanceof JedisConnectionFactory) {
-			verifyResults(Arrays.asList(new Object[] { true, Collections.emptyList(), "something" }));
-		} else {
-			verifyResults(Arrays.asList(new Object[] { true, null, "something" }));
-		}
+		verifyResults(Arrays.asList(new Object[] { true, null, "something" }));
 	}
 
 	@SuppressWarnings("unchecked")
