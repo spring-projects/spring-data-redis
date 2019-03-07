@@ -1,6 +1,28 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.0.M2 (2019-03-07)
+----------------------------------------
+* DATAREDIS-941 - Upgrade to Lettuce 5.1.5.RELEASE.
+* DATAREDIS-937 - Add Kotlin extensions for Coroutines support.
+* DATAREDIS-935 - Cache manager builder can lead to inconsistent state.
+* DATAREDIS-932 - Jedis exception message for MULTI has typo.
+* DATAREDIS-930 - LettuceConnectionFactory.getPort() considers only StandaloneConfiguration.
+* DATAREDIS-929 - Upgrade to Lettuce 5.1.4.
+* DATAREDIS-920 - Introduce Concourse CI.
+* DATAREDIS-918 - Enable global timeout for Lettuce by default.
+* DATAREDIS-917 - Update copyright years to 2019.
+* DATAREDIS-915 - RedisCacheManager documentation contains incorrect example.
+* DATAREDIS-913 - ReactiveRedisTemplate.delete(Publisher) and ReactiveRedisTemplate.unlink(Publisher) consider only first element.
+* DATAREDIS-910 - Release 2.2 M2 (Moore).
+* DATAREDIS-909 - Using a collection in the RedisHash is broken.
+* DATAREDIS-905 - StreamMessageListenerContainer activation and cancel can cause race condition.
+* DATAREDIS-888 - ConcurrentModificationException in LettuceConverters.
+* DATAREDIS-865 - Expose GenericJackson2JsonRedisSerializer.registerNullValueSerializer() for ObjectMapper customization.
+* DATAREDIS-848 - Use Lettuce's RestoreArgs to restore a key with replace option.
+* DATAREDIS-749 - Upgrade to Jedis 3.0.
+
+
 Changes in version 2.1.5.RELEASE (2019-02-13)
 ---------------------------------------------
 * DATAREDIS-929 - Upgrade to Lettuce 5.1.4.
