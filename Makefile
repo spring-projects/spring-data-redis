@@ -14,6 +14,7 @@
 
 REDIS_VERSION:=5.0.0
 SPRING_PROFILE?=ci
+SHELL=/bin/bash -euo pipefail
 
 #######
 # Redis
@@ -149,5 +150,5 @@ stop: redis-stop sentinel-stop cluster-stop
 test:
 	$(MAKE) start
 	sleep 2
-	./mvnw clean test -DrunLongTests=true -P$(SPRING_PROFILE)
+	set -euo pipefail ; ./mvnw clean test -DrunLongTests=true -P$(SPRING_PROFILE)
 	$(MAKE) stop
