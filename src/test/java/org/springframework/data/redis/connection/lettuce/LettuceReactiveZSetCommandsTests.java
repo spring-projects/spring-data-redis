@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.hamcrest.core.Is.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
+import static org.springframework.data.domain.Range.Bound.*;
 
 import reactor.test.StepVerifier;
 
@@ -38,6 +39,12 @@ import org.springframework.data.redis.core.ScanOptions;
  * @author Michele Mancioppi
  */
 public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTestsBase {
+
+	private static final Range<Long> ONE_TO_TWO = Range.closed(1L, 2L);
+
+	private static final Range<Double> TWO_TO_THREE_ALL_INCLUSIVE = Range.closed(2D, 3D);
+	private static final Range<Double> TWO_INCLUSIVE_TO_THREE_EXCLUSIVE = Range.rightOpen(2D, 3D);
+	private static final Range<Double> TWO_EXCLUSIVE_TO_THREE_INCLUSIVE = Range.leftOpen(2D, 3D);
 
 	@Test // DATAREDIS-525
 	public void zAddShouldAddValuesWithScores() {
@@ -90,7 +97,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRange(KEY_1_BBUFFER, new Range<>(1L, 2L))) //
+		StepVerifier.create(connection.zSetCommands().zRange(KEY_1_BBUFFER, ONE_TO_TWO)) //
 				.expectNext(VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -102,7 +109,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeWithScores(KEY_1_BBUFFER, new Range<>(1L, 2L))) //
+		StepVerifier.create(connection.zSetCommands().zRangeWithScores(KEY_1_BBUFFER, ONE_TO_TWO)) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D), new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
 				.verifyComplete();
 	}
@@ -114,7 +121,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRange(KEY_1_BBUFFER, new Range<>(1L, 2L))) //
+		StepVerifier.create(connection.zSetCommands().zRevRange(KEY_1_BBUFFER, ONE_TO_TWO)) //
 				.expectNext(VALUE_2_BBUFFER, VALUE_1_BBUFFER) //
 				.verifyComplete();
 	}
@@ -126,7 +133,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRangeWithScores(KEY_1_BBUFFER, new Range<>(1L, 2L))) //
+		StepVerifier.create(connection.zSetCommands().zRevRangeWithScores(KEY_1_BBUFFER, ONE_TO_TWO)) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D), new DefaultTuple(VALUE_1_BBUFFER.array(), 1D)) //
 				.verifyComplete();
 	}
@@ -138,7 +145,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D))) //
+		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, Range.closed(2D, 3D))) //
 				.expectNext(VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -178,7 +185,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true))) //
+		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE)) //
 				.expectNext(VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -190,7 +197,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false))) //
+		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE)) //
 				.expectNext(VALUE_2_BBUFFER) //
 				.verifyComplete();
 	}
@@ -202,7 +209,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D))) //
+		StepVerifier.create(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, TWO_TO_THREE_ALL_INCLUSIVE)) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D), new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
 				.verifyComplete();
 	}
@@ -215,7 +222,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
 		StepVerifier
-				.create(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true))) //
+				.create(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE)) //
 				.expectNext(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
 				.verifyComplete();
 	}
@@ -228,7 +235,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
 		StepVerifier
-				.create(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false))) //
+				.create(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE)) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
 				.verifyComplete();
 	}
@@ -240,7 +247,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D))) //
+		StepVerifier.create(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, TWO_TO_THREE_ALL_INCLUSIVE)) //
 				.expectNext(VALUE_3_BBUFFER, VALUE_2_BBUFFER) //
 				.verifyComplete();
 	}
@@ -252,7 +259,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true))) //
+		StepVerifier.create(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE)) //
 				.expectNext(VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -264,7 +271,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false))) //
+		StepVerifier.create(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE)) //
 				.expectNext(VALUE_2_BBUFFER) //
 				.verifyComplete();
 	}
@@ -276,7 +283,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D))) //
+		StepVerifier.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, TWO_TO_THREE_ALL_INCLUSIVE)) //
 				.expectNext(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D), new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
 				.verifyComplete();
 	}
@@ -289,7 +296,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
 		StepVerifier
-				.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true))) //
+				.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE)) //
 				.expectNext(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
 				.verifyComplete();
 	}
@@ -302,7 +309,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
 		StepVerifier
-				.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false))) //
+				.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE)) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
 				.verifyComplete();
 	}
@@ -330,7 +337,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, new Range<>(2D, 3D)).block(), is(2L));
+		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, TWO_TO_THREE_ALL_INCLUSIVE).block(), is(2L));
 	}
 
 	@Test // DATAREDIS-525
@@ -340,7 +347,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true)).block(), is(1L));
+		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE).block(), is(1L));
 	}
 
 	@Test // DATAREDIS-525
@@ -350,7 +357,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false)).block(), is(1L));
+		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE).block(), is(1L));
 	}
 
 	@Test // DATAREDIS-525
@@ -360,8 +367,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, new Range<>(Double.NEGATIVE_INFINITY, 2D)).block(),
-				is(2L));
+		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, Range.leftUnbounded(inclusive(2D))).block(), is(2L));
 	}
 
 	@Test // DATAREDIS-525
@@ -371,8 +377,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, new Range<>(2D, Double.POSITIVE_INFINITY)).block(),
-				is(2L));
+		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, Range.rightUnbounded(inclusive(2D))).block(), is(2L));
 	}
 
 	@Test // DATAREDIS-525
@@ -400,7 +405,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRemRangeByRank(KEY_1_BBUFFER, new Range<>(1L, 2L)).block(), is(2L));
+		assertThat(connection.zSetCommands().zRemRangeByRank(KEY_1_BBUFFER, ONE_TO_TWO).block(), is(2L));
 	}
 
 	@Test // DATAREDIS-525
@@ -410,7 +415,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, new Range<>(1D, 2D)).block(), is(2L));
+		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, Range.closed(1D, 2D)).block(), is(2L));
 	}
 
 	@Test // DATAREDIS-525
@@ -420,8 +425,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(
-				connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, new Range<>(Double.NEGATIVE_INFINITY, 2D)).block(),
+		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, Range.leftUnbounded(inclusive(2D))).block(),
 				is(2L));
 	}
 
@@ -432,8 +436,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(
-				connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, new Range<>(2D, Double.POSITIVE_INFINITY)).block(),
+		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, Range.rightUnbounded(inclusive(2D))).block(),
 				is(2L));
 	}
 
@@ -444,7 +447,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true)).block(),
+		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE).block(),
 				is(1L));
 	}
 
@@ -455,7 +458,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false)).block(),
+		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE).block(),
 				is(1L));
 	}
 
@@ -504,17 +507,16 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 0D, "f");
 		nativeCommands.zadd(KEY_1, 0D, "g");
 
-		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, new Range<>("", "c")).collectList().block(),
+		Range<String> emptyToC = Range.closed("", "c");
+
+		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, emptyToC).collectList().block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("a".getBytes()), ByteBuffer.wrap("b".getBytes()),
 						ByteBuffer.wrap("c".getBytes())));
 
-		assertThat(
-				connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, new Range<>("", "c", true, false)).collectList().block(),
+		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, Range.rightOpen("", "c")).collectList().block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("a".getBytes()), ByteBuffer.wrap("b".getBytes())));
 
-		assertThat(
-				connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, new Range<>("aaa", "g", true, false)).collectList()
-						.block(),
+		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, Range.rightOpen("aaa", "g")).collectList().block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("b".getBytes()), ByteBuffer.wrap("c".getBytes()),
 						ByteBuffer.wrap("d".getBytes()), ByteBuffer.wrap("e".getBytes()), ByteBuffer.wrap("f".getBytes())));
 	}
@@ -530,18 +532,15 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 0D, "f");
 		nativeCommands.zadd(KEY_1, 0D, "g");
 
-		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("", "c")).collectList().block(),
+		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, Range.closed("", "c")).collectList().block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("c".getBytes()), ByteBuffer.wrap("b".getBytes()),
 						ByteBuffer.wrap("a".getBytes())));
 
-		assertThat(
-				connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("", "c", true, false)).collectList()
-						.block(),
+		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, Range.rightOpen("", "c")).collectList().block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("b".getBytes()), ByteBuffer.wrap("a".getBytes())));
 
 		assertThat(
-				connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("aaa", "g", true, false)).collectList()
-						.block(),
+				connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, Range.rightOpen("aaa", "g")).collectList().block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("f".getBytes()), ByteBuffer.wrap("e".getBytes()),
 						ByteBuffer.wrap("d".getBytes()), ByteBuffer.wrap("c".getBytes()), ByteBuffer.wrap("b".getBytes())));
 	}

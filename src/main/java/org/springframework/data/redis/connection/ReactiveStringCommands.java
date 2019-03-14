@@ -888,7 +888,8 @@ public interface ReactiveStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return bitCount(Mono.just(BitCountCommand.bitCount(key).within(new Range<>(start, end)))).next()
+		return bitCount(Mono.just(BitCountCommand.bitCount(key).within(Range.open(start, end)))) //
+				.next() //
 				.map(NumericResponse::getOutput);
 	}
 
