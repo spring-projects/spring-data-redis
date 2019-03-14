@@ -10,5 +10,10 @@ cd spring-data-redis-github
 
 ln -sf /work
 
-# Maven run from inside Makefile to interact with Redis server.
-make test SPRING_PROFILE=spring5-next
+# Launch Redis in proper configuration
+make test_start
+
+./mvnw -U clean test -DrunLongTests=true -Pspring5-next
+
+# Shutdown Redis
+make test_stop
