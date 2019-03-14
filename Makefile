@@ -150,5 +150,5 @@ stop: redis-stop sentinel-stop cluster-stop
 test:
 	$(MAKE) start
 	sleep 2
-	set -euo pipefail ; ./mvnw clean test -DrunLongTests=true -P$(SPRING_PROFILE)
+	./mvnw clean test -DrunLongTests=true -P$(SPRING_PROFILE) || (echo "maven failed $$?"; exit 1)
 	$(MAKE) stop
