@@ -145,5 +145,5 @@ stop: redis-stop sentinel-stop cluster-stop
 test:
 	$(MAKE) start
 	sleep 2
-	mvn clean install -DrunLongTests=true -P$(SPRING_PROFILE)
+	mvn clean install -U -DrunLongTests=true -P$(SPRING_PROFILE)
 	$(MAKE) stop
