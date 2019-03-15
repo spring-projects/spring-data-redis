@@ -253,9 +253,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	public ValueWrapper putIfAbsent(RedisCacheElement element) {
 
-		Assert.notNull(element, "Element must not be null!");
-
-		new RedisCachePutIfAbsentCallback(new BinaryRedisCacheElement(element, cacheValueAccessor), cacheMetadata);
+		Assert.notNull(element, "Element must not be null!");		
 
 		return toWrapper(cacheValueAccessor.deserializeIfNecessary((byte[]) redisOperations.execute(
 				new RedisCachePutIfAbsentCallback(new BinaryRedisCacheElement(element, cacheValueAccessor), cacheMetadata))));
