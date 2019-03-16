@@ -15,18 +15,14 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.Builder;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Protocol;
 import redis.clients.jedis.Protocol.Command;
 import redis.clients.jedis.Queable;
 import redis.clients.jedis.Response;
-import redis.clients.jedis.util.RedisOutputStream;
 import redis.clients.jedis.util.SafeEncoder;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Set;
@@ -41,25 +37,17 @@ import org.springframework.util.ReflectionUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Serhii Siryi
  * @since 2.1
  */
 @SuppressWarnings({ "unchecked", "ConstantConditions" })
 class JedisClientUtils {
 
-	private static final Field CLIENT_FIELD;
 	private static final Method GET_RESPONSE;
-	private static final Method PROTOCOL_SEND_COMMAND;
 	private static final Set<String> KNOWN_COMMANDS;
 	private static final Builder<Object> OBJECT_BUILDER;
 
 	static {
-
-		CLIENT_FIELD = ReflectionUtils.findField(BinaryJedis.class, "client", Client.class);
-		ReflectionUtils.makeAccessible(CLIENT_FIELD);
-
-		PROTOCOL_SEND_COMMAND = ReflectionUtils.findMethod(Protocol.class, "sendCommand", RedisOutputStream.class,
-				byte[].class, byte[][].class);
-		ReflectionUtils.makeAccessible(PROTOCOL_SEND_COMMAND);
 
 		GET_RESPONSE = ReflectionUtils.findMethod(Queable.class, "getResponse", Builder.class);
 		ReflectionUtils.makeAccessible(GET_RESPONSE);
@@ -180,6 +168,6 @@ class JedisClientUtils {
 	}
 
 	private static Client retrieveClient(Jedis jedis) {
-		return (Client) ReflectionUtils.getField(CLIENT_FIELD, jedis);
+		return jedis.getClient();
 	}
 }
