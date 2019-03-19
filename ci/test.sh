@@ -11,7 +11,7 @@ cd spring-data-redis-github
 ln -sf /work
 
 # Launch Redis in proper configuration
-make test_start
+make start
 
 ./mvnw -U clean test -DrunLongTests=true -Pspring5-next
 
@@ -19,6 +19,6 @@ make test_start
 RESULT=$?
 
 # Shutdown Redis
-make test_stop
+make stop
 
 exit $RESULT
