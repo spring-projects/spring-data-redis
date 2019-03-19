@@ -109,7 +109,7 @@ class JedisClientUtils {
 	 */
 	static Client sendCommand(String command, byte[][] args, Jedis jedis) {
 
-		Client client = retrieveClient(jedis);
+		Client client = jedis.getClient();
 
 		sendCommand(client, command, args);
 
@@ -152,7 +152,7 @@ class JedisClientUtils {
 	 * @return {@literal true} if the connection has entered {@literal MULTI} state.
 	 */
 	static boolean isInMulti(Jedis jedis) {
-		return retrieveClient(jedis).isInMulti();
+		return jedis.getClient().isInMulti();
 	}
 
 	/**
@@ -167,7 +167,4 @@ class JedisClientUtils {
 		return (Response<Object>) ReflectionUtils.invokeMethod(GET_RESPONSE, target, OBJECT_BUILDER);
 	}
 
-	private static Client retrieveClient(Jedis jedis) {
-		return jedis.getClient();
-	}
 }
