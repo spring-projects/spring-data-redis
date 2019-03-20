@@ -48,7 +48,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
+	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
 	default Mono<Boolean> exists(ByteBuffer key) {
 
@@ -62,7 +62,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
+	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
 	Flux<BooleanResponse<KeyCommand>> exists(Publisher<KeyCommand> keys);
 
@@ -71,7 +71,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/type">Redis Documentation: TYPE</a>
+	 * @see <a href="https://redis.io/commands/type">Redis Documentation: TYPE</a>
 	 */
 	default Mono<DataType> type(ByteBuffer key) {
 
@@ -85,7 +85,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/type">Redis Documentation: TYPE</a>
+	 * @see <a href="https://redis.io/commands/type">Redis Documentation: TYPE</a>
 	 */
 	Flux<CommandResponse<KeyCommand, DataType>> type(Publisher<KeyCommand> keys);
 
@@ -94,7 +94,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@link Mono} emitting the number of keys touched.
-	 * @see <a href="http://redis.io/commands/touch">Redis Documentation: TOUCH</a>
+	 * @see <a href="https://redis.io/commands/touch">Redis Documentation: TOUCH</a>
 	 * @since 2.1
 	 */
 	default Mono<Long> touch(Collection<ByteBuffer> keys) {
@@ -106,7 +106,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/touch">Redis Documentation: TOUCH</a>
+	 * @see <a href="https://redis.io/commands/touch">Redis Documentation: TOUCH</a>
 	 * @since 2.1
 	 */
 	Flux<NumericResponse<Collection<ByteBuffer>, Long>> touch(Publisher<Collection<ByteBuffer>> keys);
@@ -118,7 +118,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param pattern must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
+	 * @see <a href="https://redis.io/commands/keys">Redis Documentation: KEYS</a>
 	 */
 	default Mono<List<ByteBuffer>> keys(ByteBuffer pattern) {
 
@@ -134,7 +134,7 @@ public interface ReactiveKeyCommands {
 	 * 
 	 * @param patterns must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
+	 * @see <a href="https://redis.io/commands/keys">Redis Documentation: KEYS</a>
 	 */
 	Flux<MultiValueResponse<ByteBuffer, ByteBuffer>> keys(Publisher<ByteBuffer> patterns);
 
@@ -143,7 +143,7 @@ public interface ReactiveKeyCommands {
 	 * commands itself as long as the subscriber signals demand.
 	 *
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 * @since 2.1
 	 */
 	default Flux<ByteBuffer> scan() {
@@ -157,7 +157,7 @@ public interface ReactiveKeyCommands {
 	 * @param options must not be {@literal null}.
 	 * @return the {@link Flux} emitting {@link ByteBuffer keys} one by one.
 	 * @throws IllegalArgumentException when options is {@literal null}.
-	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 * @since 2.1
 	 */
 	Flux<ByteBuffer> scan(ScanOptions options);
@@ -166,7 +166,7 @@ public interface ReactiveKeyCommands {
 	 * Return a random key from the keyspace.
 	 *
 	 * @return
-	 * @see <a href="http://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
+	 * @see <a href="https://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
 	 */
 	Mono<ByteBuffer> randomKey();
 
@@ -174,7 +174,7 @@ public interface ReactiveKeyCommands {
 	 * {@code RENAME} command parameters.
 	 *
 	 * @author Christoph Strobl
-	 * @see <a href="http://redis.io/commands/rename">Redis Documentation: RENAME</a>
+	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
 	class RenameCommand extends KeyCommand {
 
@@ -228,7 +228,7 @@ public interface ReactiveKeyCommands {
 	 * @param key must not be {@literal null}.
 	 * @param newName must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/rename">Redis Documentation: RENAME</a>
+	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
 	default Mono<Boolean> rename(ByteBuffer key, ByteBuffer newName) {
 
@@ -242,7 +242,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param command must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/rename">Redis Documentation: RENAME</a>
+	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
 	Flux<BooleanResponse<RenameCommand>> rename(Publisher<RenameCommand> command);
 
@@ -252,7 +252,7 @@ public interface ReactiveKeyCommands {
 	 * @param key must not be {@literal null}.
 	 * @param newName must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
+	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
 	default Mono<Boolean> renameNX(ByteBuffer key, ByteBuffer newName) {
 
@@ -266,7 +266,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param command must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
+	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
 	Flux<BooleanResponse<RenameCommand>> renameNX(Publisher<RenameCommand> command);
 
@@ -275,7 +275,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
+	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	default Mono<Long> del(ByteBuffer key) {
 
@@ -289,7 +289,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} removed along with the deletion result.
-	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
+	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> del(Publisher<KeyCommand> keys);
 
@@ -298,7 +298,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
+	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	default Mono<Long> mDel(List<ByteBuffer> keys) {
 
@@ -312,7 +312,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal keys} removed along with the deletion result.
-	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
+	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Flux<NumericResponse<List<ByteBuffer>, Long>> mDel(Publisher<List<ByteBuffer>> keys);
 
@@ -322,7 +322,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @see <a href="https://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
 	 * @since 2.1
 	 */
 	default Mono<Long> unlink(ByteBuffer key) {
@@ -338,7 +338,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} removed along with the unlink result.
-	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @see <a href="https://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
 	 * @since 2.1
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> unlink(Publisher<KeyCommand> keys);
@@ -349,7 +349,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @see <a href="https://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
 	 * @since 2.1
 	 */
 	default Mono<Long> mUnlink(List<ByteBuffer> keys) {
@@ -365,7 +365,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} removed along with the deletion result.
-	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @see <a href="https://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
 	 * @since 2.1
 	 */
 	Flux<NumericResponse<List<ByteBuffer>, Long>> mUnlink(Publisher<List<ByteBuffer>> keys);
@@ -374,8 +374,8 @@ public interface ReactiveKeyCommands {
 	 * {@code EXPIRE}/{@code PEXPIRE} command parameters.
 	 *
 	 * @author Mark Paluch
-	 * @see <a href="http://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
-	 * @see <a href="http://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 */
 	class ExpireCommand extends KeyCommand {
 
@@ -429,7 +429,7 @@ public interface ReactiveKeyCommands {
 	 * @param key must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 */
 	default Mono<Boolean> expire(ByteBuffer key, Duration timeout) {
 
@@ -445,7 +445,7 @@ public interface ReactiveKeyCommands {
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} removed along with the expiration
 	 *         result.
-	 * @see <a href="http://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 */
 	Flux<BooleanResponse<ExpireCommand>> expire(Publisher<ExpireCommand> commands);
 
@@ -455,7 +455,7 @@ public interface ReactiveKeyCommands {
 	 * @param key must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 */
 	default Mono<Boolean> pExpire(ByteBuffer key, Duration timeout) {
 
@@ -471,7 +471,7 @@ public interface ReactiveKeyCommands {
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} removed along with the expiration
 	 *         result.
-	 * @see <a href="http://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 */
 	Flux<BooleanResponse<ExpireCommand>> pExpire(Publisher<ExpireCommand> commands);
 
@@ -479,8 +479,8 @@ public interface ReactiveKeyCommands {
 	 * {@code EXPIREAT}/{@code PEXPIREAT} command parameters.
 	 *
 	 * @author Mark Paluch
-	 * @see <a href="http://redis.io/commands/expire">Redis Documentation: EXPIREAT</a>
-	 * @see <a href="http://redis.io/commands/pexpire">Redis Documentation: PEXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIREAT</a>
 	 */
 	class ExpireAtCommand extends KeyCommand {
 
@@ -534,7 +534,7 @@ public interface ReactiveKeyCommands {
 	 * @param key must not be {@literal null}.
 	 * @param expireAt must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
 	 */
 	default Mono<Boolean> expireAt(ByteBuffer key, Instant expireAt) {
 
@@ -550,7 +550,7 @@ public interface ReactiveKeyCommands {
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} removed along with the expiration
 	 *         result.
-	 * @see <a href="http://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
 	 */
 	Flux<BooleanResponse<ExpireAtCommand>> expireAt(Publisher<ExpireAtCommand> commands);
 
@@ -560,7 +560,7 @@ public interface ReactiveKeyCommands {
 	 * @param key must not be {@literal null}.
 	 * @param expireAt must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
 	 */
 	default Mono<Boolean> pExpireAt(ByteBuffer key, Instant expireAt) {
 
@@ -576,7 +576,7 @@ public interface ReactiveKeyCommands {
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} removed along with the expiration
 	 *         result.
-	 * @see <a href="http://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
 	 */
 	Flux<BooleanResponse<ExpireAtCommand>> pExpireAt(Publisher<ExpireAtCommand> commands);
 
@@ -585,7 +585,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/persist">Redis Documentation: PERSIST</a>
+	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 */
 	default Mono<Boolean> persist(ByteBuffer key) {
 
@@ -599,7 +599,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} persisted along with the persist result.
-	 * @see <a href="http://redis.io/commands/persist">Redis Documentation: PERSIST</a>
+	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 */
 	Flux<BooleanResponse<KeyCommand>> persist(Publisher<KeyCommand> commands);
 
@@ -608,7 +608,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
+	 * @see <a href="https://redis.io/commands/ttl">Redis Documentation: TTL</a>
 	 */
 	default Mono<Long> ttl(ByteBuffer key) {
 
@@ -622,7 +622,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} along with the time to live result.
-	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
+	 * @see <a href="https://redis.io/commands/ttl">Redis Documentation: TTL</a>
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> ttl(Publisher<KeyCommand> commands);
 
@@ -631,7 +631,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
+	 * @see <a href="https://redis.io/commands/ttl">Redis Documentation: TTL</a>
 	 */
 	default Mono<Long> pTtl(ByteBuffer key) {
 
@@ -645,7 +645,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} along with the time to live result.
-	 * @see <a href="http://redis.io/commands/pttl">Redis Documentation: PTTL</a>
+	 * @see <a href="https://redis.io/commands/pttl">Redis Documentation: PTTL</a>
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> pTtl(Publisher<KeyCommand> commands);
 
@@ -653,7 +653,7 @@ public interface ReactiveKeyCommands {
 	 * {@code MOVE} command parameters.
 	 *
 	 * @author Mark Paluch
-	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
+	 * @see <a href="https://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 */
 	class MoveCommand extends KeyCommand {
 
@@ -704,7 +704,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
+	 * @see <a href="https://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 */
 	default Mono<Boolean> move(ByteBuffer key, int database) {
 
@@ -718,7 +718,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} to move along with the move result.
-	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
+	 * @see <a href="https://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 */
 	Flux<BooleanResponse<MoveCommand>> move(Publisher<MoveCommand> commands);
 
@@ -728,7 +728,7 @@ public interface ReactiveKeyCommands {
 	 * @param key must not be {@literal null}.
 	 * @return the {@link Mono} emitting {@link org.springframework.data.redis.connection.ValueEncoding}.
 	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
-	 * @see <a href="http://redis.io/commands/object">Redis Documentation: OBJECT ENCODING</a>
+	 * @see <a href="https://redis.io/commands/object">Redis Documentation: OBJECT ENCODING</a>
 	 * @since 2.1
 	 */
 	Mono<ValueEncoding> encodingOf(ByteBuffer key);
@@ -739,7 +739,7 @@ public interface ReactiveKeyCommands {
 	 * @param key must not be {@literal null}.
 	 * @return the {@link Mono} emitting the idletime of the key of {@link Mono#empty()} if the key does not exist.
 	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
-	 * @see <a href="http://redis.io/commands/object">Redis Documentation: OBJECT IDLETIME</a>
+	 * @see <a href="https://redis.io/commands/object">Redis Documentation: OBJECT IDLETIME</a>
 	 * @since 2.1
 	 */
 	Mono<Duration> idletime(ByteBuffer key);
@@ -750,7 +750,7 @@ public interface ReactiveKeyCommands {
 	 * @param key must not be {@literal null}.
 	 * @return {@link Mono#empty()} if key does not exist.
 	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
-	 * @see <a href="http://redis.io/commands/object">Redis Documentation: OBJECT REFCOUNT</a>
+	 * @see <a href="https://redis.io/commands/object">Redis Documentation: OBJECT REFCOUNT</a>
 	 * @since 2.1
 	 */
 	Mono<Long> refcount(ByteBuffer key);

@@ -27,7 +27,7 @@ import java.util.List;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
- * @see <a href="http://redis.io/commands#list">Redis Documentation: List Commands</a>
+ * @see <a href="https://redis.io/commands#list">Redis Documentation: List Commands</a>
  * @since 2.0
  */
 public interface ReactiveListOperations<K, V> {
@@ -39,7 +39,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param start
 	 * @param end
 	 * @return
-	 * @see <a href="http://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
+	 * @see <a href="https://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
 	Flux<V> range(K key, long start, long end);
 
@@ -49,7 +49,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @see <a href="http://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
+	 * @see <a href="https://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
 	 */
 	Mono<Boolean> trim(K key, long start, long end);
 
@@ -58,7 +58,7 @@ public interface ReactiveListOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/llen">Redis Documentation: LLEN</a>
+	 * @see <a href="https://redis.io/commands/llen">Redis Documentation: LLEN</a>
 	 */
 	Mono<Long> size(K key);
 
@@ -68,7 +68,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
 	Mono<Long> leftPush(K key, V value);
 
@@ -78,7 +78,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return
-	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
 	Mono<Long> leftPushAll(K key, V... values);
 
@@ -89,7 +89,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param values must not be {@literal null}.
 	 * @return
 	 * @since 1.5
-	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
 	Mono<Long> leftPushAll(K key, Collection<V> values);
 
@@ -99,7 +99,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
+	 * @see <a href="https://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
 	 */
 	Mono<Long> leftPushIfPresent(K key, V value);
 
@@ -109,7 +109,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
 	Mono<Long> leftPush(K key, V pivot, V value);
 
@@ -119,7 +119,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
+	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
 	Mono<Long> rightPush(K key, V value);
 
@@ -129,7 +129,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return
-	 * @see <a href="http://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
+	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
 	Mono<Long> rightPushAll(K key, V... values);
 
@@ -140,7 +140,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param values
 	 * @return
 	 * @since 1.5
-	 * @see <a href="http://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
+	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
 	Mono<Long> rightPushAll(K key, Collection<V> values);
 
@@ -150,7 +150,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
+	 * @see <a href="https://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
 	 */
 	Mono<Long> rightPushIfPresent(K key, V value);
 
@@ -160,7 +160,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: RPUSH</a>
+	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: RPUSH</a>
 	 */
 	Mono<Long> rightPush(K key, V pivot, V value);
 
@@ -170,7 +170,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param index
 	 * @param value
-	 * @see <a href="http://redis.io/commands/lset">Redis Documentation: LSET</a>
+	 * @see <a href="https://redis.io/commands/lset">Redis Documentation: LSET</a>
 	 */
 	Mono<Boolean> set(K key, long index, V value);
 
@@ -181,7 +181,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param count
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/lrem">Redis Documentation: LREM</a>
+	 * @see <a href="https://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
 	Mono<Long> remove(K key, long count, Object value);
 
@@ -191,7 +191,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param index
 	 * @return
-	 * @see <a href="http://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
+	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 */
 	Mono<V> index(K key, long index);
 
@@ -200,7 +200,7 @@ public interface ReactiveListOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 */
 	Mono<V> leftPop(K key);
 
@@ -213,7 +213,7 @@ public interface ReactiveListOperations<K, V> {
 	 *          {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero can be
 	 *          used to wait indefinitely. Durations between zero and one second are not supported.
 	 * @return
-	 * @see <a href="http://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
+	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
 	Mono<V> leftPop(K key, Duration timeout);
 
@@ -222,7 +222,7 @@ public interface ReactiveListOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/rpop">Redis Documentation: RPOP</a>
+	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 */
 	Mono<V> rightPop(K key);
 
@@ -235,7 +235,7 @@ public interface ReactiveListOperations<K, V> {
 	 *          {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero can be
 	 *          used to wait indefinitely. Durations between zero and one second are not supported.
 	 * @return
-	 * @see <a href="http://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
+	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
 	Mono<V> rightPop(K key, Duration timeout);
 
@@ -245,7 +245,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @param sourceKey must not be {@literal null}.
 	 * @param destinationKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
+	 * @see <a href="https://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
 	 */
 	Mono<V> rightPopAndLeftPush(K sourceKey, K destinationKey);
 
@@ -259,7 +259,7 @@ public interface ReactiveListOperations<K, V> {
 	 *          either {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero
 	 *          can be used to wait indefinitely. Durations between zero and one second are not supported.
 	 * @return
-	 * @see <a href="http://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
+	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 */
 	Mono<V> rightPopAndLeftPush(K sourceKey, K destinationKey, Duration timeout);
 

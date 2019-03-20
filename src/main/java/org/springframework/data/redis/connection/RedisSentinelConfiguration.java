@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
- * to <a href="http://redis.io/topics/sentinel">Redis Sentinel(s)</a>. Useful when setting up a high availability Redis
+ * to <a href="https://redis.io/topics/sentinel">Redis Sentinel(s)</a>. Useful when setting up a high availability Redis
  * environment.
  *
  * @author Christoph Strobl

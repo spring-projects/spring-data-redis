@@ -39,7 +39,7 @@ public interface ListOperations<K, V> {
 	 * @param start
 	 * @param end
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
+	 * @see <a href="https://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
 	@Nullable
 	List<V> range(K key, long start, long end);
@@ -50,7 +50,7 @@ public interface ListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @see <a href="http://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
+	 * @see <a href="https://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
 	 */
 	void trim(K key, long start, long end);
 
@@ -59,7 +59,7 @@ public interface ListOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/llen">Redis Documentation: LLEN</a>
+	 * @see <a href="https://redis.io/commands/llen">Redis Documentation: LLEN</a>
 	 */
 	@Nullable
 	Long size(K key);
@@ -70,7 +70,7 @@ public interface ListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
 	@Nullable
 	Long leftPush(K key, V value);
@@ -81,7 +81,7 @@ public interface ListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
 	@Nullable
 	Long leftPushAll(K key, V... values);
@@ -93,7 +93,7 @@ public interface ListOperations<K, V> {
 	 * @param values must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.5
-	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
 	@Nullable
 	Long leftPushAll(K key, Collection<V> values);
@@ -104,7 +104,7 @@ public interface ListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
+	 * @see <a href="https://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
 	 */
 	@Nullable
 	Long leftPushIfPresent(K key, V value);
@@ -115,7 +115,7 @@ public interface ListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
 	@Nullable
 	Long leftPush(K key, V pivot, V value);
@@ -126,7 +126,7 @@ public interface ListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
+	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
 	@Nullable
 	Long rightPush(K key, V value);
@@ -137,7 +137,7 @@ public interface ListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
+	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
 	@Nullable
 	Long rightPushAll(K key, V... values);
@@ -149,7 +149,7 @@ public interface ListOperations<K, V> {
 	 * @param values
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.5
-	 * @see <a href="http://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
+	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
 	@Nullable
 	Long rightPushAll(K key, Collection<V> values);
@@ -160,7 +160,7 @@ public interface ListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
+	 * @see <a href="https://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
 	 */
 	@Nullable
 	Long rightPushIfPresent(K key, V value);
@@ -171,7 +171,7 @@ public interface ListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: RPUSH</a>
+	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: RPUSH</a>
 	 */
 	@Nullable
 	Long rightPush(K key, V pivot, V value);
@@ -182,7 +182,7 @@ public interface ListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param index
 	 * @param value
-	 * @see <a href="http://redis.io/commands/lset">Redis Documentation: LSET</a>
+	 * @see <a href="https://redis.io/commands/lset">Redis Documentation: LSET</a>
 	 */
 	void set(K key, long index, V value);
 
@@ -193,7 +193,7 @@ public interface ListOperations<K, V> {
 	 * @param count
 	 * @param value
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lrem">Redis Documentation: LREM</a>
+	 * @see <a href="https://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
 	@Nullable
 	Long remove(K key, long count, Object value);
@@ -204,7 +204,7 @@ public interface ListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param index
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
+	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 */
 	@Nullable
 	V index(K key, long index);
@@ -214,7 +214,7 @@ public interface ListOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 */
 	@Nullable
 	V leftPop(K key);
@@ -227,7 +227,7 @@ public interface ListOperations<K, V> {
 	 * @param timeout
 	 * @param unit must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
+	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
 	@Nullable
 	V leftPop(K key, long timeout, TimeUnit unit);
@@ -237,7 +237,7 @@ public interface ListOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/rpop">Redis Documentation: RPOP</a>
+	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 */
 	@Nullable
 	V rightPop(K key);
@@ -250,7 +250,7 @@ public interface ListOperations<K, V> {
 	 * @param timeout
 	 * @param unit must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
+	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
 	@Nullable
 	V rightPop(K key, long timeout, TimeUnit unit);
@@ -261,7 +261,7 @@ public interface ListOperations<K, V> {
 	 * @param sourceKey must not be {@literal null}.
 	 * @param destinationKey must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
+	 * @see <a href="https://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
 	 */
 	@Nullable
 	V rightPopAndLeftPush(K sourceKey, K destinationKey);
@@ -275,7 +275,7 @@ public interface ListOperations<K, V> {
 	 * @param timeout
 	 * @param unit must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
+	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 */
 	@Nullable
 	V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit);

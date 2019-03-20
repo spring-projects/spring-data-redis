@@ -164,7 +164,7 @@ public interface ReactiveRedisConnection extends Closeable {
 	 * Test connection.
 	 *
 	 * @return {@link Mono} wrapping server response message - usually {@literal PONG}.
-	 * @see <a href="http://redis.io/commands/ping">Redis Documentation: PING</a>
+	 * @see <a href="https://redis.io/commands/ping">Redis Documentation: PING</a>
 	 */
 	Mono<String> ping();
 

@@ -26,7 +26,7 @@ import java.util.Collection;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Roman Bezpalko
- * @see <a href="http://redis.io/commands#set">Redis Documentation: Set Commands</a>
+ * @see <a href="https://redis.io/commands#set">Redis Documentation: Set Commands</a>
  * @since 2.0
  */
 public interface ReactiveSetOperations<K, V> {
@@ -37,7 +37,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return
-	 * @see <a href="http://redis.io/commands/sadd">Redis Documentation: SADD</a>
+	 * @see <a href="https://redis.io/commands/sadd">Redis Documentation: SADD</a>
 	 */
 	Mono<Long> add(K key, V... values);
 
@@ -47,7 +47,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return
-	 * @see <a href="http://redis.io/commands/srem">Redis Documentation: SREM</a>
+	 * @see <a href="https://redis.io/commands/srem">Redis Documentation: SREM</a>
 	 */
 	Mono<Long> remove(K key, Object... values);
 
@@ -56,7 +56,7 @@ public interface ReactiveSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 */
 	Mono<V> pop(K key);
 
@@ -66,7 +66,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param count number of random members to pop from the set.
 	 * @return {@link Flux} emitting random members.
-	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 */
 	Flux<V> pop(K key, long count);
 
@@ -77,7 +77,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param value
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/smove">Redis Documentation: SMOVE</a>
+	 * @see <a href="https://redis.io/commands/smove">Redis Documentation: SMOVE</a>
 	 */
 	Mono<Boolean> move(K sourceKey, V value, K destKey);
 
@@ -86,7 +86,7 @@ public interface ReactiveSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/scard">Redis Documentation: SCARD</a>
+	 * @see <a href="https://redis.io/commands/scard">Redis Documentation: SCARD</a>
 	 */
 	Mono<Long> size(K key);
 
@@ -96,7 +96,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param o
 	 * @return
-	 * @see <a href="http://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
+	 * @see <a href="https://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
 	 */
 	Mono<Boolean> isMember(K key, Object o);
 
@@ -106,7 +106,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
 	Flux<V> intersect(K key, K otherKey);
 
@@ -116,7 +116,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKeys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
 	Flux<V> intersect(K key, Collection<K> otherKeys);
 
@@ -125,7 +125,7 @@ public interface ReactiveSetOperations<K, V> {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 * @since 2.2
 	 */
 	Flux<V> intersect(Collection<K> keys);
@@ -137,7 +137,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
 	Mono<Long> intersectAndStore(K key, K otherKey, K destKey);
 
@@ -148,7 +148,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
 	Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey);
 
@@ -158,7 +158,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param keys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 * @since 2.2
 	 */
 	Mono<Long> intersectAndStore(Collection<K> keys, K destKey);
@@ -169,7 +169,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
 	Flux<V> union(K key, K otherKey);
 
@@ -179,7 +179,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKeys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
 	Flux<V> union(K key, Collection<K> otherKeys);
 
@@ -188,7 +188,7 @@ public interface ReactiveSetOperations<K, V> {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 * @since 2.2
 	 */
 	Flux<V> union(Collection<K> keys);
@@ -200,7 +200,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 */
 	Mono<Long> unionAndStore(K key, K otherKey, K destKey);
 
@@ -211,7 +211,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 */
 	Mono<Long> unionAndStore(K key, Collection<K> otherKeys, K destKey);
 
@@ -221,7 +221,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param keys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 * @since 2.2
 	 */
 	Mono<Long> unionAndStore(Collection<K> keys, K destKey);
@@ -232,7 +232,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
 	Flux<V> difference(K key, K otherKey);
 
@@ -242,7 +242,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKeys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
 	Flux<V> difference(K key, Collection<K> otherKeys);
 
@@ -251,7 +251,7 @@ public interface ReactiveSetOperations<K, V> {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 * @since 2.2
 	 */
 	Flux<V> difference(Collection<K> keys);
@@ -263,7 +263,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 */
 	Mono<Long> differenceAndStore(K key, K otherKey, K destKey);
 
@@ -274,7 +274,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 */
 	Mono<Long> differenceAndStore(K key, Collection<K> otherKeys, K destKey);
 
@@ -284,7 +284,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param keys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 * @since 2.2
 	 */
 	Mono<Long> differenceAndStore(Collection<K> keys, K destKey);
@@ -294,7 +294,7 @@ public interface ReactiveSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
+	 * @see <a href="https://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
 	 */
 	Flux<V> members(K key);
 
@@ -306,7 +306,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @return the {@link Flux} emitting the {@literal values} one by one or an {@link Flux#empty() empty Flux} if none
 	 *         exist.
 	 * @throws IllegalArgumentException when given {@code key} is {@literal null}.
-	 * @see <a href="http://redis.io/commands/sscan">Redis Documentation: SSCAN</a>
+	 * @see <a href="https://redis.io/commands/sscan">Redis Documentation: SSCAN</a>
 	 * @since 2.1
 	 */
 	default Flux<V> scan(K key) {
@@ -322,7 +322,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @return the {@link Flux} emitting the {@literal values} one by one or an {@link Flux#empty() empty Flux} if the key
 	 *         does not exist.
 	 * @throws IllegalArgumentException when one of the required arguments is {@literal null}.
-	 * @see <a href="http://redis.io/commands/sscan">Redis Documentation: SSCAN</a>
+	 * @see <a href="https://redis.io/commands/sscan">Redis Documentation: SSCAN</a>
 	 * @since 2.1
 	 */
 	Flux<V> scan(K key, ScanOptions options);
@@ -332,7 +332,7 @@ public interface ReactiveSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
+	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	Mono<V> randomMember(K key);
 
@@ -342,7 +342,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param count number of members to return.
 	 * @return
-	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
+	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	Flux<V> distinctRandomMembers(K key, long count);
 
@@ -352,7 +352,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param count number of members to return.
 	 * @return
-	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
+	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	Flux<V> randomMembers(K key, long count);
 

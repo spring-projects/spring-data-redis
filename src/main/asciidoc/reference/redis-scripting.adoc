@@ -1,7 +1,7 @@
 [[scripting]]
 = Redis Scripting
 
-Redis versions 2.6 and higher provide support for execution of Lua scripts through the http://redis.io/commands/eval[eval] and http://redis.io/commands/evalsha[evalsha] commands. Spring Data Redis provides a high-level abstraction for script execution that handles serialization and automatically uses the Redis script cache.
+Redis versions 2.6 and higher provide support for execution of Lua scripts through the https://redis.io/commands/eval[eval] and https://redis.io/commands/evalsha[evalsha] commands. Spring Data Redis provides a high-level abstraction for script execution that handles serialization and automatically uses the Redis script cache.
 
 Scripts can be run by calling the `execute` methods of `RedisTemplate` and `ReactiveRedisTemplate`. Both use a configurable `ScriptExecutor` (or `ReactiveScriptExecutor`) to run the provided script. By default, the `ScriptExecutor` (or `ReactiveScriptExecutor`) takes care of serializing the provided keys and arguments and deserializing the script result. This is done through the key and value serializers of the template. There is an additional overload that lets you pass custom serializers for the script arguments and the result.
 
@@ -49,4 +49,4 @@ TIP: It is ideal to configure a single instance of `DefaultRedisScript` in your 
 
 The `checkAndSet` method above then runs the scripts. Scripts can be run within a `SessionCallback` as part of a transaction or pipeline. See "`<<tx>>`" and "`<<pipeline>>`" for more information.
 
-The scripting support provided by Spring Data Redis also lets you schedule Redis scripts for periodic execution by using the Spring Task and Scheduler abstractions. See the http://projects.spring.io/spring-framework/[Spring Framework] documentation for more details.
+The scripting support provided by Spring Data Redis also lets you schedule Redis scripts for periodic execution by using the Spring Task and Scheduler abstractions. See the https://projects.spring.io/spring-framework/[Spring Framework] documentation for more details.

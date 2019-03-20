@@ -36,7 +36,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
  *
  * @author Mark Paluch
  * @author Christoph Strobl
- * @see <a href="http://redis.io/commands#geo">Redis Documentation: Geo Commands</a>
+ * @see <a href="https://redis.io/commands#geo">Redis Documentation: Geo Commands</a>
  * @since 2.0
  */
 public interface ReactiveGeoOperations<K, M> {
@@ -48,7 +48,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param point must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Mono<Long> add(K key, Point point, M member);
 
@@ -58,7 +58,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param location must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Mono<Long> add(K key, GeoLocation<M> location);
 
@@ -68,7 +68,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param memberCoordinateMap must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Mono<Long> add(K key, Map<M, Point> memberCoordinateMap);
 
@@ -78,7 +78,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param locations must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Mono<Long> add(K key, Iterable<GeoLocation<M>> locations);
 
@@ -88,7 +88,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param locations must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Flux<Long> add(K key, Publisher<? extends Collection<GeoLocation<M>>> locations);
 
@@ -99,7 +99,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param member1 must not be {@literal null}.
 	 * @param member2 must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
+	 * @see <a href="https://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
 	Mono<Distance> distance(K key, M member1, M member2);
 
@@ -111,7 +111,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param member2 must not be {@literal null}.
 	 * @param metric must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
+	 * @see <a href="https://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
 	Mono<Distance> distance(K key, M member1, M member2, Metric metric);
 
@@ -121,7 +121,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
+	 * @see <a href="https://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 */
 	Mono<String> hash(K key, M member);
 
@@ -131,7 +131,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
+	 * @see <a href="https://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 */
 	Mono<List<String>> hash(K key, M... members);
 
@@ -141,7 +141,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
+	 * @see <a href="https://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 */
 	Mono<Point> position(K key, M member);
 
@@ -151,7 +151,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
+	 * @see <a href="https://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 */
 	Mono<List<Point>> position(K key, M... members);
 
@@ -161,7 +161,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
+	 * @see <a href="https://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
 	Flux<GeoResult<GeoLocation<M>>> radius(K key, Circle within);
 
@@ -172,7 +172,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param within must not be {@literal null}.
 	 * @param args must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
+	 * @see <a href="https://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
 	Flux<GeoResult<GeoLocation<M>>> radius(K key, Circle within, GeoRadiusCommandArgs args);
 
@@ -184,7 +184,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param member must not be {@literal null}.
 	 * @param radius
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
+	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
 	Flux<GeoResult<GeoLocation<M>>> radius(K key, M member, double radius);
 
@@ -196,7 +196,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param member must not be {@literal null}.
 	 * @param distance must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
+	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
 	Flux<GeoResult<GeoLocation<M>>> radius(K key, M member, Distance distance);
 
@@ -209,7 +209,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @param distance must not be {@literal null}.
 	 * @param args must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
+	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
 	Flux<GeoResult<GeoLocation<M>>> radius(K key, M member, Distance distance, GeoRadiusCommandArgs args);
 

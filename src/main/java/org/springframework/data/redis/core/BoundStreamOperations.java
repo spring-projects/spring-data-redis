@@ -42,7 +42,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param group name of the consumer group.
 	 * @param recordIds record Id's to acknowledge.
 	 * @return length of acknowledged records. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xack">Redis Documentation: XACK</a>
+	 * @see <a href="https://redis.io/commands/xack">Redis Documentation: XACK</a>
 	 */
 	@Nullable
 	Long acknowledge(String group, String... recordIds);
@@ -52,7 +52,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 *
 	 * @param body record body.
 	 * @return the record Id. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
 	@Nullable
 	RecordId add(Map<HK, HV> body);
@@ -63,7 +63,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 *
 	 * @param recordIds stream record Id's.
 	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xdel">Redis Documentation: XDEL</a>
+	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
 	@Nullable
 	Long delete(String... recordIds);
@@ -100,7 +100,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * Get the length of a stream.
 	 *
 	 * @return length of the stream. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xlen">Redis Documentation: XLEN</a>
+	 * @see <a href="https://redis.io/commands/xlen">Redis Documentation: XLEN</a>
 	 */
 	@Nullable
 	Long size();
@@ -110,7 +110,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 *
 	 * @param range must not be {@literal null}.
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
+	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
 	@Nullable
 	default List<MapRecord<K, HK, HV>> range(Range<String> range) {
@@ -123,7 +123,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param range must not be {@literal null}.
 	 * @param limit must not be {@literal null}.
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
+	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
 	@Nullable
 	List<MapRecord<K, HK, HV>> range(Range<String> range, Limit limit);
@@ -133,7 +133,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 *
 	 * @param readOffset the offset to read from.
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
+	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
 	@Nullable
 	default List<MapRecord<K, HK, HV>> read(ReadOffset readOffset) {
@@ -146,7 +146,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param readOptions read arguments.
 	 * @param readOffset the offset to read from.
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xread">Redis Documentation: XREAD</a>
+	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
 	@Nullable
 	List<MapRecord<K, HK, HV>> read(StreamReadOptions readOptions, ReadOffset readOffset);
@@ -157,7 +157,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param consumer consumer/group.
 	 * @param readOffset the offset to read from.
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
+	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
 	@Nullable
 	default List<MapRecord<K, HK, HV>> read(Consumer consumer, ReadOffset readOffset) {
@@ -171,7 +171,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param readOptions read arguments.
 	 * @param readOffset the offset to read from.
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
+	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
 	@Nullable
 	List<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, ReadOffset readOffset);
@@ -181,7 +181,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 *
 	 * @param range must not be {@literal null}.
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
+	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
 	@Nullable
 	default List<MapRecord<K, HK, HV>> reverseRange(Range<String> range) {
@@ -194,7 +194,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param range must not be {@literal null}.
 	 * @param limit must not be {@literal null}.
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
+	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
 	@Nullable
 	List<MapRecord<K, HK, HV>> reverseRange(Range<String> range, Limit limit);
@@ -204,7 +204,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 *
 	 * @param count length of the stream.
 	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
 	@Nullable
 	Long trim(long count);
