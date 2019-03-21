@@ -21,6 +21,7 @@ import static org.hamcrest.core.IsInstanceOf.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.RedisConfiguration.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceTestClientResources.*;
@@ -30,6 +31,9 @@ import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.ByteArrayCodec;
@@ -682,6 +686,49 @@ public class LettuceConnectionFactoryUnitTests {
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
 		assertThat(redisUri.getDatabase(), is(equalTo(1)));
+	}
+
+	@Test // DATAREDIS-949
+	public void maxRedirectsShouldBeSetOnClientOptions() {
+
+		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
+		clusterConfiguration.clusterNode("localhost", 1234).setMaxRedirects(42);
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfiguration,
+				LettuceClientConfiguration.defaultConfiguration());
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		RedisClusterClient client = (RedisClusterClient) getField(connectionFactory, "client");
+
+		ClusterClientOptions options = (ClusterClientOptions) client.getOptions();
+
+		assertThat(options.getMaxRedirects(), is(42));
+		assertThat(options.isValidateClusterNodeMembership(), is(true));
+		assertThat(options.getTimeoutOptions().isApplyConnectionTimeout(), is(true));
+	}
+
+	@Test // DATAREDIS-949
+	public void maxRedirectsShouldBeSetOnClusterClientOptions() {
+
+		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
+		clusterConfiguration.clusterNode("localhost", 1234).setMaxRedirects(42);
+
+		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+				.clientOptions(ClusterClientOptions.builder().validateClusterNodeMembership(false).build()).build();
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfiguration,
+				clientConfiguration);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		RedisClusterClient client = (RedisClusterClient) getField(connectionFactory, "client");
+
+		ClusterClientOptions options = (ClusterClientOptions) client.getOptions();
+
+		assertThat(options.getMaxRedirects(), is(42));
+		assertThat(options.isValidateClusterNodeMembership(), is(false));
+		assertThat(options.getTimeoutOptions().isApplyConnectionTimeout(), is(false));
 	}
 
 	@Data

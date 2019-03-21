@@ -948,7 +948,8 @@ public class LettuceConnectionFactory
 		if (isClusterAware()) {
 
 			List<RedisURI> initialUris = new ArrayList<>();
-			for (RedisNode node : ((ClusterConfiguration) configuration).getClusterNodes()) {
+			ClusterConfiguration configuration = (ClusterConfiguration) this.configuration;
+			for (RedisNode node : configuration.getClusterNodes()) {
 				initialUris.add(createRedisURIAndApplySettings(node.getHost(), node.getPort()));
 			}
 
@@ -956,9 +957,7 @@ public class LettuceConnectionFactory
 					.map(clientResources -> RedisClusterClient.create(clientResources, initialUris)) //
 					.orElseGet(() -> RedisClusterClient.create(initialUris));
 
-			clientConfiguration.getClientOptions() //
-					.filter(clientOptions -> clientOptions instanceof ClusterClientOptions) //
-					.ifPresent(clientOptions -> clusterClient.setOptions((ClusterClientOptions) clientOptions));
+			clusterClient.setOptions(getClusterClientOptions(configuration));
 
 			return clusterClient;
 		}
@@ -973,6 +972,41 @@ public class LettuceConnectionFactory
 		clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
 
 		return redisClient;
+	}
+
+	private ClusterClientOptions getClusterClientOptions(ClusterConfiguration configuration) {
+
+		Optional<ClientOptions> clientOptions = clientConfiguration.getClientOptions();
+		ClusterClientOptions clusterClientOptions = clientOptions //
+				.filter(ClusterClientOptions.class::isInstance) //
+				.map(ClusterClientOptions.class::cast) //
+				.orElseGet(() -> {
+					return clientOptions //
+							.map(LettuceConnectionFactory::toClusterClientOptions) //
+							.orElseGet(ClusterClientOptions::create);
+				});
+
+		if (configuration.getMaxRedirects() != null) {
+			return clusterClientOptions.mutate().maxRedirects(configuration.getMaxRedirects()).build();
+		}
+
+		return clusterClientOptions;
+	}
+
+	// TODO: Replace with Lettuce 5.1.6 ClusterClientOptions.builder(ClientOptions)
+	private static ClusterClientOptions toClusterClientOptions(ClientOptions it) {
+
+		return ClusterClientOptions.builder() //
+				.autoReconnect(it.isAutoReconnect()) //
+				.cancelCommandsOnReconnectFailure(it.isCancelCommandsOnReconnectFailure()) //
+				.disconnectedBehavior(it.getDisconnectedBehavior()) //
+				.pingBeforeActivateConnection(it.isPingBeforeActivateConnection()) //
+				.requestQueueSize(it.getRequestQueueSize()) //
+				.socketOptions(it.getSocketOptions()) //
+				.sslOptions(it.getSslOptions()) //
+				.suspendReconnectOnProtocolFailure(it.isSuspendReconnectOnProtocolFailure())//
+				.timeoutOptions(it.getTimeoutOptions()) //
+				.build();
 	}
 
 	private RedisURI getSentinelRedisURI() {
