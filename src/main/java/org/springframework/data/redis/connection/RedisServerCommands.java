@@ -46,7 +46,7 @@ public interface RedisServerCommands {
 	 * Start an {@literal Append Only File} rewrite process on server.
 	 *
 	 * @deprecated As of 1.3, use {@link #bgReWriteAof}.
-	 * @see <a href="http://redis.io/commands/bgrewriteaof">Redis Documentation: BGREWRITEAOF</a>
+	 * @see <a href="https://redis.io/commands/bgrewriteaof">Redis Documentation: BGREWRITEAOF</a>
 	 */
 	@Deprecated
 	default void bgWriteAof() {
@@ -57,14 +57,14 @@ public interface RedisServerCommands {
 	 * Start an {@literal Append Only File} rewrite process on server.
 	 *
 	 * @since 1.3
-	 * @see <a href="http://redis.io/commands/bgrewriteaof">Redis Documentation: BGREWRITEAOF</a>
+	 * @see <a href="https://redis.io/commands/bgrewriteaof">Redis Documentation: BGREWRITEAOF</a>
 	 */
 	void bgReWriteAof();
 
 	/**
 	 * Start background saving of db on server.
 	 *
-	 * @see <a href="http://redis.io/commands/bgsave">Redis Documentation: BGSAVE</a>
+	 * @see <a href="https://redis.io/commands/bgsave">Redis Documentation: BGSAVE</a>
 	 */
 	void bgSave();
 
@@ -72,7 +72,7 @@ public interface RedisServerCommands {
 	 * Get time of last {@link #bgSave()} operation in seconds.
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lastsave">Redis Documentation: LASTSAVE</a>
+	 * @see <a href="https://redis.io/commands/lastsave">Redis Documentation: LASTSAVE</a>
 	 */
 	@Nullable
 	Long lastSave();
@@ -80,7 +80,7 @@ public interface RedisServerCommands {
 	/**
 	 * Synchronous save current db snapshot on server.
 	 *
-	 * @see <a href="http://redis.io/commands/save">Redis Documentation: SAVE</a>
+	 * @see <a href="https://redis.io/commands/save">Redis Documentation: SAVE</a>
 	 */
 	void save();
 
@@ -88,7 +88,7 @@ public interface RedisServerCommands {
 	 * Get the total number of available keys in currently selected database.
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/dbsize">Redis Documentation: DBSIZE</a>
+	 * @see <a href="https://redis.io/commands/dbsize">Redis Documentation: DBSIZE</a>
 	 */
 	@Nullable
 	Long dbSize();
@@ -96,14 +96,14 @@ public interface RedisServerCommands {
 	/**
 	 * Delete all keys of the currently selected database.
 	 *
-	 * @see <a href="http://redis.io/commands/flushdb">Redis Documentation: FLUSHDB</a>
+	 * @see <a href="https://redis.io/commands/flushdb">Redis Documentation: FLUSHDB</a>
 	 */
 	void flushDb();
 
 	/**
 	 * Delete all <b>all keys</b> from <b>all databases</b>.
 	 *
-	 * @see <a href="http://redis.io/commands/flushall">Redis Documentation: FLUSHALL</a>
+	 * @see <a href="https://redis.io/commands/flushall">Redis Documentation: FLUSHALL</a>
 	 */
 	void flushAll();
 
@@ -117,7 +117,7 @@ public interface RedisServerCommands {
 	 * <p>
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/info">Redis Documentation: INFO</a>
+	 * @see <a href="https://redis.io/commands/info">Redis Documentation: INFO</a>
 	 */
 	@Nullable
 	Properties info();
@@ -126,7 +126,7 @@ public interface RedisServerCommands {
 	 * Load server information for given {@code selection}.
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/info">Redis Documentation: INFO</a>
+	 * @see <a href="https://redis.io/commands/info">Redis Documentation: INFO</a>
 	 */
 	@Nullable
 	Properties info(String section);
@@ -134,14 +134,14 @@ public interface RedisServerCommands {
 	/**
 	 * Shutdown server.
 	 *
-	 * @see <a href="http://redis.io/commands/shutdown">Redis Documentation: SHUTDOWN</a>
+	 * @see <a href="https://redis.io/commands/shutdown">Redis Documentation: SHUTDOWN</a>
 	 */
 	void shutdown();
 
 	/**
 	 * Shutdown server.
 	 *
-	 * @see <a href="http://redis.io/commands/shutdown">Redis Documentation: SHUTDOWN</a>
+	 * @see <a href="https://redis.io/commands/shutdown">Redis Documentation: SHUTDOWN</a>
 	 * @since 1.3
 	 */
 	void shutdown(ShutdownOption option);
@@ -151,7 +151,7 @@ public interface RedisServerCommands {
 	 *
 	 * @param pattern must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/config-get">Redis Documentation: CONFIG GET</a>
+	 * @see <a href="https://redis.io/commands/config-get">Redis Documentation: CONFIG GET</a>
 	 */
 	@Nullable
 	Properties getConfig(String pattern);
@@ -161,7 +161,7 @@ public interface RedisServerCommands {
 	 *
 	 * @param param must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/config-set">Redis Documentation: CONFIG SET</a>
+	 * @see <a href="https://redis.io/commands/config-set">Redis Documentation: CONFIG SET</a>
 	 */
 	void setConfig(String param, String value);
 
@@ -169,7 +169,7 @@ public interface RedisServerCommands {
 	 * Reset statistic counters on server. <br>
 	 * Counters can be retrieved using {@link #info()}.
 	 *
-	 * @see <a href="http://redis.io/commands/config-resetstat">Redis Documentation: CONFIG RESETSTAT</a>
+	 * @see <a href="https://redis.io/commands/config-resetstat">Redis Documentation: CONFIG RESETSTAT</a>
 	 */
 	void resetConfigStats();
 
@@ -178,7 +178,7 @@ public interface RedisServerCommands {
 	 *
 	 * @return current server time in milliseconds or {@literal null} when used in pipeline / transaction.
 	 * @since 1.1
-	 * @see <a href="http://redis.io/commands/time">Redis Documentation: TIME</a>
+	 * @see <a href="https://redis.io/commands/time">Redis Documentation: TIME</a>
 	 */
 	@Nullable
 	Long time();
@@ -189,7 +189,7 @@ public interface RedisServerCommands {
 	 * @param host of connection to close.
 	 * @param port of connection to close
 	 * @since 1.3
-	 * @see <a href="http://redis.io/commands/client-kill">Redis Documentation: CLIENT KILL</a>
+	 * @see <a href="https://redis.io/commands/client-kill">Redis Documentation: CLIENT KILL</a>
 	 */
 	void killClient(String host, int port);
 
@@ -198,14 +198,14 @@ public interface RedisServerCommands {
 	 *
 	 * @param name
 	 * @since 1.3
-	 * @see <a href="http://redis.io/commands/client-setname">Redis Documentation: CLIENT SETNAME</a>
+	 * @see <a href="https://redis.io/commands/client-setname">Redis Documentation: CLIENT SETNAME</a>
 	 */
 	void setClientName(byte[] name);
 
 	/**
 	 * Returns the name of the current connection.
 	 *
-	 * @see <a href="http://redis.io/commands/client-getname">Redis Documentation: CLIENT GETNAME</a>
+	 * @see <a href="https://redis.io/commands/client-getname">Redis Documentation: CLIENT GETNAME</a>
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.3
 	 */
@@ -217,7 +217,7 @@ public interface RedisServerCommands {
 	 *
 	 * @return {@link List} of {@link RedisClientInfo} objects or {@literal null} when used in pipeline / transaction.
 	 * @since 1.3
-	 * @see <a href="http://redis.io/commands/client-list">Redis Documentation: CLIENT LIST</a>
+	 * @see <a href="https://redis.io/commands/client-list">Redis Documentation: CLIENT LIST</a>
 	 */
 	@Nullable
 	List<RedisClientInfo> getClientList();
@@ -228,7 +228,7 @@ public interface RedisServerCommands {
 	 * @param host must not be {@literal null}.
 	 * @param port
 	 * @since 1.3
-	 * @see <a href="http://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
 	 */
 	void slaveOf(String host, int port);
 
@@ -236,7 +236,7 @@ public interface RedisServerCommands {
 	 * Change server into master.
 	 *
 	 * @since 1.3
-	 * @see <a href="http://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
 	 */
 	void slaveOfNoOne();
 
@@ -249,7 +249,7 @@ public interface RedisServerCommands {
 	 * @param dbIndex
 	 * @param option can be {@literal null}. Defaulted to {@link MigrateOption#COPY}.
 	 * @since 1.7
-	 * @see <a href="http://redis.io/commands/migrate">Redis Documentation: MIGRATE</a>
+	 * @see <a href="https://redis.io/commands/migrate">Redis Documentation: MIGRATE</a>
 	 */
 	void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option);
 
@@ -263,7 +263,7 @@ public interface RedisServerCommands {
 	 * @param option can be {@literal null}. Defaulted to {@link MigrateOption#COPY}.
 	 * @param timeout
 	 * @since 1.7
-	 * @see <a href="http://redis.io/commands/migrate">Redis Documentation: MIGRATE</a>
+	 * @see <a href="https://redis.io/commands/migrate">Redis Documentation: MIGRATE</a>
 	 */
 	void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout);
 }

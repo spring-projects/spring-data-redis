@@ -40,7 +40,7 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	void set(K key, V value);
 
@@ -51,7 +51,7 @@ public interface ValueOperations<K, V> {
 	 * @param value must not be {@literal null}.
 	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
 	void set(K key, V value, long timeout, TimeUnit unit);
 
@@ -62,7 +62,7 @@ public interface ValueOperations<K, V> {
 	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
-	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 * @since 2.1
 	 */
 	default void set(K key, V value, Duration timeout) {
@@ -82,7 +82,7 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/setnx">Redis Documentation: SETNX</a>
+	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
 	@Nullable
 	Boolean setIfAbsent(K key, V value);
@@ -96,7 +96,7 @@ public interface ValueOperations<K, V> {
 	 * @param unit must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	@Nullable
 	Boolean setIfAbsent(K key, V value, long timeout, TimeUnit unit);
@@ -109,7 +109,7 @@ public interface ValueOperations<K, V> {
 	 * @param timeout must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
-	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
 	@Nullable
@@ -131,7 +131,7 @@ public interface ValueOperations<K, V> {
 	 * @param value must not be {@literal null}.
 	 * @return command result indicating if the key has been set.
 	 * @throws IllegalArgumentException if either {@code key} or {@code value} is not present.
-	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
 	@Nullable
@@ -146,7 +146,7 @@ public interface ValueOperations<K, V> {
 	 * @param unit must not be {@literal null}.
 	 * @return command result indicating if the key has been set.
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
-	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
 	@Nullable
@@ -160,7 +160,7 @@ public interface ValueOperations<K, V> {
 	 * @param timeout must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
-	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
 	@Nullable
@@ -179,7 +179,7 @@ public interface ValueOperations<K, V> {
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
 	 *
 	 * @param map must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
+	 * @see <a href="https://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 */
 	void multiSet(Map<? extends K, ? extends V> map);
 
@@ -189,7 +189,7 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param map must not be {@literal null}.
 	 * @param {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
+	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
 	@Nullable
 	Boolean multiSetIfAbsent(Map<? extends K, ? extends V> map);
@@ -199,7 +199,7 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/get">Redis Documentation: GET</a>
+	 * @see <a href="https://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
 	@Nullable
 	V get(Object key);
@@ -209,7 +209,7 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/getset">Redis Documentation: GETSET</a>
+	 * @see <a href="https://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
 	@Nullable
 	V getAndSet(K key, V value);
@@ -219,7 +219,7 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/mget">Redis Documentation: MGET</a>
+	 * @see <a href="https://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 */
 	@Nullable
 	List<V> multiGet(Collection<K> keys);
@@ -230,7 +230,7 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 * @see <a href="https://redis.io/commands/incr">Redis Documentation: INCR</a>
 	 */
 	@Nullable
 	Long increment(K key);
@@ -241,7 +241,7 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param delta
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
+	 * @see <a href="https://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 */
 	@Nullable
 	Long increment(K key, long delta);
@@ -252,7 +252,7 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param delta
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
+	 * @see <a href="https://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
 	 */
 	@Nullable
 	Double increment(K key, double delta);
@@ -263,7 +263,7 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/decr">Redis Documentation: DECR</a>
+	 * @see <a href="https://redis.io/commands/decr">Redis Documentation: DECR</a>
 	 */
 	@Nullable
 	Long decrement(K key);
@@ -275,7 +275,7 @@ public interface ValueOperations<K, V> {
 	 * @param delta
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
+	 * @see <a href="https://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
 	 */
 	@Nullable
 	Long decrement(K key, long delta);
@@ -286,7 +286,7 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/append">Redis Documentation: APPEND</a>
+	 * @see <a href="https://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 */
 	@Nullable
 	Integer append(K key, String value);
@@ -298,7 +298,7 @@ public interface ValueOperations<K, V> {
 	 * @param start
 	 * @param end
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
+	 * @see <a href="https://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
 	 */
 	@Nullable
 	String get(K key, long start, long end);
@@ -309,7 +309,7 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @param offset
-	 * @see <a href="http://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
+	 * @see <a href="https://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
 	 */
 	void set(K key, V value, long offset);
 
@@ -318,7 +318,7 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
+	 * @see <a href="https://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
 	 */
 	@Nullable
 	Long size(K key);
@@ -331,7 +331,7 @@ public interface ValueOperations<K, V> {
 	 * @param value
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.5
-	 * @see <a href="http://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
+	 * @see <a href="https://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
 	 */
 	@Nullable
 	Boolean setBit(K key, long offset, boolean value);
@@ -343,7 +343,7 @@ public interface ValueOperations<K, V> {
 	 * @param offset
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.5
-	 * @see <a href="http://redis.io/commands/setbit">Redis Documentation: GETBIT</a>
+	 * @see <a href="https://redis.io/commands/setbit">Redis Documentation: GETBIT</a>
 	 */
 	@Nullable
 	Boolean getBit(K key, long offset);
@@ -356,7 +356,7 @@ public interface ValueOperations<K, V> {
 	 * @param subCommands must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
+	 * @see <a href="https://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
 	 */
 	@Nullable
 	List<Long> bitField(K key, BitFieldSubCommands subCommands);

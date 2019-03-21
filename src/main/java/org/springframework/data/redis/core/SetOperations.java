@@ -36,7 +36,7 @@ public interface SetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sadd">Redis Documentation: SADD</a>
+	 * @see <a href="https://redis.io/commands/sadd">Redis Documentation: SADD</a>
 	 */
 	@Nullable
 	Long add(K key, V... values);
@@ -47,7 +47,7 @@ public interface SetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/srem">Redis Documentation: SREM</a>
+	 * @see <a href="https://redis.io/commands/srem">Redis Documentation: SREM</a>
 	 */
 	@Nullable
 	Long remove(K key, Object... values);
@@ -57,7 +57,7 @@ public interface SetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 */
 	@Nullable
 	V pop(K key);
@@ -68,7 +68,7 @@ public interface SetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param count number of random members to pop from the set.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 * @since 2.0
 	 */
 	@Nullable
@@ -81,7 +81,7 @@ public interface SetOperations<K, V> {
 	 * @param value
 	 * @param destKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/smove">Redis Documentation: SMOVE</a>
+	 * @see <a href="https://redis.io/commands/smove">Redis Documentation: SMOVE</a>
 	 */
 	@Nullable
 	Boolean move(K key, V value, K destKey);
@@ -91,7 +91,7 @@ public interface SetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/scard">Redis Documentation: SCARD</a>
+	 * @see <a href="https://redis.io/commands/scard">Redis Documentation: SCARD</a>
 	 */
 	@Nullable
 	Long size(K key);
@@ -102,7 +102,7 @@ public interface SetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param o
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
+	 * @see <a href="https://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
 	 */
 	@Nullable
 	Boolean isMember(K key, Object o);
@@ -113,7 +113,7 @@ public interface SetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
 	@Nullable
 	Set<V> intersect(K key, K otherKey);
@@ -124,7 +124,7 @@ public interface SetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKeys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
 	@Nullable
 	Set<V> intersect(K key, Collection<K> otherKeys);
@@ -136,7 +136,7 @@ public interface SetOperations<K, V> {
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
 	@Nullable
 	Long intersectAndStore(K key, K otherKey, K destKey);
@@ -148,7 +148,7 @@ public interface SetOperations<K, V> {
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
 	@Nullable
 	Long intersectAndStore(K key, Collection<K> otherKeys, K destKey);
@@ -159,7 +159,7 @@ public interface SetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
 	@Nullable
 	Set<V> union(K key, K otherKey);
@@ -170,7 +170,7 @@ public interface SetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKeys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
 	@Nullable
 	Set<V> union(K key, Collection<K> otherKeys);
@@ -182,7 +182,7 @@ public interface SetOperations<K, V> {
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 */
 	@Nullable
 	Long unionAndStore(K key, K otherKey, K destKey);
@@ -194,7 +194,7 @@ public interface SetOperations<K, V> {
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 */
 	@Nullable
 	Long unionAndStore(K key, Collection<K> otherKeys, K destKey);
@@ -205,7 +205,7 @@ public interface SetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
 	@Nullable
 	Set<V> difference(K key, K otherKey);
@@ -216,7 +216,7 @@ public interface SetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param otherKeys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
 	@Nullable
 	Set<V> difference(K key, Collection<K> otherKeys);
@@ -228,7 +228,7 @@ public interface SetOperations<K, V> {
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 */
 	@Nullable
 	Long differenceAndStore(K key, K otherKey, K destKey);
@@ -240,7 +240,7 @@ public interface SetOperations<K, V> {
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 */
 	@Nullable
 	Long differenceAndStore(K key, Collection<K> otherKeys, K destKey);
@@ -250,7 +250,7 @@ public interface SetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
+	 * @see <a href="https://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
 	 */
 	@Nullable
 	Set<V> members(K key);
@@ -260,7 +260,7 @@ public interface SetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
+	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	V randomMember(K key);
 
@@ -271,7 +271,7 @@ public interface SetOperations<K, V> {
 	 * @param count nr of members to return
 	 * @return empty {@link Set} if {@code key} does not exist.
 	 * @throws IllegalArgumentException if count is negative.
-	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
+	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	@Nullable
 	Set<V> distinctRandomMembers(K key, long count);
@@ -283,7 +283,7 @@ public interface SetOperations<K, V> {
 	 * @param count nr of members to return.
 	 * @return empty {@link List} if {@code key} does not exist or {@literal null} when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if count is negative.
-	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
+	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	@Nullable
 	List<V> randomMembers(K key, long count);

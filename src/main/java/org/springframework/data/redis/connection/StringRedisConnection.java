@@ -87,7 +87,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
+	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 * @see RedisKeyCommands#exists(byte[])
 	 */
 	Boolean exists(String key);
@@ -97,7 +97,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
+	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 * @see RedisKeyCommands#exists(byte[][])
 	 * @since 2.1
 	 */
@@ -109,7 +109,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return The number of keys that were removed.
-	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
+	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 * @see RedisKeyCommands#del(byte[]...)
 	 */
 	Long del(String... keys);
@@ -120,7 +120,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @see <a href="https://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
 	 * @since 2.1
 	 */
 	@Nullable
@@ -131,7 +131,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/type">Redis Documentation: TYPE</a>
+	 * @see <a href="https://redis.io/commands/type">Redis Documentation: TYPE</a>
 	 * @see RedisKeyCommands#type(byte[])
 	 */
 	DataType type(String key);
@@ -141,7 +141,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/touch">Redis Documentation: TOUCH</a>
+	 * @see <a href="https://redis.io/commands/touch">Redis Documentation: TOUCH</a>
 	 * @since 2.1
 	 */
 	@Nullable
@@ -152,7 +152,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param pattern must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
+	 * @see <a href="https://redis.io/commands/keys">Redis Documentation: KEYS</a>
 	 * @see RedisKeyCommands#keys(byte[])
 	 */
 	Collection<String> keys(String pattern);
@@ -162,7 +162,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param oldName must not be {@literal null}.
 	 * @param newName must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/rename">Redis Documentation: RENAME</a>
+	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 * @see RedisKeyCommands#rename(byte[], byte[])
 	 */
 	void rename(String oldName, String newName);
@@ -173,7 +173,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param oldName must not be {@literal null}.
 	 * @param newName must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
+	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 * @see RedisKeyCommands#renameNX(byte[], byte[])
 	 */
 	Boolean renameNX(String oldName, String newName);
@@ -184,7 +184,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param seconds
 	 * @return
-	 * @see <a href="http://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 * @see RedisKeyCommands#expire(byte[], long)
 	 */
 	Boolean expire(String key, long seconds);
@@ -195,7 +195,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param millis
 	 * @return
-	 * @see <a href="http://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 * @see RedisKeyCommands#pExpire(byte[], long)
 	 */
 	Boolean pExpire(String key, long millis);
@@ -206,7 +206,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param unixTime
 	 * @return
-	 * @see <a href="http://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
 	 * @see RedisKeyCommands#expireAt(byte[], long)
 	 */
 	Boolean expireAt(String key, long unixTime);
@@ -217,7 +217,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param unixTimeInMillis
 	 * @return
-	 * @see <a href="http://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
 	 * @see RedisKeyCommands#pExpireAt(byte[], long)
 	 */
 	Boolean pExpireAt(String key, long unixTimeInMillis);
@@ -227,7 +227,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/persist">Redis Documentation: PERSIST</a>
+	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 * @see RedisKeyCommands#persist(byte[])
 	 */
 	Boolean persist(String key);
@@ -238,7 +238,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param dbIndex
 	 * @return
-	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
+	 * @see <a href="https://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 * @see RedisKeyCommands#move(byte[], int)
 	 */
 	Boolean move(String key, int dbIndex);
@@ -248,7 +248,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
+	 * @see <a href="https://redis.io/commands/ttl">Redis Documentation: TTL</a>
 	 * @see RedisKeyCommands#ttl(byte[])
 	 */
 	Long ttl(String key);
@@ -260,7 +260,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param timeUnit must not be {@literal null}.
 	 * @return
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
+	 * @see <a href="https://redis.io/commands/ttl">Redis Documentation: TTL</a>
 	 * @see RedisKeyCommands#ttl(byte[], TimeUnit)
 	 */
 	Long ttl(String key, TimeUnit timeUnit);
@@ -270,7 +270,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/pttl">Redis Documentation: PTTL</a>
+	 * @see <a href="https://redis.io/commands/pttl">Redis Documentation: PTTL</a>
 	 * @see RedisKeyCommands#pTtl(byte[])
 	 */
 	Long pTtl(String key);
@@ -282,7 +282,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param timeUnit must not be {@literal null}.
 	 * @return
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/pttl">Redis Documentation: PTTL</a>
+	 * @see <a href="https://redis.io/commands/pttl">Redis Documentation: PTTL</a>
 	 * @see RedisKeyCommands#pTtl(byte[], TimeUnit)
 	 */
 	Long pTtl(String key, TimeUnit timeUnit);
@@ -292,7 +292,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param message the message to echo.
 	 * @return
-	 * @see <a href="http://redis.io/commands/echo">Redis Documentation: ECHO</a>
+	 * @see <a href="https://redis.io/commands/echo">Redis Documentation: ECHO</a>
 	 * @see RedisConnectionCommands#echo(byte[])
 	 */
 	String echo(String message);
@@ -303,7 +303,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param params must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
+	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
 	List<String> sort(String key, SortParameters params);
 
@@ -314,7 +314,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param params must not be {@literal null}.
 	 * @param storeKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
+	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
 	Long sort(String key, SortParameters params, String storeKey);
 
@@ -360,7 +360,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/get">Redis Documentation: GET</a>
+	 * @see <a href="https://redis.io/commands/get">Redis Documentation: GET</a>
 	 * @see RedisStringCommands#get(byte[])
 	 */
 	String get(String key);
@@ -371,7 +371,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/getset">Redis Documentation: GETSET</a>
+	 * @see <a href="https://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 * @see RedisStringCommands#getSet(byte[], byte[])
 	 */
 	String getSet(String key, String value);
@@ -381,7 +381,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/mget">Redis Documentation: MGET</a>
+	 * @see <a href="https://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 * @see RedisStringCommands#mGet(byte[]...)
 	 */
 	List<String> mGet(String... keys);
@@ -391,7 +391,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @see RedisStringCommands#set(byte[], byte[])
 	 */
 	@Nullable
@@ -406,7 +406,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}.
 	 * @param option can be {@literal null}. Defaulted to {@link SetOption#UPSERT}.
 	 * @since 1.7
-	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @see RedisStringCommands#set(byte[], byte[], Expiration, SetOption)
 	 */
 	@Nullable
@@ -418,7 +418,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/setnx">Redis Documentation: SETNX</a>
+	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 * @see RedisStringCommands#setNX(byte[], byte[])
 	 */
 	@Nullable
@@ -430,7 +430,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param seconds
 	 * @param value must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 * @see RedisStringCommands#setEx(byte[], long, byte[])
 	 */
 	@Nullable
@@ -443,7 +443,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param milliseconds
 	 * @param value must not be {@literal null}.
 	 * @since 1.3
-	 * @see <a href="http://redis.io/commands/psetex">Redis Documentation: PSETEX</a>
+	 * @see <a href="https://redis.io/commands/psetex">Redis Documentation: PSETEX</a>
 	 * @see RedisStringCommands#pSetEx(byte[], long, byte[])
 	 */
 	@Nullable
@@ -453,7 +453,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
 	 *
 	 * @param tuple must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
+	 * @see <a href="https://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 * @see RedisStringCommands#mSet(Map)
 	 */
 	@Nullable
@@ -464,7 +464,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * not exist.
 	 *
 	 * @param tuple must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
+	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 * @see RedisStringCommands#mSetNX(Map)
 	 */
 	Boolean mSetNXString(Map<String, String> tuple);
@@ -474,7 +474,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 * @see <a href="https://redis.io/commands/incr">Redis Documentation: INCR</a>
 	 * @see RedisStringCommands#incr(byte[])
 	 */
 	Long incr(String key);
@@ -485,7 +485,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
+	 * @see <a href="https://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 * @see RedisStringCommands#incrBy(byte[], long)
 	 */
 	Long incrBy(String key, long value);
@@ -496,7 +496,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
+	 * @see <a href="https://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
 	 * @see RedisStringCommands#incrBy(byte[], double)
 	 */
 	Double incrBy(String key, double value);
@@ -506,7 +506,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/decr">Redis Documentation: DECR</a>
+	 * @see <a href="https://redis.io/commands/decr">Redis Documentation: DECR</a>
 	 * @see RedisStringCommands#decr(byte[])
 	 */
 	Long decr(String key);
@@ -517,7 +517,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
+	 * @see <a href="https://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
 	 * @see RedisStringCommands#decrBy(byte[], long)
 	 */
 	Long decrBy(String key, long value);
@@ -528,7 +528,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/append">Redis Documentation: APPEND</a>
+	 * @see <a href="https://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 * @see RedisStringCommands#append(byte[], byte[])
 	 */
 	Long append(String key, String value);
@@ -540,7 +540,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param start
 	 * @param end
 	 * @return
-	 * @see <a href="http://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
+	 * @see <a href="https://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
 	 * @see RedisStringCommands#getRange(byte[], long, long)
 	 */
 	String getRange(String key, long start, long end);
@@ -551,7 +551,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @param offset
-	 * @see <a href="http://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
+	 * @see <a href="https://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
 	 * @see RedisStringCommands#setRange(byte[], byte[], long)
 	 */
 	void setRange(String key, String value, long offset);
@@ -562,7 +562,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param offset
 	 * @return
-	 * @see <a href="http://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
+	 * @see <a href="https://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
 	 * @see RedisStringCommands#getBit(byte[], long)
 	 */
 	Boolean getBit(String key, long offset);
@@ -574,7 +574,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param offset
 	 * @param value
 	 * @return the original bit value stored at {@code offset}.
-	 * @see <a href="http://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
+	 * @see <a href="https://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
 	 * @see RedisStringCommands#setBit(byte[], long, boolean)
 	 */
 	Boolean setBit(String key, long offset, boolean value);
@@ -584,7 +584,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
+	 * @see <a href="https://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 * @see RedisStringCommands#bitCount(byte[])
 	 */
 	Long bitCount(String key);
@@ -597,7 +597,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param start
 	 * @param end
 	 * @return
-	 * @see <a href="http://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
+	 * @see <a href="https://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 * @see RedisStringCommands#bitCount(byte[], long, long)
 	 */
 	Long bitCount(String key, long start, long end);
@@ -609,7 +609,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param destination must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/bitop">Redis Documentation: BITOP</a>
+	 * @see <a href="https://redis.io/commands/bitop">Redis Documentation: BITOP</a>
 	 * @see RedisStringCommands#bitOp(BitOperation, byte[], byte[]...)
 	 */
 	Long bitOp(BitOperation op, String destination, String... keys);
@@ -621,7 +621,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param bit the bit value to look for.
 	 * @return {@literal null} when used in pipeline / transaction. The position of the first bit set to 1 or 0 according
 	 *         to the request.
-	 * @see <a href="http://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
+	 * @see <a href="https://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
 	 * @since 2.1
 	 */
 	default Long bitPos(String key, boolean bit) {
@@ -639,7 +639,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param range must not be {@literal null}. Use {@link Range#unbounded()} to not limit search.
 	 * @return {@literal null} when used in pipeline / transaction. The position of the first bit set to 1 or 0 according
 	 *         to the request.
-	 * @see <a href="http://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
+	 * @see <a href="https://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
 	 * @since 2.1
 	 */
 	@Nullable
@@ -650,7 +650,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
+	 * @see <a href="https://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
 	 * @see RedisStringCommands#strLen(byte[])
 	 */
 	Long strLen(String key);
@@ -665,7 +665,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return
-	 * @see <a href="http://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
+	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 * @see RedisListCommands#rPush(byte[], byte[]...)
 	 */
 	Long rPush(String key, String... values);
@@ -676,7 +676,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return
-	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 * @see RedisListCommands#lPush(byte[], byte[]...)
 	 */
 	Long lPush(String key, String... values);
@@ -687,7 +687,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
+	 * @see <a href="https://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
 	 * @see RedisListCommands#rPushX(byte[], byte[])
 	 */
 	Long rPushX(String key, String value);
@@ -698,7 +698,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
+	 * @see <a href="https://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
 	 * @see RedisListCommands#lPushX(byte[], byte[])
 	 */
 	Long lPushX(String key, String value);
@@ -708,7 +708,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/llen">Redis Documentation: LLEN</a>
+	 * @see <a href="https://redis.io/commands/llen">Redis Documentation: LLEN</a>
 	 * @see RedisListCommands#lLen(byte[])
 	 */
 	Long lLen(String key);
@@ -720,7 +720,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param start
 	 * @param end
 	 * @return
-	 * @see <a href="http://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
+	 * @see <a href="https://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 * @see RedisListCommands#lRange(byte[], long, long)
 	 */
 	List<String> lRange(String key, long start, long end);
@@ -731,7 +731,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @see <a href="http://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
+	 * @see <a href="https://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
 	 * @see RedisListCommands#lTrim(byte[], long, long)
 	 */
 	void lTrim(String key, long start, long end);
@@ -742,7 +742,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param index
 	 * @return
-	 * @see <a href="http://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
+	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 * @see RedisListCommands#lIndex(byte[], long)
 	 */
 	String lIndex(String key, long index);
@@ -755,7 +755,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param pivot
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
+	 * @see <a href="https://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 * @see RedisListCommands#lIndex(byte[], long)
 	 */
 	Long lInsert(String key, Position where, String pivot, String value);
@@ -766,7 +766,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param index
 	 * @param value
-	 * @see <a href="http://redis.io/commands/lset">Redis Documentation: LSET</a>
+	 * @see <a href="https://redis.io/commands/lset">Redis Documentation: LSET</a>
 	 * @see RedisListCommands#lSet(byte[], long, byte[])
 	 */
 	void lSet(String key, long index, String value);
@@ -778,7 +778,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param count
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/lrem">Redis Documentation: LREM</a>
+	 * @see <a href="https://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 * @see RedisListCommands#lRem(byte[], long, byte[])
 	 */
 	Long lRem(String key, long count, String value);
@@ -788,7 +788,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 * @see RedisListCommands#lPop(byte[])
 	 */
 	String lPop(String key);
@@ -798,7 +798,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/rpop">Redis Documentation: RPOP</a>
+	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 * @see RedisListCommands#rPop(byte[])
 	 */
 	String rPop(String key);
@@ -810,7 +810,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param timeout
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
+	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 * @see RedisListCommands#bLPop(int, byte[]...)
 	 */
 	List<String> bLPop(int timeout, String... keys);
@@ -822,7 +822,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param timeout
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
+	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 * @see RedisListCommands#bRPop(int, byte[]...)
 	 */
 	List<String> bRPop(int timeout, String... keys);
@@ -833,7 +833,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param srcKey must not be {@literal null}.
 	 * @param dstKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
+	 * @see <a href="https://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
 	 * @see RedisListCommands#rPopLPush(byte[], byte[])
 	 */
 	String rPopLPush(String srcKey, String dstKey);
@@ -847,7 +847,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param srcKey must not be {@literal null}.
 	 * @param dstKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
+	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 * @see RedisListCommands#bRPopLPush(int, byte[], byte[])
 	 */
 	String bRPopLPush(int timeout, String srcKey, String dstKey);
@@ -862,7 +862,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return
-	 * @see <a href="http://redis.io/commands/sadd">Redis Documentation: SADD</a>
+	 * @see <a href="https://redis.io/commands/sadd">Redis Documentation: SADD</a>
 	 * @see RedisSetCommands#sAdd(byte[], byte[]...)
 	 */
 	Long sAdd(String key, String... values);
@@ -873,7 +873,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return
-	 * @see <a href="http://redis.io/commands/srem">Redis Documentation: SREM</a>
+	 * @see <a href="https://redis.io/commands/srem">Redis Documentation: SREM</a>
 	 * @see RedisSetCommands#sRem(byte[], byte[]...)
 	 */
 	Long sRem(String key, String... values);
@@ -883,7 +883,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 * @see RedisSetCommands#sPop(byte[])
 	 */
 	String sPop(String key);
@@ -894,7 +894,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param count the number of random members to return.
 	 * @return empty {@link List} if {@literal key} does not exist.
-	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 * @see RedisSetCommands#sPop(byte[], long)
 	 * @since 2.0
 	 */
@@ -907,7 +907,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param destKey must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/smove">Redis Documentation: SMOVE</a>
+	 * @see <a href="https://redis.io/commands/smove">Redis Documentation: SMOVE</a>
 	 * @see RedisSetCommands#sMove(byte[], byte[], byte[])
 	 */
 	Boolean sMove(String srcKey, String destKey, String value);
@@ -917,7 +917,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/scard">Redis Documentation: SCARD</a>
+	 * @see <a href="https://redis.io/commands/scard">Redis Documentation: SCARD</a>
 	 * @see RedisSetCommands#sCard(byte[])
 	 */
 	Long sCard(String key);
@@ -928,7 +928,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
+	 * @see <a href="https://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
 	 * @see RedisSetCommands#sIsMember(byte[], byte[])
 	 */
 	Boolean sIsMember(String key, String value);
@@ -938,7 +938,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 * @see RedisSetCommands#sInter(byte[]...)
 	 */
 	Set<String> sInter(String... keys);
@@ -949,7 +949,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param destKey must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 * @see RedisSetCommands#sInterStore(byte[], byte[]...)
 	 */
 	Long sInterStore(String destKey, String... keys);
@@ -959,7 +959,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 * @see RedisSetCommands#sUnion(byte[]...)
 	 */
 	Set<String> sUnion(String... keys);
@@ -970,7 +970,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param destKey must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 * @see RedisSetCommands#sUnionStore(byte[], byte[]...)
 	 */
 	Long sUnionStore(String destKey, String... keys);
@@ -980,7 +980,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 * @see RedisSetCommands#sDiff(byte[]...)
 	 */
 	Set<String> sDiff(String... keys);
@@ -991,7 +991,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param destKey must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 * @see RedisSetCommands#sDiffStore(byte[], byte[]...)
 	 */
 	Long sDiffStore(String destKey, String... keys);
@@ -1001,7 +1001,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
+	 * @see <a href="https://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
 	 * @see RedisSetCommands#sMembers(byte[])
 	 */
 	Set<String> sMembers(String key);
@@ -1011,7 +1011,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
+	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 * @see RedisSetCommands#sRandMember(byte[])
 	 */
 	String sRandMember(String key);
@@ -1022,7 +1022,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param count
 	 * @return
-	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
+	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 * @see RedisSetCommands#sRem(byte[], byte[]...)
 	 */
 	List<String> sRandMember(String key, long count);
@@ -1034,7 +1034,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param options must not be {@literal null}.
 	 * @return
 	 * @since 1.4
-	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 * @see RedisSetCommands#sScan(byte[], ScanOptions)
 	 */
 	Cursor<String> sScan(String key, ScanOptions options);
@@ -1050,7 +1050,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param score the score.
 	 * @param value the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zadd">Redis Documentation: ZADD</a>
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 * @see RedisZSetCommands#zAdd(byte[], double, byte[])
 	 */
 	Boolean zAdd(String key, double score, String value);
@@ -1061,7 +1061,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param tuples the tuples.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zadd">Redis Documentation: ZADD</a>
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 * @see RedisZSetCommands#zAdd(byte[], Set)
 	 */
 	Long zAdd(String key, Set<StringTuple> tuples);
@@ -1072,7 +1072,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrem">Redis Documentation: ZREM</a>
+	 * @see <a href="https://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 * @see RedisZSetCommands#zRem(byte[], byte[]...)
 	 */
 	Long zRem(String key, String... values);
@@ -1084,7 +1084,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param increment
 	 * @param value the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
+	 * @see <a href="https://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
 	 * @see RedisZSetCommands#zIncrBy(byte[], double, byte[])
 	 */
 	Double zIncrBy(String key, double increment, String value);
@@ -1095,7 +1095,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
+	 * @see <a href="https://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
 	 * @see RedisZSetCommands#zRank(byte[], byte[])
 	 */
 	Long zRank(String key, String value);
@@ -1106,7 +1106,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
+	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
 	 * @see RedisZSetCommands#zRevRank(byte[], byte[])
 	 */
 	Long zRevRank(String key, String value);
@@ -1118,7 +1118,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param start
 	 * @param end
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
+	 * @see <a href="https://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 * @see RedisZSetCommands#zRange(byte[], long, long)
 	 */
 	Set<String> zRange(String key, long start, long end);
@@ -1130,7 +1130,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param start
 	 * @param end
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
+	 * @see <a href="https://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 * @see RedisZSetCommands#zRangeWithScores(byte[], long, long)
 	 */
 	Set<StringTuple> zRangeWithScores(String key, long start, long end);
@@ -1142,7 +1142,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param min
 	 * @param max
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScore(byte[], double, double)
 	 */
 	Set<String> zRangeByScore(String key, double min, double max);
@@ -1154,7 +1154,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param min
 	 * @param max
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScoreWithScores(byte[], double, double)
 	 */
 	Set<StringTuple> zRangeByScoreWithScores(String key, double min, double max);
@@ -1169,7 +1169,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param offset
 	 * @param count
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScore(byte[], double, double, long, long)
 	 */
 	Set<String> zRangeByScore(String key, double min, double max, long offset, long count);
@@ -1184,7 +1184,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param offset
 	 * @param count
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScoreWithScores(byte[], double, double, long, long)
 	 */
 	Set<StringTuple> zRangeByScoreWithScores(String key, double min, double max, long offset, long count);
@@ -1196,7 +1196,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param start
 	 * @param end
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
+	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 * @see RedisZSetCommands#zRevRange(byte[], long, long)
 	 */
 	Set<String> zRevRange(String key, long start, long end);
@@ -1208,7 +1208,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param start
 	 * @param end
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
+	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 * @see RedisZSetCommands#zRevRangeWithScores(byte[], long, long)
 	 */
 	Set<StringTuple> zRevRangeWithScores(String key, long start, long end);
@@ -1220,7 +1220,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param min
 	 * @param max
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
+	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 * @see RedisZSetCommands#zRevRangeByScore(byte[], double, double)
 	 */
 	Set<String> zRevRangeByScore(String key, double min, double max);
@@ -1233,7 +1233,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param min
 	 * @param max
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRevRangeByScoreWithScores(byte[], double, double)
 	 */
 	Set<StringTuple> zRevRangeByScoreWithScores(String key, double min, double max);
@@ -1248,7 +1248,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param offset
 	 * @param count
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRevRangeByScore(byte[], double, double, long, long)
 	 */
 	Set<String> zRevRangeByScore(String key, double min, double max, long offset, long count);
@@ -1263,7 +1263,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param offset
 	 * @param count
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRevRangeByScoreWithScores(byte[], double, double, long, long)
 	 */
 	Set<StringTuple> zRevRangeByScoreWithScores(String key, double min, double max, long offset, long count);
@@ -1275,7 +1275,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param min
 	 * @param max
 	 * @return
-	 * @see <a href="http://redis.io/commands/zcount">Redis Documentation: ZCOUNT</a>
+	 * @see <a href="https://redis.io/commands/zcount">Redis Documentation: ZCOUNT</a>
 	 * @see RedisZSetCommands#zCount(byte[], double, double)
 	 */
 	Long zCount(String key, double min, double max);
@@ -1285,7 +1285,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
+	 * @see <a href="https://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
 	 * @see RedisZSetCommands#zCard(byte[])
 	 */
 	Long zCard(String key);
@@ -1296,7 +1296,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param value the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
+	 * @see <a href="https://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 * @see RedisZSetCommands#zScore(byte[], byte[])
 	 */
 	Double zScore(String key, String value);
@@ -1308,7 +1308,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param start
 	 * @param end
 	 * @return
-	 * @see <a href="http://redis.io/commands/zremrangebyrank">Redis Documentation: ZREMRANGEBYRANK</a>
+	 * @see <a href="https://redis.io/commands/zremrangebyrank">Redis Documentation: ZREMRANGEBYRANK</a>
 	 * @see RedisZSetCommands#zRemRange(byte[], long, long)
 	 */
 	Long zRemRange(String key, long start, long end);
@@ -1320,7 +1320,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param min
 	 * @param max
 	 * @return
-	 * @see <a href="http://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRemRangeByScore(byte[], double, double)
 	 */
 	Long zRemRangeByScore(String key, double min, double max);
@@ -1331,7 +1331,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param destKey must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 * @see RedisZSetCommands#zUnionStore(byte[], byte[]...)
 	 */
 	Long zUnionStore(String destKey, String... sets);
@@ -1344,7 +1344,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param weights
 	 * @param sets must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 * @see RedisZSetCommands#zUnionStore(byte[], Aggregate, int[], byte[]...)
 	 */
 	Long zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
@@ -1355,7 +1355,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param destKey must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 * @see RedisZSetCommands#zInterStore(byte[], byte[]...)
 	 */
 	Long zInterStore(String destKey, String... sets);
@@ -1368,7 +1368,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param weights
 	 * @param sets must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 * @see RedisZSetCommands#zInterStore(byte[], Aggregate, int[], byte[]...)
 	 */
 	Long zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
@@ -1380,7 +1380,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param options must not be {@literal null}.
 	 * @return
 	 * @since 1.4
-	 * @see <a href="http://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
+	 * @see <a href="https://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
 	 * @see RedisZSetCommands#zScan(byte[], ScanOptions)
 	 */
 	Cursor<StringTuple> zScan(String key, ScanOptions options);
@@ -1393,7 +1393,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param max must not be {@literal null}.
 	 * @return
 	 * @since 1.5
-	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScore(byte[], String, String)
 	 */
 	Set<String> zRangeByScore(String key, String min, String max);
@@ -1409,7 +1409,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param count
 	 * @return
 	 * @since 1.5
-	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScore(byte[], double, double, long, long)
 	 */
 	Set<String> zRangeByScore(String key, String min, String max, long offset, long count);
@@ -1420,7 +1420,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @return
 	 * @since 1.6
-	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
+	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRangeByLex(byte[])
 	 */
 	Set<String> zRangeByLex(String key);
@@ -1432,7 +1432,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param range must not be {@literal null}.
 	 * @return
 	 * @since 1.6
-	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
+	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRangeByLex(byte[], Range)
 	 */
 	Set<String> zRangeByLex(String key, Range range);
@@ -1446,7 +1446,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param range can be {@literal null}.
 	 * @return
 	 * @since 1.6
-	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
+	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRangeByLex(byte[], Range, Limit)
 	 */
 	Set<String> zRangeByLex(String key, Range range, Limit limit);
@@ -1462,7 +1462,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param field must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/hset">Redis Documentation: HSET</a>
+	 * @see <a href="https://redis.io/commands/hset">Redis Documentation: HSET</a>
 	 * @see RedisHashCommands#hSet(byte[], byte[], byte[])
 	 */
 	Boolean hSet(String key, String field, String value);
@@ -1474,7 +1474,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param field must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="http://redis.io/commands/hsetnx">Redis Documentation: HSETNX</a>
+	 * @see <a href="https://redis.io/commands/hsetnx">Redis Documentation: HSETNX</a>
 	 * @see RedisHashCommands#hSetNX(byte[], byte[], byte[])
 	 */
 	Boolean hSetNX(String key, String field, String value);
@@ -1485,7 +1485,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/hget">Redis Documentation: HGET</a>
+	 * @see <a href="https://redis.io/commands/hget">Redis Documentation: HGET</a>
 	 * @see RedisHashCommands#hGet(byte[], byte[])
 	 */
 	String hGet(String key, String field);
@@ -1496,7 +1496,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/hmget">Redis Documentation: HMGET</a>
+	 * @see <a href="https://redis.io/commands/hmget">Redis Documentation: HMGET</a>
 	 * @see RedisHashCommands#hMGet(byte[], byte[]...)
 	 */
 	List<String> hMGet(String key, String... fields);
@@ -1506,7 +1506,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashes must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/hmset">Redis Documentation: HMSET</a>
+	 * @see <a href="https://redis.io/commands/hmset">Redis Documentation: HMSET</a>
 	 * @see RedisHashCommands#hMGet(byte[], byte[]...)
 	 */
 	void hMSet(String key, Map<String, String> hashes);
@@ -1518,7 +1518,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param field must not be {@literal null}.
 	 * @param delta
 	 * @return
-	 * @see <a href="http://redis.io/commands/hincrby">Redis Documentation: HINCRBY</a>
+	 * @see <a href="https://redis.io/commands/hincrby">Redis Documentation: HINCRBY</a>
 	 * @see RedisHashCommands#hIncrBy(byte[], byte[], long)
 	 */
 	Long hIncrBy(String key, String field, long delta);
@@ -1530,7 +1530,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param field
 	 * @param delta
 	 * @return
-	 * @see <a href="http://redis.io/commands/hincrbyfloat">Redis Documentation: HINCRBYFLOAT</a>
+	 * @see <a href="https://redis.io/commands/hincrbyfloat">Redis Documentation: HINCRBYFLOAT</a>
 	 * @see RedisHashCommands#hIncrBy(byte[], byte[], double)
 	 */
 	Double hIncrBy(String key, String field, double delta);
@@ -1541,7 +1541,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/hexits">Redis Documentation: HEXISTS</a>
+	 * @see <a href="https://redis.io/commands/hexits">Redis Documentation: HEXISTS</a>
 	 * @see RedisHashCommands#hExists(byte[], byte[])
 	 */
 	Boolean hExists(String key, String field);
@@ -1552,7 +1552,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/hdel">Redis Documentation: HDEL</a>
+	 * @see <a href="https://redis.io/commands/hdel">Redis Documentation: HDEL</a>
 	 * @see RedisHashCommands#hDel(byte[], byte[]...)
 	 */
 	Long hDel(String key, String... fields);
@@ -1562,7 +1562,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/hlen">Redis Documentation: HLEN</a>
+	 * @see <a href="https://redis.io/commands/hlen">Redis Documentation: HLEN</a>
 	 * @see RedisHashCommands#hLen(byte[])
 	 */
 	Long hLen(String key);
@@ -1572,7 +1572,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/hkeys">Redis Documentation: HKEYS</a>?
+	 * @see <a href="https://redis.io/commands/hkeys">Redis Documentation: HKEYS</a>?
 	 * @see RedisHashCommands#hKeys(byte[])
 	 */
 	Set<String> hKeys(String key);
@@ -1582,7 +1582,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/hvals">Redis Documentation: HVALS</a>
+	 * @see <a href="https://redis.io/commands/hvals">Redis Documentation: HVALS</a>
 	 * @see RedisHashCommands#hVals(byte[])
 	 */
 	List<String> hVals(String key);
@@ -1592,7 +1592,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/hgetall">Redis Documentation: HGETALL</a>
+	 * @see <a href="https://redis.io/commands/hgetall">Redis Documentation: HGETALL</a>
 	 * @see RedisHashCommands#hGetAll(byte[])
 	 */
 	Map<String, String> hGetAll(String key);
@@ -1604,7 +1604,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param options must not be {@literal null}.
 	 * @return
 	 * @since 1.4
-	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
+	 * @see <a href="https://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 * @see RedisHashCommands#hScan(byte[], ScanOptions)
 	 */
 	Cursor<Map.Entry<String, String>> hScan(String key, ScanOptions options);
@@ -1632,7 +1632,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param values must not be {@literal null}.
 	 * @return
 	 * @since 1.5
-	 * @see <a href="http://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
+	 * @see <a href="https://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
 	 * @see RedisHyperLogLogCommands#pfAdd(byte[], byte[]...)
 	 */
 	Long pfAdd(String key, String... values);
@@ -1642,7 +1642,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
+	 * @see <a href="https://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
 	 * @see RedisHyperLogLogCommands#pfCount(byte[]...)
 	 */
 	Long pfCount(String... keys);
@@ -1652,7 +1652,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param destinationKey must not be {@literal null}.
 	 * @param sourceKeys must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/pfmerge">Redis Documentation: PFMERGE</a>
+	 * @see <a href="https://redis.io/commands/pfmerge">Redis Documentation: PFMERGE</a>
 	 * @see RedisHyperLogLogCommands#pfMerge(byte[], byte[]...)
 	 */
 	void pfMerge(String destinationKey, String... sourceKeys);
@@ -1669,7 +1669,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param member must not be {@literal null}.
 	 * @return Number of elements added.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @see RedisGeoCommands#geoAdd(byte[], Point, byte[])
 	 */
 	Long geoAdd(String key, Point point, String member);
@@ -1681,7 +1681,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param location must not be {@literal null}.
 	 * @return Number of elements added.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @see RedisGeoCommands#geoAdd(byte[], GeoLocation)
 	 */
 	Long geoAdd(String key, GeoLocation<String> location);
@@ -1693,7 +1693,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param memberCoordinateMap must not be {@literal null}.
 	 * @return Number of elements added.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @see RedisGeoCommands#geoAdd(byte[], Map)
 	 */
 	Long geoAdd(String key, Map<String, Point> memberCoordinateMap);
@@ -1705,7 +1705,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param locations must not be {@literal null}.
 	 * @return Number of elements added.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
+	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @see RedisGeoCommands#geoAdd(byte[], Iterable)
 	 */
 	Long geoAdd(String key, Iterable<GeoLocation<String>> locations);
@@ -1718,7 +1718,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param member2 must not be {@literal null}.
 	 * @return can be {@literal null}.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
+	 * @see <a href="https://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 * @see RedisGeoCommands#geoDist(byte[], byte[], byte[])
 	 */
 	Distance geoDist(String key, String member1, String member2);
@@ -1732,7 +1732,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param metric must not be {@literal null}.
 	 * @return can be {@literal null}.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
+	 * @see <a href="https://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 * @see RedisGeoCommands#geoDist(byte[], byte[], byte[], Metric)
 	 */
 	Distance geoDist(String key, String member1, String member2, Metric metric);
@@ -1744,7 +1744,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
+	 * @see <a href="https://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 * @see RedisGeoCommands#geoHash(byte[], byte[]...)
 	 */
 	List<String> geoHash(String key, String... members);
@@ -1756,7 +1756,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
+	 * @see <a href="https://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 * @see RedisGeoCommands#geoPos(byte[], byte[]...)
 	 */
 	List<Point> geoPos(String key, String... members);
@@ -1768,7 +1768,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param within must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
+	 * @see <a href="https://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 * @see RedisGeoCommands#geoRadius(byte[], Circle)
 	 */
 	GeoResults<GeoLocation<String>> geoRadius(String key, Circle within);
@@ -1781,7 +1781,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param args must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
+	 * @see <a href="https://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 * @see RedisGeoCommands#geoRadius(byte[], Circle, GeoRadiusCommandArgs)
 	 */
 	GeoResults<GeoLocation<String>> geoRadius(String key, Circle within, GeoRadiusCommandArgs args);
@@ -1795,7 +1795,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param radius
 	 * @return never {@literal null}.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
+	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 * @see RedisGeoCommands#geoRadiusByMember(byte[], byte[], double)
 	 */
 	GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, double radius);
@@ -1809,7 +1809,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param radius must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
+	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 * @see RedisGeoCommands#geoRadiusByMember(byte[], byte[], Distance)
 	 */
 	GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, Distance radius);
@@ -1824,7 +1824,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param args must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @since 1.8
-	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
+	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 * @see RedisGeoCommands#geoRadiusByMember(byte[], byte[], Distance, GeoRadiusCommandArgs)
 	 */
 	GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, Distance radius,
@@ -1837,7 +1837,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param members must not be {@literal null}.
 	 * @since 1.8
 	 * @return Number of members elements removed.
-	 * @see <a href="http://redis.io/commands/zrem">Redis Documentation: ZREM</a>
+	 * @see <a href="https://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 * @see RedisGeoCommands#geoRemove(byte[], byte[]...)
 	 */
 	Long geoRemove(String key, String... members);
@@ -1852,7 +1852,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param channel the channel to publish to, must not be {@literal null}.
 	 * @param message message to publish
 	 * @return the number of clients that received the message
-	 * @see <a href="http://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
+	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 * @see RedisPubSubCommands#publish(byte[], byte[])
 	 */
 	Long publish(String channel, String message);
@@ -1865,7 +1865,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param listener message listener, must not be {@literal null}.
 	 * @param channels channel names, must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/subscribe">Redis Documentation: SUBSCRIBE</a>
+	 * @see <a href="https://redis.io/commands/subscribe">Redis Documentation: SUBSCRIBE</a>
 	 * @see RedisPubSubCommands#subscribe(MessageListener, byte[]...)
 	 */
 	void subscribe(MessageListener listener, String... channels);
@@ -1879,7 +1879,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param listener message listener, must not be {@literal null}.
 	 * @param patterns channel name patterns, must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/psubscribe">Redis Documentation: PSUBSCRIBE</a>
+	 * @see <a href="https://redis.io/commands/psubscribe">Redis Documentation: PSUBSCRIBE</a>
 	 * @see RedisPubSubCommands#pSubscribe(MessageListener, byte[]...)
 	 */
 	void pSubscribe(MessageListener listener, String... patterns);
@@ -1894,7 +1894,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param script must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/script-load">Redis Documentation: SCRIPT LOAD</a>
+	 * @see <a href="https://redis.io/commands/script-load">Redis Documentation: SCRIPT LOAD</a>
 	 * @see RedisScriptingCommands#scriptLoad(byte[])
 	 */
 	String scriptLoad(String script);
@@ -1907,7 +1907,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param numKeys
 	 * @param keysAndArgs must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/eval">Redis Documentation: EVAL</a>
+	 * @see <a href="https://redis.io/commands/eval">Redis Documentation: EVAL</a>
 	 * @see RedisScriptingCommands#eval(byte[], ReturnType, int, byte[]...)
 	 */
 	<T> T eval(String script, ReturnType returnType, int numKeys, String... keysAndArgs);
@@ -1920,7 +1920,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param numKeys
 	 * @param keysAndArgs must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/evalsha">Redis Documentation: EVALSHA</a>
+	 * @see <a href="https://redis.io/commands/evalsha">Redis Documentation: EVALSHA</a>
 	 * @see RedisScriptingCommands#evalSha(String, ReturnType, int, byte[]...)
 	 */
 	<T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, String... keysAndArgs);
@@ -1930,7 +1930,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param name
 	 * @since 1.3
-	 * @see <a href="http://redis.io/commands/client-setname">Redis Documentation: CLIENT SETNAME</a>
+	 * @see <a href="https://redis.io/commands/client-setname">Redis Documentation: CLIENT SETNAME</a>
 	 * @see RedisServerCommands#setClientName(byte[])
 	 */
 	void setClientName(String name);
@@ -1940,7 +1940,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @return {@link List} of {@link RedisClientInfo} objects.
 	 * @since 1.3
-	 * @see <a href="http://redis.io/commands/client-list">Redis Documentation: CLIENT LIST</a>
+	 * @see <a href="https://redis.io/commands/client-list">Redis Documentation: CLIENT LIST</a>
 	 * @see RedisServerCommands#getClientList()
 	 */
 	List<RedisClientInfo> getClientList();

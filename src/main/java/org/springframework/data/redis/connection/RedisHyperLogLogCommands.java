@@ -32,7 +32,7 @@ public interface RedisHyperLogLogCommands {
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
+	 * @see <a href="https://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
 	 */
 	@Nullable
 	Long pfAdd(byte[] key, byte[]... values);
@@ -42,7 +42,7 @@ public interface RedisHyperLogLogCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
+	 * @see <a href="https://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
 	 */
 	@Nullable
 	Long pfCount(byte[]... keys);
@@ -52,7 +52,7 @@ public interface RedisHyperLogLogCommands {
 	 *
 	 * @param destinationKey must not be {@literal null}.
 	 * @param sourceKeys must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/pfmerge">Redis Documentation: PFMERGE</a>
+	 * @see <a href="https://redis.io/commands/pfmerge">Redis Documentation: PFMERGE</a>
 	 */
 	void pfMerge(byte[] destinationKey, byte[]... sourceKeys);
 

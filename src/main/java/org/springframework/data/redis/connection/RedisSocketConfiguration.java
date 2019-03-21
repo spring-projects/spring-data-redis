@@ -20,7 +20,7 @@ import org.springframework.util.Assert;
 
 /**
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} connecting to
- * single <a href="http://redis.io/">Redis</a> using a local unix domain socket.
+ * single <a href="https://redis.io/">Redis</a> using a local unix domain socket.
  *
  * @author Mark Paluch
  * @author Christoph Strobl

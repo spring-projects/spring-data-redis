@@ -61,7 +61,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Connection factory creating <a href="http://github.com/xetorthio/jedis">Jedis</a> based connections.
+ * Connection factory creating <a href="https://github.com/xetorthio/jedis">Jedis</a> based connections.
  * <p>
  * {@link JedisConnectionFactory} should be configured using an environmental configuration and the
  * {@link JedisClientConfiguration client configuration}. Jedis supports the following environmental configurations:

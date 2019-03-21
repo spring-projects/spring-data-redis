@@ -32,14 +32,14 @@ public interface RedisScriptingCommands {
 	/**
 	 * Flush lua script cache.
 	 *
-	 * @see <a href="http://redis.io/commands/script-flush">Redis Documentation: SCRIPT FLUSH</a>
+	 * @see <a href="https://redis.io/commands/script-flush">Redis Documentation: SCRIPT FLUSH</a>
 	 */
 	void scriptFlush();
 
 	/**
 	 * Kill current lua script execution.
 	 *
-	 * @see <a href="http://redis.io/commands/script-kill">Redis Documentation: SCRIPT KILL</a>
+	 * @see <a href="https://redis.io/commands/script-kill">Redis Documentation: SCRIPT KILL</a>
 	 */
 	void scriptKill();
 
@@ -49,7 +49,7 @@ public interface RedisScriptingCommands {
 	 *
 	 * @param script must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/script-load">Redis Documentation: SCRIPT LOAD</a>
+	 * @see <a href="https://redis.io/commands/script-load">Redis Documentation: SCRIPT LOAD</a>
 	 */
 	@Nullable
 	String scriptLoad(byte[] script);
@@ -60,7 +60,7 @@ public interface RedisScriptingCommands {
 	 * @param scriptShas
 	 * @return one entry per given scriptSha in returned {@link List} or {@literal null} when used in pipeline /
 	 *         transaction.
-	 * @see <a href="http://redis.io/commands/script-exists">Redis Documentation: SCRIPT EXISTS</a>
+	 * @see <a href="https://redis.io/commands/script-exists">Redis Documentation: SCRIPT EXISTS</a>
 	 */
 	@Nullable
 	List<Boolean> scriptExists(String... scriptShas);
@@ -73,7 +73,7 @@ public interface RedisScriptingCommands {
 	 * @param numKeys
 	 * @param keysAndArgs must not be {@literal null}.
 	 * @return script result. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/eval">Redis Documentation: EVAL</a>
+	 * @see <a href="https://redis.io/commands/eval">Redis Documentation: EVAL</a>
 	 */
 	@Nullable
 	<T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs);
@@ -86,7 +86,7 @@ public interface RedisScriptingCommands {
 	 * @param numKeys
 	 * @param keysAndArgs must not be {@literal null}.
 	 * @return script result. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/evalsha">Redis Documentation: EVALSHA</a>
+	 * @see <a href="https://redis.io/commands/evalsha">Redis Documentation: EVALSHA</a>
 	 */
 	@Nullable
 	<T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs);
@@ -100,7 +100,7 @@ public interface RedisScriptingCommands {
 	 * @param keysAndArgs must not be {@literal null}.
 	 * @return script result. {@literal null} when used in pipeline / transaction.
 	 * @since 1.5
-	 * @see <a href="http://redis.io/commands/evalsha">Redis Documentation: EVALSHA</a>
+	 * @see <a href="https://redis.io/commands/evalsha">Redis Documentation: EVALSHA</a>
 	 */
 	@Nullable
 	<T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs);

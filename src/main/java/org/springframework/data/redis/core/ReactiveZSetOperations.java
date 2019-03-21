@@ -32,7 +32,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
- * @see <a href="http://redis.io/commands#zset">Redis Documentation: Sorted Set Commands</a>
+ * @see <a href="https://redis.io/commands#zset">Redis Documentation: Sorted Set Commands</a>
  * @since 2.0
  */
 public interface ReactiveZSetOperations<K, V> {
@@ -44,7 +44,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param score the score.
 	 * @param value the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zadd">Redis Documentation: ZADD</a>
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
 	Mono<Boolean> add(K key, V value, double score);
 
@@ -54,7 +54,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param tuples the score.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zadd">Redis Documentation: ZADD</a>
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
 	Mono<Long> addAll(K key, Collection<? extends TypedTuple<V>> tuples);
 
@@ -64,7 +64,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrem">Redis Documentation: ZREM</a>
+	 * @see <a href="https://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 */
 	Mono<Long> remove(K key, Object... values);
 
@@ -75,7 +75,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param delta
 	 * @param value the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
+	 * @see <a href="https://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
 	 */
 	Mono<Double> incrementScore(K key, V value, double delta);
 
@@ -85,7 +85,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param o the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
+	 * @see <a href="https://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
 	 */
 	Mono<Long> rank(K key, Object o);
 
@@ -95,7 +95,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param o the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
+	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
 	 */
 	Mono<Long> reverseRank(K key, Object o);
 
@@ -105,7 +105,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
+	 * @see <a href="https://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
 	Flux<V> range(K key, Range<Long> range);
 
@@ -115,7 +115,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
+	 * @see <a href="https://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
 	Flux<TypedTuple<V>> rangeWithScores(K key, Range<Long> range);
 
@@ -125,7 +125,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	Flux<V> rangeByScore(K key, Range<Double> range);
 
@@ -135,7 +135,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	Flux<TypedTuple<V>> rangeByScoreWithScores(K key, Range<Double> range);
 
@@ -147,7 +147,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param range
 	 * @param limit
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	Flux<V> rangeByScore(K key, Range<Double> range, Limit limit);
 
@@ -159,7 +159,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param range
 	 * @param limit
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	Flux<TypedTuple<V>> rangeByScoreWithScores(K key, Range<Double> range, Limit limit);
 
@@ -169,7 +169,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param range
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
+	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
 	Flux<V> reverseRange(K key, Range<Long> range);
 
@@ -179,7 +179,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param range
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
+	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
 	Flux<TypedTuple<V>> reverseRangeWithScores(K key, Range<Long> range);
 
@@ -189,7 +189,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param range
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
+	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
 	Flux<V> reverseRangeByScore(K key, Range<Double> range);
 
@@ -200,7 +200,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param range
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	Flux<TypedTuple<V>> reverseRangeByScoreWithScores(K key, Range<Double> range);
 
@@ -212,7 +212,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param range
 	 * @param limit
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	Flux<V> reverseRangeByScore(K key, Range<Double> range, Limit limit);
 
@@ -224,7 +224,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param range
 	 * @param limit
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	Flux<TypedTuple<V>> reverseRangeByScoreWithScores(K key, Range<Double> range, Limit limit);
 
@@ -236,7 +236,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return the {@link Flux} emitting the {@literal values} one by one or an {@link Flux#empty() empty Flux} if none
 	 *         exist.
 	 * @throws IllegalArgumentException when given {@code key} is {@literal null}.
-	 * @see <a href="http://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
+	 * @see <a href="https://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
 	 * @since 2.1
 	 */
 	default Flux<TypedTuple<V>> scan(K key) {
@@ -253,7 +253,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return the {@link Flux} emitting the {@literal values} one by one or an {@link Flux#empty() empty Flux} if none
 	 *         exist.
 	 * @throws IllegalArgumentException when one of the required arguments is {@literal null}.
-	 * @see <a href="http://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
+	 * @see <a href="https://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
 	 * @since 2.1
 	 */
 	Flux<TypedTuple<V>> scan(K key, ScanOptions options);
@@ -264,7 +264,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param range
 	 * @return
-	 * @see <a href="http://redis.io/commands/zcount">Redis Documentation: ZCOUNT</a>
+	 * @see <a href="https://redis.io/commands/zcount">Redis Documentation: ZCOUNT</a>
 	 */
 	Mono<Long> count(K key, Range<Double> range);
 
@@ -273,7 +273,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 *
 	 * @param key
 	 * @return
-	 * @see <a href="http://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
+	 * @see <a href="https://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
 	 */
 	Mono<Long> size(K key);
 
@@ -283,7 +283,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param o the value.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
+	 * @see <a href="https://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 */
 	Mono<Double> score(K key, Object o);
 
@@ -293,7 +293,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param range
 	 * @return
-	 * @see <a href="http://redis.io/commands/zremrangebyrank">Redis Documentation: ZREMRANGEBYRANK</a>
+	 * @see <a href="https://redis.io/commands/zremrangebyrank">Redis Documentation: ZREMRANGEBYRANK</a>
 	 */
 	Mono<Long> removeRange(K key, Range<Long> range);
 
@@ -303,7 +303,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param range
 	 * @return
-	 * @see <a href="http://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
+	 * @see <a href="https://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
 	 */
 	Mono<Long> removeRangeByScore(K key, Range<Double> range);
 
@@ -314,7 +314,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	Mono<Long> unionAndStore(K key, K otherKey, K destKey);
 
@@ -325,7 +325,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	Mono<Long> unionAndStore(K key, Collection<K> otherKeys, K destKey);
 
@@ -338,7 +338,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param aggregate must not be {@literal null}.
 	 * @return
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	default Mono<Long> unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
 		return unionAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
@@ -354,7 +354,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param weights must not be {@literal null}.
 	 * @return
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	Mono<Long> unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
 
@@ -365,7 +365,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	Mono<Long> intersectAndStore(K key, K otherKey, K destKey);
 
@@ -376,7 +376,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey);
 
@@ -389,7 +389,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param aggregate must not be {@literal null}.
 	 * @return
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	default Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
 		return intersectAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
@@ -405,7 +405,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param weights must not be {@literal null}.
 	 * @return
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
 	Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
 
@@ -415,7 +415,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
+	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	Flux<V> rangeByLex(K key, Range<String> range);
 
@@ -428,7 +428,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
+	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	Flux<V> rangeByLex(K key, Range<String> range, Limit limit);
 
@@ -438,7 +438,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
 	Flux<V> reverseRangeByLex(K key, Range<String> range);
 
@@ -451,7 +451,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
 	Flux<V> reverseRangeByLex(K key, Range<String> range, Limit limit);
 

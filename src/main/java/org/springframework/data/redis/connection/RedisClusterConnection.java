@@ -58,7 +58,7 @@ public interface RedisClusterConnection extends RedisConnection, RedisClusterCom
 	 * @param options must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 */
 	Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options);
 

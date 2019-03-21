@@ -22,7 +22,7 @@ import org.springframework.util.Assert;
 
 /**
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
- * to a single node <a href="http://redis.io/">Redis</a> installation.
+ * to a single node <a href="https://redis.io/">Redis</a> installation.
  *
  * @author Mark Paluch
  * @author Christoph Strobl

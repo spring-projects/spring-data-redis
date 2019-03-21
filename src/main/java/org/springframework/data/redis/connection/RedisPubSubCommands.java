@@ -47,7 +47,7 @@ public interface RedisPubSubCommands {
 	 * @param channel the channel to publish to. Must not be {@literal null}.
 	 * @param message message to publish. Must not be {@literal null}.
 	 * @return the number of clients that received the message or {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
+	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 */
 	@Nullable
 	Long publish(byte[] channel, byte[] message);
@@ -60,7 +60,7 @@ public interface RedisPubSubCommands {
 	 *
 	 * @param listener message listener, must not be {@literal null}.
 	 * @param channels channel names, must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/subscribe">Redis Documentation: SUBSCRIBE</a>
+	 * @see <a href="https://redis.io/commands/subscribe">Redis Documentation: SUBSCRIBE</a>
 	 */
 	void subscribe(MessageListener listener, byte[]... channels);
 
@@ -73,7 +73,7 @@ public interface RedisPubSubCommands {
 	 *
 	 * @param listener message listener, must not be {@literal null}.
 	 * @param patterns channel name patterns, must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/psubscribe">Redis Documentation: PSUBSCRIBE</a>
+	 * @see <a href="https://redis.io/commands/psubscribe">Redis Documentation: PSUBSCRIBE</a>
 	 */
 	void pSubscribe(MessageListener listener, byte[]... patterns);
 }

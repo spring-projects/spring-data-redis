@@ -157,7 +157,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
+	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
 	@Nullable
 	Boolean hasKey(K key);
@@ -168,7 +168,7 @@ public interface RedisOperations<K, V> {
 	 * @param keys must not be {@literal null}.
 	 * @return The number of keys existing among the ones specified as arguments. Keys mentioned multiple times and
 	 *         existing are counted multiple times.
-	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
+	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 * @since 2.1
 	 */
 	@Nullable
@@ -179,7 +179,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal true} if the key was removed.
-	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
+	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	@Nullable
 	Boolean delete(K key);
@@ -189,7 +189,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
+	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	@Nullable
 	Long delete(Collection<K> keys);
@@ -200,7 +200,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @see <a href="https://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
 	 * @since 2.1
 	 */
 	@Nullable
@@ -212,7 +212,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @see <a href="https://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
 	 * @since 2.1
 	 */
 	@Nullable
@@ -223,7 +223,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/type">Redis Documentation: TYPE</a>
+	 * @see <a href="https://redis.io/commands/type">Redis Documentation: TYPE</a>
 	 */
 	@Nullable
 	DataType type(K key);
@@ -233,7 +233,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param pattern must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
+	 * @see <a href="https://redis.io/commands/keys">Redis Documentation: KEYS</a>
 	 */
 	@Nullable
 	Set<K> keys(K pattern);
@@ -242,7 +242,7 @@ public interface RedisOperations<K, V> {
 	 * Return a random key from the keyspace.
 	 *
 	 * @return {@literal null} no keys exist or when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
+	 * @see <a href="https://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
 	 */
 	@Nullable
 	K randomKey();
@@ -252,7 +252,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param oldKey must not be {@literal null}.
 	 * @param newKey must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/rename">Redis Documentation: RENAME</a>
+	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
 	void rename(K oldKey, K newKey);
 
@@ -262,7 +262,7 @@ public interface RedisOperations<K, V> {
 	 * @param oldKey must not be {@literal null}.
 	 * @param newKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
+	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
 	@Nullable
 	Boolean renameIfAbsent(K oldKey, K newKey);
@@ -293,7 +293,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/persist">Redis Documentation: PERSIST</a>
+	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 */
 	@Nullable
 	Boolean persist(K key);
@@ -304,7 +304,7 @@ public interface RedisOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param dbIndex
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
+	 * @see <a href="https://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 */
 	@Nullable
 	Boolean move(K key, int dbIndex);
@@ -314,7 +314,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/dump">Redis Documentation: DUMP</a>
+	 * @see <a href="https://redis.io/commands/dump">Redis Documentation: DUMP</a>
 	 */
 	@Nullable
 	byte[] dump(K key);
@@ -326,7 +326,7 @@ public interface RedisOperations<K, V> {
 	 * @param value must not be {@literal null}.
 	 * @param timeToLive
 	 * @param unit must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/restore">Redis Documentation: RESTORE</a>
+	 * @see <a href="https://redis.io/commands/restore">Redis Documentation: RESTORE</a>
 	 */
 	default void restore(K key, byte[] value, long timeToLive, TimeUnit unit) {
 		restore(key, value, timeToLive, unit, false);
@@ -341,7 +341,7 @@ public interface RedisOperations<K, V> {
 	 * @param unit must not be {@literal null}.
 	 * @param replace use {@literal true} to replace a potentially existing value instead of erroring.
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/restore">Redis Documentation: RESTORE</a>
+	 * @see <a href="https://redis.io/commands/restore">Redis Documentation: RESTORE</a>
 	 */
 	void restore(K key, byte[] value, long timeToLive, TimeUnit unit, boolean replace);
 
@@ -351,7 +351,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
+	 * @see <a href="https://redis.io/commands/ttl">Redis Documentation: TTL</a>
 	 */
 	@Nullable
 	Long getExpire(K key);
@@ -372,7 +372,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return the results of sort. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
+	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
 	@Nullable
 	List<V> sort(SortQuery<K> query);
@@ -382,7 +382,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return the deserialized results of sort. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
+	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
 	@Nullable
 	<T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer);
@@ -392,7 +392,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return the deserialized results of sort. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
+	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
 	@Nullable
 	<T> List<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper);
@@ -402,7 +402,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return the deserialized results of sort. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
+	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
 	@Nullable
 	<T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer);
@@ -413,7 +413,7 @@ public interface RedisOperations<K, V> {
 	 * @param query must not be {@literal null}.
 	 * @param storeKey must not be {@literal null}.
 	 * @return number of values. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
+	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
 	@Nullable
 	Long sort(SortQuery<K> query, K storeKey);
@@ -426,7 +426,7 @@ public interface RedisOperations<K, V> {
 	 * Watch given {@code key} for modifications during transaction started with {@link #multi()}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/watch">Redis Documentation: WATCH</a>
+	 * @see <a href="https://redis.io/commands/watch">Redis Documentation: WATCH</a>
 	 */
 	void watch(K key);
 
@@ -434,14 +434,14 @@ public interface RedisOperations<K, V> {
 	 * Watch given {@code keys} for modifications during transaction started with {@link #multi()}.
 	 *
 	 * @param keys must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/watch">Redis Documentation: WATCH</a>
+	 * @see <a href="https://redis.io/commands/watch">Redis Documentation: WATCH</a>
 	 */
 	void watch(Collection<K> keys);
 
 	/**
 	 * Flushes all the previously {@link #watch(Object)} keys.
 	 *
-	 * @see <a href="http://redis.io/commands/unwatch">Redis Documentation: UNWATCH</a>
+	 * @see <a href="https://redis.io/commands/unwatch">Redis Documentation: UNWATCH</a>
 	 */
 	void unwatch();
 
@@ -450,14 +450,14 @@ public interface RedisOperations<K, V> {
 	 * Commands will be queued and can then be executed by calling {@link #exec()} or rolled back using {@link #discard()}
 	 * <p>
 	 *
-	 * @see <a href="http://redis.io/commands/multi">Redis Documentation: MULTI</a>
+	 * @see <a href="https://redis.io/commands/multi">Redis Documentation: MULTI</a>
 	 */
 	void multi();
 
 	/**
 	 * Discard all commands issued after {@link #multi()}.
 	 *
-	 * @see <a href="http://redis.io/commands/discard">Redis Documentation: DISCARD</a>
+	 * @see <a href="https://redis.io/commands/discard">Redis Documentation: DISCARD</a>
 	 */
 	void discard();
 
@@ -466,7 +466,7 @@ public interface RedisOperations<K, V> {
 	 * If used along with {@link #watch(Object)} the operation will fail if any of watched keys has been modified.
 	 *
 	 * @return List of replies for each executed command.
-	 * @see <a href="http://redis.io/commands/exec">Redis Documentation: EXEC</a>
+	 * @see <a href="https://redis.io/commands/exec">Redis Documentation: EXEC</a>
 	 */
 	List<Object> exec();
 
@@ -509,7 +509,7 @@ public interface RedisOperations<K, V> {
 	 * @param host must not be {@literal null}.
 	 * @param port
 	 * @since 1.3
-	 * @see <a href="http://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
 	 */
 	void slaveOf(String host, int port);
 
@@ -517,7 +517,7 @@ public interface RedisOperations<K, V> {
 	 * Change server into master.
 	 *
 	 * @since 1.3
-	 * @see <a href="http://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
 	 */
 	void slaveOfNoOne();
 
@@ -527,7 +527,7 @@ public interface RedisOperations<K, V> {
 	 * @param destination the channel to publish to, must not be {@literal null}.
 	 * @param message message to publish
 	 * @return the number of clients that received the message
-	 * @see <a href="http://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
+	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 */
 	void convertAndSend(String destination, Object message);
 

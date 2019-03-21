@@ -329,7 +329,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 	/**
 	 * Offset used inside a {@link BitFieldSubCommand}. Can be zero or type based. See
-	 * <a href="http://redis.io/commands/bitfield#bits-and-positional-offsets">Bits and positional offsets</a> in the
+	 * <a href="https://redis.io/commands/bitfield#bits-and-positional-offsets">Bits and positional offsets</a> in the
 	 * Redis reference.
 	 *
 	 * @author Christoph Strobl

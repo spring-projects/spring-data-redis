@@ -73,7 +73,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @param message message to publish. Must not be {@literal null}.
 	 * @return the number of clients that received the message
 	 * @since 2.1
-	 * @see <a href="http://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
+	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 */
 	Mono<Long> convertAndSend(String destination, V message);
 
@@ -124,7 +124,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
+	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
 	Mono<Boolean> hasKey(K key);
 
@@ -133,7 +133,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/type">Redis Documentation: TYPE</a>
+	 * @see <a href="https://redis.io/commands/type">Redis Documentation: TYPE</a>
 	 */
 	Mono<DataType> type(K key);
 
@@ -146,7 +146,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @param pattern must not be {@literal null}.
 	 * @return the {@link Flux} emitting matching keys one by one.
 	 * @throws IllegalArgumentException in case the pattern is {@literal null}.
-	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
+	 * @see <a href="https://redis.io/commands/keys">Redis Documentation: KEYS</a>
 	 */
 	Flux<K> keys(K pattern);
 
@@ -156,7 +156,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 *
 	 * @return the {@link Flux} emitting the {@literal keys} one by one or an {@link Flux#empty() empty flux} if none
 	 *         exist.
-	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 * @since 2.1
 	 */
 	default Flux<K> scan() {
@@ -171,7 +171,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @return the {@link Flux} emitting the {@literal keys} one by one or an {@link Flux#empty() empty flux} if none
 	 *         exist.
 	 * @throws IllegalArgumentException when the given {@code options} is {@literal null}.
-	 * @see <a href="http://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 * @since 2.1
 	 */
 	Flux<K> scan(ScanOptions options);
@@ -180,7 +180,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 * Return a random key from the keyspace.
 	 *
 	 * @return
-	 * @see <a href="http://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
+	 * @see <a href="https://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
 	 */
 	Mono<K> randomKey();
 
@@ -189,7 +189,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 *
 	 * @param oldKey must not be {@literal null}.
 	 * @param newKey must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/rename">Redis Documentation: RENAME</a>
+	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
 	Mono<Boolean> rename(K oldKey, K newKey);
 
@@ -199,7 +199,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @param oldKey must not be {@literal null}.
 	 * @param newKey must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
+	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
 	Mono<Boolean> renameIfAbsent(K oldKey, K newKey);
 
@@ -208,7 +208,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return The number of keys that were removed.
-	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
+	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Mono<Long> delete(K... key);
 
@@ -218,7 +218,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return The number of keys that were removed.
-	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
+	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Mono<Long> delete(Publisher<K> keys);
 
@@ -228,7 +228,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @see <a href="https://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
 	 * @since 2.1
 	 */
 	Mono<Long> unlink(K... key);
@@ -240,7 +240,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
+	 * @see <a href="https://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
 	 * @since 2.1
 	 */
 	Mono<Long> unlink(Publisher<K> keys);
@@ -268,7 +268,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/persist">Redis Documentation: PERSIST</a>
+	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 */
 	Mono<Boolean> persist(K key);
 
@@ -278,7 +278,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param dbIndex
 	 * @return
-	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
+	 * @see <a href="https://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 */
 	Mono<Boolean> move(K key, int dbIndex);
 
@@ -288,7 +288,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @return the {@link Duration} of the associated key. {@link Duration#ZERO} if no timeout associated or empty
 	 *         {@link Mono} if the key does not exist.
-	 * @see <a href="http://redis.io/commands/pttl">Redis Documentation: PTTL</a>
+	 * @see <a href="https://redis.io/commands/pttl">Redis Documentation: PTTL</a>
 	 */
 	Mono<Duration> getExpire(K key);
 

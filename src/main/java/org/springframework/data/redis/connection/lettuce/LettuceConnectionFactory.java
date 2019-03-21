@@ -58,7 +58,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
- * Connection factory creating <a href="http://github.com/mp911de/lettuce">Lettuce</a>-based connections.
+ * Connection factory creating <a href="https://github.com/mp911de/lettuce">Lettuce</a>-based connections.
  * <p>
  * This factory creates a new {@link LettuceConnection} on each call to {@link #getConnection()}. Multiple
  * {@link LettuceConnection}s share a single thread-safe native connection by default.
