@@ -154,7 +154,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @return the {@link Flux} emitting the {@link java.util.Map.Entry entries} on by one or an {@link Flux#empty() empty
 	 *         flux} if the key does not exist.
 	 * @throws IllegalArgumentException when the given {@code key} is {@literal null}.
-	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
+	 * @see <a href="https://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 * @since 2.1
 	 */
 	default Flux<Map.Entry<HK, HV>> scan(H key) {
@@ -170,7 +170,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @return the {@link Flux} emitting the {@link java.util.Map.Entry entries} on by one or an {@link Flux#empty() empty
 	 *         flux} if the key does not exist.
 	 * @throws IllegalArgumentException when one of the required arguments is {@literal null}.
-	 * @see <a href="http://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
+	 * @see <a href="https://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 * @since 2.1
 	 */
 	Flux<Map.Entry<HK, HV>> scan(H key, ScanOptions options);

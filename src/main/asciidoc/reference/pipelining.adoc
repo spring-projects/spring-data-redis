@@ -1,7 +1,7 @@
 [[pipeline]]
 = Pipelining
 
-Redis provides support for http://redis.io/topics/pipelining[pipelining], which involves sending multiple commands to the server without waiting for the replies and then reading the replies in a single step. Pipelining can improve performance when you need to send several commands in a row, such as adding many elements to the same List.
+Redis provides support for https://redis.io/topics/pipelining[pipelining], which involves sending multiple commands to the server without waiting for the replies and then reading the replies in a single step. Pipelining can improve performance when you need to send several commands in a row, such as adding many elements to the same List.
 
 Spring Data Redis provides several `RedisTemplate` methods for executing commands in a pipeline. If you do not care about the results of the pipelined operations, you can use the standard `execute` method, passing `true` for the `pipeline` argument. The `executePipelined` methods run the provided `RedisCallback` or `SessionCallback` in a pipeline and return the results, as shown in the following example:
 

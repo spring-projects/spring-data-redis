@@ -55,7 +55,7 @@ public interface ReactiveStringCommands {
 	 * {@code SET} command parameters.
 	 *
 	 * @author Christoph Strobl
-	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	class SetCommand extends KeyCommand {
 
@@ -154,7 +154,7 @@ public interface ReactiveStringCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	default Mono<Boolean> set(ByteBuffer key, ByteBuffer value) {
 
@@ -172,7 +172,7 @@ public interface ReactiveStringCommands {
 	 * @param expiration must not be {@literal null}.
 	 * @param option must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	default Mono<Boolean> set(ByteBuffer key, ByteBuffer value, Expiration expiration, SetOption option) {
 
@@ -188,7 +188,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} of {@link BooleanResponse} holding the {@link SetCommand} along with the command result.
-	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	Flux<BooleanResponse<SetCommand>> set(Publisher<SetCommand> commands);
 
@@ -197,7 +197,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@link Mono#empty()} in case {@literal key} does not exist.
-	 * @see <a href="http://redis.io/commands/get">Redis Documentation: GET</a>
+	 * @see <a href="https://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
 	default Mono<ByteBuffer> get(ByteBuffer key) {
 
@@ -213,7 +213,7 @@ public interface ReactiveStringCommands {
 	 * @param keys must not be {@literal null}.
 	 * @return {@link Flux} of {@link ByteBufferResponse} holding the {@literal key} to get along with the value
 	 *         retrieved.
-	 * @see <a href="http://redis.io/commands/get">Redis Documentation: GET</a>
+	 * @see <a href="https://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
 	Flux<ByteBufferResponse<KeyCommand>> get(Publisher<KeyCommand> keys);
 
@@ -223,7 +223,7 @@ public interface ReactiveStringCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return {@link Mono#empty()} if key did not exist.
-	 * @see <a href="http://redis.io/commands/getset">Redis Documentation: GETSET</a>
+	 * @see <a href="https://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
 	default Mono<ByteBuffer> getSet(ByteBuffer key, ByteBuffer value) {
 
@@ -240,7 +240,7 @@ public interface ReactiveStringCommands {
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} of {@link ByteBufferResponse} holding the {@link SetCommand} along with the previously
 	 *         existing value.
-	 * @see <a href="http://redis.io/commands/getset">Redis Documentation: GETSET</a>
+	 * @see <a href="https://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
 	Flux<ByteBufferResponse<SetCommand>> getSet(Publisher<SetCommand> commands);
 
@@ -249,7 +249,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/mget">Redis Documentation: MGET</a>
+	 * @see <a href="https://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 */
 	default Mono<List<ByteBuffer>> mGet(List<ByteBuffer> keys) {
 
@@ -263,7 +263,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param keysets must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/mget">Redis Documentation: MGET</a>
+	 * @see <a href="https://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 */
 	Flux<MultiValueResponse<List<ByteBuffer>, ByteBuffer>> mGet(Publisher<List<ByteBuffer>> keysets);
 
@@ -273,7 +273,7 @@ public interface ReactiveStringCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/setnx">Redis Documentation: SETNX</a>
+	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
 	default Mono<Boolean> setNX(ByteBuffer key, ByteBuffer value) {
 
@@ -288,7 +288,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param values must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/setnx">Redis Documentation: SETNX</a>
+	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
 	Flux<BooleanResponse<SetCommand>> setNX(Publisher<SetCommand> values);
 
@@ -299,7 +299,7 @@ public interface ReactiveStringCommands {
 	 * @param value must not be {@literal null}.
 	 * @param expireTimeout must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
 	default Mono<Boolean> setEX(ByteBuffer key, ByteBuffer value, Expiration expireTimeout) {
 
@@ -316,7 +316,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
 	Flux<BooleanResponse<SetCommand>> setEX(Publisher<SetCommand> commands);
 
@@ -327,7 +327,7 @@ public interface ReactiveStringCommands {
 	 * @param value must not be {@literal null}.
 	 * @param expireTimeout must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/psetex">Redis Documentation: PSETEX</a>
+	 * @see <a href="https://redis.io/commands/psetex">Redis Documentation: PSETEX</a>
 	 */
 	default Mono<Boolean> pSetEX(ByteBuffer key, ByteBuffer value, Expiration expireTimeout) {
 
@@ -344,7 +344,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/psetex">Redis Documentation: PSETEX</a>
+	 * @see <a href="https://redis.io/commands/psetex">Redis Documentation: PSETEX</a>
 	 */
 	Flux<BooleanResponse<SetCommand>> pSetEX(Publisher<SetCommand> commands);
 
@@ -352,7 +352,7 @@ public interface ReactiveStringCommands {
 	 * {@code MSET} command parameters.
 	 *
 	 * @author Christoph Strobl
-	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
+	 * @see <a href="https://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 */
 	class MSetCommand implements Command {
 
@@ -398,7 +398,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param keyValuePairs must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
+	 * @see <a href="https://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 */
 	default Mono<Boolean> mSet(Map<ByteBuffer, ByteBuffer> keyValuePairs) {
 
@@ -412,7 +412,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
+	 * @see <a href="https://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 */
 	Flux<BooleanResponse<MSetCommand>> mSet(Publisher<MSetCommand> commands);
 
@@ -422,7 +422,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param keyValuePairs must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
+	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
 	default Mono<Boolean> mSetNX(Map<ByteBuffer, ByteBuffer> keyValuePairs) {
 
@@ -437,7 +437,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param source must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
+	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
 	Flux<BooleanResponse<MSetCommand>> mSetNX(Publisher<MSetCommand> source);
 
@@ -445,7 +445,7 @@ public interface ReactiveStringCommands {
 	 * {@code APPEND} command parameters.
 	 *
 	 * @author Christoph Strobl
-	 * @see <a href="http://redis.io/commands/append">Redis Documentation: APPEND</a>
+	 * @see <a href="https://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 */
 	class AppendCommand extends KeyCommand {
 
@@ -499,7 +499,7 @@ public interface ReactiveStringCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/append">Redis Documentation: APPEND</a>
+	 * @see <a href="https://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 */
 	default Mono<Long> append(ByteBuffer key, ByteBuffer value) {
 
@@ -514,7 +514,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/append">Redis Documentation: APPEND</a>
+	 * @see <a href="https://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 */
 	Flux<NumericResponse<AppendCommand, Long>> append(Publisher<AppendCommand> commands);
 
@@ -525,7 +525,7 @@ public interface ReactiveStringCommands {
 	 * @param start
 	 * @param end
 	 * @return
-	 * @see <a href="http://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
+	 * @see <a href="https://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
 	 */
 	default Mono<ByteBuffer> getRange(ByteBuffer key, long start, long end) {
 
@@ -541,7 +541,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
+	 * @see <a href="https://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
 	 */
 	Flux<ByteBufferResponse<RangeCommand>> getRange(Publisher<RangeCommand> commands);
 
@@ -549,7 +549,7 @@ public interface ReactiveStringCommands {
 	 * {@code SETRANGE} command parameters.
 	 *
 	 * @author Christoph Strobl
-	 * @see <a href="http://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
+	 * @see <a href="https://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
 	 */
 	class SetRangeCommand extends KeyCommand {
 
@@ -623,7 +623,7 @@ public interface ReactiveStringCommands {
 	 * @param value must not be {@literal null}.
 	 * @param offset
 	 * @return
-	 * @see <a href="http://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
+	 * @see <a href="https://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
 	 */
 	default Mono<Long> setRange(ByteBuffer key, ByteBuffer value, long offset) {
 
@@ -640,7 +640,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
+	 * @see <a href="https://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
 	 */
 	Flux<NumericResponse<SetRangeCommand, Long>> setRange(Publisher<SetRangeCommand> commands);
 
@@ -648,7 +648,7 @@ public interface ReactiveStringCommands {
 	 * {@code GETBIT} command parameters.
 	 *
 	 * @author Christoph Strobl
-	 * @see <a href="http://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
+	 * @see <a href="https://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
 	 */
 	class GetBitCommand extends KeyCommand {
 
@@ -699,7 +699,7 @@ public interface ReactiveStringCommands {
 	 * @param key must not be {@literal null}.
 	 * @param offset
 	 * @return
-	 * @see <a href="http://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
+	 * @see <a href="https://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
 	 */
 	default Mono<Boolean> getBit(ByteBuffer key, long offset) {
 
@@ -713,7 +713,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
+	 * @see <a href="https://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
 	 */
 	Flux<BooleanResponse<GetBitCommand>> getBit(Publisher<GetBitCommand> commands);
 
@@ -721,7 +721,7 @@ public interface ReactiveStringCommands {
 	 * {@code SETBIT} command parameters.
 	 *
 	 * @author Christoph Strobl
-	 * @see <a href="http://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
+	 * @see <a href="https://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
 	 */
 	class SetBitCommand extends KeyCommand {
 
@@ -805,7 +805,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
+	 * @see <a href="https://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
 	 */
 	Flux<BooleanResponse<SetBitCommand>> setBit(Publisher<SetBitCommand> commands);
 
@@ -813,7 +813,7 @@ public interface ReactiveStringCommands {
 	 * {@code BITCOUNT} command parameters.
 	 *
 	 * @author Christoph Strobl
-	 * @see <a href="http://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
+	 * @see <a href="https://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 */
 	class BitCountCommand extends KeyCommand {
 
@@ -865,7 +865,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
+	 * @see <a href="https://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 */
 	default Mono<Long> bitCount(ByteBuffer key) {
 
@@ -882,7 +882,7 @@ public interface ReactiveStringCommands {
 	 * @param start
 	 * @param end
 	 * @return
-	 * @see <a href="http://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
+	 * @see <a href="https://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 */
 	default Mono<Long> bitCount(ByteBuffer key, long start, long end) {
 
@@ -899,7 +899,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
+	 * @see <a href="https://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 */
 	Flux<NumericResponse<BitCountCommand, Long>> bitCount(Publisher<BitCountCommand> commands);
 
@@ -907,7 +907,7 @@ public interface ReactiveStringCommands {
 	 * {@code BITFIELD} command parameters.
 	 *
 	 * @author Mark Paluch
-	 * @see <a href="http://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
+	 * @see <a href="https://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
 	 * @since 2.1
 	 */
 	class BitFieldCommand extends KeyCommand {
@@ -960,7 +960,7 @@ public interface ReactiveStringCommands {
 	 * @param key must not be {@literal null}.
 	 * @param subCommands
 	 * @return
-	 * @see <a href="http://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
+	 * @see <a href="https://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
 	 * @since 2.1
 	 */
 	default Mono<List<Long>> bitField(ByteBuffer key, BitFieldSubCommands subCommands) {
@@ -978,7 +978,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
+	 * @see <a href="https://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
 	 * @since 2.1
 	 */
 	Flux<MultiValueResponse<BitFieldCommand, Long>> bitField(Publisher<BitFieldCommand> commands);
@@ -987,7 +987,7 @@ public interface ReactiveStringCommands {
 	 * {@code BITOP} command parameters.
 	 *
 	 * @author Christoph Strobl
-	 * @see <a href="http://redis.io/commands/bitop">Redis Documentation: BITOP</a>
+	 * @see <a href="https://redis.io/commands/bitop">Redis Documentation: BITOP</a>
 	 */
 	class BitOpCommand {
 
@@ -1073,7 +1073,7 @@ public interface ReactiveStringCommands {
 	 * @param bitOp must not be {@literal null}.
 	 * @param destination must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/bitop">Redis Documentation: BITOP</a>
+	 * @see <a href="https://redis.io/commands/bitop">Redis Documentation: BITOP</a>
 	 */
 	default Mono<Long> bitOp(Collection<ByteBuffer> keys, BitOperation bitOp, ByteBuffer destination) {
 
@@ -1091,7 +1091,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/bitop">Redis Documentation: BITOP</a>
+	 * @see <a href="https://redis.io/commands/bitop">Redis Documentation: BITOP</a>
 	 */
 	Flux<NumericResponse<BitOpCommand, Long>> bitOp(Publisher<BitOpCommand> commands);
 
@@ -1174,7 +1174,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
+	 * @see <a href="https://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
 	 */
 	default Mono<Long> strLen(ByteBuffer key) {
 
@@ -1188,7 +1188,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
-	 * @see <a href="http://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
+	 * @see <a href="https://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> strLen(Publisher<KeyCommand> keys);
 }

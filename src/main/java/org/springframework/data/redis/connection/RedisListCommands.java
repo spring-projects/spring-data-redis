@@ -41,7 +41,7 @@ public interface RedisListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param values must not be empty.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
+	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
 	@Nullable
 	Long rPush(byte[] key, byte[]... values);
@@ -52,7 +52,7 @@ public interface RedisListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param values must not be empty.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
 	@Nullable
 	Long lPush(byte[] key, byte[]... values);
@@ -63,7 +63,7 @@ public interface RedisListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
+	 * @see <a href="https://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
 	 */
 	@Nullable
 	Long rPushX(byte[] key, byte[] value);
@@ -74,7 +74,7 @@ public interface RedisListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
+	 * @see <a href="https://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
 	 */
 	@Nullable
 	Long lPushX(byte[] key, byte[] value);
@@ -84,7 +84,7 @@ public interface RedisListCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/llen">Redis Documentation: LLEN</a>
+	 * @see <a href="https://redis.io/commands/llen">Redis Documentation: LLEN</a>
 	 */
 	@Nullable
 	Long lLen(byte[] key);
@@ -97,7 +97,7 @@ public interface RedisListCommands {
 	 * @param end
 	 * @return empty {@link List} if key does not exists or range does not contain values. {@literal null} when used in
 	 *         pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
+	 * @see <a href="https://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
 	@Nullable
 	List<byte[]> lRange(byte[] key, long start, long end);
@@ -108,7 +108,7 @@ public interface RedisListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @see <a href="http://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
+	 * @see <a href="https://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
 	 */
 	void lTrim(byte[] key, long start, long end);
 
@@ -118,7 +118,7 @@ public interface RedisListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param index zero based index value. Use negative number to designate elements starting at the tail.
 	 * @return {@literal null} when index is out of range or when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
+	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 */
 	@Nullable
 	byte[] lIndex(byte[] key, long index);
@@ -131,7 +131,7 @@ public interface RedisListCommands {
 	 * @param pivot must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
+	 * @see <a href="https://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
 	@Nullable
 	Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value);
@@ -142,7 +142,7 @@ public interface RedisListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param index
 	 * @param value
-	 * @see <a href="http://redis.io/commands/lset">Redis Documentation: LSET</a>
+	 * @see <a href="https://redis.io/commands/lset">Redis Documentation: LSET</a>
 	 */
 	void lSet(byte[] key, long index, byte[] value);
 
@@ -153,7 +153,7 @@ public interface RedisListCommands {
 	 * @param count
 	 * @param value
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lrem">Redis Documentation: LREM</a>
+	 * @see <a href="https://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
 	@Nullable
 	Long lRem(byte[] key, long count, byte[] value);
@@ -163,7 +163,7 @@ public interface RedisListCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 */
 	@Nullable
 	byte[] lPop(byte[] key);
@@ -173,7 +173,7 @@ public interface RedisListCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/rpop">Redis Documentation: RPOP</a>
+	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 */
 	@Nullable
 	byte[] rPop(byte[] key);
@@ -186,7 +186,7 @@ public interface RedisListCommands {
 	 * @param keys must not be {@literal null}.
 	 * @return empty {@link List} when no element could be popped and the timeout was reached. {@literal null} when used
 	 *         in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
+	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 * @see #lPop(byte[])
 	 */
 	@Nullable
@@ -200,7 +200,7 @@ public interface RedisListCommands {
 	 * @param keys must not be {@literal null}.
 	 * @return empty {@link List} when no element could be popped and the timeout was reached. {@literal null} when used
 	 *         in pipeline / transaction.
-	 * @see <a href="http://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
+	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 * @see #rPop(byte[])
 	 */
 	@Nullable
@@ -212,7 +212,7 @@ public interface RedisListCommands {
 	 * @param srcKey must not be {@literal null}.
 	 * @param dstKey must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
+	 * @see <a href="https://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
 	 */
 	@Nullable
 	byte[] rPopLPush(byte[] srcKey, byte[] dstKey);
@@ -225,7 +225,7 @@ public interface RedisListCommands {
 	 * @param srcKey must not be {@literal null}.
 	 * @param dstKey must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
+	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 * @see #rPopLPush(byte[], byte[])
 	 */
 	@Nullable

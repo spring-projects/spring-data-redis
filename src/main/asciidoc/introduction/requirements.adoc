@@ -1,6 +1,6 @@
 [[requirements]]
 = Requirements
 
-Spring Data Redis 2.x binaries require JDK level 8.0 and above and http://projects.spring.io/spring-framework/[Spring Framework] {springVersion} and above.
+Spring Data Redis 2.x binaries require JDK level 8.0 and above and https://projects.spring.io/spring-framework/[Spring Framework] {springVersion} and above.
 
-In terms of key-value stores, http://redis.io[Redis] 2.6.x or higher is required. Spring Data Redis is currently tested against the latest 4.0 release.
+In terms of key-value stores, https://redis.io[Redis] 2.6.x or higher is required. Spring Data Redis is currently tested against the latest 4.0 release.

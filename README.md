@@ -1,15 +1,15 @@
-[![Spring Data Redis](https://spring.io/badges/spring-data-redis/ga.svg)](http://projects.spring.io/spring-data-redis/#quick-start)
-[![Spring Data Redis](https://spring.io/badges/spring-data-redis/snapshot.svg)](http://projects.spring.io/spring-data-redis/#quick-start)
+[![Spring Data Redis](https://spring.io/badges/spring-data-redis/ga.svg)](https://projects.spring.io/spring-data-redis/#quick-start)
+[![Spring Data Redis](https://spring.io/badges/spring-data-redis/snapshot.svg)](https://projects.spring.io/spring-data-redis/#quick-start)
 
 Spring Data Redis
 =======================
 
-The primary goal of the [Spring Data](http://projects.spring.io/spring-data/) project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
-This modules provides integration with the [Redis](http://redis.io/) store. 
+The primary goal of the [Spring Data](https://projects.spring.io/spring-data/) project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
+This modules provides integration with the [Redis](https://redis.io/) store. 
 
 # Docs
 
-You can find out more details from the [user documentation](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/) or by browsing the [javadocs](http://docs.spring.io/spring-data/data-redis/docs/current/api/).
+You can find out more details from the [user documentation](https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/) or by browsing the [javadocs](https://docs.spring.io/spring-data/data-redis/docs/current/api/).
 
 # Examples
 
@@ -41,7 +41,7 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 <repository>
   <id>spring-libs-snapshot</id>
   <name>Spring Snapshot Repository</name>
-  <url>http://repo.spring.io/libs-snapshot</url>
+  <url>https://repo.spring.io/libs-snapshot</url>
 </repository>
 ```
 
@@ -49,8 +49,8 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 
 ```groovy
 repositories {
-   maven { url "http://repo.spring.io/libs-milestone" }
-   maven { url "http://repo.spring.io/libs-snapshot" }
+   maven { url "https://repo.spring.io/libs-milestone" }
+   maven { url "https://repo.spring.io/libs-snapshot" }
 }
 
 // used for nightly builds
@@ -68,7 +68,7 @@ dependencies {
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:p="http://www.springframework.org/schema/p"
   xsi:schemaLocation="
-  http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+  http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
   
   <bean id="jedisFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"/>
   
@@ -115,15 +115,15 @@ You can alternatively use the provided `Makefile` which runs the build plus down
 
 Here are some ways for you to get involved in the community:
 
-* Get involved with the Spring community on the Stackoverflow.  Please help out on the [spring-data-redis](http://stackoverflow.com/questions/tagged/spring-data-redis) tag by responding to questions and joining the debate.
+* Get involved with the Spring community on the Stackoverflow.  Please help out on the [spring-data-redis](https://stackoverflow.com/questions/tagged/spring-data-redis) tag by responding to questions and joining the debate.
 * Create [JIRA](https://jira.spring.io/browse/DATAREDIS) tickets for bugs and new features and comment and vote on the ones that you are interested in.  
 * Watch for upcoming articles on Spring by [subscribing](https://spring.io/blog) to spring.io.
 
 Before we accept a non-trivial patch or pull request we will need you to [sign the Contributor License Agreement](https://cla.pivotal.io/sign/spring). Signing the contributor’s agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. If you forget to do so, you'll be reminded when you submit a pull request.
 
-Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](http://help.github.com/forking/). If you want to contribute code this way, read the Spring Framework [contributor guidelines] (https://github.com/spring-projects/spring-framework/blob/master/CONTRIBUTING.md).
+Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](https://help.github.com/forking/). If you want to contribute code this way, read the Spring Framework [contributor guidelines] (https://github.com/spring-projects/spring-framework/blob/master/CONTRIBUTING.md).
 
 # Staying in touch
 
-Follow the project team ([@SpringData](http://twitter.com/springdata)) on Twitter. In-depth articles can be
+Follow the project team ([@SpringData](https://twitter.com/springdata)) on Twitter. In-depth articles can be
 found at the Spring [team blog](https://spring.io/blog), and releases are announced via our [news feed](https://spring.io/blog/category/news).

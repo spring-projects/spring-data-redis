@@ -35,7 +35,7 @@ public interface ReactiveServerCommands {
 	 * Start an {@literal Append Only File} rewrite process on server.
 	 *
 	 * @return {@link Mono} indicating command completion.
-	 * @see <a href="http://redis.io/commands/bgrewriteaof">Redis Documentation: BGREWRITEAOF</a>
+	 * @see <a href="https://redis.io/commands/bgrewriteaof">Redis Documentation: BGREWRITEAOF</a>
 	 */
 	Mono<String> bgReWriteAof();
 
@@ -44,7 +44,7 @@ public interface ReactiveServerCommands {
 	 *
 	 * @return {@link Mono} indicating command received by server. Operation success needs to be checked via
 	 *         {@link #lastSave()}.
-	 * @see <a href="http://redis.io/commands/bgsave">Redis Documentation: BGSAVE</a>
+	 * @see <a href="https://redis.io/commands/bgsave">Redis Documentation: BGSAVE</a>
 	 */
 	Mono<String> bgSave();
 
@@ -52,7 +52,7 @@ public interface ReactiveServerCommands {
 	 * Get time unix timestamp of last successful {@link #bgSave()} operation in seconds.
 	 *
 	 * @return {@link Mono} wrapping unix timestamp.
-	 * @see <a href="http://redis.io/commands/lastsave">Redis Documentation: LASTSAVE</a>
+	 * @see <a href="https://redis.io/commands/lastsave">Redis Documentation: LASTSAVE</a>
 	 */
 	Mono<Long> lastSave();
 
@@ -60,7 +60,7 @@ public interface ReactiveServerCommands {
 	 * Synchronous save current db snapshot on server.
 	 *
 	 * @return {@link Mono} indicating command completion.
-	 * @see <a href="http://redis.io/commands/save">Redis Documentation: SAVE</a>
+	 * @see <a href="https://redis.io/commands/save">Redis Documentation: SAVE</a>
 	 */
 	Mono<String> save();
 
@@ -68,7 +68,7 @@ public interface ReactiveServerCommands {
 	 * Get the total number of available keys in currently selected database.
 	 *
 	 * @return {@link Mono} wrapping number of keys.
-	 * @see <a href="http://redis.io/commands/dbsize">Redis Documentation: DBSIZE</a>
+	 * @see <a href="https://redis.io/commands/dbsize">Redis Documentation: DBSIZE</a>
 	 */
 	Mono<Long> dbSize();
 
@@ -76,7 +76,7 @@ public interface ReactiveServerCommands {
 	 * Delete all keys of the currently selected database.
 	 *
 	 * @return {@link Mono} indicating command completion.
-	 * @see <a href="http://redis.io/commands/flushdb">Redis Documentation: FLUSHDB</a>
+	 * @see <a href="https://redis.io/commands/flushdb">Redis Documentation: FLUSHDB</a>
 	 */
 	Mono<String> flushDb();
 
@@ -84,7 +84,7 @@ public interface ReactiveServerCommands {
 	 * Delete all <b>all keys</b> from <b>all databases</b>.
 	 *
 	 * @return {@link Mono} indicating command completion.
-	 * @see <a href="http://redis.io/commands/flushall">Redis Documentation: FLUSHALL</a>
+	 * @see <a href="https://redis.io/commands/flushall">Redis Documentation: FLUSHALL</a>
 	 */
 	Mono<String> flushAll();
 
@@ -98,7 +98,7 @@ public interface ReactiveServerCommands {
 	 * <p>
 	 *
 	 * @return {@link Mono} wrapping server information.
-	 * @see <a href="http://redis.io/commands/info">Redis Documentation: INFO</a>
+	 * @see <a href="https://redis.io/commands/info">Redis Documentation: INFO</a>
 	 */
 	Mono<Properties> info();
 
@@ -108,7 +108,7 @@ public interface ReactiveServerCommands {
 	 * @param section must not be {@literal null} nor {@literal empty}.
 	 * @return {@link Mono} wrapping server information of given {@code section}.
 	 * @throws IllegalArgumentException when section is {@literal null} or {@literal empty}.
-	 * @see <a href="http://redis.io/commands/info">Redis Documentation: INFO</a>
+	 * @see <a href="https://redis.io/commands/info">Redis Documentation: INFO</a>
 	 */
 	Mono<Properties> info(String section);
 
@@ -118,7 +118,7 @@ public interface ReactiveServerCommands {
 	 * @param pattern must not be {@literal null}.
 	 * @return {@link Mono} wrapping configuration parameters matching given {@code pattern}.
 	 * @throws IllegalArgumentException when {@code pattern} is {@literal null} or {@literal empty}.
-	 * @see <a href="http://redis.io/commands/config-get">Redis Documentation: CONFIG GET</a>
+	 * @see <a href="https://redis.io/commands/config-get">Redis Documentation: CONFIG GET</a>
 	 */
 	Mono<Properties> getConfig(String pattern);
 
@@ -128,7 +128,7 @@ public interface ReactiveServerCommands {
 	 * @param param must not be {@literal null} nor {@literal empty}.
 	 * @param value must not be {@literal null} nor {@literal empty}.
 	 * @throws IllegalArgumentException when {@code pattern} / {@code value} is {@literal null} or {@literal empty}.
-	 * @see <a href="http://redis.io/commands/config-set">Redis Documentation: CONFIG SET</a>
+	 * @see <a href="https://redis.io/commands/config-set">Redis Documentation: CONFIG SET</a>
 	 */
 	Mono<String> setConfig(String param, String value);
 
@@ -137,7 +137,7 @@ public interface ReactiveServerCommands {
 	 * Counters can be retrieved using {@link #info()}.
 	 *
 	 * @return {@link Mono} indicating command completion.
-	 * @see <a href="http://redis.io/commands/config-resetstat">Redis Documentation: CONFIG RESETSTAT</a>
+	 * @see <a href="https://redis.io/commands/config-resetstat">Redis Documentation: CONFIG RESETSTAT</a>
 	 */
 	Mono<String> resetConfigStats();
 
@@ -145,7 +145,7 @@ public interface ReactiveServerCommands {
 	 * Request server timestamp using {@code TIME} command.
 	 *
 	 * @return {@link Mono} wrapping current server time in milliseconds.
-	 * @see <a href="http://redis.io/commands/time">Redis Documentation: TIME</a>
+	 * @see <a href="https://redis.io/commands/time">Redis Documentation: TIME</a>
 	 */
 	Mono<Long> time();
 
@@ -156,7 +156,7 @@ public interface ReactiveServerCommands {
 	 * @param port of connection to close
 	 * @return {@link Mono} wrapping {@link String} representation of the command result.
 	 * @throws IllegalArgumentException if {@code host} is {@literal null} or {@literal empty}.
-	 * @see <a href="http://redis.io/commands/client-kill">Redis Documentation: CLIENT KILL</a>
+	 * @see <a href="https://redis.io/commands/client-kill">Redis Documentation: CLIENT KILL</a>
 	 */
 	Mono<String> killClient(String host, int port);
 
@@ -165,7 +165,7 @@ public interface ReactiveServerCommands {
 	 *
 	 * @param name must not be {@literal null} nor {@literal empty}.
 	 * @throws IllegalArgumentException when {@code name} is {@literal null} or {@literal empty}.
-	 * @see <a href="http://redis.io/commands/client-setname">Redis Documentation: CLIENT SETNAME</a>
+	 * @see <a href="https://redis.io/commands/client-setname">Redis Documentation: CLIENT SETNAME</a>
 	 */
 	Mono<String> setClientName(String name);
 
@@ -173,7 +173,7 @@ public interface ReactiveServerCommands {
 	 * Returns the name of the current connection.
 	 *
 	 * @return {@link Mono} wrapping the connection name.
-	 * @see <a href="http://redis.io/commands/client-getname">Redis Documentation: CLIENT GETNAME</a>
+	 * @see <a href="https://redis.io/commands/client-getname">Redis Documentation: CLIENT GETNAME</a>
 	 */
 	Mono<String> getClientName();
 
@@ -181,7 +181,7 @@ public interface ReactiveServerCommands {
 	 * Request information and statistics about connected clients.
 	 *
 	 * @return {@link Flux} emitting {@link RedisClientInfo} objects.
-	 * @see <a href="http://redis.io/commands/client-list">Redis Documentation: CLIENT LIST</a>
+	 * @see <a href="https://redis.io/commands/client-list">Redis Documentation: CLIENT LIST</a>
 	 */
 	Flux<RedisClientInfo> getClientList();
 }

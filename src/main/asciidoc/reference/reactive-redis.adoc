@@ -7,7 +7,7 @@ This section covers reactive Redis support and how to get started. Reactive Redi
 [[redis:reactive:requirements]]
 == Redis Requirements
 
-Spring Data Redis currently integrates with http://github.com/lettuce-io/lettuce-core[Lettuce] as the only reactive Java connector. https://projectreactor.io/[Project Reactor] is used as reactive composition library.
+Spring Data Redis currently integrates with https://github.com/lettuce-io/lettuce-core[Lettuce] as the only reactive Java connector. https://projectreactor.io/[Project Reactor] is used as reactive composition library.
 
 [[redis:reactive:connectors]]
 == Connecting to Redis by Using a Reactive Driver
@@ -18,14 +18,14 @@ One of the first tasks when using Redis and Spring is to connect to the store th
 === Redis Operation Modes
 
 Redis can be run as a standalone server, with <<redis:sentinel,Redis Sentinel>>, or in <<cluster,Redis Cluster>> mode.
-http://github.com/lettuce-io/lettuce-core[Lettuce] supports all of the previously mentioned connection types.
+https://github.com/lettuce-io/lettuce-core[Lettuce] supports all of the previously mentioned connection types.
 
 [[redis:reactive:connectors:connection]]
 === `ReactiveRedisConnection` and `ReactiveRedisConnectionFactory`
 
-`ReactiveRedisConnection` is the core of Redis communication, as it handles the communication with the Redis back-end. It also automatically translates the underlying driver exceptions to Spring's consistent DAO exception http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#dao-exceptions[hierarchy], so you can switch the connectors without any code changes, as the operation semantics remain the same.
+`ReactiveRedisConnection` is the core of Redis communication, as it handles the communication with the Redis back-end. It also automatically translates the underlying driver exceptions to Spring's consistent DAO exception https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#dao-exceptions[hierarchy], so you can switch the connectors without any code changes, as the operation semantics remain the same.
 
-`ReactiveRedisConnectionFactory` creates active `ReactiveRedisConnection` instances. In addition, the factories act as `PersistenceExceptionTranslator` instances, meaning that, once declared, they let you do transparent exception translation -- for example, exception translation through the use of the `@Repository` annotation and AOP. For more information, see the dedicated http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#orm-exception-translation[section] in the Spring Framework documentation.
+`ReactiveRedisConnectionFactory` creates active `ReactiveRedisConnection` instances. In addition, the factories act as `PersistenceExceptionTranslator` instances, meaning that, once declared, they let you do transparent exception translation -- for example, exception translation through the use of the `@Repository` annotation and AOP. For more information, see the dedicated https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#orm-exception-translation[section] in the Spring Framework documentation.
 
 NOTE: Depending on the underlying configuration, the factory can return a new connection or an existing connection (in case a pool or shared native connection is used).
 
@@ -70,7 +70,7 @@ For more detailed client configuration tweaks, see https://docs.spring.io/spring
 
 Most users are likely to use `ReactiveRedisTemplate` and its corresponding package, `org.springframework.data.redis.core`. Due to its rich feature set, the template is, in fact, the central class of the Redis module. The template offers a high-level abstraction for Redis interactions. While `ReactiveRedisConnection` offers low-level methods that accept and return binary values (`ByteBuffer`), the template takes care of serialization and connection management, freeing you from dealing with such details.
 
-Moreover, the template provides operation views (following the grouping from Redis command http://redis.io/commands[reference]) that offer rich, generified interfaces for working against a certain type as described in the following table:
+Moreover, the template provides operation views (following the grouping from Redis command https://redis.io/commands[reference]) that offer rich, generified interfaces for working against a certain type as described in the following table:
 
 .Operational views
 [width="80%",cols="<1,<2",options="header"]

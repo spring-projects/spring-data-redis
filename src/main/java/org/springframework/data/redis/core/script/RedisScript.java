@@ -19,7 +19,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * A script to be executed using the <a href="http://redis.io/commands/eval">Redis scripting support</a> available as of
+ * A script to be executed using the <a href="https://redis.io/commands/eval">Redis scripting support</a> available as of
  * version 2.6
  *
  * @author Jennifer Hickey
