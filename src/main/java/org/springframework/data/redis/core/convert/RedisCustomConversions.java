@@ -49,6 +49,8 @@ public class RedisCustomConversions extends org.springframework.data.convert.Cus
 		converters.add(new BinaryConverters.BytesToBooleanConverter());
 		converters.add(new BinaryConverters.DateToBytesConverter());
 		converters.add(new BinaryConverters.BytesToDateConverter());
+		converters.add(new BinaryConverters.UuidToBytesConverter());
+		converters.add(new BinaryConverters.BytesToUuidConverter());
 		converters.addAll(Jsr310Converters.getConvertersToRegister());
 
 		STORE_CONVERTERS = Collections.unmodifiableList(converters);

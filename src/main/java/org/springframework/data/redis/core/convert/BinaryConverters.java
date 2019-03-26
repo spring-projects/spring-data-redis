@@ -21,6 +21,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.UUID;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterFactory;
@@ -268,6 +269,37 @@ final class BinaryConverters {
 			}
 
 			throw new IllegalArgumentException(String.format("Cannot parse date out of %s", Arrays.toString(source)));
+		}
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 2.1.6
+	 */
+	@WritingConverter
+	static class UuidToBytesConverter extends StringBasedConverter implements Converter<UUID, byte[]> {
+
+		@Override
+		public byte[] convert(UUID source) {
+			return fromString(source.toString());
+		}
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 2.1.6
+	 */
+	@ReadingConverter
+	static class BytesToUuidConverter extends StringBasedConverter implements Converter<byte[], UUID> {
+
+		@Override
+		public UUID convert(byte[] source) {
+
+			if (ObjectUtils.isEmpty(source)) {
+				return null;
+			}
+
+			return UUID.fromString(toString(source));
 		}
 	}
 }

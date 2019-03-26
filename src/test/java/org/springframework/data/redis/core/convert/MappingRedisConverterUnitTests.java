@@ -1844,6 +1844,25 @@ public class MappingRedisConverterUnitTests {
 		assertThat(read(Size.class, source).height, is(equalTo(1000)));
 	}
 
+	@Test // DATAREDIS-925
+	public void readUUID() {
+
+		UUID uuid = UUID.randomUUID();
+		Map<String, String> source = new LinkedHashMap<>();
+		source.put("uuid", uuid.toString());
+
+		assertThat(read(JustSomeDifferentPropertyTypes.class, source).uuid, is(equalTo(uuid)));
+	}
+
+	@Test // DATAREDIS-925
+	public void writeUUID() {
+
+		JustSomeDifferentPropertyTypes source = new JustSomeDifferentPropertyTypes();
+		source.uuid = UUID.randomUUID();
+
+		assertThat(write(source).getBucket(), isBucket().containingUtf8String("uuid", source.uuid.toString()));
+	}
+
 	private RedisData write(Object source) {
 
 		RedisData rdo = new RedisData();
