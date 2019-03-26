@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.annotation.Id;
@@ -221,5 +222,11 @@ public class ConversionTestEntities {
 
 		final Instant now;
 		final Set<String> profiles;
+	}
+
+	@Data
+	public static class JustSomeDifferentPropertyTypes {
+
+		UUID uuid;
 	}
 }
