@@ -15,13 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsInstanceOf.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.any;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.RedisConfiguration.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceTestClientResources.*;
@@ -51,7 +46,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
@@ -94,7 +88,7 @@ public class LettuceConnectionFactoryUnitTests {
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
-		assertThat(getField(connectionFactory, "client"), instanceOf(RedisClusterClient.class));
+		assertThat(getField(connectionFactory, "client")).isInstanceOf(RedisClusterClient.class);
 	}
 
 	@Test // DATAREDIS-315
@@ -108,12 +102,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClusterClient.class));
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
 
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.getTimeout(), is(equalTo(Duration.ofMillis(connectionFactory.getTimeout()))));
+			assertThat(uri.getTimeout()).isEqualTo(Duration.ofMillis(connectionFactory.getTimeout()));
 		}
 	}
 
@@ -125,7 +119,7 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getPort(), is(16379));
+		assertThat(connectionFactory.getPort()).isEqualTo(16379);
 	}
 
 	@Test // DATAREDIS-930
@@ -136,8 +130,8 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getPort(), is(16379));
-		assertThat(connectionFactory.getHostName(), is("localhost"));
+		assertThat(connectionFactory.getPort()).isEqualTo(16379);
+		assertThat(connectionFactory.getHostName()).isEqualTo("localhost");
 	}
 
 	@Test // DATAREDIS-930
@@ -148,7 +142,7 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getHostName(), is("external"));
+		assertThat(connectionFactory.getHostName()).isEqualTo("external");
 	}
 
 	@Test // DATAREDIS-930
@@ -159,8 +153,8 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getPort(), is(6379));
-		assertThat(connectionFactory.getHostName(), is("external"));
+		assertThat(connectionFactory.getPort()).isEqualTo(6379);
+		assertThat(connectionFactory.getHostName()).isEqualTo("external");
 	}
 
 	@Test // DATAREDIS-315
@@ -174,12 +168,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClusterClient.class));
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
 
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.getPassword(), is(equalTo(connectionFactory.getPassword().toCharArray())));
+			assertThat(uri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
 		}
 	}
 
@@ -194,11 +188,11 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClient.class));
+		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.getPassword(), is(equalTo(connectionFactory.getPassword().toCharArray())));
+		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
 	}
 
 	@Test // DATAREDIS-462
@@ -210,7 +204,7 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClusterClient.class));
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
 	}
 
 	@Test // DATAREDIS-480
@@ -222,16 +216,16 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClient.class));
+		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.isSsl(), is(false));
-		assertThat(connectionFactory.isUseSsl(), is(false));
-		assertThat(redisUri.isStartTls(), is(false));
-		assertThat(connectionFactory.isStartTls(), is(false));
-		assertThat(redisUri.isVerifyPeer(), is(true));
-		assertThat(connectionFactory.isVerifyPeer(), is(true));
+		assertThat(redisUri.isSsl()).isFalse();
+		assertThat(connectionFactory.isUseSsl()).isFalse();
+		assertThat(redisUri.isStartTls()).isFalse();
+		assertThat(connectionFactory.isStartTls()).isFalse();
+		assertThat(redisUri.isVerifyPeer()).isTrue();
+		assertThat(connectionFactory.isVerifyPeer()).isTrue();
 	}
 
 	@Test // DATAREDIS-476
@@ -244,14 +238,14 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClient.class));
+		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.isSsl(), is(true));
-		assertThat(connectionFactory.isUseSsl(), is(true));
-		assertThat(redisUri.isVerifyPeer(), is(true));
-		assertThat(connectionFactory.isVerifyPeer(), is(true));
+		assertThat(redisUri.isSsl()).isTrue();
+		assertThat(connectionFactory.isUseSsl()).isTrue();
+		assertThat(redisUri.isVerifyPeer()).isTrue();
+		assertThat(connectionFactory.isVerifyPeer()).isTrue();
 	}
 
 	@Test // DATAREDIS-480
@@ -264,12 +258,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClient.class));
+		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.isVerifyPeer(), is(false));
-		assertThat(connectionFactory.isVerifyPeer(), is(false));
+		assertThat(redisUri.isVerifyPeer()).isFalse();
+		assertThat(connectionFactory.isVerifyPeer()).isFalse();
 	}
 
 	@Test // DATAREDIS-480
@@ -282,12 +276,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClient.class));
+		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.isStartTls(), is(true));
-		assertThat(connectionFactory.isStartTls(), is(true));
+		assertThat(redisUri.isStartTls()).isTrue();
+		assertThat(connectionFactory.isStartTls()).isTrue();
 	}
 
 	@Test // DATAREDIS-537
@@ -301,12 +295,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClusterClient.class));
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
 
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.isSsl(), is(true));
+			assertThat(uri.isSsl()).isTrue();
 		}
 	}
 
@@ -321,12 +315,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClusterClient.class));
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
 
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.isStartTls(), is(true));
+			assertThat(uri.isStartTls()).isTrue();
 		}
 	}
 
@@ -341,12 +335,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClusterClient.class));
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
 
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.isVerifyPeer(), is(true));
+			assertThat(uri.isVerifyPeer()).isTrue();
 		}
 	}
 
@@ -358,11 +352,11 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClient.class));
+		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.getSocket(), is("/tmp/redis.sock"));
+		assertThat(redisUri.getSocket()).isEqualTo("/tmp/redis.sock");
 	}
 
 	@Test // DATAREDIS-574
@@ -374,7 +368,7 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getPassword(), is(equalTo("foo")));
+		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
 
 	@Test // DATAREDIS-574
@@ -387,8 +381,8 @@ public class LettuceConnectionFactoryUnitTests {
 				LettuceClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
-		assertThat(connectionFactory.getPassword(), is(equalTo("bar")));
-		assertThat(envConfig.getPassword(), is(equalTo(RedisPassword.of("bar"))));
+		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
+		assertThat(envConfig.getPassword()).isEqualTo(RedisPassword.of("bar"));
 	}
 
 	@Test // DATAREDIS-574
@@ -400,7 +394,7 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getPassword(), is(equalTo("foo")));
+		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
 
 	@Test // DATAREDIS-574
@@ -413,8 +407,8 @@ public class LettuceConnectionFactoryUnitTests {
 				LettuceClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
-		assertThat(connectionFactory.getPassword(), is(equalTo("bar")));
-		assertThat(envConfig.getPassword(), is(equalTo(RedisPassword.of("bar"))));
+		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
+		assertThat(envConfig.getPassword()).isEqualTo(RedisPassword.of("bar"));
 	}
 
 	@Test // DATAREDIS-682
@@ -427,8 +421,8 @@ public class LettuceConnectionFactoryUnitTests {
 				LettuceClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
-		assertThat(connectionFactory.getPassword(), is(equalTo("bar")));
-		assertThat(envConfig.getPassword(), is(equalTo(RedisPassword.of("bar"))));
+		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
+		assertThat(envConfig.getPassword()).isEqualTo(RedisPassword.of("bar"));
 	}
 
 	@Test // DATAREDIS-574
@@ -440,7 +434,7 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getPassword(), is(equalTo("foo")));
+		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
 
 	@Test // DATAREDIS-574
@@ -453,8 +447,8 @@ public class LettuceConnectionFactoryUnitTests {
 				LettuceClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
-		assertThat(connectionFactory.getPassword(), is(equalTo("bar")));
-		assertThat(envConfig.getPassword(), is(equalTo(RedisPassword.of("bar"))));
+		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
+		assertThat(envConfig.getPassword()).isEqualTo(RedisPassword.of("bar"));
 	}
 
 	@Test // DATAREDIS-574
@@ -466,7 +460,7 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getDatabase(), is(2));
+		assertThat(connectionFactory.getDatabase()).isEqualTo(2);
 	}
 
 	@Test // DATAREDIS-574
@@ -479,8 +473,8 @@ public class LettuceConnectionFactoryUnitTests {
 				LettuceClientConfiguration.defaultConfiguration());
 		connectionFactory.setDatabase(3);
 
-		assertThat(connectionFactory.getDatabase(), is(3));
-		assertThat(envConfig.getDatabase(), is(3));
+		assertThat(connectionFactory.getDatabase()).isEqualTo(3);
+		assertThat(envConfig.getDatabase()).isEqualTo(3);
 	}
 
 	@Test // DATAREDIS-574
@@ -492,7 +486,7 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getDatabase(), is(2));
+		assertThat(connectionFactory.getDatabase()).isEqualTo(2);
 	}
 
 	@Test // DATAREDIS-574
@@ -505,8 +499,8 @@ public class LettuceConnectionFactoryUnitTests {
 				LettuceClientConfiguration.defaultConfiguration());
 		connectionFactory.setDatabase(3);
 
-		assertThat(connectionFactory.getDatabase(), is(3));
-		assertThat(envConfig.getDatabase(), is(3));
+		assertThat(connectionFactory.getDatabase()).isEqualTo(3);
+		assertThat(envConfig.getDatabase()).isEqualTo(3);
 	}
 
 	@Test // DATAREDIS-682
@@ -519,8 +513,8 @@ public class LettuceConnectionFactoryUnitTests {
 				LettuceClientConfiguration.defaultConfiguration());
 		connectionFactory.setDatabase(3);
 
-		assertThat(connectionFactory.getDatabase(), is(3));
-		assertThat(envConfig.getDatabase(), is(3));
+		assertThat(connectionFactory.getDatabase()).isEqualTo(3);
+		assertThat(envConfig.getDatabase()).isEqualTo(3);
 	}
 
 	@Test // DATAREDIS-574
@@ -542,14 +536,14 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
 				configuration);
 
-		assertThat(connectionFactory.getClientConfiguration(), is(configuration));
+		assertThat(connectionFactory.getClientConfiguration()).isEqualTo(configuration);
 
-		assertThat(connectionFactory.isUseSsl(), is(true));
-		assertThat(connectionFactory.isVerifyPeer(), is(false));
-		assertThat(connectionFactory.isStartTls(), is(true));
-		assertThat(connectionFactory.getClientResources(), is(sharedClientResources));
-		assertThat(connectionFactory.getTimeout(), is(Duration.ofMinutes(5).toMillis()));
-		assertThat(connectionFactory.getShutdownTimeout(), is(Duration.ofHours(2).toMillis()));
+		assertThat(connectionFactory.isUseSsl()).isTrue();
+		assertThat(connectionFactory.isVerifyPeer()).isFalse();
+		assertThat(connectionFactory.isStartTls()).isTrue();
+		assertThat(connectionFactory.getClientResources()).isEqualTo(sharedClientResources);
+		assertThat(connectionFactory.getTimeout()).isEqualTo(Duration.ofMinutes(5).toMillis());
+		assertThat(connectionFactory.getShutdownTimeout()).isEqualTo(Duration.ofHours(2).toMillis());
 	}
 
 	@Test // DATAREDIS-574
@@ -559,9 +553,9 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getStandaloneConfiguration(), is(configuration));
-		assertThat(connectionFactory.getSentinelConfiguration(), is(nullValue()));
-		assertThat(connectionFactory.getClusterConfiguration(), is(nullValue()));
+		assertThat(connectionFactory.getStandaloneConfiguration()).isEqualTo(configuration);
+		assertThat(connectionFactory.getSentinelConfiguration()).isNull();
+		assertThat(connectionFactory.getClusterConfiguration()).isNull();
 	}
 
 	@Test // DATAREDIS-682
@@ -571,10 +565,10 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getStandaloneConfiguration(), is(notNullValue()));
-		assertThat(connectionFactory.getSocketConfiguration(), is(configuration));
-		assertThat(connectionFactory.getSentinelConfiguration(), is(nullValue()));
-		assertThat(connectionFactory.getClusterConfiguration(), is(nullValue()));
+		assertThat(connectionFactory.getStandaloneConfiguration()).isNotNull();
+		assertThat(connectionFactory.getSocketConfiguration()).isEqualTo(configuration);
+		assertThat(connectionFactory.getSentinelConfiguration()).isNull();
+		assertThat(connectionFactory.getClusterConfiguration()).isNull();
 	}
 
 	@Test // DATAREDIS-574
@@ -584,9 +578,9 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getStandaloneConfiguration(), is(notNullValue()));
-		assertThat(connectionFactory.getSentinelConfiguration(), is(configuration));
-		assertThat(connectionFactory.getClusterConfiguration(), is(nullValue()));
+		assertThat(connectionFactory.getStandaloneConfiguration()).isNotNull();
+		assertThat(connectionFactory.getSentinelConfiguration()).isEqualTo(configuration);
+		assertThat(connectionFactory.getClusterConfiguration()).isNull();
 	}
 
 	@Test // DATAREDIS-574
@@ -596,9 +590,9 @@ public class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
 				LettuceClientConfiguration.defaultConfiguration());
 
-		assertThat(connectionFactory.getStandaloneConfiguration(), is(notNullValue()));
-		assertThat(connectionFactory.getSentinelConfiguration(), is(nullValue()));
-		assertThat(connectionFactory.getClusterConfiguration(), is(configuration));
+		assertThat(connectionFactory.getStandaloneConfiguration()).isNotNull();
+		assertThat(connectionFactory.getSentinelConfiguration()).isNull();
+		assertThat(connectionFactory.getClusterConfiguration()).isEqualTo(configuration);
 	}
 
 	@Test(expected = IllegalStateException.class) // DATAREDIS-574
@@ -621,7 +615,7 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		RedisClusterConnection clusterConnection = connectionFactory.getClusterConnection();
-		assertThat(ReflectionTestUtils.getField(clusterConnection, "timeout"), is(equalTo(2000L)));
+		assertThat(ReflectionTestUtils.getField(clusterConnection, "timeout")).isEqualTo(2000L);
 
 		clusterConnection.close();
 	}
@@ -637,7 +631,7 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		RedisClusterConnection clusterConnection = connectionFactory.getClusterConnection();
-		assertThat(ReflectionTestUtils.getField(clusterConnection, "timeout"), is(equalTo(2000L)));
+		assertThat(ReflectionTestUtils.getField(clusterConnection, "timeout")).isEqualTo(2000L);
 
 		clusterConnection.close();
 	}
@@ -706,11 +700,11 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClient.class));
+		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.getDatabase(), is(equalTo(1)));
+		assertThat(redisUri.getDatabase()).isEqualTo(1);
 	}
 
 	@Test // DATAREDIS-949
@@ -728,9 +722,9 @@ public class LettuceConnectionFactoryUnitTests {
 
 		ClusterClientOptions options = (ClusterClientOptions) client.getOptions();
 
-		assertThat(options.getMaxRedirects(), is(42));
-		assertThat(options.isValidateClusterNodeMembership(), is(true));
-		assertThat(options.getTimeoutOptions().isApplyConnectionTimeout(), is(true));
+		assertThat(options.getMaxRedirects()).isEqualTo(42);
+		assertThat(options.isValidateClusterNodeMembership()).isTrue();
+		assertThat(options.getTimeoutOptions().isApplyConnectionTimeout()).isTrue();
 	}
 
 	@Test // DATAREDIS-949
@@ -751,9 +745,9 @@ public class LettuceConnectionFactoryUnitTests {
 
 		ClusterClientOptions options = (ClusterClientOptions) client.getOptions();
 
-		assertThat(options.getMaxRedirects(), is(42));
-		assertThat(options.isValidateClusterNodeMembership(), is(false));
-		assertThat(options.getTimeoutOptions().isApplyConnectionTimeout(), is(false));
+		assertThat(options.getMaxRedirects()).isEqualTo(42);
+		assertThat(options.isValidateClusterNodeMembership()).isFalse();
+		assertThat(options.getTimeoutOptions().isApplyConnectionTimeout()).isFalse();
 	}
 
 	@Data
