@@ -1013,7 +1013,7 @@ public class LettuceConnectionFactory
 				.map(ClusterClientOptions.class::cast) //
 				.orElseGet(() -> {
 					return clientOptions //
-							.map(LettuceConnectionFactory::toClusterClientOptions) //
+							.map(it -> ClusterClientOptions.builder(it).build()) //
 							.orElseGet(ClusterClientOptions::create);
 				});
 
@@ -1022,22 +1022,6 @@ public class LettuceConnectionFactory
 		}
 
 		return clusterClientOptions;
-	}
-
-	// TODO: Replace with Lettuce 5.1.6 ClusterClientOptions.builder(ClientOptions)
-	private static ClusterClientOptions toClusterClientOptions(ClientOptions it) {
-
-		return ClusterClientOptions.builder() //
-				.autoReconnect(it.isAutoReconnect()) //
-				.cancelCommandsOnReconnectFailure(it.isCancelCommandsOnReconnectFailure()) //
-				.disconnectedBehavior(it.getDisconnectedBehavior()) //
-				.pingBeforeActivateConnection(it.isPingBeforeActivateConnection()) //
-				.requestQueueSize(it.getRequestQueueSize()) //
-				.socketOptions(it.getSocketOptions()) //
-				.sslOptions(it.getSslOptions()) //
-				.suspendReconnectOnProtocolFailure(it.isSuspendReconnectOnProtocolFailure())//
-				.timeoutOptions(it.getTimeoutOptions()) //
-				.build();
 	}
 
 	private RedisURI getSentinelRedisURI() {
