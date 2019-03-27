@@ -692,6 +692,33 @@ public class LettuceConnectionFactoryUnitTests {
 		verify(syncMock).ping();
 	}
 
+	@Test // DATAREDIS-953
+	public void shouldReleaseSharedConnectionOnlyOnce() {
+
+		RedisClusterClient clientMock = mock(RedisClusterClient.class);
+		StatefulRedisClusterConnection<byte[], byte[]> connectionMock = mock(StatefulRedisClusterConnection.class);
+		when(clientMock.connectAsync(ByteArrayCodec.INSTANCE))
+				.thenReturn(CompletableFuture.completedFuture(connectionMock));
+		when(connectionMock.isOpen()).thenReturn(false);
+		when(connectionMock.closeAsync()).thenReturn(CompletableFuture.completedFuture(null));
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
+				LettuceClientConfiguration.defaultConfiguration()) {
+
+			@Override
+			protected AbstractRedisClient createClient() {
+				return clientMock;
+			}
+		};
+
+		connectionFactory.setValidateConnection(true);
+		connectionFactory.afterPropertiesSet();
+
+		connectionFactory.getConnection().close();
+
+		verify(connectionMock).closeAsync();
+	}
+
 	@Test // DATAREDIS-721
 	@SuppressWarnings("unchecked")
 	public void shouldEagerlyInitializeSharedConnection() {
