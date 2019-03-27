@@ -31,6 +31,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
@@ -661,6 +662,34 @@ public class LettuceConnectionFactoryUnitTests {
 		connectionFactory.getClusterConnection().close();
 
 		verify(clientMock).connectAsync(ArgumentMatchers.any(RedisCodec.class));
+	}
+
+	@Test // DATAREDIS-950
+	public void shouldValidateSharedClusterConnection() {
+
+		RedisClusterClient clientMock = mock(RedisClusterClient.class);
+		StatefulRedisClusterConnection<byte[], byte[]> connectionMock = mock(StatefulRedisClusterConnection.class);
+		RedisAdvancedClusterCommands<byte[], byte[]> syncMock = mock(RedisAdvancedClusterCommands.class);
+		when(clientMock.connectAsync(ByteArrayCodec.INSTANCE))
+				.thenReturn(CompletableFuture.completedFuture(connectionMock));
+		when(connectionMock.isOpen()).thenReturn(true);
+		when(connectionMock.sync()).thenReturn(syncMock);
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
+				LettuceClientConfiguration.defaultConfiguration()) {
+
+			@Override
+			protected AbstractRedisClient createClient() {
+				return clientMock;
+			}
+		};
+
+		connectionFactory.setValidateConnection(true);
+		connectionFactory.afterPropertiesSet();
+
+		connectionFactory.getConnection().close();
+
+		verify(syncMock).ping();
 	}
 
 	@Test // DATAREDIS-721

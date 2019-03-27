@@ -1160,7 +1160,7 @@ public class LettuceConnectionFactory
 						}
 
 						if (connection instanceof StatefulRedisClusterConnection) {
-							((StatefulRedisConnection) connection).sync().ping();
+							((StatefulRedisClusterConnection) connection).sync().ping();
 						}
 						valid = true;
 					} catch (Exception e) {
