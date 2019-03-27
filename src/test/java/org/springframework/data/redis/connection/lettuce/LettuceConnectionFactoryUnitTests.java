@@ -26,11 +26,10 @@ import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
-import io.lettuce.core.api.StatefulConnection;
-import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
@@ -640,8 +639,7 @@ public class LettuceConnectionFactoryUnitTests {
 
 		RedisClusterClient clientMock = mock(RedisClusterClient.class);
 		StatefulRedisClusterConnection<byte[], byte[]> connectionMock = mock(StatefulRedisClusterConnection.class);
-		when(clientMock.connect(ByteArrayCodec.INSTANCE))
-				.thenReturn(connectionMock);
+		when(clientMock.connect(ByteArrayCodec.INSTANCE)).thenReturn(connectionMock);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
 				LettuceClientConfiguration.defaultConfiguration()) {
@@ -660,6 +658,33 @@ public class LettuceConnectionFactoryUnitTests {
 		connectionFactory.getClusterConnection().close();
 
 		verify(clientMock).connect(ArgumentMatchers.any(RedisCodec.class));
+	}
+
+	@Test // DATAREDIS-950
+	public void shouldValidateSharedClusterConnection() {
+
+		RedisClusterClient clientMock = mock(RedisClusterClient.class);
+		StatefulRedisClusterConnection<byte[], byte[]> connectionMock = mock(StatefulRedisClusterConnection.class);
+		RedisAdvancedClusterCommands<byte[], byte[]> syncMock = mock(RedisAdvancedClusterCommands.class);
+		when(clientMock.connect(ByteArrayCodec.INSTANCE)).thenReturn(connectionMock);
+		when(connectionMock.isOpen()).thenReturn(true);
+		when(connectionMock.sync()).thenReturn(syncMock);
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
+				LettuceClientConfiguration.defaultConfiguration()) {
+
+			@Override
+			protected AbstractRedisClient createClient() {
+				return clientMock;
+			}
+		};
+
+		connectionFactory.setValidateConnection(true);
+		connectionFactory.afterPropertiesSet();
+
+		connectionFactory.getConnection().close();
+
+		verify(syncMock).ping();
 	}
 
 	@Test // DATAREDIS-842
