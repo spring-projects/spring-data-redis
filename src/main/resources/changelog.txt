@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.19.RELEASE (2019-04-01)
+----------------------------------------------
+* DATAREDIS-939 - LettuceConnectionFactory does not pass value to the RedisClient when Sentinel is used.
+* DATAREDIS-932 - Jedis exception message for MULTI has typo.
+* DATAREDIS-921 - Release 1.8.19 (Ingalls SR19).
+
+
 Changes in version 2.2.0.M2 (2019-03-07)
 ----------------------------------------
 * DATAREDIS-941 - Upgrade to Lettuce 5.1.5.RELEASE.
