@@ -1,6 +1,11 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.20.RELEASE (2019-04-01)
+----------------------------------------------
+* DATAREDIS-957 - Release 1.8.20 (Ingalls SR20).
+
+
 Changes in version 1.8.19.RELEASE (2019-04-01)
 ----------------------------------------------
 * DATAREDIS-939 - LettuceConnectionFactory does not pass value to the RedisClient when Sentinel is used.
