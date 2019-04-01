@@ -1,6 +1,15 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.0.14.RELEASE (2019-04-01)
+----------------------------------------------
+* DATAREDIS-945 - Let the CI build use -U for Maven execution.
+* DATAREDIS-936 - Upgrade to Jedis 2.9.3.
+* DATAREDIS-932 - Jedis exception message for MULTI has typo.
+* DATAREDIS-922 - Release 2.0.14 (Kay SR14).
+* DATAREDIS-915 - RedisCacheManager documentation contains incorrect example.
+
+
 Changes in version 1.8.20.RELEASE (2019-04-01)
 ----------------------------------------------
 * DATAREDIS-957 - Release 1.8.20 (Ingalls SR20).
