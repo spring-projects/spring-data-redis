@@ -1,6 +1,22 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.6.RELEASE (2019-04-01)
+---------------------------------------------
+* DATAREDIS-953 - Shared Lettuce connection released twice on failed validation.
+* DATAREDIS-951 - Upgrade to Lettuce 5.1.6.
+* DATAREDIS-950 - ClassCastException on connection validation of shared Lettuce Cluster connections.
+* DATAREDIS-949 - RedisClusterConfiguration.maxRedirects is not applied for Lettuce.
+* DATAREDIS-945 - Let the CI build use -U for Maven execution.
+* DATAREDIS-941 - Upgrade to Lettuce 5.1.5.RELEASE.
+* DATAREDIS-936 - Upgrade to Jedis 2.9.3.
+* DATAREDIS-932 - Jedis exception message for MULTI has typo.
+* DATAREDIS-931 - Release 2.1.6 (Lovelace SR6).
+* DATAREDIS-930 - LettuceConnectionFactory.getPort() considers only StandaloneConfiguration.
+* DATAREDIS-925 - Support secondary index for attribute with UUID type.
+* DATAREDIS-888 - ConcurrentModificationException in LettuceConverters.
+
+
 Changes in version 2.0.14.RELEASE (2019-04-01)
 ----------------------------------------------
 * DATAREDIS-945 - Let the CI build use -U for Maven execution.
