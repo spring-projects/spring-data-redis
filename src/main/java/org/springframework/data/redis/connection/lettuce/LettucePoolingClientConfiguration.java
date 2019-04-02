@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.ReadFrom;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
@@ -153,6 +154,16 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 		public LettucePoolingClientConfigurationBuilder shutdownQuietPeriod(Duration shutdownQuietPeriod) {
 
 			super.shutdownQuietPeriod(shutdownQuietPeriod);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#readFrom(io.lettuce.core.ReadFrom)
+		 */
+		@Override
+		public LettucePoolingClientConfigurationBuilder readFrom(ReadFrom readFrom) {
+			super.readFrom(readFrom);
 			return this;
 		}
 
