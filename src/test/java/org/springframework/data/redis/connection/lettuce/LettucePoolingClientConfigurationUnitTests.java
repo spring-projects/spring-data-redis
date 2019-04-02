@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.ReadFrom;
 import io.lettuce.core.TimeoutOptions;
 import io.lettuce.core.resource.ClientResources;
 
@@ -79,5 +80,25 @@ public class LettucePoolingClientConfigurationUnitTests {
 		assertThat(configuration.getClientResources()).contains(sharedClientResources);
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofMinutes(5));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofHours(2));
+	}
+
+	@Test // DATAREDIS-956
+	public void shouldConfigureReadFrom() {
+
+		ClientOptions clientOptions = ClientOptions.create();
+		ClientResources sharedClientResources = LettuceTestClientResources.getSharedClientResources();
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+
+		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.builder() //
+			.poolConfig(poolConfig) //
+			.clientOptions(clientOptions) //
+			.clientResources(sharedClientResources) //
+			.readFrom(ReadFrom.MASTER_PREFERRED) //
+			.build();
+
+		assertThat(configuration.getPoolConfig()).isEqualTo(poolConfig);
+		assertThat(configuration.getClientOptions()).contains(clientOptions);
+		assertThat(configuration.getClientResources()).contains(sharedClientResources);
+		assertThat(configuration.getReadFrom().orElse(ReadFrom.MASTER)).isEqualTo(ReadFrom.MASTER_PREFERRED);
 	}
 }
