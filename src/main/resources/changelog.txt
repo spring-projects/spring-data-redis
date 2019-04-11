@@ -1,6 +1,20 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.0.M3 (2019-04-11)
+----------------------------------------
+* DATAREDIS-953 - Shared Lettuce connection released twice on failed validation.
+* DATAREDIS-951 - Upgrade to Lettuce 5.1.6.
+* DATAREDIS-950 - ClassCastException on connection validation of shared Lettuce Cluster connections.
+* DATAREDIS-949 - RedisClusterConfiguration.maxRedirects is not applied for Lettuce.
+* DATAREDIS-947 - Remove redundant reflection access from JedisClientUtils.
+* DATAREDIS-945 - Let the CI build use -U for Maven execution.
+* DATAREDIS-944 - Move off deprecations in Spring Data Commons.
+* DATAREDIS-942 - Release 2.2 M3 (Moore).
+* DATAREDIS-925 - Support secondary index for attribute with UUID type.
+* DATAREDIS-794 - Improve JedisClusterConnection topology caching.
+
+
 Changes in version 2.1.6.RELEASE (2019-04-01)
 ---------------------------------------------
 * DATAREDIS-953 - Shared Lettuce connection released twice on failed validation.
