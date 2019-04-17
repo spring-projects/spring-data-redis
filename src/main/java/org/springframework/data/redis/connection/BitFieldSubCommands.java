@@ -28,6 +28,7 @@ import org.springframework.util.Assert;
  * The actual {@code BITFIELD} command representation holding several {@link BitFieldSubCommand}s to execute.
  *
  * @author Christoph Strobl
+ * @author Qiang Lee
  * @since 2.1
  */
 public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
@@ -88,7 +89,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	/**
 	 * Create new {@link BitFieldSubCommands} adding given {@link BitFieldSet} to the sub commands.
 	 *
-	 * @param get must not be {@literal null}.
+	 * @param set must not be {@literal null}.
 	 * @return
 	 */
 	protected BitFieldSubCommands set(BitFieldSet set) {
@@ -434,7 +435,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		private final boolean signed;
 		private final int bits;
 
-		private BitFieldType(Boolean signed, Integer bits) {
+		private BitFieldType(boolean signed, Integer bits) {
 
 			this.signed = signed;
 			this.bits = bits;
