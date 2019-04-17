@@ -66,11 +66,14 @@ public class RedisCommandUnitTests {
 	@Test // DATAREDIS-73
 	public void shouldNotThrowExceptionOnValidArgumentCount() {
 		RedisCommand.AUTH.validateArgumentCount(1);
+		RedisCommand.ZADD.validateArgumentCount(3); // DATAREDIS-972
+		RedisCommand.ZADD.validateArgumentCount(4); // DATAREDIS-972
+		RedisCommand.ZADD.validateArgumentCount(5); // DATAREDIS-972
+		RedisCommand.ZADD.validateArgumentCount(100); // DATAREDIS-972
 	}
 
 	@Test // DATAREDIS-822
 	public void shouldConsiderMinMaxArguments() {
-
 		RedisCommand.BITPOS.validateArgumentCount(2);
 		RedisCommand.BITPOS.validateArgumentCount(3);
 		RedisCommand.BITPOS.validateArgumentCount(4);
@@ -78,16 +81,13 @@ public class RedisCommandUnitTests {
 
 	@Test // DATAREDIS-822
 	public void shouldReportArgumentMismatchIfMaxArgumentsExceeded() {
-
 		expectedException.expect(IllegalArgumentException.class);
 		expectedException.expectMessage("BITPOS command requires at most 4 arguments");
-
 		RedisCommand.BITPOS.validateArgumentCount(5);
 	}
 
 	@Test // DATAREDIS-73
 	public void shouldThrowExceptionOnInvalidArgumentCountWhenExpectedExactMatch() {
-
 		expectedException.expect(IllegalArgumentException.class);
 		expectedException.expectMessage("AUTH command requires 1 arguments");
 		RedisCommand.AUTH.validateArgumentCount(2);
@@ -95,9 +95,12 @@ public class RedisCommandUnitTests {
 
 	@Test // DATAREDIS-73
 	public void shouldThrowExceptionOnInvalidArgumentCountWhenExpectedMinimalMatch() {
-
 		expectedException.expect(IllegalArgumentException.class);
 		expectedException.expectMessage("DEL command requires at least 1 arguments");
 		RedisCommand.DEL.validateArgumentCount(0);
+
+		expectedException.expect(IllegalArgumentException.class);
+		expectedException.expectMessage("ZADD command requires at least 3 arguments");
+		RedisCommand.ZADD.validateArgumentCount(2); // DATAREDIS-972
 	}
 }
