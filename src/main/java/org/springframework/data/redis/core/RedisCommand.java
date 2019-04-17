@@ -347,7 +347,7 @@ public enum RedisCommand {
 						String.format("%s command requires at least %s arguments.", this.name(), this.minArgs));
 			}
 
-			if (maxArgs != 0 && nrArguments > maxArgs) {
+			if (maxArgs > 0 && nrArguments > maxArgs) {
 				throw new IllegalArgumentException(
 						String.format("%s command requires at most %s arguments.", this.name(), this.maxArgs));
 			}
