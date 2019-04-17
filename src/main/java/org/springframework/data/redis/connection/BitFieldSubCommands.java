@@ -447,7 +447,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 * @return
 		 */
 		public static BitFieldType signed(int bits) {
-			return new BitFieldType(false, bits);
+			return new BitFieldType(true, bits);
 		}
 
 		/**
