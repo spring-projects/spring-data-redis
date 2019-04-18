@@ -32,6 +32,7 @@ import org.junit.Test;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Longlong Zhao
  */
 public class LettucePoolingClientConfigurationUnitTests {
 
@@ -88,20 +89,28 @@ public class LettucePoolingClientConfigurationUnitTests {
 	@Test // DATAREDIS-956
 	public void shouldConfigureReadFrom() {
 
-		ClientOptions clientOptions = ClientOptions.create();
-		ClientResources sharedClientResources = LettuceTestClientResources.getSharedClientResources();
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 
 		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.builder() //
-			.poolConfig(poolConfig) //
-			.clientOptions(clientOptions) //
-			.clientResources(sharedClientResources) //
-			.readFrom(ReadFrom.MASTER_PREFERRED) //
-			.build();
+				.poolConfig(poolConfig) //
+				.readFrom(ReadFrom.MASTER_PREFERRED) //
+				.build();
 
 		assertThat(configuration.getPoolConfig()).isEqualTo(poolConfig);
-		assertThat(configuration.getClientOptions()).contains(clientOptions);
-		assertThat(configuration.getClientResources()).contains(sharedClientResources);
 		assertThat(configuration.getReadFrom().orElse(ReadFrom.MASTER)).isEqualTo(ReadFrom.MASTER_PREFERRED);
+	}
+
+	@Test // DATAREDIS-956
+	public void shouldConfigureClientName() {
+
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+
+		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.builder() //
+				.poolConfig(poolConfig) //
+				.clientName("clientName") //
+				.build();
+
+		assertThat(configuration.getPoolConfig()).isEqualTo(poolConfig);
+		assertThat(configuration.getClientName()).contains("clientName");
 	}
 }

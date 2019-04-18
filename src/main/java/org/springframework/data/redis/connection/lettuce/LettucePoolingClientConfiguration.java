@@ -22,6 +22,7 @@ import io.lettuce.core.resource.ClientResources;
 import java.time.Duration;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+
 import org.springframework.util.Assert;
 
 /**
@@ -63,6 +64,10 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 	 * <dd>{@link ClientOptions} with enabled {@link io.lettuce.core.TimeoutOptions}</dd>
 	 * <dt>Client Resources</dt>
 	 * <dd>none</dd>
+	 * <dt>Client name</dt>
+	 * <dd>none</dd>
+	 * <dt>Read From</dt>
+	 * <dd>none</dd>
 	 * <dt>Connect Timeout</dt>
 	 * <dd>60 Seconds</dd>
 	 * <dt>Shutdown Timeout</dt>
@@ -82,6 +87,7 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 	/**
 	 * @author Mark Paluch
 	 * @author Christoph Strobl
+	 * @author Longlong Zhao
 	 */
 	class LettucePoolingClientConfigurationBuilder extends LettuceClientConfigurationBuilder {
 
@@ -164,6 +170,16 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 		@Override
 		public LettucePoolingClientConfigurationBuilder readFrom(ReadFrom readFrom) {
 			super.readFrom(readFrom);
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#clientName(String)
+		 */
+		@Override
+		public LettucePoolingClientConfigurationBuilder clientName(String clientName) {
+			super.clientName(clientName);
 			return this;
 		}
 
