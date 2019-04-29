@@ -35,7 +35,7 @@ class LettuceMessageListener implements RedisPubSubListener<byte[], byte[]> {
 		this.listener = listener;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see io.lettuce.core.pubsub.RedisPubSubListener#message(java.lang.Object, java.lang.Object)
 	 */
@@ -43,7 +43,7 @@ class LettuceMessageListener implements RedisPubSubListener<byte[], byte[]> {
 		listener.onMessage(new DefaultMessage(channel, message), null);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see io.lettuce.core.pubsub.RedisPubSubListener#message(java.lang.Object, java.lang.Object, java.lang.Object)
 	 */
@@ -51,25 +51,25 @@ class LettuceMessageListener implements RedisPubSubListener<byte[], byte[]> {
 		listener.onMessage(new DefaultMessage(channel, message), pattern);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see io.lettuce.core.pubsub.RedisPubSubListener#subscribed(java.lang.Object, long)
 	 */
 	public void subscribed(byte[] channel, long count) {}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see io.lettuce.core.pubsub.RedisPubSubListener#psubscribed(java.lang.Object, long)
 	 */
 	public void psubscribed(byte[] pattern, long count) {}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see io.lettuce.core.pubsub.RedisPubSubListener#unsubscribed(java.lang.Object, long)
 	 */
 	public void unsubscribed(byte[] channel, long count) {}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see io.lettuce.core.pubsub.RedisPubSubListener#punsubscribed(java.lang.Object, long)
 	 */

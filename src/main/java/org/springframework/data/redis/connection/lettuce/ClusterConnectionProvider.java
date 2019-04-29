@@ -19,6 +19,7 @@ import io.lettuce.core.ReadFrom;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.pubsub.StatefulRedisClusterPubSubConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
@@ -33,6 +34,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Bruce Cloud
  * @since 2.0
  */
 class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClientProvider {
@@ -93,7 +95,8 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 			}
 		}
 
-		if (connectionType.equals(StatefulRedisPubSubConnection.class)) {
+		if (connectionType.equals(StatefulRedisPubSubConnection.class)
+			|| connectionType.equals(StatefulRedisClusterPubSubConnection.class)) {
 
 			return client.connectPubSubAsync(codec) //
 					.thenApply(connectionType::cast);

@@ -1254,7 +1254,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		private final LettucePool pool;
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
 		 */
@@ -1263,7 +1263,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			return connectionType.cast(pool.getResource());
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
 		 */
@@ -1272,7 +1272,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			throw new UnsupportedOperationException("Async operations not supported!");
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#release(io.lettuce.core.api.StatefulConnection)
 		 */
