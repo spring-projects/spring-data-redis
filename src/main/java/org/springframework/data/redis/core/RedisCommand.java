@@ -30,9 +30,11 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Ninad Divadkar
  * @author Mark Paluch
+ * @author Oscar Cai
  * @since 1.3
- * @see Redis command list:
- *      https://github.com/antirez/redis/blob/93e7a130fc9594e41ccfc996b5eca7626ae5356a/src/redis.c#L119
+ * @link <a href=
+ *       "https://github.com/antirez/redis/blob/843de8b786562d8d77c78d83a971060adc61f77a/src/server.c#L180">Redis
+ *       command list</a>
  */
 public enum RedisCommand {
 	// -- A
