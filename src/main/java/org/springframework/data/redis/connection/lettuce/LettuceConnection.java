@@ -95,8 +95,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	private final int defaultDbIndex;
 	private int dbIndex;
-
-	private final LettuceConnectionProvider connectionProvider;
+	
+	protected final LettuceConnectionProvider connectionProvider;
 	private final @Nullable StatefulConnection<byte[], byte[]> asyncSharedConn;
 	private @Nullable StatefulConnection<byte[], byte[]> asyncDedicatedConn;
 

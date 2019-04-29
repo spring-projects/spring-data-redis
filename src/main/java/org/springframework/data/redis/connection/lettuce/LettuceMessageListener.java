@@ -16,7 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.pubsub.RedisPubSubListener;
-
+import org.springframework.data.redis.connection.ClusterMessageListener;
 import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.util.Assert;
@@ -33,6 +33,11 @@ class LettuceMessageListener implements RedisPubSubListener<byte[], byte[]> {
 	LettuceMessageListener(MessageListener listener) {
 		Assert.notNull(listener, "MessageListener must not be null!");
 		this.listener = listener;
+	}
+	
+	LettuceMessageListener(ClusterMessageListener listener) {
+		Assert.notNull(listener, "ClusterMessageListener must not be null!");
+		this.listener = (MessageListener)listener;
 	}
 
 	/* 

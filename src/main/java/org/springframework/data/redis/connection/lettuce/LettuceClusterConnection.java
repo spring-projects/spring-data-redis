@@ -23,6 +23,7 @@ import io.lettuce.core.cluster.SlotHash;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 import io.lettuce.core.cluster.models.partitions.Partitions;
+import io.lettuce.core.cluster.pubsub.StatefulRedisClusterPubSubConnection;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Duration;
@@ -65,6 +66,8 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 
 	private final Log log = LogFactory.getLog(getClass());
 	private final RedisClusterClient clusterClient;
+	
+	private volatile @Nullable LettuceClusterSubscription subscription;
 
 	private ClusterCommandExecutor clusterCommandExecutor;
 	private ClusterTopologyProvider topologyProvider;
@@ -293,6 +296,89 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	@Override
 	public RedisClusterServerCommands serverCommands() {
 		return new LettuceClusterServerCommands(this);
+	}
+	
+	private void checkSubscription() {
+		if (isSubscribed()) {
+			throw new RedisSubscribedConnectionException(
+					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
+		}
+	}
+	
+	/**
+	 * {@link #close()} the current connection and open a new pub/sub connection to the Redis server.
+	 *
+	 * @return never {@literal null}.
+	 */
+	@SuppressWarnings("unchecked")
+	protected StatefulRedisClusterPubSubConnection<byte[], byte[]> switchToPubSub() {
+
+		close();
+		return connectionProvider.getConnection(StatefulRedisClusterPubSubConnection.class);
+	}
+
+	private LettuceClusterSubscription initSubscription(MessageListener listener) {
+		return new LettuceClusterSubscription(listener, switchToPubSub(), connectionProvider);
+	}
+	
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#getSubscription()
+	 */
+	@Override
+	public Subscription getSubscription() {
+		return subscription;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#isSubscribed()
+	 */
+	@Override
+	public boolean isSubscribed() {
+		return (subscription != null && subscription.isAlive());
+	}
+	
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#pSubscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
+	 */
+	@Override
+	public void pSubscribe(MessageListener listener, byte[]... patterns) {
+
+		checkSubscription();
+
+		if (isQueueing() || isPipelined()) {
+			throw new UnsupportedOperationException("Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
+		}
+
+		try {
+			subscription = initSubscription(listener);
+			subscription.pSubscribe(patterns);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#subscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
+	 */
+	@Override
+	public void subscribe(MessageListener listener, byte[]... channels) {
+
+		checkSubscription();
+
+		if (isQueueing() || isPipelined()) {
+			throw new UnsupportedOperationException("Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
+		}
+
+		try {
+			subscription = initSubscription(listener);
+			subscription.subscribe(channels);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
 	}
 
 	/*
@@ -640,6 +726,13 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 			} catch (Exception ex) {
 				log.warn("Cannot properly close cluster command executor", ex);
 			}
+		}
+		
+		if (subscription != null) {
+			if (subscription.isAlive()) {
+				subscription.doClose();
+			}
+			subscription = null;
 		}
 
 		super.close();
