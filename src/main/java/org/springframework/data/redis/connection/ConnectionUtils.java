@@ -37,4 +37,14 @@ public abstract class ConnectionUtils {
 	public static boolean isJedis(RedisConnectionFactory connectionFactory) {
 		return connectionFactory instanceof JedisConnectionFactory;
 	}
+	
+	public static boolean isClusterAware(RedisConnectionFactory connectionFactory) {
+		if (connectionFactory instanceof LettuceConnectionFactory) {
+			return ((LettuceConnectionFactory) connectionFactory).isClusterAware();
+		}
+		else if (connectionFactory instanceof JedisConnectionFactory) {
+			return ((JedisConnectionFactory) connectionFactory).isRedisClusterAware();
+		}
+		return false;
+	}
 }

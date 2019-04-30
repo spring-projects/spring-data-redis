@@ -35,6 +35,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.ClusterMessageListener;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -113,6 +114,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private volatile boolean listening = false;
 
 	private volatile boolean manageExecutor = false;
+	
+	private volatile boolean listensForKeyspaceNotifications = false;
 
 	// lookup maps
 	// to avoid creation of hashes for each message, the maps use raw byte arrays (wrapped to respect the equals/hashcode
@@ -310,6 +313,13 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
 		this.connectionFactory = connectionFactory;
+	}
+	
+	/**
+	 * @param boolean The listensForKeyspaceNotifications to set
+	 */
+	public void setListensForKeyspaceNotifications(boolean listensForKeyspaceNotifications) {
+		this.listensForKeyspaceNotifications = listensForKeyspaceNotifications;
 	}
 
 	public void setBeanName(String name) {
@@ -778,6 +788,14 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		private SubscriptionPresentCondition eventuallyPerformSubscription() {
 
 			SubscriptionPresentCondition condition = null;
+			DispatchMessageListener listener = null;
+			
+			if (ConnectionUtils.isClusterAware(connectionFactory)) {
+				listener = new ClusterDispatchMessageListener(listensForKeyspaceNotifications);
+			}
+			else {
+				listener = new DispatchMessageListener();
+			}
 
 			if (channelMapping.isEmpty()) {
 
@@ -976,6 +994,20 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			if (!CollectionUtils.isEmpty(listeners)) {
 				dispatchMessage(listeners, message, pattern);
 			}
+		}
+	}
+	
+	private class ClusterDispatchMessageListener extends DispatchMessageListener implements ClusterMessageListener {
+		
+		boolean listensForKeyspaceNotifications = false;
+		
+		public ClusterDispatchMessageListener(boolean listensForKeyspaceNotifications) {
+			super();
+			this.listensForKeyspaceNotifications = listensForKeyspaceNotifications;
+		}
+		
+		public boolean listensForKeyspaceNotifications() {
+			return listensForKeyspaceNotifications;
 		}
 	}
 
