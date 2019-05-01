@@ -25,6 +25,7 @@ import org.springframework.util.Assert;
  * MessageListener wrapper around Lettuce {@link RedisPubSubListener}.
  *
  * @author Costin Leau
+ * @author Bruce Cloud
  */
 class LettuceMessageListener implements RedisPubSubListener<byte[], byte[]> {
 

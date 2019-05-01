@@ -57,6 +57,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Bruce Cloud
  * @since 1.7
  */
 public class LettuceClusterConnection extends LettuceConnection implements DefaultedRedisClusterConnection {

@@ -27,6 +27,8 @@ import org.springframework.data.redis.connection.util.AbstractSubscription;
 /**
  * Message subscription on top of Lettuce cluster support.
  *
+ * @author Bruce Cloud
+ * @since 2.2
  */
 class LettuceClusterSubscription extends AbstractSubscription {
 

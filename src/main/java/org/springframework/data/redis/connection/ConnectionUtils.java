@@ -23,6 +23,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
  *
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Bruce Cloud
  */
 public abstract class ConnectionUtils {
 

@@ -84,6 +84,7 @@ import org.springframework.util.ObjectUtils;
  * @author David Liu
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Bruce Cloud
  */
 public class LettuceConnection extends AbstractRedisConnection {
 

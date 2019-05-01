@@ -18,6 +18,8 @@ package org.springframework.data.redis.connection;
 /**
  * Listener of messages published in Redis.
  *
+ * @author Bruce Cloud
+ * @since 2.2
  */
 public interface ClusterMessageListener extends MessageListener {
 

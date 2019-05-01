@@ -70,6 +70,7 @@ import org.springframework.util.ErrorHandler;
  * @author Way Joke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Bruce Cloud
  */
 public class RedisMessageListenerContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
 

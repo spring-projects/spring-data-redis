@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Bruce Cloud
  * @since 2.0
  */
 class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClientProvider {
