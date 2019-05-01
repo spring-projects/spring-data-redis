@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.cluster.pubsub.StatefulRedisClusterPubSubConnection;
 import io.lettuce.core.cluster.pubsub.api.sync.RedisClusterPubSubCommands;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.data.redis.connection.ClusterMessageListener;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.util.AbstractSubscription;
@@ -37,8 +35,6 @@ class LettuceClusterSubscription extends AbstractSubscription {
 	private final LettuceConnectionProvider connectionProvider;
 	private final RedisClusterPubSubCommands<byte[], byte[]> pubsub;
 	private final boolean listensForKeyspaceNotifications;
-	
-	private final Log log = LogFactory.getLog(getClass());
 	
 	LettuceClusterSubscription(MessageListener listener, StatefulRedisClusterPubSubConnection<byte[], byte[]> pubsubConnection,
 			LettuceConnectionProvider connectionProvider) {
