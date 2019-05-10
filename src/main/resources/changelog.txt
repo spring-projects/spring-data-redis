@@ -1,6 +1,12 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.21.RELEASE (2019-05-10)
+----------------------------------------------
+* DATAREDIS-972 - Incorrect logic in RedisCommand.validateArgumentCount(int).
+* DATAREDIS-958 - Release 1.8.21 (Ingalls SR21).
+
+
 Changes in version 2.1.7.RELEASE (2019-05-10)
 ---------------------------------------------
 * DATAREDIS-972 - Incorrect logic in RedisCommand.validateArgumentCount(int).
