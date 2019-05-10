@@ -1,6 +1,14 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.7.RELEASE (2019-05-10)
+---------------------------------------------
+* DATAREDIS-972 - Incorrect logic in RedisCommand.validateArgumentCount(int).
+* DATAREDIS-971 - BitFieldSubCommands.signed() initializes BitFieldType unsigned.
+* DATAREDIS-960 - Release 2.1.7 (Lovelace SR7).
+* DATAREDIS-956 - LettucePoolingClientConfigurationBuilder does not support ReadFrom.
+
+
 Changes in version 2.2.0.M3 (2019-04-11)
 ----------------------------------------
 * DATAREDIS-953 - Shared Lettuce connection released twice on failed validation.
