@@ -1,6 +1,11 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.22.RELEASE (2019-05-13)
+----------------------------------------------
+* DATAREDIS-980 - Release 1.8.22 (Ingalls SR22).
+
+
 Changes in version 2.1.8.RELEASE (2019-05-13)
 ---------------------------------------------
 * DATAREDIS-979 - Release 2.1.8 (Lovelace SR8).
