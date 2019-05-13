@@ -1,6 +1,16 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.0.M4 (2019-05-13)
+----------------------------------------
+* DATAREDIS-982 - Upgrade to Redis 5.0.4.
+* DATAREDIS-981 - XRANGE with COUNT -1 option no longer works on Redis 5.0.1+.
+* DATAREDIS-972 - Incorrect logic in RedisCommand.validateArgumentCount(int).
+* DATAREDIS-971 - BitFieldSubCommands.signed() initializes BitFieldType unsigned.
+* DATAREDIS-970 - Release 2.2 M4 (Moore).
+* DATAREDIS-956 - LettucePoolingClientConfigurationBuilder does not support ReadFrom.
+
+
 Changes in version 1.8.21.RELEASE (2019-05-10)
 ----------------------------------------------
 * DATAREDIS-972 - Incorrect logic in RedisCommand.validateArgumentCount(int).
