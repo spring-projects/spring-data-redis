@@ -23,6 +23,7 @@ import static org.junit.Assert.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
+import io.lettuce.core.Limit;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.cluster.models.partitions.Partitions;
@@ -38,6 +39,7 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
@@ -177,5 +179,21 @@ public class LettuceConvertersUnitTests {
 		assertThat(getField(args, "px"), is(nullValue()));
 		assertThat((Boolean) getField(args, "nx"), is(Boolean.FALSE));
 		assertThat((Boolean) getField(args, "xx"), is(Boolean.FALSE));
+	}
+
+	@Test // DATAREDIS-981
+	public void toLimit() {
+
+		Limit limit = LettuceConverters.toLimit(RedisZSetCommands.Limit.unlimited());
+		assertThat(limit.isLimited(), is(false));
+		assertThat(limit.getCount(), is(-1L));
+
+		limit = LettuceConverters.toLimit(RedisZSetCommands.Limit.limit().count(-1));
+		assertThat(limit.isLimited(), is(true));
+		assertThat(limit.getCount(), is(-1L));
+
+		limit = LettuceConverters.toLimit(RedisZSetCommands.Limit.limit().count(5));
+		assertThat(limit.isLimited(), is(true));
+		assertThat(limit.getCount(), is(5L));
 	}
 }
