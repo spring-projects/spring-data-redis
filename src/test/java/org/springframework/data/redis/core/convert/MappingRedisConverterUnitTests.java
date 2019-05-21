@@ -761,7 +761,7 @@ public class MappingRedisConverterUnitTests {
 	public void writesDateValuesCorrectly() {
 
 		Calendar cal = Calendar.getInstance();
-		cal.set(1978, 10, 25);
+		cal.set(1978, Calendar.NOVEMBER, 25);
 
 		rand.birthdate = cal.getTime();
 
@@ -772,7 +772,7 @@ public class MappingRedisConverterUnitTests {
 	public void readsDateValuesCorrectly() {
 
 		Calendar cal = Calendar.getInstance();
-		cal.set(1978, 10, 25);
+		cal.set(1978, Calendar.NOVEMBER, 25);
 
 		Date date = cal.getTime();
 
@@ -1199,23 +1199,6 @@ public class MappingRedisConverterUnitTests {
 	}
 
 	@Test // DATAREDIS-492
-	public void writeHandlesArraysProperly() {
-
-		this.converter = new MappingRedisConverter(null, null, resolverMock);
-		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new ListToByteConverter())));
-		this.converter.afterPropertiesSet();
-
-		Map<String, Object> innerMap = new LinkedHashMap<String, Object>();
-		innerMap.put("address", "tyrionl@netflix.com");
-		innerMap.put("when", new String[] { "pipeline.failed" });
-
-		Map<String, Object> map = new LinkedHashMap<String, Object>();
-		map.put("email", Collections.singletonList(innerMap));
-
-		RedisData target = write(map);
-	}
-
-	@Test // DATAREDIS-492
 	public void writeHandlesArraysOfSimpleTypeProperly() {
 
 		WithArrays source = new WithArrays();
@@ -1349,7 +1332,7 @@ public class MappingRedisConverterUnitTests {
 
 		TypeWithObjectValueTypes sample = new TypeWithObjectValueTypes();
 		sample.map.put("string", "bar");
-		sample.map.put("long", new Long(1L));
+		sample.map.put("long", 1L);
 		sample.map.put("date", new Date());
 
 		Bucket bucket = write(sample).getBucket();
@@ -1366,7 +1349,7 @@ public class MappingRedisConverterUnitTests {
 
 		TypeWithObjectValueTypes sample = new TypeWithObjectValueTypes();
 		sample.map.put("string", "bar");
-		sample.map.put("long", new Long(1L));
+		sample.map.put("long", 1L);
 		sample.map.put("date", new Date());
 
 		RedisData rd = write(sample);
@@ -1382,7 +1365,7 @@ public class MappingRedisConverterUnitTests {
 
 		TypeWithObjectValueTypes sample = new TypeWithObjectValueTypes();
 		sample.list.add("string");
-		sample.list.add(new Long(1L));
+		sample.list.add(1L);
 		sample.list.add(new Date());
 
 		Bucket bucket = write(sample).getBucket();
@@ -1399,7 +1382,7 @@ public class MappingRedisConverterUnitTests {
 
 		TypeWithObjectValueTypes sample = new TypeWithObjectValueTypes();
 		sample.list.add("string");
-		sample.list.add(new Long(1L));
+		sample.list.add(1L);
 		sample.list.add(new Date());
 
 		RedisData rd = write(sample);
@@ -1763,6 +1746,7 @@ public class MappingRedisConverterUnitTests {
 		source.put("values.[1]", "o-2");
 
 		Outer outer = read(Outer.class, source);
+
 		assertThat(outer.values, is(equalTo(Arrays.asList("o-1", "o-2"))));
 		assertThat(outer.inners.get(0).values, is(equalTo(Arrays.asList("i-1", "i-2"))));
 	}
@@ -1775,6 +1759,7 @@ public class MappingRedisConverterUnitTests {
 		source.put("inners.[0].values.[1]", "i-2");
 
 		Outer outer = read(Outer.class, source);
+
 		assertThat(outer.values, is(nullValue()));
 		assertThat(outer.inners.get(0).values, is(equalTo(Arrays.asList("i-1", "i-2"))));
 	}
@@ -1830,34 +1815,6 @@ public class MappingRedisConverterUnitTests {
 			map.put("species-nicknames",
 					StringUtils.collectionToCommaDelimitedString(source.alsoKnownAs).getBytes(Charset.forName("UTF-8")));
 			return map;
-		}
-	}
-
-	@WritingConverter
-	static class ListToByteConverter implements Converter<List, byte[]> {
-
-		private final ObjectMapper mapper;
-		private final Jackson2JsonRedisSerializer<List> serializer;
-
-		ListToByteConverter() {
-
-			mapper = new ObjectMapper();
-			mapper.setVisibility(mapper.getSerializationConfig().getDefaultVisibilityChecker()
-					.withFieldVisibility(Visibility.ANY).withGetterVisibility(Visibility.NONE)
-					.withSetterVisibility(Visibility.NONE).withCreatorVisibility(Visibility.NONE));
-
-			serializer = new Jackson2JsonRedisSerializer<List>(List.class);
-			serializer.setObjectMapper(mapper);
-		}
-
-		@Override
-		public byte[] convert(List source) {
-
-			if (source == null || source.isEmpty()) {
-				return null;
-			}
-
-			return serializer.serialize(source);
 		}
 	}
 
