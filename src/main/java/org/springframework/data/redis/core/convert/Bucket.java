@@ -178,7 +178,7 @@ public class Bucket {
 			return keySet();
 		}
 
-		Pattern pattern = Pattern.compile("(" + Pattern.quote(path) + ")\\.\\[.*?\\]");
+		Pattern pattern = Pattern.compile("^(" + Pattern.quote(path) + ")\\.\\[.*?\\]");
 
 		Set<String> keys = new LinkedHashSet<>();
 		for (Map.Entry<String, byte[]> entry : data.entrySet()) {
