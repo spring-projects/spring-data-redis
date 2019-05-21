@@ -1752,6 +1752,33 @@ public class MappingRedisConverterUnitTests {
 		assertThat(write(update).getBucket().get("_class"), is(nullValue()));
 	}
 
+
+	@Test // DATAREDIS-955
+	public void readInnerListShouldNotInfluenceOuterWithSameName() {
+
+		Map<String, String> source = new LinkedHashMap<String, String>();
+		source.put("inners.[0].values.[0]", "i-1");
+		source.put("inners.[0].values.[1]", "i-2");
+		source.put("values.[0]", "o-1");
+		source.put("values.[1]", "o-2");
+
+		Outer outer = read(Outer.class, source);
+		assertThat(outer.values, is(equalTo(Arrays.asList("o-1", "o-2"))));
+		assertThat(outer.inners.get(0).values, is(equalTo(Arrays.asList("i-1", "i-2"))));
+	}
+
+	@Test // DATAREDIS-955
+	public void readInnerListShouldNotInfluenceOuterWithSameNameWhenNull() {
+
+		Map<String, String> source = new LinkedHashMap<String, String>();
+		source.put("inners.[0].values.[0]", "i-1");
+		source.put("inners.[0].values.[1]", "i-2");
+
+		Outer outer = read(Outer.class, source);
+		assertThat(outer.values, is(nullValue()));
+		assertThat(outer.inners.get(0).values, is(equalTo(Arrays.asList("i-1", "i-2"))));
+	}
+
 	private RedisData write(Object source) {
 
 		RedisData rdo = new RedisData();

@@ -192,4 +192,15 @@ public class ConversionTestEntities {
 		Map<Double, String> decimalMapKeyMapping;
 		Map<Date, String> dateMapKeyMapping;
 	}
+
+	static class Outer {
+
+		List<Inner> inners;
+		List<String> values;
+	}
+
+	static class Inner {
+
+		List<String> values;
+	}
 }
