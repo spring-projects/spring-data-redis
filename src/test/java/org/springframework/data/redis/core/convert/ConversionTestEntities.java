@@ -229,4 +229,15 @@ public class ConversionTestEntities {
 
 		UUID uuid;
 	}
+
+	static class Outer {
+
+		List<Inner> inners;
+		List<String> values;
+	}
+
+	static class Inner {
+		
+		List<String> values;
+	}
 }
