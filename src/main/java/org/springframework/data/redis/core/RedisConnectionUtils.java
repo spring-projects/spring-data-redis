@@ -187,8 +187,24 @@ public abstract class RedisConnectionUtils {
 	 *
 	 * @param conn the Redis connection to close.
 	 * @param factory the Redis factory that the connection was created with.
+	 * @deprecated since 2.1.9, use {@link #releaseConnection(RedisConnection, RedisConnectionFactory, boolean)}
 	 */
+	@Deprecated
 	public static void releaseConnection(@Nullable RedisConnection conn, RedisConnectionFactory factory) {
+		releaseConnection(conn, factory, false);
+	}
+
+	/**
+	 * Closes the given connection, created via the given factory if not managed externally (i.e. not bound to the
+	 * thread).
+	 *
+	 * @param conn the Redis connection to close.
+	 * @param factory the Redis factory that the connection was created with.
+	 * @param enableTransactionSupport whether transaction support is enabled.
+	 * @since 2.1.9
+	 */
+	public static void releaseConnection(@Nullable RedisConnection conn, RedisConnectionFactory factory,
+			boolean enableTransactionSupport) {
 
 		if (conn == null) {
 			return;
@@ -203,11 +219,25 @@ public abstract class RedisConnectionUtils {
 			return;
 		}
 
-		// release transactional/read-only and non-transactional/non-bound connections.
-		// transactional connections for read-only transactions get no synchronizer registered
-		if (isConnectionTransactional(conn, factory) && TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
-			unbindConnection(factory);
-		} else if (!isConnectionTransactional(conn, factory)) {
+		if (isConnectionTransactional(conn, factory)) {
+
+			// release transactional/read-only and non-transactional/non-bound connections.
+			// transactional connections for read-only transactions get no synchronizer registered
+			if (enableTransactionSupport && TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
+				if (log.isDebugEnabled()) {
+					log.debug("Unbinding Redis Connection");
+				}
+				unbindConnection(factory);
+			} else {
+
+				// Not participating in transaction management.
+				// Connection could have been attached via session callback.
+				if (log.isDebugEnabled()) {
+					log.debug("Leaving bound Redis Connection attached");
+				}
+			}
+
+		} else {
 			if (log.isDebugEnabled()) {
 				log.debug("Closing Redis Connection");
 			}
