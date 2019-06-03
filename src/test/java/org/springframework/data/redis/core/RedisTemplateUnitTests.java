@@ -28,14 +28,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
+import org.springframework.lang.Nullable;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
+ * Unit tests for {@link RedisTemplate}.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RedisTemplateUnitTests {
@@ -46,6 +52,8 @@ public class RedisTemplateUnitTests {
 
 	@Before
 	public void setUp() {
+
+		TransactionSynchronizationManager.clear();
 
 		template = new RedisTemplate<>();
 		template.setConnectionFactory(connectionFactoryMock);
@@ -94,6 +102,60 @@ public class RedisTemplateUnitTests {
 
 		assertThat(callback.getConnection(), sameInstance(redisConnectionMock));
 		verify(redisConnectionMock, never()).close();
+	}
+
+	@Test // DATAREDIS-988
+	public void executeSessionShouldReuseConnection() {
+
+		template.execute(new SessionCallback<Object>() {
+			@Nullable
+			@Override
+			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+				template.multi();
+				template.multi();
+				return null;
+			}
+		});
+
+		verify(connectionFactoryMock).getConnection();
+		verify(redisConnectionMock).close();
+	}
+
+	@Test // DATAREDIS-988
+	public void executeSessionInTransactionShouldReuseConnection() {
+
+		TransactionSynchronizationManager.setCurrentTransactionReadOnly(true);
+
+		template.execute(new SessionCallback<Object>() {
+			@Override
+			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+				template.multi();
+				template.multi();
+				return null;
+			}
+		});
+
+		verify(connectionFactoryMock).getConnection();
+		verify(redisConnectionMock).close();
+	}
+
+	@Test // DATAREDIS-988
+	public void transactionAwareTemplateShouldReleaseConnection() {
+
+		template.setEnableTransactionSupport(true);
+		TransactionSynchronizationManager.setCurrentTransactionReadOnly(true);
+
+		template.execute(new SessionCallback<Object>() {
+			@Override
+			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+				template.multi();
+				template.multi();
+				return null;
+			}
+		});
+
+		verify(connectionFactoryMock, times(2)).getConnection();
+		verify(redisConnectionMock, times(2)).close();
 	}
 
 	static class SomeArbitrarySerializableObject implements Serializable {
