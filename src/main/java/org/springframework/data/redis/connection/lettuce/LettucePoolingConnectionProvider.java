@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.support.AsyncConnectionPoolSupport;
 import io.lettuce.core.support.AsyncPool;
 import io.lettuce.core.support.BoundedPoolConfig;
@@ -109,7 +110,7 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
 	 */
@@ -170,14 +171,27 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 						+ " was either previously returned or does not belong to this connection provider");
 			}
 
+			discardIfNecessary(connection);
 			asyncPool.release(connection).join();
 			return;
 		}
 
+		discardIfNecessary(connection);
 		pool.returnObject(connection);
 	}
 
-	/* 
+	private void discardIfNecessary(StatefulConnection<?, ?> connection) {
+
+		if (connection instanceof StatefulRedisConnection) {
+
+			StatefulRedisConnection<?, ?> redisConnection = (StatefulRedisConnection<?, ?>) connection;
+			if (redisConnection.isMulti()) {
+				redisConnection.async().discard();
+			}
+		}
+	}
+
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#releaseAsync(io.lettuce.core.api.StatefulConnection)
 	 */

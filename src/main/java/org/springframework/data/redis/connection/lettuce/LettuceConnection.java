@@ -1281,6 +1281,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 		public void release(StatefulConnection<?, ?> connection) {
 
 			if (connection.isOpen()) {
+
+				if (connection instanceof StatefulRedisConnection) {
+					StatefulRedisConnection<?, ?> redisConnection = (StatefulRedisConnection<?, ?>) connection;
+					if (redisConnection.isMulti()) {
+						redisConnection.async().discard();
+					}
+				}
 				pool.returnResource((StatefulConnection<byte[], byte[]>) connection);
 			} else {
 				pool.returnBrokenResource((StatefulConnection<byte[], byte[]>) connection);
