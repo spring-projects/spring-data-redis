@@ -37,7 +37,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
@@ -140,11 +139,26 @@ public class LettuceConnectionFactoryTests {
 		// put an item in database 0
 		connection.set("sometestkey", "sometestvalue");
 
-		LettuceConnectionFactory sharingConnectionFactory = newConnectionFactory(cf -> {});
+		LettuceConnectionFactory sharingConnectionFactory = newConnectionFactory(cf -> cf.setDatabase(1));
 		runSelectDbTest(sharingConnectionFactory);
 
-		LettuceConnectionFactory nonSharingConnectionFactory = newConnectionFactory(
-				cf -> cf.setShareNativeConnection(false));
+		LettuceConnectionFactory nonSharingConnectionFactory = newConnectionFactory(cf -> {
+			cf.setDatabase(1);
+			cf.setShareNativeConnection(false);
+		});
+		runSelectDbTest(nonSharingConnectionFactory);
+	}
+
+	@Test // DATAREDIS-973
+	public void testSelectDbReactive() {
+
+		LettuceConnectionFactory sharingConnectionFactory = newConnectionFactory(cf -> cf.setDatabase(1));
+		runSelectDbReactiveTest(sharingConnectionFactory);
+
+		LettuceConnectionFactory nonSharingConnectionFactory = newConnectionFactory(cf -> {
+			cf.setDatabase(1);
+			cf.setShareNativeConnection(false);
+		});
 		runSelectDbTest(nonSharingConnectionFactory);
 	}
 
@@ -165,17 +179,6 @@ public class LettuceConnectionFactoryTests {
 			separateDatabase.close();
 			factory2.destroy();
 		}
-	}
-
-	@Test // DATAREDIS-973
-	public void testSelectDbReactive() {
-
-		LettuceConnectionFactory sharingConnectionFactory = newConnectionFactory(cf -> {});
-		runSelectDbReactiveTest(sharingConnectionFactory);
-
-		LettuceConnectionFactory nonSharingConnectionFactory = newConnectionFactory(
-				cf -> cf.setShareNativeConnection(false));
-		runSelectDbTest(nonSharingConnectionFactory);
 	}
 
 	private void runSelectDbReactiveTest(LettuceConnectionFactory factory2) {
@@ -209,7 +212,6 @@ public class LettuceConnectionFactoryTests {
 				SettingsUtils.getPort());
 		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.setShutdownTimeout(0);
-		connectionFactory.setDatabase(1);
 		customizer.accept(connectionFactory);
 		connectionFactory.afterPropertiesSet();
 
