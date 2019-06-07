@@ -11,7 +11,7 @@ pipeline {
     }
 
     stages {
-        stage('Publish OpenJDK 8 + Redis docker image') {
+        stage('Publish OpenJDK 8 + Redis 5.0 docker image') {
             when {
                 anyOf {
                     changeset "ci/Dockerfile"
