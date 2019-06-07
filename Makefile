@@ -14,6 +14,7 @@
 
 REDIS_VERSION:=4.0.11
 SPRING_PROFILE?=ci
+SHELL=/bin/bash -euo pipefail
 
 #######
 # Redis
@@ -149,5 +150,5 @@ stop: redis-stop sentinel-stop cluster-stop
 test:
 	$(MAKE) start
 	sleep 2
-	mvn clean install -U -DrunLongTests=true -P$(SPRING_PROFILE)
+	mvn clean install -U -DrunLongTests=true -P$(SPRING_PROFILE) || (echo "maven failed $$?"; exit 1)
 	$(MAKE) stop
