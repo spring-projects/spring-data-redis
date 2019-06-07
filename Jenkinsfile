@@ -11,12 +11,31 @@ pipeline {
     }
 
     stages {
+        stage('Publish OpenJDK 8 + Redis 3.2 docker image') {
+            when {
+                anyOf {
+                    changeset "ci/Dockerfile"
+                    changeset "Makefile"
+                }
+            }
+            agent any
+
+            steps {
+                script {
+                    def image = docker.build("springci/spring-data-openjdk8-with-redis-3.2", "-f ci/Dockerfile .")
+                    docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+                        image.push()
+                    }
+                }
+            }
+        }
+
         stage("Test") {
             parallel {
                 stage("test: baseline") {
                     agent {
                         docker {
-                            image 'springci/spring-data-openjdk8-with-redis-5.0:latest'
+                            image 'springci/spring-data-openjdk8-with-redis-3.2:latest'
                             args '-v $HOME/.m2:/root/.m2'
                         }
                     }
