@@ -178,7 +178,7 @@ abstract class AbstractOperations<K, V> {
 	@SuppressWarnings("unchecked")
 	<HV> byte[] rawHashValue(HV value) {
 
-		if (hashValueSerializer() == null & value instanceof byte[]) {
+		if (hashValueSerializer() == null && value instanceof byte[]) {
 			return (byte[]) value;
 		}
 		return hashValueSerializer().serialize(value);
