@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.ReadFrom;
 import io.lettuce.core.TimeoutOptions;
 import io.lettuce.core.resource.ClientResources;
 
@@ -31,6 +32,7 @@ import org.junit.Test;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Longlong Zhao
  */
 public class LettucePoolingClientConfigurationUnitTests {
 
@@ -82,5 +84,33 @@ public class LettucePoolingClientConfigurationUnitTests {
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofMinutes(5));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofHours(2));
 		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofMinutes(5));
+	}
+
+	@Test // DATAREDIS-956
+	public void shouldConfigureReadFrom() {
+
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+
+		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.builder() //
+				.poolConfig(poolConfig) //
+				.readFrom(ReadFrom.MASTER_PREFERRED) //
+				.build();
+
+		assertThat(configuration.getPoolConfig()).isEqualTo(poolConfig);
+		assertThat(configuration.getReadFrom().orElse(ReadFrom.MASTER)).isEqualTo(ReadFrom.MASTER_PREFERRED);
+	}
+
+	@Test // DATAREDIS-956
+	public void shouldConfigureClientName() {
+
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+
+		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.builder() //
+				.poolConfig(poolConfig) //
+				.clientName("clientName") //
+				.build();
+
+		assertThat(configuration.getPoolConfig()).isEqualTo(poolConfig);
+		assertThat(configuration.getClientName()).contains("clientName");
 	}
 }

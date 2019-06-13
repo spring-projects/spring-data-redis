@@ -444,7 +444,7 @@ public class LettuceConnectionFactory
 		synchronized (this.connectionMonitor) {
 
 			if (this.connection == null) {
-				this.connection = new SharedConnection<>(connectionProvider, false);
+				this.connection = new SharedConnection<>(connectionProvider);
 			}
 
 			return this.connection;
@@ -456,7 +456,7 @@ public class LettuceConnectionFactory
 		synchronized (this.connectionMonitor) {
 
 			if (this.reactiveConnection == null) {
-				this.reactiveConnection = new SharedConnection<>(reactiveConnectionProvider, true);
+				this.reactiveConnection = new SharedConnection<>(reactiveConnectionProvider);
 			}
 
 			return this.reactiveConnection;
@@ -1044,6 +1044,7 @@ public class LettuceConnectionFactory
 		getRedisPassword().toOptional().ifPresent(builder::withPassword);
 		clientConfiguration.getClientName().ifPresent(builder::withClientName);
 
+		builder.withDatabase(getDatabase());
 		builder.withSsl(clientConfiguration.isUseSsl());
 		builder.withVerifyPeer(clientConfiguration.isVerifyPeer());
 		builder.withStartTls(clientConfiguration.isStartTls());
@@ -1057,6 +1058,7 @@ public class LettuceConnectionFactory
 		RedisURI.Builder builder = RedisURI.Builder.socket(socketPath);
 
 		getRedisPassword().toOptional().ifPresent(builder::withPassword);
+		builder.withDatabase(getDatabase());
 		builder.withTimeout(clientConfiguration.getCommandTimeout());
 
 		return builder.build();
@@ -1093,7 +1095,6 @@ public class LettuceConnectionFactory
 	class SharedConnection<E> {
 
 		private final LettuceConnectionProvider connectionProvider;
-		private final boolean shareNativeClusterConnection;
 
 		/** Synchronization monitor for the shared Connection */
 		private final Object connectionMonitor = new Object();
@@ -1131,13 +1132,7 @@ public class LettuceConnectionFactory
 		private StatefulConnection<E, E> getNativeConnection() {
 
 			try {
-
-				StatefulConnection<E, E> connection = connectionProvider.getConnection(StatefulConnection.class);
-				if (connection instanceof StatefulRedisConnection && getDatabase() > 0) {
-					((StatefulRedisConnection) connection).sync().select(getDatabase());
-				}
-
-				return connection;
+				return connectionProvider.getConnection(StatefulConnection.class);
 			} catch (RedisException e) {
 				throw new RedisConnectionFailureException("Unable to connect to Redis", e);
 			}

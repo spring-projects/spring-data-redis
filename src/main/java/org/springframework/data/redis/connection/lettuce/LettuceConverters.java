@@ -512,7 +512,7 @@ abstract public class LettuceConverters extends Converters {
 	}
 
 	/**
-	 * Convert a {@link org.springframework.data.redis.connection.RedisZSetCommands.Limit} to a lettuce
+	 * Convert a {@link org.springframework.data.redis.connection.RedisZSetCommands.Limit} to a Lettuce
 	 * {@link io.lettuce.core.Limit}.
 	 *
 	 * @param limit
@@ -520,7 +520,7 @@ abstract public class LettuceConverters extends Converters {
 	 * @since 2.0
 	 */
 	public static io.lettuce.core.Limit toLimit(RedisZSetCommands.Limit limit) {
-		return Limit.create(limit.getOffset(), limit.getCount());
+		return limit.isUnlimited() ? Limit.unlimited() : Limit.create(limit.getOffset(), limit.getCount());
 	}
 
 	/**
