@@ -28,10 +28,14 @@ import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.hash.HashMapper;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
+
+import java.io.Serializable;
 
 /**
  * @author Christoph Strobl
+ * @author Romain Beghi
  */
 public class StreamRecordsUnitTests {
 
@@ -39,10 +43,22 @@ public class StreamRecordsUnitTests {
 	static final RecordId RECORD_ID = RecordId.of("1-0");
 	static final String STRING_MAP_KEY = "string-key";
 	static final String STRING_VAL = "string-val";
+	static final DummyObject OBJECT_VAL = new DummyObject();
+
+	static final Jackson2JsonRedisSerializer<DummyObject> JSON_REDIS_SERIALIZER = new Jackson2JsonRedisSerializer<>(DummyObject.class);
 
 	static final byte[] SERIALIZED_STRING_VAL = RedisSerializer.string().serialize(STRING_VAL);
 	static final byte[] SERIALIZED_STRING_MAP_KEY = RedisSerializer.string().serialize(STRING_MAP_KEY);
 	static final byte[] SERIALIZED_STRING_STREAM_KEY = RedisSerializer.string().serialize(STRING_STREAM_KEY);
+	static final byte[] SERIALIZED_OBJECT_VAL = JSON_REDIS_SERIALIZER.serialize(OBJECT_VAL);
+
+	private static class DummyObject implements Serializable {
+		private final Integer dummyId = 1;
+
+		public Integer getDummyId() {
+			return this.dummyId;
+		}
+	}
 
 	@Test // DATAREDIS-864
 	public void objectRecordToMapRecordViaHashMapper() {
@@ -71,7 +87,7 @@ public class StreamRecordsUnitTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void serializeMapRecord() {
+	public void serializeMapRecordStringAsHashValue() {
 
 		MapRecord<String, String, String> source = Record.of(Collections.singletonMap(STRING_MAP_KEY, STRING_VAL))
 				.withId(RECORD_ID).withStreamKey(STRING_STREAM_KEY);
@@ -82,6 +98,20 @@ public class StreamRecordsUnitTests {
 		assertThat(target.getStream()).isEqualTo(SERIALIZED_STRING_STREAM_KEY);
 		assertThat(target.getValue().keySet().iterator().next()).isEqualTo(SERIALIZED_STRING_MAP_KEY);
 		assertThat(target.getValue().values().iterator().next()).isEqualTo(SERIALIZED_STRING_VAL);
+	}
+
+	@Test // DATAREDIS-993
+	public void serializeMapRecordObjectAsHashValue() {
+
+		MapRecord<String, String, DummyObject> source = Record.of(Collections.singletonMap(STRING_MAP_KEY, OBJECT_VAL))
+				.withId(RECORD_ID).withStreamKey(STRING_STREAM_KEY);
+
+		ByteRecord target = source.serialize(RedisSerializer.string(), RedisSerializer.string(), JSON_REDIS_SERIALIZER);
+
+		assertThat(target.getId()).isEqualTo(RECORD_ID);
+		assertThat(target.getStream()).isEqualTo(SERIALIZED_STRING_STREAM_KEY);
+		assertThat(target.getValue().keySet().iterator().next()).isEqualTo(SERIALIZED_STRING_MAP_KEY);
+		assertThat(target.getValue().values().iterator().next()).isEqualTo(SERIALIZED_OBJECT_VAL);
 	}
 
 	@Test // DATAREDIS-864
