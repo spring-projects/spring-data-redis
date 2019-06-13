@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @param <V> the value type of the backing map.
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Romain Beghi
  * @since 2.2
  */
 public interface MapRecord<S, K, V> extends Record<S, Map<K, V>>, Iterable<Map.Entry<K, V>> {
@@ -125,7 +126,7 @@ public interface MapRecord<S, K, V> extends Record<S, Map<K, V>>, Iterable<Map.E
 
 		MapRecord<S, byte[], byte[]> binaryMap = mapEntries(
 				it -> Collections.singletonMap(StreamSerialization.serialize(fieldSerializer, it.getKey()),
-						StreamSerialization.serialize(fieldSerializer, it.getValue())).entrySet().iterator().next());
+						StreamSerialization.serialize(valueSerializer, it.getValue())).entrySet().iterator().next());
 
 		return StreamRecords.newRecord() //
 				.in(streamSerializer != null ? streamSerializer.serialize(getStream()) : (byte[]) getStream()) //
