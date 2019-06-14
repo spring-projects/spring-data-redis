@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.9.RELEASE (2019-06-14)
+---------------------------------------------
+* DATAREDIS-983 - Release 2.1.9 (Lovelace SR9).
+* DATAREDIS-973 - LettuceConnectionFactory does not select database on reactive connections.
+* DATAREDIS-955 - Problems when deserializing an empty list with RedisHash.
+
+
 Changes in version 1.8.22.RELEASE (2019-05-13)
 ----------------------------------------------
 * DATAREDIS-980 - Release 1.8.22 (Ingalls SR22).
