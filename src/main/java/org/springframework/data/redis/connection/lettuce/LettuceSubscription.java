@@ -28,15 +28,23 @@ import org.springframework.data.redis.connection.util.AbstractSubscription;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-class LettuceSubscription extends AbstractSubscription {
+public class LettuceSubscription extends AbstractSubscription {
 
 	private final StatefulRedisPubSubConnection<byte[], byte[]> connection;
 	private final LettuceMessageListener listener;
 	private final LettuceConnectionProvider connectionProvider;
 	private final RedisPubSubCommands<byte[], byte[]> pubsub;
 
-	LettuceSubscription(MessageListener listener, StatefulRedisPubSubConnection<byte[], byte[]> pubsubConnection,
-			LettuceConnectionProvider connectionProvider) {
+	/**
+	 * Creates a new {@link LettuceSubscription} given {@link MessageListener}, {@link StatefulRedisPubSubConnection}, and
+	 * {@link LettuceConnectionProvider}.
+	 *
+	 * @param listener the listener to notify, must not be {@literal null}.
+	 * @param pubsubConnection must not be {@literal null}.
+	 * @param connectionProvider must not be {@literal null}.
+	 */
+	protected LettuceSubscription(MessageListener listener,
+			StatefulRedisPubSubConnection<byte[], byte[]> pubsubConnection, LettuceConnectionProvider connectionProvider) {
 
 		super(listener);
 
@@ -52,25 +60,25 @@ class LettuceSubscription extends AbstractSubscription {
 		return connection;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doClose()
 	 */
 	protected void doClose() {
 
 		if (!getChannels().isEmpty()) {
-			pubsub.unsubscribe(new byte[0]);
+			doUnsubscribe(true, new byte[0]);
 		}
 
 		if (!getPatterns().isEmpty()) {
-			pubsub.punsubscribe(new byte[0]);
+			doPUnsubscribe(true, new byte[0]);
 		}
 
 		connection.removeListener(this.listener);
 		connectionProvider.release(connection);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPsubscribe(byte[][])
 	 */
@@ -78,7 +86,7 @@ class LettuceSubscription extends AbstractSubscription {
 		pubsub.psubscribe(patterns);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPUnsubscribe(boolean, byte[][])
 	 */
@@ -88,7 +96,7 @@ class LettuceSubscription extends AbstractSubscription {
 		pubsub.punsubscribe(patterns);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doSubscribe(byte[][])
 	 */
@@ -96,7 +104,7 @@ class LettuceSubscription extends AbstractSubscription {
 		pubsub.subscribe(channels);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doUnsubscribe(boolean, byte[][])
 	 */

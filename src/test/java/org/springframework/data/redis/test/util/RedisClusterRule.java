@@ -23,6 +23,7 @@ import org.junit.Assume;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TestRule;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisConfiguration;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.jedis.JedisConverters;
 
@@ -61,6 +62,10 @@ public class RedisClusterRule extends ExternalResource {
 	@Override
 	public void before() {
 		Assume.assumeThat(mode, is("cluster"));
+	}
+
+	public RedisConfiguration getConfiguration() {
+		return this.clusterConfig;
 	}
 
 	private void init() {
