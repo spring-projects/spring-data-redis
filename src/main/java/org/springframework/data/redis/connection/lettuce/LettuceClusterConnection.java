@@ -22,8 +22,6 @@ import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.SlotHash;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
-import io.lettuce.core.cluster.models.partitions.Partitions;
-import io.lettuce.core.cluster.pubsub.StatefulRedisClusterPubSubConnection;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Duration;
@@ -55,6 +53,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * {@code RedisClusterConnection} implementation on top of <a href="https://github.com/mp911de/lettuce">Lettuce</a>
+ * Redis client.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.7

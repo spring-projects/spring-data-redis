@@ -15,8 +15,10 @@
  */
 package org.springframework.data.redis.listener;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
+
+import org.junit.runners.model.Statement;
 
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
@@ -24,11 +26,13 @@ import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.test.util.RedisClusterRule;
 
 /**
  * @author Costin Leau
@@ -76,8 +80,49 @@ public class PubSubTestParams {
 		rawTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		rawTemplateLtc.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { personFactory, personTemplate },
-				{ rawFactory, rawTemplate }, { stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
-				{ rawFactory, rawTemplateLtc } });
+		Collection<Object[]> parameters = new ArrayList<>();
+		parameters.add(new Object[] { stringFactory, stringTemplate });
+		parameters.add(new Object[] { personFactory, personTemplate });
+		parameters.add(new Object[] { stringFactory, stringTemplateLtc });
+		parameters.add(new Object[] { personFactory, personTemplateLtc });
+		parameters.add(new Object[] { rawFactory, rawTemplateLtc });
+
+		if (clusterAvailable()) {
+
+			RedisClusterConfiguration configuration = new RedisClusterConfiguration().clusterNode("127.0.0.1", 7379);
+
+			// add Jedis
+			JedisConnectionFactory jedisClusterFactory = new JedisConnectionFactory(configuration);
+			jedisClusterFactory.afterPropertiesSet();
+
+			RedisTemplate<String, String> jedisClusterStringTemplate = new StringRedisTemplate(jedisClusterFactory);
+
+			// add Lettuce
+			LettuceConnectionFactory lettuceClusterFactory = new LettuceConnectionFactory(configuration);
+			lettuceClusterFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+			lettuceClusterFactory.afterPropertiesSet();
+
+			RedisTemplate<String, String> lettuceClusterStringTemplate = new StringRedisTemplate(lettuceClusterFactory);
+
+			parameters.add(new Object[] { stringFactory, jedisClusterStringTemplate });
+			parameters.add(new Object[] { stringFactory, lettuceClusterStringTemplate });
+		}
+
+		return parameters;
+	}
+
+	private static boolean clusterAvailable() {
+
+		try {
+			new RedisClusterRule().apply(new Statement() {
+				@Override
+				public void evaluate() {
+
+				}
+			}, null).evaluate();
+		} catch (Throwable throwable) {
+			return false;
+		}
+		return true;
 	}
 }
