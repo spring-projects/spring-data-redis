@@ -30,31 +30,30 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.RedisTestProfileValueSource;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.data.redis.test.util.RedisSentinelRule;
 
 /**
  * Base test class for PubSub integration tests
  *
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class PubSubTests<T> {
-
-	public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.withDefaultConfig().sentinelsDisabled();
 
 	private static final String CHANNEL = "pubsub::test";
 
@@ -72,11 +71,6 @@ public class PubSubTests<T> {
 	};
 
 	private final MessageListenerAdapter adapter = new MessageListenerAdapter(handler);
-
-	@BeforeClass
-	public static void shouldRun() {
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
-	}
 
 	@Before
 	public void setUp() throws Exception {
@@ -178,6 +172,9 @@ public class PubSubTests<T> {
 	@SuppressWarnings("unchecked")
 	@Test // DATAREDIS-251
 	public void testStartListenersToNoSpecificChannelTest() throws InterruptedException {
+
+		assumeTrue(isClusterAware(template.getConnectionFactory()));
+
 		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
 		container.addMessageListener(adapter, Arrays.asList(new PatternTopic("*")));
 		container.start();
@@ -192,5 +189,15 @@ public class PubSubTests<T> {
 		set.add((T) bag.poll(3, TimeUnit.SECONDS));
 
 		assertThat(set, hasItems(payload));
+	}
+
+	private static boolean isClusterAware(RedisConnectionFactory connectionFactory) {
+
+		if (connectionFactory instanceof LettuceConnectionFactory) {
+			return ((LettuceConnectionFactory) connectionFactory).isClusterAware();
+		} else if (connectionFactory instanceof JedisConnectionFactory) {
+			return ((JedisConnectionFactory) connectionFactory).isRedisClusterAware();
+		}
+		return false;
 	}
 }
