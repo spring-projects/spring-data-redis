@@ -25,9 +25,11 @@ import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisException;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.reactive.BaseRedisReactiveCommands;
+import reactor.test.StepVerifier;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.function.Consumer;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.After;
@@ -41,8 +43,8 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 import org.springframework.data.redis.connection.StringRedisConnection;
 
 /**
@@ -131,28 +133,89 @@ public class LettuceConnectionFactoryTests {
 		assertSame(connection.getNativeConnection(), conn2.getNativeConnection());
 	}
 
-	@Test
+	@Test // DATAREDIS-973
 	public void testSelectDb() {
 
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
-		factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		factory2.setShutdownTimeout(0);
-		factory2.setDatabase(1);
-		factory2.afterPropertiesSet();
+		// put an item in database 0
+		connection.set("sometestkey", "sometestvalue");
+
+		LettuceConnectionFactory sharingConnectionFactory = newConnectionFactory(cf -> cf.setDatabase(1));
+		runSelectDbTest(sharingConnectionFactory);
+
+		LettuceConnectionFactory nonSharingConnectionFactory = newConnectionFactory(cf -> {
+			cf.setDatabase(1);
+			cf.setShareNativeConnection(false);
+		});
+		runSelectDbTest(nonSharingConnectionFactory);
+	}
+
+	@Test // DATAREDIS-973
+	public void testSelectDbReactive() {
+
+		LettuceConnectionFactory sharingConnectionFactory = newConnectionFactory(cf -> cf.setDatabase(1));
+		runSelectDbReactiveTest(sharingConnectionFactory);
+
+		LettuceConnectionFactory nonSharingConnectionFactory = newConnectionFactory(cf -> {
+			cf.setDatabase(1);
+			cf.setShareNativeConnection(false);
+		});
+		runSelectDbTest(nonSharingConnectionFactory);
+	}
+
+	private void runSelectDbTest(LettuceConnectionFactory factory2) {
 
 		ConnectionFactoryTracker.add(factory2);
 
-		StringRedisConnection connection2 = new DefaultStringRedisConnection(factory2.getConnection());
-		connection2.flushDb();
+		StringRedisConnection separateDatabase = new DefaultStringRedisConnection(factory2.getConnection());
+		separateDatabase.flushDb();
+
 		// put an item in database 0
 		connection.set("sometestkey", "sometestvalue");
+
 		try {
 			// there should still be nothing in database 1
-			assertEquals(Long.valueOf(0), connection2.dbSize());
+			assertEquals(Long.valueOf(0), separateDatabase.dbSize());
 		} finally {
-			connection2.close();
+			separateDatabase.close();
 			factory2.destroy();
 		}
+	}
+
+	private void runSelectDbReactiveTest(LettuceConnectionFactory factory2) {
+
+		ConnectionFactoryTracker.add(factory2);
+
+		LettuceReactiveRedisConnection separateDatabase = factory2.getReactiveConnection();
+
+		separateDatabase.serverCommands().flushDb() //
+				.as(StepVerifier::create) //
+				.expectNextCount(1) //
+				.verifyComplete();
+
+		// put an item in database 0
+		connection.set("sometestkey", "sometestvalue");
+
+		try {
+			// there should still be nothing in database 1
+			separateDatabase.serverCommands().dbSize() //
+					.as(StepVerifier::create).expectNext(0L) //
+					.verifyComplete();
+		} finally {
+			separateDatabase.close();
+			factory2.destroy();
+		}
+	}
+
+	private static LettuceConnectionFactory newConnectionFactory(Consumer<LettuceConnectionFactory> customizer) {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(SettingsUtils.getHost(),
+				SettingsUtils.getPort());
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setShutdownTimeout(0);
+		customizer.accept(connectionFactory);
+		connectionFactory.afterPropertiesSet();
+
+		return connectionFactory;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -394,11 +457,10 @@ public class LettuceConnectionFactoryTests {
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
 				.build();
 
-		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(SettingsUtils.getHost())
-				.node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
+		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(
+				SettingsUtils.getHost()).node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
 
-		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache,
-				configuration);
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache, configuration);
 		factory.afterPropertiesSet();
 
 		RedisConnection connection = factory.getConnection();
@@ -422,8 +484,8 @@ public class LettuceConnectionFactoryTests {
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.MASTER)
 				.build();
 
-		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(SettingsUtils.getHost(),
-				SettingsUtils.getPort() + 1);
+		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(
+				SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache, configuration);
 		factory.afterPropertiesSet();

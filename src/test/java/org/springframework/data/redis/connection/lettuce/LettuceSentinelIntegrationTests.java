@@ -21,7 +21,9 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.*;
 
 import io.lettuce.core.ReadFrom;
+import reactor.test.StepVerifier;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
@@ -65,7 +68,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	static {
 
 		SENTINEL_CONFIG = new RedisSentinelConfiguration() //
-			.master(MASTER_NAME).sentinel(SENTINEL_0).sentinel(SENTINEL_1);
+				.master(MASTER_NAME).sentinel(SENTINEL_0).sentinel(SENTINEL_1);
 
 		SENTINEL_CONFIG.setDatabase(5);
 	}
@@ -129,12 +132,12 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		assertThat(servers.get(0).getName(), is(MASTER_NAME));
 	}
 
-	@Test // DATAREDIS-842
+	@Test // DATAREDIS-842, DATAREDIS-973
 	public void shouldUseSpecifiedDatabase() {
 
 		RedisConnection connection = connectionFactory.getConnection();
 
-		connection.flushDb();
+		connection.flushAll();
 		connection.set("foo".getBytes(), "bar".getBytes());
 		connection.close();
 
@@ -142,14 +145,42 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.setShutdownTimeout(0);
 		connectionFactory.setShareNativeConnection(false);
+		connectionFactory.setDatabase(5);
 		connectionFactory.afterPropertiesSet();
 
 		RedisConnection directConnection = connectionFactory.getConnection();
-		assertThat(directConnection.exists("foo".getBytes()), is(false));
-		directConnection.select(5);
-
 		assertThat(directConnection.exists("foo".getBytes()), is(true));
+		directConnection.select(0);
+
+		assertThat(directConnection.exists("foo".getBytes()), is(false));
 		directConnection.close();
+		connectionFactory.destroy();
+	}
+
+	@Test // DATAREDIS-973
+	public void reactiveShouldUseSpecifiedDatabase() {
+
+		RedisConnection connection = connectionFactory.getConnection();
+
+		connection.flushAll();
+		connection.set("foo".getBytes(), "bar".getBytes());
+		connection.close();
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setShutdownTimeout(0);
+		connectionFactory.setShareNativeConnection(false);
+		connectionFactory.setDatabase(5);
+		connectionFactory.afterPropertiesSet();
+
+		LettuceReactiveRedisConnection reactiveConnection = connectionFactory.getReactiveConnection();
+
+		reactiveConnection.keyCommands().exists(ByteBuffer.wrap("foo".getBytes())) //
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		reactiveConnection.close();
 		connectionFactory.destroy();
 	}
 
@@ -248,8 +279,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
 				.build();
 
-		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG,
-				configuration);
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG, configuration);
 		factory.afterPropertiesSet();
 
 		RedisConnection connection = factory.getConnection();
