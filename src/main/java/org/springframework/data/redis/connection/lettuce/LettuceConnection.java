@@ -879,7 +879,21 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	private LettuceSubscription initSubscription(MessageListener listener) {
-		return new LettuceSubscription(listener, switchToPubSub(), connectionProvider);
+		return doCreateSubscription(listener, switchToPubSub(), connectionProvider);
+	}
+
+	/**
+	 * Customization hook to create a {@link LettuceSubscription}.
+	 *
+	 * @param listener the {@link MessageListener} to notify.
+	 * @param connection Pub/Sub connection.
+	 * @param connectionProvider the {@link LettuceConnectionProvider} for connection release.
+	 * @return a {@link LettuceSubscription}.
+	 * @since 2.2
+	 */
+	protected LettuceSubscription doCreateSubscription(MessageListener listener,
+			StatefulRedisPubSubConnection<byte[], byte[]> connection, LettuceConnectionProvider connectionProvider) {
+		return new LettuceSubscription(listener, connection, connectionProvider);
 	}
 
 	void pipeline(LettuceResult result) {
@@ -1250,7 +1264,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	@RequiredArgsConstructor
-	private class LettucePoolConnectionProvider implements LettuceConnectionProvider {
+	static class LettucePoolConnectionProvider implements LettuceConnectionProvider {
 
 		private final LettucePool pool;
 

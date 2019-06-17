@@ -48,6 +48,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.ClusterNodeResourceProvider;
+import org.springframework.data.redis.connection.ClusterTopologyProvider;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterNode;
 
@@ -67,6 +68,7 @@ public class LettuceClusterConnectionUnitTests {
 	static final byte[] KEY_3_BYTES = KEY_3.getBytes();
 
 	@Mock RedisClusterClient clusterMock;
+	@Mock ClusterTopologyProvider topologyProviderMock;
 
 	@Mock LettuceConnectionProvider connectionProviderMock;
 	@Mock ClusterCommandExecutor executorMock;
@@ -363,7 +365,7 @@ public class LettuceClusterConnectionUnitTests {
 		when(sharedConnectionMock.sync()).thenReturn(sync);
 
 		LettuceClusterConnection connection = new LettuceClusterConnection(sharedConnectionMock, connectionProviderMock,
-				clusterMock, executorMock, Duration.ZERO);
+				topologyProviderMock, executorMock, Duration.ZERO);
 
 		connection.keyCommands().del(KEY_1_BYTES);
 
@@ -381,7 +383,7 @@ public class LettuceClusterConnectionUnitTests {
 		when(dedicatedConnection.sync()).thenReturn(sync);
 
 		LettuceClusterConnection connection = new LettuceClusterConnection(sharedConnectionMock, connectionProviderMock,
-				clusterMock, executorMock, Duration.ZERO);
+				topologyProviderMock, executorMock, Duration.ZERO);
 
 		connection.listCommands().bLPop(1, KEY_1_BYTES);
 

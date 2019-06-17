@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.springframework.data.redis.connection.lettuce.LettuceConnection.*;
+
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.ReadFrom;
@@ -40,6 +42,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
@@ -273,7 +276,7 @@ public class LettuceConnectionFactory
 
 		this.client = createClient();
 
-		this.connectionProvider = createConnectionProvider(client, LettuceConnection.CODEC);
+		this.connectionProvider = createConnectionProvider(client, CODEC);
 		this.reactiveConnectionProvider = createConnectionProvider(client, LettuceReactiveRedisConnection.CODEC);
 
 		if (isClusterAware()) {
@@ -341,13 +344,7 @@ public class LettuceConnectionFactory
 		}
 
 		LettuceConnection connection;
-
-		if (pool != null) {
-			connection = new LettuceConnection(getSharedConnection(), getTimeout(), null, pool, getDatabase());
-		} else {
-			connection = new LettuceConnection(getSharedConnection(), connectionProvider, getTimeout(), getDatabase());
-		}
-
+		connection = doCreateLettuceConnection(getSharedConnection(), connectionProvider, getTimeout(), getDatabase());
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return connection;
 	}
@@ -365,12 +362,51 @@ public class LettuceConnectionFactory
 
 		RedisClusterClient clusterClient = (RedisClusterClient) client;
 
-		return getShareNativeConnection()
-				? new LettuceClusterConnection(
-						(StatefulRedisClusterConnection<byte[], byte[]>) getOrCreateSharedConnection().getConnection(),
-						connectionProvider, clusterClient, clusterCommandExecutor, clientConfiguration.getCommandTimeout())
-				: new LettuceClusterConnection(null, connectionProvider, clusterClient, clusterCommandExecutor,
-						clientConfiguration.getCommandTimeout());
+		StatefulRedisClusterConnection<byte[], byte[]> sharedConnection = getShareNativeConnection()
+				? (StatefulRedisClusterConnection<byte[], byte[]>) getOrCreateSharedConnection().getConnection()
+				: null;
+
+		LettuceClusterTopologyProvider topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
+		return doCreateLettuceClusterConnection(sharedConnection, connectionProvider, topologyProvider,
+				clusterCommandExecutor, clientConfiguration.getCommandTimeout());
+	}
+
+	/**
+	 * Customization hook for {@link LettuceConnection} creation.
+	 *
+	 * @param sharedConnection the shared {@link StatefulRedisConnection} if {@link #getShareNativeConnection()} is
+	 *          {@literal true}; {@literal null} otherwise.
+	 * @param connectionProvider the {@link LettuceConnectionProvider} to release connections.
+	 * @param timeout command timeout in {@link TimeUnit#MILLISECONDS}.
+	 * @param database database index to operate on.
+	 * @return the {@link LettuceConnection}.
+	 * @since 2.2
+	 */
+	protected LettuceConnection doCreateLettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection,
+			LettuceConnectionProvider connectionProvider, long timeout, int database) {
+
+		return new LettuceConnection(sharedConnection, connectionProvider, timeout, database);
+	}
+
+	/**
+	 * Customization hook for {@link LettuceClusterConnection} creation.
+	 *
+	 * @param sharedConnection the shared {@link StatefulRedisConnection} if {@link #getShareNativeConnection()} is
+	 *          {@literal true}; {@literal null} otherwise.
+	 * @param connectionProvider the {@link LettuceConnectionProvider} to release connections.
+	 * @param topologyProvider the {@link ClusterTopologyProvider}.
+	 * @param clusterCommandExecutor the {@link ClusterCommandExecutor} to release connections.
+	 * @param commandTimeout command timeout {@link Duration}.
+	 * @return the {@link LettuceConnection}.
+	 * @since 2.2
+	 */
+	protected LettuceClusterConnection doCreateLettuceClusterConnection(
+			StatefulRedisClusterConnection<byte[], byte[]> sharedConnection, LettuceConnectionProvider connectionProvider,
+			ClusterTopologyProvider topologyProvider, ClusterCommandExecutor clusterCommandExecutor,
+			Duration commandTimeout) {
+
+		return new LettuceClusterConnection(sharedConnection, connectionProvider, topologyProvider, clusterCommandExecutor,
+				commandTimeout);
 	}
 
 	/*
@@ -908,6 +944,10 @@ public class LettuceConnectionFactory
 	}
 
 	private LettuceConnectionProvider createConnectionProvider(AbstractRedisClient client, RedisCodec<?, ?> codec) {
+
+		if (this.pool != null) {
+			return new LettucePoolConnectionProvider(this.pool);
+		}
 
 		LettuceConnectionProvider connectionProvider = doCreateConnectionProvider(client, codec);
 
