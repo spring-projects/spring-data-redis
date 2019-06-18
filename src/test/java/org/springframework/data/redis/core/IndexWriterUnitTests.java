@@ -72,16 +72,29 @@ public class IndexWriterUnitTests {
 	@Test // DATAREDIS-425
 	public void addKeyToIndexShouldInvokeSaddCorrectly() {
 
-		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", "Rand"));
+		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", "Rand"), null);
 
 		verify(connectionMock).sAdd(eq("persons:firstname:Rand".getBytes(CHARSET)), eq(KEY_BIN));
 		verify(connectionMock).sAdd(eq("persons:key-1:idx".getBytes(CHARSET)),
 				eq("persons:firstname:Rand".getBytes(CHARSET)));
 	}
 
+	@Test // DATAREDIS-963
+	public void addKeyToIndexShouldInvokeExpireCorrectly() {
+
+		Long indexTtl = 100L;
+
+		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", "Rand"), indexTtl);
+
+		verify(connectionMock).sAdd(eq("persons:firstname:Rand".getBytes(CHARSET)), eq(KEY_BIN));
+		verify(connectionMock).sAdd(eq("persons:key-1:idx".getBytes(CHARSET)),
+			eq("persons:firstname:Rand".getBytes(CHARSET)));
+		verify(connectionMock).expire(eq("persons:key-1:idx".getBytes(CHARSET)), eq(indexTtl));
+	}
+
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void addKeyToIndexShouldThrowErrorWhenIndexedDataIsNull() {
-		writer.addKeyToIndex(KEY_BIN, null);
+		writer.addKeyToIndex(KEY_BIN, null, null);
 	}
 
 	@Test // DATAREDIS-425
@@ -132,8 +145,7 @@ public class IndexWriterUnitTests {
 
 	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-425
 	public void addToIndexShouldThrowDataAccessExceptionWhenAddingDataThatConnotBeConverted() {
-		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", new DummyObject()));
-
+		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", new DummyObject()), null);
 	}
 
 	@Test // DATAREDIS-425
@@ -150,7 +162,7 @@ public class IndexWriterUnitTests {
 			}
 		});
 
-		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", value));
+		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", value), null);
 
 		verify(connectionMock).sAdd(eq(("persons:firstname:" + identityHexString).getBytes(CHARSET)), eq(KEY_BIN));
 	}
@@ -183,6 +195,20 @@ public class IndexWriterUnitTests {
 		verify(connectionMock).sAdd(eq("persons:key-1:idx".getBytes(CHARSET)),
 				eq("persons:firstname:Rand".getBytes(CHARSET)));
 		verify(connectionMock, times(1)).sRem(any(byte[].class), eq(KEY_BIN));
+	}
+
+	@Test // DATAREDIS-963
+	public void updateIndexShouldSetProperTtl() {
+
+		Long indexTtl = 100L;
+
+		writer.updateIndexes(KEY_BIN,
+			Collections.<IndexedData> singleton(new SimpleIndexedPropertyValue(KEYSPACE, "firstname", "Rand")), indexTtl);
+
+		verify(connectionMock).sAdd(eq("persons:firstname:Rand".getBytes(CHARSET)), eq(KEY_BIN));
+		verify(connectionMock).sAdd(eq("persons:key-1:idx".getBytes(CHARSET)),
+				eq("persons:firstname:Rand".getBytes(CHARSET)));
+		verify(connectionMock).expire(eq("persons:key-1:idx".getBytes(CHARSET)), eq(indexTtl));
 	}
 
 	@Test // DATAREDIS-533

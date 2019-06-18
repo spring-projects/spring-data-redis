@@ -62,6 +62,15 @@ class IndexWriter {
 		this.converter = converter;
 	}
 
+	public void createIndexes(Object key, Iterable<IndexedData> indexValues, Long timeToLiveIndexes) {
+		createOrUpdateIndexes(key, indexValues, IndexWriteMode.CREATE, timeToLiveIndexes);
+	}
+
+
+	public void updateIndexes(Object key, Iterable<IndexedData> indexValues, Long timeToLiveIndexes) {
+		createOrUpdateIndexes(key, indexValues, IndexWriteMode.PARTIAL_UPDATE, timeToLiveIndexes);
+	}
+
 	/**
 	 * Initially creates indexes.
 	 *
@@ -69,7 +78,7 @@ class IndexWriter {
 	 * @param indexValues can be {@literal null}.
 	 */
 	public void createIndexes(Object key, Iterable<IndexedData> indexValues) {
-		createOrUpdateIndexes(key, indexValues, IndexWriteMode.CREATE);
+		createOrUpdateIndexes(key, indexValues, IndexWriteMode.CREATE, null);
 	}
 
 	/**
@@ -79,7 +88,7 @@ class IndexWriter {
 	 * @param indexValues can be {@literal null}.
 	 */
 	public void updateIndexes(Object key, Iterable<IndexedData> indexValues) {
-		createOrUpdateIndexes(key, indexValues, IndexWriteMode.PARTIAL_UPDATE);
+		updateIndexes(key, indexValues, null);
 	}
 
 	/**
@@ -89,11 +98,10 @@ class IndexWriter {
 	 * @param indexValues can be {@literal null}.
 	 */
 	public void deleteAndUpdateIndexes(Object key, @Nullable Iterable<IndexedData> indexValues) {
-		createOrUpdateIndexes(key, indexValues, IndexWriteMode.UPDATE);
+		createOrUpdateIndexes(key, indexValues, IndexWriteMode.UPDATE, null);
 	}
 
-	private void createOrUpdateIndexes(Object key, @Nullable Iterable<IndexedData> indexValues,
-			IndexWriteMode writeMode) {
+	private void createOrUpdateIndexes(Object key, @Nullable Iterable<IndexedData> indexValues, IndexWriteMode writeMode, Long timeToLiveIndexes) {
 
 		Assert.notNull(key, "Key must not be null!");
 		if (indexValues == null) {
@@ -114,7 +122,7 @@ class IndexWriter {
 			removeKeyFromExistingIndexes(binKey, indexValues);
 		}
 
-		addKeyToIndexes(binKey, indexValues);
+		addKeyToIndexes(binKey, indexValues, timeToLiveIndexes);
 	}
 
 	/**
@@ -186,20 +194,20 @@ class IndexWriter {
 		}
 	}
 
-	private void addKeyToIndexes(byte[] key, Iterable<IndexedData> indexValues) {
+	private void addKeyToIndexes(byte[] key, Iterable<IndexedData> indexValues, Long timeToLiveIndexes) {
 
 		for (IndexedData indexData : indexValues) {
-			addKeyToIndex(key, indexData);
+			addKeyToIndex(key, indexData, timeToLiveIndexes);
 		}
 	}
 
 	/**
 	 * Adds a given key to the index for {@link IndexedData#getIndexName()}.
-	 *
 	 * @param key must not be {@literal null}.
 	 * @param indexedData must not be {@literal null}.
+	 * @param timeToLiveIndexes ttl
 	 */
-	protected void addKeyToIndex(byte[] key, IndexedData indexedData) {
+	protected void addKeyToIndex(byte[] key, IndexedData indexedData, Long timeToLiveIndexes) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(indexedData, "IndexedData must not be null!");
@@ -207,6 +215,8 @@ class IndexWriter {
 		if (indexedData instanceof RemoveIndexedData) {
 			return;
 		}
+
+		byte[] indexKey1 = ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx"));
 
 		if (indexedData instanceof SimpleIndexedPropertyValue) {
 
@@ -221,7 +231,12 @@ class IndexWriter {
 			connection.sAdd(indexKey, key);
 
 			// keep track of indexes used for the object
-			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
+			connection.sAdd(indexKey1, indexKey);
+
+			if(timeToLiveIndexes != null && timeToLiveIndexes > 0)
+			{
+				connection.expire(indexKey1, timeToLiveIndexes);
+			}
 		} else if (indexedData instanceof GeoIndexedPropertyValue) {
 
 			GeoIndexedPropertyValue geoIndexedData = ((GeoIndexedPropertyValue) indexedData);
@@ -235,7 +250,13 @@ class IndexWriter {
 			connection.geoAdd(indexKey, geoIndexedData.getPoint(), key);
 
 			// keep track of indexes used for the object
-			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
+
+			connection.sAdd(indexKey1, indexKey);
+
+			if(timeToLiveIndexes != null && timeToLiveIndexes > 0)
+			{
+				connection.expire(indexKey1, timeToLiveIndexes);
+			}
 		} else {
 			throw new IllegalArgumentException(
 					String.format("Cannot write index data for unknown index type %s", indexedData.getClass()));

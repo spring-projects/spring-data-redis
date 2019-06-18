@@ -104,6 +104,8 @@ import org.springframework.util.ObjectUtils;
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		implements InitializingBean, ApplicationContextAware, ApplicationListener<RedisKeyspaceEvent> {
 
+	private static final Integer PHANTOM_KEY_EXTRA_TTL = 300;
+
 	private RedisOperations<?, ?> redisOps;
 	private RedisConverter converter;
 	private @Nullable RedisMessageListenerContainer messageListenerContainer;
@@ -229,22 +231,24 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			connection.hMSet(objectKey, rdo.getBucket().rawMap());
 
-			if (rdo.getTimeToLive() != null && rdo.getTimeToLive() > 0) {
+			final Long timeToLive = rdo.getTimeToLive();
 
-				connection.expire(objectKey, rdo.getTimeToLive());
+			if (timeToLive != null && timeToLive > 0) {
+
+				connection.expire(objectKey, timeToLive);
 
 				// add phantom key so values can be restored
 				byte[] phantomKey = ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 				connection.del(phantomKey);
 				connection.hMSet(phantomKey, rdo.getBucket().rawMap());
-				connection.expire(phantomKey, rdo.getTimeToLive() + 300);
+				connection.expire(phantomKey, timeToLive + PHANTOM_KEY_EXTRA_TTL);
 			}
 
 			connection.sAdd(toBytes(rdo.getKeyspace()), key);
 
 			IndexWriter indexWriter = new IndexWriter(connection, converter);
 			if (isNew) {
-				indexWriter.createIndexes(key, rdo.getIndexedData());
+				indexWriter.createIndexes(key, rdo.getIndexedData(), timeToLive);
 			} else {
 				indexWriter.deleteAndUpdateIndexes(key, rdo.getIndexedData());
 			}
@@ -460,14 +464,16 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			if (update.isRefreshTtl()) {
 
-				if (rdo.getTimeToLive() != null && rdo.getTimeToLive() > 0) {
+				final Long timeToLive = rdo.getTimeToLive();
 
-					connection.expire(redisKey, rdo.getTimeToLive());
+				if (timeToLive != null && timeToLive > 0) {
+
+					connection.expire(redisKey, timeToLive);
 
 					// add phantom key so values can be restored
 					byte[] phantomKey = ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
-					connection.expire(phantomKey, rdo.getTimeToLive() + 300);
+					connection.expire(phantomKey, timeToLive + PHANTOM_KEY_EXTRA_TTL);
 
 				} else {
 
@@ -476,7 +482,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				}
 			}
 
-			new IndexWriter(connection, converter).updateIndexes(toBytes(id), rdo.getIndexedData());
+			new IndexWriter(connection, converter).updateIndexes(toBytes(id), rdo.getIndexedData(), rdo.getTimeToLive());
 			return null;
 		});
 	}
