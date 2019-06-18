@@ -17,10 +17,12 @@ package org.springframework.data.redis.connection;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
@@ -31,9 +33,9 @@ import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
-import java.io.Serializable;
-
 /**
+ * Unit tests for {@link StreamRecords}.
+ *
  * @author Christoph Strobl
  * @author Romain Beghi
  */
@@ -45,12 +47,13 @@ public class StreamRecordsUnitTests {
 	static final String STRING_VAL = "string-val";
 	static final DummyObject OBJECT_VAL = new DummyObject();
 
-	static final Jackson2JsonRedisSerializer<DummyObject> JSON_REDIS_SERIALIZER = new Jackson2JsonRedisSerializer<>(DummyObject.class);
+	static final Jackson2JsonRedisSerializer<DummyObject> JSON_REDIS_SERIALIZER = new Jackson2JsonRedisSerializer<>(
+			DummyObject.class);
 
 	static final byte[] SERIALIZED_STRING_VAL = RedisSerializer.string().serialize(STRING_VAL);
 	static final byte[] SERIALIZED_STRING_MAP_KEY = RedisSerializer.string().serialize(STRING_MAP_KEY);
 	static final byte[] SERIALIZED_STRING_STREAM_KEY = RedisSerializer.string().serialize(STRING_STREAM_KEY);
-	static final byte[] SERIALIZED_OBJECT_VAL = JSON_REDIS_SERIALIZER.serialize(OBJECT_VAL);
+	static final byte[] SERIALIZED_JSON_OBJECT_VAL = JSON_REDIS_SERIALIZER.serialize(OBJECT_VAL);
 
 	private static class DummyObject implements Serializable {
 		private final Integer dummyId = 1;
@@ -111,7 +114,7 @@ public class StreamRecordsUnitTests {
 		assertThat(target.getId()).isEqualTo(RECORD_ID);
 		assertThat(target.getStream()).isEqualTo(SERIALIZED_STRING_STREAM_KEY);
 		assertThat(target.getValue().keySet().iterator().next()).isEqualTo(SERIALIZED_STRING_MAP_KEY);
-		assertThat(target.getValue().values().iterator().next()).isEqualTo(SERIALIZED_OBJECT_VAL);
+		assertThat(target.getValue().values().iterator().next()).isEqualTo(SERIALIZED_JSON_OBJECT_VAL);
 	}
 
 	@Test // DATAREDIS-864
