@@ -39,6 +39,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Rob Winch
+ * @author Anton Arsentyev
  * @since 1.7
  */
 class IndexWriter {
@@ -65,7 +66,6 @@ class IndexWriter {
 	public void createIndexes(Object key, Iterable<IndexedData> indexValues, Long timeToLiveIndexes) {
 		createOrUpdateIndexes(key, indexValues, IndexWriteMode.CREATE, timeToLiveIndexes);
 	}
-
 
 	public void updateIndexes(Object key, Iterable<IndexedData> indexValues, Long timeToLiveIndexes) {
 		createOrUpdateIndexes(key, indexValues, IndexWriteMode.PARTIAL_UPDATE, timeToLiveIndexes);
@@ -203,6 +203,7 @@ class IndexWriter {
 
 	/**
 	 * Adds a given key to the index for {@link IndexedData#getIndexName()}.
+	 * 
 	 * @param key must not be {@literal null}.
 	 * @param indexedData must not be {@literal null}.
 	 * @param timeToLiveIndexes ttl
@@ -233,8 +234,7 @@ class IndexWriter {
 			// keep track of indexes used for the object
 			connection.sAdd(indexKey1, indexKey);
 
-			if(timeToLiveIndexes != null && timeToLiveIndexes > 0)
-			{
+			if (timeToLiveIndexes != null && timeToLiveIndexes > 0) {
 				connection.expire(indexKey1, timeToLiveIndexes);
 			}
 		} else if (indexedData instanceof GeoIndexedPropertyValue) {
@@ -253,8 +253,7 @@ class IndexWriter {
 
 			connection.sAdd(indexKey1, indexKey);
 
-			if(timeToLiveIndexes != null && timeToLiveIndexes > 0)
-			{
+			if (timeToLiveIndexes != null && timeToLiveIndexes > 0) {
 				connection.expire(indexKey1, timeToLiveIndexes);
 			}
 		} else {
