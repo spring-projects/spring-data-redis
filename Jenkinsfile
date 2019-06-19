@@ -36,10 +36,12 @@ pipeline {
                     agent {
                         docker {
                             image 'springci/spring-data-openjdk8-with-redis-5.0:latest'
-                            args '-v $HOME/.m2:/root/.m2'
+                            args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
                         }
                     }
                     steps {
+                        sh 'rm -rf \\?'
+
                         // Create link to directory with Redis binaries
                         sh 'ln -sf /work'
 
@@ -47,7 +49,7 @@ pipeline {
                         sh 'make start'
 
                         // Execute maven test
-                        sh "./mvnw clean test -DrunLongTests=true -B"
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw clean test -DrunLongTests=true -B'
 
                         // Capture resulting exit code from maven (pass/fail)
                         sh 'RESULT=\$?'
@@ -57,6 +59,7 @@ pipeline {
 
                         // Return maven results
                         sh 'exit \$RESULT'
+
                     }
                 }
             }
@@ -69,7 +72,7 @@ pipeline {
             agent {
                 docker {
                     image 'adoptopenjdk/openjdk8:latest'
-                    args '-v $HOME/.m2:/root/.m2'
+                    args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
                 }
             }
 
@@ -78,7 +81,7 @@ pipeline {
             }
 
             steps {
-                sh "./mvnw -Pci,snapshot -Dmaven.test.skip=true clean deploy -B"
+                sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Pci,snapshot -Dmaven.test.skip=true clean deploy -B'
             }
         }
 
@@ -89,7 +92,7 @@ pipeline {
             agent {
                 docker {
                     image 'adoptopenjdk/openjdk8:latest'
-                    args '-v $HOME/.m2:/root/.m2'
+                    args '-v $HOME/.m2:/tmp/spring-data-maven-repository'
                 }
             }
 
@@ -98,7 +101,7 @@ pipeline {
             }
 
             steps {
-                sh "./mvnw -Pci,snapshot -Dmaven.test.skip=true clean deploy -B"
+                sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Pci,snapshot -Dmaven.test.skip=true clean deploy -B'
             }
         }
     }
