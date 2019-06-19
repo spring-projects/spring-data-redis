@@ -130,7 +130,7 @@ All of these use cases are great reasons to essentially run what the CI server d
 
 IMPORTANT: To do this you must have Docker installed on your machine.
 
-1. `docker run -it --mount type=bind,source="$(pwd)",target=/spring-data-redis-github adoptopenjdk/openjdk8:latest /bin/sh`
+1. `docker run -it --mount type=bind,source="$(pwd)",target=/spring-data-redis-github springci/spring-data-openjdk8-with-redis-5.0:latest /bin/bash`
 +
 This will launch the Docker image and mount your source code at `spring-data-redis-github`.
 +
