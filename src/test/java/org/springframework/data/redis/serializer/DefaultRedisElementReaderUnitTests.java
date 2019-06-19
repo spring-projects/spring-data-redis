@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.Test;
+import org.springframework.data.redis.util.ByteUtils;
 
 /**
  * Unit tests for {@link DefaultRedisElementReader}.
@@ -45,7 +46,7 @@ public class DefaultRedisElementReaderUnitTests {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldPassThroughByteBufferForAbsentSerializer() {
+	public void shouldPassThroughBytesForAbsentSerializer() {
 
 		ByteBuffer input = ByteBuffer.allocate(1);
 
@@ -53,6 +54,6 @@ public class DefaultRedisElementReaderUnitTests {
 
 		Object result = reader.read(input);
 
-		assertThat(result, is(equalTo(input)));
+		assertThat(result, is(equalTo(ByteUtils.extractBytes(input))));
 	}
 }

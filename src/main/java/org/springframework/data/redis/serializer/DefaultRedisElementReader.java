@@ -41,11 +41,12 @@ class DefaultRedisElementReader<T> implements RedisElementReader<T> {
 	@SuppressWarnings("unchecked")
 	public T read(ByteBuffer buffer) {
 
+		byte[] bytes = ByteUtils.extractBytes(buffer);
 		if (serializer == null) {
-			return (T) buffer;
+			return (T) bytes;
 		}
 
-		return serializer.deserialize(ByteUtils.extractBytes(buffer));
+		return serializer.deserialize(bytes);
 	}
 
 }
