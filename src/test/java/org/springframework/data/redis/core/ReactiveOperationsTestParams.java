@@ -17,7 +17,6 @@ package org.springframework.data.redis.core;
 
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +24,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.runners.model.Statement;
-import org.springframework.data.redis.ByteBufferObjectFactory;
+import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
@@ -78,7 +77,7 @@ abstract public class ReactiveOperationsTestParams {
 		ObjectFactory<String> clusterKeyStringFactory = new PrefixStringObjectFactory("{u1}.", stringFactory);
 		ObjectFactory<Long> longFactory = new LongObjectFactory();
 		ObjectFactory<Double> doubleFactory = new DoubleObjectFactory();
-		ObjectFactory<ByteBuffer> rawFactory = new ByteBufferObjectFactory();
+		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
 
 		// XStream serializer
