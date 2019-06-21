@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.serializer;
 
+import java.nio.ByteBuffer;
+
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -31,16 +33,23 @@ class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<
 	private final static RedisSerializerToSerializationPairAdapter<?> RAW = new RedisSerializerToSerializationPairAdapter<>(
 			null);
 
+	private final static RedisSerializerToSerializationPairAdapter<byte[]> BYTE_ARRAY = new RedisSerializerToSerializationPairAdapter<>(
+			RedisSerializer.raw());
+
 	private final DefaultSerializationPair pair;
 
-	protected RedisSerializerToSerializationPairAdapter(@Nullable RedisSerializer<T> serializer) {
-		pair = new DefaultSerializationPair(new DefaultRedisElementReader<>(serializer),
+	RedisSerializerToSerializationPairAdapter(@Nullable RedisSerializer<T> serializer) {
+		pair = new DefaultSerializationPair<>(new DefaultRedisElementReader<>(serializer),
 				new DefaultRedisElementWriter<>(serializer));
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> SerializationPair<T> raw() {
+	static SerializationPair<ByteBuffer> raw() {
 		return (SerializationPair) RAW;
+	}
+
+	static SerializationPair<byte[]> byteArray() {
+		return BYTE_ARRAY;
 	}
 
 	/**
