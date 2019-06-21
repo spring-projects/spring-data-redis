@@ -722,8 +722,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 
 			if (this.hashMapper == null) {
 
-				hashKeySerializer(RawRedisSerializer.INSTANCE);
-				hashValueSerializer(RawRedisSerializer.INSTANCE);
+				hashKeySerializer(RedisSerializer.raw());
+				hashValueSerializer(RedisSerializer.raw());
 				return (StreamMessageListenerContainerOptionsBuilder) objectMapper(new ObjectHashMapper());
 			}
 

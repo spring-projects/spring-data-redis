@@ -79,12 +79,23 @@ public interface RedisSerializationContext<K, V> {
 	}
 
 	/**
-	 * Creates a new {@link RedisSerializationContext} using a {@link SerializationPair#raw()} serialization pair.
+	 * Creates a new {@link RedisSerializationContext} using a {@link SerializationPair#raw() ByteBuffer} serialization
+	 * pair.
 	 *
 	 * @return
 	 */
-	static RedisSerializationContext<byte[], byte[]> raw() {
-		return just(SerializationPair.raw());
+	static RedisSerializationContext<ByteBuffer, ByteBuffer> raw() {
+		return just(RedisSerializerToSerializationPairAdapter.raw());
+	}
+
+	/**
+	 * Creates a new {@link RedisSerializationContext} using a {@link RedisSerializer#raw() byte[]} serialization.
+	 *
+	 * @return
+	 * @since 2.2
+	 */
+	static RedisSerializationContext<byte[], byte[]> byteArray() {
+		return just(RedisSerializerToSerializationPairAdapter.byteArray());
 	}
 
 	/**
@@ -207,7 +218,7 @@ public interface RedisSerializationContext<K, V> {
 		 *
 		 * @return a pass through {@link SerializationPair}.
 		 */
-		static <T> SerializationPair<T> raw() {
+		static SerializationPair<ByteBuffer> raw() {
 			return RedisSerializerToSerializationPairAdapter.raw();
 		}
 

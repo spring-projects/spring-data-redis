@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.stream;
+package org.springframework.data.redis.serializer;
 
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.lang.Nullable;
 
 /**
+ * Raw {@link RedisSerializer} using {@code byte[]}.
+ *
  * @author Mark Paluch
  */
 enum RawRedisSerializer implements RedisSerializer<byte[]> {

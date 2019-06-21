@@ -111,6 +111,32 @@ public class RedisSerializationContextUnitTests {
 		assertThat(deserialized).isEqualTo(42);
 	}
 
+	@Test // DATAREDIS-1000
+	public void shouldEncodeAndDecodeRawByteBufferValue() {
+
+		RedisSerializationContext<ByteBuffer, ByteBuffer> serializationContext = RedisSerializationContext
+				.raw();
+
+		ByteBuffer deserialized = serializationContext.getValueSerializationPair()
+				.read(serializationContext.getValueSerializationPair()
+						.write(ByteBuffer.wrap("hello".getBytes())));
+
+		assertThat(deserialized).isEqualTo(ByteBuffer.wrap("hello".getBytes()));
+	}
+
+	@Test // DATAREDIS-1000
+	public void shouldEncodeAndDecodeByteArrayValue() {
+
+		RedisSerializationContext<byte[], byte[]> serializationContext = RedisSerializationContext
+				.byteArray();
+
+		byte[] deserialized = serializationContext.getValueSerializationPair()
+				.read(serializationContext.getValueSerializationPair()
+						.write("hello".getBytes()));
+
+		assertThat(deserialized).isEqualTo("hello".getBytes());
+	}
+
 	private RedisSerializationContext<String, Long> createSerializationContext() {
 
 		return RedisSerializationContext.<String, Long> newSerializationContext() //

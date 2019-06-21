@@ -92,6 +92,16 @@ public interface RedisSerializer<T> {
 		return StringRedisSerializer.UTF_8;
 	}
 
+	/**
+	 * Obtain a raw {@link RedisSerializer} that passes thru {@code byte[]}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.2
+	 */
+	static RedisSerializer<byte[]> raw() {
+		return RawRedisSerializer.INSTANCE;
+	}
+
 	default boolean canSerialize(Class<?> type) {
 		return ClassUtils.isAssignable(getTargetType(), type);
 	}
