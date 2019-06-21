@@ -40,7 +40,7 @@ pipeline {
                         }
                     }
                     steps {
-                        sh 'rm -rf \\?'
+                        sh 'rm -rf ?'
 
                         // Create link to directory with Redis binaries
                         sh 'ln -sf /work'
@@ -81,6 +81,7 @@ pipeline {
             }
 
             steps {
+                sh 'rm -rf ?'
                 sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Pci,snapshot -Dmaven.test.skip=true clean deploy -B'
             }
         }
@@ -101,6 +102,7 @@ pipeline {
             }
 
             steps {
+                sh 'rm -rf ?'
                 sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/spring-data-maven-repository" ./mvnw -Pci,snapshot -Dmaven.test.skip=true clean deploy -B'
             }
         }
