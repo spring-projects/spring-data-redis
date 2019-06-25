@@ -326,7 +326,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	 */
 	@Override
 	public RedisScriptingCommands scriptingCommands() {
-		return JedisClusterScriptingCommands.INSTANCE;
+		return new JedisClusterScriptingCommands(this);
 	}
 
 	private JedisClusterKeyCommands doGetKeyCommands() {
