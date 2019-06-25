@@ -17,17 +17,22 @@ package org.springframework.data.redis.connection.jedis;
 
 import java.util.List;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisScriptingCommands;
 import org.springframework.data.redis.connection.ReturnType;
+import redis.clients.jedis.JedisCluster;
 
 /**
  * @author Mark Paluch
  * @since 2.0
  */
-enum JedisClusterScriptingCommands implements RedisScriptingCommands {
+@RequiredArgsConstructor
+class JedisClusterScriptingCommands implements RedisScriptingCommands {
 
-	INSTANCE;
+	private final @NonNull JedisClusterConnection clusterConnection;
 
 	/*
 	 * (non-Javadoc)
@@ -70,8 +75,15 @@ enum JedisClusterScriptingCommands implements RedisScriptingCommands {
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#eval(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		throw new InvalidDataAccessApiUsageException("Eval is not supported in cluster environment.");
+		checkConnection();
+		try {
+			return (T) new JedisScriptReturnConverter(returnType)
+					.convert(getCluster().eval(script, JedisConverters.toBytes(numKeys), keysAndArgs));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	/*
@@ -80,7 +92,7 @@ enum JedisClusterScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public <T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		throw new InvalidDataAccessApiUsageException("EvalSha is not supported in cluster environment.");
+		return evalSha(JedisConverters.toBytes(scriptSha), returnType, numKeys, keysAndArgs);
 	}
 
 	/*
@@ -88,7 +100,43 @@ enum JedisClusterScriptingCommands implements RedisScriptingCommands {
 	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		throw new InvalidDataAccessApiUsageException("EvalSha is not supported in cluster environment.");
+		checkConnection();
+		try {
+			return (T) new JedisScriptReturnConverter(returnType)
+					.convert(getCluster().evalsha(scriptSha, numKeys, keysAndArgs));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	public JedisClusterConnection getClusterConnection() {
+		return clusterConnection;
+	}
+
+	protected RuntimeException convertJedisAccessException(Exception ex) {
+		return clusterConnection.convertJedisAccessException(ex);
+	}
+
+	private JedisCluster getCluster() {
+		return clusterConnection.getCluster();
+	}
+
+	protected void checkConnection() {
+		if (isQueueing()) {
+			throw new UnsupportedOperationException();
+		}
+		if (isPipelined()) {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	private boolean isPipelined() {
+		return clusterConnection.isPipelined();
+	}
+
+	private boolean isQueueing() {
+		return clusterConnection.isQueueing();
 	}
 }

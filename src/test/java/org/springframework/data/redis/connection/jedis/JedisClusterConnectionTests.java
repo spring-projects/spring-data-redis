@@ -51,6 +51,7 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.ClusterConnectionTests;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.DefaultSortParameters;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -70,6 +71,7 @@ import org.springframework.data.redis.test.util.HexStringUtils;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.data.redis.core.script.DigestUtils;
 
 /**
  * @author Christoph Strobl
@@ -2421,4 +2423,28 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 								.valueAt(offset(0L).multipliedByTypeLength())
 				.get(INT_8).valueAt(offset(1L).multipliedByTypeLength())), contains(100L, -56L));
 	}
+
+	@Test // DATAREDIS-1005
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void evalOK() {
+        byte[] keyAndArgs = JedisConverters.toBytes("FOO");
+
+		String luaScript = "return redis.call(\"INCR\", KEYS[1])";
+		byte[] luaScriptBin = JedisConverters.toBytes(luaScript);
+		Long result = clusterConnection.scriptingCommands().eval(luaScriptBin, ReturnType.VALUE, 1, keyAndArgs);
+		assertThat(result, is(1L));
+	}
+
+	@Test // DATAREDIS-1005
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void evalShaOK() {
+		byte[] keyAndArgs = JedisConverters.toBytes("FOO");
+
+		String luaScript = "return redis.call(\"INCR\", KEYS[1])";
+		String digest = DigestUtils.sha1DigestAsHex(luaScript);
+		byte[] luaScriptBin = JedisConverters.toBytes(digest);
+		Long result = clusterConnection.scriptingCommands().evalSha(luaScriptBin, ReturnType.VALUE, 1, keyAndArgs);
+		assertThat(result, is(1L));
+	}
+
 }
