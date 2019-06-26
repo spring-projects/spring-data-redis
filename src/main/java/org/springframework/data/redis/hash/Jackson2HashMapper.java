@@ -16,7 +16,9 @@
 package org.springframework.data.redis.hash;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -29,15 +31,28 @@ import java.util.Set;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
+import org.springframework.util.NumberUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
+import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
+import com.fasterxml.jackson.databind.deser.std.UntypedObjectDeserializer;
+import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
 /**
  * {@link ObjectMapper} based {@link HashMapper} implementation that allows flattening. Given an entity {@code Person}
@@ -65,19 +80,56 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  *
  * <strong>Normal</strong>
  * <table>
- *   <tr><th>Hash field</th><th>Value<th></tr>
- *   <tr><td>firstname</td><td>Jon<td></tr>
- *   <tr><td>lastname</td><td>Snow<td></tr>
- *   <tr><td>address</td><td>{ "city" : "Castle Black", "country" : "The North" }<td></tr>
+ * <tr>
+ * <th>Hash field</th>
+ * <th>Value
+ * <th>
+ * </tr>
+ * <tr>
+ * <td>firstname</td>
+ * <td>Jon
+ * <td>
+ * </tr>
+ * <tr>
+ * <td>lastname</td>
+ * <td>Snow
+ * <td>
+ * </tr>
+ * <tr>
+ * <td>address</td>
+ * <td>{ "city" : "Castle Black", "country" : "The North" }
+ * <td>
+ * </tr>
  * </table>
  * <br />
  * <strong>Flat</strong>:
  * <table>
- *   <tr><th>Hash field</th><th>Value<th></tr>
- *   <tr><td>firstname</td><td>Jon<td></tr>
- *   <tr><td>lastname</td><td>Snow<td></tr>
- *   <tr><td>address.city</td><td>Castle Black<td></tr>
- *   <tr><td>address.country</td><td>The North<td></tr>
+ * <tr>
+ * <th>Hash field</th>
+ * <th>Value
+ * <th>
+ * </tr>
+ *  
+ * <tr>
+ * <td>firstname</td>
+ * <td>Jon
+ * <td>
+ * </tr>
+ * <tr>
+ * <td>lastname</td>
+ * <td>Snow
+ * <td>
+ * </tr>
+ * <tr>
+ * <td>address.city</td>
+ * <td>Castle Black
+ * <td>
+ * </tr>
+ * <tr>
+ * <td>address.country</td>
+ * <td>The North
+ * <td>
+ * </tr>
  * </table>
  *
  * @author Christoph Strobl
@@ -103,6 +155,50 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		typingMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
 		typingMapper.setSerializationInclusion(Include.NON_NULL);
 		typingMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+		typingMapper.addHandler(new DeserializationProblemHandler() {
+			@Override
+			public JavaType handleMissingTypeId(DeserializationContext ctxt, JavaType baseType, TypeIdResolver idResolver,
+					String failureMsg) {
+				return TypeFactory.defaultInstance().constructSimpleType(java.util.Date.class, new JavaType[] {});
+			}
+		});
+
+		SimpleModule module = new SimpleModule();
+		module.setDeserializerModifier(new BeanDeserializerModifier() {
+			@Override
+			public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription beanDesc,
+					JsonDeserializer<?> deserializer) {
+
+				if (beanDesc.getBeanClass().equals(java.util.Date.class)) {
+					return new JsonDeserializer<Object>() {
+
+						JsonDeserializer<?> delegate = new UntypedObjectDeserializer(null, null);
+
+						@Override
+						public Object deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+
+							Object val = delegate.deserialize(p, ctxt);
+
+							if (val instanceof Date) {
+								return val;
+							}
+
+							try {
+								return ctxt.getConfig().getDateFormat().parse(val.toString());
+							} catch (ParseException e) {
+								e.printStackTrace();
+								return new Date(NumberUtils.parseNumber(val.toString(), Long.class));
+							}
+						}
+					};
+				}
+
+				return deserializer;
+			}
+		});
+
+		typingMapper.registerModule(module);
 	}
 
 	/**
@@ -242,6 +338,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		}
 
 		JsonNode element = (JsonNode) source;
+
 		if (element.isArray()) {
 
 			Iterator<JsonNode> nodes = element.elements();
@@ -250,7 +347,13 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 				JsonNode cur = nodes.next();
 				if (cur.isArray()) {
-					this.falttenCollection(propertyPrefix, cur.elements(), resultMap);
+					this.flattenCollection(propertyPrefix, cur.elements(), resultMap);
+				} else {
+
+					if (cur.asText().equals("java.util.Date")) {
+						resultMap.put(propertyPrefix, nodes.next().asText());
+						break;
+					}
 				}
 			}
 
@@ -261,7 +364,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		}
 	}
 
-	private void falttenCollection(String propertyPrefix, Iterator<JsonNode> list, Map<String, Object> resultMap) {
+	private void flattenCollection(String propertyPrefix, Iterator<JsonNode> list, Map<String, Object> resultMap) {
 
 		int counter = 0;
 		while (list.hasNext()) {

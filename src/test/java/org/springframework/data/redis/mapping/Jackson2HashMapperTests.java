@@ -97,5 +97,4 @@ public class Jackson2HashMapperTests {
 		Person result = (Person) mapper.fromHash(template.<String, Object> opsForHash().entries("JON-SNOW"));
 		Assert.assertThat(result, Is.is(jon));
 	}
-
 }

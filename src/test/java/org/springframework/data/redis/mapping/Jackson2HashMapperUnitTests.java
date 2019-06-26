@@ -20,6 +20,7 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -161,6 +162,16 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 		assertBackAndForwardMapping(outer);
 	}
 
+	@Test // DATAREDIS-1001
+	public void dateValueShouldBeTreatedCorrectly() {
+
+		WithDate source = new WithDate();
+		source.string = "id-1";
+		source.date = new Date(1561543964015L);
+
+		assertBackAndForwardMapping(source);
+	}
+
 	@Data
 	public static class WithList {
 		List<String> strings;
@@ -173,5 +184,12 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 		Map<String, String> strings;
 		Map<String, Object> objects;
 		Map<String, Person> persons;
+	}
+
+	@Data
+	static class WithDate {
+
+		private String string;
+		private Date date;
 	}
 }
