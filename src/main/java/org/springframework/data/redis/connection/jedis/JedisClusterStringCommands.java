@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -40,7 +39,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceConverters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
@@ -134,39 +132,12 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		Assert.notNull(expiration, "Expiration must not be null!");
 		Assert.notNull(option, "Option must not be null!");
 
-		if (expiration.isPersistent()) {
+		SetParams setParams = JedisConverters.toSetCommandExPxArgument(expiration, JedisConverters.toSetCommandNxXxArgument(option));
 
-			if (ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
-				return set(key, value);
-			} else {
-
-				// BinaryCluster does not support set with nxxx and binary key/value pairs.
-				if (ObjectUtils.nullSafeEquals(SetOption.SET_IF_PRESENT, option)) {
-					throw new UnsupportedOperationException("Jedis does not support SET XX without PX or EX on BinaryCluster.");
-				}
-
-				return setNX(key, value);
-			}
-		} else {
-
-			if (ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
-
-				if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
-					return pSetEx(key, expiration.getExpirationTime(), value);
-				} else {
-					return setEx(key, expiration.getExpirationTime(), value);
-				}
-			} else {
-
-				SetParams params = JedisConverters.toSetCommandNxXxArgument(option);
-				JedisConverters.toSetCommandExPxArgument(expiration, params);
-
-				try {
-					return Converters.stringToBoolean(connection.getCluster().set(key, value, params));
-				} catch (Exception ex) {
-					throw convertJedisAccessException(ex);
-				}
-			}
+		try {
+			return Converters.stringToBoolean(connection.getCluster().set(key, value, setParams));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
 		}
 	}
 

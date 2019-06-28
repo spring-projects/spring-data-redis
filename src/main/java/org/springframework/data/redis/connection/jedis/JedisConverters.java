@@ -533,11 +533,15 @@ abstract public class JedisConverters extends Converters {
 
 		SetParams paramsToUse = params == null ? SetParams.setParams() : params;
 
-		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-			return paramsToUse.px(expiration.getExpirationTime());
+		if (!expiration.isPersistent()) {
+			if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+				return paramsToUse.px(expiration.getExpirationTime());
+			}
+
+			return paramsToUse.ex((int) expiration.getExpirationTime());
 		}
 
-		return paramsToUse.ex((int) expiration.getExpirationTime());
+		return params;
 	}
 
 	/**

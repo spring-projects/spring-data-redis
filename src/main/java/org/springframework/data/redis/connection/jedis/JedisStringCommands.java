@@ -23,7 +23,6 @@ import redis.clients.jedis.params.SetParams;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
@@ -33,7 +32,6 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
@@ -159,79 +157,26 @@ class JedisStringCommands implements RedisStringCommands {
 		Assert.notNull(expiration, "Expiration must not be null!");
 		Assert.notNull(option, "Option must not be null!");
 
-		if (expiration.isPersistent()) {
+		SetParams params = JedisConverters.toSetCommandExPxArgument(expiration, JedisConverters.toSetCommandNxXxArgument(option));
 
-			if (ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
-				return set(key, value);
-			} else {
+		try {
+			if (isPipelined()) {
 
-				try {
-					SetParams nxxx = JedisConverters.toSetCommandNxXxArgument(option);
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().set(key, value, params),
+						Converters.stringToBooleanConverter(), () -> false));
+				return null;
+			}
+			if (isQueueing()) {
 
-					if (isPipelined()) {
-
-						pipeline(connection.newJedisResult(connection.getRequiredPipeline().set(key, value, nxxx),
-								Converters.stringToBooleanConverter(), () -> false));
-						return null;
-					}
-					if (isQueueing()) {
-
-						transaction(connection.newJedisResult(connection.getRequiredTransaction().set(key, value, nxxx),
-								Converters.stringToBooleanConverter(), () -> false));
-						return null;
-					}
-
-					return Converters.stringToBoolean(connection.getJedis().set(key, value, nxxx));
-				} catch (Exception ex) {
-					throw convertJedisAccessException(ex);
-				}
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().set(key, value, params),
+						Converters.stringToBooleanConverter(), () -> false));
+				return null;
 			}
 
-		} else {
+			return Converters.stringToBoolean(connection.getJedis().set(key, value, params));
 
-			if (ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
-
-				if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
-					return pSetEx(key, expiration.getExpirationTime(), value);
-				} else {
-					return setEx(key, expiration.getExpirationTime(), value);
-				}
-			} else {
-
-				SetParams params = JedisConverters.toSetCommandNxXxArgument(option, null);
-				JedisConverters.toSetCommandExPxArgument(expiration, params);
-
-				try {
-					if (isPipelined()) {
-
-						if (expiration.getExpirationTime() > Integer.MAX_VALUE) {
-
-							throw new IllegalArgumentException(
-									"Expiration.expirationTime must be less than Integer.MAX_VALUE for pipeline in Jedis.");
-						}
-
-						pipeline(connection.newJedisResult(connection.getRequiredPipeline().set(key, value, params),
-								Converters.stringToBooleanConverter(), () -> false));
-						return null;
-					}
-					if (isQueueing()) {
-
-						if (expiration.getExpirationTime() > Integer.MAX_VALUE) {
-							throw new IllegalArgumentException(
-									"Expiration.expirationTime must be less than Integer.MAX_VALUE for transactions in Jedis.");
-						}
-
-						transaction(connection.newJedisResult(connection.getRequiredTransaction().set(key, value, params),
-								Converters.stringToBooleanConverter(), () -> false));
-						return null;
-					}
-
-					return Converters.stringToBoolean(connection.getJedis().set(key, value, params));
-
-				} catch (Exception ex) {
-					throw convertJedisAccessException(ex);
-				}
-			}
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
 		}
 	}
 
