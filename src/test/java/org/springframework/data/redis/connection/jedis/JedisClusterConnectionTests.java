@@ -1830,11 +1830,15 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1_BYTES)).isEqualTo(-1L);
 	}
 
-	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-316
+	@Test // DATAREDIS-316, DATAREDIS-588
 	public void setWithOptionIfPresentShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 		clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifPresent());
+
+		assertThat(nativeConnection.exists(KEY_1_BYTES), is(true));
+		assertThat(clusterConnection.get(KEY_1_BYTES), is(VALUE_2_BYTES));
+		assertThat(nativeConnection.ttl(KEY_1_BYTES), is(-1L));
 	}
 
 	@Test // DATAREDIS-315
