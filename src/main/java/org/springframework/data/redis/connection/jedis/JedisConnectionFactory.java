@@ -427,10 +427,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		int connectTimeout = getConnectTimeout();
 		int readTimeout = getReadTimeout();
+		String password = getPassword();
+		String clientName = getClientName();
 
-		return StringUtils.hasText(getPassword())
-				? new JedisCluster(hostAndPort, connectTimeout, readTimeout, redirects, getPassword(), poolConfig)
-				: new JedisCluster(hostAndPort, connectTimeout, readTimeout, redirects, poolConfig);
+		return new JedisCluster(hostAndPort, connectTimeout, readTimeout, redirects,
+				StringUtils.hasText(password) ? password : null, StringUtils.hasText(clientName) ? clientName : null,
+				poolConfig);
 	}
 
 	/*

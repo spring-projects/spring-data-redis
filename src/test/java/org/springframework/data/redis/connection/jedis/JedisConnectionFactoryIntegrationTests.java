@@ -23,6 +23,7 @@ import redis.clients.jedis.JedisShardInfo;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 
 /**
@@ -64,5 +65,18 @@ public class JedisConnectionFactoryIntegrationTests {
 		factory.afterPropertiesSet();
 
 		assertThat(factory.getConnection().ping(), equalTo("PONG"));
+	}
+
+	@Test // DATAREDIS-575
+	public void connectionAppliesClientName() {
+
+		factory = new JedisConnectionFactory(
+				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
+				JedisClientConfiguration.builder().clientName("clientName").build());
+		factory.afterPropertiesSet();
+
+		RedisConnection connection = factory.getConnection();
+
+		assertThat(connection.getClientName(), equalTo("clientName"));
 	}
 }
