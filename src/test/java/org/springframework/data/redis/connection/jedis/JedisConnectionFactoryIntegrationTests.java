@@ -57,7 +57,7 @@ public class JedisConnectionFactoryIntegrationTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldInitiaizeWithStandaloneConfiguration() {
+	public void shouldInitializeWithStandaloneConfiguration() {
 
 		factory = new JedisConnectionFactory(
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
@@ -77,6 +77,6 @@ public class JedisConnectionFactoryIntegrationTests {
 
 		RedisConnection connection = factory.getConnection();
 
-		assertThat(connection.getClientName(), equalTo("clientName"));
+		assertThat(connection.getClientName()).isEqualTo("clientName");
 	}
 }
