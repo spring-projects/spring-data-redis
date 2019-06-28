@@ -33,7 +33,6 @@ import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.convert.Converters;
-import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterCommandCallback;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
 import org.springframework.data.redis.connection.lettuce.LettuceConverters;
 import org.springframework.data.redis.core.types.Expiration;
@@ -189,11 +188,11 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return Converters.stringToBoolean(connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode(
-						(JedisClusterCommandCallback<String>) client -> client.psetex(key, milliseconds, value),
-						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
-				.getValue());
+		try {
+			return Converters.stringToBoolean(connection.getCluster().psetex(key, milliseconds, value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	/*
