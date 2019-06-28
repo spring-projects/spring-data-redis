@@ -198,7 +198,7 @@ class JedisStringCommands implements RedisStringCommands {
 				}
 			} else {
 
-			    SetParams params = JedisConverters.toSetCommandNxXxArgument(option, null);
+				SetParams params = JedisConverters.toSetCommandNxXxArgument(option, null);
 				JedisConverters.toSetCommandExPxArgument(expiration, params);
 
 				try {
@@ -210,8 +210,7 @@ class JedisStringCommands implements RedisStringCommands {
 									"Expiration.expirationTime must be less than Integer.MAX_VALUE for pipeline in Jedis.");
 						}
 
-						pipeline(connection.newJedisResult(
-								connection.getRequiredPipeline().set(key, value, params),
+						pipeline(connection.newJedisResult(connection.getRequiredPipeline().set(key, value, params),
 								Converters.stringToBooleanConverter(), () -> false));
 						return null;
 					}
@@ -222,8 +221,7 @@ class JedisStringCommands implements RedisStringCommands {
 									"Expiration.expirationTime must be less than Integer.MAX_VALUE for transactions in Jedis.");
 						}
 
-						transaction(connection.newJedisResult(
-								connection.getRequiredTransaction().set(key, value, params),
+						transaction(connection.newJedisResult(connection.getRequiredTransaction().set(key, value, params),
 								Converters.stringToBooleanConverter(), () -> false));
 						return null;
 					}
@@ -534,22 +532,16 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		if (start > Integer.MAX_VALUE || end > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("Start and end must be less than Integer.MAX_VALUE for getRange in Jedis.");
-		}
-
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().substr(key, (int) start, (int) end),
-						JedisConverters.stringToBytes()));
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().getrange(key, start, end)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().substr(key, (int) start, (int) end),
-						JedisConverters.stringToBytes()));
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().getrange(key, start, end)));
 				return null;
 			}
-			return connection.getJedis().substr(key, (int) start, (int) end);
+			return connection.getJedis().getrange(key, start, end);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
