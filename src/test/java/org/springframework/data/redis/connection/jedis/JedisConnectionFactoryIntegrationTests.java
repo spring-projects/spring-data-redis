@@ -15,13 +15,13 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import redis.clients.jedis.JedisShardInfo;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -53,18 +53,18 @@ public class JedisConnectionFactoryIntegrationTests {
 		factory.setPort(1234);
 		factory.afterPropertiesSet();
 
-		assertThat(factory.getConnection().ping(), equalTo("PONG"));
+		assertThat(factory.getConnection().ping()).isEqualTo("PONG");
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldInitiaizeWithStandaloneConfiguration() {
+	public void shouldInitializeWithStandaloneConfiguration() {
 
 		factory = new JedisConnectionFactory(
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
 				JedisClientConfiguration.defaultConfiguration());
 		factory.afterPropertiesSet();
 
-		assertThat(factory.getConnection().ping(), equalTo("PONG"));
+		assertThat(factory.getConnection().ping()).isEqualTo("PONG");
 	}
 
 	@Test // DATAREDIS-575
@@ -77,6 +77,6 @@ public class JedisConnectionFactoryIntegrationTests {
 
 		RedisConnection connection = factory.getConnection();
 
-		assertThat(connection.getClientName(), equalTo("clientName"));
+		assertThat(connection.getClientName()).isEqualTo("clientName");
 	}
 }
