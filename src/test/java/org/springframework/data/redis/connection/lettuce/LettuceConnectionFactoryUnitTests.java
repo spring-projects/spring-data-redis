@@ -285,6 +285,68 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.isStartTls()).isTrue();
 	}
 
+	@Test // DATAREDIS-990
+	public void sslShouldBeSetCorrectlyOnSentinelClient() {
+
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration("myMaster",
+				Collections.singleton("localhost:1234"));
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration);
+		connectionFactory.setClientResources(getSharedClientResources());
+		connectionFactory.setUseSsl(true);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isInstanceOf(RedisClient.class);
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.isSsl()).isTrue();
+		assertThat(connectionFactory.isUseSsl()).isTrue();
+		assertThat(redisUri.isVerifyPeer()).isTrue();
+		assertThat(connectionFactory.isVerifyPeer()).isTrue();
+	}
+
+	@Test // DATAREDIS-990
+	public void verifyPeerOptionShouldBeSetCorrectlyOnSentinelClient() {
+
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration("myMaster",
+				Collections.singleton("localhost:1234"));
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration);
+		connectionFactory.setClientResources(getSharedClientResources());
+		connectionFactory.setVerifyPeer(false);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isInstanceOf(RedisClient.class);
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.isVerifyPeer()).isFalse();
+		assertThat(connectionFactory.isVerifyPeer()).isFalse();
+	}
+
+	@Test // DATAREDIS-990
+	public void startTLSOptionShouldBeSetCorrectlyOnSentinelClient() {
+
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration("myMaster",
+				Collections.singleton("localhost:1234"));
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration);
+		connectionFactory.setClientResources(getSharedClientResources());
+		connectionFactory.setStartTls(true);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isInstanceOf(RedisClient.class);
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.isStartTls()).isTrue();
+		assertThat(connectionFactory.isStartTls()).isTrue();
+	}
+
 	@Test // DATAREDIS-537
 	public void sslShouldBeSetCorrectlyOnClusterClient() {
 

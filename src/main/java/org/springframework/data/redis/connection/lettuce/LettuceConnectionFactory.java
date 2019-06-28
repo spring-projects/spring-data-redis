@@ -1031,6 +1031,10 @@ public class LettuceConnectionFactory
 
 		getRedisPassword().toOptional().ifPresent(redisUri::setPassword);
 		clientConfiguration.getClientName().ifPresent(redisUri::setClientName);
+
+		redisUri.setSsl(clientConfiguration.isUseSsl());
+		redisUri.setVerifyPeer(clientConfiguration.isVerifyPeer());
+		redisUri.setStartTls(clientConfiguration.isStartTls());
 		redisUri.setTimeout(clientConfiguration.getCommandTimeout());
 		redisUri.setDatabase(getDatabase());
 
