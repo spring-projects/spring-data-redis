@@ -15,9 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.hash.HashMapper;
-import org.springframework.data.redis.hash.ObjectHashMapper;
-import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -31,6 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -39,11 +37,14 @@ import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.core.script.DefaultReactiveScriptExecutor;
 import org.springframework.data.redis.core.script.ReactiveScriptExecutor;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.hash.HashMapper;
+import org.springframework.data.redis.hash.ObjectHashMapper;
 import org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.serializer.RedisElementReader;
 import org.springframework.data.redis.serializer.RedisElementWriter;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -131,22 +132,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	public <T> Flux<T> execute(ReactiveRedisCallback<T> action, boolean exposeConnection) {
 
 		Assert.notNull(action, "Callback object must not be null");
-
-		ReactiveRedisConnectionFactory factory = getConnectionFactory();
-		ReactiveRedisConnection conn = factory.getReactiveConnection();
-
-		try {
-
-			ReactiveRedisConnection connToUse = preProcessConnection(conn, false);
-
-			ReactiveRedisConnection connToExpose = (exposeConnection ? connToUse : createRedisConnectionProxy(connToUse));
-			Publisher<T> result = action.doInRedis(connToExpose);
-
-			return Flux.from(postProcessResult(result, connToUse, false)).doFinally(signalType -> conn.close());
-		} catch (RuntimeException e) {
-			conn.close();
-			throw e;
-		}
+		return Flux.from(doInConnection(action, exposeConnection));
 	}
 
 	/**
@@ -160,7 +146,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(callback, "ReactiveRedisCallback must not be null!");
 
-		return Flux.defer(() -> doInConnection(callback, exposeConnection));
+		return Flux.from(doInConnection(callback, exposeConnection));
 	}
 
 	/**
@@ -170,11 +156,11 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 * @param callback must not be {@literal null}
 	 * @return a {@link Mono} wrapping the {@link ReactiveRedisCallback}.
 	 */
-	public <T> Mono<T> createMono(final ReactiveRedisCallback<T> callback) {
+	public <T> Mono<T> createMono(ReactiveRedisCallback<T> callback) {
 
 		Assert.notNull(callback, "ReactiveRedisCallback must not be null!");
 
-		return Mono.defer(() -> Mono.from(doInConnection(callback, exposeConnection)));
+		return Mono.from(doInConnection(callback, exposeConnection));
 	}
 
 	/**
@@ -190,15 +176,19 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(action, "Callback object must not be null");
 
-		ReactiveRedisConnectionFactory factory = getConnectionFactory();
-		ReactiveRedisConnection conn = factory.getReactiveConnection();
+		return Flux.usingWhen(Mono.fromSupplier(() -> {
 
-		ReactiveRedisConnection connToUse = preProcessConnection(conn, false);
+			ReactiveRedisConnectionFactory factory = getConnectionFactory();
+			ReactiveRedisConnection conn = factory.getReactiveConnection();
+			ReactiveRedisConnection connToUse = preProcessConnection(conn, false);
 
-		ReactiveRedisConnection connToExpose = (exposeConnection ? connToUse : createRedisConnectionProxy(connToUse));
-		Publisher<T> result = action.doInRedis(connToExpose);
+			return (exposeConnection ? connToUse : createRedisConnectionProxy(connToUse));
+		}), conn -> {
+			Publisher<T> result = action.doInRedis(conn);
 
-		return Flux.from(postProcessResult(result, connToUse, false)).doFinally(signal -> conn.close());
+			return postProcessResult(result, conn, false);
+
+		}, ReactiveRedisConnection::closeLater, ReactiveRedisConnection::closeLater);
 	}
 
 	/*

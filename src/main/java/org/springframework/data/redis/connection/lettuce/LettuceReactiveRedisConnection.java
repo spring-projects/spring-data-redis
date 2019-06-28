@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.*;
@@ -237,7 +238,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#closeLater()
 	 */
 	public Mono<Void> closeLater() {
-		return Mono.fromRunnable(dedicatedConnection::close);
+		return Flux.mergeDelayError(2, dedicatedConnection.close(), pubSubConnection.close()).then();
 	}
 
 	protected Mono<? extends StatefulConnection<ByteBuffer, ByteBuffer>> getConnection() {
@@ -363,7 +364,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 			this.connectionProvider = connectionProvider;
 
 			Mono<StatefulConnection> defer = Mono
-					.defer(() -> Mono.fromCompletionStage(connectionProvider.getConnectionAsync(connectionType)));
+					.fromCompletionStage(() -> connectionProvider.getConnectionAsync(connectionType));
 
 			this.connectionPublisher = defer.doOnNext(it -> {
 
@@ -403,21 +404,25 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		}
 
 		/**
-		 * Close connection (blocking call).
+		 * Close connection.
 		 */
-		void close() {
+		Mono<Void> close() {
 
-			if (state.compareAndSet(State.INITIAL, CLOSING) || state.compareAndSet(State.CONNECTION_REQUESTED, CLOSING)) {
+			return Mono.defer(() -> {
 
-				StatefulConnection<ByteBuffer, ByteBuffer> connection = this.connection;
-				this.connection = null;
+				if (state.compareAndSet(State.INITIAL, CLOSING) || state.compareAndSet(State.CONNECTION_REQUESTED, CLOSING)) {
 
-				if (connection != null) {
-					LettuceFutureUtils.join(connectionProvider.releaseAsync(connection));
+					StatefulConnection<ByteBuffer, ByteBuffer> connection = this.connection;
+					this.connection = null;
+
+					state.set(State.CLOSED);
+					if (connection != null) {
+						return Mono.fromCompletionStage(connectionProvider.releaseAsync(connection));
+					}
+
 				}
-
-				state.set(State.CLOSED);
-			}
+				return Mono.empty();
+			});
 		}
 
 		private static boolean isClosing(State state) {
