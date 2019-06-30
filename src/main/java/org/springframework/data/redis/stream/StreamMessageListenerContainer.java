@@ -504,7 +504,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		/**
 		 * @return a new builder for {@link StreamMessageListenerContainerOptions}.
 		 */
-		static StreamMessageListenerContainerOptionsBuilder<String, MapRecord<String, String, String>> builder() {
+		public static StreamMessageListenerContainerOptionsBuilder<String, MapRecord<String, String, String>> builder() {
 			return new StreamMessageListenerContainerOptionsBuilder<>().serializer(StringRedisSerializer.UTF_8);
 		}
 
