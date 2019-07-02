@@ -147,9 +147,9 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+	public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
-		Assert.notNull(scriptSha1, "Script digest must not be null!");
+		Assert.notNull(scriptSha, "Script digest must not be null!");
 
 		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException();
@@ -157,7 +157,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 
 		try {
 			return (T) new JedisScriptReturnConverter(returnType)
-					.convert(connection.getJedis().evalsha(scriptSha1, numKeys, keysAndArgs));
+					.convert(connection.getJedis().evalsha(scriptSha, numKeys, keysAndArgs));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

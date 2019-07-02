@@ -15,24 +15,28 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import java.util.List;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataAccessException;
+import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.JedisCluster;
+
+import java.util.List;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.RedisScriptingCommands;
 import org.springframework.data.redis.connection.ReturnType;
-import redis.clients.jedis.JedisCluster;
+import org.springframework.util.Assert;
 
 /**
  * @author Mark Paluch
+ * @author Pavel Khokhlov
  * @since 2.0
  */
 @RequiredArgsConstructor
 class JedisClusterScriptingCommands implements RedisScriptingCommands {
 
-	private final @NonNull JedisClusterConnection clusterConnection;
+	private final @NonNull JedisClusterConnection connection;
 
 	/*
 	 * (non-Javadoc)
@@ -40,7 +44,13 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public void scriptFlush() {
-		throw new InvalidDataAccessApiUsageException("ScriptFlush is not supported in cluster environment.");
+
+		try {
+			connection.getClusterCommandExecutor().executeCommandOnAllNodes(
+					(JedisClusterConnection.JedisClusterCommandCallback<String>) BinaryJedis::scriptFlush);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	/*
@@ -49,7 +59,13 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public void scriptKill() {
-		throw new InvalidDataAccessApiUsageException("ScriptKill is not supported in cluster environment.");
+
+		try {
+			connection.getClusterCommandExecutor().executeCommandOnAllNodes(
+					(JedisClusterConnection.JedisClusterCommandCallback<String>) BinaryJedis::scriptKill);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	/*
@@ -58,7 +74,18 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public String scriptLoad(byte[] script) {
-		throw new InvalidDataAccessApiUsageException("ScriptLoad is not supported in cluster environment.");
+
+		Assert.notNull(script, "Script must not be null!");
+
+		try {
+			ClusterCommandExecutor.MultiNodeResult<byte[]> multiNodeResult = connection.getClusterCommandExecutor()
+					.executeCommandOnAllNodes(
+							(JedisClusterConnection.JedisClusterCommandCallback<byte[]>) client -> client.scriptLoad(script));
+
+			return JedisConverters.toString(multiNodeResult.getFirstNonNullNotEmptyOrDefault(new byte[0]));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	/*
@@ -77,7 +104,9 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		checkConnection();
+
+		Assert.notNull(script, "Script must not be null!");
+
 		try {
 			return (T) new JedisScriptReturnConverter(returnType)
 					.convert(getCluster().eval(script, JedisConverters.toBytes(numKeys), keysAndArgs));
@@ -102,7 +131,9 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		checkConnection();
+
+		Assert.notNull(scriptSha, "Script digest must not be null!");
+
 		try {
 			return (T) new JedisScriptReturnConverter(returnType)
 					.convert(getCluster().evalsha(scriptSha, numKeys, keysAndArgs));
@@ -111,32 +142,11 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	public JedisClusterConnection getClusterConnection() {
-		return clusterConnection;
-	}
-
 	protected RuntimeException convertJedisAccessException(Exception ex) {
-		return clusterConnection.convertJedisAccessException(ex);
+		return connection.convertJedisAccessException(ex);
 	}
 
 	private JedisCluster getCluster() {
-		return clusterConnection.getCluster();
-	}
-
-	protected void checkConnection() {
-		if (isQueueing()) {
-			throw new UnsupportedOperationException();
-		}
-		if (isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
-	}
-
-	private boolean isPipelined() {
-		return clusterConnection.isPipelined();
-	}
-
-	private boolean isQueueing() {
-		return clusterConnection.isQueueing();
+		return connection.getCluster();
 	}
 }

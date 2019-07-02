@@ -587,7 +587,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 						if (CollectionUtils.isEmpty((Map<?, ?>) nodeResult.getValue())) {
 							return nodeResult.getValue();
 						}
-					} else if (CollectionUtils.isEmpty((Collection<?>) nodeResult.getValue())) {
+					} else if (nodeResult.getValue() instanceof Collection
+							&& CollectionUtils.isEmpty((Collection<?>) nodeResult.getValue())) {
 						return nodeResult.getValue();
 					} else {
 						return nodeResult.getValue();

@@ -41,6 +41,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range.Bound;
@@ -51,7 +52,6 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.ClusterConnectionTests;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.DataType;
-import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.DefaultSortParameters;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -63,19 +63,21 @@ import org.springframework.data.redis.connection.RedisStringCommands.BitOperatio
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.script.DigestUtils;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.util.HexStringUtils;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.test.annotation.IfProfileValue;
-import org.springframework.data.redis.core.script.DigestUtils;
 
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Pavel Khokhlov
  */
 public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
@@ -2368,10 +2370,8 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void bitFieldGetShouldWorkCorrectly() {
 
-		assertThat(
-				clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
-						create().get(INT_8).valueAt(offset(0L))),
-				contains(0L));
+		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+				create().get(INT_8).valueAt(offset(0L))), contains(0L));
 	}
 
 	@Test // DATAREDIS-562
@@ -2392,22 +2392,16 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)), contains(2L));
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)), contains(3L));
-		assertThat(
-				clusterConnection.stringCommands()
-						.bitField(JedisConverters.toBytes(KEY_1),
-								create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
-						.get(0),
-				is(nullValue()));
+		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+				create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)).get(0), is(nullValue()));
 	}
 
 	@Test // DATAREDIS-562
 	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void bitfieldShouldAllowMultipleSubcommands() {
 
-		assertThat(
-				clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
-						create().incr(signed(5)).valueAt(offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)),
-				contains(1L, 0L));
+		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+				create().incr(signed(5)).valueAt(offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)), contains(1L, 0L));
 	}
 
 	@Test // DATAREDIS-562
@@ -2415,36 +2409,71 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	public void bitfieldShouldWorkUsingNonZeroBasedOffset() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
-				create().set(INT_8).valueAt(offset(0L).multipliedByTypeLength())
-				.to(100L).set(INT_8).valueAt(offset(1L).multipliedByTypeLength()).to(200L)), contains(0L, 0L));
+				create().set(INT_8).valueAt(offset(0L).multipliedByTypeLength()).to(100L).set(INT_8)
+						.valueAt(offset(1L).multipliedByTypeLength()).to(200L)),
+				contains(0L, 0L));
 		assertThat(
-				clusterConnection.stringCommands()
-						.bitField(JedisConverters.toBytes(KEY_1), create().get(INT_8)
-								.valueAt(offset(0L).multipliedByTypeLength())
-				.get(INT_8).valueAt(offset(1L).multipliedByTypeLength())), contains(100L, -56L));
+				clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1), create().get(INT_8)
+						.valueAt(offset(0L).multipliedByTypeLength()).get(INT_8).valueAt(offset(1L).multipliedByTypeLength())),
+				contains(100L, -56L));
 	}
 
 	@Test // DATAREDIS-1005
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void evalOK() {
-        byte[] keyAndArgs = JedisConverters.toBytes("FOO");
+	public void evalShouldRunScript() {
 
+		byte[] keyAndArgs = JedisConverters.toBytes("FOO");
 		String luaScript = "return redis.call(\"INCR\", KEYS[1])";
 		byte[] luaScriptBin = JedisConverters.toBytes(luaScript);
+
 		Long result = clusterConnection.scriptingCommands().eval(luaScriptBin, ReturnType.VALUE, 1, keyAndArgs);
+
 		assertThat(result, is(1L));
 	}
 
 	@Test // DATAREDIS-1005
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void evalShaOK() {
-		byte[] keyAndArgs = JedisConverters.toBytes("FOO");
+	public void scriptLoadShouldLoadScript() {
 
 		String luaScript = "return redis.call(\"INCR\", KEYS[1])";
 		String digest = DigestUtils.sha1DigestAsHex(luaScript);
-		byte[] luaScriptBin = JedisConverters.toBytes(digest);
-		Long result = clusterConnection.scriptingCommands().evalSha(luaScriptBin, ReturnType.VALUE, 1, keyAndArgs);
-		assertThat(result, is(1L));
+		byte[] luaScriptBin = JedisConverters.toBytes(luaScript);
+
+		String result = clusterConnection.scriptingCommands().scriptLoad(luaScriptBin);
+
+		assertThat(result, is(digest));
 	}
 
+	@Test // DATAREDIS-1005
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void scriptFlushShouldRemoveScripts() {
+
+		byte[] keyAndArgs = JedisConverters.toBytes("FOO");
+		String luaScript = "return redis.call(\"GET\", KEYS[1])";
+		byte[] luaScriptBin = JedisConverters.toBytes(luaScript);
+
+		clusterConnection.scriptingCommands().scriptLoad(luaScriptBin);
+		clusterConnection.scriptingCommands().scriptFlush();
+
+		try {
+			clusterConnection.scriptingCommands().evalSha(luaScriptBin, ReturnType.VALUE, 1, keyAndArgs);
+			fail("expected InvalidDataAccessApiUsageException");
+		} catch (InvalidDataAccessApiUsageException e) {
+			assertThat(e.getMessage(), containsString("NOSCRIPT"));
+		}
+	}
+
+	@Test // DATAREDIS-1005
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void evelShaShouldRunScript() {
+
+		byte[] keyAndArgs = JedisConverters.toBytes("FOO");
+		String luaScript = "return redis.call(\"INCR\", KEYS[1])";
+		byte[] digest = JedisConverters.toBytes(DigestUtils.sha1DigestAsHex(luaScript));
+
+		clusterConnection.scriptingCommands().scriptLoad(JedisConverters.toBytes(luaScript));
+
+		Long result = clusterConnection.scriptingCommands().evalSha(digest, ReturnType.VALUE, 1, keyAndArgs);
+		assertThat(result, is(1L));
+	}
 }

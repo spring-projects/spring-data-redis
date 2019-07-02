@@ -69,6 +69,7 @@ import org.springframework.util.Assert;
  * @author Ninad Divadkar
  * @author Tao Chen
  * @author Chen Guanqun
+ * @author Pavel Khokhlov
  * @since 1.7
  */
 public class JedisClusterConnection implements DefaultedRedisClusterConnection {
