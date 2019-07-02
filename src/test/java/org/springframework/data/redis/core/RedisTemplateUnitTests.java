@@ -111,6 +111,7 @@ public class RedisTemplateUnitTests {
 			@Nullable
 			@Override
 			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+
 				template.multi();
 				template.multi();
 				return null;
@@ -129,6 +130,7 @@ public class RedisTemplateUnitTests {
 		template.execute(new SessionCallback<Object>() {
 			@Override
 			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+
 				template.multi();
 				template.multi();
 				return null;
@@ -146,8 +148,10 @@ public class RedisTemplateUnitTests {
 		TransactionSynchronizationManager.setCurrentTransactionReadOnly(true);
 
 		template.execute(new SessionCallback<Object>() {
+
 			@Override
 			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+
 				template.multi();
 				template.multi();
 				return null;
