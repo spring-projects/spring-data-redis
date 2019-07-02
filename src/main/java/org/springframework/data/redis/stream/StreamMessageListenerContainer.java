@@ -279,7 +279,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		/**
 		 * @return a new builder for {@link StreamReadRequest}.
 		 */
-		static <K> StreamReadRequestBuilder<K> builder(StreamOffset<K> offset) {
+		public static <K> StreamReadRequestBuilder<K> builder(StreamOffset<K> offset) {
 			return new StreamReadRequestBuilder<>(offset);
 		}
 
