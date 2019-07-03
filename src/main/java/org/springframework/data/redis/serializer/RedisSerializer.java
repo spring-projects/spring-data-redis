@@ -93,13 +93,13 @@ public interface RedisSerializer<T> {
 	}
 
 	/**
-	 * Obtain a raw {@link RedisSerializer} that passes thru {@code byte[]}.
+	 * Obtain a {@link RedisSerializer} that passes thru {@code byte[]}.
 	 *
 	 * @return never {@literal null}.
 	 * @since 2.2
 	 */
-	static RedisSerializer<byte[]> raw() {
-		return RawRedisSerializer.INSTANCE;
+	static RedisSerializer<byte[]> byteArray() {
+		return ByteArrayRedisSerializer.INSTANCE;
 	}
 
 	default boolean canSerialize(Class<?> type) {

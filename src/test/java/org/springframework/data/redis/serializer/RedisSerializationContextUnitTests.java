@@ -115,7 +115,7 @@ public class RedisSerializationContextUnitTests {
 	public void shouldEncodeAndDecodeRawByteBufferValue() {
 
 		RedisSerializationContext<ByteBuffer, ByteBuffer> serializationContext = RedisSerializationContext
-				.raw();
+				.byteBuffer();
 
 		ByteBuffer deserialized = serializationContext.getValueSerializationPair()
 				.read(serializationContext.getValueSerializationPair()

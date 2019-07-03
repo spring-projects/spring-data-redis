@@ -79,23 +79,36 @@ public interface RedisSerializationContext<K, V> {
 	}
 
 	/**
-	 * Creates a new {@link RedisSerializationContext} using a {@link SerializationPair#raw() ByteBuffer} serialization
+	 * Creates a new {@link RedisSerializationContext} using a {@link RedisSerializer#byteArray() byte[]} serialization
 	 * pair.
 	 *
-	 * @return
+	 * @return new instance of {@link RedisSerializationContext}.
+	 * @deprecated since 2.2. Please use {@link #byteArray()} instead.
 	 */
-	static RedisSerializationContext<ByteBuffer, ByteBuffer> raw() {
-		return just(RedisSerializerToSerializationPairAdapter.raw());
+	@Deprecated
+	static RedisSerializationContext<byte[], byte[]> raw() {
+		return byteArray();
 	}
 
 	/**
-	 * Creates a new {@link RedisSerializationContext} using a {@link RedisSerializer#raw() byte[]} serialization.
+	 * Creates a new {@link RedisSerializationContext} using a {@link RedisSerializer#byteArray() byte[]} serialization.
 	 *
-	 * @return
+	 * @return new instance of {@link RedisSerializationContext}.
 	 * @since 2.2
 	 */
 	static RedisSerializationContext<byte[], byte[]> byteArray() {
 		return just(RedisSerializerToSerializationPairAdapter.byteArray());
+	}
+
+	/**
+	 * Creates a new {@link RedisSerializationContext} using a {@link SerializationPair#byteBuffer() ByteBuffer}
+	 * serialization.
+	 *
+	 * @return new instance of {@link RedisSerializationContext}.
+	 * @since 2.2
+	 */
+	static RedisSerializationContext<ByteBuffer, ByteBuffer> byteBuffer() {
+		return just(RedisSerializerToSerializationPairAdapter.byteBuffer());
 	}
 
 	/**
@@ -217,9 +230,31 @@ public interface RedisSerializationContext<K, V> {
 		 * Creates a pass through {@link SerializationPair} to pass-thru {@link ByteBuffer} objects.
 		 *
 		 * @return a pass through {@link SerializationPair}.
+		 * @deprecated since 2.2. Please use either {@link #byteArray()} or {@link #byteBuffer()}.
 		 */
-		static SerializationPair<ByteBuffer> raw() {
+		@Deprecated
+		static <T> SerializationPair<T> raw() {
 			return RedisSerializerToSerializationPairAdapter.raw();
+		}
+
+		/**
+		 * Creates a pass through {@link SerializationPair} to pass-thru {@link byte} objects.
+		 *
+		 * @return a pass through {@link SerializationPair}.
+		 * @since 2.2
+		 */
+		static SerializationPair<byte[]> byteArray() {
+			return RedisSerializerToSerializationPairAdapter.byteArray();
+		}
+
+		/**
+		 * Creates a pass through {@link SerializationPair} to pass-thru {@link ByteBuffer} objects.
+		 *
+		 * @return a pass through {@link SerializationPair}.
+		 * @since 2.2
+		 */
+		static SerializationPair<ByteBuffer> byteBuffer() {
+			return RedisSerializerToSerializationPairAdapter.byteBuffer();
 		}
 
 		/**

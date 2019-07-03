@@ -710,7 +710,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		/**
 		 * Configure a hash target type. Changes the emitted {@link Record} type to {@link ObjectRecord}.
 		 *
-		 * @param pair must not be {@literal null}.
+		 * @param targetType must not be {@literal null}.
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
 		@SuppressWarnings("unchecked")
@@ -722,8 +722,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 
 			if (this.hashMapper == null) {
 
-				hashKeySerializer(RedisSerializer.raw());
-				hashValueSerializer(RedisSerializer.raw());
+				hashKeySerializer(RedisSerializer.byteArray());
+				hashValueSerializer(RedisSerializer.byteArray());
 				return (StreamMessageListenerContainerOptionsBuilder) objectMapper(new ObjectHashMapper());
 			}
 

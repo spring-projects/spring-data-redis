@@ -21,8 +21,9 @@ import org.springframework.lang.Nullable;
  * Raw {@link RedisSerializer} using {@code byte[]}.
  *
  * @author Mark Paluch
+ * @since 2.2
  */
-enum RawRedisSerializer implements RedisSerializer<byte[]> {
+enum ByteArrayRedisSerializer implements RedisSerializer<byte[]> {
 
 	INSTANCE;
 
