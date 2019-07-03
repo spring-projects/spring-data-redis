@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
@@ -380,10 +379,12 @@ public class LettuceConnectionFactory
 	 * @param timeout command timeout in {@link TimeUnit#MILLISECONDS}.
 	 * @param database database index to operate on.
 	 * @return the {@link LettuceConnection}.
+	 * @throws IllegalArgumentException if a required parameter is {@literal null}.
 	 * @since 2.2
 	 */
-	protected LettuceConnection doCreateLettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection,
-			LettuceConnectionProvider connectionProvider, long timeout, int database) {
+	protected LettuceConnection doCreateLettuceConnection(
+			@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, LettuceConnectionProvider connectionProvider,
+			long timeout, int database) {
 
 		return new LettuceConnection(sharedConnection, connectionProvider, timeout, database);
 	}
@@ -398,12 +399,13 @@ public class LettuceConnectionFactory
 	 * @param clusterCommandExecutor the {@link ClusterCommandExecutor} to release connections.
 	 * @param commandTimeout command timeout {@link Duration}.
 	 * @return the {@link LettuceConnection}.
+	 * @throws IllegalArgumentException if a required parameter is {@literal null}.
 	 * @since 2.2
 	 */
 	protected LettuceClusterConnection doCreateLettuceClusterConnection(
-			StatefulRedisClusterConnection<byte[], byte[]> sharedConnection, LettuceConnectionProvider connectionProvider,
-			ClusterTopologyProvider topologyProvider, ClusterCommandExecutor clusterCommandExecutor,
-			Duration commandTimeout) {
+			@Nullable StatefulRedisClusterConnection<byte[], byte[]> sharedConnection,
+			LettuceConnectionProvider connectionProvider, ClusterTopologyProvider topologyProvider,
+			ClusterCommandExecutor clusterCommandExecutor, Duration commandTimeout) {
 
 		return new LettuceClusterConnection(sharedConnection, connectionProvider, topologyProvider, clusterCommandExecutor,
 				commandTimeout);
