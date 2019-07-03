@@ -30,11 +30,11 @@ import org.springframework.util.Assert;
  */
 class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<T> {
 
-	private final static RedisSerializerToSerializationPairAdapter<?> RAW = new RedisSerializerToSerializationPairAdapter<>(
+	private final static RedisSerializerToSerializationPairAdapter<?> BYTE_BUFFER = new RedisSerializerToSerializationPairAdapter<>(
 			null);
 
 	private final static RedisSerializerToSerializationPairAdapter<byte[]> BYTE_ARRAY = new RedisSerializerToSerializationPairAdapter<>(
-			RedisSerializer.raw());
+			RedisSerializer.byteArray());
 
 	private final DefaultSerializationPair pair;
 
@@ -43,13 +43,30 @@ class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<
 				new DefaultRedisElementWriter<>(serializer));
 	}
 
+	/**
+	 * @return the {@link RedisSerializerToSerializationPairAdapter} for {@link ByteBuffer}.
+	 * @deprecated since 2.2. Please use {@link #byteBuffer()} instead.
+	 */
 	@SuppressWarnings("unchecked")
-	static SerializationPair<ByteBuffer> raw() {
-		return (SerializationPair) RAW;
+	@Deprecated
+	static <T> SerializationPair<T> raw() {
+		return (SerializationPair) byteBuffer();
 	}
 
+	/**
+	 * @return the {@link RedisSerializerToSerializationPairAdapter} for {@link byte[]}.
+	 * @since 2.2
+	 */
 	static SerializationPair<byte[]> byteArray() {
 		return BYTE_ARRAY;
+	}
+
+	/**
+	 * @return the {@link RedisSerializerToSerializationPairAdapter} for {@link ByteBuffer}.
+	 * @since 2.2
+	 */
+	static SerializationPair<ByteBuffer> byteBuffer() {
+		return (SerializationPair) BYTE_BUFFER;
 	}
 
 	/**

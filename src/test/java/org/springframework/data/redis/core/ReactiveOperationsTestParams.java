@@ -120,7 +120,7 @@ abstract public class ReactiveOperationsTestParams {
 						.key(stringRedisSerializer).value(doubleToStringSerializer).build());
 
 		ReactiveRedisTemplate<ByteBuffer, ByteBuffer> rawTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
-				RedisSerializationContext.raw());
+				RedisSerializationContext.byteBuffer());
 
 		ReactiveRedisTemplate<String, Person> personTemplate = new ReactiveRedisTemplate(lettuceConnectionFactory,
 				RedisSerializationContext.fromSerializer(jdkSerializationRedisSerializer));
