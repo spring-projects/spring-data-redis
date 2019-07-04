@@ -18,6 +18,7 @@ package org.springframework.data.redis.hash;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,23 +37,23 @@ import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
-import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.std.UntypedObjectDeserializer;
-import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.databind.ser.std.CalendarSerializer;
+import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 
 /**
  * {@link ObjectMapper} based {@link HashMapper} implementation that allows flattening. Given an entity {@code Person}
@@ -63,19 +64,17 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * property names is not supported using flattening. The resulting hash cannot be mapped back into an Object.
  * <strong>Example</strong>
  *
- * <pre>
- * <code>
+ * <pre class="code">
  * class Person {
- *   String firstname;
- *   String lastname;
- *   Address address;
+ * 	String firstname;
+ * 	String lastname;
+ * 	Address address;
  * }
  *
  * class Address {
- *   String city;
- *   String country;
+ * 	String city;
+ * 	String country;
  * }
- * </code>
  * </pre>
  *
  * <strong>Normal</strong>
@@ -138,6 +137,8 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  */
 public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
+	private final HashMapperModule HASH_MAPPER_MODULE = new HashMapperModule();
+
 	private final ObjectMapper typingMapper;
 	private final ObjectMapper untypedMapper;
 	private final boolean flatten;
@@ -149,56 +150,16 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	 */
 	public Jackson2HashMapper(boolean flatten) {
 
-		this(new ObjectMapper(), flatten);
+		this(new ObjectMapper().findAndRegisterModules(), flatten);
 
 		typingMapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
 		typingMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+
+		// Prevent splitting time types into arrays. E
+		typingMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 		typingMapper.setSerializationInclusion(Include.NON_NULL);
 		typingMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-		typingMapper.addHandler(new DeserializationProblemHandler() {
-			@Override
-			public JavaType handleMissingTypeId(DeserializationContext ctxt, JavaType baseType, TypeIdResolver idResolver,
-					String failureMsg) {
-				return TypeFactory.defaultInstance().constructSimpleType(java.util.Date.class, new JavaType[] {});
-			}
-		});
-
-		SimpleModule module = new SimpleModule();
-		module.setDeserializerModifier(new BeanDeserializerModifier() {
-			@Override
-			public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription beanDesc,
-					JsonDeserializer<?> deserializer) {
-
-				if (beanDesc.getBeanClass().equals(java.util.Date.class)) {
-					return new JsonDeserializer<Object>() {
-
-						JsonDeserializer<?> delegate = new UntypedObjectDeserializer(null, null);
-
-						@Override
-						public Object deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-
-							Object val = delegate.deserialize(p, ctxt);
-
-							if (val instanceof Date) {
-								return val;
-							}
-
-							try {
-								return ctxt.getConfig().getDateFormat().parse(val.toString());
-							} catch (ParseException e) {
-								e.printStackTrace();
-								return new Date(NumberUtils.parseNumber(val.toString(), Long.class));
-							}
-						}
-					};
-				}
-
-				return deserializer;
-			}
-		});
-
-		typingMapper.registerModule(module);
+		typingMapper.registerModule(HASH_MAPPER_MODULE);
 	}
 
 	/**
@@ -210,11 +171,11 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	public Jackson2HashMapper(ObjectMapper mapper, boolean flatten) {
 
 		Assert.notNull(mapper, "Mapper must not be null!");
-
 		this.typingMapper = mapper;
 		this.flatten = flatten;
 
 		this.untypedMapper = new ObjectMapper();
+		untypedMapper.findAndRegisterModules();
 		this.untypedMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
 		this.untypedMapper.setSerializationInclusion(Include.NON_NULL);
 	}
@@ -377,7 +338,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	@SuppressWarnings("unchecked")
 	private void appendValueToTypedList(String key, Object value, List<Object> destination) {
 
-		int index = Integer.valueOf(key.substring(key.indexOf('[') + 1, key.length() - 1));
+		int index = Integer.parseInt(key.substring(key.indexOf('[') + 1, key.length() - 1));
 		List<Object> resultList = ((List<Object>) destination.get(1));
 		if (resultList.size() < index) {
 			resultList.add(value);
@@ -394,5 +355,122 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		values.add(value);
 		listWithTypeHint.add(values);
 		return listWithTypeHint;
+	}
+
+	private static class HashMapperModule extends SimpleModule {
+
+		HashMapperModule() {
+
+			addSerializer(java.util.Date.class, new UntypedSerializer<>(new DateToTimestampSerializer()));
+			addSerializer(java.util.Calendar.class, new UntypedSerializer<>(new CalendarToTimestampSerializer()));
+
+			addDeserializer(java.util.Date.class, new UntypedDateDeserializer());
+			addDeserializer(java.util.Calendar.class, new UntypedCalendarDeserializer());
+		}
+	}
+
+	/**
+	 * {@link JsonDeserializer} for {@link Date} objects without considering type hints.
+	 */
+	private static class UntypedDateDeserializer extends JsonDeserializer<Date> {
+
+		private final JsonDeserializer<?> delegate = new UntypedObjectDeserializer(null, null);
+
+		@Override
+		public Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer)
+				throws IOException {
+			return deserialize(p, ctxt);
+		}
+
+		@Override
+		public Date deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+
+			Object val = delegate.deserialize(p, ctxt);
+
+			if (val instanceof Date) {
+				return (Date) val;
+			}
+
+			try {
+				return ctxt.getConfig().getDateFormat().parse(val.toString());
+			} catch (ParseException e) {
+				return new Date(NumberUtils.parseNumber(val.toString(), Long.class));
+			}
+		}
+	}
+
+	/**
+	 * {@link JsonDeserializer} for {@link Calendar} objects without considering type hints.
+	 */
+	private static class UntypedCalendarDeserializer extends JsonDeserializer<Calendar> {
+
+		private final UntypedDateDeserializer dateDeserializer = new UntypedDateDeserializer();
+
+		@Override
+		public Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer)
+				throws IOException {
+			return deserialize(p, ctxt);
+		}
+
+		@Override
+		public Calendar deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+
+			Date date = dateDeserializer.deserialize(p, ctxt);
+
+			if (date == null) {
+				return null;
+			}
+
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(date);
+			return calendar;
+		}
+	}
+
+	/**
+	 * Untyped {@link JsonSerializer} to serialize plain values without writing JSON type hints.
+	 *
+	 * @param <T>
+	 */
+	private static class UntypedSerializer<T> extends JsonSerializer<T> {
+
+		private final JsonSerializer<T> delegate;
+
+		UntypedSerializer(JsonSerializer<T> delegate) {
+			this.delegate = delegate;
+		}
+
+		@Override
+		public void serializeWithType(T value, JsonGenerator gen, SerializerProvider serializers, TypeSerializer typeSer)
+				throws IOException {
+			serialize(value, gen, serializers);
+		}
+
+		@Override
+		public void serialize(T value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+			if (value == null) {
+				serializers.defaultSerializeNull(gen);
+			} else {
+				delegate.serialize(value, gen, serializers);
+			}
+		}
+	}
+
+	private static class DateToTimestampSerializer extends DateSerializer {
+
+		// Prevent splitting to array.
+		@Override
+		protected boolean _asTimestamp(SerializerProvider serializers) {
+			return true;
+		}
+	}
+
+	private static class CalendarToTimestampSerializer extends CalendarSerializer {
+
+		// Prevent splitting to array.
+		@Override
+		protected boolean _asTimestamp(SerializerProvider serializers) {
+			return true;
+		}
 	}
 }

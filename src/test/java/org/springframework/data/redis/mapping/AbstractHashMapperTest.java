@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.mapping;
 
+import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
 
 import java.util.Map;
@@ -42,7 +43,7 @@ public abstract class AbstractHashMapperTest {
 
 		HashMapper mapper = mapperFor(o.getClass());
 		Map hash = mapper.toHash(o);
-		assertThat(mapper.fromHash(hash), IsEqual.equalTo(o));
+		assertThat(mapper.fromHash(hash), equalTo(o));
 	}
 
 	@Test
