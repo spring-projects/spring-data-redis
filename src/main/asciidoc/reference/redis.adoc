@@ -430,6 +430,8 @@ public class Person {
   String firstname;
   String lastname;
   Address address;
+  Date date;
+  LocalDateTime localDateTime;
 }
 
 public class Address {
@@ -454,6 +456,12 @@ The following table shows how the data in the preceding class would appear in no
 
 |address
 |`{ "city" : "Castle Black", "country" : "The North" }`
+
+|date
+|`1561543964015`
+
+|localDateTime
+|`2018-01-02T12:13:14`
 |====
 
 The following table shows how the data in the preceding class would appear in flat mapping:
@@ -475,9 +483,17 @@ The following table shows how the data in the preceding class would appear in fl
 
 |address.country
 |`The North`
+
+|date
+|`1561543964015`
+
+|localDateTime
+|`2018-01-02T12:13:14`
 |====
 
 NOTE: Flattening requires all property names to not interfere with the JSON path. Using dots or brackets in map keys or as property names is not supported when you use flattening. The resulting hash cannot be mapped back into an Object.
+
+NOTE: `java.util.Date` and `java.util.Calendar` are represented with milliseconds. JSR-310 Date/Time types are serialized to their `toString` form if  `jackson-datatype-jsr310` is on the class path.
 
 :leveloffset: 2
 include::{referenceDir}/redis-messaging.adoc[]

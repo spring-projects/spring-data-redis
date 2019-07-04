@@ -17,8 +17,11 @@ package org.springframework.data.redis.mapping;
 
 import lombok.Data;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -38,6 +41,7 @@ import org.springframework.data.redis.hash.Jackson2HashMapper;
  * Unit tests for {@link Jackson2HashMapper}.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
@@ -165,9 +169,12 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	@Test // DATAREDIS-1001
 	public void dateValueShouldBeTreatedCorrectly() {
 
-		WithDate source = new WithDate();
+		WithDates source = new WithDates();
 		source.string = "id-1";
 		source.date = new Date(1561543964015L);
+		source.calendar = Calendar.getInstance();
+		source.localDate = LocalDate.parse("2018-01-02");
+		source.localDateTime = LocalDateTime.parse("2018-01-02T12:13:14");
 
 		assertBackAndForwardMapping(source);
 	}
@@ -187,9 +194,12 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	}
 
 	@Data
-	static class WithDate {
+	static class WithDates {
 
 		private String string;
 		private Date date;
+		private Calendar calendar;
+		private LocalDate localDate;
+		private LocalDateTime localDateTime;
 	}
 }
