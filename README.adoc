@@ -1,26 +1,68 @@
 image:https://spring.io/badges/spring-data-redis/ga.svg[Spring Data Redis,link=https://projects.spring.io/spring-data-redis/#quick-start]
 image:https://spring.io/badges/spring-data-redis/snapshot.svg[Spring Data Redis,link=https://projects.spring.io/spring-data-redis/#quick-start]
 
-image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2Fmaster&subject=Moore%20(master)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/]
-image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2F2.1.x&subject=Lovelace%20(2.1.x)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/]
-image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2F1.8.x&subject=Ingalls%20(1.8.x)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/]
-
-= Spring Data Redis
+= Spring Data Redis image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2Fmaster&subject=Build[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/] https://gitter.im/spring-projects/spring-data[image:https://badges.gitter.im/spring-projects/spring-data.svg[Gitter]]
 
 The primary goal of the https://projects.spring.io/spring-data/[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
-This modules provides integration with the https://redis.io/[Redis] store. 
 
-= Docs
+This modules provides integration with the https://redis.io/[Redis] store.
 
-You can find out more details from the https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/[user documentation] or by browsing the https://docs.spring.io/spring-data/data-redis/docs/current/api/[javadocs].
+== Features
 
-= Examples
+* Connection package as low-level abstraction across multiple Redis drivers (https://github.com/lettuce-io/lettuce-core[Lettuce] and https://github.com/xetorthio/jedis[Jedis]).
+* Exception translation to Spring’s portable Data Access exception hierarchy for Redis driver exceptions
+* https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:template[`RedisTemplate`] that provides a high level abstraction for performing various Redis operations, exception translation and serialization support.
+* Pubsub support (such as a MessageListenerContainer for message-driven POJOs).
+* https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:sentinel[Redis Sentinel] and https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#cluster[Redis Cluster] support.
+* Reactive API using the Lettuce driver.
+* JDK, String, JSON and Spring Object/XML mapping serializers.
+* JDK Collection implementations on top of Redis.
+* Atomic counter support classes.
+* Sorting and Pipelining functionality.
+* Dedicated support for SORT, SORT/GET pattern and returned bulk values.
+* Redis implementation for Spring 3.1 cache abstraction.
+* Automatic implementation of `Repository` interfaces including support for custom finder methods using `@EnableRedisRepositories`.
+* CDI support for repositories.
 
-For examples on using the Spring Data Key Value, see the dedicated project, also available on https://github.com/spring-projects/spring-data-keyvalue-examples[GitHub]
+== Code of Conduct
 
-= Artifacts
+This project is governed by the link:CODE_OF_CONDUCT.adoc[Spring Code of Conduct]. By participating, you are expected to uphold this code of conduct. Please report unacceptable behavior to spring-code-of-conduct@pivotal.io.
 
-== Maven configuration
+== Getting Started
+
+Here is a quick teaser of an application using Spring Data Redis in Java:
+
+[source,java]
+----
+public class Example {
+
+    // inject the actual template
+    @Autowired
+    private RedisTemplate<String, String> template;
+
+    // inject the template as ListOperations
+    // can also inject as Value, Set, ZSet, and HashOperations
+    @Resource(name="redisTemplate")
+    private ListOperations<String, String> listOps;
+
+    public void addLink(String userId, URL url) {
+        listOps.leftPush(userId, url.toExternalForm());
+        // or use template directly
+        redisTemplate.boundListOps(userId).leftPush(url.toExternalForm());
+    }
+}
+
+@Configuration
+class ApplicationConfig {
+
+  @Bean
+  public RedisConnectionFactory redisConnectionFactory() {
+    return new LettuceConnectionFactory();
+  }
+}
+----
+
+=== Maven configuration
 
 Add the Maven dependency:
 
@@ -50,125 +92,66 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 </repository>
 ----
 
-== Gradle
+== Getting Help
 
-[source,groovy]
-----
-repositories {
-   maven { url "https://repo.spring.io/libs-milestone" }
-   maven { url "https://repo.spring.io/libs-snapshot" }
-}
+Having trouble with Spring Data? We’d love to help!
 
-// used for nightly builds
-dependencies {
-   compile "org.springframework.data:spring-data-redis:${version}"
-}
-----
+* Check the
+https://docs.spring.io/spring-data/redis/docs/current/reference/html/[reference documentation], and https://docs.spring.io/spring-data/redis/docs/current/api/[Javadocs].
+* Learn the Spring basics – Spring Data builds on Spring Framework, check the https://spring.io[spring.io] web-site for a wealth of reference documentation.
+If you are just starting out with Spring, try one of the https://spring.io/guides[guides].
+* If you are upgrading, check out the https://docs.spring.io/spring-data/redis/docs/current/changelog.txt[changelog] for "`new and noteworthy`" features.
+* Ask a question - we monitor https://stackoverflow.com[stackoverflow.com] for questions tagged with https://stackoverflow.com/tags/spring-data[`spring-data-redis`].
+You can also chat with the community on https://gitter.im/spring-projects/spring-data[Gitter].
+* Report bugs with Spring Data Redis at https://jira.spring.io/browse/DATAREDIS[jira.spring.io/browse/DATAREDIS].
 
-= Usage (for the impatient)
+== Reporting Issues
 
-* Configure the Redis connector to use (here https://github.com/xetorthio/jedis[jedis]):
-[source,xml]
-----
-<beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:p="http://www.springframework.org/schema/p"
-  xsi:schemaLocation="
-  http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
-  
-  <bean id="jedisFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"/>
-  
-  <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate"
-      p:connection-factory="jedisFactory"/>
-</beans>
-----
+Spring Data uses JIRA as issue tracking system to record bugs and feature requests. If you want to raise an issue, please follow the recommendations below:
 
-* Use `RedisTemplate` to interact with the Redis store:
-[source,java]
-----
-String random = template.randomKey();
-template.set(random, new Person("John", "Smith"));
-----
+* Before you log a bug, please search the
+https://jira.spring.io/browse/DATAREDIS[issue tracker] to see if someone has already reported the problem.
+* If the issue doesn’t already exist, https://jira.spring.io/browse/DATAREDIS[create a new issue].
+* Please provide as much information as possible with the issue report, we like to know the version of Spring Data that you are using and JVM version.
+* If you need to paste code, or include a stack trace use JIRA `{code}…{code}` escapes before and after your text.
+* If possible try to create a test-case or project that replicates the issue. Attach a link to your code or a compressed file containing your code.
 
-* Use Redis 'views' to execute specific operations based on the underlying Redis type:
-[source,java]
-----
-ListOperations<String, Person> listOps = template.listOps();
-listOps.rightPush(random, new Person("Jane", "Smith"));
-List<Person> peopleOnSecondFloor = listOps.range("users:floor:2", 0, -1);
-----
+== Building from Source
 
-= Building
-
-Spring Data Redis uses Maven as its build system.
-Running the tests requires you to have a RedisServer running at its default port. Using the `-D runLongTests=true` option executes additional Pub/Sub test.
+You don’t need to build from source to use Spring Data (binaries in https://repo.spring.io[repo.spring.io]), but if you want to try out the latest and greatest, Spring Data can be easily built with the https://github.com/takari/maven-wrapper[maven wrapper].
+You also need JDK 1.8.
 
 [source,bash]
 ----
-    mvn clean install
+ $ ./mvnw clean install
 ----
 
-You can alternatively use the provided `Makefile` which runs the build plus downloads and spins up the following environment:
+If you want to build with the regular `mvn` command, you will need https://maven.apache.org/run-maven/index.html[Maven v3.5.0 or above].
 
-* 1 Single Node
-* HA Redis (1 Master, 2 Replicas, 3 Sentinels).
-* Redis Cluster (3 Masters, 1 Replica)
+_Also see link:CONTRIBUTING.adoc[CONTRIBUTING.adoc] if you wish to submit pull requests, and in particular please sign the https://cla.pivotal.io/sign/spring[Contributor’s Agreement] before your first change, is trivial._
+
+=== Building reference documentation
+
+Building the documentation builds also the project without running tests.
+
 [source,bash]
 ----
-    make test
+ $ ./mvnw clean install -Pdistribute
 ----
 
-== Running CI tasks locally
+The generated documentation is available from `target/site/reference/html/index.html`.
 
-Since this pipeline is purely Docker-based, it's easy to:
+== Guides
 
-* Debug what went wrong on your local machine.
-* Test out a a tweak to your test routine before sending it out.
-* Experiment against a new image before submitting your pull request.
+The https://spring.io/[spring.io] site contains several guides that show how to use Spring Data step-by-step:
 
-All of these use cases are great reasons to essentially run what the CI server does on your local machine.
+* https://spring.io/guides/gs/messaging-redis/[Messaging with Redis]: Learn how to use Redis as a message broker.
+* https://spring.io/guides/gs/spring-data-reactive-redis/[Accessing Data Reactively with Redis]: Learn how to reactively interface with Redis and Spring Data.
 
-IMPORTANT: To do this you must have Docker installed on your machine.
+== Examples
 
-1. `docker run -it --mount type=bind,source="$(pwd)",target=/spring-data-redis-github springci/spring-data-openjdk8-with-redis-5.0:latest /bin/bash`
-+
-This will launch the Docker image and mount your source code at `spring-data-redis-github`.
-+
-2. `cd spring-data-redis-github`
-+
-Next, run the tests from inside the container:
-+
-3. `./mvnw clean dependency:list test -Dsort -Dbundlor.enabled=false -B` (or with whatever profile you need to test out)
+* https://github.com/spring-projects/spring-data-examples/[Spring Data Examples] contains example projects that explain specific features in more detail.
 
-Since the container is binding to your source, you can make edits from your IDE and continue to run build jobs.
+== License
 
-If you need to package things up, do this:
-
-1. `docker run -it --mount type=bind,source="$(pwd)",target=/spring-data-redis-github adoptopenjdk/openjdk8:latest /bin/sh`
-+
-This will launch the Docker image and mount your source code at `spring-data-redis-github`.
-+
-2. `cd spring-data-redis-github`
-+
-Next, package things from inside the container doing this:
-+
-3. `./mvnw clean dependency:list package -Dsort -Dbundlor.enabled=false -B`
-
-NOTE: Docker containers can eat up disk space fast! From time to time, run `docker system prune` to clean out old images.
-
-= Contributing
-
-Here are some ways for you to get involved in the community:
-
-* Get involved with the Spring community on the Stackoverflow. Please help out on the https://stackoverflow.com/questions/tagged/spring-data-redis[spring-data-redis] tag by responding to questions and joining the debate.
-* Create https://jira.spring.io/browse/DATAREDIS[JIRA] tickets for bugs and new features and comment and vote on the ones that you are interested in.
-* Watch for upcoming articles on Spring by https://spring.io/blog[subscribing] to spring.io.
-
-Before we accept a non-trivial patch or pull request we will need you to https://cla.pivotal.io/sign/spring[sign the Contributor License Agreement]. Signing the contributor’s agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. If you forget to do so, you'll be reminded when you submit a pull request.
-
-Github is for social coding: if you want to write code, we encourage contributions through pull requests from https://help.github.com/forking/[forks of this repository]. If you want to contribute code this way, read the Spring Framework https://github.com/spring-projects/spring-framework/blob/master/CONTRIBUTING.md[contributor guidelines].
-
-= Staying in touch
-
-Follow the project team (https://twitter.com/springdata[@SpringData]) on Twitter. In-depth articles can be
-found at the Spring https://spring.io/blog[team blog], and releases are announced via our https://spring.io/blog/category/news[news feed].
+Spring Data Redis is Open Source software released under the https://www.apache.org/licenses/LICENSE-2.0.html[Apache 2.0 license].
