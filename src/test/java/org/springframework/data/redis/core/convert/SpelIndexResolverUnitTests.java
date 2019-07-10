@@ -77,9 +77,9 @@ public class SpelIndexResolverUnitTests {
 		new SpelIndexResolver(mappingContext);
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
+	@Test // DATAREDIS-425
 	public void constructorNullSpelExpressionParser() {
-		new SpelIndexResolver(mappingContext, null);
+		assertThatIllegalArgumentException().isThrownBy(() -> new SpelIndexResolver(mappingContext, null));
 	}
 
 	@Test // DATAREDIS-425

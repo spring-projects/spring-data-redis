@@ -85,9 +85,9 @@ public class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.keys(NODE_1, "*")).contains("key-1", "key-2");
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void keysShouldThrowExceptionWhenNodeIsNull() {
-		clusterOps.keys(null, "*");
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.keys(null, "*"));
 	}
 
 	@Test // DATAREDIS-315
@@ -106,9 +106,9 @@ public class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.randomKey(NODE_1)).isEqualTo("key-1");
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void randomKeyShouldThrowExceptionWhenNodeIsNull() {
-		clusterOps.randomKey(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.randomKey(null));
 	}
 
 	@Test // DATAREDIS-315
@@ -127,9 +127,9 @@ public class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.ping(NODE_1)).isEqualTo("PONG");
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void pingShouldThrowExceptionWhenNodeIsNull() {
-		clusterOps.ping(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.ping(null));
 	}
 
 	@Test // DATAREDIS-315
@@ -140,9 +140,9 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), Mockito.<int[]> any());
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void addSlotsShouldThrowExceptionWhenNodeIsNull() {
-		clusterOps.addSlots(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.addSlots(null));
 	}
 
 	@Test // DATAREDIS-315
@@ -153,9 +153,9 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), Mockito.<int[]> any());
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void addSlotsWithRangeShouldThrowExceptionWhenRangeIsNull() {
-		clusterOps.addSlots(NODE_1, (SlotRange) null);
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.addSlots(NODE_1, (SlotRange) null));
 	}
 
 	@Test // DATAREDIS-315
@@ -166,9 +166,9 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).bgSave(eq(NODE_1));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void bgSaveShouldThrowExceptionWhenNodeIsNull() {
-		clusterOps.bgSave(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.bgSave(null));
 	}
 
 	@Test // DATAREDIS-315
@@ -179,9 +179,9 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterMeet(eq(NODE_1));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void meetShouldThrowExceptionWhenNodeIsNull() {
-		clusterOps.meet(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.meet(null));
 	}
 
 	@Test // DATAREDIS-315
@@ -192,9 +192,9 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterForget(eq(NODE_1));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void forgetShouldThrowExceptionWhenNodeIsNull() {
-		clusterOps.forget(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.forget(null));
 	}
 
 	@Test // DATAREDIS-315
@@ -205,9 +205,9 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).flushDb(eq(NODE_1));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void flushDbShouldThrowExceptionWhenNodeIsNull() {
-		clusterOps.flushDb(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.flushDb(null));
 	}
 
 	@Test // DATAREDIS-315
@@ -218,9 +218,9 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterGetSlaves(eq(NODE_1));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void getSlavesShouldThrowExceptionWhenNodeIsNull() {
-		clusterOps.getSlaves(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.getSlaves(null));
 	}
 
 	@Test // DATAREDIS-315
@@ -231,9 +231,9 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).save(eq(NODE_1));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void saveShouldThrowExceptionWhenNodeIsNull() {
-		clusterOps.save(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.save(null));
 	}
 
 	@Test // DATAREDIS-315
@@ -244,9 +244,9 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).shutdown(eq(NODE_1));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void shutdownShouldThrowExceptionWhenNodeIsNull() {
-		clusterOps.shutdown(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.shutdown(null));
 	}
 
 	@Test // DATAREDIS-315
@@ -258,9 +258,9 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).get(eq(key));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void executeShouldThrowExceptionWhenCallbackIsNull() {
-		clusterOps.execute(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.execute(null));
 	}
 
 	@Test // DATAREDIS-315

@@ -47,9 +47,9 @@ public class ScanCursorUnitTests {
 		assertThat(cursor.hasNext()).isFalse();
 	}
 
-	@Test(expected = NoSuchElementException.class) // DATAREDIS-290
+	@Test // DATAREDIS-290
 	public void cursorShouldReturnNullWhenNoNextElementAvailable() {
-		initCursor(new LinkedList<>()).next();
+		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(() -> initCursor(new LinkedList<>()).next());
 	}
 
 	@Test // DATAREDIS-290

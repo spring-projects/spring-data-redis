@@ -15,7 +15,10 @@
  */
 package org.springframework.data.redis.mapping;
 
+import static org.assertj.core.api.Assertions.*;
+
 import org.junit.Test;
+
 import org.springframework.data.redis.hash.BeanUtilsHashMapper;
 
 /**
@@ -28,9 +31,9 @@ public class BeanUtilsHashMapperTest extends AbstractHashMapperTest {
 		return new BeanUtilsHashMapper<>(t);
 	}
 
-	@Test(expected = Exception.class)
+	@Test
 	public void testNestedBean() {
-		super.testNestedBean();
+		assertThatExceptionOfType(Exception.class).isThrownBy(super::testNestedBean);
 	}
 
 }

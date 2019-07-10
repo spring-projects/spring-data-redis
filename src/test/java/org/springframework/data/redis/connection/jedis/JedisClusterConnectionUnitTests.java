@@ -227,9 +227,9 @@ public class JedisClusterConnectionUnitTests {
 		verify(con2Mock, times(1)).clusterSetSlotImporting(eq(100), eq(CLUSTER_NODE_2.getId()));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void clusterSetSlotShouldThrowExceptionWhenModeIsNull() {
-		connection.clusterSetSlot(CLUSTER_NODE_1, 100, null);
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.clusterSetSlot(CLUSTER_NODE_1, 100, null));
 	}
 
 	@Test // DATAREDIS-315
@@ -241,9 +241,9 @@ public class JedisClusterConnectionUnitTests {
 		verify(con2Mock, times(1)).clusterDelSlots((int[]) anyVararg());
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void clusterDeleteSlotShouldThrowExceptionWhenNodeIsNull() {
-		connection.clusterDeleteSlots(null, new int[] { 1 });
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.clusterDeleteSlots(null, new int[] { 1 }));
 	}
 
 	@Test // DATAREDIS-315

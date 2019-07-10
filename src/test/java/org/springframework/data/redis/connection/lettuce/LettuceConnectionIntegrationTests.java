@@ -229,9 +229,9 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		pool.destroy();
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testSelect() {
-		super.testSelect();
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> super.testSelect());
 	}
 
 	@Test

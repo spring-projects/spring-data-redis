@@ -83,11 +83,11 @@ public class LettuceReactiveClusterStringCommandsTests extends LettuceReactiveCl
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isEqualTo(VALUE_3);
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-525
+	@Test // DATAREDIS-525
 	public void bitNotShouldThrowExceptionWhenMoreThanOnSourceKeyAndKeysMapToSameSlot() {
-
-		connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
-				RedisStringCommands.BitOperation.NOT, SAME_SLOT_KEY_3_BBUFFER).block();
+		assertThatIllegalArgumentException().isThrownBy(
+				() -> connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
+						RedisStringCommands.BitOperation.NOT, SAME_SLOT_KEY_3_BBUFFER).block());
 	}
 
 }

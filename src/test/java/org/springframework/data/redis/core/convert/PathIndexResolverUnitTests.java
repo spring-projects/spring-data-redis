@@ -66,9 +66,9 @@ public class PathIndexResolverUnitTests {
 				new RedisMappingContext(new MappingConfiguration(indexConfig, new KeyspaceConfiguration())));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
+	@Test // DATAREDIS-425
 	public void shouldThrowExceptionOnNullMappingContext() {
-		new PathIndexResolver(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> new PathIndexResolver(null));
 	}
 
 	@Test // DATAREDIS-425

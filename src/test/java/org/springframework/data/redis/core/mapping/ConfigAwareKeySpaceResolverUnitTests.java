@@ -38,9 +38,9 @@ public class ConfigAwareKeySpaceResolverUnitTests {
 		this.resolver = new ConfigAwareKeySpaceResolver(config);
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
+	@Test // DATAREDIS-425
 	public void resolveShouldThrowExceptionWhenTypeIsNull() {
-		resolver.resolveKeySpace(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> resolver.resolveKeySpace(null));
 	}
 
 	@Test // DATAREDIS-425

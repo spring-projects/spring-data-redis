@@ -145,9 +145,10 @@ public class JedisConvertersUnitTests {
 				.isEqualTo(JedisConverters.toBytes("(1"));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-378
+	@Test // DATAREDIS-378
 	public void boundaryToBytesForZRangeByLexShouldThrowExceptionWhenBoundaryHoldsUnknownType() {
-		JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt(new Date()).getMin(), null);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt(new Date()).getMin(), null));
 	}
 
 	@Test // DATAREDIS-352
@@ -195,9 +196,10 @@ public class JedisConvertersUnitTests {
 				.isEqualTo(JedisConverters.toBytes("(1"));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-352
+	@Test // DATAREDIS-352
 	public void boundaryToBytesForZRangeByShouldThrowExceptionWhenBoundaryHoldsUnknownType() {
-		JedisConverters.boundaryToBytesForZRange(Range.range().gt(new Date()).getMin(), null);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> JedisConverters.boundaryToBytesForZRange(Range.range().gt(new Date()).getMin(), null));
 	}
 
 	@Test // DATAREDIS-316, DATAREDIS-749

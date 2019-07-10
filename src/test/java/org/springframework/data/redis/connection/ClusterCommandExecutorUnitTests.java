@@ -134,19 +134,20 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsNull() {
-		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, null);
+		assertThatIllegalArgumentException().isThrownBy(() -> executor.executeCommandOnSingleNode(COMMAND_CALLBACK, null));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeShouldThrowExceptionWhenCommandCallbackIsNull() {
-		executor.executeCommandOnSingleNode(null, CLUSTER_NODE_1);
+		assertThatIllegalArgumentException().isThrownBy(() -> executor.executeCommandOnSingleNode(null, CLUSTER_NODE_1));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsUnknown() {
-		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, UNKNOWN_CLUSTER_NODE);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> executor.executeCommandOnSingleNode(COMMAND_CALLBACK, UNKNOWN_CLUSTER_NODE));
 	}
 
 	@Test // DATAREDIS-315

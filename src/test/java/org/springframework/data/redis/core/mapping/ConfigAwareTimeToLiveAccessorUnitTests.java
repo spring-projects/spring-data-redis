@@ -42,9 +42,9 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 		accessor = new ConfigAwareTimeToLiveAccessor(config, new RedisMappingContext());
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldThrowExceptionWhenSourceObjectIsNull() {
-		accessor.getTimeToLive(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> accessor.getTimeToLive(null));
 	}
 
 	@Test // DATAREDIS-425

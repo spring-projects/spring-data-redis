@@ -56,55 +56,53 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends Abstrac
 	@Ignore("Pub/Sub not supported while pipelining")
 	public void testPubSubWithPatterns() throws Exception {}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	public void testExecWithoutMulti() {
-		super.testExecWithoutMulti();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(super::testExecWithoutMulti);
 	}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	public void testErrorInTx() {
-		super.testErrorInTx();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(super::testErrorInTx);
 	}
 
-	@Test(expected = RedisPipelineException.class)
-	public void exceptionExecuteNative() throws Exception {
-		super.exceptionExecuteNative();
+	@Test
+	public void exceptionExecuteNative() {
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(super::exceptionExecuteNative);
 	}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaNotFound() {
-		super.testEvalShaNotFound();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(super::testEvalShaNotFound);
 	}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleError() {
-		super.testEvalReturnSingleError();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(super::testEvalReturnSingleError);
 	}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreBadData() {
-		super.testRestoreBadData();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(super::testRestoreBadData);
 	}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreExistingKey() {
-		super.testRestoreExistingKey();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(super::testRestoreExistingKey);
 	}
 
-	@Test(expected = RedisPipelineException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void testEvalArrayScriptError() {
-		super.testEvalArrayScriptError();
-	}
+	@Test
+	@Ignore
+	public void testEvalArrayScriptError() {}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayError() {
-		super.testEvalShaArrayError();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(super::testEvalShaArrayError);
 	}
 
 	@Test

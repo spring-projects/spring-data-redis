@@ -24,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -78,16 +79,27 @@ public class PubSubTests<T> {
 		adapter.setSerializer(template.getValueSerializer());
 		adapter.afterPropertiesSet();
 
+		Phaser phaser = new Phaser(1);
+
 		container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(template.getConnectionFactory());
 		container.setBeanName("container");
 		container.addMessageListener(adapter, Arrays.asList(new ChannelTopic(CHANNEL)));
 		container.setTaskExecutor(new SyncTaskExecutor());
-		container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor());
+		container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor() {
+			@Override
+			protected void doExecute(Runnable task) {
+				super.doExecute(() -> {
+					phaser.arriveAndDeregister();
+					task.run();
+				});
+			}
+		});
 		container.afterPropertiesSet();
 		container.start();
 
-		Thread.sleep(1000);
+		phaser.arriveAndAwaitAdvance();
+		Thread.sleep(50);
 	}
 
 	@After
@@ -144,8 +156,9 @@ public class PubSubTests<T> {
 			template.convertAndSend(CHANNEL, getT());
 		}
 
-		Thread.sleep(1000);
-		assertThat(bag.size()).isEqualTo(COUNT);
+		for (int i = 0; i < COUNT; i++) {
+			assertThat(bag.poll(1, TimeUnit.SECONDS)).as("message #" + i).isNotNull();
+		}
 	}
 
 	@Test
@@ -157,7 +170,7 @@ public class PubSubTests<T> {
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(CHANNEL, payload2);
 
-		assertThat(bag.poll(1, TimeUnit.SECONDS)).isNull();
+		assertThat(bag.poll(200, TimeUnit.MILLISECONDS)).isNull();
 	}
 
 	@Test

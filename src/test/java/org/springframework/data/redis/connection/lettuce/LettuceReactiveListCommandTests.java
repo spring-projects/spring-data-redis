@@ -82,13 +82,12 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_2, VALUE_1);
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-525
+	@Test // DATAREDIS-525
 	public void pushShouldThrowErrorForMoreThanOneValueWhenUsingExistsOption() {
-
-		connection.listCommands()
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> connection.listCommands()
 				.push(Mono.just(
 						PushCommand.right().values(Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER)).to(KEY_1_BBUFFER).ifExists()))
-				.blockFirst();
+				.blockFirst());
 	}
 
 	@Test // DATAREDIS-525

@@ -106,9 +106,9 @@ public class LettuceConnectionUnitTestSuite {
 			verify(syncCommandsMock, times(1)).clientGetname();
 		}
 
-		@Test(expected = IllegalArgumentException.class) // DATAREDIS-277
+		@Test // DATAREDIS-277
 		public void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
-			connection.slaveOf(null, 0);
+			assertThatIllegalArgumentException().isThrownBy(() -> connection.slaveOf(null, 0));
 		}
 
 		@Test // DATAREDIS-277
@@ -125,9 +125,10 @@ public class LettuceConnectionUnitTestSuite {
 			verify(syncCommandsMock, times(1)).slaveofNoOne();
 		}
 
-		@Test(expected = InvalidDataAccessResourceUsageException.class) // DATAREDIS-348
+		@Test // DATAREDIS-348
 		public void shouldThrowExceptionWhenAccessingRedisSentinelsCommandsWhenNoSentinelsConfigured() {
-			connection.getSentinelConnection();
+			assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class)
+					.isThrownBy(() -> connection.getSentinelConnection());
 		}
 
 		@Test // DATAREDIS-431

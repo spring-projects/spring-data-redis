@@ -86,50 +86,54 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 		super.testScriptKill();
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleError() {
-		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0));
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalArrayScriptError() {
-		super.testEvalArrayScriptError();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> super.testEvalArrayScriptError());
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaNotFound() {
-		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2"));
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayError() {
-		super.testEvalShaArrayError();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testEvalShaArrayError());
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreBadData() {
-		super.testRestoreBadData();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testRestoreBadData());
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreExistingKey() {
-		super.testRestoreExistingKey();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> super.testRestoreExistingKey());
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	public void testExecWithoutMulti() {
-		super.testExecWithoutMulti();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testExecWithoutMulti());
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	public void testErrorInTx() {
-		super.testErrorInTx();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testErrorInTx());
 	}
 
 	@Test // DATAREDIS-330

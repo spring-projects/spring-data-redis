@@ -94,13 +94,13 @@ public class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofSeconds(42));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-576
+	@Test // DATAREDIS-576
 	public void clientConfigurationThrowsExceptionForNullClientName() {
-		LettuceClientConfiguration.builder().clientName(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> LettuceClientConfiguration.builder().clientName(null));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-576
+	@Test // DATAREDIS-576
 	public void clientConfigurationThrowsExceptionForEmptyClientName() {
-		LettuceClientConfiguration.builder().clientName(" ");
+		assertThatIllegalArgumentException().isThrownBy(() -> LettuceClientConfiguration.builder().clientName(" "));
 	}
 }

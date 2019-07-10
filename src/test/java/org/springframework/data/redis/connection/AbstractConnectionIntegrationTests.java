@@ -2289,11 +2289,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(results.get(2)).isEqualTo(6L);
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-308
+	@Test // DATAREDIS-308
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void pfCountWithNullKeysShouldThrowIllegalArgumentException() {
-		actual.add(connection.pfCount((String[]) null));
+		assertThatIllegalArgumentException().isThrownBy(() -> actual.add(connection.pfCount((String[]) null)));
 	}
 
 	@SuppressWarnings("unchecked")

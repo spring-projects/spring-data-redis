@@ -105,9 +105,9 @@ public class JedisConnectionUnitTestSuite {
 			verifyNativeConnectionInvocation().clientGetname();
 		}
 
-		@Test(expected = IllegalArgumentException.class) // DATAREDIS-277
+		@Test // DATAREDIS-277
 		public void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
-			connection.slaveOf(null, 0);
+			assertThatIllegalArgumentException().isThrownBy(() -> connection.slaveOf(null, 0));
 		}
 
 		@Test // DATAREDIS-277
@@ -124,34 +124,40 @@ public class JedisConnectionUnitTestSuite {
 			verifyNativeConnectionInvocation().slaveofNoOne();
 		}
 
-		@Test(expected = InvalidDataAccessResourceUsageException.class) // DATAREDIS-330
+		@Test // DATAREDIS-330
 		public void shouldThrowExceptionWhenAccessingRedisSentinelsCommandsWhenNoSentinelsConfigured() {
-			connection.getSentinelConnection();
+			assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class)
+					.isThrownBy(() -> connection.getSentinelConnection());
 		}
 
-		@Test(expected = IllegalArgumentException.class) // DATAREDIS-472
+		@Test // DATAREDIS-472
 		public void restoreShouldThrowExceptionWhenTtlInMillisExceedsIntegerRange() {
-			connection.restore("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes());
+			assertThatIllegalArgumentException()
+					.isThrownBy(() -> connection.restore("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes()));
 		}
 
-		@Test(expected = IllegalArgumentException.class) // DATAREDIS-472
+		@Test // DATAREDIS-472
 		public void setExShouldThrowExceptionWhenTimeExceedsIntegerRange() {
-			connection.setEx("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes());
+			assertThatIllegalArgumentException()
+					.isThrownBy(() -> connection.setEx("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes()));
 		}
 
-		@Test(expected = IllegalArgumentException.class) // DATAREDIS-472
+		@Test // DATAREDIS-472
 		public void sRandMemberShouldThrowExceptionWhenCountExceedsIntegerRange() {
-			connection.sRandMember("foo".getBytes(), (long) Integer.MAX_VALUE + 1L);
+			assertThatIllegalArgumentException()
+					.isThrownBy(() -> connection.sRandMember("foo".getBytes(), (long) Integer.MAX_VALUE + 1L));
 		}
 
-		@Test(expected = IllegalArgumentException.class) // DATAREDIS-472
+		@Test // DATAREDIS-472
 		public void zRangeByScoreShouldThrowExceptionWhenOffsetExceedsIntegerRange() {
-			connection.zRangeByScore("foo".getBytes(), "foo", "bar", (long) Integer.MAX_VALUE + 1L, Integer.MAX_VALUE);
+			assertThatIllegalArgumentException().isThrownBy(() -> connection.zRangeByScore("foo".getBytes(), "foo", "bar",
+					(long) Integer.MAX_VALUE + 1L, Integer.MAX_VALUE));
 		}
 
-		@Test(expected = IllegalArgumentException.class) // DATAREDIS-472
+		@Test // DATAREDIS-472
 		public void zRangeByScoreShouldThrowExceptionWhenCountExceedsIntegerRange() {
-			connection.zRangeByScore("foo".getBytes(), "foo", "bar", Integer.MAX_VALUE, (long) Integer.MAX_VALUE + 1L);
+			assertThatIllegalArgumentException().isThrownBy(() -> connection.zRangeByScore("foo".getBytes(), "foo", "bar",
+					Integer.MAX_VALUE, (long) Integer.MAX_VALUE + 1L));
 		}
 
 		@Test // DATAREDIS-531
@@ -275,78 +281,96 @@ public class JedisConnectionUnitTestSuite {
 			connection.openPipeline();
 		}
 
+		@Test
 		@Override
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-184
+		// DATAREDIS-184
 		public void shutdownNosaveShouldBeSentCorrectlyUsingLuaScript() {
-			super.shutdownNosaveShouldBeSentCorrectlyUsingLuaScript();
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.shutdownNosaveShouldBeSentCorrectlyUsingLuaScript());
 		}
 
+		@Test
 		@Override
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-184
+		// DATAREDIS-184
 		public void shutdownSaveShouldBeSentCorrectlyUsingLuaScript() {
-			super.shutdownSaveShouldBeSentCorrectlyUsingLuaScript();
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.shutdownSaveShouldBeSentCorrectlyUsingLuaScript());
 		}
 
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-267
+		@Test // DATAREDIS-267
 		public void killClientShouldDelegateCallCorrectly() {
-			super.killClientShouldDelegateCallCorrectly();
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.killClientShouldDelegateCallCorrectly());
 		}
 
+		@Test
 		@Override
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-270
+		// DATAREDIS-270
 		public void getClientNameShouldSendRequestCorrectly() {
-			super.getClientNameShouldSendRequestCorrectly();
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.getClientNameShouldSendRequestCorrectly());
 		}
 
+		@Test
 		@Override
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-277
+		// DATAREDIS-277
 		public void slaveOfShouldBeSentCorrectly() {
-			super.slaveOfShouldBeSentCorrectly();
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.slaveOfShouldBeSentCorrectly());
 		}
 
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-277
+		@Test // DATAREDIS-277
 		public void slaveOfNoOneShouldBeSentCorrectly() {
-			super.slaveOfNoOneShouldBeSentCorrectly();
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.slaveOfNoOneShouldBeSentCorrectly());
 		}
 
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-531
+		@Test // DATAREDIS-531
 		public void scanShouldKeepTheConnectionOpen() {
-			super.scanShouldKeepTheConnectionOpen();
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.scanShouldKeepTheConnectionOpen());
 		}
 
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-531
-		public void scanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
-			super.scanShouldCloseTheConnectionWhenCursorIsClosed();
+		@Test // DATAREDIS-531
+		public void scanShouldCloseTheConnectionWhenCursorIsClosed() {
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.scanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
 
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-531
+		@Test // DATAREDIS-531
 		public void sScanShouldKeepTheConnectionOpen() {
-			super.sScanShouldKeepTheConnectionOpen();
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.sScanShouldKeepTheConnectionOpen());
 		}
 
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-531
-		public void sScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
-			super.sScanShouldCloseTheConnectionWhenCursorIsClosed();
+		@Test // DATAREDIS-531
+		public void sScanShouldCloseTheConnectionWhenCursorIsClosed() {
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.sScanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
 
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-531
+		@Test // DATAREDIS-531
 		public void zScanShouldKeepTheConnectionOpen() {
-			super.zScanShouldKeepTheConnectionOpen();
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.zScanShouldKeepTheConnectionOpen());
 		}
 
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-531
-		public void zScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
-			super.zScanShouldCloseTheConnectionWhenCursorIsClosed();
+		@Test // DATAREDIS-531
+		public void zScanShouldCloseTheConnectionWhenCursorIsClosed() {
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.zScanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
 
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-531
+		@Test // DATAREDIS-531
 		public void hScanShouldKeepTheConnectionOpen() {
-			super.hScanShouldKeepTheConnectionOpen();
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.hScanShouldKeepTheConnectionOpen());
 		}
 
-		@Test(expected = UnsupportedOperationException.class) // DATAREDIS-531
-		public void hScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
-			super.hScanShouldCloseTheConnectionWhenCursorIsClosed();
+		@Test // DATAREDIS-531
+		public void hScanShouldCloseTheConnectionWhenCursorIsClosed() {
+			assertThatExceptionOfType(UnsupportedOperationException.class)
+					.isThrownBy(() -> super.hScanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
 
 	}

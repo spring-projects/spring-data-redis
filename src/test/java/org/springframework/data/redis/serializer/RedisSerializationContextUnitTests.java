@@ -29,44 +29,44 @@ import org.junit.Test;
  */
 public class RedisSerializationContextUnitTests {
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-602
+	@Test // DATAREDIS-602
 	public void shouldRejectBuildIfKeySerializerIsNotSet() {
-
-		RedisSerializationContext.<String, String> newSerializationContext() //
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> RedisSerializationContext.<String, String> newSerializationContext() //
 				.value(StringRedisSerializer.UTF_8) //
 				.hashKey(StringRedisSerializer.UTF_8) //
 				.hashValue(StringRedisSerializer.UTF_8) //
-				.build();
+						.build());
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-602
+	@Test // DATAREDIS-602
 	public void shouldRejectBuildIfValueSerializerIsNotSet() {
-
-		RedisSerializationContext.<String, String> newSerializationContext() //
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> RedisSerializationContext.<String, String> newSerializationContext() //
 				.key(StringRedisSerializer.UTF_8) //
 				.hashKey(StringRedisSerializer.UTF_8) //
 				.hashValue(StringRedisSerializer.UTF_8) //
-				.build();
+						.build());
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-602
+	@Test // DATAREDIS-602
 	public void shouldRejectBuildIfHashKeySerializerIsNotSet() {
-
-		RedisSerializationContext.<String, String> newSerializationContext() //
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> RedisSerializationContext.<String, String> newSerializationContext() //
 				.key(StringRedisSerializer.UTF_8) //
 				.value(StringRedisSerializer.UTF_8) //
 				.hashValue(StringRedisSerializer.UTF_8) //
-				.build();
+						.build());
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-602
+	@Test // DATAREDIS-602
 	public void shouldRejectBuildIfHashValueSerializerIsNotSet() {
-
-		RedisSerializationContext.<String, String> newSerializationContext() //
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> RedisSerializationContext.<String, String> newSerializationContext() //
 				.key(StringRedisSerializer.UTF_8) //
 				.value(StringRedisSerializer.UTF_8) //
 				.hashKey(StringRedisSerializer.UTF_8) //
-				.build();
+						.build());
 	}
 
 	@Test // DATAREDIS-602

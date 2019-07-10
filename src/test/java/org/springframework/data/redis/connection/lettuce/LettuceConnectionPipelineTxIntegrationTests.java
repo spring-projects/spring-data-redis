@@ -32,40 +32,40 @@ import org.springframework.test.annotation.IfProfileValue;
  */
 public class LettuceConnectionPipelineTxIntegrationTests extends LettuceConnectionTransactionIntegrationTests {
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaNotFound() {
-		super.testEvalShaNotFound();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(() -> super.testEvalShaNotFound());
 	}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleError() {
-		super.testEvalReturnSingleError();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(() -> super.testEvalReturnSingleError());
 	}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreBadData() {
-		super.testRestoreBadData();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(() -> super.testRestoreBadData());
 	}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreExistingKey() {
-		super.testRestoreExistingKey();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(() -> super.testRestoreExistingKey());
 	}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalArrayScriptError() {
-		super.testEvalArrayScriptError();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(() -> super.testEvalArrayScriptError());
 	}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayError() {
-		super.testEvalShaArrayError();
+		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(() -> super.testEvalShaArrayError());
 	}
 
 	protected void initConnection() {
@@ -84,10 +84,12 @@ public class LettuceConnectionPipelineTxIntegrationTests extends LettuceConnecti
 		return txResults;
 	}
 
+	@Test
 	@Override
-	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-268
+	// DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
-		super.testListClientsContainsAtLeastOneElement();
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(() -> super.testListClientsContainsAtLeastOneElement());
 	}
 
 }

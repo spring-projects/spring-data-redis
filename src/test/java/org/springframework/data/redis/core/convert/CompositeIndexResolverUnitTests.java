@@ -38,14 +38,15 @@ public class CompositeIndexResolverUnitTests {
 	@Mock IndexResolver resolver2;
 	@Mock TypeInformation<?> typeInfoMock;
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
+	@Test // DATAREDIS-425
 	public void shouldRejectNull() {
-		new CompositeIndexResolver(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> new CompositeIndexResolver(null));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
+	@Test // DATAREDIS-425
 	public void shouldRejectCollectionWithNullValues() {
-		new CompositeIndexResolver(Arrays.asList(resolver1, null, resolver2));
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new CompositeIndexResolver(Arrays.asList(resolver1, null, resolver2)));
 	}
 
 	@Test // DATAREDIS-425

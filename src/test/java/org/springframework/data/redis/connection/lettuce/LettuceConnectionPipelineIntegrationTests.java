@@ -48,9 +48,9 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")
 public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectionPipelineIntegrationTests {
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testSelect() {
-		super.testSelect();
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> super.testSelect());
 	}
 
 	@Test
@@ -105,9 +105,11 @@ public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectio
 		}
 	}
 
+	@Test
 	@Override
-	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-268
+	// DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
-		super.testListClientsContainsAtLeastOneElement();
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(() -> super.testListClientsContainsAtLeastOneElement());
 	}
 }

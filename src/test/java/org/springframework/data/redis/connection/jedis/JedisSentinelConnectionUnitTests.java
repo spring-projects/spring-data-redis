@@ -15,18 +15,20 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
+import redis.clients.jedis.Jedis;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder;
 import org.springframework.data.redis.connection.RedisServer;
-
-import redis.clients.jedis.Jedis;
 
 /**
  * @author Christoph Strobl
@@ -67,14 +69,14 @@ public class JedisSentinelConnectionUnitTests {
 		verify(jedisMock, times(1)).sentinelFailover(eq("mymaster"));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
+	@Test // DATAREDIS-330
 	public void failoverShouldThrowExceptionIfMasterNodeIsNull() {
-		connection.failover(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.failover(null));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
+	@Test // DATAREDIS-330
 	public void failoverShouldThrowExceptionIfMasterNodeNameIsEmpty() {
-		connection.failover(new RedisNodeBuilder().build());
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.failover(new RedisNodeBuilder().build()));
 	}
 
 	@Test // DATAREDIS-330
@@ -98,19 +100,19 @@ public class JedisSentinelConnectionUnitTests {
 		verify(jedisMock, times(1)).sentinelSlaves(eq("mymaster"));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
+	@Test // DATAREDIS-330
 	public void readSlavesShouldThrowExceptionWhenGivenEmptyMasterName() {
-		connection.slaves("");
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.slaves(""));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
+	@Test // DATAREDIS-330
 	public void readSlavesShouldThrowExceptionWhenGivenNull() {
-		connection.slaves((RedisNode) null);
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.slaves((RedisNode) null));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
+	@Test // DATAREDIS-330
 	public void readSlavesShouldThrowExceptionWhenNodeWithoutName() {
-		connection.slaves(new RedisNodeBuilder().build());
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.slaves(new RedisNodeBuilder().build()));
 	}
 
 	@Test // DATAREDIS-330
@@ -120,19 +122,19 @@ public class JedisSentinelConnectionUnitTests {
 		verify(jedisMock, times(1)).sentinelRemove(eq("mymaster"));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
+	@Test // DATAREDIS-330
 	public void removeShouldThrowExceptionWhenGivenEmptyMasterName() {
-		connection.remove("");
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.remove(""));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
+	@Test // DATAREDIS-330
 	public void removeShouldThrowExceptionWhenGivenNull() {
-		connection.remove((RedisNode) null);
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.remove((RedisNode) null));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
+	@Test // DATAREDIS-330
 	public void removeShouldThrowExceptionWhenNodeWithoutName() {
-		connection.remove(new RedisNodeBuilder().build());
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.remove(new RedisNodeBuilder().build()));
 	}
 
 	@Test // DATAREDIS-330

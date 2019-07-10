@@ -45,7 +45,7 @@ public class LettuceConnectionTransactionIntegrationTests extends AbstractConnec
 
 		actual.add(connection.set("foo", "bar"));
 		actual.add(connection.move("foo", 1));
-		verifyResults(Arrays.asList(true, true ));
+		verifyResults(Arrays.asList(true, true));
 
 		// Lettuce does not support select when using shared conn, use a new conn factory
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory();
@@ -65,8 +65,8 @@ public class LettuceConnectionTransactionIntegrationTests extends AbstractConnec
 		}
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testSelect() {
-		super.testSelect();
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> super.testSelect());
 	}
 }

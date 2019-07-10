@@ -18,7 +18,6 @@ package org.springframework.data.redis.support.collections;
 import static org.assertj.core.api.Assertions.*;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -220,10 +219,10 @@ public class RedisPropertiesTests extends RedisMapTests {
 		assertThat(keys.contains(key3)).isTrue();
 	}
 
+	@Test
 	@Override
-	@Test(expected = UnsupportedOperationException.class)
-	public void testScanWorksCorrectly() throws IOException {
-		super.testScanWorksCorrectly();
+	public void testScanWorksCorrectly() {
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> super.testScanWorksCorrectly());
 	}
 
 	// DATAREDIS-241
@@ -296,15 +295,15 @@ public class RedisPropertiesTests extends RedisMapTests {
 				{ stringFactory, stringFactory, xstreamGenericTemplate }, //
 				{ stringFactory, stringFactory, jackson2JsonPersonTemplate }, //
 
-				// lettuce
-				{ stringFactory, stringFactory, genericTemplateLtc }, //
-				{ stringFactory, stringFactory, genericTemplateLtc }, //
-				{ stringFactory, stringFactory, genericTemplateLtc }, //
-				{ stringFactory, stringFactory, genericTemplateLtc }, //
-				{ stringFactory, doubleFactory, genericTemplateLtc }, //
-				{ stringFactory, longFactory, genericTemplateLtc }, //
-				{ stringFactory, stringFactory, xGenericTemplateLtc }, //
-				{ stringFactory, stringFactory, jackson2JsonPersonTemplateLtc } });
+						// lettuce
+						{ stringFactory, stringFactory, genericTemplateLtc }, //
+						{ stringFactory, stringFactory, genericTemplateLtc }, //
+						{ stringFactory, stringFactory, genericTemplateLtc }, //
+						{ stringFactory, stringFactory, genericTemplateLtc }, //
+						{ stringFactory, doubleFactory, genericTemplateLtc }, //
+						{ stringFactory, longFactory, genericTemplateLtc }, //
+						{ stringFactory, stringFactory, xGenericTemplateLtc }, //
+						{ stringFactory, stringFactory, jackson2JsonPersonTemplateLtc } });
 	}
 
 }

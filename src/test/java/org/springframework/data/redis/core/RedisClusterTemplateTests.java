@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.assertj.core.api.Assertions.*;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -58,10 +60,11 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 
 	public static @ClassRule RedisClusterRule clusterAvailable = new RedisClusterRule();
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	@Ignore("Pipeline not supported in cluster mode")
 	public void testExecutePipelinedNonNullRedisCallback() {
-		super.testExecutePipelinedNonNullRedisCallback();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(super::testExecutePipelinedNonNullRedisCallback);
 	}
 
 	@Test
@@ -88,10 +91,11 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 		super.testExec();
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	@Ignore("Pipeline not supported in cluster mode")
 	public void testExecutePipelinedNonNullSessionCallback() {
-		super.testExecutePipelinedNonNullSessionCallback();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(super::testExecutePipelinedNonNullSessionCallback);
 	}
 
 	@Test

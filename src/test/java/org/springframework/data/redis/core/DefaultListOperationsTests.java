@@ -210,20 +210,24 @@ public class DefaultListOperationsTests<K, V> {
 		assertThat(listOps.range(key, 0, -1)).containsSequence(v1, v2, v3);
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-288
+	@Test // DATAREDIS-288
 	public void rightPushAllShouldThrowExceptionWhenCalledWithEmptyCollection() {
-		listOps.rightPushAll(keyFactory.instance(), Collections.<V> emptyList());
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> listOps.rightPushAll(keyFactory.instance(), Collections.<V> emptyList()));
 	}
 
+	@Test
 	@SuppressWarnings("unchecked")
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-288
+	// DATAREDIS-288
 	public void rightPushAllShouldThrowExceptionWhenCollectionContainsNullValue() {
-		listOps.rightPushAll(keyFactory.instance(), Arrays.asList(valueFactory.instance(), null));
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> listOps.rightPushAll(keyFactory.instance(), Arrays.asList(valueFactory.instance(), null)));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-288
+	@Test // DATAREDIS-288
 	public void rightPushAllShouldThrowExceptionWhenCalledWithNull() {
-		listOps.rightPushAll(keyFactory.instance(), (Collection<V>) null);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> listOps.rightPushAll(keyFactory.instance(), (Collection<V>) null));
 	}
 
 	@Test // DATAREDIS-288
@@ -240,18 +244,21 @@ public class DefaultListOperationsTests<K, V> {
 		assertThat(listOps.range(key, 0, -1)).containsSequence(v3, v2, v1);
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-288
+	@Test // DATAREDIS-288
 	public void leftPushAllShouldThrowExceptionWhenCalledWithEmptyCollection() {
-		listOps.leftPushAll(keyFactory.instance(), Collections.<V> emptyList());
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> listOps.leftPushAll(keyFactory.instance(), Collections.<V> emptyList()));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-288
+	@Test // DATAREDIS-288
 	public void leftPushAllShouldThrowExceptionWhenCollectionContainsNullValue() {
-		listOps.leftPushAll(keyFactory.instance(), Arrays.asList(valueFactory.instance(), null));
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> listOps.leftPushAll(keyFactory.instance(), Arrays.asList(valueFactory.instance(), null)));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-288
+	@Test // DATAREDIS-288
 	public void leftPushAllShouldThrowExceptionWhenCalledWithNull() {
-		listOps.leftPushAll(keyFactory.instance(), (Collection<V>) null);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> listOps.leftPushAll(keyFactory.instance(), (Collection<V>) null));
 	}
 }

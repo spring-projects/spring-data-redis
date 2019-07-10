@@ -65,9 +65,9 @@ public class Jackson2JsonRedisSerializerTests {
 		serializer.deserialize(serializedValue);
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DTATREDIS-241
+	@Test // DTATREDIS-241
 	public void testJackson2JsonSerilizerThrowsExceptionWhenSettingNullObjectMapper() {
-		serializer.setObjectMapper(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> serializer.setObjectMapper(null));
 	}
 
 }

@@ -23,7 +23,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.RedisPipelineException;
-import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * @author Jennifer Hickey
@@ -42,17 +41,13 @@ public class JedisConnectionPipelineTxIntegrationTests extends JedisConnectionTr
 		getResults();
 	}
 
-	@Test(expected = RedisPipelineException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void testRestoreBadData() {
-		super.testRestoreBadData();
-	}
+	@Test
+	@Ignore
+	public void testRestoreBadData() {}
 
-	@Test(expected = RedisPipelineException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void testRestoreExistingKey() {
-		super.testRestoreExistingKey();
-	}
+	@Test
+	@Ignore
+	public void testRestoreExistingKey() {}
 
 	protected void initConnection() {
 		connection.openPipeline();
@@ -70,9 +65,7 @@ public class JedisConnectionPipelineTxIntegrationTests extends JedisConnectionTr
 		return txResults;
 	}
 
-	@Override
-	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-268
-	public void testListClientsContainsAtLeastOneElement() {
-		super.testListClientsContainsAtLeastOneElement();
-	}
+	@Test
+	@Ignore
+	public void testListClientsContainsAtLeastOneElement() {}
 }

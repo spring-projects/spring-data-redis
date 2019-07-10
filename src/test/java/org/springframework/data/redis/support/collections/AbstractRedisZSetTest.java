@@ -132,9 +132,9 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertThat(zSet.first()).isEqualTo(t1);
 	}
 
-	@Test(expected = NoSuchElementException.class)
-	public void testFirstException() throws Exception {
-		zSet.first();
+	@Test
+	public void testFirstException() {
+		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(() -> zSet.first());
 	}
 
 	@Test
@@ -151,9 +151,9 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertThat(zSet.last()).isEqualTo(t3);
 	}
 
-	@Test(expected = NoSuchElementException.class)
-	public void testLastException() throws Exception {
-		zSet.last();
+	@Test
+	public void testLastException() {
+		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(() -> zSet.last());
 	}
 
 	@Test

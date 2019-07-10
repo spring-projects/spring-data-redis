@@ -94,9 +94,9 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 	@Ignore
 	public void testHashNullValue() throws Exception {}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testWatchWhileInTx() {
-		connection.watch("foo".getBytes());
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> connection.watch("foo".getBytes()));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

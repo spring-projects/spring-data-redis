@@ -79,9 +79,9 @@ public class IndexWriterUnitTests {
 				eq("persons:firstname:Rand".getBytes(CHARSET)));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
+	@Test // DATAREDIS-425
 	public void addKeyToIndexShouldThrowErrorWhenIndexedDataIsNull() {
-		writer.addKeyToIndex(KEY_BIN, null);
+		assertThatIllegalArgumentException().isThrownBy(() -> writer.addKeyToIndex(KEY_BIN, null));
 	}
 
 	@Test // DATAREDIS-425
@@ -108,9 +108,9 @@ public class IndexWriterUnitTests {
 		verify(connectionMock).sRem(indexKey2, KEY_BIN);
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
+	@Test // DATAREDIS-425
 	public void removeKeyFromExistingIndexesShouldThrowExecptionForNullIndexedData() {
-		writer.removeKeyFromExistingIndexes(KEY_BIN, null);
+		assertThatIllegalArgumentException().isThrownBy(() -> writer.removeKeyFromExistingIndexes(KEY_BIN, null));
 	}
 
 	@Test // DATAREDIS-425
@@ -130,10 +130,10 @@ public class IndexWriterUnitTests {
 		assertThat(captor.getAllValues()).contains(indexKey1, indexKey2);
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-425
+	@Test // DATAREDIS-425
 	public void addToIndexShouldThrowDataAccessExceptionWhenAddingDataThatConnotBeConverted() {
-		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", new DummyObject()));
-
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(
+				() -> writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", new DummyObject())));
 	}
 
 	@Test // DATAREDIS-425
@@ -144,11 +144,11 @@ public class IndexWriterUnitTests {
 
 		((GenericConversionService) converter.getConversionService()).addConverter(new Converter<DummyObject, byte[]>() {
 
-			@Override
-			public byte[] convert(DummyObject source) {
-				return identityHexString.getBytes(CHARSET);
-			}
-		});
+					@Override
+					public byte[] convert(DummyObject source) {
+						return identityHexString.getBytes(CHARSET);
+					}
+				});
 
 		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", value));
 

@@ -60,14 +60,16 @@ public class RedisClusterConfigurationUnitTests {
 				new RedisNode("localhost", 789));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void shouldThrowExecptionOnInvalidHostAndPortString() {
-		new RedisClusterConfiguration(Collections.singleton(HOST_AND_NO_PORT));
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new RedisClusterConfiguration(Collections.singleton(HOST_AND_NO_PORT)));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void shouldThrowExceptionWhenListOfHostAndPortIsNull() {
-		new RedisClusterConfiguration(Collections.<String> singleton(null));
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new RedisClusterConfiguration(Collections.<String> singleton(null)));
 	}
 
 	@Test // DATAREDIS-315
@@ -78,9 +80,9 @@ public class RedisClusterConfigurationUnitTests {
 		assertThat(config.getClusterNodes().size()).isEqualTo(0);
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void shouldThrowExceptionGivenNullPropertySource() {
-		new RedisClusterConfiguration((PropertySource<?>) null);
+		assertThatIllegalArgumentException().isThrownBy(() -> new RedisClusterConfiguration((PropertySource<?>) null));
 	}
 
 	@Test // DATAREDIS-315

@@ -431,9 +431,9 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertThat(map.get(k1)).isNull();
 	}
 
-	@Test(expected = NullPointerException.class)
+	@Test
 	public void testRemoveNullValue() {
-		map.remove(getKey(), null);
+		assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> map.remove(getKey(), null));
 	}
 
 	@Test
@@ -453,14 +453,14 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertThat(map.get(k1)).isEqualTo(v2);
 	}
 
-	@Test(expected = NullPointerException.class)
+	@Test
 	public void testReplaceNullOldValue() {
-		map.replace(getKey(), null, getValue());
+		assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> map.replace(getKey(), null, getValue()));
 	}
 
-	@Test(expected = NullPointerException.class)
+	@Test
 	public void testReplaceNullNewValue() {
-		map.replace(getKey(), getValue(), null);
+		assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> map.replace(getKey(), getValue(), null));
 	}
 
 	@Test
@@ -477,9 +477,9 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertThat(map.get(k1)).isEqualTo(v2);
 	}
 
-	@Test(expected = NullPointerException.class)
+	@Test
 	public void testReplaceNullValue() {
-		map.replace(getKey(), null);
+		assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> map.replace(getKey(), null));
 	}
 
 	@Test // DATAREDIS-314

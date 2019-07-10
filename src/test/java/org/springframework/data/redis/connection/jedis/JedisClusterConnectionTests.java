@@ -184,9 +184,10 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bitCount(KEY_1_BYTES, 0, 3)).isEqualTo(3L);
 	}
 
-	@Test(expected = DataAccessException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void bitOpShouldThrowExceptionWhenKeysDoNotMapToSameSlot() {
-		clusterConnection.bitOp(BitOperation.AND, KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES);
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.bitOp(BitOperation.AND, KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES));
 	}
 
 	@Test // DATAREDIS-315
@@ -344,9 +345,9 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1)).isNull();
 	}
 
-	@Test(expected = DataAccessException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void discardShouldThrowException() {
-		clusterConnection.discard();
+		assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> clusterConnection.discard());
 	}
 
 	@Test // DATAREDIS-315
@@ -379,9 +380,9 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.echo(VALUE_1_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test(expected = DataAccessException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void execShouldThrowException() {
-		clusterConnection.exec();
+		assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> clusterConnection.exec());
 	}
 
 	@Test // DATAREDIS-689
@@ -401,9 +402,10 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-689
+	@Test // DATAREDIS-689
 	public void executeWithNoKeyAndArgsThrowsException() {
-		clusterConnection.execute("KEYS", (byte[]) null, Collections.singletonList("*".getBytes()));
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> clusterConnection.execute("KEYS", (byte[]) null, Collections.singletonList("*".getBytes())));
 	}
 
 	@Test // DATAREDIS-529
@@ -1209,14 +1211,15 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2)).isEqualTo(VALUE_2);
 	}
 
-	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void moveShouldNotBeSupported() {
-		clusterConnection.move(KEY_1_BYTES, 3);
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(() -> clusterConnection.move(KEY_1_BYTES, 3));
 	}
 
-	@Test(expected = DataAccessException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void multiShouldThrowException() {
-		clusterConnection.multi();
+		assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> clusterConnection.multi());
 	}
 
 	@Test // DATAREDIS-315
@@ -1318,9 +1321,10 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.pfCount(KEY_1_BYTES, KEY_2_BYTES);
 	}
 
-	@Test(expected = DataAccessException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void pfMergeShouldThrowErrorOnDifferentSlotKeys() {
-		clusterConnection.pfMerge(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES);
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.pfMerge(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
 	}
 
 	@Test // DATAREDIS-315
@@ -1344,9 +1348,10 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.ping(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()))).isEqualTo("PONG");
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void pingShouldThrowExceptionWhenNodeNotKnownToCluster() {
-		clusterConnection.ping(new RedisClusterNode("127.0.0.1", 1234, null));
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> clusterConnection.ping(new RedisClusterNode("127.0.0.1", 1234, null)));
 	}
 
 	@Test // DATAREDIS-315
@@ -1697,9 +1702,9 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.select(0);
 	}
 
-	@Test(expected = DataAccessException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void selectShouldThrowExceptionWhenSelectingNonZeroDbIndex() {
-		clusterConnection.select(1);
+		assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> clusterConnection.select(1));
 	}
 
 	@Test // DATAREDIS-315
@@ -1926,14 +1931,14 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.type(KEY_3_BYTES)).isEqualTo(DataType.HASH);
 	}
 
-	@Test(expected = DataAccessException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void unwatchShouldThrowException() {
-		clusterConnection.unwatch();
+		assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> clusterConnection.unwatch());
 	}
 
-	@Test(expected = DataAccessException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void watchShouldThrowException() {
-		clusterConnection.watch();
+		assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> clusterConnection.watch());
 	}
 
 	@Test // DATAREDIS-674
@@ -1988,9 +1993,10 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrank(KEY_1_BYTES, VALUE_1_BYTES)).isEqualTo(1L);
 	}
 
-	@Test(expected = DataAccessException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void zInterStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
-		clusterConnection.zInterStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES);
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zInterStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
 	}
 
 	@Test // DATAREDIS-315
@@ -2251,9 +2257,10 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zScore(KEY_1_BYTES, VALUE_2_BYTES)).isEqualTo(20D);
 	}
 
-	@Test(expected = DataAccessException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void zUnionStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
-		clusterConnection.zUnionStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES);
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zUnionStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
 	}
 
 	@Test // DATAREDIS-315
@@ -2395,9 +2402,10 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
 						.containsExactly(3L);
-		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
-				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)).get(0))
-						.isNull();
+		assertThat(clusterConnection.stringCommands()
+				.bitField(JedisConverters.toBytes(KEY_1),
+						create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L))
+				.get(0)).isNull();
 	}
 
 	@Test // DATAREDIS-562
@@ -2413,9 +2421,11 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void bitfieldShouldWorkUsingNonZeroBasedOffset() {
 
-		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
-				create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).to(100L).set(INT_8)
-						.valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()).to(200L))).containsExactly(0L, 0L);
+		assertThat(
+				clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+						create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).to(100L)
+								.set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()).to(200L)))
+										.containsExactly(0L, 0L);
 		assertThat(
 				clusterConnection.stringCommands()
 						.bitField(JedisConverters.toBytes(KEY_1),

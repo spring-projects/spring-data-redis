@@ -43,14 +43,14 @@ public class RedisClientInfoUnitTests {
 		assertValues(info, VALUES);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testGetRequiresNonNullKey() {
-		info.get((String) null);
+		assertThatIllegalArgumentException().isThrownBy(() -> info.get((String) null));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testGetRequiresNonBlankKey() {
-		info.get("");
+		assertThatIllegalArgumentException().isThrownBy(() -> info.get(""));
 	}
 
 	@Test

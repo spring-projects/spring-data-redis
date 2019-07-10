@@ -38,7 +38,6 @@ import io.lettuce.core.resource.ClientResources;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -47,6 +46,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
@@ -658,13 +658,13 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClusterConfiguration()).isEqualTo(configuration);
 	}
 
-	@Test(expected = IllegalStateException.class) // DATAREDIS-574
-	public void shouldDenyChangesToImmutableClientConfiguration() throws NoSuchAlgorithmException {
+	@Test // DATAREDIS-574
+	public void shouldDenyChangesToImmutableClientConfiguration() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
 				LettuceClientConfiguration.defaultConfiguration());
 
-		connectionFactory.setUseSsl(false);
+		assertThatIllegalStateException().isThrownBy(() -> connectionFactory.setUseSsl(false));
 	}
 
 	@Test // DATAREDIS-676

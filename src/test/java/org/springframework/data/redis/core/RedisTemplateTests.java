@@ -327,9 +327,10 @@ public class RedisTemplateTests<K, V> {
 		assertThat(person).isEqualTo(((Map) results.get(0)).get(1L));
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	public void testExecutePipelinedNonNullRedisCallback() {
-		redisTemplate.executePipelined((RedisCallback<String>) connection -> "Hey There");
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> redisTemplate.executePipelined((RedisCallback<String>) connection -> "Hey There"));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -345,15 +346,15 @@ public class RedisTemplateTests<K, V> {
 				operations.opsForList().size(key1);
 				operations.exec();
 
-				try {
-					// Await EXEC completion as it's executed on a dedicated connection.
-					Thread.sleep(100);
-				} catch (InterruptedException e) {}
-				operations.opsForValue().set(key1, value1);
-				operations.opsForValue().get(key1);
-				return null;
-			}
-		});
+						try {
+							// Await EXEC completion as it's executed on a dedicated connection.
+							Thread.sleep(100);
+						} catch (InterruptedException e) {}
+						operations.opsForValue().set(key1, value1);
+						operations.opsForValue().get(key1);
+						return null;
+					}
+				});
 		// Should contain the List of deserialized exec results and the result of the last call to get()
 		assertThat(pipelinedResults).usingElementComparator(CollectionAwareComparator.INSTANCE)
 				.containsExactly(Arrays.asList(1L, value1, 0L), true, value1);
@@ -379,14 +380,15 @@ public class RedisTemplateTests<K, V> {
 		assertThat(pipelinedResults).isEqualTo(Arrays.asList(Arrays.asList(1L, 5L, 0L), true, 2L));
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	public void testExecutePipelinedNonNullSessionCallback() {
-		redisTemplate.executePipelined(new SessionCallback<String>() {
-			@SuppressWarnings("rawtypes")
-			public String execute(RedisOperations operations) throws DataAccessException {
-				return "Whatup";
-			}
-		});
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> redisTemplate.executePipelined(new SessionCallback<String>() {
+					@SuppressWarnings("rawtypes")
+					public String execute(RedisOperations operations) throws DataAccessException {
+						return "Whatup";
+					}
+				}));
 	}
 
 	@Test // DATAREDIS-688
@@ -574,16 +576,16 @@ public class RedisTemplateTests<K, V> {
 		K key = keyFactory.instance();
 		List<Object> result = redisTemplate.executePipelined(new SessionCallback<Object>() {
 
-			@Override
-			public Object execute(RedisOperations operations) throws DataAccessException {
+					@Override
+					public Object execute(RedisOperations operations) throws DataAccessException {
 
-				operations.boundValueOps(key).set(valueFactory.instance());
-				operations.expire(key, 1, TimeUnit.DAYS);
-				operations.getExpire(key, TimeUnit.HOURS);
+						operations.boundValueOps(key).set(valueFactory.instance());
+						operations.expire(key, 1, TimeUnit.DAYS);
+						operations.getExpire(key, TimeUnit.HOURS);
 
-				return null;
-			}
-		});
+						return null;
+					}
+				});
 
 		assertThat(result).hasSize(3);
 		assertThat(((Long) result.get(2))).isGreaterThanOrEqualTo(23L);

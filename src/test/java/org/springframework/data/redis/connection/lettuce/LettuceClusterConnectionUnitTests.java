@@ -130,9 +130,9 @@ public class LettuceClusterConnectionUnitTests {
 		};
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void thowsExceptionWhenClusterCommandExecturorIsNull() {
-		new LettuceClusterConnection(clusterMock, null);
+		assertThatIllegalArgumentException().isThrownBy(() -> new LettuceClusterConnection(clusterMock, null));
 	}
 
 	@Test // DATAREDIS-315
@@ -148,9 +148,9 @@ public class LettuceClusterConnectionUnitTests {
 				UNKNOWN_CLUSTER_NODE.getPort());
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void clusterMeetShouldThrowExceptionWhenNodeIsNull() {
-		connection.clusterMeet(null);
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.clusterMeet(null));
 	}
 
 	@Test // DATAREDIS-315
@@ -292,9 +292,9 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection2Mock, times(1)).clusterSetSlotImporting(eq(100), eq(CLUSTER_NODE_2.getId()));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void clusterSetSlotShouldThrowExceptionWhenModeIsNull() {
-		connection.clusterSetSlot(CLUSTER_NODE_1, 100, null);
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.clusterSetSlot(CLUSTER_NODE_1, 100, null));
 	}
 
 	@Test // DATAREDIS-315
@@ -306,9 +306,9 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection2Mock, times(1)).clusterDelSlots((int[]) any());
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void clusterDeleteSlotShouldThrowExceptionWhenNodeIsNull() {
-		connection.clusterDeleteSlots(null, new int[] { 1 });
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.clusterDeleteSlots(null, new int[] { 1 }));
 	}
 
 	@Test // DATAREDIS-315
