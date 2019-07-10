@@ -15,13 +15,13 @@
  */
 package org.springframework.data.redis.test.util;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import redis.clients.jedis.Jedis;
 
-import org.junit.Assume;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TestRule;
+
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.jedis.JedisConverters;
@@ -60,7 +60,7 @@ public class RedisClusterRule extends ExternalResource {
 	 */
 	@Override
 	public void before() {
-		Assume.assumeThat(mode, is("cluster"));
+		assumeThat(mode).isEqualTo("cluster");
 	}
 
 	public RedisClusterConfiguration getConfiguration() {

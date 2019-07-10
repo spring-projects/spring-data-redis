@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceReactiveCommandsTestsBase.*;
 
 import java.nio.ByteBuffer;
@@ -25,6 +23,7 @@ import java.time.Duration;
 import java.util.Arrays;
 
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.ReactiveListCommands;
 
 /**
@@ -41,9 +40,9 @@ public class LettuceReactiveClusterListCommandsTests extends LettuceReactiveClus
 		ByteBuffer result = connection.listCommands()
 				.bRPopLPush(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER, Duration.ofSeconds(1)).block();
 
-		assertThat(result, is(equalTo(VALUE_3_BBUFFER)));
-		assertThat(nativeCommands.llen(SAME_SLOT_KEY_2), is(2L));
-		assertThat(nativeCommands.lindex(SAME_SLOT_KEY_2, 0), is(equalTo(VALUE_3)));
+		assertThat(result).isEqualTo(VALUE_3_BBUFFER);
+		assertThat(nativeCommands.llen(SAME_SLOT_KEY_2)).isEqualTo(2L);
+		assertThat(nativeCommands.lindex(SAME_SLOT_KEY_2, 0)).isEqualTo(VALUE_3);
 	}
 
 	@Test // DATAREDIS-525
@@ -53,8 +52,8 @@ public class LettuceReactiveClusterListCommandsTests extends LettuceReactiveClus
 
 		ReactiveListCommands.PopResult result = connection.listCommands()
 				.blPop(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER), Duration.ofSeconds(1L)).block();
-		assertThat(result.getKey(), is(equalTo(SAME_SLOT_KEY_1_BBUFFER)));
-		assertThat(result.getValue(), is(equalTo(VALUE_1_BBUFFER)));
+		assertThat(result.getKey()).isEqualTo(SAME_SLOT_KEY_1_BBUFFER);
+		assertThat(result.getValue()).isEqualTo(VALUE_1_BBUFFER);
 	}
 
 }

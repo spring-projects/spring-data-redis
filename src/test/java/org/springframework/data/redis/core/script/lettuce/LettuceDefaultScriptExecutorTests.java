@@ -17,6 +17,7 @@ package org.springframework.data.redis.core.script.lettuce;
 
 import org.junit.After;
 import org.junit.Before;
+
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;

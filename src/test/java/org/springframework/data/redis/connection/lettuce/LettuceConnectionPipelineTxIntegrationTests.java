@@ -15,11 +15,12 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.test.annotation.IfProfileValue;
 
@@ -74,10 +75,10 @@ public class LettuceConnectionPipelineTxIntegrationTests extends LettuceConnecti
 
 	@SuppressWarnings("unchecked")
 	protected List<Object> getResults() {
-		assertNull(connection.exec());
+		assertThat(connection.exec()).isNull();
 		List<Object> pipelined = connection.closePipeline();
 		// We expect only the results of exec to be in the closed pipeline
-		assertEquals(1, pipelined.size());
+		assertThat(pipelined.size()).isEqualTo(1);
 		List<Object> txResults = (List<Object>) pipelined.get(0);
 		// Return exec results and this test should behave exactly like its superclass
 		return txResults;

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
 
@@ -32,39 +31,39 @@ public class StringRedisSerializerUnitTests {
 	@Test
 	public void shouldSerializeToAscii() {
 
-		assertThat(StringRedisSerializer.US_ASCII.serialize("foo-bar"), is(equalTo("foo-bar".getBytes())));
-		assertThat(StringRedisSerializer.US_ASCII.serialize("üßØ"), is(equalTo("???".getBytes())));
+		assertThat(StringRedisSerializer.US_ASCII.serialize("foo-bar")).isEqualTo("foo-bar".getBytes());
+		assertThat(StringRedisSerializer.US_ASCII.serialize("üßØ")).isEqualTo("???".getBytes());
 	}
 
 	@Test
 	public void shouldDeserializeFromAscii() {
 
-		assertThat(StringRedisSerializer.US_ASCII.deserialize("foo-bar".getBytes()), is(equalTo("foo-bar")));
+		assertThat(StringRedisSerializer.US_ASCII.deserialize("foo-bar".getBytes())).isEqualTo("foo-bar");
 	}
 
 	@Test
 	public void shouldSerializeToIso88591() {
 
-		assertThat(StringRedisSerializer.ISO_8859_1.serialize("üßØ"),
-				is(equalTo("üßØ".getBytes(StandardCharsets.ISO_8859_1))));
+		assertThat(StringRedisSerializer.ISO_8859_1.serialize("üßØ"))
+				.isEqualTo("üßØ".getBytes(StandardCharsets.ISO_8859_1));
 	}
 
 	@Test
 	public void shouldDeserializeFromIso88591() {
 
-		assertThat(StringRedisSerializer.ISO_8859_1.deserialize("üßØ".getBytes(StandardCharsets.ISO_8859_1)),
-				is(equalTo("üßØ")));
+		assertThat(StringRedisSerializer.ISO_8859_1.deserialize("üßØ".getBytes(StandardCharsets.ISO_8859_1)))
+				.isEqualTo("üßØ");
 	}
 
 	@Test
 	public void shouldSerializeToUtf8() {
 
-		assertThat(StringRedisSerializer.UTF_8.serialize("foo-bar"), is(equalTo("foo-bar".getBytes())));
-		assertThat(StringRedisSerializer.UTF_8.serialize("üßØ"), is(equalTo("üßØ".getBytes(StandardCharsets.UTF_8))));
+		assertThat(StringRedisSerializer.UTF_8.serialize("foo-bar")).isEqualTo("foo-bar".getBytes());
+		assertThat(StringRedisSerializer.UTF_8.serialize("üßØ")).isEqualTo("üßØ".getBytes(StandardCharsets.UTF_8));
 	}
 
 	@Test
 	public void shouldDeserializeFromUtf8() {
-		assertThat(StringRedisSerializer.UTF_8.deserialize("üßØ".getBytes(StandardCharsets.UTF_8)), is(equalTo("üßØ")));
+		assertThat(StringRedisSerializer.UTF_8.deserialize("üßØ".getBytes(StandardCharsets.UTF_8))).isEqualTo("üßØ");
 	}
 }

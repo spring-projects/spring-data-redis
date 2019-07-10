@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,32 +35,32 @@ public class RedisCommandUnitTests {
 
 	@Test // DATAREDIS-73
 	public void shouldIdentifyAliasCorrectly() {
-		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy("setconfig"), equalTo(true));
+		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy("setconfig")).isTrue();
 	}
 
 	@Test // DATAREDIS-73
 	public void shouldIdentifyAliasCorrectlyWhenNamePassedInMixedCase() {
-		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy("SetConfig"), equalTo(true));
+		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy("SetConfig")).isTrue();
 	}
 
 	@Test // DATAREDIS-73
 	public void shouldNotThrowExceptionWhenUsingNullKeyForRepresentationCheck() {
-		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy(null), equalTo(false));
+		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy(null)).isFalse();
 	}
 
 	@Test // DATAREDIS-73
 	public void shouldIdentifyAliasCorrectlyViaLookup() {
-		assertThat(RedisCommand.failsafeCommandLookup("setconfig"), is(RedisCommand.CONFIG_SET));
+		assertThat(RedisCommand.failsafeCommandLookup("setconfig")).isEqualTo(RedisCommand.CONFIG_SET);
 	}
 
 	@Test // DATAREDIS-73
 	public void shouldIdentifyAliasCorrectlyWhenNamePassedInMixedCaseViaLookup() {
-		assertThat(RedisCommand.failsafeCommandLookup("SetConfig"), is(RedisCommand.CONFIG_SET));
+		assertThat(RedisCommand.failsafeCommandLookup("SetConfig")).isEqualTo(RedisCommand.CONFIG_SET);
 	}
 
 	@Test // DATAREDIS-73
 	public void shouldReturnUnknownCommandForUnknownCommandString() {
-		assertThat(RedisCommand.failsafeCommandLookup("strangecommand"), is(RedisCommand.UNKNOWN));
+		assertThat(RedisCommand.failsafeCommandLookup("strangecommand")).isEqualTo(RedisCommand.UNKNOWN);
 	}
 
 	@Test // DATAREDIS-73, DATAREDIS-972

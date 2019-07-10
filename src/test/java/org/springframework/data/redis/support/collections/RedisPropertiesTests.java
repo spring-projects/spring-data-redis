@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,6 +32,7 @@ import java.util.Set;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
@@ -82,7 +83,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 
 	@Test
 	public void testGetOperations() {
-		assertTrue(map.getOperations() instanceof StringRedisTemplate);
+		assertThat(map.getOperations() instanceof StringRedisTemplate).isTrue();
 	}
 
 	@Test
@@ -90,7 +91,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 		InputStream stream = getClass()
 				.getResourceAsStream("/org/springframework/data/redis/support/collections/props.properties");
 
-		assertNotNull(stream);
+		assertThat(stream).isNotNull();
 
 		int size = props.size();
 
@@ -100,10 +101,10 @@ public class RedisPropertiesTests extends RedisMapTests {
 			stream.close();
 		}
 
-		assertEquals("bar", props.get("foo"));
-		assertEquals("head", props.get("bucket"));
-		assertEquals("island", props.get("lotus"));
-		assertEquals(size + 3, props.size());
+		assertThat(props.get("foo")).isEqualTo("bar");
+		assertThat(props.get("bucket")).isEqualTo("head");
+		assertThat(props.get("lotus")).isEqualTo("island");
+		assertThat(props.size()).isEqualTo(size + 3);
 	}
 
 	@Test
@@ -112,7 +113,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 		InputStream stream = getClass()
 				.getResourceAsStream("/org/springframework/data/keyvalue/redis/support/collections/props.properties");
 
-		assertNotNull(stream);
+		assertThat(stream).isNotNull();
 
 		int size = props.size();
 
@@ -122,10 +123,10 @@ public class RedisPropertiesTests extends RedisMapTests {
 			stream.close();
 		}
 
-		assertEquals("bar", props.get("foo"));
-		assertEquals("head", props.get("bucket"));
-		assertEquals("island", props.get("lotus"));
-		assertEquals(size + 3, props.size());
+		assertThat(props.get("foo")).isEqualTo("bar");
+		assertThat(props.get("bucket")).isEqualTo("head");
+		assertThat(props.get("lotus")).isEqualTo("island");
+		assertThat(props.size()).isEqualTo(size + 3);
 	}
 
 	@Test
@@ -144,27 +145,26 @@ public class RedisPropertiesTests extends RedisMapTests {
 		props.setProperty("a", "b");
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		props.storeToXML(bos, "comment");
-		System.out.println(bos.toString());
 	}
 
 	@Test
 	public void testGetProperty() throws Exception {
 		String property = props.getProperty("a");
-		assertNull(property);
+		assertThat(property).isNull();
 		defaults.put("a", "x");
-		assertEquals("x", props.getProperty("a"));
+		assertThat(props.getProperty("a")).isEqualTo("x");
 	}
 
 	@Test
 	public void testGetPropertyDefault() throws Exception {
-		assertEquals("x", props.getProperty("a", "x"));
+		assertThat(props.getProperty("a", "x")).isEqualTo("x");
 	}
 
 	@Test
 	public void testSetProperty() throws Exception {
-		assertNull(props.getProperty("a"));
+		assertThat(props.getProperty("a")).isNull();
 		defaults.setProperty("a", "x");
-		assertEquals("x", props.getProperty("a"));
+		assertThat(props.getProperty("a")).isEqualTo("x");
 	}
 
 	@Test
@@ -193,7 +193,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 		keys.add(names.nextElement());
 		keys.add(names.nextElement());
 
-		assertFalse(names.hasMoreElements());
+		assertThat(names.hasMoreElements()).isFalse();
 	}
 
 	@Test
@@ -215,9 +215,9 @@ public class RedisPropertiesTests extends RedisMapTests {
 		props.setProperty(key2, val);
 
 		Set<String> keys = props.stringPropertyNames();
-		assertTrue(keys.contains(key1));
-		assertTrue(keys.contains(key2));
-		assertTrue(keys.contains(key3));
+		assertThat(keys.contains(key1)).isTrue();
+		assertThat(keys.contains(key2)).isTrue();
+		assertThat(keys.contains(key3)).isTrue();
 	}
 
 	@Override

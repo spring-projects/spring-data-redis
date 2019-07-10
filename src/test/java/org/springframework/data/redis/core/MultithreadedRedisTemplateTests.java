@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -83,7 +84,7 @@ public class MultithreadedRedisTemplateTests {
 		}
 
 		executor.shutdown();
-		assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
+		assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 }

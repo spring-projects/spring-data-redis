@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collection;
 
@@ -28,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
@@ -92,7 +92,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		V v2 = valueFactory.instance();
 		V v3 = valueFactory.instance();
 
-		assertThat(hyperLogLogOps.add(key, v1, v2, v3), equalTo(1L));
+		assertThat(hyperLogLogOps.add(key, v1, v2, v3)).isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-308
@@ -105,7 +105,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		V v3 = valueFactory.instance();
 
 		hyperLogLogOps.add(key, v1, v2, v3);
-		assertThat(hyperLogLogOps.add(key, v2), equalTo(0L));
+		assertThat(hyperLogLogOps.add(key, v2)).isEqualTo(0L);
 	}
 
 	@Test // DATAREDIS-308
@@ -118,7 +118,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		V v3 = valueFactory.instance();
 
 		hyperLogLogOps.add(key, v1, v2, v3);
-		assertThat(hyperLogLogOps.size(key), equalTo(3L));
+		assertThat(hyperLogLogOps.size(key)).isEqualTo(3L);
 	}
 
 	@Test // DATAREDIS-308
@@ -135,7 +135,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 
 		hyperLogLogOps.add(key, v1, v2, v3);
 		hyperLogLogOps.add(key2, v4);
-		assertThat(hyperLogLogOps.size(key, key2), equalTo(4L));
+		assertThat(hyperLogLogOps.size(key, key2)).isEqualTo(4L);
 	}
 
 	@Test // DATAREDIS-308
@@ -159,6 +159,6 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		hyperLogLogOps.union(desinationKey, sourceKey_1, sourceKey_2);
 		Thread.sleep(10); // give redis a little time to catch up
 
-		assertThat(hyperLogLogOps.size(desinationKey), equalTo(4L));
+		assertThat(hyperLogLogOps.size(desinationKey)).isEqualTo(4L);
 	}
 }

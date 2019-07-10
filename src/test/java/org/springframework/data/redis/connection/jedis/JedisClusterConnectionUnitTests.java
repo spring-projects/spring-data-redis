@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.test.util.MockitoUtils.*;
@@ -169,11 +167,11 @@ public class JedisClusterConnectionUnitTests {
 	@Test // DATAREDIS-315
 	public void isClosedShouldReturnConnectionStateCorrectly() {
 
-		assertThat(connection.isClosed(), is(false));
+		assertThat(connection.isClosed()).isFalse();
 
 		connection.close();
 
-		assertThat(connection.isClosed(), is(true));
+		assertThat(connection.isClosed()).isTrue();
 	}
 
 	@Test // DATAREDIS-315
@@ -184,7 +182,7 @@ public class JedisClusterConnectionUnitTests {
 		when(con3Mock.clusterInfo()).thenReturn(CLUSTER_INFO_RESPONSE);
 
 		ClusterInfo p = connection.clusterGetClusterInfo();
-		assertThat(p.getSlotsAssigned(), is(16384L));
+		assertThat(p.getSlotsAssigned()).isEqualTo(16384L);
 
 		verifyInvocationsAcross("clusterInfo", times(1), con1Mock, con2Mock, con3Mock);
 	}
@@ -267,8 +265,8 @@ public class JedisClusterConnectionUnitTests {
 		try {
 			connection.serverCommands().dbSize(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT));
 		} catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(),
-					containsString("Node " + CLUSTER_HOST + ":" + SLAVEOF_NODE_1_PORT + " is unknown to cluster"));
+			assertThat(e.getMessage())
+					.contains("Node " + CLUSTER_HOST + ":" + SLAVEOF_NODE_1_PORT + " is unknown to cluster");
 		}
 	}
 
@@ -304,7 +302,7 @@ public class JedisClusterConnectionUnitTests {
 
 		Long result = connection.serverCommands().dbSize(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT));
 
-		assertThat(result, is(42L));
+		assertThat(result).isEqualTo(42L);
 	}
 
 	@Test // DATAREDIS-315, DATAREDIS-890
@@ -362,13 +360,11 @@ public class JedisClusterConnectionUnitTests {
 
 		IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
 
-		expectedException.expect(RedisSystemException.class);
-		expectedException.expectMessage(exception.getMessage());
-		expectedException.expectCause(is(exception));
-
 		doThrow(exception).when(clusterMock).set("foo".getBytes(), "bar".getBytes());
 
-		connection.set("foo".getBytes(), "bar".getBytes());
+		assertThatExceptionOfType(RedisSystemException.class)
+				.isThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes()))
+				.withMessageContaining(exception.getMessage()).withCause(exception);
 	}
 
 	@Test // DATAREDIS-794

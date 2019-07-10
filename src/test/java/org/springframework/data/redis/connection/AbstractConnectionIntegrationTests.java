@@ -15,19 +15,12 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.collection.IsCollectionWithSize.*;
-import static org.hamcrest.collection.IsEmptyCollection.*;
-import static org.hamcrest.collection.IsIterableContainingInOrder.*;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.number.IsCloseTo.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
@@ -41,7 +34,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.hamcrest.core.IsNot;
+import org.assertj.core.data.Offset;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.AssumptionViolatedException;
@@ -49,6 +42,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range.Bound;
@@ -172,7 +166,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.expire("exp", 1));
 
 		verifyResults(Arrays.asList(true, true));
-		assertTrue(waitFor(new KeyExpired("exp"), 3000l));
+		assertThat(waitFor(new KeyExpired("exp"), 3000l)).isTrue();
 	}
 
 	@Test
@@ -182,7 +176,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.set("exp2", "true"));
 		actual.add(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
 		verifyResults(Arrays.asList(true, true));
-		assertTrue(waitFor(new KeyExpired("exp2"), 3000l));
+		assertThat(waitFor(new KeyExpired("exp2"), 3000l)).isTrue();
 	}
 
 	@Test
@@ -192,7 +186,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.set("exp", "true"));
 		actual.add(connection.pExpire("exp", 100));
 		verifyResults(Arrays.asList(true, true));
-		assertTrue(waitFor(new KeyExpired("exp"), 1000l));
+		assertThat(waitFor(new KeyExpired("exp"), 1000l)).isTrue();
 	}
 
 	@Test
@@ -209,7 +203,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.set("exp2", "true"));
 		actual.add(connection.pExpireAt("exp2", System.currentTimeMillis() + 200));
 		verifyResults(Arrays.asList(true, true));
-		assertTrue(waitFor(new KeyExpired("exp2"), 1000l));
+		assertThat(waitFor(new KeyExpired("exp2"), 1000l)).isTrue();
 	}
 
 	@Test
@@ -226,7 +220,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String sha1 = connection.scriptLoad("return KEYS[1]");
 		initConnection();
 		actual.add(connection.evalSha(sha1, ReturnType.VALUE, 2, "key1", "key2"));
-		assertEquals("key1", new String((byte[]) getResults().get(0)));
+		assertThat(new String((byte[]) getResults().get(0))).isEqualTo("key1");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -239,8 +233,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.evalSha(sha1, ReturnType.MULTI, 1, "key1", "arg1"));
 		List<Object> results = getResults();
 		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
-				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
+		assertThat(Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }))
+				.isEqualTo(Arrays.asList(new Object[] { "key1", "arg1" }));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -253,8 +247,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(byteConnection.evalSha(sha1, ReturnType.MULTI, 1, "key1".getBytes(), "arg1".getBytes()));
 		List<Object> results = getResults();
 		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
-				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
+		assertThat(Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }))
+				.isEqualTo(Arrays.asList(new Object[] { "key1", "arg1" }));
 	}
 
 	@Test(expected = RedisSystemException.class)
@@ -276,7 +270,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testEvalReturnString() {
 		actual.add(connection.eval("return KEYS[1]", ReturnType.VALUE, 1, "foo"));
 		byte[] result = (byte[]) getResults().get(0);
-		assertEquals("foo", new String(result));
+		assertThat(new String(result)).isEqualTo("foo");
 	}
 
 	@Test
@@ -290,7 +284,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleOK() {
 		actual.add(connection.eval("return redis.call('set','abc','ghk')", ReturnType.STATUS, 0));
-		assertEquals(Arrays.asList(new Object[] { "OK" }), getResults());
+		assertThat(getResults()).isEqualTo(Arrays.asList(new Object[] { "OK" }));
 	}
 
 	@Test(expected = RedisSystemException.class)
@@ -320,8 +314,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testEvalReturnArrayStrings() {
 		actual.add(connection.eval("return {KEYS[1],ARGV[1]}", ReturnType.MULTI, 1, "foo", "bar"));
 		List<byte[]> result = (List<byte[]>) getResults().get(0);
-		assertEquals(Arrays.asList(new Object[] { "foo", "bar" }),
-				Arrays.asList(new Object[] { new String(result.get(0)), new String(result.get(1)) }));
+		assertThat(Arrays.asList(new Object[] { new String(result.get(0)), new String(result.get(1)) }))
+				.isEqualTo(Arrays.asList(new Object[] { "foo", "bar" }));
 	}
 
 	@Test
@@ -346,8 +340,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
 				ReturnType.MULTI, 0));
 		List<byte[]> result = (List<byte[]>) getResults().get(0);
-		assertEquals(Arrays.asList(new Object[] { "OK", "OK" }),
-				Arrays.asList(new Object[] { new String(result.get(0)), new String(result.get(1)) }));
+		assertThat(Arrays.asList(new Object[] { new String(result.get(0)), new String(result.get(1)) }))
+				.isEqualTo(Arrays.asList(new Object[] { "OK", "OK" }));
 	}
 
 	@Test
@@ -397,7 +391,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		Thread.sleep(200);
 		connection.scriptKill();
 		getResults();
-		assertTrue(waitFor(() -> scriptDead.get(), 3000l));
+		assertThat(waitFor(() -> scriptDead.get(), 3000l)).isTrue();
 	}
 
 	@Test
@@ -430,7 +424,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get("expy"));
 
 		verifyResults(Arrays.asList(true, "yep"));
-		assertTrue(waitFor(new KeyExpired("expy"), 2500l));
+		assertThat(waitFor(new KeyExpired("expy"), 2500l)).isTrue();
 	}
 
 	@Test // DATAREDIS-271
@@ -441,7 +435,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get("expy"));
 
 		verifyResults(Arrays.asList(true, "yep"));
-		assertTrue(waitFor(new KeyExpired("expy"), 2500L));
+		assertThat(waitFor(new KeyExpired("expy"), 2500L)).isTrue();
 	}
 
 	@Test
@@ -577,9 +571,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.info());
 		List<Object> results = getResults();
 		Properties info = (Properties) results.get(0);
-		assertTrue("at least 5 settings should be present", info.size() >= 5);
+		assertThat(info.size() >= 5).as("at least 5 settings should be present").isTrue();
 		String version = info.getProperty("redis_version");
-		assertNotNull(version);
+		assertThat(version).isNotNull();
 	}
 
 	@Test
@@ -588,9 +582,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.info("server"));
 		List<Object> results = getResults();
 		Properties info = (Properties) results.get(0);
-		assertTrue("at least 5 settings should be present", info.size() >= 5);
+		assertThat(info.size() >= 5).as("at least 5 settings should be present").isTrue();
 		String version = info.getProperty("redis_version");
-		assertNotNull(version);
+		assertThat(version).isNotNull();
 	}
 
 	@Test
@@ -653,7 +647,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new String[] { null, null }) }));
 		StringRedisTemplate stringTemplate = new StringRedisTemplate(connectionFactory);
 		List<String> multiGet = stringTemplate.opsForValue().multiGet(Arrays.asList(keys));
-		assertEquals(Arrays.asList(new String[] { null, null }), multiGet);
+		assertThat(multiGet).isEqualTo(Arrays.asList(new String[] { null, null }));
 	}
 
 	@Test
@@ -700,9 +694,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		// Not all providers block on subscribe, give some time for messages to
 		// be received
 		Message message = messages.poll(5, TimeUnit.SECONDS);
-		assertNotNull(message);
-		assertEquals(expectedMessage, new String(message.getBody()));
-		assertEquals(expectedChannel, new String(message.getChannel()));
+		assertThat(message).isNotNull();
+		assertThat(new String(message.getBody())).isEqualTo(expectedMessage);
+		assertThat(new String(message.getChannel())).isEqualTo(expectedChannel);
 	}
 
 	@Test
@@ -712,7 +706,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		final BlockingDeque<Message> messages = new LinkedBlockingDeque<>();
 
 		final MessageListener listener = (message, pattern) -> {
-			assertEquals(expectedPattern, new String(pattern));
+			assertThat(new String(pattern)).isEqualTo(expectedPattern);
 			messages.add(message);
 		};
 
@@ -744,11 +738,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		// Not all providers block on subscribe (Lettuce does not), give some
 		// time for messages to be received
 		Message message = messages.poll(5, TimeUnit.SECONDS);
-		assertNotNull(message);
-		assertEquals(expectedMessage, new String(message.getBody()));
+		assertThat(message).isNotNull();
+		assertThat(new String(message.getBody())).isEqualTo(expectedMessage);
 		message = messages.poll(5, TimeUnit.SECONDS);
-		assertNotNull(message);
-		assertEquals(expectedMessage, new String(message.getBody()));
+		assertThat(message).isNotNull();
+		assertThat(new String(message.getBody())).isEqualTo(expectedMessage);
 	}
 
 	@Test(expected = DataAccessException.class)
@@ -764,7 +758,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.set("foo", "bar"));
 		actual.add(connection.execute("GET", "foo"));
 
-		assertEquals("bar", stringSerializer.deserialize((byte[]) getResults().get(1)));
+		assertThat(stringSerializer.deserialize((byte[]) getResults().get(1))).isEqualTo("bar");
 	}
 
 	@Test
@@ -772,7 +766,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		actual.add(connection.execute("PING"));
 		List<Object> results = getResults();
-		assertEquals("PONG", stringSerializer.deserialize((byte[]) results.get(0)));
+		assertThat(stringSerializer.deserialize((byte[]) results.get(0))).isEqualTo("PONG");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -785,8 +779,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.exec());
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals(Arrays.asList(true, "value"), execResults);
-		assertEquals("value", connection.get("key"));
+		assertThat(execResults).isEqualTo(Arrays.asList(true, "value"));
+		assertThat(connection.get("key")).isEqualTo("value");
 	}
 
 	@Test
@@ -821,7 +815,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.discard();
 		actual.add(connection.get("testitnow"));
 		List<Object> results = getResults();
-		assertEquals(Arrays.asList(new String[] { "willdo" }), results);
+		assertThat(results).isEqualTo(Arrays.asList(new String[] { "willdo" }));
 		initConnection();
 		// Ensure we can run a new tx after discarding previous one
 		testMultiExec();
@@ -911,7 +905,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		actual.add(connection.set("dbparam", "foo"));
 		actual.add(connection.dbSize());
-		assertTrue((Long) getResults().get(1) > 0);
+		assertThat((Long) getResults().get(1) > 0).isTrue();
 	}
 
 	@Test
@@ -926,7 +920,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testGetConfig() {
 		actual.add(connection.getConfig("*"));
 		Properties config = (Properties) getResults().get(0);
-		assertTrue(!config.isEmpty());
+		assertThat(!config.isEmpty()).isTrue();
 	}
 
 	@Test
@@ -980,7 +974,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		actual.add(connection.set("keytest", "true"));
 		actual.add(connection.keys("key*"));
-		assertTrue(((Collection<String>) getResults().get(1)).contains("keytest"));
+		assertThat(((Collection<String>) getResults().get(1)).contains("keytest")).isTrue();
 	}
 
 	@Test
@@ -989,7 +983,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.set("some", "thing"));
 		actual.add(connection.randomKey());
 		List<Object> results = getResults();
-		assertNotNull(results.get(1));
+		assertThat(results.get(1)).isNotNull();
 	}
 
 	@Test
@@ -1028,8 +1022,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> results = getResults();
 
-		assertTrue((Long) results.get(2) > TimeUnit.SECONDS.toMillis(5));
-		assertTrue((Long) results.get(2) <= TimeUnit.SECONDS.toMillis(10));
+		assertThat((Long) results.get(2) > TimeUnit.SECONDS.toMillis(5)).isTrue();
+		assertThat((Long) results.get(2) <= TimeUnit.SECONDS.toMillis(10)).isTrue();
 	}
 
 	@Test
@@ -1051,7 +1045,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> results = getResults();
 
-		assertTrue((Long) results.get(2) > -1);
+		assertThat((Long) results.get(2) > -1).isTrue();
 	}
 
 	@Test // DATAREDIS-526
@@ -1064,8 +1058,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> results = getResults();
 
-		assertTrue((Long) results.get(2) > TimeUnit.MINUTES.toSeconds(9));
-		assertTrue((Long) results.get(2) <= TimeUnit.MINUTES.toSeconds(10));
+		assertThat((Long) results.get(2) > TimeUnit.MINUTES.toSeconds(9)).isTrue();
+		assertThat((Long) results.get(2) <= TimeUnit.MINUTES.toSeconds(10)).isTrue();
 	}
 
 	@Test
@@ -1139,7 +1133,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get("testing"));
 		connection.restore("testing".getBytes(), 100l, (byte[]) results.get(1));
 		verifyResults(Arrays.asList(1l, null));
-		assertTrue(waitFor(new KeyExpired("testing"), 400l));
+		assertThat(waitFor(new KeyExpired("testing"), 400l)).isTrue();
 	}
 
 	@Test
@@ -1427,9 +1421,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		conn2.rPush("pop2", "hey");
 		actual.add(connection.bRPopLPush(1, "PopList", "pop2"));
 		List<Object> results = getResults();
-		assertEquals(Arrays.asList(new String[] { "world" }), results);
-		assertEquals(Arrays.asList(new String[] { "hello" }), connection.lRange("PopList", 0, -1));
-		assertEquals(Arrays.asList(new String[] { "world", "hey" }), connection.lRange("pop2", 0, -1));
+		assertThat(results).isEqualTo(Arrays.asList(new String[] { "world" }));
+		assertThat(connection.lRange("PopList", 0, -1)).isEqualTo(Arrays.asList(new String[] { "hello" }));
+		assertThat(connection.lRange("pop2", 0, -1)).isEqualTo(Arrays.asList(new String[] { "world", "hey" }));
 	}
 
 	@Test
@@ -1565,7 +1559,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sPop("myset"));
-		assertTrue(new HashSet<>(Arrays.asList(new String[] { "foo", "bar" })).contains((String) getResults().get(2)));
+		assertThat(new HashSet<>(Arrays.asList(new String[] { "foo", "bar" })).contains((String) getResults().get(2)))
+				.isTrue();
 	}
 
 	@Test // DATAREDIS-688
@@ -1576,7 +1571,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "baz"));
 		actual.add(connection.sPop("myset", 2));
 
-		assertThat((Collection<Object>) getResults().get(3), hasSize(2));
+		assertThat((Collection<Object>) getResults().get(3)).hasSize(2);
 	}
 
 	@Test
@@ -1584,13 +1579,13 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sRandMember("myset"));
-		assertTrue(new HashSet<>(Arrays.asList(new String[] { "foo", "bar" })).contains(getResults().get(2)));
+		assertThat(new HashSet<>(Arrays.asList(new String[] { "foo", "bar" })).contains(getResults().get(2))).isTrue();
 	}
 
 	@Test
 	public void testSRandMemberKeyNotExists() {
 		actual.add(connection.sRandMember("notexist"));
-		assertNull(getResults().get(0));
+		assertThat(getResults().get(0)).isNull();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -1601,7 +1596,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sAdd("myset", "baz"));
 		actual.add(connection.sRandMember("myset", 2));
-		assertTrue(((Collection) getResults().get(3)).size() == 2);
+		assertThat(((Collection) getResults().get(3)).size() == 2).isTrue();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -1610,7 +1605,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testSRandMemberCountNegative() {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sRandMember("myset", -2));
-		assertEquals(Arrays.asList(new String[] { "foo", "foo" }), getResults().get(1));
+		assertThat(getResults().get(1)).isEqualTo(Arrays.asList(new String[] { "foo", "foo" }));
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -1618,7 +1613,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testSRandMemberCountKeyNotExists() {
 		actual.add(connection.sRandMember("notexist", 2));
-		assertTrue(((Collection) getResults().get(0)).isEmpty());
+		assertThat(((Collection) getResults().get(0)).isEmpty()).isTrue();
 	}
 
 	@Test
@@ -2051,7 +2046,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(true, true));
 		connection.select(1);
 		try {
-			assertEquals("bar", connection.get("foo"));
+			assertThat(connection.get("foo")).isEqualTo("bar");
 		} finally {
 			if (connection.exists("foo")) {
 				connection.del("foo");
@@ -2063,7 +2058,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testLastSave() {
 		actual.add(connection.lastSave());
 		List<Object> results = getResults();
-		assertNotNull(results.get(0));
+		assertThat(results.get(0)).isNotNull();
 	}
 
 	@Test // DATAREDIS-206, DATAREDIS-513
@@ -2072,9 +2067,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.time());
 
 		List<Object> results = getResults();
-		assertThat(results, is(not(empty())));
-		assertThat(results.get(0), notNullValue());
-		assertThat((Long) results.get(0) > 0, equalTo(true));
+		assertThat(results).isNotEmpty();
+		assertThat(results.get(0)).isNotNull();
+		assertThat((Long) results.get(0) > 0).isTrue();
 	}
 
 	@Test // DATAREDIS-269
@@ -2088,14 +2083,14 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.getClientList());
 
 		List<Object> results = getResults();
-		assertNotNull(results.get(0));
+		assertThat(results.get(0)).isNotNull();
 
 		List<?> firstEntry = (List<?>) results.get(0);
-		assertThat(firstEntry.size(), IsNot.not(0));
-		assertThat(firstEntry.get(0), is(instanceOf(RedisClientInfo.class)));
+		assertThat(firstEntry.size()).isNotEqualTo(0);
+		assertThat(firstEntry.get(0)).isInstanceOf(RedisClientInfo.class);
 
 		RedisClientInfo info = (RedisClientInfo) firstEntry.get(0);
-		assertThat(info.getDatabaseId(), is(notNullValue()));
+		assertThat(info.getDatabaseId()).isNotNull();
 	}
 
 	@Test // DATAREDIS-290
@@ -2122,11 +2117,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		int i = 0;
 		while (cursor.hasNext()) {
 			byte[] value = cursor.next();
-			assertThat(new String(value), not(containsString("spring")));
+			assertThat(new String(value)).doesNotContain("spring");
 			i++;
 		}
 
-		assertThat(i, is(itemCount));
+		assertThat(i).isEqualTo(itemCount);
 	}
 
 	@Test // DATAREDIS-417
@@ -2140,11 +2135,11 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		int i = 0;
 		while (cursor.hasNext()) {
-			assertThat(new String(cursor.next()), containsString("key:"));
+			assertThat(new String(cursor.next())).contains("key:");
 			i++;
 		}
 
-		assertThat(i, is(10));
+		assertThat(i).isEqualTo(10);
 	}
 
 	@Test // DATAREDIS-306
@@ -2170,13 +2165,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 			StringTuple tuple = tuples.next();
 
-			assertThat(tuple.getValueAsString(), anyOf(equalTo("Bob"), equalTo("James"), equalTo("Joe")));
-			assertThat(tuple.getScore(), anyOf(equalTo(1D), equalTo(2D), equalTo(4D)));
+			assertThat(tuple.getValueAsString()).isIn("Bob", "James", "Joe");
+			assertThat(tuple.getScore()).isIn(1D, 2D, 4D);
 
 			count++;
 		}
 
-		assertThat(count, equalTo(3));
+		assertThat(count).isEqualTo(3);
 	}
 
 	@Test // DATAREDIS-304
@@ -2198,11 +2193,11 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		int i = 0;
 		while (cursor.hasNext()) {
-			assertThat(cursor.next(), not(containsString("bar")));
+			assertThat(cursor.next()).doesNotContain("bar");
 			i++;
 		}
 
-		assertThat(i, is(6));
+		assertThat(i).isEqualTo(6);
 	}
 
 	@Test // DATAREDIS-305
@@ -2231,13 +2226,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 			String key = cursor.next().getKey();
 
-			assertThat(key, not(containsString("bar")));
-			assertThat(key, containsString("foo"));
+			assertThat(key).doesNotContain("bar");
+			assertThat(key).contains("foo");
 
 			i++;
 		}
 
-		assertThat(i, is(3));
+		assertThat(i).isEqualTo(3);
 	}
 
 	@Test // DATAREDIS-308
@@ -2248,7 +2243,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
 
 		List<Object> results = getResults();
-		assertThat(results.get(0), is(1L));
+		assertThat(results.get(0)).isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-308
@@ -2261,9 +2256,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.pfAdd("hll2", "e"));
 
 		List<Object> results = getResults();
-		assertThat(results.get(0), is(1L));
-		assertThat(results.get(1), is(1L));
-		assertThat(results.get(2), is(0L));
+		assertThat(results.get(0)).isEqualTo(1L);
+		assertThat(results.get(1)).isEqualTo(1L);
+		assertThat(results.get(2)).isEqualTo(0L);
 	}
 
 	@Test // DATAREDIS-308
@@ -2275,8 +2270,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.pfCount("hll"));
 
 		List<Object> results = getResults();
-		assertThat(results.get(0), is(1L));
-		assertThat(results.get(1), is(3L));
+		assertThat(results.get(0)).isEqualTo(1L);
+		assertThat(results.get(1)).isEqualTo(3L);
 	}
 
 	@Test // DATAREDIS-308
@@ -2289,9 +2284,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.pfCount("hll", "hll2"));
 
 		List<Object> results = getResults();
-		assertThat(results.get(0), is(1L));
-		assertThat(results.get(1), is(1L));
-		assertThat(results.get(2), is(6L));
+		assertThat(results.get(0)).isEqualTo(1L);
+		assertThat(results.get(1)).isEqualTo(1L);
+		assertThat(results.get(2)).isEqualTo(6L);
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-308
@@ -2324,20 +2319,20 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		Set<String> values = (Set<String>) results.get(7);
 
-		assertThat(values, hasItems("a", "b", "c"));
-		assertThat(values, not(hasItems("d", "e", "f", "g")));
+		assertThat(values).contains("a", "b", "c");
+		assertThat(values).doesNotContain("d", "e", "f", "g");
 
 		values = (Set<String>) results.get(8);
-		assertThat(values, hasItems("a", "b"));
-		assertThat(values, not(hasItem("c")));
+		assertThat(values).contains("a", "b");
+		assertThat(values).doesNotContain("c");
 
 		values = (Set<String>) results.get(9);
-		assertThat(values, hasItems("b", "c", "d", "e", "f"));
-		assertThat(values, not(hasItems("a", "g")));
+		assertThat(values).contains("b", "c", "d", "e", "f");
+		assertThat(values).doesNotContain("a", "g");
 
 		values = (Set<String>) results.get(10);
-		assertThat(values, hasItems("e", "f", "g"));
-		assertThat(values, not(hasItems("a", "b", "c", "d")));
+		assertThat(values).contains("e", "f", "g");
+		assertThat(values).doesNotContain("a", "b", "c", "d");
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-316, DATAREDIS-692
@@ -2359,9 +2354,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.pTtl(key));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(result.get(1), is(Boolean.TRUE));
-		assertThat(((Long) result.get(2)).doubleValue(), is(closeTo(500d, 499d)));
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(500d, Offset.offset(499d));
 	}
 
 	@Test // DATAREDIS-316
@@ -2377,11 +2372,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get(key));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(result.get(1), is(Boolean.TRUE));
-		assertThat(result.get(2), is(Boolean.TRUE));
-		assertThat(((Long) result.get(3)).doubleValue(), is(closeTo(500d, 499d)));
-		assertThat((result.get(4)), is(equalTo("data")));
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(((Long) result.get(3)).doubleValue()).isCloseTo(500d, Offset.offset(499d));
+		assertThat((result.get(4))).isEqualTo("data");
 	}
 
 	@Test // DATAREDIS-316
@@ -2397,11 +2392,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get(key));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(result.get(1), is(Boolean.FALSE));
-		assertThat(result.get(2), is(Boolean.TRUE));
-		assertThat(((Long) result.get(3)).doubleValue(), is(closeTo(-1, 0)));
-		assertThat((result.get(4)), is(equalTo("spring")));
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(((Long) result.get(3)).doubleValue()).isCloseTo(-1, Offset.offset(0d));
+		assertThat((result.get(4))).isEqualTo("spring");
 	}
 
 	@Test // DATAREDIS-316
@@ -2416,10 +2411,10 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get(key));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(result.get(1), is(Boolean.TRUE));
-		assertThat(((Long) result.get(2)).doubleValue(), is(closeTo(500d, 499d)));
-		assertThat((result.get(3)), is(equalTo("data")));
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(500d, Offset.offset(499d));
+		assertThat((result.get(3))).isEqualTo("data");
 	}
 
 	@Test // DATAREDIS-316
@@ -2435,11 +2430,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get(key));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(result.get(1), is(Boolean.TRUE));
-		assertThat(result.get(2), is(Boolean.TRUE));
-		assertThat(((Long) result.get(3)).doubleValue(), is(closeTo(500, 499)));
-		assertThat((result.get(4)), is(equalTo("data")));
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(((Long) result.get(3)).doubleValue()).isCloseTo(500, Offset.offset(499d));
+		assertThat((result.get(4))).isEqualTo("data");
 	}
 
 	@Test // DATAREDIS-316
@@ -2454,9 +2449,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get(key));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.FALSE));
-		assertThat(result.get(1), is(Boolean.FALSE));
-		assertThat(((Long) result.get(2)).doubleValue(), is(closeTo(-2, 0)));
+		assertThat(result.get(0)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(-2, Offset.offset(0d));
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-316, DATAREDIS-692
@@ -2478,9 +2473,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.pTtl(key));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(result.get(1), is(Boolean.TRUE));
-		assertThat(((Long) result.get(2)).doubleValue(), is(closeTo(-1, 0)));
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(-1, Offset.offset(0d));
 	}
 
 	@Test // DATAREDIS-316
@@ -2497,11 +2492,11 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 
-		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(result.get(1), is(Boolean.TRUE));
-		assertThat(result.get(2), is(Boolean.TRUE));
-		assertThat(((Long) result.get(3)).doubleValue(), is(closeTo(-1, 0)));
-		assertThat((result.get(4)), is(equalTo("data")));
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(((Long) result.get(3)).doubleValue()).isCloseTo(-1, Offset.offset(0d));
+		assertThat((result.get(4))).isEqualTo("data");
 	}
 
 	@Test // DATAREDIS-316
@@ -2517,11 +2512,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get(key));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(result.get(1), is(Boolean.FALSE));
-		assertThat(result.get(2), is(Boolean.TRUE));
-		assertThat(((Long) result.get(3)).doubleValue(), is(closeTo(-1, 0)));
-		assertThat((result.get(4)), is(equalTo("spring")));
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(((Long) result.get(3)).doubleValue()).isCloseTo(-1d, Offset.offset(0d));
+		assertThat((result.get(4))).isEqualTo("spring");
 	}
 
 	@Test // DATAREDIS-316
@@ -2536,10 +2531,10 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get(key));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(result.get(1), is(Boolean.TRUE));
-		assertThat(((Long) result.get(2)).doubleValue(), is(closeTo(-1, 0)));
-		assertThat((result.get(3)), is(equalTo("data")));
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(-1, Offset.offset(0d));
+		assertThat((result.get(3))).isEqualTo("data");
 	}
 
 	@Test // DATAREDIS-316
@@ -2555,11 +2550,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get(key));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.TRUE));
-		assertThat(result.get(1), is(Boolean.TRUE));
-		assertThat(result.get(2), is(Boolean.TRUE));
-		assertThat(((Long) result.get(3)).doubleValue(), is(closeTo(-1, 0)));
-		assertThat((result.get(4)), is(equalTo("data")));
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(((Long) result.get(3)).doubleValue()).isCloseTo(-1, Offset.offset(0d));
+		assertThat((result.get(4))).isEqualTo("data");
 	}
 
 	@Test // DATAREDIS-316
@@ -2574,9 +2569,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get(key));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(Boolean.FALSE));
-		assertThat(result.get(1), is(Boolean.FALSE));
-		assertThat(((Long) result.get(2)).doubleValue(), is(closeTo(-2, 0)));
+		assertThat(result.get(0)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(-2, Offset.offset(0d));
 	}
 
 	@Test // DATAREDIS-438
@@ -2588,7 +2583,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoAdd(key, PALERMO));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(1L));
+		assertThat(result.get(0)).isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-438
@@ -2600,7 +2595,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoAdd(key, Arrays.asList(PALERMO, ARIGENTO, CATANIA, PALERMO)));
 
 		List<Object> result = getResults();
-		assertThat(result.get(0), is(3L));
+		assertThat(result.get(0)).isEqualTo(3L);
 	}
 
 	@Test // DATAREDIS-438
@@ -2613,8 +2608,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoDist(key, PALERMO.getName(), CATANIA.getName()));
 
 		List<Object> result = getResults();
-		assertThat(((Distance) result.get(1)).getValue(), is(closeTo(166274.15156960033D, 0.005)));
-		assertThat(((Distance) result.get(1)).getUnit(), is("m"));
+		assertThat(((Distance) result.get(1)).getValue()).isCloseTo(166274.15156960033D, Offset.offset(0.005));
+		assertThat(((Distance) result.get(1)).getUnit()).isEqualTo("m");
 	}
 
 	@Test // DATAREDIS-438
@@ -2627,8 +2622,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoDist(key, PALERMO.getName(), CATANIA.getName(), Metrics.KILOMETERS));
 
 		List<Object> result = getResults();
-		assertThat(((Distance) result.get(1)).getValue(), is(closeTo(166.27415156960033D, 0.005)));
-		assertThat(((Distance) result.get(1)).getUnit(), is("km"));
+		assertThat(((Distance) result.get(1)).getValue()).isCloseTo(166.27415156960033D, Offset.offset(0.005));
+		assertThat(((Distance) result.get(1)).getUnit()).isEqualTo("km");
 	}
 
 	@Test // DATAREDIS-438
@@ -2641,8 +2636,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoHash(key, PALERMO.getName(), CATANIA.getName()));
 
 		List<Object> result = getResults();
-		assertThat(((List<String>) result.get(1)).get(0), is("sqc8b49rny0"));
-		assertThat(((List<String>) result.get(1)).get(1), is("sqdtr74hyu0"));
+		assertThat(((List<String>) result.get(1)).get(0)).isEqualTo("sqc8b49rny0");
+		assertThat(((List<String>) result.get(1)).get(1)).isEqualTo("sqdtr74hyu0");
 	}
 
 	@Test // DATAREDIS-438
@@ -2655,9 +2650,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoHash(key, PALERMO.getName(), ARIGENTO.getName(), CATANIA.getName()));
 
 		List<Object> result = getResults();
-		assertThat(((List<String>) result.get(1)).get(0), is("sqc8b49rny0"));
-		assertThat(((List<String>) result.get(1)).get(1), is(nullValue()));
-		assertThat(((List<String>) result.get(1)).get(2), is("sqdtr74hyu0"));
+		assertThat(((List<String>) result.get(1)).get(0)).isEqualTo("sqc8b49rny0");
+		assertThat(((List<String>) result.get(1)).get(1)).isNull();
+		assertThat(((List<String>) result.get(1)).get(2)).isEqualTo("sqdtr74hyu0");
 	}
 
 	@Test // DATAREDIS-438
@@ -2671,11 +2666,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoPos(key, PALERMO.getName(), CATANIA.getName()));
 
 		List<Object> result = getResults();
-		assertThat(((List<Point>) result.get(1)).get(0).getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
-		assertThat(((List<Point>) result.get(1)).get(0).getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
+		assertThat(((List<Point>) result.get(1)).get(0).getX()).isCloseTo(POINT_PALERMO.getX(), Offset.offset(0.005));
+		assertThat(((List<Point>) result.get(1)).get(0).getY()).isCloseTo(POINT_PALERMO.getY(), Offset.offset(0.005));
 
-		assertThat(((List<Point>) result.get(1)).get(1).getX(), is(closeTo(POINT_CATANIA.getX(), 0.005)));
-		assertThat(((List<Point>) result.get(1)).get(1).getY(), is(closeTo(POINT_CATANIA.getY(), 0.005)));
+		assertThat(((List<Point>) result.get(1)).get(1).getX()).isCloseTo(POINT_CATANIA.getX(), Offset.offset(0.005));
+		assertThat(((List<Point>) result.get(1)).get(1).getY()).isCloseTo(POINT_CATANIA.getY(), Offset.offset(0.005));
 	}
 
 	@Test // DATAREDIS-438
@@ -2689,13 +2684,13 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoPos(key, PALERMO.getName(), ARIGENTO.getName(), CATANIA.getName()));
 
 		List<Object> result = getResults();
-		assertThat(((List<Point>) result.get(1)).get(0).getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
-		assertThat(((List<Point>) result.get(1)).get(0).getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
+		assertThat(((List<Point>) result.get(1)).get(0).getX()).isCloseTo(POINT_PALERMO.getX(), Offset.offset(0.005));
+		assertThat(((List<Point>) result.get(1)).get(0).getY()).isCloseTo(POINT_PALERMO.getY(), Offset.offset(0.005));
 
-		assertThat(((List<Point>) result.get(1)).get(1), is(nullValue()));
+		assertThat(((List<Point>) result.get(1)).get(1)).isNull();
 
-		assertThat(((List<Point>) result.get(1)).get(2).getX(), is(closeTo(POINT_CATANIA.getX(), 0.005)));
-		assertThat(((List<Point>) result.get(1)).get(2).getY(), is(closeTo(POINT_CATANIA.getY(), 0.005)));
+		assertThat(((List<Point>) result.get(1)).get(2).getX()).isCloseTo(POINT_CATANIA.getX(), Offset.offset(0.005));
+		assertThat(((List<Point>) result.get(1)).get(2).getY()).isCloseTo(POINT_CATANIA.getY(), Offset.offset(0.005));
 	}
 
 	@Test // DATAREDIS-438
@@ -2710,8 +2705,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoRadius(key, new Circle(new Point(15D, 37D), new Distance(150D, KILOMETERS))));
 
 		List<Object> results = getResults();
-		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent(), hasSize(3));
-		assertThat(((GeoResults<GeoLocation<String>>) results.get(2)).getContent(), hasSize(2));
+		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent()).hasSize(3);
+		assertThat(((GeoResults<GeoLocation<String>>) results.get(2)).getContent()).hasSize(2);
 	}
 
 	@Test // DATAREDIS-438
@@ -2726,11 +2721,11 @@ public abstract class AbstractConnectionIntegrationTests {
 				newGeoRadiusArgs().includeDistance()));
 
 		List<Object> results = getResults();
-		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent(), hasSize(3));
-		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent().get(0).getDistance().getValue(),
-				is(closeTo(130.423D, 0.005)));
-		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent().get(0).getDistance().getUnit(),
-				is("km"));
+		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent()).hasSize(3);
+		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent().get(0).getDistance().getValue())
+				.isCloseTo(130.423D, Offset.offset(0.005));
+		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent().get(0).getDistance().getUnit())
+				.isEqualTo("km");
 	}
 
 	@Test // DATAREDIS-438
@@ -2745,7 +2740,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				newGeoRadiusArgs().limit(2)));
 
 		List<Object> results = getResults();
-		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent(), hasSize(2));
+		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent()).hasSize(2);
 	}
 
 	@Test // DATAREDIS-438
@@ -2760,10 +2755,10 @@ public abstract class AbstractConnectionIntegrationTests {
 				newGeoRadiusArgs().sortAscending()));
 
 		List<Object> results = getResults();
-		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent().get(0).getContent().getName(),
-				is(PALERMO.getName()));
-		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent().get(1).getContent().getName(),
-				is(ARIGENTO.getName()));
+		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent().get(0).getContent().getName())
+				.isEqualTo(PALERMO.getName());
+		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent().get(1).getContent().getName())
+				.isEqualTo(ARIGENTO.getName());
 	}
 
 	@Test // DATAREDIS-438
@@ -2778,11 +2773,11 @@ public abstract class AbstractConnectionIntegrationTests {
 				newGeoRadiusArgs().includeDistance()));
 
 		List<Object> results = getResults();
-		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent(), hasSize(2));
-		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent().get(0).getDistance().getValue(),
-				is(closeTo(90.978D, 0.005)));
-		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent().get(0).getDistance().getUnit(),
-				is("km"));
+		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent()).hasSize(2);
+		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent().get(0).getDistance().getValue())
+				.isCloseTo(90.978D, Offset.offset(0.005));
+		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent().get(0).getDistance().getUnit())
+				.isEqualTo("km");
 	}
 
 	@Test // DATAREDIS-438
@@ -2797,7 +2792,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				newGeoRadiusArgs().limit(2)));
 
 		List<Object> results = getResults();
-		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent(), hasSize(2));
+		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent()).hasSize(2);
 	}
 
 	@Test // DATAREDIS-698
@@ -2925,12 +2920,12 @@ public abstract class AbstractConnectionIntegrationTests {
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void bitFieldSetShouldWorkCorrectly() {
 
-		actual.add(connection.bitfield(KEY_1, create().set(INT_8).valueAt(offset(0L)).to(10L)));
-		actual.add(connection.bitfield(KEY_1, create().set(INT_8).valueAt(offset(0L)).to(20L)));
+		actual.add(connection.bitfield(KEY_1, create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L)).to(10L)));
+		actual.add(connection.bitfield(KEY_1, create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L)).to(20L)));
 
 		List<Object> results = getResults();
-		assertThat((List<Long>) results.get(0), contains(0L));
-		assertThat((List<Long>) results.get(1), contains(10L));
+		assertThat((List<Long>) results.get(0)).containsExactly(0L);
+		assertThat((List<Long>) results.get(1)).containsExactly(10L);
 	}
 
 	@Test // DATAREDIS-562
@@ -2938,10 +2933,10 @@ public abstract class AbstractConnectionIntegrationTests {
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void bitFieldGetShouldWorkCorrectly() {
 
-		actual.add(connection.bitfield(KEY_1, create().get(INT_8).valueAt(offset(0L))));
+		actual.add(connection.bitfield(KEY_1, create().get(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L))));
 
 		List<Object> results = getResults();
-		assertThat((List<Long>) results.get(0), contains(0L));
+		assertThat((List<Long>) results.get(0)).containsExactly(0L);
 	}
 
 	@Test // DATAREDIS-562
@@ -2949,10 +2944,11 @@ public abstract class AbstractConnectionIntegrationTests {
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void bitFieldIncrByShouldWorkCorrectly() {
 
-		actual.add(connection.bitfield(KEY_1, create().incr(INT_8).valueAt(offset(100L)).by(1L)));
+		actual
+				.add(connection.bitfield(KEY_1, create().incr(INT_8).valueAt(BitFieldSubCommands.Offset.offset(100L)).by(1L)));
 
 		List<Object> results = getResults();
-		assertThat((List<Long>) results.get(0), contains(1L));
+		assertThat((List<Long>) results.get(0)).containsExactly(1L);
 	}
 
 	@Test // DATAREDIS-562
@@ -2960,16 +2956,20 @@ public abstract class AbstractConnectionIntegrationTests {
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
 
-		actual.add(connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
-		actual.add(connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
-		actual.add(connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
-		actual.add(connection.bitfield(KEY_1, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(connection.bitfield(KEY_1,
+				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(connection.bitfield(KEY_1,
+				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(connection.bitfield(KEY_1,
+				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(connection.bitfield(KEY_1,
+				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)));
 
 		List<Object> results = getResults();
-		assertThat((List<Long>) results.get(0), contains(1L));
-		assertThat((List<Long>) results.get(1), contains(2L));
-		assertThat((List<Long>) results.get(2), contains(3L));
-		assertThat(results.get(3), is(notNullValue()));
+		assertThat((List<Long>) results.get(0)).containsExactly(1L);
+		assertThat((List<Long>) results.get(1)).containsExactly(2L);
+		assertThat((List<Long>) results.get(2)).containsExactly(3L);
+		assertThat(results.get(3)).isNotNull();
 	}
 
 	@Test // DATAREDIS-562
@@ -2977,10 +2977,10 @@ public abstract class AbstractConnectionIntegrationTests {
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void bitfieldShouldAllowMultipleSubcommands() {
 
-		actual.add(
-				connection.bitfield(KEY_1, create().incr(signed(5)).valueAt(offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)));
+		actual.add(connection.bitfield(KEY_1,
+				create().incr(signed(5)).valueAt(BitFieldSubCommands.Offset.offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)));
 
-		assertThat((List<Long>) getResults().get(0), contains(1L, 0L));
+		assertThat((List<Long>) getResults().get(0)).containsExactly(1L, 0L);
 	}
 
 	@Test // DATAREDIS-562
@@ -2988,14 +2988,16 @@ public abstract class AbstractConnectionIntegrationTests {
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void bitfieldShouldWorkUsingNonZeroBasedOffset() {
 
-		actual.add(connection.bitfield(KEY_1, create().set(INT_8).valueAt(offset(0L).multipliedByTypeLength()).to(100L)
-				.set(INT_8).valueAt(offset(1L).multipliedByTypeLength()).to(200L)));
-		actual.add(connection.bitfield(KEY_1, create().get(INT_8).valueAt(offset(0L).multipliedByTypeLength()).get(INT_8)
-				.valueAt(offset(1L).multipliedByTypeLength())));
+		actual.add(connection.bitfield(KEY_1,
+				create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).to(100L).set(INT_8)
+						.valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()).to(200L)));
+		actual.add(connection.bitfield(KEY_1,
+				create().get(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).get(INT_8)
+						.valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength())));
 
 		List<Object> results = getResults();
-		assertThat((List<Long>) results.get(0), contains(0L, 0L));
-		assertThat((List<Long>) results.get(1), contains(100L, -56L));
+		assertThat((List<Long>) results.get(0)).containsExactly(0L, 0L);
+		assertThat((List<Long>) results.get(1)).containsExactly(100L, -56L);
 	}
 
 	@Test // DATAREDIS-864
@@ -3007,9 +3009,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.type(KEY_1));
 
 		List<Object> results = getResults();
-		assertThat(results, hasSize(2));
-		assertThat(((RecordId) results.get(0)).getValue(), containsString("-"));
-		assertThat(results.get(1), is(DataType.STREAM));
+		assertThat(results).hasSize(2);
+		assertThat(((RecordId) results.get(0)).getValue()).contains("-");
+		assertThat(results.get(1)).isEqualTo(DataType.STREAM);
 	}
 
 	@Test // DATAREDIS-864
@@ -3024,8 +3026,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<MapRecord<String, String, String>> messages = (List) results.get(1);
 
-		assertThat(messages.get(0).getStream(), is(KEY_1));
-		assertThat(messages.get(0).getValue(), is(Collections.singletonMap(KEY_2, VALUE_2)));
+		assertThat(messages.get(0).getStream()).isEqualTo(KEY_1);
+		assertThat(messages.get(0).getValue()).isEqualTo(Collections.singletonMap(KEY_2, VALUE_2));
 	}
 
 	@Test // DATAREDIS-864
@@ -3044,10 +3046,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<MapRecord<String, String, String>> messages = (List) results.get(2);
 
-		assertThat(messages.get(0).getStream(), is(KEY_1));
-		assertThat(messages.get(0).getValue(), is(Collections.singletonMap(KEY_2, VALUE_2)));
+		assertThat(messages.get(0).getStream()).isEqualTo(KEY_1);
+		assertThat(messages.get(0).getValue()).isEqualTo(Collections.singletonMap(KEY_2, VALUE_2));
 
-		assertThat((List<MapRecord>) results.get(3), is(empty()));
+		assertThat((List<MapRecord>) results.get(3)).isEmpty();
 	}
 
 	@Test // DATAREDIS-864
@@ -3060,15 +3062,15 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.xRange(KEY_1, org.springframework.data.domain.Range.unbounded()));
 
 		List<Object> results = getResults();
-		assertThat(results, hasSize(3));
+		assertThat(results).hasSize(3);
 
 		List<MapRecord<String, String, String>> messages = (List) results.get(2);
 
-		assertThat(messages.get(0).getStream(), is(KEY_1));
-		assertThat(messages.get(0).getValue(), is(Collections.singletonMap(KEY_2, VALUE_2)));
+		assertThat(messages.get(0).getStream()).isEqualTo(KEY_1);
+		assertThat(messages.get(0).getValue()).isEqualTo(Collections.singletonMap(KEY_2, VALUE_2));
 
-		assertThat(messages.get(1).getStream(), is(KEY_1));
-		assertThat(messages.get(1).getValue(), is(Collections.singletonMap(KEY_3, VALUE_3)));
+		assertThat(messages.get(1).getStream()).isEqualTo(KEY_1);
+		assertThat(messages.get(1).getValue()).isEqualTo(Collections.singletonMap(KEY_3, VALUE_3));
 	}
 
 	@Test // DATAREDIS-864
@@ -3081,20 +3083,20 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.xRevRange(KEY_1, org.springframework.data.domain.Range.unbounded()));
 
 		List<Object> results = getResults();
-		assertThat(results, hasSize(3));
-		assertThat(((RecordId)results.get(0)).getValue(), containsString("-"));
+		assertThat(results).hasSize(3);
+		assertThat(((RecordId) results.get(0)).getValue()).contains("-");
 
 		List<MapRecord<String, String, String>> messages = (List) results.get(2);
 
-		assertThat(messages.get(0).getStream(), is(KEY_1));
-		assertThat(messages.get(0).getValue(), is(Collections.singletonMap(KEY_3, VALUE_3)));
+		assertThat(messages.get(0).getStream()).isEqualTo(KEY_1);
+		assertThat(messages.get(0).getValue()).isEqualTo(Collections.singletonMap(KEY_3, VALUE_3));
 
-		assertThat(messages.get(1).getStream(), is(KEY_1));
-		assertThat(messages.get(1).getValue(), is(Collections.singletonMap(KEY_2, VALUE_2)));
+		assertThat(messages.get(1).getStream()).isEqualTo(KEY_1);
+		assertThat(messages.get(1).getValue()).isEqualTo(Collections.singletonMap(KEY_2, VALUE_2));
 	}
 
 	protected void verifyResults(List<Object> expected) {
-		assertEquals(expected, getResults());
+		assertThat(getResults()).isEqualTo(expected);
 	}
 
 	protected List<Object> getResults() {

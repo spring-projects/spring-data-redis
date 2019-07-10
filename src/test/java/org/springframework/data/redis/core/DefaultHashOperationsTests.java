@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
 import java.io.IOException;
@@ -32,6 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
@@ -128,8 +128,8 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		hashOps.put(key, key2, val2);
 
 		for (Map.Entry<HK, HV> entry : hashOps.entries(key).entrySet()) {
-			assertThat(entry.getKey(), anyOf(equalTo(key1), equalTo(key2)));
-			assertThat(entry.getValue(), anyOf(equalTo(val1), equalTo(val2)));
+			assertThat(entry.getKey()).isIn(key1, key2);
+			assertThat(entry.getValue()).isIn(val1, val2);
 		}
 	}
 
@@ -143,8 +143,8 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
 		Long numDeleted = hashOps.delete(key, key1, key2);
-		assertTrue(hashOps.keys(key).isEmpty());
-		assertEquals(2L, numDeleted.longValue());
+		assertThat(hashOps.keys(key).isEmpty()).isTrue();
+		assertThat(numDeleted.longValue()).isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-305
@@ -164,20 +164,20 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		long count = 0;
 		while (it.hasNext()) {
 			Map.Entry<HK, HV> entry = it.next();
-			assertThat(entry.getKey(), anyOf(equalTo(key1), equalTo(key2)));
-			assertThat(entry.getValue(), anyOf(equalTo(val1), equalTo(val2)));
+			assertThat(entry.getKey()).isIn(key1, key2);
+			assertThat(entry.getValue()).isIn(val1, val2);
 			count++;
 		}
 
 		it.close();
-		assertThat(count, is(hashOps.size(key)));
+		assertThat(count).isEqualTo(hashOps.size(key));
 	}
 
 	@Test // DATAREDIS-698
 	@IfProfileValue(name = "redisVersion", value = "3.0.3+")
 	public void lengthOfValue() throws IOException {
 
-		assumeThat(hashValueFactory instanceof StringObjectFactory, is(true));
+		assumeTrue(hashValueFactory instanceof StringObjectFactory);
 
 		K key = keyFactory.instance();
 		HK key1 = hashKeyFactory.instance();
@@ -188,7 +188,7 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
 
-		assertThat(hashOps.lengthOfValue(key, key1), is(Long.valueOf(val1.toString().length())));
+		assertThat(hashOps.lengthOfValue(key, key1)).isEqualTo(Long.valueOf(val1.toString().length()));
 	}
 
 }

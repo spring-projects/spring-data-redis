@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.core.mapping;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.Before;
@@ -27,6 +25,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
@@ -109,6 +108,6 @@ public class BasicRedisPersistentEntityUnitTests<T> {
 		entity.addPersistentProperty(property1);
 		entity.addPersistentProperty(property2);
 
-		assertThat(entity.getIdProperty(), is(equalTo(property2)));
+		assertThat(entity.getIdProperty()).isEqualTo(property2);
 	}
 }

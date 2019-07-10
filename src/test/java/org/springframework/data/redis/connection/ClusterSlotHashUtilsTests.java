@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
@@ -28,6 +28,7 @@ import java.util.Random;
 
 import org.junit.ClassRule;
 import org.junit.Test;
+
 import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.util.StringUtils;
 
@@ -54,9 +55,9 @@ public class ClusterSlotHashUtilsTests {
 				int slot = ClusterSlotHashUtil.calculateSlot(key);
 				Long serverSlot = jedis.clusterKeySlot(key);
 
-				assertEquals(
-						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key, slot, serverSlot),
-						serverSlot.intValue(), slot);
+				assertThat(slot)
+						.as(String.format("Expected slot for key '%s' to be %s but server calculated %s.", key, slot, serverSlot))
+						.isEqualTo(serverSlot.intValue());
 
 			}
 			jedis.close();
@@ -87,18 +88,18 @@ public class ClusterSlotHashUtilsTests {
 				int slot1 = ClusterSlotHashUtil.calculateSlot(key1);
 				int slot2 = ClusterSlotHashUtil.calculateSlot(key2);
 
-				assertEquals(String.format("Expected slot for prefixed keys '%s' and '%s' to be %s but was  %s.", key1, key2,
-						slot1, slot2), slot1, slot2);
+				assertThat(slot2).as(String.format("Expected slot for prefixed keys '%s' and '%s' to be %s but was  %s.", key1,
+						key2, slot1, slot2)).isEqualTo(slot1);
 
 				Long serverSlot1 = jedis.clusterKeySlot(key1);
 				Long serverSlot2 = jedis.clusterKeySlot(key2);
 
-				assertEquals(
-						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key1, slot1, serverSlot1),
-						serverSlot1.intValue(), slot1);
-				assertEquals(
-						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key2, slot2, serverSlot2),
-						serverSlot1.intValue(), slot1);
+				assertThat(slot1).as(
+						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key1, slot1, serverSlot1))
+						.isEqualTo(serverSlot1.intValue());
+				assertThat(slot1).as(
+						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key2, slot2, serverSlot2))
+						.isEqualTo(serverSlot1.intValue());
 
 			}
 			jedis.close();

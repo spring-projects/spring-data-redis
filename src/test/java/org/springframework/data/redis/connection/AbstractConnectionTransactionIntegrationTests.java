@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.test.annotation.IfProfileValue;
 
 /**
@@ -127,8 +127,8 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 		for (int i = 0; i < actual.size(); i++) {
 			expectedTx.add(null);
 		}
-		assertEquals(expectedTx, actual);
+		assertThat(actual).isEqualTo(expectedTx);
 		List<Object> results = getResults();
-		assertEquals(expected, results);
+		assertThat(results).isEqualTo(expected);
 	}
 }

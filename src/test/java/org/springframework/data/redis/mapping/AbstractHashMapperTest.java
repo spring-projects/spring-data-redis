@@ -15,16 +15,12 @@
  */
 package org.springframework.data.redis.mapping;
 
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Map;
 
-import org.hamcrest.core.IsCollectionContaining;
-import org.hamcrest.core.IsEqual;
-import org.hamcrest.core.IsNot;
-import org.hamcrest.core.IsNull;
 import org.junit.Test;
+
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.hash.HashMapper;
@@ -43,16 +39,16 @@ public abstract class AbstractHashMapperTest {
 
 		HashMapper mapper = mapperFor(o.getClass());
 		Map hash = mapper.toHash(o);
-		assertThat(mapper.fromHash(hash), equalTo(o));
+		assertThat(mapper.fromHash(hash)).isEqualTo(o);
 	}
 
 	@Test
-	public void testSimpleBean() throws Exception {
+	public void testSimpleBean() {
 		assertBackAndForwardMapping(new Address("Broadway", 1));
 	}
 
 	@Test
-	public void testNestedBean() throws Exception {
+	public void testNestedBean() {
 		assertBackAndForwardMapping(new Person("George", "Enescu", 74, new Address("liveni", 19)));
 	}
 
@@ -63,8 +59,6 @@ public abstract class AbstractHashMapperTest {
 
 		assertBackAndForwardMapping(source);
 
-		assertThat((Iterable<Object>) mapperFor(Person.class).toHash(source).values(),
-				IsNot.not(IsCollectionContaining.hasItems(IsNull.nullValue())));
-
+		assertThat((Iterable<Object>) mapperFor(Person.class).toHash(source).values()).doesNotContainNull();
 	}
 }

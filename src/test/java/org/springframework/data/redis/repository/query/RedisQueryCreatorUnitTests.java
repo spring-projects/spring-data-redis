@@ -15,11 +15,7 @@
  */
 package org.springframework.data.redis.repository.query;
 
-import static org.hamcrest.collection.IsCollectionWithSize.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.lang.reflect.Method;
 
@@ -27,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
@@ -63,8 +60,8 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCriteria().getSismember(), hasSize(1));
-		assertThat(query.getCriteria().getSismember(), hasItem(new PathAndValue("firstname", "eddard")));
+		assertThat(query.getCriteria().getSismember()).hasSize(1);
+		assertThat(query.getCriteria().getSismember()).contains(new PathAndValue("firstname", "eddard"));
 	}
 
 	@Test // DATAREDIS-425
@@ -76,9 +73,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCriteria().getSismember(), hasSize(2));
-		assertThat(query.getCriteria().getSismember(), hasItem(new PathAndValue("firstname", "eddard")));
-		assertThat(query.getCriteria().getSismember(), hasItem(new PathAndValue("age", 43)));
+		assertThat(query.getCriteria().getSismember()).hasSize(2);
+		assertThat(query.getCriteria().getSismember()).contains(new PathAndValue("firstname", "eddard"));
+		assertThat(query.getCriteria().getSismember()).contains(new PathAndValue("age", 43));
 	}
 
 	@Test // DATAREDIS-425
@@ -90,9 +87,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCriteria().getOrSismember(), hasSize(2));
-		assertThat(query.getCriteria().getOrSismember(), hasItem(new PathAndValue("age", 43)));
-		assertThat(query.getCriteria().getOrSismember(), hasItem(new PathAndValue("firstname", "eddard")));
+		assertThat(query.getCriteria().getOrSismember()).hasSize(2);
+		assertThat(query.getCriteria().getOrSismember()).contains(new PathAndValue("age", 43));
+		assertThat(query.getCriteria().getOrSismember()).contains(new PathAndValue("firstname", "eddard"));
 	}
 
 	@Test // DATAREDIS-533
@@ -104,9 +101,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCriteria().getNear(), is(notNullValue()));
-		assertThat(query.getCriteria().getNear().getPoint(), is(new Point(1, 2)));
-		assertThat(query.getCriteria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
+		assertThat(query.getCriteria().getNear()).isNotNull();
+		assertThat(query.getCriteria().getNear().getPoint()).isEqualTo(new Point(1, 2));
+		assertThat(query.getCriteria().getNear().getDistance()).isEqualTo(new Distance(200, Metrics.KILOMETERS));
 	}
 
 	@Test // DATAREDIS-533
@@ -118,9 +115,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCriteria().getNear(), is(notNullValue()));
-		assertThat(query.getCriteria().getNear().getPoint(), is(new Point(1, 2)));
-		assertThat(query.getCriteria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
+		assertThat(query.getCriteria().getNear()).isNotNull();
+		assertThat(query.getCriteria().getNear().getPoint()).isEqualTo(new Point(1, 2));
+		assertThat(query.getCriteria().getNear().getDistance()).isEqualTo(new Distance(200, Metrics.KILOMETERS));
 	}
 
 	@Test // DATAREDIS-533
@@ -132,9 +129,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCriteria().getNear(), is(notNullValue()));
-		assertThat(query.getCriteria().getNear().getPoint(), is(new Point(1, 2)));
-		assertThat(query.getCriteria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
+		assertThat(query.getCriteria().getNear()).isNotNull();
+		assertThat(query.getCriteria().getNear().getPoint()).isEqualTo(new Point(1, 2));
+		assertThat(query.getCriteria().getNear().getDistance()).isEqualTo(new Distance(200, Metrics.KILOMETERS));
 	}
 
 	@Test // DATAREDIS-533
@@ -183,8 +180,8 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCriteria().getSismember(), hasSize(1));
-		assertThat(query.getCriteria().getSismember(), hasItem(new PathAndValue("alive", true)));
+		assertThat(query.getCriteria().getSismember()).hasSize(1);
+		assertThat(query.getCriteria().getSismember()).contains(new PathAndValue("alive", true));
 	}
 
 	@Test // DATAREDIS-771
@@ -195,8 +192,8 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCriteria().getSismember(), hasSize(1));
-		assertThat(query.getCriteria().getSismember(), hasItem(new PathAndValue("alive", false)));
+		assertThat(query.getCriteria().getSismember()).hasSize(1);
+		assertThat(query.getCriteria().getSismember()).contains(new PathAndValue("alive", false));
 	}
 
 	private RedisQueryCreator createQueryCreatorForMethodWithArgs(Method method, Object[] args) {

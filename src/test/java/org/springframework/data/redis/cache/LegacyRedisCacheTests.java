@@ -16,14 +16,8 @@
 package org.springframework.data.redis.cache;
 
 import static edu.umd.cs.mtc.TestFramework.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsNot.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.hamcrest.core.IsSame.*;
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import edu.umd.cs.mtc.MultithreadedTestCase;
 
@@ -35,12 +29,12 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueRetrievalException;
 import org.springframework.cache.Cache.ValueWrapper;
@@ -72,7 +66,7 @@ public class LegacyRedisCacheTests {
 	RedisCache cache;
 
 	public LegacyRedisCacheTests(RedisTemplate template, ObjectFactory<Object> keyFactory,
-								 ObjectFactory<Object> valueFactory, boolean allowCacheNullValues) {
+			ObjectFactory<Object> valueFactory, boolean allowCacheNullValues) {
 
 		this.connectionFactory = template.getConnectionFactory();
 		this.keyFactory = keyFactory;
@@ -134,12 +128,12 @@ public class LegacyRedisCacheTests {
 		Object key = getKey();
 		Object value = getValue();
 
-		assertNotNull(value);
-		assertNull(cache.get(key));
+		assertThat(value).isNotNull();
+		assertThat(cache.get(key)).isNull();
 		cache.put(key, value);
 		ValueWrapper valueWrapper = cache.get(key);
 		if (valueWrapper != null) {
-			assertThat(valueWrapper.get(), isEqual(value));
+			assertThat(valueWrapper.get()).isEqualTo(value);
 		}
 	}
 
@@ -151,13 +145,13 @@ public class LegacyRedisCacheTests {
 		Object key2 = getKey();
 		Object value2 = getValue();
 
-		assertNull(cache.get(key1));
+		assertThat(cache.get(key1)).isNull();
 		cache.put(key1, value1);
-		assertNull(cache.get(key2));
+		assertThat(cache.get(key2)).isNull();
 		cache.put(key2, value2);
 		cache.clear();
-		assertNull(cache.get(key2));
-		assertNull(cache.get(key1));
+		assertThat(cache.get(key2)).isNull();
+		assertThat(cache.get(key1)).isNull();
 	}
 
 	@Test
@@ -189,7 +183,7 @@ public class LegacyRedisCacheTests {
 		th.start();
 		th.join();
 
-		assertFalse(failed.get());
+		assertThat(failed.get()).isFalse();
 
 		final Object key3 = getKey();
 		final Object key4 = getKey();
@@ -199,11 +193,11 @@ public class LegacyRedisCacheTests {
 		cache.put(key3, value3);
 		cache.put(key4, value4);
 
-		assertNull(cache.get(key1));
-		assertNull(cache.get(key2));
+		assertThat(cache.get(key1)).isNull();
+		assertThat(cache.get(key2)).isNull();
 		ValueWrapper valueWrapper = cache.get(k1);
-		assertNotNull(valueWrapper);
-		assertThat(valueWrapper.get(), isEqual(v1));
+		assertThat(valueWrapper).isNotNull();
+		assertThat(valueWrapper.get()).isEqualTo(v1);
 	}
 
 	@Test
@@ -229,7 +223,7 @@ public class LegacyRedisCacheTests {
 			new Thread(putCache).start();
 		}
 		latch.await();
-		assertFalse(monitorStateException.get());
+		assertThat(monitorStateException.get()).isFalse();
 	}
 
 	@Test // DATAREDIS-243
@@ -239,7 +233,7 @@ public class LegacyRedisCacheTests {
 		Object value = getValue();
 		cache.put(key, value);
 
-		assertThat(value, isEqual(cache.get(key, Object.class)));
+		assertThat(value).isEqualTo(cache.get(key, Object.class));
 	}
 
 	@Test // DATAREDIS-243
@@ -249,7 +243,7 @@ public class LegacyRedisCacheTests {
 		Object value = getValue();
 		cache.put(key, value);
 
-		assertThat(cache.get(key, value.getClass()), IsInstanceOf.<Object> instanceOf(value.getClass()));
+		assertThat(cache.get(key, value.getClass())).isInstanceOf(value.getClass());
 	}
 
 	@Test(expected = IllegalStateException.class) // DATAREDIS-243
@@ -271,7 +265,7 @@ public class LegacyRedisCacheTests {
 		cache.put(key, value);
 
 		Object invalidKey = "spring-data-redis".getBytes();
-		assertThat(cache.get(invalidKey, value.getClass()), nullValue());
+		assertThat(cache.get(invalidKey, value.getClass())).isNull();
 	}
 
 	@Test // DATAREDIS-344, DATAREDIS-416
@@ -281,21 +275,21 @@ public class LegacyRedisCacheTests {
 
 		Object value = getValue();
 
-		assertThat(cache.putIfAbsent(key, value), nullValue());
+		assertThat(cache.putIfAbsent(key, value)).isNull();
 
 		ValueWrapper wrapper = cache.putIfAbsent(key, value);
 
 		if (!(value instanceof Number)) {
-			assertThat(wrapper.get(), not(sameInstance(value)));
+			assertThat(wrapper.get()).isNotSameAs(value);
 		}
 
-		assertThat(wrapper.get(), equalTo(value));
+		assertThat(wrapper.get()).isEqualTo(value);
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-510, DATAREDIS-606
 	public void cachePutWithNullShouldNotAddStuffToRedis() {
 
-		assumeThat("Only suitable when cache does NOT allow null values.", allowCacheNullValues, is(false));
+		assumeThat(allowCacheNullValues).as("Only suitable when cache does NOT allow null values.").isFalse();
 
 		Object key = getKey();
 
@@ -305,14 +299,14 @@ public class LegacyRedisCacheTests {
 	@Test // DATAREDIS-510, DATAREDIS-606
 	public void cachePutWithNullShouldErrorAndLeaveExistingKeyUntouched() {
 
-		assumeThat("Only suitable when cache does NOT allow null values.", allowCacheNullValues, is(false));
+		assumeThat(allowCacheNullValues).as("Only suitable when cache does NOT allow null values.").isFalse();
 
 		Object key = getKey();
 		Object value = getValue();
 
 		cache.put(key, value);
 
-		assertThat(cache.get(key).get(), is(equalTo(value)));
+		assertThat(cache.get(key).get()).isEqualTo(value);
 
 		try {
 			cache.put(key, null);
@@ -320,7 +314,7 @@ public class LegacyRedisCacheTests {
 			// forget this one.
 		}
 
-		assertThat(cache.get(key).get(), is(equalTo(value)));
+		assertThat(cache.get(key).get()).isEqualTo(value);
 	}
 
 	@Test // DATAREDIS-443, DATAREDIS-452
@@ -331,32 +325,32 @@ public class LegacyRedisCacheTests {
 	@Test // DATAREDIS-553
 	public void cachePutWithNullShouldAddStuffToRedisWhenCachingNullIsEnabled() {
 
-		assumeThat("Only suitable when cache does allow null values.", allowCacheNullValues, is(true));
+		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values.").isTrue();
 
 		Object key = getKey();
 		Object value = getValue();
 
 		cache.put(key, null);
 
-		assertThat(cache.get(key, String.class), is(nullValue()));
+		assertThat(cache.get(key, String.class)).isNull();
 	}
 
 	@Test // DATAREDIS-553
 	public void testCacheGetSynchronizedNullAllowingNull() {
 
-		assumeThat("Only suitable when cache does allow null values.", allowCacheNullValues, is(true));
+		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values.").isTrue();
 
 		Object key = getKey();
 		Object value = cache.get(key, () -> null);
 
-		assertThat(value, is(nullValue()));
-		assertThat(cache.get(key).get(), is(nullValue()));
+		assertThat(value).isNull();
+		assertThat(cache.get(key).get()).isNull();
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-553, DATAREDIS-606
 	public void testCacheGetSynchronizedNullNotAllowingNull() {
 
-		assumeThat("Only suitable when cache does NOT allow null values.", allowCacheNullValues, is(false));
+		assumeThat(allowCacheNullValues).as("Only suitable when cache does NOT allow null values.").isFalse();
 
 		Object key = getKey();
 		Object value = cache.get(key, () -> null);
@@ -374,14 +368,14 @@ public class LegacyRedisCacheTests {
 	@Test // DATAREDIS-553
 	public void testCacheGetSynchronizedNullWithStoredNull() {
 
-		assumeThat("Only suitable when cache does allow null values.", allowCacheNullValues, is(true));
+		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values.").isTrue();
 
 		Object key = getKey();
 		cache.put(key, null);
 
 		Object cachedValue = cache.get(key, () -> null);
 
-		assertThat(cachedValue, is(nullValue()));
+		assertThat(cachedValue).isNull();
 	}
 
 	@SuppressWarnings("unused")
@@ -408,13 +402,13 @@ public class LegacyRedisCacheTests {
 		public void thread1() {
 
 			assertTick(0);
-			assertThat(redisCache.get("key", cacheLoader), equalTo("test"));
+			assertThat(redisCache.get("key", cacheLoader)).isEqualTo("test");
 		}
 
 		public void thread2() {
 
 			waitForTick(1);
-			assertThat(redisCache.get("key", new TestCacheLoader<>("illegal value")), equalTo("test"));
+			assertThat(redisCache.get("key", new TestCacheLoader<>("illegal value"))).isEqualTo("test");
 			assertTick(2);
 		}
 	}

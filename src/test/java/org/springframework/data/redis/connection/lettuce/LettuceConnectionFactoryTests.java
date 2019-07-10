@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
 import io.lettuce.core.EpollProvider;
@@ -37,6 +36,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
@@ -102,9 +102,9 @@ public class LettuceConnectionFactoryTests {
 			// expected, shared conn is closed
 		}
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory.getConnection());
-		assertNotSame(nativeConn, conn2.getNativeConnection());
+		assertThat(conn2.getNativeConnection()).isNotSameAs(nativeConn);
 		conn2.set("anotherkey", "anothervalue");
-		assertEquals("anothervalue", conn2.get("anotherkey"));
+		assertThat(conn2.get("anotherkey")).isEqualTo("anothervalue");
 		conn2.close();
 	}
 
@@ -130,7 +130,7 @@ public class LettuceConnectionFactoryTests {
 	public void testValidateNoError() {
 		factory.setValidateConnection(true);
 		RedisConnection conn2 = factory.getConnection();
-		assertSame(connection.getNativeConnection(), conn2.getNativeConnection());
+		assertThat(conn2.getNativeConnection()).isSameAs(connection.getNativeConnection());
 	}
 
 	@Test // DATAREDIS-973
@@ -174,7 +174,7 @@ public class LettuceConnectionFactoryTests {
 
 		try {
 			// there should still be nothing in database 1
-			assertEquals(Long.valueOf(0), separateDatabase.dbSize());
+			assertThat(separateDatabase.dbSize()).isEqualTo(Long.valueOf(0));
 		} finally {
 			separateDatabase.close();
 			factory2.destroy();
@@ -223,11 +223,11 @@ public class LettuceConnectionFactoryTests {
 	public void testDisableSharedConnection() throws Exception {
 		factory.setShareNativeConnection(false);
 		RedisConnection conn2 = factory.getConnection();
-		assertNotSame(connection.getNativeConnection(), conn2.getNativeConnection());
+		assertThat(conn2.getNativeConnection()).isNotSameAs(connection.getNativeConnection());
 		// Give some time for native connection to asynchronously initialize, else close doesn't work
 		Thread.sleep(100);
 		conn2.close();
-		assertTrue(conn2.isClosed());
+		assertThat(conn2.isClosed()).isTrue();
 		// Give some time for native connection to asynchronously close
 		Thread.sleep(100);
 		try {
@@ -244,7 +244,7 @@ public class LettuceConnectionFactoryTests {
 		RedisAsyncCommands<byte[], byte[]> nativeConn = (RedisAsyncCommands<byte[], byte[]>) connection
 				.getNativeConnection();
 		factory.resetConnection();
-		assertNotSame(nativeConn, factory.getConnection().getNativeConnection());
+		assertThat(factory.getConnection().getNativeConnection()).isNotSameAs(nativeConn);
 		nativeConn.getStatefulConnection().close();
 	}
 
@@ -255,7 +255,7 @@ public class LettuceConnectionFactoryTests {
 				.getNativeConnection();
 		factory.initConnection();
 		RedisConnection newConnection = factory.getConnection();
-		assertNotSame(nativeConn, newConnection.getNativeConnection());
+		assertThat(newConnection.getNativeConnection()).isNotSameAs(nativeConn);
 		newConnection.close();
 	}
 
@@ -267,7 +267,7 @@ public class LettuceConnectionFactoryTests {
 		factory.resetConnection();
 		factory.initConnection();
 		RedisConnection newConnection = factory.getConnection();
-		assertNotSame(nativeConn, newConnection.getNativeConnection());
+		assertThat(newConnection.getNativeConnection()).isNotSameAs(nativeConn);
 		newConnection.close();
 	}
 
@@ -295,7 +295,7 @@ public class LettuceConnectionFactoryTests {
 		factory.setShareNativeConnection(false);
 		factory.setHostName("fakeHost");
 		factory.afterPropertiesSet();
-		assertNull(factory.getSharedConnection());
+		assertThat(factory.getSharedConnection()).isNull();
 	}
 
 	@Test
@@ -363,8 +363,8 @@ public class LettuceConnectionFactoryTests {
 			String key = "key-in-db-2";
 			connectionToDbIndex2.set(key, "the wheel of time");
 
-			assertThat(connection.get(key), nullValue());
-			assertThat(connectionToDbIndex2.get(key), notNullValue());
+			assertThat(connection.get(key)).isNull();
+			assertThat(connectionToDbIndex2.get(key)).isNotNull();
 		} finally {
 			connectionToDbIndex2.close();
 		}
@@ -382,7 +382,7 @@ public class LettuceConnectionFactoryTests {
 		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
 
 		try {
-			assertThat(connection.ping(), is(equalTo("PONG")));
+			assertThat(connection.ping()).isEqualTo("PONG");
 		} finally {
 			connection.close();
 		}
@@ -397,7 +397,7 @@ public class LettuceConnectionFactoryTests {
 
 		ConnectionFactoryTracker.add(factory);
 
-		assertThat(factory.getReactiveConnection().execute(BaseRedisReactiveCommands::ping).blockFirst(), is("PONG"));
+		assertThat(factory.getReactiveConnection().execute(BaseRedisReactiveCommands::ping).blockFirst()).isEqualTo("PONG");
 	}
 
 	@Test // DATAREDIS-667
@@ -424,7 +424,7 @@ public class LettuceConnectionFactoryTests {
 
 		subsequent.close();
 
-		assertThat(initialNativeConnection, is(subsequentNativeConnection));
+		assertThat(initialNativeConnection).isEqualTo(subsequentNativeConnection);
 
 		factory.destroy();
 	}
@@ -442,7 +442,7 @@ public class LettuceConnectionFactoryTests {
 		factory.afterPropertiesSet();
 
 		RedisConnection connection = factory.getConnection();
-		assertThat(connection.ping(), is(equalTo("PONG")));
+		assertThat(connection.ping()).isEqualTo("PONG");
 
 		connection.close();
 		factory.destroy();
@@ -451,8 +451,8 @@ public class LettuceConnectionFactoryTests {
 	@Test // DATAREDIS-762, DATAREDIS-869
 	public void factoryUsesElastiCacheMasterReplicaConnections() {
 
-		assumeThat(String.format("No slaves connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
-				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0, is(true));
+		assumeTrue(String.format("No replicas connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
+				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0);
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
 				.build();
@@ -466,8 +466,8 @@ public class LettuceConnectionFactoryTests {
 		RedisConnection connection = factory.getConnection();
 
 		try {
-			assertThat(connection.ping(), is(equalTo("PONG")));
-			assertThat(connection.info().getProperty("role"), is(equalTo("slave")));
+			assertThat(connection.ping()).isEqualTo("PONG");
+			assertThat(connection.info().getProperty("role")).isEqualTo("slave");
 		} finally {
 			connection.close();
 		}
@@ -478,8 +478,8 @@ public class LettuceConnectionFactoryTests {
 	@Test // DATAREDIS-762, DATAREDIS-869
 	public void factoryUsesElastiCacheMasterWithoutMaster() {
 
-		assumeThat(String.format("No replicas connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
-				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0, is(true));
+		assumeTrue(String.format("No replicas connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
+				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0);
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.MASTER)
 				.build();
@@ -497,8 +497,8 @@ public class LettuceConnectionFactoryTests {
 			fail("Expected RedisException: Master is currently unknown");
 		} catch (RedisSystemException e) {
 
-			assertThat(e.getCause(), is(instanceOf(RedisException.class)));
-			assertThat(e.getCause().getMessage(), containsString("Master is currently unknown"));
+			assertThat(e.getCause()).isInstanceOf(RedisException.class);
+			assertThat(e.getCause().getMessage()).contains("Master is currently unknown");
 		} finally {
 			connection.close();
 		}
@@ -509,8 +509,8 @@ public class LettuceConnectionFactoryTests {
 	@Test // DATAREDIS-580, DATAREDIS-869
 	public void factoryUsesMasterReplicaConnections() {
 
-		assumeThat(String.format("No replicas connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
-				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0, is(true));
+		assumeTrue(String.format("No replicas connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
+				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0);
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
 				.build();
@@ -522,8 +522,8 @@ public class LettuceConnectionFactoryTests {
 		RedisConnection connection = factory.getConnection();
 
 		try {
-			assertThat(connection.ping(), is(equalTo("PONG")));
-			assertThat(connection.info().getProperty("role"), is(equalTo("slave")));
+			assertThat(connection.ping()).isEqualTo("PONG");
+			assertThat(connection.info().getProperty("role")).isEqualTo("slave");
 		} finally {
 			connection.close();
 		}
@@ -545,7 +545,7 @@ public class LettuceConnectionFactoryTests {
 
 		RedisConnection connection = factory.getConnection();
 
-		assertThat(connection.getClientName(), is(equalTo("clientName")));
+		assertThat(connection.getClientName()).isEqualTo("clientName");
 		connection.close();
 	}
 
@@ -560,7 +560,7 @@ public class LettuceConnectionFactoryTests {
 		ConnectionFactoryTracker.add(factory);
 
 		RedisConnection connection = factory.getConnection();
-		assertThat(connection.getClientName(), equalTo("clientName"));
+		assertThat(connection.getClientName()).isEqualTo("clientName");
 
 		connection.close();
 	}

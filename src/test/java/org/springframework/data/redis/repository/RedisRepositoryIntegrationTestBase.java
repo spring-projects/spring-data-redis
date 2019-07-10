@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.repository;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import lombok.Data;
 import lombok.Value;
@@ -27,9 +26,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.hamcrest.core.IsNull;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
@@ -85,18 +84,18 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		repo.saveAll(Arrays.asList(rand, egwene));
 
-		assertThat(repo.count(), is(2L));
+		assertThat(repo.count()).isEqualTo(2L);
 
-		assertThat(repo.findById(rand.id), is(Optional.of(rand)));
-		assertThat(repo.findById(egwene.id), is(Optional.of(egwene)));
+		assertThat(repo.findById(rand.id)).isEqualTo(Optional.of(rand));
+		assertThat(repo.findById(egwene.id)).isEqualTo(Optional.of(egwene));
 
-		assertThat(repo.findByFirstname("rand").size(), is(1));
-		assertThat(repo.findByFirstname("rand"), hasItem(rand));
+		assertThat(repo.findByFirstname("rand").size()).isEqualTo(1);
+		assertThat(repo.findByFirstname("rand")).contains(rand);
 
-		assertThat(repo.findByFirstname("egwene").size(), is(1));
-		assertThat(repo.findByFirstname("egwene"), hasItem(egwene));
+		assertThat(repo.findByFirstname("egwene").size()).isEqualTo(1);
+		assertThat(repo.findByFirstname("egwene")).contains(egwene);
 
-		assertThat(repo.findByLastname("al'thor"), hasItem(rand));
+		assertThat(repo.findByLastname("al'thor")).contains(rand);
 	}
 
 	@Test // DATAREDIS-425
@@ -112,10 +111,10 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		repo.saveAll(Arrays.asList(egwene, marin));
 
-		assertThat(repo.findByLastname("al'vere").size(), is(2));
+		assertThat(repo.findByLastname("al'vere").size()).isEqualTo(2);
 
-		assertThat(repo.findByFirstnameAndLastname("egwene", "al'vere").size(), is(1));
-		assertThat(repo.findByFirstnameAndLastname("egwene", "al'vere").get(0), is(egwene));
+		assertThat(repo.findByFirstnameAndLastname("egwene", "al'vere").size()).isEqualTo(1);
+		assertThat(repo.findByFirstnameAndLastname("egwene", "al'vere").get(0)).isEqualTo(egwene);
 	}
 
 	@Test // DATAREDIS-425
@@ -138,14 +137,14 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		// find and assert current location set correctly
 		Optional<Person> loaded = repo.findById(moiraine.getId());
-		assertThat(loaded.get().city, is(tarValon));
+		assertThat(loaded.get().city).isEqualTo(tarValon);
 
 		// remove reference location data
 		kvTemplate.delete("1", City.class);
 
 		// find and assert the location is gone
 		Optional<Person> reLoaded = repo.findById(moiraine.getId());
-		assertThat(reLoaded.get().city, IsNull.nullValue());
+		assertThat(reLoaded.get().city).isNull();
 	}
 
 	@Test // DATAREDIS-425
@@ -162,13 +161,13 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		Page<Person> page1 = repo.findPersonByLastname("stark", PageRequest.of(0, 5));
 
-		assertThat(page1.getNumberOfElements(), is(5));
-		assertThat(page1.getTotalElements(), is(6L));
+		assertThat(page1.getNumberOfElements()).isEqualTo(5);
+		assertThat(page1.getTotalElements()).isEqualTo(6L);
 
 		Page<Person> page2 = repo.findPersonByLastname("stark", page1.nextPageable());
 
-		assertThat(page2.getNumberOfElements(), is(1));
-		assertThat(page2.getTotalElements(), is(6L));
+		assertThat(page2.getNumberOfElements()).isEqualTo(1);
+		assertThat(page2.getTotalElements()).isEqualTo(6L);
 	}
 
 	@Test // DATAREDIS-425
@@ -182,8 +181,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		List<Person> eddardAndJon = repo.findByFirstnameOrLastname("eddard", "snow");
 
-		assertThat(eddardAndJon, hasSize(2));
-		assertThat(eddardAndJon, containsInAnyOrder(eddard, jon));
+		assertThat(eddardAndJon).hasSize(2);
+		assertThat(eddardAndJon).contains(eddard, jon);
 	}
 
 	@Test // DATAREDIS-547
@@ -195,7 +194,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		repo.saveAll(Arrays.asList(eddard, robb, jon));
 
-		assertThat(repo.findFirstBy(), hasSize(1));
+		assertThat(repo.findFirstBy()).hasSize(1);
 	}
 
 	@Test // DATAREDIS-547
@@ -208,8 +207,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		repo.saveAll(Arrays.asList(eddard, robb, jon));
 
 		Page<Person> firstPage = repo.findAll(PageRequest.of(0, 2));
-		assertThat(firstPage.getContent(), hasSize(2));
-		assertThat(repo.findAll(firstPage.nextPageable()).getContent(), hasSize(1));
+		assertThat(firstPage.getContent()).hasSize(2);
+		assertThat(repo.findAll(firstPage.nextPageable()).getContent()).hasSize(1);
 	}
 
 	@Test // DATAREDIS-551
@@ -222,9 +221,9 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		repo.saveAll(Arrays.asList(eddard, robb, jon));
 
 		Page<Person> firstPage = repo.findBy(PageRequest.of(0, 2));
-		assertThat(firstPage.getContent(), hasSize(2));
-		assertThat(firstPage.getTotalElements(), is(equalTo(3L)));
-		assertThat(repo.findBy(firstPage.nextPageable()).getContent(), hasSize(1));
+		assertThat(firstPage.getContent()).hasSize(2);
+		assertThat(firstPage.getTotalElements()).isEqualTo(3L);
+		assertThat(repo.findBy(firstPage.nextPageable()).getContent()).hasSize(1);
 	}
 
 	@Test // DATAREDIS-771
@@ -242,8 +241,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		List<Person> result = repo.findPersonByAliveIsTrue();
 
-		assertThat(result, hasSize(1));
-		assertThat(result, contains(eddard));
+		assertThat(result).hasSize(1);
+		assertThat(result).containsExactly(eddard);
 	}
 
 	@Test // DATAREDIS-771
@@ -261,8 +260,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		List<Person> result = repo.findPersonByAliveIsFalse();
 
-		assertThat(result, hasSize(1));
-		assertThat(result, contains(robb));
+		assertThat(result).hasSize(1);
+		assertThat(result).containsExactly(robb);
 	}
 
 	@Test // DATAREDIS-547
@@ -275,7 +274,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		repo.saveAll(Arrays.asList(eddard, robb, jon));
 
 		Page<Person> firstPage = repo.findAll(PageRequest.of(100, 2));
-		assertThat(firstPage.getContent(), hasSize(0));
+		assertThat(firstPage.getContent()).hasSize(0);
 	}
 
 	@Test // DATAREDIS-547
@@ -289,15 +288,15 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		Page<Person> page1 = repo.findPersonByLastname("stark", PageRequest.of(1, 3));
 
-		assertThat(page1.getNumberOfElements(), is(0));
-		assertThat(page1.getContent(), hasSize(0));
-		assertThat(page1.getTotalElements(), is(3L));
+		assertThat(page1.getNumberOfElements()).isEqualTo(0);
+		assertThat(page1.getContent()).hasSize(0);
+		assertThat(page1.getTotalElements()).isEqualTo(3L);
 
 		Page<Person> page2 = repo.findPersonByLastname("stark", PageRequest.of(2, 3));
 
-		assertThat(page2.getNumberOfElements(), is(0));
-		assertThat(page2.getContent(), hasSize(0));
-		assertThat(page2.getTotalElements(), is(3L));
+		assertThat(page2.getNumberOfElements()).isEqualTo(0);
+		assertThat(page2.getContent()).hasSize(0);
+		assertThat(page2.getTotalElements()).isEqualTo(3L);
 	}
 
 	@Test // DATAREDIS-547
@@ -309,7 +308,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		repo.saveAll(Arrays.asList(eddard, robb, jon));
 
-		assertThat(repo.findTop2By(), hasSize(2));
+		assertThat(repo.findTop2By()).hasSize(2);
 	}
 
 	@Test // DATAREDIS-547
@@ -325,9 +324,9 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		List<Person> result = repo.findTop2ByLastname("stark");
 
-		assertThat(result, hasSize(2));
+		assertThat(result).hasSize(2);
 		for (Person p : result) {
-			assertThat(p.getLastname(), is("stark"));
+			assertThat(p.getLastname()).isEqualTo("stark");
 		}
 	}
 
@@ -344,7 +343,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		List<Person> result = repo.findAll(Example.of(new Person(null, "stark")));
 
-		assertThat(result, hasSize(3));
+		assertThat(result).hasSize(3);
 	}
 
 	@Test // DATAREDIS-533
@@ -359,11 +358,10 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		cityRepo.saveAll(Arrays.asList(palermo, catania));
 
 		List<City> result = cityRepo.findByLocationNear(new Point(15D, 37D), new Distance(200, Metrics.KILOMETERS));
-		assertThat(result, hasItems(palermo, catania));
+		assertThat(result).contains(palermo, catania);
 
 		result = cityRepo.findByLocationNear(new Point(15D, 37D), new Distance(100, Metrics.KILOMETERS));
-		assertThat(result, hasItems(catania));
-		assertThat(result, not(hasItems(palermo)));
+		assertThat(result).contains(catania).doesNotContain(palermo);
 	}
 
 	@Test // DATAREDIS-533
@@ -378,7 +376,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		cityRepo.saveAll(Arrays.asList(palermo, catania));
 
 		List<City> result = cityRepo.findByLocationNear(new Point(15D, 37D), new Distance(10, Metrics.KILOMETERS));
-		assertThat(result, is(empty()));
+		assertThat(result).isEmpty();
 	}
 
 	@Test // DATAREDIS-533
@@ -399,11 +397,10 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		repo.saveAll(Arrays.asList(p1, p2));
 
 		List<Person> result = repo.findByHometownLocationNear(new Point(15D, 37D), new Distance(200, Metrics.KILOMETERS));
-		assertThat(result, hasItems(p1, p2));
+		assertThat(result).contains(p1, p2);
 
 		result = repo.findByHometownLocationNear(new Point(15D, 37D), new Distance(100, Metrics.KILOMETERS));
-		assertThat(result, hasItems(p2));
-		assertThat(result, not(hasItems(p1)));
+		assertThat(result).contains(p2).doesNotContain(p1);
 	}
 
 	@Test // DATAREDIS-849
@@ -412,8 +409,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Immutable object = new Immutable(null, "Walter", new Immutable("heisenberg", "White", null));
 		Immutable saved = immutableObjectRepo.save(object);
 
-		assertThat(object.id, is(nullValue()));
-		assertThat(saved.id, is(notNullValue()));
+		assertThat(object.id).isNull();
+		assertThat(saved.id).isNotNull();
 	}
 
 	@Test // DATAREDIS-849
@@ -422,8 +419,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Immutable object = new Immutable(null, "Walter", new Immutable("heisenberg", "White", null));
 		List<Immutable> saved = (List) immutableObjectRepo.saveAll(Collections.singleton(object));
 
-		assertThat(object.id, is(nullValue()));
-		assertThat(saved.get(0).id, is(notNullValue()));
+		assertThat(object.id).isNull();
+		assertThat(saved.get(0).id).isNotNull();
 	}
 
 	@Test // DATAREDIS-849
@@ -434,7 +431,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Immutable saved = immutableObjectRepo.save(object);
 
 		Immutable loaded = immutableObjectRepo.findById(saved.id).get();
-		assertThat(loaded.nested, is(nested));
+		assertThat(loaded.nested).isEqualTo(nested);
 	}
 
 	public static interface PersonRepository

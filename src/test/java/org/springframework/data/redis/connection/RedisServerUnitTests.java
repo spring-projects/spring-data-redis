@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Properties;
 
@@ -34,7 +33,7 @@ public class RedisServerUnitTests {
 
 		RedisServer redisServer = RedisServer.newServerFrom(createProperties());
 
-		assertThat(redisServer.getNumberOtherSentinels(), is(2L));
+		assertThat(redisServer.getNumberOtherSentinels()).isEqualTo(2L);
 	}
 
 	private Properties createProperties() {

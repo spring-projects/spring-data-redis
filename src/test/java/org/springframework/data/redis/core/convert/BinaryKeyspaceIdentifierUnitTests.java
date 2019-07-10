@@ -15,10 +15,10 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
+
 import org.springframework.data.redis.core.convert.MappingRedisConverter.BinaryKeyspaceIdentifier;
 
 /**
@@ -31,37 +31,35 @@ public class BinaryKeyspaceIdentifierUnitTests {
 	@Test // DATAREDIS-744
 	public void shouldReturnIfKeyIsValid() {
 
-		assertThat(BinaryKeyspaceIdentifier.isValid(null), is(false));
-		assertThat(BinaryKeyspaceIdentifier.isValid("foo".getBytes()), is(false));
-		assertThat(BinaryKeyspaceIdentifier.isValid("".getBytes()), is(false));
-		assertThat(BinaryKeyspaceIdentifier.isValid("foo:bar".getBytes()), is(true));
-		assertThat(BinaryKeyspaceIdentifier.isValid("foo:bar:baz".getBytes()), is(true));
-		assertThat(BinaryKeyspaceIdentifier.isValid("foo:bar:baz:phantom".getBytes()), is(true));
+		assertThat(BinaryKeyspaceIdentifier.isValid(null)).isFalse();
+		assertThat(BinaryKeyspaceIdentifier.isValid("foo".getBytes())).isFalse();
+		assertThat(BinaryKeyspaceIdentifier.isValid("".getBytes())).isFalse();
+		assertThat(BinaryKeyspaceIdentifier.isValid("foo:bar".getBytes())).isTrue();
+		assertThat(BinaryKeyspaceIdentifier.isValid("foo:bar:baz".getBytes())).isTrue();
+		assertThat(BinaryKeyspaceIdentifier.isValid("foo:bar:baz:phantom".getBytes())).isTrue();
 	}
 
 	@Test // DATAREDIS-744
 	public void shouldReturnKeyspace() {
 
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).getKeyspace(), is(equalTo("foo".getBytes())));
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).getKeyspace(), is(equalTo("foo".getBytes())));
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz:phantom".getBytes()).getKeyspace(),
-				is(equalTo("foo".getBytes())));
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).getKeyspace()).isEqualTo("foo".getBytes());
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).getKeyspace()).isEqualTo("foo".getBytes());
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz:phantom".getBytes()).getKeyspace()).isEqualTo("foo".getBytes());
 	}
 
 	@Test // DATAREDIS-744
 	public void shouldReturnId() {
 
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).getId(), is(equalTo("bar".getBytes())));
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).getId(), is(equalTo("bar:baz".getBytes())));
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz:phantom".getBytes()).getId(),
-				is(equalTo("bar:baz".getBytes())));
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).getId()).isEqualTo("bar".getBytes());
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).getId()).isEqualTo("bar:baz".getBytes());
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz:phantom".getBytes()).getId()).isEqualTo("bar:baz".getBytes());
 	}
 
 	@Test // DATAREDIS-744
 	public void shouldReturnPhantomKey() {
 
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).isPhantomKey(), is(false));
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).isPhantomKey(), is(false));
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz:phantom".getBytes()).isPhantomKey(), is(true));
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).isPhantomKey()).isFalse();
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).isPhantomKey()).isFalse();
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz:phantom".getBytes()).isPhantomKey()).isTrue();
 	}
 }

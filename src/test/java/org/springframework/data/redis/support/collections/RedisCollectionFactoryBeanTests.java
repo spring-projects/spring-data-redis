@@ -15,12 +15,12 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
@@ -83,19 +83,19 @@ public class RedisCollectionFactoryBeanTests {
 	@Test
 	public void testNone() throws Exception {
 		RedisStore store = createCollection("nosrt", CollectionType.PROPERTIES);
-		assertThat(store, instanceOf(RedisProperties.class));
+		assertThat(store).isInstanceOf(RedisProperties.class);
 
 		store = createCollection("nosrt", CollectionType.MAP);
-		assertThat(store, instanceOf(DefaultRedisMap.class));
+		assertThat(store).isInstanceOf(DefaultRedisMap.class);
 
 		store = createCollection("nosrt", CollectionType.SET);
-		assertThat(store, instanceOf(DefaultRedisSet.class));
+		assertThat(store).isInstanceOf(DefaultRedisSet.class);
 
 		store = createCollection("nosrt", CollectionType.LIST);
-		assertThat(store, instanceOf(DefaultRedisList.class));
+		assertThat(store).isInstanceOf(DefaultRedisList.class);
 
 		store = createCollection("nosrt");
-		assertThat(store, instanceOf(DefaultRedisList.class));
+		assertThat(store).isInstanceOf(DefaultRedisList.class);
 	}
 
 	@Test
@@ -105,15 +105,15 @@ public class RedisCollectionFactoryBeanTests {
 
 		template.boundSetOps(key).add(val);
 		RedisStore col = createCollection(key);
-		assertThat(col, instanceOf(DefaultRedisSet.class));
+		assertThat(col).isInstanceOf(DefaultRedisSet.class);
 
 		key = "map";
 		template.boundHashOps(key).put(val, val);
 		col = createCollection(key);
-		assertThat(col, instanceOf(DefaultRedisMap.class));
+		assertThat(col).isInstanceOf(DefaultRedisMap.class);
 
 		col = createCollection(key, CollectionType.PROPERTIES);
-		assertThat(col, instanceOf(RedisProperties.class));
+		assertThat(col).isInstanceOf(RedisProperties.class);
 
 	}
 }

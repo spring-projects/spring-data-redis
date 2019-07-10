@@ -29,7 +29,7 @@ public class BeanUtilsHashMapperTest extends AbstractHashMapperTest {
 	}
 
 	@Test(expected = Exception.class)
-	public void testNestedBean() throws Exception {
+	public void testNestedBean() {
 		super.testNestedBean();
 	}
 

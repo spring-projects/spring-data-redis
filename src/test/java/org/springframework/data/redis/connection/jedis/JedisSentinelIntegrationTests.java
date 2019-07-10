@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import redis.clients.jedis.Jedis;
 
@@ -30,6 +29,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
@@ -136,8 +136,8 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 	public void shouldReadMastersCorrectly() {
 
 		List<RedisServer> servers = (List<RedisServer>) connectionFactory.getSentinelConnection().masters();
-		assertThat(servers.size(), is(1));
-		assertThat(servers.get(0).getName(), is(MASTER_NAME));
+		assertThat(servers.size()).isEqualTo(1);
+		assertThat(servers.get(0).getName()).isEqualTo(MASTER_NAME);
 	}
 
 	@Test // DATAREDIS-330
@@ -146,11 +146,11 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
 
 		List<RedisServer> servers = (List<RedisServer>) sentinelConnection.masters();
-		assertThat(servers.size(), is(1));
+		assertThat(servers.size()).isEqualTo(1);
 
 		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
-		assertThat(slaves.size(), is(2));
-		assertThat(slaves, hasItems(SLAVE_0, SLAVE_1));
+		assertThat(slaves.size()).isEqualTo(2);
+		assertThat(slaves).contains(SLAVE_0, SLAVE_1);
 	}
 
 	@Test // DATAREDIS-552
@@ -159,7 +159,7 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
 		Jedis jedis = (Jedis) ReflectionTestUtils.getField(sentinelConnection, "jedis");
 
-		assertThat(jedis.clientGetname(), is(equalTo("jedis-client")));
+		assertThat(jedis.clientGetname()).isEqualTo("jedis-client");
 	}
 
 }

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -28,13 +27,11 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
-import org.hamcrest.core.AllOf;
-import org.hamcrest.core.IsCollectionContaining;
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.SettingsUtils;
@@ -100,8 +97,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		actual.add(byteConnection.evalSha(sha1, ReturnType.MULTI, 1, "key1".getBytes(), "arg1".getBytes()));
 		List<Object> results = getResults();
 		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
-				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
+		assertThat(Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }))
+				.isEqualTo(Arrays.asList(new Object[] { "key1", "arg1" }));
 	}
 
 	@Test
@@ -152,7 +149,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		strTuples.add(new DefaultStringTuple("Bob".getBytes(), "Bob", 2.0));
 		strTuples.add(new DefaultStringTuple("James".getBytes(), "James", 2.0));
 		Long added = connection.zAdd("myset", strTuples);
-		assertEquals(2L, added.longValue());
+		assertThat(added.longValue()).isEqualTo(2L);
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
@@ -256,9 +253,9 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		connection.subscribe(listener, expectedChannel.getBytes());
 
 		Message message = messages.poll(5, TimeUnit.SECONDS);
-		assertNotNull(message);
-		assertEquals(expectedMessage, new String(message.getBody()));
-		assertEquals(expectedChannel, new String(message.getChannel()));
+		assertThat(message).isNotNull();
+		assertThat(new String(message.getBody())).isEqualTo(expectedMessage);
+		assertThat(new String(message.getChannel())).isEqualTo(expectedChannel);
 	}
 
 	@Test
@@ -269,7 +266,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		final BlockingDeque<Message> messages = new LinkedBlockingDeque<>();
 
 		final MessageListener listener = (message, pattern) -> {
-			assertEquals(expectedPattern, new String(pattern));
+			assertThat(new String(pattern)).isEqualTo(expectedPattern);
 			messages.add(message);
 		};
 
@@ -314,11 +311,11 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		// Not all providers block on subscribe (Lettuce does not), give some
 		// time for messages to be received
 		Message message = messages.poll(5, TimeUnit.SECONDS);
-		assertNotNull(message);
-		assertEquals(expectedMessage, new String(message.getBody()));
+		assertThat(message).isNotNull();
+		assertThat(new String(message.getBody())).isEqualTo(expectedMessage);
 		message = messages.poll(5, TimeUnit.SECONDS);
-		assertNotNull(message);
-		assertEquals(expectedMessage, new String(message.getBody()));
+		assertThat(message).isNotNull();
+		assertThat(new String(message.getBody())).isEqualTo(expectedMessage);
 	}
 
 	@Test
@@ -351,9 +348,9 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		connection.set("redis", "supercalifragilisticexpialidocious");
 
 		assertThat(
-				(Iterable<byte[]>) connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()),
-				AllOf.allOf(IsInstanceOf.instanceOf(List.class), IsCollectionContaining.hasItems("awesome".getBytes(),
-						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
+				(Iterable<byte[]>) connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()))
+						.isInstanceOf(List.class)
+						.contains("awesome".getBytes(), "cool".getBytes(), "supercalifragilisticexpialidocious".getBytes());
 	}
 
 	@Test // DATAREDIS-286, DATAREDIS-564
@@ -365,7 +362,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		connection.expire("expireKey", seconds);
 		long ttl = connection.ttl("expireKey");
 
-		assertThat(ttl, is(seconds));
+		assertThat(ttl).isEqualTo(seconds);
 	}
 
 	@Test // DATAREDIS-286
@@ -377,8 +374,10 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		connection.pExpire("pexpireKey", millis);
 		long ttl = connection.pTtl("pexpireKey");
 
-		assertTrue(String.format("difference between millis=%s and ttl=%s should not be greater than 20ms but is %s",
-				millis, ttl, millis - ttl), millis - ttl < 20L);
+		assertThat(millis - ttl < 20L)
+				.as(String.format("difference between millis=%s and ttl=%s should not be greater than 20ms but is %s", millis,
+						ttl, millis - ttl))
+				.isTrue();
 	}
 
 	@Test // DATAREDIS-330
@@ -387,12 +386,12 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		((JedisConnection) byteConnection).setSentinelConfiguration(
 				new RedisSentinelConfiguration().master("mymaster").sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
-		assertThat(connection.getSentinelConnection(), notNullValue());
+		assertThat(connection.getSentinelConnection()).isNotNull();
 	}
 
 	@Test // DATAREDIS-552
 	public void shouldSetClientName() {
-		assertThat(connection.getClientName(), is(equalTo("jedis-client")));
+		assertThat(connection.getClientName()).isEqualTo("jedis-client");
 	}
 
 	@Test // DATAREDIS-106
@@ -404,6 +403,6 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		Set<String> zRangeByScore = connection.zRangeByScore("myzset", "(1", "2");
 
-		assertEquals("two", zRangeByScore.iterator().next());
+		assertThat(zRangeByScore.iterator().next()).isEqualTo("two");
 	}
 }

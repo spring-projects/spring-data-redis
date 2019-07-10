@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.nio.charset.Charset;
@@ -30,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -127,7 +127,7 @@ public class IndexWriterUnitTests {
 		ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
 
 		verify(connectionMock, times(1)).del(captor.capture());
-		assertThat(captor.getAllValues(), hasItems(indexKey1, indexKey2));
+		assertThat(captor.getAllValues()).contains(indexKey1, indexKey2);
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-425

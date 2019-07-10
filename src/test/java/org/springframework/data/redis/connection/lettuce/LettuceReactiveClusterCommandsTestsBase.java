@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.*;
-import static org.junit.Assume.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
@@ -25,6 +24,7 @@ import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+
 import org.springframework.data.redis.test.util.LettuceRedisClusterClientProvider;
 
 /**
@@ -40,7 +40,9 @@ public abstract class LettuceReactiveClusterCommandsTestsBase {
 
 	@Before
 	public void before() {
-		assumeThat(clientProvider.test(), is(true));
+
+		assumeThat(clientProvider.test()).isTrue();
+
 		nativeCommands = clientProvider.getClient().connect().sync();
 		connection = new LettuceReactiveRedisClusterConnection(
 				new ClusterConnectionProvider(clientProvider.getClient(), LettuceReactiveRedisConnection.CODEC),

@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.AnyOf.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.test.util.MockitoUtils.*;
@@ -46,6 +43,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.ClusterNodeResourceProvider;
 import org.springframework.data.redis.connection.ClusterTopologyProvider;
@@ -185,11 +183,11 @@ public class LettuceClusterConnectionUnitTests {
 	@Test // DATAREDIS-315
 	public void isClosedShouldReturnConnectionStateCorrectly() {
 
-		assertThat(connection.isClosed(), is(false));
+		assertThat(connection.isClosed()).isFalse();
 
 		connection.close();
 
-		assertThat(connection.isClosed(), is(true));
+		assertThat(connection.isClosed()).isTrue();
 	}
 
 	@Test // DATAREDIS-315
@@ -229,7 +227,7 @@ public class LettuceClusterConnectionUnitTests {
 		when(clusterConnection2Mock.randomkey()).thenReturn(KEY_2_BYTES);
 		when(clusterConnection3Mock.randomkey()).thenReturn(KEY_3_BYTES);
 
-		assertThat(connection.randomKey(), anyOf(is(KEY_1_BYTES), is(KEY_2_BYTES), is(KEY_3_BYTES)));
+		assertThat(connection.randomKey()).isIn(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES);
 		verifyInvocationsAcross("randomkey", times(1), clusterConnection1Mock, clusterConnection2Mock,
 				clusterConnection3Mock);
 	}
@@ -240,7 +238,7 @@ public class LettuceClusterConnectionUnitTests {
 		when(clusterConnection3Mock.randomkey()).thenReturn(KEY_3_BYTES);
 
 		for (int i = 0; i < 100; i++) {
-			assertThat(connection.randomKey(), is(KEY_3_BYTES));
+			assertThat(connection.randomKey()).isEqualTo(KEY_3_BYTES);
 		}
 	}
 
@@ -251,7 +249,7 @@ public class LettuceClusterConnectionUnitTests {
 		when(clusterConnection2Mock.randomkey()).thenReturn(null);
 		when(clusterConnection3Mock.randomkey()).thenReturn(null);
 
-		assertThat(connection.randomKey(), nullValue());
+		assertThat(connection.randomKey()).isNull();
 	}
 
 	@Test // DATAREDIS-315

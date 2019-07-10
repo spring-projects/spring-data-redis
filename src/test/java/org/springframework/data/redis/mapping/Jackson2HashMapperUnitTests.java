@@ -111,7 +111,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	public void shouldMapUntypedList() {
 
 		WithList source = new WithList();
-		source.objects = Arrays.<Object> asList(Integer.valueOf(100), "foo", new Person("jon", "snow", 19));
+		source.objects = Arrays.asList(100, "foo", new Person("jon", "snow", 19));
 		assertBackAndForwardMapping(source);
 	}
 
@@ -142,7 +142,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 		WithMap source = new WithMap();
 		source.objects = new LinkedHashMap<>();
 		source.objects.put("1", "spring");
-		source.objects.put("2", Integer.valueOf(100));
+		source.objects.put("2", 100);
 		source.objects.put("3", "redis");
 		assertBackAndForwardMapping(source);
 	}

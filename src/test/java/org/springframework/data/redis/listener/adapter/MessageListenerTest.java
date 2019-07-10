@@ -15,14 +15,14 @@
  */
 package org.springframework.data.redis.listener.adapter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
 import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -68,12 +68,12 @@ public class MessageListenerTest {
 	@Test
 	public void testThatWhenNoDelegateIsSuppliedTheDelegateIsAssumedToBeTheMessageListenerAdapterItself()
 			throws Exception {
-		assertSame(adapter, adapter.getDelegate());
+		assertThat(adapter.getDelegate()).isSameAs(adapter);
 	}
 
 	@Test
 	public void testThatTheDefaultMessageHandlingMethodNameIsTheConstantDefault() throws Exception {
-		assertEquals(MessageListenerAdapter.ORIGINAL_DEFAULT_LISTENER_METHOD, adapter.getDefaultListenerMethod());
+		assertThat(adapter.getDefaultListenerMethod()).isEqualTo(MessageListenerAdapter.ORIGINAL_DEFAULT_LISTENER_METHOD);
 	}
 
 	public void testAdapterWithListenerAndDefaultMessage() throws Exception {
@@ -153,7 +153,7 @@ public class MessageListenerTest {
 		};
 
 		listenerAdapter.onMessage(STRING_MSG, RAW_CHANNEL);
-		assertEquals(1, listener.count);
+		assertThat(listener.count).isEqualTo(1);
 	}
 
 	@Test // DATAREDIS-337

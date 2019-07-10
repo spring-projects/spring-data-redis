@@ -15,10 +15,11 @@
  */
 package org.springframework.data.redis.listener.adapter;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
@@ -41,6 +42,6 @@ public class ContainerXmlSetupTest {
 	public void testContainerSetup() throws Exception {
 		ctx = new GenericXmlApplicationContext("/org/springframework/data/redis/listener/container.xml");
 		RedisMessageListenerContainer container = ctx.getBean("redisContainer", RedisMessageListenerContainer.class);
-		assertTrue(container.isRunning());
+		assertThat(container.isRunning()).isTrue();
 	}
 }

@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,6 +30,7 @@ import java.util.Stack;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
@@ -45,7 +44,7 @@ public class ScanCursorUnitTests {
 	public void cursorShouldNotLoopWhenNoValuesFound() {
 
 		CapturingCursorDummy cursor = initCursor(new LinkedList<>());
-		assertThat(cursor.hasNext(), is(false));
+		assertThat(cursor.hasNext()).isFalse();
 	}
 
 	@Test(expected = NoSuchElementException.class) // DATAREDIS-290
@@ -60,17 +59,17 @@ public class ScanCursorUnitTests {
 		values.add(createIteration(0, "spring", "data", "redis"));
 		CapturingCursorDummy cursor = initCursor(values);
 
-		assertThat(cursor.next(), is("spring"));
-		assertThat(cursor.getCursorId(), is(0L));
-		assertThat(cursor.hasNext(), is(true));
+		assertThat(cursor.next()).isEqualTo("spring");
+		assertThat(cursor.getCursorId()).isEqualTo(0L);
+		assertThat(cursor.hasNext()).isTrue();
 
-		assertThat(cursor.next(), is("data"));
-		assertThat(cursor.getCursorId(), is(0L));
-		assertThat(cursor.hasNext(), is(true));
+		assertThat(cursor.next()).isEqualTo("data");
+		assertThat(cursor.getCursorId()).isEqualTo(0L);
+		assertThat(cursor.hasNext()).isTrue();
 
-		assertThat(cursor.next(), is("redis"));
-		assertThat(cursor.getCursorId(), is(0L));
-		assertThat(cursor.hasNext(), is(false));
+		assertThat(cursor.next()).isEqualTo("redis");
+		assertThat(cursor.getCursorId()).isEqualTo(0L);
+		assertThat(cursor.hasNext()).isFalse();
 	}
 
 	@Test // DATAREDIS-290
@@ -82,17 +81,17 @@ public class ScanCursorUnitTests {
 		values.add(createIteration(0, "redis"));
 		CapturingCursorDummy cursor = initCursor(values);
 
-		assertThat(cursor.next(), is("spring"));
-		assertThat(cursor.getCursorId(), is(1L));
-		assertThat(cursor.hasNext(), is(true));
+		assertThat(cursor.next()).isEqualTo("spring");
+		assertThat(cursor.getCursorId()).isEqualTo(1L);
+		assertThat(cursor.hasNext()).isTrue();
 
-		assertThat(cursor.next(), is("data"));
-		assertThat(cursor.getCursorId(), is(2L));
-		assertThat(cursor.hasNext(), is(true));
+		assertThat(cursor.next()).isEqualTo("data");
+		assertThat(cursor.getCursorId()).isEqualTo(2L);
+		assertThat(cursor.hasNext()).isTrue();
 
-		assertThat(cursor.next(), is("redis"));
-		assertThat(cursor.getCursorId(), is(0L));
-		assertThat(cursor.hasNext(), is(false));
+		assertThat(cursor.next()).isEqualTo("redis");
+		assertThat(cursor.getCursorId()).isEqualTo(0L);
+		assertThat(cursor.hasNext()).isFalse();
 	}
 
 	@Test // DATAREDIS-290
@@ -100,7 +99,7 @@ public class ScanCursorUnitTests {
 
 		CapturingCursorDummy cursor = new CapturingCursorDummy(null);
 
-		assertThat(cursor.isClosed(), is(false));
+		assertThat(cursor.isClosed()).isFalse();
 
 		exception.expect(InvalidDataAccessApiUsageException.class);
 		exception.expectMessage("closed cursor");
@@ -117,12 +116,12 @@ public class ScanCursorUnitTests {
 		values.add(createIteration(0, "redis"));
 		Cursor<String> cursor = initCursor(values).open();
 
-		assertThat(cursor.next(), is("spring"));
-		assertThat(cursor.getCursorId(), is(1L));
+		assertThat(cursor.next()).isEqualTo("spring");
+		assertThat(cursor.getCursorId()).isEqualTo(1L);
 
 		// close the cursor
 		cursor.close();
-		assertThat(cursor.isClosed(), is(true));
+		assertThat(cursor.isClosed()).isTrue();
 
 		// reopen cursor at last position
 		cursor.open();
@@ -137,13 +136,13 @@ public class ScanCursorUnitTests {
 		values.add(createIteration(0, "redis"));
 		Cursor<String> cursor = initCursor(values);
 
-		assertThat(cursor.getPosition(), is(0L));
+		assertThat(cursor.getPosition()).isEqualTo(0L);
 
 		cursor.next();
-		assertThat(cursor.getPosition(), is(1L));
+		assertThat(cursor.getPosition()).isEqualTo(1L);
 
 		cursor.next();
-		assertThat(cursor.getPosition(), is(2L));
+		assertThat(cursor.getPosition()).isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-417
@@ -163,8 +162,8 @@ public class ScanCursorUnitTests {
 			result.add(cursor.next());
 		}
 
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems("spring", "redis"));
+		assertThat(result.size()).isEqualTo(2);
+		assertThat(result).contains("spring", "redis");
 	}
 
 	@Test // DATAREDIS-417
@@ -186,8 +185,8 @@ public class ScanCursorUnitTests {
 			result.add(cursor.next());
 		}
 
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems("spring", "data"));
+		assertThat(result.size()).isEqualTo(2);
+		assertThat(result).contains("spring", "data");
 	}
 
 	@Test // DATAREDIS-417
@@ -202,7 +201,7 @@ public class ScanCursorUnitTests {
 		values.add(createIteration(0));
 		Cursor<String> cursor = initCursor(values);
 
-		assertThat(cursor.getPosition(), is(0L));
+		assertThat(cursor.getPosition()).isEqualTo(0L);
 
 		int loops = 0;
 		while (cursor.hasNext()) {
@@ -210,8 +209,8 @@ public class ScanCursorUnitTests {
 			loops++;
 		}
 
-		assertThat(loops, is(0));
-		assertThat(cursor.getCursorId(), is(0L));
+		assertThat(loops).isEqualTo(0);
+		assertThat(cursor.getCursorId()).isEqualTo(0L);
 	}
 
 	private CapturingCursorDummy initCursor(Queue<ScanIteration<String>> values) {

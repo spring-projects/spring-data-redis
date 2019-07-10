@@ -15,18 +15,14 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.collection.IsIterableContainingInAnyOrder.*;
-import static org.hamcrest.core.AnyOf.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 
 import org.junit.Test;
+
 import org.springframework.data.redis.core.ScanOptions;
 
 /**
@@ -39,13 +35,13 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 	@Test // DATAREDIS-525
 	public void sAddShouldAddSingleValue() {
-		assertThat(connection.setCommands().sAdd(KEY_1_BBUFFER, VALUE_1_BBUFFER).block(), is(1L));
+		assertThat(connection.setCommands().sAdd(KEY_1_BBUFFER, VALUE_1_BBUFFER).block()).isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-525
 	public void sAddShouldAddValues() {
-		assertThat(connection.setCommands().sAdd(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER)).block(),
-				is(2L));
+		assertThat(connection.setCommands().sAdd(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER)).block())
+				.isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-525
@@ -53,8 +49,8 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.setCommands().sRem(KEY_1_BBUFFER, VALUE_1_BBUFFER).block(), is(1L));
-		assertThat(nativeCommands.sismember(KEY_1, VALUE_1), is(false));
+		assertThat(connection.setCommands().sRem(KEY_1_BBUFFER, VALUE_1_BBUFFER).block()).isEqualTo(1L);
+		assertThat(nativeCommands.sismember(KEY_1, VALUE_1)).isFalse();
 	}
 
 	@Test // DATAREDIS-525
@@ -62,10 +58,10 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.setCommands().sRem(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER)).block(),
-				is(2L));
-		assertThat(nativeCommands.sismember(KEY_1, VALUE_1), is(false));
-		assertThat(nativeCommands.sismember(KEY_1, VALUE_2), is(false));
+		assertThat(connection.setCommands().sRem(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER)).block())
+				.isEqualTo(2L);
+		assertThat(nativeCommands.sismember(KEY_1, VALUE_1)).isFalse();
+		assertThat(nativeCommands.sismember(KEY_1, VALUE_2)).isFalse();
 	}
 
 	@Test // DATAREDIS-525
@@ -73,7 +69,7 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.setCommands().sPop(KEY_1_BBUFFER).block(), is(notNullValue()));
+		assertThat(connection.setCommands().sPop(KEY_1_BBUFFER).block()).isNotNull();
 	}
 
 	@Test // DATAREDIS-668
@@ -86,7 +82,7 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 	@Test // DATAREDIS-525
 	public void sPopShouldReturnNullWhenNotPresent() {
-		assertThat(connection.setCommands().sPop(KEY_1_BBUFFER).block(), is(nullValue()));
+		assertThat(connection.setCommands().sPop(KEY_1_BBUFFER).block()).isNull();
 	}
 
 	@Test // DATAREDIS-525
@@ -95,8 +91,8 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 		nativeCommands.sadd(KEY_2, VALUE_1);
 
-		assertThat(connection.setCommands().sMove(KEY_1_BBUFFER, KEY_2_BBUFFER, VALUE_3_BBUFFER).block(), is(true));
-		assertThat(nativeCommands.sismember(KEY_2, VALUE_3), is(true));
+		assertThat(connection.setCommands().sMove(KEY_1_BBUFFER, KEY_2_BBUFFER, VALUE_3_BBUFFER).block()).isTrue();
+		assertThat(nativeCommands.sismember(KEY_2, VALUE_3)).isTrue();
 	}
 
 	@Test // DATAREDIS-525
@@ -105,8 +101,8 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 		nativeCommands.sadd(KEY_2, VALUE_1);
 
-		assertThat(connection.setCommands().sMove(KEY_1_BBUFFER, KEY_2_BBUFFER, VALUE_3_BBUFFER).block(), is(false));
-		assertThat(nativeCommands.sismember(KEY_2, VALUE_3), is(false));
+		assertThat(connection.setCommands().sMove(KEY_1_BBUFFER, KEY_2_BBUFFER, VALUE_3_BBUFFER).block()).isFalse();
+		assertThat(nativeCommands.sismember(KEY_2, VALUE_3)).isFalse();
 	}
 
 	@Test // DATAREDIS-525
@@ -115,9 +111,9 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 		nativeCommands.sadd(KEY_2, VALUE_1, VALUE_3);
 
-		assertThat(connection.setCommands().sMove(KEY_1_BBUFFER, KEY_2_BBUFFER, VALUE_3_BBUFFER).block(), is(true));
-		assertThat(nativeCommands.sismember(KEY_1, VALUE_3), is(false));
-		assertThat(nativeCommands.sismember(KEY_2, VALUE_3), is(true));
+		assertThat(connection.setCommands().sMove(KEY_1_BBUFFER, KEY_2_BBUFFER, VALUE_3_BBUFFER).block()).isTrue();
+		assertThat(nativeCommands.sismember(KEY_1, VALUE_3)).isFalse();
+		assertThat(nativeCommands.sismember(KEY_2, VALUE_3)).isTrue();
 	}
 
 	@Test // DATAREDIS-525
@@ -125,7 +121,7 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.setCommands().sCard(KEY_1_BBUFFER).block(), is(3L));
+		assertThat(connection.setCommands().sCard(KEY_1_BBUFFER).block()).isEqualTo(3L);
 	}
 
 	@Test // DATAREDIS-525
@@ -133,7 +129,7 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 
-		assertThat(connection.setCommands().sIsMember(KEY_1_BBUFFER, VALUE_1_BBUFFER).block(), is(true));
+		assertThat(connection.setCommands().sIsMember(KEY_1_BBUFFER, VALUE_1_BBUFFER).block()).isTrue();
 	}
 
 	@Test // DATAREDIS-525
@@ -141,7 +137,7 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 
-		assertThat(connection.setCommands().sIsMember(KEY_1_BBUFFER, VALUE_3_BBUFFER).block(), is(false));
+		assertThat(connection.setCommands().sIsMember(KEY_1_BBUFFER, VALUE_3_BBUFFER).block()).isFalse();
 	}
 
 	@Test // DATAREDIS-525, DATAREDIS-647
@@ -165,9 +161,9 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 		nativeCommands.sadd(KEY_2, VALUE_2, VALUE_3);
 
-		assertThat(connection.setCommands().sInterStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block(),
-				is(1L));
-		assertThat(nativeCommands.sismember(KEY_3, VALUE_2), is(true));
+		assertThat(connection.setCommands().sInterStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block())
+				.isEqualTo(1L);
+		assertThat(nativeCommands.sismember(KEY_3, VALUE_2)).isTrue();
 	}
 
 	@Test // DATAREDIS-525
@@ -187,8 +183,8 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 		nativeCommands.sadd(KEY_2, VALUE_2, VALUE_3);
 
-		assertThat(connection.setCommands().sUnionStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block(),
-				is(3L));
+		assertThat(connection.setCommands().sUnionStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block())
+				.isEqualTo(3L);
 	}
 
 	@Test // DATAREDIS-525, DATAREDIS-647
@@ -212,8 +208,8 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 		nativeCommands.sadd(KEY_2, VALUE_2, VALUE_3);
 
-		assertThat(connection.setCommands().sDiffStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block(),
-				is(1L));
+		assertThat(connection.setCommands().sDiffStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block())
+				.isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-525
@@ -222,8 +218,7 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
 		StepVerifier.create(connection.setCommands().sMembers(KEY_1_BBUFFER).buffer(3)) //
-				.consumeNextWith(
-						list -> assertThat(list, containsInAnyOrder(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER))) //
+				.consumeNextWith(list -> assertThat(list).contains(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER)) //
 				.verifyComplete();
 	}
 
@@ -247,8 +242,8 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.setCommands().sRandMember(KEY_1_BBUFFER).block(),
-				anyOf(equalTo(VALUE_1_BBUFFER), equalTo(VALUE_2_BBUFFER), equalTo(VALUE_3_BBUFFER)));
+		assertThat(connection.setCommands().sRandMember(KEY_1_BBUFFER).block()).isIn(VALUE_1_BBUFFER, VALUE_2_BBUFFER,
+				VALUE_3_BBUFFER);
 	}
 
 	@Test // DATAREDIS-525

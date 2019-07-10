@@ -15,9 +15,10 @@
  */
 package org.springframework.data.redis.core.script;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.scripting.support.StaticScriptSource;
@@ -39,10 +40,10 @@ public class DefaultRedisScriptTests {
 		redisScript.setResultType(String.class);
 		String sha1 = redisScript.getSha1();
 		// Ensure multiple calls return same sha
-		assertEquals(sha1, redisScript.getSha1());
+		assertThat(redisScript.getSha1()).isEqualTo(sha1);
 		script.setScript("return KEYS[2]");
 		// Sha should now be different as script text has changed
-		assertFalse(sha1.equals(redisScript.getSha1()));
+		assertThat(sha1.equals(redisScript.getSha1())).isFalse();
 	}
 
 	@Test
@@ -51,7 +52,7 @@ public class DefaultRedisScriptTests {
 		DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
 		redisScript.setScriptText("return ARGS[1]");
 		redisScript.setResultType(String.class);
-		assertEquals("return ARGS[1]", redisScript.getScriptAsString());
+		assertThat(redisScript.getScriptAsString()).isEqualTo("return ARGS[1]");
 	}
 
 	@Test(expected = ScriptingException.class)

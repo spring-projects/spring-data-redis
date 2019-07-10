@@ -15,7 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
+
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +26,7 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
@@ -32,8 +35,6 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
-
-import redis.clients.jedis.JedisPoolConfig;
 
 /**
  * Integration test of {@link JedisConnection} pipeline functionality
@@ -102,7 +103,7 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 		actual.add(connection.exec());
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] { true, "somethingelse" }), execResults);
+		assertThat(execResults).isEqualTo(Arrays.asList(new Object[] { true, "somethingelse" }));
 	}
 
 	@Test

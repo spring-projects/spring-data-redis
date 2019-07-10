@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import reactor.test.StepVerifier;
 
@@ -28,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.Test;
+
 import org.springframework.data.redis.core.ScanOptions;
 
 /**
@@ -101,7 +101,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		StepVerifier.create(connection.hashCommands().hMGet(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_3_BBUFFER)))
 				.consumeNextWith(actual -> {
 
-					assertThat(actual, hasItems(VALUE_1_BBUFFER, VALUE_3_BBUFFER));
+					assertThat(actual).contains(VALUE_1_BBUFFER, VALUE_3_BBUFFER);
 
 				}).verifyComplete();
 	}
@@ -126,8 +126,8 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		fieldValues.put(FIELD_2_BBUFFER, VALUE_2_BBUFFER);
 
 		StepVerifier.create(connection.hashCommands().hMSet(KEY_1_BBUFFER, fieldValues)).expectNext(true).verifyComplete();
-		assertThat(nativeCommands.hget(KEY_1, FIELD_1), is(equalTo(VALUE_1)));
-		assertThat(nativeCommands.hget(KEY_1, FIELD_2), is(equalTo(VALUE_2)));
+		assertThat(nativeCommands.hget(KEY_1, FIELD_1)).isEqualTo(VALUE_1);
+		assertThat(nativeCommands.hget(KEY_1, FIELD_2)).isEqualTo(VALUE_2);
 	}
 
 	@Test // DATAREDIS-791
@@ -143,7 +143,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 
 		StepVerifier.create(connection.hashCommands().hMSet(KEY_1_BBUFFER, overwriteFieldValues)).expectNext(true)
 				.verifyComplete();
-		assertThat(nativeCommands.hget(KEY_1, FIELD_1), is(equalTo(VALUE_2)));
+		assertThat(nativeCommands.hget(KEY_1, FIELD_1)).isEqualTo(VALUE_2);
 	}
 
 	@Test // DATAREDIS-525
@@ -231,7 +231,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 
 		StepVerifier.create(connection.hashCommands().hGetAll(KEY_1_BBUFFER).buffer(3)) //
 				.consumeNextWith(list -> {
-					assertTrue(list.containsAll(expected.entrySet()));
+					assertThat(list.containsAll(expected.entrySet())).isTrue();
 				}) //
 				.verifyComplete();
 	}

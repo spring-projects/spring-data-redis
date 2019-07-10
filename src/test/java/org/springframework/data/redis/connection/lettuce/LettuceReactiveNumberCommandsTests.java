@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.number.IsCloseTo.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.data.Offset.offset;
 
 import org.junit.Test;
 
@@ -28,22 +27,22 @@ public class LettuceReactiveNumberCommandsTests extends LettuceReactiveCommandsT
 
 	@Test // DATAREDIS-525
 	public void incrByDoubleShouldIncreaseValueCorrectly() {
-		assertThat(connection.numberCommands().incrBy(KEY_1_BBUFFER, 1.5D).block(), is(closeTo(1.5D, 0D)));
+		assertThat(connection.numberCommands().incrBy(KEY_1_BBUFFER, 1.5D).block()).isCloseTo(1.5D, offset(0D));
 	}
 
 	@Test // DATAREDIS-525
 	public void incrByIntegerShouldIncreaseValueCorrectly() {
-		assertThat(connection.numberCommands().incrBy(KEY_1_BBUFFER, 3).block(), is(3));
+		assertThat(connection.numberCommands().incrBy(KEY_1_BBUFFER, 3).block()).isEqualTo(3);
 	}
 
 	@Test // DATAREDIS-525
 	public void decrByDoubleShouldDecreaseValueCorrectly() {
-		assertThat(connection.numberCommands().decrBy(KEY_1_BBUFFER, 1.5D).block(), is(closeTo(-1.5D, 0D)));
+		assertThat(connection.numberCommands().decrBy(KEY_1_BBUFFER, 1.5D).block()).isCloseTo(-1.5D, offset(0D));
 	}
 
 	@Test // DATAREDIS-525
 	public void decrByIntegerShouldDecreaseValueCorrectly() {
-		assertThat(connection.numberCommands().decrBy(KEY_1_BBUFFER, 3).block(), is(-3));
+		assertThat(connection.numberCommands().decrBy(KEY_1_BBUFFER, 3).block()).isEqualTo(-3);
 	}
 
 	@Test // DATAREDIS-525
@@ -51,7 +50,8 @@ public class LettuceReactiveNumberCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.hset(KEY_1, KEY_1, "2");
 
-		assertThat(connection.numberCommands().hIncrBy(KEY_1_BBUFFER, KEY_1_BBUFFER, 1.5D).block(), is(closeTo(3.5D, 0D)));
+		assertThat(connection.numberCommands().hIncrBy(KEY_1_BBUFFER, KEY_1_BBUFFER, 1.5D).block()).isCloseTo(3.5D,
+				offset(0D));
 	}
 
 	@Test // DATAREDIS-525
@@ -59,6 +59,6 @@ public class LettuceReactiveNumberCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.hset(KEY_1, KEY_1, "2");
 
-		assertThat(connection.numberCommands().hIncrBy(KEY_1_BBUFFER, KEY_1_BBUFFER, 3).block(), is(5));
+		assertThat(connection.numberCommands().hIncrBy(KEY_1_BBUFFER, KEY_1_BBUFFER, 3).block()).isEqualTo(5);
 	}
 }

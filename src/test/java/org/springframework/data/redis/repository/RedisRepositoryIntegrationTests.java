@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.repository;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,6 +23,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -112,6 +112,6 @@ public class RedisRepositoryIntegrationTests extends RedisRepositoryIntegrationT
 
 		Map<String, String> entries = operations.<String, String> opsForHash().entries("persons:rand");
 
-		assertThat(entries.get("_class"), is(equalTo("person")));
+		assertThat(entries.get("_class")).isEqualTo("person");
 	}
 }

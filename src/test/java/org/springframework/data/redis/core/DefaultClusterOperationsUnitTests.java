@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -32,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -84,7 +82,7 @@ public class DefaultClusterOperationsUnitTests {
 		Set<byte[]> keys = new HashSet<>(Arrays.asList(serializer.serialize("key-1"), serializer.serialize("key-2")));
 		when(connection.keys(any(RedisClusterNode.class), any(byte[].class))).thenReturn(keys);
 
-		assertThat(clusterOps.keys(NODE_1, "*"), hasItems("key-1", "key-2"));
+		assertThat(clusterOps.keys(NODE_1, "*")).contains("key-1", "key-2");
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
@@ -97,7 +95,7 @@ public class DefaultClusterOperationsUnitTests {
 
 		when(connection.keys(any(RedisClusterNode.class), any(byte[].class))).thenReturn(null);
 
-		assertThat(clusterOps.keys(NODE_1, "*"), notNullValue());
+		assertThat(clusterOps.keys(NODE_1, "*")).isNotNull();
 	}
 
 	@Test // DATAREDIS-315
@@ -105,7 +103,7 @@ public class DefaultClusterOperationsUnitTests {
 
 		when(connection.randomKey(any(RedisClusterNode.class))).thenReturn(serializer.serialize("key-1"));
 
-		assertThat(clusterOps.randomKey(NODE_1), is("key-1"));
+		assertThat(clusterOps.randomKey(NODE_1)).isEqualTo("key-1");
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
@@ -118,7 +116,7 @@ public class DefaultClusterOperationsUnitTests {
 
 		when(connection.randomKey(any(RedisClusterNode.class))).thenReturn(null);
 
-		assertThat(clusterOps.randomKey(NODE_1), nullValue());
+		assertThat(clusterOps.randomKey(NODE_1)).isNull();
 	}
 
 	@Test // DATAREDIS-315
@@ -126,7 +124,7 @@ public class DefaultClusterOperationsUnitTests {
 
 		when(connection.ping(any(RedisClusterNode.class))).thenReturn("PONG");
 
-		assertThat(clusterOps.ping(NODE_1), is("PONG"));
+		assertThat(clusterOps.ping(NODE_1)).isEqualTo("PONG");
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315

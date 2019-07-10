@@ -15,14 +15,13 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 
-import org.hamcrest.core.Is;
-import org.hamcrest.core.IsNull;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
 
@@ -43,17 +42,17 @@ public class Jackson2JsonRedisSerializerTests {
 	public void testJackson2JsonSerializer() throws Exception {
 
 		Person person = new PersonObjectFactory().instance();
-		assertEquals(person, serializer.deserialize(serializer.serialize(person)));
+		assertThat(serializer.deserialize(serializer.serialize(person))).isEqualTo(person);
 	}
 
 	@Test // DATAREDIS-241
 	public void testJackson2JsonSerializerShouldReturnEmptyByteArrayWhenSerializingNull() {
-		assertThat(serializer.serialize(null), Is.is(new byte[0]));
+		assertThat(serializer.serialize(null)).isEqualTo(new byte[0]);
 	}
 
 	@Test // DTATREDIS-241
 	public void testJackson2JsonSerializerShouldReturnNullWhenDerserializingEmtyByteArray() {
-		assertThat(serializer.deserialize(new byte[0]), IsNull.nullValue());
+		assertThat(serializer.deserialize(new byte[0])).isNull();
 	}
 
 	@Test(expected = SerializationException.class) // DTATREDIS-241

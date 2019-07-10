@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.test.util.MockitoUtils.*;
 
@@ -25,7 +23,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.dao.DataAccessException;
@@ -232,8 +230,8 @@ public class ClusterCommandExecutorUnitTests {
 			executor.executeCommandOnAllNodes(COMMAND_CALLBACK);
 		} catch (ClusterCommandExecutionFailureException e) {
 
-			assertThat(e.getCauses().size(), is(1));
-			assertThat(e.getCauses().iterator().next(), IsInstanceOf.instanceOf(DataAccessException.class));
+			assertThat(e.getCauses().size()).isEqualTo(1);
+			assertThat(e.getCauses().iterator().next()).isInstanceOf(DataAccessException.class);
 		}
 
 		verify(con1, times(1)).theWheelWeavesAsTheWheelWills();
@@ -250,7 +248,7 @@ public class ClusterCommandExecutorUnitTests {
 
 		MultiNodeResult<String> result = executor.executeCommandOnAllNodes(COMMAND_CALLBACK);
 
-		assertThat(result.resultsAsList(), hasItems("rand", "mat", "perrin"));
+		assertThat(result.resultsAsList()).contains("rand", "mat", "perrin");
 	}
 
 	@Test // DATAREDIS-315, DATAREDIS-467
@@ -267,10 +265,10 @@ public class ClusterCommandExecutorUnitTests {
 				new HashSet<>(
 				Arrays.asList("key-1".getBytes(), "key-2".getBytes(), "key-3".getBytes(), "key-9".getBytes())));
 
-		assertThat(result.resultsAsList(), hasItems("rand", "mat", "perrin", "egwene"));
+		assertThat(result.resultsAsList()).contains("rand", "mat", "perrin", "egwene");
 
 		// check that 2 keys have been routed to node1
-		assertThat(captor.getAllValues().size(), is(2));
+		assertThat(captor.getAllValues().size()).isEqualTo(2);
 	}
 
 	@Test // DATAREDIS-315
@@ -296,7 +294,7 @@ public class ClusterCommandExecutorUnitTests {
 			executor.setMaxRedirects(4);
 			executor.executeCommandOnSingleNode(COMMAND_CALLBACK, CLUSTER_NODE_1);
 		} catch (Exception e) {
-			assertThat(e, IsInstanceOf.instanceOf(TooManyClusterRedirectionsException.class));
+			assertThat(e).isInstanceOf(TooManyClusterRedirectionsException.class);
 		}
 
 		verify(con1, times(2)).theWheelWeavesAsTheWheelWills();

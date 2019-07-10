@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.number.IsCloseTo.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.data.Offset.offset;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,6 +38,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -124,7 +124,7 @@ public class RedisKeyValueTemplateTests {
 
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			assertThat(connection.exists(("template-test-person:" + rand.id).getBytes()), is(true));
+			assertThat(connection.exists(("template-test-person:" + rand.id).getBytes())).isTrue();
 			return null;
 		});
 	}
@@ -143,8 +143,8 @@ public class RedisKeyValueTemplateTests {
 
 		List<Person> result = template.find(connection -> mat.id.getBytes(), Person.class);
 
-		assertThat(result.size(), is(1));
-		assertThat(result, hasItems(mat));
+		assertThat(result.size()).isEqualTo(1);
+		assertThat(result).contains(mat);
 	}
 
 	@Test // DATAREDIS-425
@@ -162,8 +162,8 @@ public class RedisKeyValueTemplateTests {
 		List<Person> result = template.find(connection -> Arrays.asList(rand.id.getBytes(), mat.id.getBytes()),
 				Person.class);
 
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(rand, mat));
+		assertThat(result.size()).isEqualTo(2);
+		assertThat(result).contains(rand, mat);
 	}
 
 	@Test // DATAREDIS-425
@@ -180,7 +180,7 @@ public class RedisKeyValueTemplateTests {
 
 		List<Person> result = template.find(connection -> null, Person.class);
 
-		assertThat(result.size(), is(0));
+		assertThat(result.size()).isEqualTo(0);
 	}
 
 	@Test // DATAREDIS-471
@@ -199,14 +199,13 @@ public class RedisKeyValueTemplateTests {
 
 		template.insert(update);
 
-		assertThat(template.findById(rand.id, Person.class), is(equalTo(Optional.of(new Person(rand.id, "rand", "al-thor")))));
+		assertThat(template.findById(rand.id, Person.class)).isEqualTo(Optional.of(new Person(rand.id, "rand", "al-thor")));
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			assertThat(connection.hGet(("template-test-person:" + rand.id).getBytes(), "firstname".getBytes()),
-					is(equalTo("rand".getBytes())));
-			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(true));
-			assertThat(connection.sIsMember("template-test-person:lastname:al-thor".getBytes(), rand.id.getBytes()),
-					is(true));
+			assertThat(connection.hGet(("template-test-person:" + rand.id).getBytes(), "firstname".getBytes()))
+					.isEqualTo("rand".getBytes());
+			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes())).isTrue();
+			assertThat(connection.sIsMember("template-test-person:lastname:al-thor".getBytes(), rand.id.getBytes())).isTrue();
 			return null;
 		});
 
@@ -217,12 +216,12 @@ public class RedisKeyValueTemplateTests {
 
 		template.update(update);
 
-		assertThat(template.findById(rand.id, Person.class), is(equalTo(Optional.of(new Person(rand.id, "frodo", "al-thor")))));
+		assertThat(template.findById(rand.id, Person.class))
+				.isEqualTo(Optional.of(new Person(rand.id, "frodo", "al-thor")));
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(true));
-			assertThat(connection.sIsMember("template-test-person:lastname:al-thor".getBytes(), rand.id.getBytes()),
-					is(true));
+			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes())).isTrue();
+			assertThat(connection.sIsMember("template-test-person:lastname:al-thor".getBytes(), rand.id.getBytes())).isTrue();
 			return null;
 		});
 
@@ -234,13 +233,12 @@ public class RedisKeyValueTemplateTests {
 
 		template.doPartialUpdate(update);
 
-		assertThat(template.findById(rand.id, Person.class), is(equalTo(Optional.of(new Person(rand.id, null, "baggins")))));
+		assertThat(template.findById(rand.id, Person.class)).isEqualTo(Optional.of(new Person(rand.id, null, "baggins")));
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(false));
-			assertThat(connection.exists("template-test-person:lastname:baggins".getBytes()), is(true));
-			assertThat(connection.sIsMember("template-test-person:lastname:baggins".getBytes(), rand.id.getBytes()),
-					is(true));
+			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes())).isFalse();
+			assertThat(connection.exists("template-test-person:lastname:baggins".getBytes())).isTrue();
+			assertThat(connection.sIsMember("template-test-person:lastname:baggins".getBytes(), rand.id.getBytes())).isTrue();
 			return null;
 		});
 
@@ -252,10 +250,10 @@ public class RedisKeyValueTemplateTests {
 
 		template.doPartialUpdate(update);
 
-		assertThat(template.findById(rand.id, Person.class), is(equalTo(Optional.of(new Person(rand.id, null, null)))));
+		assertThat(template.findById(rand.id, Person.class)).isEqualTo(Optional.of(new Person(rand.id, null, null)));
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			assertThat(connection.keys("template-test-person:lastname:*".getBytes()).size(), is(0));
+			assertThat(connection.keys("template-test-person:lastname:*".getBytes()).size()).isEqualTo(0);
 			return null;
 		});
 	}
@@ -275,10 +273,10 @@ public class RedisKeyValueTemplateTests {
 
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "stringValue".getBytes()),
-					is("hooya!".getBytes()));
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "stringValue".getBytes()))
+					.isEqualTo("hooya!".getBytes());
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"simpleTypedMap._class".getBytes()), is(false));
+					"simpleTypedMap._class".getBytes())).isFalse();
 			return null;
 		});
 	}
@@ -310,15 +308,15 @@ public class RedisKeyValueTemplateTests {
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
 			assertThat(
-					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "complexValue.name".getBytes()),
-					is("Portal Stone".getBytes()));
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "complexValue.name".getBytes()))
+							.isEqualTo("Portal Stone".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexValue.dimension.height".getBytes()), is("350".getBytes()));
+					"complexValue.dimension.height".getBytes())).isEqualTo("350".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexValue.dimension.width".getBytes()), is("70".getBytes()));
+					"complexValue.dimension.width".getBytes())).isEqualTo("70".getBytes());
 
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexValue.dimension.length".getBytes()), is(false));
+					"complexValue.dimension.length".getBytes())).isFalse();
 			return null;
 		});
 	}
@@ -350,17 +348,17 @@ public class RedisKeyValueTemplateTests {
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
 			assertThat(
-					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "objectValue._class".getBytes()),
-					is(Item.class.getName().getBytes()));
-			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "objectValue.name".getBytes()),
-					is("Portal Stone".getBytes()));
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "objectValue._class".getBytes()))
+							.isEqualTo(Item.class.getName().getBytes());
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "objectValue.name".getBytes()))
+					.isEqualTo("Portal Stone".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"objectValue.dimension.height".getBytes()), is("350".getBytes()));
+					"objectValue.dimension.height".getBytes())).isEqualTo("350".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"objectValue.dimension.width".getBytes()), is("70".getBytes()));
+					"objectValue.dimension.width".getBytes())).isEqualTo("70".getBytes());
 
-			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "objectValue".getBytes()),
-					is(false));
+			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "objectValue".getBytes()))
+					.isFalse();
 			return null;
 		});
 	}
@@ -384,14 +382,14 @@ public class RedisKeyValueTemplateTests {
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
 			assertThat(
-					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedMap.[spring]".getBytes()),
-					is("data".getBytes()));
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedMap.[spring]".getBytes()))
+							.isEqualTo("data".getBytes());
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"simpleTypedMap.[key-1]".getBytes()), is(false));
+					"simpleTypedMap.[key-1]".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"simpleTypedMap.[key-2]".getBytes()), is(false));
+					"simpleTypedMap.[key-2]".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"simpleTypedMap.[key-2]".getBytes()), is(false));
+					"simpleTypedMap.[key-2]".getBytes())).isFalse();
 			return null;
 		});
 	}
@@ -432,25 +430,25 @@ public class RedisKeyValueTemplateTests {
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedMap.[horn-of-valere].name".getBytes()), is("Horn of Valere".getBytes()));
+					"complexTypedMap.[horn-of-valere].name".getBytes())).isEqualTo("Horn of Valere".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedMap.[horn-of-valere].dimension.height".getBytes()), is("70".getBytes()));
+					"complexTypedMap.[horn-of-valere].dimension.height".getBytes())).isEqualTo("70".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedMap.[horn-of-valere].dimension.width".getBytes()), is("25".getBytes()));
+					"complexTypedMap.[horn-of-valere].dimension.width".getBytes())).isEqualTo("25".getBytes());
 
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedMap.[callandor].name".getBytes()), is(false));
+					"complexTypedMap.[callandor].name".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedMap.[callandor].dimension.height".getBytes()), is(false));
+					"complexTypedMap.[callandor].dimension.height".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedMap.[callandor].dimension.width".getBytes()), is(false));
+					"complexTypedMap.[callandor].dimension.width".getBytes())).isFalse();
 
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedMap.[portal-stone].name".getBytes()), is(false));
+					"complexTypedMap.[portal-stone].name".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedMap.[portal-stone].dimension.height".getBytes()), is(false));
+					"complexTypedMap.[portal-stone].dimension.height".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedMap.[portal-stone].dimension.width".getBytes()), is(false));
+					"complexTypedMap.[portal-stone].dimension.width".getBytes())).isFalse();
 			return null;
 		});
 	}
@@ -497,36 +495,36 @@ public class RedisKeyValueTemplateTests {
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedMap.[horn-of-valere].name".getBytes()), is("Horn of Valere".getBytes()));
+					"untypedMap.[horn-of-valere].name".getBytes())).isEqualTo("Horn of Valere".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedMap.[horn-of-valere].dimension.height".getBytes()), is("70".getBytes()));
+					"untypedMap.[horn-of-valere].dimension.height".getBytes())).isEqualTo("70".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedMap.[horn-of-valere].dimension.width".getBytes()), is("25".getBytes()));
+					"untypedMap.[horn-of-valere].dimension.width".getBytes())).isEqualTo("25".getBytes());
 
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedMap.[spring]._class".getBytes()), is("java.lang.String".getBytes()));
+					"untypedMap.[spring]._class".getBytes())).isEqualTo("java.lang.String".getBytes());
 			assertThat(
-					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedMap.[spring]".getBytes()),
-					is("data".getBytes()));
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedMap.[spring]".getBytes()))
+							.isEqualTo("data".getBytes());
 
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedMap.[some-number]._class".getBytes()), is("java.lang.Long".getBytes()));
+					"untypedMap.[some-number]._class".getBytes())).isEqualTo("java.lang.Long".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedMap.[some-number]".getBytes()), is("100".getBytes()));
+					"untypedMap.[some-number]".getBytes())).isEqualTo("100".getBytes());
 
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedMap.[callandor].name".getBytes()), is(false));
+					"untypedMap.[callandor].name".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedMap.[callandor].dimension.height".getBytes()), is(false));
+					"untypedMap.[callandor].dimension.height".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedMap.[callandor].dimension.width".getBytes()), is(false));
+					"untypedMap.[callandor].dimension.width".getBytes())).isFalse();
 
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedMap.[portal-stone].name".getBytes()), is(false));
+					"untypedMap.[portal-stone].name".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedMap.[portal-stone].dimension.height".getBytes()), is(false));
+					"untypedMap.[portal-stone].dimension.height".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedMap.[portal-stone].dimension.width".getBytes()), is(false));
+					"untypedMap.[portal-stone].dimension.width".getBytes())).isFalse();
 			return null;
 		});
 	}
@@ -550,17 +548,17 @@ public class RedisKeyValueTemplateTests {
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
 			assertThat(
-					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[0]".getBytes()),
-					is("spring".getBytes()));
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[0]".getBytes()))
+							.isEqualTo("spring".getBytes());
 			assertThat(
-					connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[1]".getBytes()),
-					is(false));
+					connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[1]".getBytes()))
+							.isFalse();
 			assertThat(
-					connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[2]".getBytes()),
-					is(false));
+					connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[2]".getBytes()))
+							.isFalse();
 			assertThat(
-					connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[3]".getBytes()),
-					is(false));
+					connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[3]".getBytes()))
+							.isFalse();
 			return null;
 		});
 	}
@@ -601,18 +599,18 @@ public class RedisKeyValueTemplateTests {
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedList.[0].name".getBytes()), is("Horn of Valere".getBytes()));
+					"complexTypedList.[0].name".getBytes())).isEqualTo("Horn of Valere".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedList.[0].dimension.height".getBytes()), is("70".getBytes()));
+					"complexTypedList.[0].dimension.height".getBytes())).isEqualTo("70".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedList.[0].dimension.width".getBytes()), is("25".getBytes()));
+					"complexTypedList.[0].dimension.width".getBytes())).isEqualTo("25".getBytes());
 
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedMap.[1].name".getBytes()), is(false));
+					"complexTypedMap.[1].name".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedMap.[1].dimension.height".getBytes()), is(false));
+					"complexTypedMap.[1].dimension.height".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
-					"complexTypedMap.[1].dimension.width".getBytes()), is(false));
+					"complexTypedMap.[1].dimension.width".getBytes())).isFalse();
 			return null;
 		});
 	}
@@ -659,24 +657,24 @@ public class RedisKeyValueTemplateTests {
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
 			assertThat(
-					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[0]._class".getBytes()),
-					is("java.lang.String".getBytes()));
-			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[0]".getBytes()),
-					is("spring".getBytes()));
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[0]._class".getBytes()))
+							.isEqualTo("java.lang.String".getBytes());
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[0]".getBytes()))
+					.isEqualTo("spring".getBytes());
 
 			assertThat(
-					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[1].name".getBytes()),
-					is("Horn of Valere".getBytes()));
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[1].name".getBytes()))
+							.isEqualTo("Horn of Valere".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedList.[1].dimension.height".getBytes()), is("70".getBytes()));
+					"untypedList.[1].dimension.height".getBytes())).isEqualTo("70".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
-					"untypedList.[1].dimension.width".getBytes()), is("25".getBytes()));
+					"untypedList.[1].dimension.width".getBytes())).isEqualTo("25".getBytes());
 
 			assertThat(
-					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[2]._class".getBytes()),
-					is("java.lang.Long".getBytes()));
-			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[2]".getBytes()),
-					is("100".getBytes()));
+					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[2]._class".getBytes()))
+							.isEqualTo("java.lang.Long".getBytes());
+			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[2]".getBytes()))
+					.isEqualTo("100".getBytes());
 
 			return null;
 		});
@@ -701,11 +699,11 @@ public class RedisKeyValueTemplateTests {
 
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			assertThat(connection.hGet(("template-test-person:" + rand.id).getBytes(), "lastname".getBytes()),
-					is(equalTo("doe".getBytes())));
-			assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes()), is(true));
-			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(false));
-			assertThat(connection.sIsMember("template-test-person:lastname:doe".getBytes(), rand.id.getBytes()), is(true));
+			assertThat(connection.hGet(("template-test-person:" + rand.id).getBytes(), "lastname".getBytes()))
+					.isEqualTo("doe".getBytes());
+			assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes())).isTrue();
+			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes())).isFalse();
+			assertThat(connection.sIsMember("template-test-person:lastname:doe".getBytes(), rand.id.getBytes())).isTrue();
 			return null;
 		});
 	}
@@ -722,8 +720,8 @@ public class RedisKeyValueTemplateTests {
 
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes()), is(true));
-			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(true));
+			assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes())).isTrue();
+			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes())).isTrue();
 			return null;
 		});
 
@@ -733,8 +731,8 @@ public class RedisKeyValueTemplateTests {
 
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
-			assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes()), is(true));
-			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(false));
+			assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes())).isTrue();
+			assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes())).isFalse();
 			return null;
 		});
 	}
@@ -752,8 +750,8 @@ public class RedisKeyValueTemplateTests {
 		Thread.sleep(1100);
 
 		Optional<WithTtl> target = template.findById(source.id, WithTtl.class);
-		assertThat(target.get().ttl, is(notNullValue()));
-		assertThat(target.get().ttl.doubleValue(), is(closeTo(3D, 1D)));
+		assertThat(target.get().ttl).isNotNull();
+		assertThat(target.get().ttl.doubleValue()).isCloseTo(3D, offset(1D));
 	}
 
 	@Test // DATAREDIS-523
@@ -769,7 +767,7 @@ public class RedisKeyValueTemplateTests {
 		Thread.sleep(1100);
 
 		Optional<WithPrimitiveTtl> target = template.findById(source.id, WithPrimitiveTtl.class);
-		assertThat((double) target.get().ttl, is(closeTo(3D, 1D)));
+		assertThat((double) target.get().ttl).isCloseTo(3D, offset(1D));
 	}
 
 	@Test // DATAREDIS-523
@@ -786,8 +784,8 @@ public class RedisKeyValueTemplateTests {
 
 		WithTtl target = template.findAll(WithTtl.class).iterator().next();
 
-		assertThat(target.ttl, is(notNullValue()));
-		assertThat(target.ttl.doubleValue(), is(closeTo(3D, 1D)));
+		assertThat(target.ttl).isNotNull();
+		assertThat(target.ttl.doubleValue()).isCloseTo(3D, offset(1D));
 	}
 
 	@Test // DATAREDIS-523
@@ -804,7 +802,7 @@ public class RedisKeyValueTemplateTests {
 				(RedisCallback<Boolean>) connection -> connection.persist((WithTtl.class.getName() + ":ttl-1").getBytes()));
 
 		Optional<WithTtl> target = template.findById(source.id, WithTtl.class);
-		assertThat(target.get().ttl, is(-1L));
+		assertThat(target.get().ttl).isEqualTo(-1L);
 	}
 
 	@Test // DATAREDIS-849
@@ -814,8 +812,8 @@ public class RedisKeyValueTemplateTests {
 
 		ImmutableObject inserted = template.insert(source);
 
-		assertThat(source.id, is(nullValue()));
-		assertThat(inserted.id, is(notNullValue()));
+		assertThat(source.id).isNull();
+		assertThat(inserted.id).isNotNull();
 	}
 
 	@Test // DATAREDIS-849
@@ -826,12 +824,12 @@ public class RedisKeyValueTemplateTests {
 
 		Optional<ImmutableObject> loaded = template.findById(inserted.id, ImmutableObject.class);
 
-		assertThat(loaded.isPresent(), is(true));
+		assertThat(loaded.isPresent()).isTrue();
 
 		ImmutableObject immutableObject = loaded.get();
-		assertThat(immutableObject.id, is(inserted.id));
-		assertThat(immutableObject.ttl, is(notNullValue()));
-		assertThat(immutableObject.value, is(inserted.value));
+		assertThat(immutableObject.id).isEqualTo(inserted.id);
+		assertThat(immutableObject.ttl).isNotNull();
+		assertThat(immutableObject.value).isEqualTo(inserted.value);
 	}
 
 	@EqualsAndHashCode

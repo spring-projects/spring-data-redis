@@ -15,16 +15,14 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
 import org.junit.Test;
+
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockPropertySource;
 import org.springframework.util.StringUtils;
@@ -45,9 +43,9 @@ public class RedisClusterConfigurationUnitTests {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(Collections.singleton(HOST_AND_PORT_1));
 
-		assertThat(config.getClusterNodes().size(), is(1));
-		assertThat(config.getClusterNodes(), hasItems(new RedisNode("127.0.0.1", 123)));
-		assertThat(config.getMaxRedirects(), nullValue());
+		assertThat(config.getClusterNodes().size()).isEqualTo(1);
+		assertThat(config.getClusterNodes()).contains(new RedisNode("127.0.0.1", 123));
+		assertThat(config.getMaxRedirects()).isNull();
 	}
 
 	@Test // DATAREDIS-315
@@ -57,9 +55,9 @@ public class RedisClusterConfigurationUnitTests {
 				new HashSet<>(Arrays.asList(HOST_AND_PORT_1,
 				HOST_AND_PORT_2, HOST_AND_PORT_3)));
 
-		assertThat(config.getClusterNodes().size(), is(3));
-		assertThat(config.getClusterNodes(),
-				hasItems(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456), new RedisNode("localhost", 789)));
+		assertThat(config.getClusterNodes().size()).isEqualTo(3);
+		assertThat(config.getClusterNodes()).contains(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456),
+				new RedisNode("localhost", 789));
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
@@ -77,7 +75,7 @@ public class RedisClusterConfigurationUnitTests {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(Collections.<String> emptySet());
 
-		assertThat(config.getClusterNodes().size(), is(0));
+		assertThat(config.getClusterNodes().size()).isEqualTo(0);
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
@@ -90,8 +88,8 @@ public class RedisClusterConfigurationUnitTests {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(new MockPropertySource());
 
-		assertThat(config.getMaxRedirects(), nullValue());
-		assertThat(config.getClusterNodes().size(), is(0));
+		assertThat(config.getMaxRedirects()).isNull();
+		assertThat(config.getClusterNodes().size()).isEqualTo(0);
 	}
 
 	@Test // DATAREDIS-315
@@ -103,8 +101,8 @@ public class RedisClusterConfigurationUnitTests {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(propertySource);
 
-		assertThat(config.getMaxRedirects(), is(5));
-		assertThat(config.getClusterNodes(), hasItems(new RedisNode("127.0.0.1", 123)));
+		assertThat(config.getMaxRedirects()).isEqualTo(5);
+		assertThat(config.getClusterNodes()).contains(new RedisNode("127.0.0.1", 123));
 	}
 
 	@Test // DATAREDIS-315
@@ -117,9 +115,9 @@ public class RedisClusterConfigurationUnitTests {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(propertySource);
 
-		assertThat(config.getMaxRedirects(), is(5));
-		assertThat(config.getClusterNodes(),
-				hasItems(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456), new RedisNode("localhost", 789)));
+		assertThat(config.getMaxRedirects()).isEqualTo(5);
+		assertThat(config.getClusterNodes()).contains(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456),
+				new RedisNode("localhost", 789));
 	}
 
 }

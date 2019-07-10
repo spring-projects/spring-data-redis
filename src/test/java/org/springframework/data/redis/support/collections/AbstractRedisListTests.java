@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -68,9 +67,9 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(t1);
 		list.add(t2);
 
-		assertThat(list.get(0), isEqual(t1));
+		assertThat(list.get(0)).isEqualTo(t1);
 		list.add(0, t3);
-		assertThat(list.get(0), isEqual(t3));
+		assertThat(list.get(0)).isEqualTo(t3);
 	}
 
 	@Test
@@ -82,9 +81,9 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(t1);
 		list.add(t2);
 
-		assertThat(list.get(1), isEqual(t2));
+		assertThat(list.get(1)).isEqualTo(t2);
 		list.add(2, t3);
-		assertThat(list.get(2), isEqual(t3));
+		assertThat(list.get(2)).isEqualTo(t3);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -96,7 +95,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(t1);
 		list.add(t2);
 
-		assertThat(list.get(0), isEqual(t1));
+		assertThat(list.get(0)).isEqualTo(t1);
 		list.add(1, t3);
 	}
 
@@ -113,11 +112,11 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 		List<T> asList = Arrays.asList(t3, t4);
 
-		assertThat(list.get(0), isEqual(t1));
+		assertThat(list.get(0)).isEqualTo(t1);
 		list.addAll(0, asList);
 		// verify insertion order
-		assertThat(list.get(0), isEqual(t3));
-		assertThat(list.get(1), isEqual(t4));
+		assertThat(list.get(0)).isEqualTo(t3);
+		assertThat(list.get(1)).isEqualTo(t4);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -133,12 +132,12 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 		List<T> asList = Arrays.asList(t3, t4);
 
-		assertThat(list.get(0), isEqual(t1));
-		assertTrue(list.addAll(2, asList));
+		assertThat(list.get(0)).isEqualTo(t1);
+		assertThat(list.addAll(2, asList)).isTrue();
 
 		// verify insertion order
-		assertThat(list.get(2), isEqual(t3));
-		assertThat(list.get(3), isEqual(t4));
+		assertThat(list.get(2)).isEqualTo(t3);
+		assertThat(list.get(3)).isEqualTo(t4);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -154,8 +153,8 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 		List<T> asList = Arrays.asList(t3, t4);
 
-		assertThat(list.get(0), isEqual(t1));
-		assertTrue(list.addAll(1, asList));
+		assertThat(list.get(0)).isEqualTo(t1);
+		assertThat(list.addAll(1, asList)).isTrue();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -163,52 +162,43 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		T t1 = getT();
 		T t2 = getT();
 
-		assertEquals(-1, list.indexOf(t1));
+		assertThat(list.indexOf(t1)).isEqualTo(-1);
 		list.add(t1);
-		assertEquals(0, list.indexOf(t1));
+		assertThat(list.indexOf(t1)).isEqualTo(0);
 
-		assertEquals(-1, list.indexOf(t2));
+		assertThat(list.indexOf(t2)).isEqualTo(-1);
 		list.add(t2);
-		assertEquals(1, list.indexOf(t1));
+		assertThat(list.indexOf(t1)).isEqualTo(1);
 	}
 
 	@Test
 	public void testOffer() {
 		T t1 = getT();
 
-		assertTrue(list.offer(t1));
-		assertThat(list.get(0), isEqual(t1));
+		assertThat(list.offer(t1)).isTrue();
+		assertThat(list.get(0)).isEqualTo(t1);
 	}
 
 	@Test
 	public void testPeek() {
-		assertNull(list.peek());
+		assertThat(list.peek()).isNull();
 		T t1 = getT();
 		list.add(t1);
-		assertThat(list.peek(), isEqual(t1));
+		assertThat(list.peek()).isEqualTo(t1);
 		list.clear();
-		assertNull(list.peek());
+		assertThat(list.peek()).isNull();
 	}
 
 	@Test
 	public void testElement() {
-		try {
-			list.element();
-			fail();
-		} catch (NoSuchElementException nse) {
-			// expected
-		}
+
+		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(list::element);
 
 		T t1 = getT();
 		list.add(t1);
-		assertThat(list.element(), isEqual(t1));
+		assertThat(list.element()).isEqualTo(t1);
 		list.clear();
-		try {
-			list.element();
-			fail();
-		} catch (NoSuchElementException nse) {
-			// expected
-		}
+		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(list::element);
 	}
 
 	@Test
@@ -218,11 +208,11 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 	@Test
 	public void testPoll() {
-		assertNull(list.poll());
+		assertThat(list.poll()).isNull();
 		T t1 = getT();
 		list.add(t1);
-		assertThat(list.poll(), isEqual(t1));
-		assertNull(list.poll());
+		assertThat(list.poll()).isEqualTo(t1);
+		assertThat(list.poll()).isNull();
 	}
 
 	@Test
@@ -230,27 +220,17 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 		T t1 = getT();
 		list.add(t1);
-		assertThat(list.poll(1, TimeUnit.MILLISECONDS), isEqual(t1));
+		assertThat(list.poll(1, TimeUnit.MILLISECONDS)).isEqualTo(t1);
 	}
 
 	@Test
 	public void testRemove() {
-		try {
-			list.remove();
-			fail();
-		} catch (NoSuchElementException nse) {
-			// expected
-		}
+		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(list::remove);
 
 		T t1 = getT();
 		list.add(t1);
-		assertThat(list.remove(), isEqual(t1));
-		try {
-			list.remove();
-			fail();
-		} catch (NoSuchElementException nse) {
-			// expected
-		}
+		assertThat(list.remove()).isEqualTo(t1);
+		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(list::remove);
 	}
 
 	@Test
@@ -258,12 +238,12 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		T t1 = getT();
 		T t2 = getT();
 
-		assertTrue(list.range(0, -1).isEmpty());
+		assertThat(list.range(0, -1).isEmpty()).isTrue();
 		list.add(t1);
 		list.add(t2);
-		assertEquals(2, list.range(0, -1).size());
-		assertThat(list.range(0, 0).get(0), isEqual(t1));
-		assertThat(list.range(1, 1).get(0), isEqual(t2));
+		assertThat(list.range(0, -1).size()).isEqualTo(2);
+		assertThat(list.range(0, 0).get(0)).isEqualTo(t1);
+		assertThat(list.range(1, 1).get(0)).isEqualTo(t2);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -271,12 +251,12 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		T t1 = getT();
 		T t2 = getT();
 
-		assertNull(list.remove(0));
+		assertThat(list.remove(0)).isNull();
 		list.add(t1);
 		list.add(t2);
-		assertNull(list.remove(2));
-		assertEquals(t2, list.remove(1));
-		assertEquals(t1, list.remove(0));
+		assertThat(list.remove(2)).isNull();
+		assertThat(list.remove(1)).isEqualTo(t2);
+		assertThat(list.remove(0)).isEqualTo(t1);
 	}
 
 	@Test
@@ -285,8 +265,8 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		T t2 = getT();
 		list.add(t1);
 		list.set(0, t1);
-		assertThat(list.set(0, t2), isEqual(t1));
-		assertThat(list.get(0), isEqual(t2));
+		assertThat(list.set(0, t2)).isEqualTo(t1);
+		assertThat(list.get(0)).isEqualTo(t2);
 	}
 
 	@Test
@@ -294,13 +274,13 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		T t1 = getT();
 		T t2 = getT();
 
-		assertTrue(list.trim(0, 0).isEmpty());
+		assertThat(list.trim(0, 0).isEmpty()).isTrue();
 		list.add(t1);
 		list.add(t2);
-		assertEquals(2, list.size());
-		assertEquals(1, list.trim(0, 0).size());
-		assertEquals(1, list.size());
-		assertThat(list.get(0), isEqual(t1));
+		assertThat(list.size()).isEqualTo(2);
+		assertThat(list.trim(0, 0).size()).isEqualTo(1);
+		assertThat(list.size()).isEqualTo(1);
+		assertThat(list.get(0)).isEqualTo(t1);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -309,13 +289,13 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		RedisList<T> cappedList = new DefaultRedisList<T>(template.boundListOps(collection.getKey() + ":capped"), 1);
 		T first = getT();
 		cappedList.offer(first);
-		assertEquals(1, cappedList.size());
+		assertThat(cappedList.size()).isEqualTo(1);
 		cappedList.add(getT());
-		assertEquals(1, cappedList.size());
+		assertThat(cappedList.size()).isEqualTo(1);
 		T last = getT();
 		cappedList.add(last);
-		assertEquals(1, cappedList.size());
-		assertThat(cappedList.get(0), isEqual(first));
+		assertThat(cappedList.size()).isEqualTo(1);
+		assertThat(cappedList.get(0)).isEqualTo(first);
 	}
 
 	@Test
@@ -329,9 +309,9 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.addFirst(t3);
 
 		Iterator<T> iterator = list.iterator();
-		assertThat(iterator.next(), isEqual(t3));
-		assertThat(iterator.next(), isEqual(t2));
-		assertThat(iterator.next(), isEqual(t1));
+		assertThat(iterator.next()).isEqualTo(t3);
+		assertThat(iterator.next()).isEqualTo(t2);
+		assertThat(iterator.next()).isEqualTo(t1);
 	}
 
 	@Test
@@ -350,9 +330,9 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(t3);
 
 		Iterator<T> iterator = list.descendingIterator();
-		assertThat(iterator.next(), isEqual(t3));
-		assertThat(iterator.next(), isEqual(t2));
-		assertThat(iterator.next(), isEqual(t1));
+		assertThat(iterator.next()).isEqualTo(t3);
+		assertThat(iterator.next()).isEqualTo(t2);
+		assertThat(iterator.next()).isEqualTo(t1);
 
 	}
 
@@ -370,10 +350,10 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		List<T> c = new ArrayList<>();
 
 		list.drainTo(c, 2);
-		assertEquals(1, list.size());
-		assertThat(list, hasItem(t3));
-		assertEquals(2, c.size());
-		assertThat(c, hasItems(t1, t2));
+		assertThat(list.size()).isEqualTo(1);
+		assertThat(list).contains(t3);
+		assertThat(c.size()).isEqualTo(2);
+		assertThat(c).contains(t1, t2);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -390,9 +370,9 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		List<T> c = new ArrayList<>();
 
 		list.drainTo(c);
-		assertTrue(list.isEmpty());
-		assertEquals(3, c.size());
-		assertThat(c, hasItems(t1, t2, t3));
+		assertThat(list.isEmpty()).isTrue();
+		assertThat(c.size()).isEqualTo(3);
+		assertThat(c).contains(t1, t2, t3);
 	}
 
 	@Test
@@ -403,7 +383,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(t1);
 		list.add(t2);
 
-		assertThat(list.getFirst(), isEqual(t1));
+		assertThat(list.getFirst()).isEqualTo(t1);
 	}
 
 	@Test
@@ -434,8 +414,8 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(t1);
 		list.add(t2);
 
-		assertThat(list.peekLast(), isEqual(t2));
-		assertEquals(2, list.size());
+		assertThat(list.peekLast()).isEqualTo(t2);
+		assertThat(list.size()).isEqualTo(2);
 	}
 
 	@Test
@@ -452,9 +432,9 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(t2);
 
 		T last = list.pollLast();
-		assertThat(last, isEqual(t2));
-		assertEquals(1, list.size());
-		assertThat(list, hasItem(t1));
+		assertThat(last).isEqualTo(t2);
+		assertThat(list.size()).isEqualTo(1);
+		assertThat(list).contains(t1);
 	}
 
 	@Test
@@ -467,9 +447,9 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(t2);
 
 		T last = list.pollLast(1, TimeUnit.MILLISECONDS);
-		assertThat(last, isEqual(t2));
-		assertEquals(1, list.size());
-		assertThat(list, hasItem(t1));
+		assertThat(last).isEqualTo(t2);
+		assertThat(list.size()).isEqualTo(1);
+		assertThat(list).contains(t1);
 	}
 
 	@Test
@@ -489,7 +469,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 	@Test
 	public void testRemainingCapacity() {
-		assertEquals(Integer.MAX_VALUE, list.remainingCapacity());
+		assertThat(list.remainingCapacity()).isEqualTo(Integer.MAX_VALUE);
 	}
 
 	@Test
@@ -518,11 +498,11 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(t2);
 
 		list.removeLastOccurrence(t2);
-		assertEquals(3, list.size());
+		assertThat(list.size()).isEqualTo(3);
 		Iterator<T> iterator = list.iterator();
-		assertThat(iterator.next(), isEqual(t1));
-		assertThat(iterator.next(), isEqual(t2));
-		assertThat(iterator.next(), isEqual(t1));
+		assertThat(iterator.next()).isEqualTo(t1);
+		assertThat(iterator.next()).isEqualTo(t2);
+		assertThat(iterator.next()).isEqualTo(t1);
 	}
 
 	@Test

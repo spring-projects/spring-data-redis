@@ -15,16 +15,14 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
 import org.junit.Test;
+
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockPropertySource;
 import org.springframework.util.StringUtils;
@@ -45,8 +43,8 @@ public class RedisSentinelConfigurationUnitTests {
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster",
 				Collections.singleton(HOST_AND_PORT_1));
 
-		assertThat(config.getSentinels().size(), is(1));
-		assertThat(config.getSentinels(), hasItems(new RedisNode("127.0.0.1", 123)));
+		assertThat(config.getSentinels().size()).isEqualTo(1);
+		assertThat(config.getSentinels()).contains(new RedisNode("127.0.0.1", 123));
 	}
 
 	@Test // DATAREDIS-372
@@ -56,9 +54,9 @@ public class RedisSentinelConfigurationUnitTests {
 				new HashSet<>(Arrays.asList(
 				HOST_AND_PORT_1, HOST_AND_PORT_2, HOST_AND_PORT_3)));
 
-		assertThat(config.getSentinels().size(), is(3));
-		assertThat(config.getSentinels(),
-				hasItems(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456), new RedisNode("localhost", 789)));
+		assertThat(config.getSentinels().size()).isEqualTo(3);
+		assertThat(config.getSentinels()).contains(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456),
+				new RedisNode("localhost", 789));
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-372
@@ -76,7 +74,7 @@ public class RedisSentinelConfigurationUnitTests {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.<String> emptySet());
 
-		assertThat(config.getSentinels().size(), is(0));
+		assertThat(config.getSentinels().size()).isEqualTo(0);
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-372
@@ -89,8 +87,8 @@ public class RedisSentinelConfigurationUnitTests {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration(new MockPropertySource());
 
-		assertThat(config.getMaster(), nullValue());
-		assertThat(config.getSentinels().size(), is(0));
+		assertThat(config.getMaster()).isNull();
+		assertThat(config.getSentinels().size()).isEqualTo(0);
 	}
 
 	@Test // DATAREDIS-372
@@ -102,9 +100,9 @@ public class RedisSentinelConfigurationUnitTests {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration(propertySource);
 
-		assertThat(config.getMaster().getName(), is("myMaster"));
-		assertThat(config.getSentinels().size(), is(1));
-		assertThat(config.getSentinels(), hasItems(new RedisNode("127.0.0.1", 123)));
+		assertThat(config.getMaster().getName()).isEqualTo("myMaster");
+		assertThat(config.getSentinels().size()).isEqualTo(1);
+		assertThat(config.getSentinels()).contains(new RedisNode("127.0.0.1", 123));
 	}
 
 	@Test // DATAREDIS-372
@@ -117,8 +115,8 @@ public class RedisSentinelConfigurationUnitTests {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration(propertySource);
 
-		assertThat(config.getSentinels().size(), is(3));
-		assertThat(config.getSentinels(),
-				hasItems(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456), new RedisNode("localhost", 789)));
+		assertThat(config.getSentinels().size()).isEqualTo(3);
+		assertThat(config.getSentinels()).contains(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456),
+				new RedisNode("localhost", 789));
 	}
 }

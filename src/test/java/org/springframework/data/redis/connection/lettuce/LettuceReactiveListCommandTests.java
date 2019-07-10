@@ -15,11 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.collection.IsIterableContainingInOrder.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsNot.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.domain.Range.Bound.*;
 
@@ -31,6 +27,7 @@ import java.time.Duration;
 import java.util.Arrays;
 
 import org.junit.Test;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveListCommands.PopResult;
@@ -52,9 +49,9 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.lpush(KEY_1, VALUE_1);
 
-		assertThat(connection.listCommands().rPush(KEY_1_BBUFFER, Arrays.asList(VALUE_2_BBUFFER, VALUE_3_BBUFFER)).block(),
-				is(3L));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_2, VALUE_3));
+		assertThat(connection.listCommands().rPush(KEY_1_BBUFFER, Arrays.asList(VALUE_2_BBUFFER, VALUE_3_BBUFFER)).block())
+				.isEqualTo(3L);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_1, VALUE_2, VALUE_3);
 	}
 
 	@Test // DATAREDIS-525
@@ -62,9 +59,9 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.lpush(KEY_1, VALUE_1);
 
-		assertThat(connection.listCommands().lPush(KEY_1_BBUFFER, Arrays.asList(VALUE_2_BBUFFER, VALUE_3_BBUFFER)).block(),
-				is(3L));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_3, VALUE_2, VALUE_1));
+		assertThat(connection.listCommands().lPush(KEY_1_BBUFFER, Arrays.asList(VALUE_2_BBUFFER, VALUE_3_BBUFFER)).block())
+				.isEqualTo(3L);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_3, VALUE_2, VALUE_1);
 	}
 
 	@Test // DATAREDIS-525
@@ -72,8 +69,8 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.lpush(KEY_1, VALUE_1);
 
-		assertThat(connection.listCommands().rPushX(KEY_1_BBUFFER, VALUE_2_BBUFFER).block(), is(2L));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_2));
+		assertThat(connection.listCommands().rPushX(KEY_1_BBUFFER, VALUE_2_BBUFFER).block()).isEqualTo(2L);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_1, VALUE_2);
 	}
 
 	@Test // DATAREDIS-525
@@ -81,8 +78,8 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.lpush(KEY_1, VALUE_1);
 
-		assertThat(connection.listCommands().lPushX(KEY_1_BBUFFER, VALUE_2_BBUFFER).block(), is(2L));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_2, VALUE_1));
+		assertThat(connection.listCommands().lPushX(KEY_1_BBUFFER, VALUE_2_BBUFFER).block()).isEqualTo(2L);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_2, VALUE_1);
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-525
@@ -99,7 +96,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.lpush(KEY_1, VALUE_1, VALUE_2);
 
-		assertThat(connection.listCommands().lLen(KEY_1_BBUFFER).block(), is(2L));
+		assertThat(connection.listCommands().lLen(KEY_1_BBUFFER).block()).isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-525
@@ -107,8 +104,8 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.listCommands().lRange(KEY_1_BBUFFER, 1, 2).toIterable(),
-				contains(VALUE_2_BBUFFER, VALUE_3_BBUFFER));
+		assertThat(connection.listCommands().lRange(KEY_1_BBUFFER, 1, 2).toIterable()).containsExactly(VALUE_2_BBUFFER,
+				VALUE_3_BBUFFER);
 	}
 
 	@Test // DATAREDIS-852
@@ -138,8 +135,8 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.listCommands().lTrim(KEY_1_BBUFFER, 1, 2).block(), is(true));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), not(contains(VALUE_1_BBUFFER)));
+		assertThat(connection.listCommands().lTrim(KEY_1_BBUFFER, 1, 2).block()).isTrue();
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).doesNotContain(VALUE_1);
 	}
 
 	@Test // DATAREDIS-852
@@ -171,7 +168,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.listCommands().lIndex(KEY_1_BBUFFER, 1).block(), is(equalTo(VALUE_2_BBUFFER)));
+		assertThat(connection.listCommands().lIndex(KEY_1_BBUFFER, 1).block()).isEqualTo(VALUE_2_BBUFFER);
 	}
 
 	@Test // DATAREDIS-525
@@ -180,9 +177,9 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2);
 
 		assertThat(
-				connection.listCommands().lInsert(KEY_1_BBUFFER, Position.BEFORE, VALUE_2_BBUFFER, VALUE_3_BBUFFER).block(),
-				is(3L));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_3, VALUE_2));
+				connection.listCommands().lInsert(KEY_1_BBUFFER, Position.BEFORE, VALUE_2_BBUFFER, VALUE_3_BBUFFER).block())
+						.isEqualTo(3L);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_1, VALUE_3, VALUE_2);
 	}
 
 	@Test // DATAREDIS-525
@@ -191,9 +188,9 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2);
 
 		assertThat(
-				connection.listCommands().lInsert(KEY_1_BBUFFER, Position.AFTER, VALUE_2_BBUFFER, VALUE_3_BBUFFER).block(),
-				is(3L));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_2, VALUE_3));
+				connection.listCommands().lInsert(KEY_1_BBUFFER, Position.AFTER, VALUE_2_BBUFFER, VALUE_3_BBUFFER).block())
+						.isEqualTo(3L);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_1, VALUE_2, VALUE_3);
 	}
 
 	@Test // DATAREDIS-525
@@ -201,9 +198,9 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2);
 
-		assertThat(connection.listCommands().lSet(KEY_1_BBUFFER, 1L, VALUE_3_BBUFFER).block(), is(true));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_3));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), not(contains(VALUE_2)));
+		assertThat(connection.listCommands().lSet(KEY_1_BBUFFER, 1L, VALUE_3_BBUFFER).block()).isTrue();
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_1, VALUE_3);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).doesNotContain(VALUE_2);
 	}
 
 	@Test // DATAREDIS-525
@@ -211,9 +208,9 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_1, VALUE_3);
 
-		assertThat(connection.listCommands().lRem(KEY_1_BBUFFER, VALUE_1_BBUFFER).block(), is(2L));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_2, VALUE_3));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), not(contains(VALUE_1)));
+		assertThat(connection.listCommands().lRem(KEY_1_BBUFFER, VALUE_1_BBUFFER).block()).isEqualTo(2L);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_2, VALUE_3);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).doesNotContain(VALUE_1);
 	}
 
 	@Test // DATAREDIS-525
@@ -221,8 +218,8 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_1, VALUE_3);
 
-		assertThat(connection.listCommands().lRem(KEY_1_BBUFFER, 1L, VALUE_1_BBUFFER).block(), is(1L));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_2, VALUE_1, VALUE_3));
+		assertThat(connection.listCommands().lRem(KEY_1_BBUFFER, 1L, VALUE_1_BBUFFER).block()).isEqualTo(1L);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_2, VALUE_1, VALUE_3);
 	}
 
 	@Test // DATAREDIS-525
@@ -230,8 +227,8 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_1, VALUE_3);
 
-		assertThat(connection.listCommands().lRem(KEY_1_BBUFFER, -1L, VALUE_1_BBUFFER).block(), is(1L));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_2, VALUE_3));
+		assertThat(connection.listCommands().lRem(KEY_1_BBUFFER, -1L, VALUE_1_BBUFFER).block()).isEqualTo(1L);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_1, VALUE_2, VALUE_3);
 	}
 
 	@Test // DATAREDIS-525
@@ -239,8 +236,8 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.listCommands().lPop(KEY_1_BBUFFER).block(), is(equalTo(VALUE_1_BBUFFER)));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_2, VALUE_3));
+		assertThat(connection.listCommands().lPop(KEY_1_BBUFFER).block()).isEqualTo(VALUE_1_BBUFFER);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_2, VALUE_3);
 	}
 
 	@Test // DATAREDIS-525
@@ -248,34 +245,34 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.listCommands().rPop(KEY_1_BBUFFER).block(), is(equalTo(VALUE_3_BBUFFER)));
-		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_2));
+		assertThat(connection.listCommands().rPop(KEY_1_BBUFFER).block()).isEqualTo(VALUE_3_BBUFFER);
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_1, VALUE_2);
 	}
 
 	@Test // DATAREDIS-525
 	public void blPopShouldReturnFirstAvailable() {
 
-		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
 		PopResult result = connection.listCommands()
 				.blPop(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Duration.ofSeconds(1L)).block();
-		assertThat(result.getKey(), is(equalTo(KEY_1_BBUFFER)));
-		assertThat(result.getValue(), is(equalTo(VALUE_1_BBUFFER)));
+		assertThat(result.getKey()).isEqualTo(KEY_1_BBUFFER);
+		assertThat(result.getValue()).isEqualTo(VALUE_1_BBUFFER);
 	}
 
 	@Test // DATAREDIS-525
 	public void brPopShouldReturnLastAvailable() {
 
-		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
 		PopResult result = connection.listCommands()
 				.brPop(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Duration.ofSeconds(1L)).block();
-		assertThat(result.getKey(), is(equalTo(KEY_1_BBUFFER)));
-		assertThat(result.getValue(), is(equalTo(VALUE_3_BBUFFER)));
+		assertThat(result.getKey()).isEqualTo(KEY_1_BBUFFER);
+		assertThat(result.getValue()).isEqualTo(VALUE_3_BBUFFER);
 	}
 
 	@Test // DATAREDIS-525
@@ -286,15 +283,15 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		ByteBuffer result = connection.listCommands().rPopLPush(KEY_1_BBUFFER, KEY_2_BBUFFER).block();
 
-		assertThat(result, is(equalTo(VALUE_3_BBUFFER)));
-		assertThat(nativeCommands.llen(KEY_2), is(2L));
-		assertThat(nativeCommands.lindex(KEY_2, 0), is(equalTo(VALUE_3)));
+		assertThat(result).isEqualTo(VALUE_3_BBUFFER);
+		assertThat(nativeCommands.llen(KEY_2)).isEqualTo(2L);
+		assertThat(nativeCommands.lindex(KEY_2, 0)).isEqualTo(VALUE_3);
 	}
 
 	@Test // DATAREDIS-525
 	public void brPopLPushShouldWorkCorrectly() {
 
-		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 		nativeCommands.rpush(KEY_2, VALUE_1);
@@ -302,8 +299,8 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		ByteBuffer result = connection.listCommands().bRPopLPush(KEY_1_BBUFFER, KEY_2_BBUFFER, Duration.ofSeconds(1))
 				.block();
 
-		assertThat(result, is(equalTo(VALUE_3_BBUFFER)));
-		assertThat(nativeCommands.llen(KEY_2), is(2L));
-		assertThat(nativeCommands.lindex(KEY_2, 0), is(equalTo(VALUE_3)));
+		assertThat(result).isEqualTo(VALUE_3_BBUFFER);
+		assertThat(nativeCommands.llen(KEY_2)).isEqualTo(2L);
+		assertThat(nativeCommands.lindex(KEY_2, 0)).isEqualTo(VALUE_3);
 	}
 }

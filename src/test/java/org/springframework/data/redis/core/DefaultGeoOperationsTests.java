@@ -15,12 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.collection.IsCollectionWithSize.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.hamcrest.number.IsCloseTo.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 
@@ -37,6 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -45,8 +42,6 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
 
@@ -116,7 +111,7 @@ public class DefaultGeoOperationsTests<K, M> {
 
 		Long numAdded = geoOperations.add(keyFactory.instance(), POINT_PALERMO, valueFactory.instance());
 
-		assertThat(numAdded, is(1L));
+		assertThat(numAdded).isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -128,7 +123,7 @@ public class DefaultGeoOperationsTests<K, M> {
 
 		Long numAdded = geoOperations.add(keyFactory.instance(), memberCoordinateMap);
 
-		assertThat(numAdded, is(2L));
+		assertThat(numAdded).isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -142,8 +137,8 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.add(key, POINT_CATANIA, member2);
 
 		Distance dist = geoOperations.distance(key, member1, member2);
-		assertThat(dist.getValue(), closeTo(DISTANCE_PALERMO_CATANIA_METERS, 0.005));
-		assertThat(dist.getUnit(), is(equalTo("m")));
+		assertThat(dist.getValue()).isCloseTo(DISTANCE_PALERMO_CATANIA_METERS, offset(0.005));
+		assertThat(dist.getUnit()).isEqualTo("m");
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -157,8 +152,8 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.add(key, POINT_CATANIA, member2);
 
 		Distance dist = geoOperations.distance(key, member1, member2, KILOMETERS);
-		assertThat(dist.getValue(), closeTo(DISTANCE_PALERMO_CATANIA_KILOMETERS, 0.005));
-		assertThat(dist.getUnit(), is(equalTo("km")));
+		assertThat(dist.getValue()).isCloseTo(DISTANCE_PALERMO_CATANIA_KILOMETERS, offset(0.005));
+		assertThat(dist.getUnit()).isEqualTo("km");
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -172,8 +167,8 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.add(key, POINT_CATANIA, member2);
 
 		Distance dist = geoOperations.distance(key, member1, member2, DistanceUnit.MILES);
-		assertThat(dist.getValue(), closeTo(DISTANCE_PALERMO_CATANIA_MILES, 0.005));
-		assertThat(dist.getUnit(), is(equalTo("mi")));
+		assertThat(dist.getValue()).isCloseTo(DISTANCE_PALERMO_CATANIA_MILES, offset(0.005));
+		assertThat(dist.getUnit()).isEqualTo("mi");
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -187,8 +182,8 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.add(key, POINT_CATANIA, member2);
 
 		Distance dist = geoOperations.distance(key, member1, member2, DistanceUnit.FEET);
-		assertThat(dist.getValue(), closeTo(DISTANCE_PALERMO_CATANIA_FEET, 0.005));
-		assertThat(dist.getUnit(), is(equalTo("ft")));
+		assertThat(dist.getValue()).isCloseTo(DISTANCE_PALERMO_CATANIA_FEET, offset(0.005));
+		assertThat(dist.getUnit()).isEqualTo("ft");
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -202,10 +197,10 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.add(key, POINT_CATANIA, v2);
 
 		List<String> result = geoOperations.hash(key, v1, v2);
-		assertThat(result, hasSize(2));
+		assertThat(result).hasSize(2);
 
-		assertThat(result.get(0), is(equalTo("sqc8b49rny0")));
-		assertThat(result.get(1), is(equalTo("sqdtr74hyu0")));
+		assertThat(result.get(0)).isEqualTo("sqc8b49rny0");
+		assertThat(result.get(1)).isEqualTo("sqdtr74hyu0");
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -220,15 +215,15 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.add(key, POINT_CATANIA, v2);
 
 		List<Point> result = geoOperations.position(key, v1, v2, v3);// v3 is nonexisting
-		assertThat(result, hasSize(3));
+		assertThat(result).hasSize(3);
 
-		assertThat(result.get(0).getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
-		assertThat(result.get(0).getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
+		assertThat(result.get(0).getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.005));
+		assertThat(result.get(0).getY()).isCloseTo(POINT_PALERMO.getY(), offset(0.005));
 
-		assertThat(result.get(1).getX(), is(closeTo(POINT_CATANIA.getX(), 0.005)));
-		assertThat(result.get(1).getY(), is(closeTo(POINT_CATANIA.getY(), 0.005)));
+		assertThat(result.get(1).getX()).isCloseTo(POINT_CATANIA.getX(), offset(0.005));
+		assertThat(result.get(1).getY()).isCloseTo(POINT_CATANIA.getY(), offset(0.005));
 
-		assertThat(result.get(2), is(nullValue()));
+		assertThat(result.get(2)).isNull();
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -244,7 +239,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		GeoResults<GeoLocation<M>> result = geoOperations.radius(key,
 				new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)));
 
-		assertThat(result.getContent(), hasSize(2));
+		assertThat(result.getContent()).hasSize(2);
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -261,14 +256,14 @@ public class DefaultGeoOperationsTests<K, M> {
 				new Circle(new Point(15, 37), new Distance(200, KILOMETERS)),
 				newGeoRadiusArgs().includeDistance().sortDescending());
 
-		assertThat(result.getContent(), hasSize(2));
-		assertThat(result.getContent().get(0).getDistance().getValue(), is(closeTo(190.4424d, 0.005)));
-		assertThat(result.getContent().get(0).getDistance().getUnit(), is(equalTo("km")));
-		assertThat(result.getContent().get(0).getContent().getName(), is(member1));
+		assertThat(result.getContent()).hasSize(2);
+		assertThat(result.getContent().get(0).getDistance().getValue()).isCloseTo(190.4424d, offset(0.005));
+		assertThat(result.getContent().get(0).getDistance().getUnit()).isEqualTo("km");
+		assertThat(result.getContent().get(0).getContent().getName()).isEqualTo(member1);
 
-		assertThat(result.getContent().get(1).getDistance().getValue(), is(closeTo(56.4413d, 0.005)));
-		assertThat(result.getContent().get(1).getDistance().getUnit(), is(equalTo("km")));
-		assertThat(result.getContent().get(1).getContent().getName(), is(member2));
+		assertThat(result.getContent().get(1).getDistance().getValue()).isCloseTo(56.4413d, offset(0.005));
+		assertThat(result.getContent().get(1).getDistance().getUnit()).isEqualTo("km");
+		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member2);
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -285,14 +280,18 @@ public class DefaultGeoOperationsTests<K, M> {
 				new Circle(new Point(15, 37), new Distance(200, KILOMETERS)),
 				newGeoRadiusArgs().includeCoordinates().sortAscending());
 
-		assertThat(result.getContent(), hasSize(2));
-		assertThat(result.getContent().get(0).getContent().getPoint().getX(), is(closeTo(POINT_CATANIA.getX(), 0.005)));
-		assertThat(result.getContent().get(0).getContent().getPoint().getY(), is(closeTo(POINT_CATANIA.getY(), 0.005)));
-		assertThat(result.getContent().get(0).getContent().getName(), is(member2));
+		assertThat(result.getContent()).hasSize(2);
+		assertThat(result.getContent().get(0).getContent().getPoint().getX()).isCloseTo(POINT_CATANIA.getX(),
+				offset(0.005));
+		assertThat(result.getContent().get(0).getContent().getPoint().getY()).isCloseTo(POINT_CATANIA.getY(),
+				offset(0.005));
+		assertThat(result.getContent().get(0).getContent().getName()).isEqualTo(member2);
 
-		assertThat(result.getContent().get(1).getContent().getPoint().getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
-		assertThat(result.getContent().get(1).getContent().getPoint().getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
-		assertThat(result.getContent().get(1).getContent().getName(), is(member1));
+		assertThat(result.getContent().get(1).getContent().getPoint().getX()).isCloseTo(POINT_PALERMO.getX(),
+				offset(0.005));
+		assertThat(result.getContent().get(1).getContent().getPoint().getY()).isCloseTo(POINT_PALERMO.getY(),
+				offset(0.005));
+		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member1);
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -308,19 +307,23 @@ public class DefaultGeoOperationsTests<K, M> {
 		GeoResults<GeoLocation<M>> result = geoOperations.radius(key,
 				new Circle(new Point(15, 37), new Distance(200, KILOMETERS)),
 				newGeoRadiusArgs().includeCoordinates().includeDistance().sortAscending());
-		assertThat(result.getContent(), hasSize(2));
+		assertThat(result.getContent()).hasSize(2);
 
-		assertThat(result.getContent().get(0).getDistance().getValue(), is(closeTo(56.4413d, 0.005)));
-		assertThat(result.getContent().get(0).getDistance().getUnit(), is(equalTo("km")));
-		assertThat(result.getContent().get(0).getContent().getPoint().getX(), is(closeTo(POINT_CATANIA.getX(), 0.005)));
-		assertThat(result.getContent().get(0).getContent().getPoint().getY(), is(closeTo(POINT_CATANIA.getY(), 0.005)));
-		assertThat(result.getContent().get(0).getContent().getName(), is(member2));
+		assertThat(result.getContent().get(0).getDistance().getValue()).isCloseTo(56.4413d, offset(0.005));
+		assertThat(result.getContent().get(0).getDistance().getUnit()).isEqualTo("km");
+		assertThat(result.getContent().get(0).getContent().getPoint().getX()).isCloseTo(POINT_CATANIA.getX(),
+				offset(0.005));
+		assertThat(result.getContent().get(0).getContent().getPoint().getY()).isCloseTo(POINT_CATANIA.getY(),
+				offset(0.005));
+		assertThat(result.getContent().get(0).getContent().getName()).isEqualTo(member2);
 
-		assertThat(result.getContent().get(1).getDistance().getValue(), is(closeTo(190.4424d, 0.005)));
-		assertThat(result.getContent().get(1).getDistance().getUnit(), is(equalTo("km")));
-		assertThat(result.getContent().get(1).getContent().getPoint().getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
-		assertThat(result.getContent().get(1).getContent().getPoint().getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
-		assertThat(result.getContent().get(1).getContent().getName(), is(member1));
+		assertThat(result.getContent().get(1).getDistance().getValue()).isCloseTo(190.4424d, offset(0.005));
+		assertThat(result.getContent().get(1).getDistance().getUnit()).isEqualTo("km");
+		assertThat(result.getContent().get(1).getContent().getPoint().getX()).isCloseTo(POINT_PALERMO.getX(),
+				offset(0.005));
+		assertThat(result.getContent().get(1).getContent().getPoint().getY()).isCloseTo(POINT_PALERMO.getY(),
+				offset(0.005));
+		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member1);
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -336,7 +339,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.add(key, POINT_ARIGENTO, member3);
 
 		GeoResults<GeoLocation<M>> result = geoOperations.radius(key, member3, new Distance(200, KILOMETERS));
-		assertThat(result.getContent(), hasSize(3));
+		assertThat(result.getContent()).hasSize(3);
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -354,11 +357,11 @@ public class DefaultGeoOperationsTests<K, M> {
 		GeoResults<GeoLocation<M>> result = geoOperations.radius(key, member3, new Distance(100, KILOMETERS),
 				newGeoRadiusArgs().includeDistance().sortDescending());
 
-		assertThat(result.getContent(), hasSize(2));
-		assertThat(result.getContent().get(0).getDistance().getValue(), is(closeTo(90.9778d, 0.005)));
-		assertThat(result.getContent().get(0).getContent().getName(), is(member1));
-		assertThat(result.getContent().get(1).getDistance().getValue(), is(closeTo(0.0d, 0.005))); // itself
-		assertThat(result.getContent().get(1).getContent().getName(), is(member3));
+		assertThat(result.getContent()).hasSize(2);
+		assertThat(result.getContent().get(0).getDistance().getValue()).isCloseTo(90.9778d, offset(0.005));
+		assertThat(result.getContent().get(0).getContent().getName()).isEqualTo(member1);
+		assertThat(result.getContent().get(1).getDistance().getValue()).isCloseTo(0.0d, offset(0.005)); // itself
+		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member3);
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -376,14 +379,18 @@ public class DefaultGeoOperationsTests<K, M> {
 		GeoResults<GeoLocation<M>> result = geoOperations.radius(key, member3, new Distance(100, DistanceUnit.KILOMETERS),
 				newGeoRadiusArgs().includeCoordinates().sortAscending());
 
-		assertThat(result.getContent(), hasSize(2));
-		assertThat(result.getContent().get(0).getContent().getPoint().getX(), is(closeTo(POINT_ARIGENTO.getX(), 0.005)));
-		assertThat(result.getContent().get(0).getContent().getPoint().getY(), is(closeTo(POINT_ARIGENTO.getY(), 0.005)));
-		assertThat(result.getContent().get(0).getContent().getName(), is(member3));
+		assertThat(result.getContent()).hasSize(2);
+		assertThat(result.getContent().get(0).getContent().getPoint().getX()).isCloseTo(POINT_ARIGENTO.getX(),
+				offset(0.005));
+		assertThat(result.getContent().get(0).getContent().getPoint().getY()).isCloseTo(POINT_ARIGENTO.getY(),
+				offset(0.005));
+		assertThat(result.getContent().get(0).getContent().getName()).isEqualTo(member3);
 
-		assertThat(result.getContent().get(1).getContent().getPoint().getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
-		assertThat(result.getContent().get(1).getContent().getPoint().getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
-		assertThat(result.getContent().get(1).getContent().getName(), is(member1));
+		assertThat(result.getContent().get(1).getContent().getPoint().getX()).isCloseTo(POINT_PALERMO.getX(),
+				offset(0.005));
+		assertThat(result.getContent().get(1).getContent().getPoint().getY()).isCloseTo(POINT_PALERMO.getY(),
+				offset(0.005));
+		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member1);
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -401,17 +408,21 @@ public class DefaultGeoOperationsTests<K, M> {
 		// with coord and dist, ascending
 		GeoResults<GeoLocation<M>> result = geoOperations.radius(key, member1, new Distance(100, KILOMETERS),
 				newGeoRadiusArgs().includeCoordinates().includeDistance().sortAscending());
-		assertThat(result.getContent(), hasSize(2));
+		assertThat(result.getContent()).hasSize(2);
 
-		assertThat(result.getContent().get(0).getDistance().getValue(), is(closeTo(0.0d, 0.005)));
-		assertThat(result.getContent().get(0).getContent().getPoint().getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
-		assertThat(result.getContent().get(0).getContent().getPoint().getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
-		assertThat(result.getContent().get(0).getContent().getName(), is(member1));
+		assertThat(result.getContent().get(0).getDistance().getValue()).isCloseTo(0.0d, offset(0.005));
+		assertThat(result.getContent().get(0).getContent().getPoint().getX()).isCloseTo(POINT_PALERMO.getX(),
+				offset(0.005));
+		assertThat(result.getContent().get(0).getContent().getPoint().getY()).isCloseTo(POINT_PALERMO.getY(),
+				offset(0.005));
+		assertThat(result.getContent().get(0).getContent().getName()).isEqualTo(member1);
 
-		assertThat(result.getContent().get(1).getDistance().getValue(), is(closeTo(90.9778d, 0.005)));
-		assertThat(result.getContent().get(1).getContent().getPoint().getX(), is(closeTo(POINT_ARIGENTO.getX(), 0.005)));
-		assertThat(result.getContent().get(1).getContent().getPoint().getY(), is(closeTo(POINT_ARIGENTO.getY(), 0.005)));
-		assertThat(result.getContent().get(1).getContent().getName(), is(member3));
+		assertThat(result.getContent().get(1).getDistance().getValue()).isCloseTo(90.9778d, offset(0.005));
+		assertThat(result.getContent().get(1).getContent().getPoint().getX()).isCloseTo(POINT_ARIGENTO.getX(),
+				offset(0.005));
+		assertThat(result.getContent().get(1).getContent().getPoint().getY()).isCloseTo(POINT_ARIGENTO.getY(),
+				offset(0.005));
+		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member3);
 	}
 
 	@Test // DATAREDIS-438, DATAREDIS-614
@@ -422,6 +433,6 @@ public class DefaultGeoOperationsTests<K, M> {
 
 		geoOperations.add(key, POINT_PALERMO, member1);
 
-		assertThat(geoOperations.remove(key, member1), is(1L));
+		assertThat(geoOperations.remove(key, member1)).isEqualTo(1L);
 	}
 }

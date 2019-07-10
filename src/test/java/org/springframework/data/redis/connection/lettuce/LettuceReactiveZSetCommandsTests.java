@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.domain.Range.Bound.*;
 
@@ -25,8 +24,8 @@ import reactor.test.StepVerifier;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.Test;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.core.ScanOptions;
@@ -48,7 +47,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 
 	@Test // DATAREDIS-525
 	public void zAddShouldAddValuesWithScores() {
-		assertThat(connection.zSetCommands().zAdd(KEY_1_BBUFFER, 3.5D, VALUE_1_BBUFFER).block(), is(1L));
+		assertThat(connection.zSetCommands().zAdd(KEY_1_BBUFFER, 3.5D, VALUE_1_BBUFFER).block()).isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-525
@@ -58,8 +57,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRem(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_3_BBUFFER)).block(),
-				is(2L));
+		assertThat(connection.zSetCommands().zRem(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_3_BBUFFER)).block())
+				.isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-525
@@ -67,7 +66,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 
 		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
 
-		assertThat(connection.zSetCommands().zIncrBy(KEY_1_BBUFFER, 3.5D, VALUE_1_BBUFFER).block(), is(4.5D));
+		assertThat(connection.zSetCommands().zIncrBy(KEY_1_BBUFFER, 3.5D, VALUE_1_BBUFFER).block()).isEqualTo(4.5D);
 	}
 
 	@Test // DATAREDIS-525
@@ -77,7 +76,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRank(KEY_1_BBUFFER, VALUE_3_BBUFFER).block(), is(2L));
+		assertThat(connection.zSetCommands().zRank(KEY_1_BBUFFER, VALUE_3_BBUFFER).block()).isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-525
@@ -87,7 +86,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRevRank(KEY_1_BBUFFER, VALUE_3_BBUFFER).block(), is(0L));
+		assertThat(connection.zSetCommands().zRevRank(KEY_1_BBUFFER, VALUE_3_BBUFFER).block()).isEqualTo(0L);
 	}
 
 	@Test // DATAREDIS-525
@@ -337,7 +336,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, TWO_TO_THREE_ALL_INCLUSIVE).block(), is(2L));
+		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, TWO_TO_THREE_ALL_INCLUSIVE).block()).isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-525
@@ -347,7 +346,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE).block(), is(1L));
+		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE).block()).isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-525
@@ -357,7 +356,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE).block(), is(1L));
+		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE).block()).isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-525
@@ -367,7 +366,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, Range.leftUnbounded(inclusive(2D))).block(), is(2L));
+		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, Range.leftUnbounded(inclusive(2D))).block())
+				.isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-525
@@ -377,7 +377,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, Range.rightUnbounded(inclusive(2D))).block(), is(2L));
+		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, Range.rightUnbounded(inclusive(2D))).block())
+				.isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-525
@@ -387,7 +388,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zCard(KEY_1_BBUFFER).block(), is(3L));
+		assertThat(connection.zSetCommands().zCard(KEY_1_BBUFFER).block()).isEqualTo(3L);
 	}
 
 	@Test // DATAREDIS-525
@@ -395,7 +396,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 
-		assertThat(connection.zSetCommands().zScore(KEY_1_BBUFFER, VALUE_2_BBUFFER).block(), is(2D));
+		assertThat(connection.zSetCommands().zScore(KEY_1_BBUFFER, VALUE_2_BBUFFER).block()).isEqualTo(2D);
 	}
 
 	@Test // DATAREDIS-525
@@ -405,7 +406,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRemRangeByRank(KEY_1_BBUFFER, ONE_TO_TWO).block(), is(2L));
+		assertThat(connection.zSetCommands().zRemRangeByRank(KEY_1_BBUFFER, ONE_TO_TWO).block()).isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-525
@@ -415,7 +416,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, Range.closed(1D, 2D)).block(), is(2L));
+		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, Range.closed(1D, 2D)).block()).isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-525
@@ -425,8 +426,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, Range.leftUnbounded(inclusive(2D))).block(),
-				is(2L));
+		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, Range.leftUnbounded(inclusive(2D))).block())
+				.isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-525
@@ -436,8 +437,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, Range.rightUnbounded(inclusive(2D))).block(),
-				is(2L));
+		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, Range.rightUnbounded(inclusive(2D))).block())
+				.isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-525
@@ -447,8 +448,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE).block(),
-				is(1L));
+		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE).block())
+				.isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-525
@@ -458,14 +459,14 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE).block(),
-				is(1L));
+		assertThat(connection.zSetCommands().zRemRangeByScore(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE).block())
+				.isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-525
 	public void zUnionStoreShouldWorkCorrectly() {
 
-		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
 
 		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
@@ -473,16 +474,15 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_2, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_2, 3D, VALUE_3);
 
-		assertThat(
-				connection.zSetCommands()
-						.zUnionStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block(),
-				is(3L));
+		assertThat(connection.zSetCommands()
+				.zUnionStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block())
+						.isEqualTo(3L);
 	}
 
 	@Test // DATAREDIS-525
 	public void zInterStoreShouldWorkCorrectly() {
 
-		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
 
 		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
@@ -490,10 +490,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_2, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_2, 3D, VALUE_3);
 
-		assertThat(
-				connection.zSetCommands()
-						.zInterStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block(),
-				is(2L));
+		assertThat(connection.zSetCommands()
+				.zInterStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block())
+						.isEqualTo(2L);
 	}
 
 	@Test // DATAREDIS-525
@@ -509,16 +508,15 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 
 		Range<String> emptyToC = Range.closed("", "c");
 
-		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, emptyToC).collectList().block(),
-				IsIterableContainingInOrder.contains(ByteBuffer.wrap("a".getBytes()), ByteBuffer.wrap("b".getBytes()),
-						ByteBuffer.wrap("c".getBytes())));
+		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, emptyToC).collectList().block()).containsExactly(
+				ByteBuffer.wrap("a".getBytes()), ByteBuffer.wrap("b".getBytes()), ByteBuffer.wrap("c".getBytes()));
 
-		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, Range.rightOpen("", "c")).collectList().block(),
-				IsIterableContainingInOrder.contains(ByteBuffer.wrap("a".getBytes()), ByteBuffer.wrap("b".getBytes())));
+		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, Range.rightOpen("", "c")).collectList().block())
+				.containsExactly(ByteBuffer.wrap("a".getBytes()), ByteBuffer.wrap("b".getBytes()));
 
-		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, Range.rightOpen("aaa", "g")).collectList().block(),
-				IsIterableContainingInOrder.contains(ByteBuffer.wrap("b".getBytes()), ByteBuffer.wrap("c".getBytes()),
-						ByteBuffer.wrap("d".getBytes()), ByteBuffer.wrap("e".getBytes()), ByteBuffer.wrap("f".getBytes())));
+		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, Range.rightOpen("aaa", "g")).collectList().block())
+				.containsExactly(ByteBuffer.wrap("b".getBytes()), ByteBuffer.wrap("c".getBytes()),
+						ByteBuffer.wrap("d".getBytes()), ByteBuffer.wrap("e".getBytes()), ByteBuffer.wrap("f".getBytes()));
 	}
 
 	@Test // DATAREDIS-525
@@ -532,17 +530,17 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 0D, "f");
 		nativeCommands.zadd(KEY_1, 0D, "g");
 
-		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, Range.closed("", "c")).collectList().block(),
-				IsIterableContainingInOrder.contains(ByteBuffer.wrap("c".getBytes()), ByteBuffer.wrap("b".getBytes()),
-						ByteBuffer.wrap("a".getBytes())));
+		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, Range.closed("", "c")).collectList().block())
+				.containsExactly(ByteBuffer.wrap("c".getBytes()), ByteBuffer.wrap("b".getBytes()),
+						ByteBuffer.wrap("a".getBytes()));
 
-		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, Range.rightOpen("", "c")).collectList().block(),
-				IsIterableContainingInOrder.contains(ByteBuffer.wrap("b".getBytes()), ByteBuffer.wrap("a".getBytes())));
+		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, Range.rightOpen("", "c")).collectList().block())
+				.containsExactly(ByteBuffer.wrap("b".getBytes()), ByteBuffer.wrap("a".getBytes()));
 
 		assertThat(
-				connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, Range.rightOpen("aaa", "g")).collectList().block(),
-				IsIterableContainingInOrder.contains(ByteBuffer.wrap("f".getBytes()), ByteBuffer.wrap("e".getBytes()),
-						ByteBuffer.wrap("d".getBytes()), ByteBuffer.wrap("c".getBytes()), ByteBuffer.wrap("b".getBytes())));
+				connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, Range.rightOpen("aaa", "g")).collectList().block())
+						.containsExactly(ByteBuffer.wrap("f".getBytes()), ByteBuffer.wrap("e".getBytes()),
+								ByteBuffer.wrap("d".getBytes()), ByteBuffer.wrap("c".getBytes()), ByteBuffer.wrap("b".getBytes()));
 	}
 
 }

@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import io.lettuce.core.SetArgs;
 import reactor.core.publisher.Flux;
@@ -33,6 +32,7 @@ import java.util.List;
 
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
@@ -138,8 +138,8 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 
 		StepVerifier.create(connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER)).expectNext(true)
 				.verifyComplete();
-		assertThat(nativeCommands.exists(KEY_2), is(1L));
-		assertThat(nativeCommands.exists(KEY_1), is(0L));
+		assertThat(nativeCommands.exists(KEY_2)).isEqualTo(1L);
+		assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
 	}
 
 	@Test // DATAREDIS-525
@@ -157,8 +157,8 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		StepVerifier.create(connection.keyCommands().renameNX(KEY_1_BBUFFER, KEY_2_BBUFFER)).expectNext(true)
 				.verifyComplete();
 
-		assertThat(nativeCommands.exists(KEY_2), is(1L));
-		assertThat(nativeCommands.exists(KEY_1), is(0L));
+		assertThat(nativeCommands.exists(KEY_2)).isEqualTo(1L);
+		assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
 	}
 
 	@Test // DATAREDIS-525
@@ -275,7 +275,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 				.expectComplete() //
 				.verify();
 
-		assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+		assertThat(nativeCommands.ttl(KEY_1)).isGreaterThan(8L);
 	}
 
 	@Test // DATAREDIS-602
@@ -288,7 +288,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 				.expectComplete() //
 				.verify();
 
-		assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+		assertThat(nativeCommands.ttl(KEY_1)).isGreaterThan(8L);
 	}
 
 	@Test // DATAREDIS-602
@@ -302,7 +302,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 				.expectComplete() //
 				.verify();
 
-		assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+		assertThat(nativeCommands.ttl(KEY_1)).isGreaterThan(8L);
 	}
 
 	@Test // DATAREDIS-602
@@ -316,7 +316,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 				.expectComplete() //
 				.verify();
 
-		assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+		assertThat(nativeCommands.ttl(KEY_1)).isGreaterThan(8L);
 	}
 
 	@Test // DATAREDIS-602
@@ -326,7 +326,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 
 		StepVerifier.create(connection.keyCommands().ttl(KEY_1_BBUFFER)) //
 				.expectNextMatches(actual -> {
-					assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+					assertThat(nativeCommands.ttl(KEY_1)).isGreaterThan(8L);
 					return true;
 				}) //
 				.expectComplete() //
@@ -340,7 +340,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 
 		StepVerifier.create(connection.keyCommands().pTtl(KEY_1_BBUFFER)) //
 				.expectNextMatches(actual -> {
-					assertThat(actual, is(greaterThan(8000L)));
+					assertThat(actual).isGreaterThan(8000L);
 					return true;
 				}) //
 				.expectComplete() //
@@ -357,13 +357,13 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 				.expectComplete() //
 				.verify();
 
-		assertThat(nativeCommands.ttl(KEY_1), is(-1L));
+		assertThat(nativeCommands.ttl(KEY_1)).isEqualTo(-1L);
 	}
 
 	@Test // DATAREDIS-602
 	public void shouldMoveToDatabase() {
 
-		assumeThat(connection, is(not(instanceOf(LettuceReactiveRedisClusterConnection.class))));
+		assumeThat(connection).isNotInstanceOf(LettuceReactiveRedisClusterConnection.class);
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
@@ -371,7 +371,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 				.expectNext(true) //
 				.expectComplete() //
 				.verify();
-		assertThat(nativeCommands.exists(KEY_1), is(0L));
+		assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
 	}
 
 	@Test // DATAREDIS-694

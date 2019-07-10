@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -41,7 +40,7 @@ public class DefaultRedisElementReaderUnitTests {
 
 		String result = reader.read(ByteBuffer.wrap(bytes));
 
-		assertThat(result, is(equalTo(input)));
+		assertThat(result).isEqualTo(input);
 	}
 
 	@Test // DATAREDIS-602
@@ -53,6 +52,6 @@ public class DefaultRedisElementReaderUnitTests {
 
 		Object result = reader.read(input);
 
-		assertThat(result, is(equalTo(input)));
+		assertThat(result).isEqualTo(input);
 	}
 }

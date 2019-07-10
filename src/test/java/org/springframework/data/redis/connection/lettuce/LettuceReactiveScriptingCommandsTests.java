@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 
@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
+
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ReactiveRedisClusterConnection;
 import org.springframework.data.redis.connection.ReturnType;
@@ -173,7 +174,7 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 
 		StepVerifier.create(connection.scriptingCommands().scriptKill()).expectNext("OK").verifyComplete();
 
-		assertTrue(waitFor(scriptDead::get, 3000L));
+		assertThat(waitFor(scriptDead::get, 3000L)).isTrue();
 	}
 
 	private static ByteBuffer wrap(String content) {

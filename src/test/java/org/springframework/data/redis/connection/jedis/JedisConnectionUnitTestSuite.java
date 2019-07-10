@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import redis.clients.jedis.Client;
@@ -78,7 +77,7 @@ public class JedisConnectionUnitTestSuite {
 			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
 			verifyNativeConnectionInvocation().eval(captor.capture(), any(byte[].class), any(byte[][].class));
 
-			assertThat(captor.getValue(), equalTo("return redis.call('SHUTDOWN','NOSAVE')".getBytes()));
+			assertThat(captor.getValue()).isEqualTo("return redis.call('SHUTDOWN','NOSAVE')".getBytes());
 		}
 
 		@Test // DATAREDIS-184
@@ -89,7 +88,7 @@ public class JedisConnectionUnitTestSuite {
 			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
 			verifyNativeConnectionInvocation().eval(captor.capture(), any(byte[].class), any(byte[][].class));
 
-			assertThat(captor.getValue(), equalTo("return redis.call('SHUTDOWN','SAVE')".getBytes()));
+			assertThat(captor.getValue()).isEqualTo("return redis.call('SHUTDOWN','SAVE')".getBytes());
 		}
 
 		@Test // DATAREDIS-267
@@ -132,37 +131,27 @@ public class JedisConnectionUnitTestSuite {
 
 		@Test(expected = IllegalArgumentException.class) // DATAREDIS-472
 		public void restoreShouldThrowExceptionWhenTtlInMillisExceedsIntegerRange() {
-			connection.restore("foo".getBytes(), new Long(Integer.MAX_VALUE) + 1L, "bar".getBytes());
+			connection.restore("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes());
 		}
 
 		@Test(expected = IllegalArgumentException.class) // DATAREDIS-472
 		public void setExShouldThrowExceptionWhenTimeExceedsIntegerRange() {
-			connection.setEx("foo".getBytes(), new Long(Integer.MAX_VALUE) + 1L, "bar".getBytes());
-		}
-
-		@Test(expected = IllegalArgumentException.class) // DATAREDIS-472
-		public void getRangeShouldThrowExceptionWhenStartExceedsIntegerRange() {
-			connection.getRange("foo".getBytes(), new Long(Integer.MAX_VALUE) + 1L, Integer.MAX_VALUE);
-		}
-
-		@Test(expected = IllegalArgumentException.class) // DATAREDIS-472
-		public void getRangeShouldThrowExceptionWhenEndExceedsIntegerRange() {
-			connection.getRange("foo".getBytes(), Integer.MAX_VALUE, new Long(Integer.MAX_VALUE) + 1L);
+			connection.setEx("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes());
 		}
 
 		@Test(expected = IllegalArgumentException.class) // DATAREDIS-472
 		public void sRandMemberShouldThrowExceptionWhenCountExceedsIntegerRange() {
-			connection.sRandMember("foo".getBytes(), new Long(Integer.MAX_VALUE) + 1L);
+			connection.sRandMember("foo".getBytes(), (long) Integer.MAX_VALUE + 1L);
 		}
 
 		@Test(expected = IllegalArgumentException.class) // DATAREDIS-472
 		public void zRangeByScoreShouldThrowExceptionWhenOffsetExceedsIntegerRange() {
-			connection.zRangeByScore("foo".getBytes(), "foo", "bar", new Long(Integer.MAX_VALUE) + 1L, Integer.MAX_VALUE);
+			connection.zRangeByScore("foo".getBytes(), "foo", "bar", (long) Integer.MAX_VALUE + 1L, Integer.MAX_VALUE);
 		}
 
 		@Test(expected = IllegalArgumentException.class) // DATAREDIS-472
 		public void zRangeByScoreShouldThrowExceptionWhenCountExceedsIntegerRange() {
-			connection.zRangeByScore("foo".getBytes(), "foo", "bar", Integer.MAX_VALUE, new Long(Integer.MAX_VALUE) + 1L);
+			connection.zRangeByScore("foo".getBytes(), "foo", "bar", Integer.MAX_VALUE, (long) Integer.MAX_VALUE + 1L);
 		}
 
 		@Test // DATAREDIS-531

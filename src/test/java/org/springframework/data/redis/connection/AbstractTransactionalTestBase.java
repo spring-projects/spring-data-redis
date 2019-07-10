@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
+import static org.assertj.core.api.Assertions.*;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -22,12 +24,11 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.hamcrest.core.Is;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -105,9 +106,9 @@ public abstract class AbstractTransactionalTestBase {
 
 		RedisConnection connection = factory.getConnection();
 		for (String key : KEYS) {
-			Assert.assertThat(
-					"Values for " + key + " should " + (valuesShouldHaveBeenPersisted ? "" : "NOT ") + "have been found.",
-					connection.exists(key.getBytes()), Is.is(valuesShouldHaveBeenPersisted));
+			assertThat(connection.exists(key.getBytes()))
+					.as("Values for " + key + " should " + (valuesShouldHaveBeenPersisted ? "" : "NOT ") + "have been found.")
+					.isEqualTo(valuesShouldHaveBeenPersisted);
 		}
 		connection.close();
 	}

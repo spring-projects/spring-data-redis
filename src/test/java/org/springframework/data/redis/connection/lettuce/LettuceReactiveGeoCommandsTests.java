@@ -15,11 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.collection.IsIterableContainingInOrder.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.hamcrest.number.IsCloseTo.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 
@@ -31,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
@@ -59,13 +57,13 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 
 	@Test // DATAREDIS-525
 	public void geoAddShouldAddSingleGeoLocationCorrectly() {
-		assertThat(connection.geoCommands().geoAdd(KEY_1_BBUFFER, ARIGENTO).block(), is(1L));
+		assertThat(connection.geoCommands().geoAdd(KEY_1_BBUFFER, ARIGENTO).block()).isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-525
 	public void geoAddShouldAddMultipleGeoLocationsCorrectly() {
-		assertThat(connection.geoCommands().geoAdd(KEY_1_BBUFFER, Arrays.asList(ARIGENTO, CATANIA, PALERMO)).block(),
-				is(3L));
+		assertThat(connection.geoCommands().geoAdd(KEY_1_BBUFFER, Arrays.asList(ARIGENTO, CATANIA, PALERMO)).block())
+				.isEqualTo(3L);
 	}
 
 	@Test // DATAREDIS-525
@@ -74,8 +72,8 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 
-		assertThat(connection.geoCommands().geoDist(KEY_1_BBUFFER, PALERMO.getName(), CATANIA.getName()).block().getValue(),
-				is(closeTo(166274.15156960033D, 0.005)));
+		assertThat(connection.geoCommands().geoDist(KEY_1_BBUFFER, PALERMO.getName(), CATANIA.getName()).block().getValue())
+				.isCloseTo(166274.15156960033D, offset(0.005));
 	}
 
 	@Test // DATAREDIS-525
@@ -85,7 +83,7 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 
 		assertThat(connection.geoCommands().geoDist(KEY_1_BBUFFER, PALERMO.getName(), CATANIA.getName(), Metrics.KILOMETERS)
-				.block().getValue(), is(closeTo(166.27415156960033D, 0.005)));
+				.block().getValue()).isCloseTo(166.27415156960033D, offset(0.005));
 	}
 
 	@Test // DATAREDIS-525
@@ -95,8 +93,8 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 
 		assertThat(
-				connection.geoCommands().geoHash(KEY_1_BBUFFER, Arrays.asList(PALERMO.getName(), CATANIA.getName())).block(),
-				contains("sqc8b49rny0", "sqdtr74hyu0"));
+				connection.geoCommands().geoHash(KEY_1_BBUFFER, Arrays.asList(PALERMO.getName(), CATANIA.getName())).block())
+						.containsExactly("sqc8b49rny0", "sqdtr74hyu0");
 	}
 
 	@Test // DATAREDIS-525
@@ -105,10 +103,9 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 
-		assertThat(
-				connection.geoCommands()
-						.geoHash(KEY_1_BBUFFER, Arrays.asList(PALERMO.getName(), ARIGENTO.getName(), CATANIA.getName())).block(),
-				contains("sqc8b49rny0", null, "sqdtr74hyu0"));
+		assertThat(connection.geoCommands()
+				.geoHash(KEY_1_BBUFFER, Arrays.asList(PALERMO.getName(), ARIGENTO.getName(), CATANIA.getName())).block())
+						.containsExactly("sqc8b49rny0", null, "sqdtr74hyu0");
 	}
 
 	@Test // DATAREDIS-525
@@ -119,11 +116,11 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 
 		List<Point> result = connection.geoCommands()
 				.geoPos(KEY_1_BBUFFER, Arrays.asList(PALERMO.getName(), CATANIA.getName())).block();
-		assertThat(result.get(0).getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
-		assertThat(result.get(0).getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
+		assertThat(result.get(0).getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.005));
+		assertThat(result.get(0).getY()).isCloseTo(POINT_PALERMO.getY(), offset(0.005));
 
-		assertThat(result.get(1).getX(), is(closeTo(POINT_CATANIA.getX(), 0.005)));
-		assertThat(result.get(1).getY(), is(closeTo(POINT_CATANIA.getY(), 0.005)));
+		assertThat(result.get(1).getX()).isCloseTo(POINT_CATANIA.getX(), offset(0.005));
+		assertThat(result.get(1).getY()).isCloseTo(POINT_CATANIA.getY(), offset(0.005));
 	}
 
 	@Test // DATAREDIS-525
@@ -134,13 +131,13 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 
 		List<Point> result = connection.geoCommands()
 				.geoPos(KEY_1_BBUFFER, Arrays.asList(PALERMO.getName(), ARIGENTO.getName(), CATANIA.getName())).block();
-		assertThat(result.get(0).getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
-		assertThat(result.get(0).getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
+		assertThat(result.get(0).getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.005));
+		assertThat(result.get(0).getY()).isCloseTo(POINT_PALERMO.getY(), offset(0.005));
 
-		assertThat(result.get(1), is(nullValue()));
+		assertThat(result.get(1)).isNull();
 
-		assertThat(result.get(2).getX(), is(closeTo(POINT_CATANIA.getX(), 0.005)));
-		assertThat(result.get(2).getY(), is(closeTo(POINT_CATANIA.getY(), 0.005)));
+		assertThat(result.get(2).getX()).isCloseTo(POINT_CATANIA.getX(), offset(0.005));
+		assertThat(result.get(2).getY()).isCloseTo(POINT_CATANIA.getY(), offset(0.005));
 	}
 
 	@Test // DATAREDIS-525
@@ -175,8 +172,8 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 						new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)), newGeoRadiusArgs().includeDistance())) //
 				.consumeNextWith(actual -> {
 
-					assertThat(actual.getDistance().getValue(), is(closeTo(130.423D, 0.005)));
-					assertThat(actual.getDistance().getUnit(), is("km"));
+					assertThat(actual.getDistance().getValue()).isCloseTo(130.423D, offset(0.005));
+					assertThat(actual.getDistance().getUnit()).isEqualTo("km");
 				}) //
 				.expectComplete();
 	}
@@ -206,10 +203,10 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 				.create(connection.geoCommands().geoRadiusByMember(KEY_1_BBUFFER, ARIGENTO.getName(),
 						new Distance(100, KILOMETERS))) //
 				.consumeNextWith(actual -> {
-					assertThat(actual.getContent().getName(), is(ARIGENTO.getName()));
+					assertThat(actual.getContent().getName()).isEqualTo(ARIGENTO.getName());
 				}) //
 				.consumeNextWith(actual -> {
-					assertThat(actual.getContent().getName(), is(PALERMO.getName()));
+					assertThat(actual.getContent().getName()).isEqualTo(PALERMO.getName());
 				}) //
 				.expectComplete();
 	}
@@ -226,8 +223,8 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 						new Distance(100, KILOMETERS), newGeoRadiusArgs().includeDistance())) //
 				.consumeNextWith(actual -> {
 
-					assertThat(actual.getDistance().getValue(), is(closeTo(90.978D, 0.005)));
-					assertThat(actual.getDistance().getUnit(), is("km"));
+					assertThat(actual.getDistance().getValue()).isCloseTo(90.978D, offset(0.005));
+					assertThat(actual.getDistance().getUnit()).isEqualTo("km");
 				}) //
 				.expectNextCount(1) //
 				.verifyComplete();

@@ -15,10 +15,10 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
+
 import org.springframework.data.redis.core.convert.MappingRedisConverter.KeyspaceIdentifier;
 
 /**
@@ -31,35 +31,35 @@ public class KeyspaceIdentifierUnitTests {
 	@Test // DATAREDIS-744
 	public void shouldReturnIfKeyIsValid() {
 
-		assertThat(KeyspaceIdentifier.isValid(null), is(false));
-		assertThat(KeyspaceIdentifier.isValid("foo"), is(false));
-		assertThat(KeyspaceIdentifier.isValid(""), is(false));
-		assertThat(KeyspaceIdentifier.isValid("foo:bar"), is(true));
-		assertThat(KeyspaceIdentifier.isValid("foo:bar:baz"), is(true));
-		assertThat(KeyspaceIdentifier.isValid("foo:bar:baz:phantom"), is(true));
+		assertThat(KeyspaceIdentifier.isValid(null)).isFalse();
+		assertThat(KeyspaceIdentifier.isValid("foo")).isFalse();
+		assertThat(KeyspaceIdentifier.isValid("")).isFalse();
+		assertThat(KeyspaceIdentifier.isValid("foo:bar")).isTrue();
+		assertThat(KeyspaceIdentifier.isValid("foo:bar:baz")).isTrue();
+		assertThat(KeyspaceIdentifier.isValid("foo:bar:baz:phantom")).isTrue();
 	}
 
 	@Test // DATAREDIS-744
 	public void shouldReturnKeyspace() {
 
-		assertThat(KeyspaceIdentifier.of("foo:bar").getKeyspace(), is("foo"));
-		assertThat(KeyspaceIdentifier.of("foo:bar:baz").getKeyspace(), is("foo"));
-		assertThat(KeyspaceIdentifier.of("foo:bar:baz:phantom").getKeyspace(), is("foo"));
+		assertThat(KeyspaceIdentifier.of("foo:bar").getKeyspace()).isEqualTo("foo");
+		assertThat(KeyspaceIdentifier.of("foo:bar:baz").getKeyspace()).isEqualTo("foo");
+		assertThat(KeyspaceIdentifier.of("foo:bar:baz:phantom").getKeyspace()).isEqualTo("foo");
 	}
 
 	@Test // DATAREDIS-744
 	public void shouldReturnId() {
 
-		assertThat(KeyspaceIdentifier.of("foo:bar").getId(), is("bar"));
-		assertThat(KeyspaceIdentifier.of("foo:bar:baz").getId(), is("bar:baz"));
-		assertThat(KeyspaceIdentifier.of("foo:bar:baz:phantom").getId(), is("bar:baz"));
+		assertThat(KeyspaceIdentifier.of("foo:bar").getId()).isEqualTo("bar");
+		assertThat(KeyspaceIdentifier.of("foo:bar:baz").getId()).isEqualTo("bar:baz");
+		assertThat(KeyspaceIdentifier.of("foo:bar:baz:phantom").getId()).isEqualTo("bar:baz");
 	}
 
 	@Test // DATAREDIS-744
 	public void shouldReturnPhantomKey() {
 
-		assertThat(KeyspaceIdentifier.of("foo:bar").isPhantomKey(), is(false));
-		assertThat(KeyspaceIdentifier.of("foo:bar:baz").isPhantomKey(), is(false));
-		assertThat(KeyspaceIdentifier.of("foo:bar:baz:phantom").isPhantomKey(), is(true));
+		assertThat(KeyspaceIdentifier.of("foo:bar").isPhantomKey()).isFalse();
+		assertThat(KeyspaceIdentifier.of("foo:bar:baz").isPhantomKey()).isFalse();
+		assertThat(KeyspaceIdentifier.of("foo:bar:baz:phantom").isPhantomKey()).isTrue();
 	}
 }

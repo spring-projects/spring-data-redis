@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 
@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.SettingsUtils;
@@ -78,7 +79,7 @@ public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectio
 		Thread.sleep(1000);
 		connection.scriptKill();
 		getResults();
-		assertTrue(waitFor(scriptDead::get, 3000l));
+		assertThat(waitFor(scriptDead::get, 3000l)).isTrue();
 	}
 
 	@Test
@@ -94,7 +95,7 @@ public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectio
 		factory2.afterPropertiesSet();
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 		try {
-			assertEquals("bar", conn2.get("foo"));
+			assertThat(conn2.get("foo")).isEqualTo("bar");
 		} finally {
 			if (conn2.exists("foo")) {
 				conn2.del("foo");

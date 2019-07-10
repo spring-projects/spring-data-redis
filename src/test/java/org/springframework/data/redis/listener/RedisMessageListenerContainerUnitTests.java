@@ -15,14 +15,14 @@
  */
 package org.springframework.data.redis.listener;
 
-import static org.hamcrest.core.Is.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.concurrent.Executor;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -96,7 +96,7 @@ public class RedisMessageListenerContainerUnitTests {
 
 		container.stop();
 
-		assertThat(container.isRunning(), is(false));
+		assertThat(container.isRunning()).isFalse();
 		verify(subscriptionMock).close();
 	}
 }

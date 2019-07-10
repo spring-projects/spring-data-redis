@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import io.lettuce.core.ReadFrom;
 import reactor.test.StepVerifier;
@@ -128,8 +125,8 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	public void shouldReadMastersCorrectly() {
 
 		List<RedisServer> servers = (List<RedisServer>) connectionFactory.getSentinelConnection().masters();
-		assertThat(servers.size(), is(1));
-		assertThat(servers.get(0).getName(), is(MASTER_NAME));
+		assertThat(servers.size()).isEqualTo(1);
+		assertThat(servers.get(0).getName()).isEqualTo(MASTER_NAME);
 	}
 
 	@Test // DATAREDIS-842, DATAREDIS-973
@@ -149,10 +146,10 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		connectionFactory.afterPropertiesSet();
 
 		RedisConnection directConnection = connectionFactory.getConnection();
-		assertThat(directConnection.exists("foo".getBytes()), is(true));
+		assertThat(directConnection.exists("foo".getBytes())).isTrue();
 		directConnection.select(0);
 
-		assertThat(directConnection.exists("foo".getBytes()), is(false));
+		assertThat(directConnection.exists("foo".getBytes())).isFalse();
 		directConnection.close();
 		connectionFactory.destroy();
 	}
@@ -190,11 +187,11 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
 
 		List<RedisServer> servers = (List<RedisServer>) sentinelConnection.masters();
-		assertThat(servers.size(), is(1));
+		assertThat(servers.size()).isEqualTo(1);
 
 		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
-		assertThat(slaves.size(), is(2));
-		assertThat(slaves, hasItems(SLAVE_0, SLAVE_1));
+		assertThat(slaves.size()).isEqualTo(2);
+		assertThat(slaves).contains(SLAVE_0, SLAVE_1);
 	}
 
 	@Test // DATAREDIS-462
@@ -209,7 +206,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
 
 		try {
-			assertThat(connection.ping(), is(equalTo("PONG")));
+			assertThat(connection.ping()).isEqualTo("PONG");
 		} finally {
 			connection.close();
 		}
@@ -229,7 +226,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
 
 		try {
-			assertThat(connection.getClientName(), is(equalTo("clientName")));
+			assertThat(connection.getClientName()).isEqualTo("clientName");
 		} finally {
 			connection.close();
 		}
@@ -247,8 +244,8 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
 
 		try {
-			assertThat(connection.ping(), is(equalTo("PONG")));
-			assertThat(connection.info().getProperty("role"), is(equalTo("master")));
+			assertThat(connection.ping()).isEqualTo("PONG");
+			assertThat(connection.info().getProperty("role")).isEqualTo("master");
 		} finally {
 			connection.close();
 		}
@@ -266,8 +263,8 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
 
 		try {
-			assertThat(connection.ping(), is(equalTo("PONG")));
-			assertThat(connection.info().getProperty("role"), is(equalTo("slave")));
+			assertThat(connection.ping()).isEqualTo("PONG");
+			assertThat(connection.info().getProperty("role")).isEqualTo("slave");
 		} finally {
 			connection.close();
 		}
@@ -285,8 +282,8 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		RedisConnection connection = factory.getConnection();
 
 		try {
-			assertThat(connection.ping(), is(equalTo("PONG")));
-			assertThat(connection.info().getProperty("role"), is(equalTo("slave")));
+			assertThat(connection.ping()).isEqualTo("PONG");
+			assertThat(connection.info().getProperty("role")).isEqualTo("slave");
 		} finally {
 			connection.close();
 		}

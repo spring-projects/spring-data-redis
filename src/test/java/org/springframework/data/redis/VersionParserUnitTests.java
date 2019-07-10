@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis;
 
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 
@@ -27,31 +26,31 @@ public class VersionParserUnitTests {
 
 	@Test
 	public void shouldParseNullToUnknown() {
-		assertThat(VersionParser.parseVersion(null), equalTo(Version.UNKNOWN));
+		assertThat(VersionParser.parseVersion(null)).isEqualTo(Version.UNKNOWN);
 	}
 
 	@Test
 	public void shouldParseEmptyVersionStringToUnknown() {
-		assertThat(VersionParser.parseVersion(""), equalTo(Version.UNKNOWN));
+		assertThat(VersionParser.parseVersion("")).isEqualTo(Version.UNKNOWN);
 	}
 
 	@Test
 	public void shouldParseInvalidVersionStringToUnknown() {
-		assertThat(VersionParser.parseVersion("ThisIsNoValidVersion"), equalTo(Version.UNKNOWN));
+		assertThat(VersionParser.parseVersion("ThisIsNoValidVersion")).isEqualTo(Version.UNKNOWN);
 	}
 
 	@Test
 	public void shouldParseMajorMinorWithoutPatchCorrectly() {
-		assertThat(VersionParser.parseVersion("1.2"), equalTo(new Version(1, 2, 0)));
+		assertThat(VersionParser.parseVersion("1.2")).isEqualTo(new Version(1, 2, 0));
 	}
 
 	@Test
 	public void shouldParseMajorMinorPatchCorrectly() {
-		assertThat(VersionParser.parseVersion("1.2.3"), equalTo(new Version(1, 2, 3)));
+		assertThat(VersionParser.parseVersion("1.2.3")).isEqualTo(new Version(1, 2, 3));
 	}
 
 	@Test
 	public void shouldParseMajorWithoutMinorPatchCorrectly() {
-		assertThat(VersionParser.parseVersion("1.2.3.a"), equalTo(new Version(1, 2, 3)));
+		assertThat(VersionParser.parseVersion("1.2.3.a")).isEqualTo(new Version(1, 2, 3));
 	}
 }

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.support;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collection;
 import java.util.Map;
@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.BoundKeyOperations;
@@ -94,20 +95,21 @@ public class BoundKeyOperationsTest {
 		Object newName = objFactory.instance();
 
 		keyOps.rename(newName);
-		assertEquals(newName, keyOps.getKey());
+		assertThat(keyOps.getKey()).isEqualTo(newName);
 
 		keyOps.rename(key);
-		assertEquals(key, keyOps.getKey());
+		assertThat(keyOps.getKey()).isEqualTo(key);
 	}
 
 	@Test // DATAREDIS-251
 	public void testExpire() throws Exception {
 
-		assertEquals(keyOps.getClass().getName() + " -> " + keyOps.getKey(), Long.valueOf(-1), keyOps.getExpire());
+		assertThat(keyOps.getExpire()).as(keyOps.getClass().getName() + " -> " + keyOps.getKey())
+				.isEqualTo(Long.valueOf(-1));
 
 		if (keyOps.expire(10, TimeUnit.SECONDS)) {
 			long expire = keyOps.getExpire().longValue();
-			assertTrue(expire <= 10 && expire > 5);
+			assertThat(expire <= 10 && expire > 5).isTrue();
 		}
 	}
 
@@ -116,13 +118,14 @@ public class BoundKeyOperationsTest {
 
 		keyOps.persist();
 
-		assertEquals(keyOps.getClass().getName() + " -> " + keyOps.getKey(), Long.valueOf(-1), keyOps.getExpire());
+		assertThat(keyOps.getExpire()).as(keyOps.getClass().getName() + " -> " + keyOps.getKey())
+				.isEqualTo(Long.valueOf(-1));
 		if (keyOps.expire(10, TimeUnit.SECONDS)) {
-			assertTrue(keyOps.getExpire().longValue() > 0);
+			assertThat(keyOps.getExpire().longValue() > 0).isTrue();
 		}
 
 		keyOps.persist();
-		assertEquals(keyOps.getClass().getName() + " -> " + keyOps.getKey(), -1, keyOps.getExpire().longValue());
+		assertThat(keyOps.getExpire().longValue()).as(keyOps.getClass().getName() + " -> " + keyOps.getKey()).isEqualTo(-1);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

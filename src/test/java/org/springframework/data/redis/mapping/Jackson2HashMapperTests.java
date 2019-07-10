@@ -15,17 +15,18 @@
  */
 package org.springframework.data.redis.mapping;
 
+import static org.assertj.core.api.Assertions.*;
+
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.hamcrest.core.Is;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.ConnectionFactoryTracker;
@@ -95,6 +96,6 @@ public class Jackson2HashMapperTests {
 		template.opsForHash().putAll("JON-SNOW", mapper.toHash(jon));
 
 		Person result = (Person) mapper.fromHash(template.<String, Object> opsForHash().entries("JON-SNOW"));
-		Assert.assertThat(result, Is.is(jon));
+		assertThat(result).isEqualTo(jon);
 	}
 }

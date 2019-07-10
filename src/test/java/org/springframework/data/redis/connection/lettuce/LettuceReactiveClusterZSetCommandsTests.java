@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceReactiveCommandsTestsBase.*;
 
 import java.util.Arrays;
@@ -38,7 +37,7 @@ public class LettuceReactiveClusterZSetCommandsTests extends LettuceReactiveClus
 		nativeCommands.zadd(SAME_SLOT_KEY_2, 3D, VALUE_3);
 
 		assertThat(connection.zSetCommands().zUnionStore(SAME_SLOT_KEY_3_BBUFFER,
-				Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block(), is(3L));
+				Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block()).isEqualTo(3L);
 
 	}
 
@@ -52,6 +51,6 @@ public class LettuceReactiveClusterZSetCommandsTests extends LettuceReactiveClus
 		nativeCommands.zadd(SAME_SLOT_KEY_2, 3D, VALUE_3);
 
 		assertThat(connection.zSetCommands().zInterStore(SAME_SLOT_KEY_3_BBUFFER,
-				Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block(), is(2L));
+				Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block()).isEqualTo(2L);
 	}
 }

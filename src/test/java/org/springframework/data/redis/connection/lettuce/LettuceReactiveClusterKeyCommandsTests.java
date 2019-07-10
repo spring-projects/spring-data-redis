@@ -15,21 +15,18 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.collection.IsCollectionWithSize.*;
-import static org.hamcrest.collection.IsIterableContainingInOrder.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.redis.connection.RedisClusterNode.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceReactiveCommandsTestsBase.*;
+
+import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.data.redis.connection.RedisClusterNode;
 
-import reactor.core.publisher.Mono;
+import org.springframework.data.redis.connection.RedisClusterNode;
 
 /**
  * @author Christoph Strobl
@@ -45,8 +42,8 @@ public class LettuceReactiveClusterKeyCommandsTests extends LettuceReactiveClust
 		nativeCommands.set(KEY_2, VALUE_2);
 
 		List<ByteBuffer> result = connection.keyCommands().keys(NODE_1, ByteBuffer.wrap("*".getBytes())).block();
-		assertThat(result, hasSize(1));
-		assertThat(result, contains(KEY_1_BBUFFER));
+		assertThat(result).hasSize(1);
+		assertThat(result).containsExactly(KEY_1_BBUFFER);
 	}
 
 	@Test // DATAREDIS-525
@@ -58,7 +55,7 @@ public class LettuceReactiveClusterKeyCommandsTests extends LettuceReactiveClust
 		Mono<ByteBuffer> randomkey = connection.keyCommands().randomKey(NODE_1);
 
 		for (int i = 0; i < 10; i++) {
-			assertThat(randomkey.block(), is(equalTo(KEY_1_BBUFFER)));
+			assertThat(randomkey.block()).isEqualTo(KEY_1_BBUFFER);
 		}
 	}
 

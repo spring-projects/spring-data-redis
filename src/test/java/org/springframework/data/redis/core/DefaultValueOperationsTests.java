@@ -15,15 +15,13 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.text.DecimalFormat;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
@@ -102,12 +101,12 @@ public class DefaultValueOperationsTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		assumeTrue(value instanceof Long);
+		assumeThat(value).isInstanceOf(Long.class);
 
 		valueOps.set(key, value);
 
-		assertEquals(Long.valueOf((Long) value + 1), valueOps.increment(key));
-		assertEquals(Long.valueOf((Long) value + 1), valueOps.get(key));
+		assertThat(valueOps.increment(key)).isEqualTo(Long.valueOf((Long) value + 1));
+		assertThat(valueOps.get(key)).isEqualTo(Long.valueOf((Long) value + 1));
 	}
 
 	@Test
@@ -116,15 +115,15 @@ public class DefaultValueOperationsTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		assumeTrue(value instanceof Long);
+		assumeThat(value).isInstanceOf(Long.class);
 
 		valueOps.set(key, value);
 
-		assertEquals(Long.valueOf((Long) value - 10), valueOps.increment(key, -10));
-		assertEquals(Long.valueOf((Long) value - 10), valueOps.get(key));
+		assertThat(valueOps.increment(key, -10)).isEqualTo(Long.valueOf((Long) value - 10));
+		assertThat(valueOps.get(key)).isEqualTo(Long.valueOf((Long) value - 10));
 
 		valueOps.increment(key, -10);
-		assertEquals(Long.valueOf((Long) value - 20), valueOps.get(key));
+		assertThat(valueOps.get(key)).isEqualTo(Long.valueOf((Long) value - 20));
 	}
 
 	@Test // DATAREDIS-247
@@ -141,11 +140,11 @@ public class DefaultValueOperationsTests<K, V> {
 
 		DecimalFormat twoDForm = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 
-		assertEquals(Double.valueOf(twoDForm.format((Double) value + 1.4)), valueOps.increment(key, 1.4));
-		assertEquals(Double.valueOf(twoDForm.format((Double) value + 1.4)), valueOps.get(key));
+		assertThat(valueOps.increment(key, 1.4)).isEqualTo(Double.valueOf(twoDForm.format((Double) value + 1.4)));
+		assertThat(valueOps.get(key)).isEqualTo(Double.valueOf(twoDForm.format((Double) value + 1.4)));
 
 		valueOps.increment(key, -10d);
-		assertEquals(Double.valueOf(twoDForm.format((Double) value + 1.4 - 10d)), valueOps.get(key));
+		assertThat(valueOps.get(key)).isEqualTo(Double.valueOf(twoDForm.format((Double) value + 1.4 - 10d)));
 	}
 
 	@Test // DATAREDIS-784
@@ -154,12 +153,12 @@ public class DefaultValueOperationsTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		assumeTrue(value instanceof Long);
+		assumeThat(value).isInstanceOf(Long.class);
 
 		valueOps.set(key, value);
 
-		assertEquals(Long.valueOf((Long) value - 1), valueOps.decrement(key));
-		assertEquals(Long.valueOf((Long) value - 1), valueOps.get(key));
+		assertThat(valueOps.decrement(key)).isEqualTo(Long.valueOf((Long) value - 1));
+		assertThat(valueOps.get(key)).isEqualTo(Long.valueOf((Long) value - 1));
 	}
 
 	@Test // DATAREDIS-784
@@ -168,12 +167,12 @@ public class DefaultValueOperationsTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		assumeTrue(value instanceof Long);
+		assumeThat(value).isInstanceOf(Long.class);
 
 		valueOps.set(key, value);
 
-		assertEquals(Long.valueOf((Long) value - 5), valueOps.decrement(key, 5));
-		assertEquals(Long.valueOf((Long) value - 5), valueOps.get(key));
+		assertThat(valueOps.decrement(key, 5)).isEqualTo(Long.valueOf((Long) value - 5));
+		assertThat(valueOps.get(key)).isEqualTo(Long.valueOf((Long) value - 5));
 	}
 
 	@Test
@@ -188,8 +187,8 @@ public class DefaultValueOperationsTests<K, V> {
 		keysAndValues.put(key1, value1);
 		keysAndValues.put(key2, value2);
 
-		assertTrue(valueOps.multiSetIfAbsent(keysAndValues));
-		assertThat(valueOps.multiGet(keysAndValues.keySet()), isEqual(new ArrayList<>(keysAndValues.values())));
+		assertThat(valueOps.multiSetIfAbsent(keysAndValues)).isTrue();
+		assertThat(valueOps.multiGet(keysAndValues.keySet())).containsExactlyElementsOf(keysAndValues.values());
 	}
 
 	@Test
@@ -207,7 +206,7 @@ public class DefaultValueOperationsTests<K, V> {
 		keysAndValues.put(key1, value2);
 		keysAndValues.put(key2, value3);
 
-		assertFalse(valueOps.multiSetIfAbsent(keysAndValues));
+		assertThat(valueOps.multiSetIfAbsent(keysAndValues)).isFalse();
 	}
 
 	@Test
@@ -224,7 +223,7 @@ public class DefaultValueOperationsTests<K, V> {
 
 		valueOps.multiSet(keysAndValues);
 
-		assertThat(valueOps.multiGet(keysAndValues.keySet()), isEqual(new ArrayList<>(keysAndValues.values())));
+		assertThat(valueOps.multiGet(keysAndValues.keySet())).containsExactlyElementsOf(keysAndValues.values());
 	}
 
 	@Test
@@ -235,7 +234,7 @@ public class DefaultValueOperationsTests<K, V> {
 
 		valueOps.set(key, value);
 
-		assertThat(valueOps.get(key), isEqual(value));
+		assertThat(valueOps.get(key)).isEqualTo(value);
 	}
 
 	@Test
@@ -247,7 +246,7 @@ public class DefaultValueOperationsTests<K, V> {
 
 		valueOps.set(key, value1);
 
-		assertThat(valueOps.getAndSet(key, value2), isEqual(value1));
+		assertThat(valueOps.getAndSet(key, value2)).isEqualTo(value1);
 	}
 
 	@Test
@@ -260,8 +259,7 @@ public class DefaultValueOperationsTests<K, V> {
 
 		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
 
-		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
-		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
 	@Test // DATAREDIS-815
@@ -274,8 +272,7 @@ public class DefaultValueOperationsTests<K, V> {
 
 		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
 
-		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
-		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
 	@Test // DATAREDIS-815
@@ -288,14 +285,14 @@ public class DefaultValueOperationsTests<K, V> {
 
 		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
 
-		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
-		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6));
+		assertThat(expire).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
 	@Test // DATAREDIS-271
 	public void testSetWithExpirationWithTimeUnitMilliseconds() {
 
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		assumeThat(RedisTestProfileValueSource.matches("runLongTests", "true")).isTrue();
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -311,12 +308,12 @@ public class DefaultValueOperationsTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		assumeTrue(redisTemplate instanceof StringRedisTemplate);
+		assumeThat(redisTemplate).isInstanceOf(StringRedisTemplate.class);
 
 		valueOps.set(key, value);
 
-		assertEquals(Integer.valueOf(((String) value).length() + 3), valueOps.append(key, "aaa"));
-		assertEquals((String) value + "aaa", valueOps.get(key));
+		assertThat(valueOps.append(key, "aaa")).isEqualTo(Integer.valueOf(((String) value).length() + 3));
+		assertThat(valueOps.get(key)).isEqualTo(value + "aaa");
 	}
 
 	@Test
@@ -325,11 +322,11 @@ public class DefaultValueOperationsTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		assumeTrue(value instanceof String);
+		assumeThat(value).isInstanceOf(String.class);
 
 		valueOps.set(key, value);
 
-		assertEquals(2, valueOps.get(key, 0, 1).length());
+		assertThat(valueOps.get(key, 0, 1)).hasSize(2);
 	}
 
 	@Test
@@ -339,12 +336,12 @@ public class DefaultValueOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		assumeTrue(value1 instanceof String);
+		assumeThat(value1).isInstanceOf(String.class);
 
 		valueOps.set(key, value1);
 		valueOps.set(key, value2, 0);
 
-		assertEquals(value2, valueOps.get(key));
+		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
 	@Test
@@ -354,8 +351,8 @@ public class DefaultValueOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		assertTrue(valueOps.setIfAbsent(key, value1));
-		assertFalse(valueOps.setIfAbsent(key, value2));
+		assertThat(valueOps.setIfAbsent(key, value1)).isTrue();
+		assertThat(valueOps.setIfAbsent(key, value2)).isFalse();
 	}
 
 	@Test // DATAREDIS-782
@@ -365,13 +362,12 @@ public class DefaultValueOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		assertTrue(valueOps.setIfAbsent(key, value1, 5, TimeUnit.SECONDS));
-		assertFalse(valueOps.setIfAbsent(key, value2, 5, TimeUnit.SECONDS));
+		assertThat(valueOps.setIfAbsent(key, value1, 5, TimeUnit.SECONDS)).isTrue();
+		assertThat(valueOps.setIfAbsent(key, value2, 5, TimeUnit.SECONDS)).isFalse();
 
 		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
 
-		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
-		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
 	@Test // DATAREDIS-815
@@ -381,13 +377,12 @@ public class DefaultValueOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		assertTrue(valueOps.setIfAbsent(key, value1, Duration.ofSeconds(5)));
-		assertFalse(valueOps.setIfAbsent(key, value2, Duration.ofSeconds(5)));
+		assertThat(valueOps.setIfAbsent(key, value1, Duration.ofSeconds(5))).isTrue();
+		assertThat(valueOps.setIfAbsent(key, value2, Duration.ofSeconds(5))).isFalse();
 
 		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
 
-		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
-		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
 	@Test // DATAREDIS-815
@@ -397,13 +392,12 @@ public class DefaultValueOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		assertTrue(valueOps.setIfAbsent(key, value1, Duration.ofMillis(5500)));
-		assertFalse(valueOps.setIfAbsent(key, value2, Duration.ofMillis(5500)));
+		assertThat(valueOps.setIfAbsent(key, value1, Duration.ofMillis(5500))).isTrue();
+		assertThat(valueOps.setIfAbsent(key, value2, Duration.ofMillis(5500))).isFalse();
 
 		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
 
-		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
-		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
 	@Test // DATAREDIS-786
@@ -415,13 +409,13 @@ public class DefaultValueOperationsTests<K, V> {
 
 		valueOps.set(key, value1);
 
-		assertTrue(valueOps.setIfPresent(key, value2));
-		assertThat(valueOps.get(key), is(value2));
+		assertThat(valueOps.setIfPresent(key, value2)).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
 	@Test // DATAREDIS-786
 	public void setIfPresentReturnsFalseWhenKeyDoesNotExist() {
-		assertFalse(valueOps.setIfPresent(keyFactory.instance(), valueFactory.instance()));
+		assertThat(valueOps.setIfPresent(keyFactory.instance(), valueFactory.instance())).isFalse();
 	}
 
 	@Test // DATAREDIS-786
@@ -431,15 +425,14 @@ public class DefaultValueOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		assertFalse(valueOps.setIfPresent(key, value1, 5, TimeUnit.SECONDS));
+		assertThat(valueOps.setIfPresent(key, value1, 5, TimeUnit.SECONDS)).isFalse();
 		valueOps.set(key, value1);
 
-		assertTrue(valueOps.setIfPresent(key, value2, 5, TimeUnit.SECONDS));
+		assertThat(valueOps.setIfPresent(key, value2, 5, TimeUnit.SECONDS)).isTrue();
 
 		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
-		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
-		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
-		assertThat(valueOps.get(key), is(value2));
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
 	@Test // DATAREDIS-815
@@ -449,15 +442,14 @@ public class DefaultValueOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		assertFalse(valueOps.setIfPresent(key, value1, Duration.ofSeconds(5)));
+		assertThat(valueOps.setIfPresent(key, value1, Duration.ofSeconds(5))).isFalse();
 		valueOps.set(key, value1);
 
-		assertTrue(valueOps.setIfPresent(key, value2, Duration.ofSeconds(5)));
+		assertThat(valueOps.setIfPresent(key, value2, Duration.ofSeconds(5))).isTrue();
 
 		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
-		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
-		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
-		assertThat(valueOps.get(key), is(value2));
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
 	@Test // DATAREDIS-815
@@ -467,15 +459,14 @@ public class DefaultValueOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		assertFalse(valueOps.setIfPresent(key, value1, Duration.ofMillis(5500)));
+		assertThat(valueOps.setIfPresent(key, value1, Duration.ofMillis(5500))).isFalse();
 		valueOps.set(key, value1);
 
-		assertTrue(valueOps.setIfPresent(key, value2, Duration.ofMillis(5500)));
+		assertThat(valueOps.setIfPresent(key, value2, Duration.ofMillis(5500))).isTrue();
 
 		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
-		assertThat(expire, is(lessThan(TimeUnit.SECONDS.toMillis(6))));
-		assertThat(expire, is(greaterThan(TimeUnit.MILLISECONDS.toMillis(1))));
-		assertThat(valueOps.get(key), is(value2));
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
 	@Test
@@ -486,7 +477,7 @@ public class DefaultValueOperationsTests<K, V> {
 
 		valueOps.set(key, value);
 
-		assertTrue(valueOps.size(key) > 0);
+		assertThat(valueOps.size(key) > 0).isTrue();
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -498,7 +489,7 @@ public class DefaultValueOperationsTests<K, V> {
 
 		byte[][] rawKeys = ((DefaultValueOperations) valueOps).rawKeys(key1, key2);
 
-		assertEquals(2, rawKeys.length);
+		assertThat(rawKeys.length).isEqualTo(2);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -510,7 +501,7 @@ public class DefaultValueOperationsTests<K, V> {
 
 		byte[][] rawKeys = ((DefaultValueOperations) valueOps).rawKeys(Arrays.asList(new Object[] { key1, key2 }));
 
-		assertEquals(2, rawKeys.length);
+		assertThat(rawKeys.length).isEqualTo(2);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -519,20 +510,20 @@ public class DefaultValueOperationsTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		assumeTrue(key instanceof byte[]);
+		assumeThat(key).isInstanceOf(byte[].class);
 
-		assertNotNull(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key));
+		assertThat(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key)).isNotNull();
 	}
 
 	@Test // DATAREDIS-197
 	public void testSetAndGetBit() {
 
-		assumeTrue(redisTemplate instanceof StringRedisTemplate);
+		assumeThat(redisTemplate).isInstanceOf(StringRedisTemplate.class);
 
 		K key = keyFactory.instance();
 		int bitOffset = 65;
 		valueOps.setBit(key, bitOffset, true);
 
-		assertEquals(true, valueOps.getBit(key, bitOffset));
+		assertThat(valueOps.getBit(key, bitOffset)).isTrue();
 	}
 }

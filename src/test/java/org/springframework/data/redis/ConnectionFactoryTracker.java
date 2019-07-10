@@ -49,7 +49,6 @@ public abstract class ConnectionFactoryTracker {
 				try {
 					if (connectionFactory instanceof DisposableBean) {
 						((DisposableBean) connectionFactory).destroy();
-						// System.out.println("Succesfully cleaned up factory " + connectionFactory);
 					}
 					connFactories.remove(connectionFactory);
 				} catch (Exception ex) {

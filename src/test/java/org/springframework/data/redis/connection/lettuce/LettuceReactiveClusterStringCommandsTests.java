@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceReactiveCommandsTestsBase.*;
 
 import java.nio.ByteBuffer;
@@ -26,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.RedisStringCommands;
 
 /**
@@ -43,8 +42,8 @@ public class LettuceReactiveClusterStringCommandsTests extends LettuceReactiveCl
 
 		connection.stringCommands().mSetNX(map).block();
 
-		assertThat(nativeCommands.get(SAME_SLOT_KEY_1), is(equalTo(VALUE_1)));
-		assertThat(nativeCommands.get(SAME_SLOT_KEY_2), is(equalTo(VALUE_2)));
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_1);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_2)).isEqualTo(VALUE_2);
 	}
 
 	@Test // DATAREDIS-525
@@ -56,10 +55,10 @@ public class LettuceReactiveClusterStringCommandsTests extends LettuceReactiveCl
 		map.put(SAME_SLOT_KEY_1_BBUFFER, VALUE_1_BBUFFER);
 		map.put(SAME_SLOT_KEY_2_BBUFFER, VALUE_2_BBUFFER);
 
-		assertThat(connection.stringCommands().mSetNX(map).block(), is(false));
+		assertThat(connection.stringCommands().mSetNX(map).block()).isFalse();
 
-		assertThat(nativeCommands.exists(SAME_SLOT_KEY_1), is(0L));
-		assertThat(nativeCommands.get(SAME_SLOT_KEY_2), is(equalTo(VALUE_2)));
+		assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(0L);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_2)).isEqualTo(VALUE_2);
 	}
 
 	@Test // DATAREDIS-525
@@ -69,8 +68,8 @@ public class LettuceReactiveClusterStringCommandsTests extends LettuceReactiveCl
 		nativeCommands.set(SAME_SLOT_KEY_2, VALUE_2);
 
 		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
-				RedisStringCommands.BitOperation.AND, SAME_SLOT_KEY_3_BBUFFER).block(), is(7L));
-		assertThat(nativeCommands.get(SAME_SLOT_KEY_3), is(equalTo("value-0")));
+				RedisStringCommands.BitOperation.AND, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(7L);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isEqualTo("value-0");
 	}
 
 	@Test // DATAREDIS-525
@@ -80,8 +79,8 @@ public class LettuceReactiveClusterStringCommandsTests extends LettuceReactiveCl
 		nativeCommands.set(SAME_SLOT_KEY_2, VALUE_2);
 
 		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
-				RedisStringCommands.BitOperation.OR, SAME_SLOT_KEY_3_BBUFFER).block(), is(7L));
-		assertThat(nativeCommands.get(SAME_SLOT_KEY_3), is(equalTo(VALUE_3)));
+				RedisStringCommands.BitOperation.OR, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(7L);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isEqualTo(VALUE_3);
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-525

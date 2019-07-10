@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -26,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.data.util.TypeInformation;
 
 /**
@@ -58,6 +58,6 @@ public class CompositeIndexResolverUnitTests {
 
 		CompositeIndexResolver resolver = new CompositeIndexResolver(Arrays.asList(resolver1, resolver2));
 
-		assertThat(resolver.resolveIndexesFor(typeInfoMock, "o.O").size(), equalTo(2));
+		assertThat(resolver.resolveIndexesFor(typeInfoMock, "o.O").size()).isEqualTo(2);
 	}
 }

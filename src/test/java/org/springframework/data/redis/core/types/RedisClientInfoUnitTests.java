@@ -15,12 +15,11 @@
  */
 package org.springframework.data.redis.core.types;
 
-import org.hamcrest.core.Is;
-import org.hamcrest.core.IsEqual;
-import org.hamcrest.core.IsNot;
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.*;
+
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.data.redis.core.types.RedisClientInfo.RedisClientInfoBuilder;
 
 /**
@@ -56,16 +55,16 @@ public class RedisClientInfoUnitTests {
 
 	@Test
 	public void testGetReturnsNullForPropertiesNotAvailable() {
-		Assert.assertThat(info.get("foo-bar"), IsEqual.equalTo(null));
+		assertThat(info.get("foo-bar")).isEqualTo(null);
 	}
 
 	private void assertValues(RedisClientInfo info, String[] values) {
 		for (String potentialValue : values) {
 			if (potentialValue.contains("=")) {
 				String[] keyValuePair = potentialValue.split("=");
-				Assert.assertThat(info.get(keyValuePair[0]), Is.is(keyValuePair[1]));
+				assertThat(info.get(keyValuePair[0])).isEqualTo(keyValuePair[1]);
 			} else {
-				Assert.assertThat(info.get(potentialValue), IsNot.not(null));
+				assertThat(info.get(potentialValue)).isNotEqualTo(null);
 			}
 		}
 

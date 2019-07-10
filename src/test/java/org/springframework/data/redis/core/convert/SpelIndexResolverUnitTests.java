@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +23,7 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.SpelIndexDefinition;
@@ -87,7 +87,7 @@ public class SpelIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, null);
 
-		assertThat(indexes.size(), equalTo(0));
+		assertThat(indexes.size()).isEqualTo(0);
 	}
 
 	@Test // DATAREDIS-425
@@ -96,7 +96,7 @@ public class SpelIndexResolverUnitTests {
 		typeInformation = ClassTypeInformation.from(String.class);
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, "");
 
-		assertThat(indexes.size(), equalTo(0));
+		assertThat(indexes.size()).isEqualTo(0);
 	}
 
 	@Test // DATAREDIS-425
@@ -105,7 +105,7 @@ public class SpelIndexResolverUnitTests {
 		session = new Session();
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, session);
 
-		assertThat(indexes.size(), equalTo(0));
+		assertThat(indexes.size()).isEqualTo(0);
 	}
 
 	@Test // DATAREDIS-425
@@ -113,7 +113,7 @@ public class SpelIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, session);
 
-		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(keyspace, indexName, username)));
+		assertThat(indexes).contains(new SimpleIndexedPropertyValue(keyspace, indexName, username));
 	}
 
 	@Test(expected = SpelEvaluationException.class) // DATAREDIS-425
@@ -137,7 +137,7 @@ public class SpelIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, session);
 
-		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(keyspace, indexName, session)));
+		assertThat(indexes).contains(new SimpleIndexedPropertyValue(keyspace, indexName, session));
 	}
 
 	private SpelIndexResolver createWithExpression(String expression) {

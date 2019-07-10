@@ -15,15 +15,12 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -41,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Test;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
@@ -71,7 +69,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.expectNext(VALUE_1_BBUFFER) //
 				.verifyComplete();
 
-		assertThat(nativeCommands.get(KEY_1), is(equalTo(VALUE_2)));
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
 	}
 
 	@Test // DATAREDIS-525, DATAREDIS-645
@@ -79,7 +77,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		StepVerifier.create(connection.stringCommands().getSet(KEY_1_BBUFFER, VALUE_2_BBUFFER)).verifyComplete();
 
-		assertThat(nativeCommands.get(KEY_1), is(equalTo(VALUE_2)));
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
 	}
 
 	@Test // DATAREDIS-525
@@ -89,7 +87,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.expectNext(true) //
 				.verifyComplete();
 
-		assertThat(nativeCommands.get(KEY_1), is(equalTo(VALUE_1)));
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_1);
 	}
 
 	@Test // DATAREDIS-525
@@ -102,8 +100,8 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.expectNextCount(2) //
 				.verifyComplete();
 
-		assertThat(nativeCommands.get(KEY_1), is(equalTo(VALUE_1)));
-		assertThat(nativeCommands.get(KEY_2), is(equalTo(VALUE_2)));
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_1);
+		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_2);
 	}
 
 	@Test // DATAREDIS-525
@@ -156,7 +154,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		nativeCommands.set(KEY_2, VALUE_2);
 
 		StepVerifier.create(connection.stringCommands().mGet(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER))) //
-				.consumeNextWith(byteBuffers -> assertThat(byteBuffers, contains(VALUE_1_BBUFFER, VALUE_2_BBUFFER)))//
+				.consumeNextWith(byteBuffers -> assertThat(byteBuffers).containsExactly(VALUE_1_BBUFFER, VALUE_2_BBUFFER))//
 				.verifyComplete();
 
 	}
@@ -170,7 +168,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		Mono<List<ByteBuffer>> result = connection.stringCommands()
 				.mGet(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER));
 
-		assertThat(result.block(), contains(VALUE_1_BBUFFER, ByteBuffer.allocate(0), VALUE_3_BBUFFER));
+		assertThat(result.block()).containsExactly(VALUE_1_BBUFFER, ByteBuffer.allocate(0), VALUE_3_BBUFFER);
 	}
 
 	@Test // DATAREDIS-525
@@ -218,7 +216,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.expectNext(true) //
 				.verifyComplete();
 
-		assertThat(nativeCommands.ttl(KEY_1) > 1, is(true));
+		assertThat(nativeCommands.ttl(KEY_1) > 1).isTrue();
 	}
 
 	@Test // DATAREDIS-525
@@ -229,7 +227,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.expectNext(true) //
 				.verifyComplete();
 
-		assertThat(nativeCommands.pttl(KEY_1) > 1, is(true));
+		assertThat(nativeCommands.pttl(KEY_1) > 1).isTrue();
 	}
 
 	@Test // DATAREDIS-525
@@ -241,14 +239,14 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		StepVerifier.create(connection.stringCommands().mSet(map)).expectNext(true).verifyComplete();
 
-		assertThat(nativeCommands.get(KEY_1), is(equalTo(VALUE_1)));
-		assertThat(nativeCommands.get(KEY_2), is(equalTo(VALUE_2)));
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_1);
+		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_2);
 	}
 
 	@Test // DATAREDIS-525
 	public void mSetNXShouldAddMultipleKeyValuePairs() {
 
-		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
 
 		Map<ByteBuffer, ByteBuffer> map = new LinkedHashMap<>();
 		map.put(KEY_1_BBUFFER, VALUE_1_BBUFFER);
@@ -256,14 +254,14 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		StepVerifier.create(connection.stringCommands().mSetNX(map)).expectNext(true).verifyComplete();
 
-		assertThat(nativeCommands.get(KEY_1), is(equalTo(VALUE_1)));
-		assertThat(nativeCommands.get(KEY_2), is(equalTo(VALUE_2)));
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_1);
+		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_2);
 	}
 
 	@Test // DATAREDIS-525
 	public void mSetNXShouldNotAddMultipleKeyValuePairsWhenAlreadyExit() {
 
-		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
 
 		nativeCommands.set(KEY_2, VALUE_2);
 
@@ -273,8 +271,8 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		StepVerifier.create(connection.stringCommands().mSetNX(map)).expectNext(false).verifyComplete();
 
-		assertThat(nativeCommands.exists(KEY_1), is(0L));
-		assertThat(nativeCommands.get(KEY_2), is(equalTo(VALUE_2)));
+		assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
+		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_2);
 	}
 
 	@Test // DATAREDIS-525
@@ -304,7 +302,8 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(Bound.unbounded(), Bound.inclusive(2L)));
+		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER)
+				.within(Range.of(Bound.unbounded(), Bound.inclusive(2L)));
 
 		StepVerifier.create(connection.stringCommands().getRange(Mono.just(rangeCommand))) //
 				.expectNext(new ReactiveRedisConnection.ByteBufferResponse<>(rangeCommand, ByteBuffer.wrap("val".getBytes())))
@@ -316,7 +315,8 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(Bound.inclusive(0L), Bound.unbounded()));
+		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER)
+				.within(Range.of(Bound.inclusive(0L), Bound.unbounded()));
 
 		StepVerifier.create(connection.stringCommands().getRange(Mono.just(rangeCommand))) //
 				.expectNext(new ReactiveRedisConnection.ByteBufferResponse<>(rangeCommand, ByteBuffer.wrap(VALUE_1.getBytes())))
@@ -356,7 +356,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.expectNext(true) //
 				.verifyComplete();
 
-		assertThat(nativeCommands.getbit(KEY_1, 1), is(0L));
+		assertThat(nativeCommands.getbit(KEY_1, 1)).isEqualTo(0L);
 	}
 
 	@Test // DATAREDIS-525
@@ -439,7 +439,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-525
 	public void bitOpAndShouldWorkAsExpected() {
 
-		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
 
 		nativeCommands.set(KEY_1, VALUE_1);
 		nativeCommands.set(KEY_2, VALUE_2);
@@ -450,13 +450,13 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.expectNext(7L) //
 				.verifyComplete();
 
-		assertThat(nativeCommands.get(KEY_3), is(equalTo("value-0")));
+		assertThat(nativeCommands.get(KEY_3)).isEqualTo("value-0");
 	}
 
 	@Test // DATAREDIS-525
 	public void bitOpOrShouldWorkAsExpected() {
 
-		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
 
 		nativeCommands.set(KEY_1, VALUE_1);
 		nativeCommands.set(KEY_2, VALUE_2);
@@ -467,13 +467,13 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.expectNext(7L) //
 				.verifyComplete();
 
-		assertThat(nativeCommands.get(KEY_3), is(equalTo(VALUE_3)));
+		assertThat(nativeCommands.get(KEY_3)).isEqualTo(VALUE_3);
 	}
 
 	@Test // DATAREDIS-525
 	public void bitNotShouldThrowExceptionWhenMoreThanOnSourceKey() {
 
-		assumeThat(connectionProvider instanceof StandaloneConnectionProvider, is(true));
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
 
 		StepVerifier
 				.create(connection.stringCommands().bitOp(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), BitOperation.NOT,
@@ -505,8 +505,10 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeBinaryCommands.set(KEY_1_BBUFFER, ByteBuffer.wrap(HexStringUtils.hexToBytes("fff0f0")));
 
-		StepVerifier.create(connection.stringCommands().bitPos(KEY_1_BBUFFER, true,
-				org.springframework.data.domain.Range.of(Bound.inclusive(2L), Bound.unbounded()))).expectNext(16L).verifyComplete();
+		StepVerifier
+				.create(connection.stringCommands().bitPos(KEY_1_BBUFFER, true,
+						org.springframework.data.domain.Range.of(Bound.inclusive(2L), Bound.unbounded())))
+				.expectNext(16L).verifyComplete();
 	}
 
 }

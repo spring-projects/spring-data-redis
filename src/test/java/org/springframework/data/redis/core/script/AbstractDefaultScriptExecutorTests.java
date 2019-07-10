@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.core.script;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.junit.ClassRule;
 import org.junit.Test;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.Person;
@@ -52,7 +53,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 
 	public static @ClassRule MinimumRedisVersionRule minRedisVersion = new MinimumRedisVersionRule();
 
-	@SuppressWarnings("rawtypes")//
+	@SuppressWarnings("rawtypes") //
 	private RedisTemplate template;
 
 	protected abstract RedisConnectionFactory getConnectionFactory();
@@ -82,9 +83,9 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		script.setResultType(Long.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		Long result = scriptExecutor.execute(script, Collections.singletonList("mykey"));
-		assertNull(result);
+		assertThat(result).isNull();
 		template.boundValueOps("mykey").set("2");
-		assertEquals(Long.valueOf(3), scriptExecutor.execute(script, Collections.singletonList("mykey")));
+		assertThat(scriptExecutor.execute(script, Collections.singletonList("mykey"))).isEqualTo(Long.valueOf(3));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -99,10 +100,10 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/cas.lua"));
 		script.setResultType(Boolean.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
-		template.boundValueOps("counter").set(0l);
+		template.boundValueOps("counter").set(0L);
 		Boolean valueSet = scriptExecutor.execute(script, Collections.singletonList("counter"), 0, 3);
-		assertTrue(valueSet);
-		assertFalse(scriptExecutor.execute(script, Collections.singletonList("counter"), 0, 3));
+		assertThat(valueSet).isTrue();
+		assertThat(scriptExecutor.execute(script, Collections.singletonList("counter"), 0, 3)).isFalse();
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -117,8 +118,8 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		script.setResultType(List.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		List<String> result = scriptExecutor.execute(script, new GenericToStringSerializer<>(Long.class),
-				template.getValueSerializer(), Collections.singletonList("mylist"), 1l);
-		assertEquals(Collections.singletonList("a"), result);
+				template.getValueSerializer(), Collections.singletonList("mylist"), 1L);
+		assertThat(result).isEqualTo(Collections.singletonList("a"));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -132,10 +133,9 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		script.setResultType(List.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		List<Object> results = scriptExecutor.execute(script, Collections.singletonList("mylist"));
-		assertEquals(Arrays.asList(new Object[] { null, 0l }), results);
+		assertThat(results).isEqualTo(Arrays.asList(null, 0L));
 		template.boundListOps("mylist").leftPushAll("a", "b");
-		assertEquals(Arrays.asList(new Object[] { "a", 1l }),
-				scriptExecutor.execute(script, Collections.singletonList("mylist")));
+		assertThat(scriptExecutor.execute(script, Collections.singletonList("mylist"))).isEqualTo(Arrays.asList("a", 1L));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -149,7 +149,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		script.setResultType(String.class);
 		template.opsForValue().set("foo", "bar");
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
-		assertEquals("bar", scriptExecutor.execute(script, Collections.singletonList("foo")));
+		assertThat(scriptExecutor.execute(script, Collections.singletonList("foo"))).isEqualTo("bar");
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -163,8 +163,9 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		DefaultRedisScript script = new DefaultRedisScript();
 		script.setScriptText("return redis.call('SET',KEYS[1], ARGV[1])");
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
-		assertNull(scriptExecutor.execute(script, Collections.singletonList("foo"), 3l));
-		assertEquals(Long.valueOf(3), template.opsForValue().get("foo"));
+		Object result = scriptExecutor.execute(script, Collections.singletonList("foo"), 3L);
+		assertThat(result).isNull();
+		assertThat(template.opsForValue().get("foo")).isEqualTo(3L);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -183,8 +184,8 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		Person joe = new Person("Joe", "Schmoe", 23);
 		String result = scriptExecutor.execute(script, personSerializer, StringRedisSerializer.UTF_8,
 				Collections.singletonList("bar"), joe);
-		assertEquals("FOO", result);
-		assertEquals(joe, template.boundValueOps("bar").get());
+		assertThat(result).isEqualTo("FOO");
+		assertThat(template.boundValueOps("bar").get()).isEqualTo(joe);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -204,7 +205,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 
 		});
 		// Result is deserialized by RedisTemplate as part of executePipelined
-		assertEquals(Collections.singletonList("foo"), results);
+		assertThat(results).isEqualTo(Collections.singletonList("foo"));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -226,7 +227,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 
 		});
 		// Result is deserialized by RedisTemplate as part of exec
-		assertEquals(Collections.singletonList("barfoo"), results);
+		assertThat(results).isEqualTo(Collections.singletonList("barfoo"));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -240,8 +241,8 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		script.setResultType(String.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		// Execute script twice, second time should be from cache
-		assertEquals("HELLO", scriptExecutor.execute(script, null));
-		assertEquals("HELLO", scriptExecutor.execute(script, null));
+		assertThat(scriptExecutor.execute(script, null)).isEqualTo("HELLO");
+		assertThat(scriptExecutor.execute(script, null)).isEqualTo("HELLO");
 	}
 
 	@Test // DATAREDIS-356
@@ -256,6 +257,6 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		script.setResultType(String.class);
 
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
-		assertEquals("BUBU", scriptExecutor.execute(script, null).substring(0, 4));
+		assertThat(scriptExecutor.execute(script, null).substring(0, 4)).isEqualTo("BUBU");
 	}
 }

@@ -15,12 +15,12 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
@@ -60,8 +60,8 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 
 		RedisConnection connection = factory.getConnection();
 
-		assertThat(factory.getUsePool(), is(true));
-		assertThat(connection.getClientName(), equalTo("clientName"));
+		assertThat(factory.getUsePool()).isTrue();
+		assertThat(connection.getClientName()).isEqualTo("clientName");
 	}
 
 	@Test // DATAREDIS-324
@@ -70,7 +70,7 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
 		factory.afterPropertiesSet();
 
-		assertThat(factory.getConnection().ping(), equalTo("PONG"));
+		assertThat(factory.getConnection().ping()).isEqualTo("PONG");
 	}
 
 	@Test // DATAREDIS-552
@@ -80,6 +80,6 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 		factory.setClientName("clientName");
 		factory.afterPropertiesSet();
 
-		assertThat(factory.getConnection().getClientName(), equalTo("clientName"));
+		assertThat(factory.getConnection().getClientName()).isEqualTo("clientName");
 	}
 }

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -41,7 +40,7 @@ public class DefaultRedisElementWriterUnitTests {
 
 		ByteBuffer result = writer.write(input);
 
-		assertThat(result.array(), is(equalTo(bytes)));
+		assertThat(result.array()).isEqualTo(bytes);
 	}
 
 	@Test // DATAREDIS-602
@@ -52,7 +51,7 @@ public class DefaultRedisElementWriterUnitTests {
 		byte[] input = { 1, 2, 3 };
 		ByteBuffer result = writer.write(input);
 
-		assertThat(result.array(), is(equalTo(input)));
+		assertThat(result.array()).isEqualTo(input);
 	}
 
 	@Test // DATAREDIS-602
@@ -63,7 +62,7 @@ public class DefaultRedisElementWriterUnitTests {
 		byte[] input = { 1, 2, 3 };
 		ByteBuffer result = writer.write(ByteBuffer.wrap(input));
 
-		assertThat(result.array(), is(equalTo(input)));
+		assertThat(result.array()).isEqualTo(input);
 	}
 
 	@Test(expected = IllegalStateException.class) // DATAREDIS-602

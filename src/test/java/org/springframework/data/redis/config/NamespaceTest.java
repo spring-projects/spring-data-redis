@@ -15,12 +15,13 @@
  */
 package org.springframework.data.redis.config;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -46,7 +47,7 @@ public class NamespaceTest {
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testSanityTest() throws Exception {
-		assertTrue(container.isRunning());
+		assertThat(container.isRunning()).isTrue();
 		Thread.sleep(TimeUnit.SECONDS.toMillis(8));
 	}
 
@@ -62,6 +63,6 @@ public class NamespaceTest {
 		int index = handler.throwables.size();
 		template.convertAndSend("exception", "test1");
 		handler.throwables.pollLast(3, TimeUnit.SECONDS);
-		assertEquals(index + 1, handler.throwables.size());
+		assertThat(handler.throwables.size()).isEqualTo(index + 1);
 	}
 }

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceReactiveCommandsTestsBase.*;
 
 import java.util.Arrays;
@@ -35,7 +34,7 @@ public class LettuceReactiveClusterHyperLogLogCommandsTests extends LettuceReact
 		nativeCommands.pfadd(SAME_SLOT_KEY_2, new String[] { VALUE_2, VALUE_3 });
 
 		assertThat(connection.hyperLogLogCommands().pfCount(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER))
-				.block(), is(3L));
+				.block()).isEqualTo(3L);
 	}
 
 	@Test // DATAREDIS-525
@@ -44,12 +43,11 @@ public class LettuceReactiveClusterHyperLogLogCommandsTests extends LettuceReact
 		nativeCommands.pfadd(SAME_SLOT_KEY_1, new String[] { VALUE_1, VALUE_2 });
 		nativeCommands.pfadd(SAME_SLOT_KEY_2, new String[] { VALUE_2, VALUE_3 });
 
-		assertThat(
-				connection.hyperLogLogCommands()
-						.pfMerge(SAME_SLOT_KEY_3_BBUFFER, Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER)).block(),
-				is(true));
+		assertThat(connection.hyperLogLogCommands()
+				.pfMerge(SAME_SLOT_KEY_3_BBUFFER, Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER)).block())
+						.isTrue();
 
-		assertThat(nativeCommands.pfcount(new String[] { SAME_SLOT_KEY_3 }), is(3L));
+		assertThat(nativeCommands.pfcount(new String[] { SAME_SLOT_KEY_3 })).isEqualTo(3L);
 	}
 
 }
