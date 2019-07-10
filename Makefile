@@ -27,6 +27,7 @@ work/redis-%.conf:
 	echo port $* >> $@
 	echo daemonize yes >> $@
 	echo protected-mode no >> $@
+	echo bind 0.0.0.0 >> $@
 	echo notify-keyspace-events Ex >> $@
 	echo pidfile $(shell pwd)/work/redis-$*.pid >> $@
 	echo logfile $(shell pwd)/work/redis-$*.log >> $@
@@ -42,6 +43,7 @@ work/redis-6379.conf:
 	echo port 6379 >> $@
 	echo daemonize yes >> $@
 	echo protected-mode no >> $@
+	echo bind 0.0.0.0 >> $@
 	echo notify-keyspace-events Ex >> $@
 	echo pidfile $(shell pwd)/work/redis-6379.pid >> $@
 	echo logfile $(shell pwd)/work/redis-6379.log >> $@
@@ -91,6 +93,7 @@ work/cluster-%.conf:
 
 	echo port $* >> $@
 	echo protected-mode no >> $@
+	echo bind 0.0.0.0 >> $@
 	echo cluster-enabled yes  >> $@
 	echo cluster-config-file $(shell pwd)/work/nodes-$*.conf  >> $@
 	echo cluster-node-timeout 5  >> $@
@@ -102,6 +105,7 @@ work/cluster-%.pid: work/cluster-%.conf work/redis/bin/redis-server
 	work/redis/bin/redis-server $< &
 
 cluster-start: work/cluster-7379.pid work/cluster-7380.pid work/cluster-7381.pid work/cluster-7382.pid
+	sleep 1
 
 work/meet-%:
 	-work/redis/bin/redis-cli -p $* cluster meet 127.0.0.1 7379
@@ -113,6 +117,7 @@ work/meet-7382:
 	-work/redis/bin/redis-cli -p 7382 cluster replicate $(shell work/redis/bin/redis-cli -p 7379 cluster myid)
 
 cluster-meet: work/meet-7380 work/meet-7381 work/meet-7382
+	sleep 1
 
 cluster-stop: stop-7379 stop-7380 stop-7381 stop-7382
 
@@ -149,7 +154,7 @@ stop: redis-stop sentinel-stop cluster-stop
 
 test:
 	$(MAKE) start
-	sleep 2
+	sleep 1
 	./mvnw clean test -U -DrunLongTests=true -P$(SPRING_PROFILE) || (echo "maven failed $$?"; exit 1)
 	$(MAKE) stop
 
