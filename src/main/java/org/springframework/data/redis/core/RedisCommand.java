@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Ninad Divadkar
  * @author Mark Paluch
  * @author Oscar Cai
+ * @author Sébastien Volle
  * @since 1.3
  * @link <a href=
  *       "https://github.com/antirez/redis/blob/843de8b786562d8d77c78d83a971060adc61f77a/src/server.c#L180">Redis
@@ -156,7 +157,7 @@ public enum RedisCommand {
 	SCRIPT_LOAD("rw", 1, 1), //
 	SDIFF("r", 1), //
 	SDIFFSTORE("rw", 2), //
-	SELECT("rw", 0, 0), //
+	SELECT("rw", 1, 1), //
 	SET("w", 2), //
 	SETBIT("rw", 3, 3), //
 	SETEX("w", 3, 3), //
