@@ -466,16 +466,24 @@ class JedisZSetCommands implements RedisZSetCommands {
 	public Long zCount(byte[] key, Range range) {
 
 		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null!");
 
-		if (isPipelined() || isQueueing()) {
-			throw new UnsupportedOperationException(
-					"ZCOUNT not implemented in jedis for binary protocol on transaction and pipeline");
-		}
-
-		// TODO: Implement zcount for pipeline/tx.
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getMin(), JedisConverters.NEGATIVE_INFINITY_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
-		return connection.getJedis().zcount(key, min, max);
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zcount(key, min, max)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().zcount(key, min, max)));
+				return null;
+			}
+			return connection.getJedis().zcount(key, min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	/*
