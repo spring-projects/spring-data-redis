@@ -342,19 +342,23 @@ public enum RedisCommand {
 			if (requiresExactNumberOfArguments()) {
 				if (nrArguments != maxArgs) {
 					throw new IllegalArgumentException(
-							String.format("%s command requires %s arguments.", this.name(), this.maxArgs));
+							String.format("%s command requires %s %s.", this.name(), this.maxArgs, arguments(this.maxArgs)));
 				}
 			}
 			if (nrArguments < minArgs) {
 				throw new IllegalArgumentException(
-						String.format("%s command requires at least %s arguments.", this.name(), this.minArgs));
+						String.format("%s command requires at least %s %s.", this.name(), this.minArgs, arguments(this.maxArgs)));
 			}
 
 			if (maxArgs > 0 && nrArguments > maxArgs) {
 				throw new IllegalArgumentException(
-						String.format("%s command requires at most %s arguments.", this.name(), this.maxArgs));
+						String.format("%s command requires at most %s %s.", this.name(), this.maxArgs, arguments(this.maxArgs)));
 			}
 		}
+	}
+
+	private static String arguments(int count) {
+		return count == 1 ? "argument" : "arguments";
 	}
 
 	/**
