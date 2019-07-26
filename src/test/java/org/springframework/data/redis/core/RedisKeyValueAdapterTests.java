@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
@@ -46,7 +47,6 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
@@ -85,7 +85,7 @@ public class RedisKeyValueAdapterTests {
 
 		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
 		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		return Arrays.<RedisConnectionFactory> asList(new JedisConnectionFactory(), lettuceConnectionFactory);
+		return Collections.singletonList(lettuceConnectionFactory);
 	}
 
 	@AfterClass
