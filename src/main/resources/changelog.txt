@@ -1,6 +1,19 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.10.RELEASE (2019-08-05)
+----------------------------------------------
+* DATAREDIS-1020 - Upgrade to Lettuce 5.1.8.RELEASE.
+* DATAREDIS-1018 - Inherit Jackson dependency versions from BOM and parent POM.
+* DATAREDIS-1013 - Wrong minArgs and maxArgs values for SELECT redis command.
+* DATAREDIS-1008 - Fix command reference in Javadoc.
+* DATAREDIS-1001 - Jackson2HashMapper does not serialize Date/Calender fields when flatten = true.
+* DATAREDIS-996 - Release 2.1.10 (Lovelace SR10).
+* DATAREDIS-992 - AbstractOperations: bitwise AND in place of logical AND.
+* DATAREDIS-988 - Command timed out if execute multi/exec in readonly database transaction.
+* DATAREDIS-985 - Introduce Jenkins CI.
+
+
 Changes in version 1.8.23.RELEASE (2019-08-05)
 ----------------------------------------------
 * DATAREDIS-985 - Introduce Jenkins CI.
