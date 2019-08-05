@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 1.8.23.RELEASE (2019-08-05)
+----------------------------------------------
+* DATAREDIS-985 - Introduce Jenkins CI.
+* DATAREDIS-984 - Release 1.8.23 (Ingalls SR23).
+* DATAREDIS-955 - Problems when deserializing an empty list with RedisHash.
+
+
 Changes in version 2.2.0.RC1 (2019-06-14)
 -----------------------------------------
 * DATAREDIS-987 - Create security policy readme.
