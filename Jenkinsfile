@@ -58,7 +58,7 @@ pipeline {
                         sh 'make start'
 
                         // Execute maven test
-                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean test -DrunLongTests=true -B'
+                        sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean test -DrunLongTests=true -U -B'
 
                         // Capture resulting exit code from maven (pass/fail)
                         sh 'RESULT=\$?'
@@ -100,7 +100,7 @@ pipeline {
                         "-Dartifactory.staging-repository=libs-snapshot-local " +
                         "-Dartifactory.build-name=spring-data-redis-2.1 " +
                         "-Dartifactory.build-number=${BUILD_NUMBER} " +
-                        '-Dmaven.test.skip=true clean deploy -B'
+                        '-Dmaven.test.skip=true clean deploy -U -B'
             }
         }
 
@@ -129,7 +129,7 @@ pipeline {
                         "-Dartifactory.staging-repository=libs-snapshot-local " +
                         "-Dartifactory.build-name=spring-data-redis-2.1 " +
                         "-Dartifactory.build-number=${BUILD_NUMBER} " +
-                        '-Dmaven.test.skip=true clean deploy -B'
+                        '-Dmaven.test.skip=true clean deploy -U -B'
             }
         }
     }
