@@ -1,6 +1,33 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.0.RC2 (2019-08-05)
+-----------------------------------------
+* DATAREDIS-1020 - Upgrade to Lettuce 5.1.8.RELEASE.
+* DATAREDIS-1019 - Upgrade to Commons Pool 2.7.0.
+* DATAREDIS-1018 - Inherit Jackson dependency versions from BOM and parent POM.
+* DATAREDIS-1015 - Upgrade to Jedis 3.1.0.
+* DATAREDIS-1013 - Wrong minArgs and maxArgs values for SELECT redis command.
+* DATAREDIS-1012 - Revise readme for a consistent structure.
+* DATAREDIS-1009 - StreamReadRequest and StreamMessageListenerContainerOptions builder methods are package-private.
+* DATAREDIS-1008 - Fix command reference in Javadoc.
+* DATAREDIS-1005 - Add support for scripting commands with Jedis Cluster.
+* DATAREDIS-1001 - Jackson2HashMapper does not serialize Date/Calender fields when flatten = true.
+* DATAREDIS-1000 - Should use SerializationPair<byte[]> in method RedisSerializationContext#raw.
+* DATAREDIS-999 - ReactiveRedisConnection close method is blocking.
+* DATAREDIS-997 - Release 2.2 RC2 (Moore).
+* DATAREDIS-993 - Object serialization as HashValue with StreamOperations.
+* DATAREDIS-992 - AbstractOperations: bitwise AND in place of logical AND.
+* DATAREDIS-990 - Provide TLS support for Sentinel clients in Lettuce driver.
+* DATAREDIS-988 - Command timed out if execute multi/exec in readonly database transaction.
+* DATAREDIS-985 - Introduce Jenkins CI.
+* DATAREDIS-976 - Allow extension of Lettuce Connection and Subscription classes.
+* DATAREDIS-793 - Use GETRANGE instead of SUBSTR command.
+* DATAREDIS-639 - Unify logging framework usage.
+* DATAREDIS-588 - Use JedisCluster.psetex() in JedisClusterStringCommands.pSetEx() instead own dispatch via Jedis.
+* DATAREDIS-549 - Migrate to AssertJ.
+
+
 Changes in version 2.1.10.RELEASE (2019-08-05)
 ----------------------------------------------
 * DATAREDIS-1020 - Upgrade to Lettuce 5.1.8.RELEASE.
