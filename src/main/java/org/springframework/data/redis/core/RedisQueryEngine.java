@@ -45,6 +45,7 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Yan Ma
  * @since 1.7
  */
 class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationChain, Comparator<?>> {
@@ -78,7 +79,9 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 			String keyspace, Class<T> type) {
 
 		if (criteria == null
-				|| (CollectionUtils.isEmpty(criteria.getOrSismember()) && CollectionUtils.isEmpty(criteria.getSismember()))
+				|| (CollectionUtils.isEmpty(criteria.getOrSismember())
+						&& CollectionUtils.isEmpty(criteria.getSismember()))
+//						&& CollectionUtils.isEmpty(criteria.getRanges()))
 						&& criteria.getNear() == null) {
 			return (Collection<T>) getAdapter().getAllOf(keyspace, offset, rows);
 		}
