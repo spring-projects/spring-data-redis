@@ -14,6 +14,10 @@ public class RedisMessageListenerAdapter extends MessageListenerAdapter {
 		super(delegate, defaultListenerMethod);
 	}
 
+	/**
+	 * @param message the Redis <code>Message</code>
+	 * @return An instance of type {@link Message}
+	 */
 	@Override
 	protected Object extractMessage(Message message) {
 		Object o = super.extractMessage(message);
