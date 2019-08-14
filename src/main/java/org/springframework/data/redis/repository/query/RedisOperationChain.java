@@ -28,12 +28,14 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Point;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Simple set of operations required to run queries against Redis.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Yan Ma
  * @since 1.7
  */
 public class RedisOperationChain {
@@ -125,6 +127,34 @@ public class RedisOperationChain {
 		public String toString() {
 			return path + ":" + (isSingleValue() ? getFirstValue() : values);
 		}
+
+		@Override
+		public int hashCode() {
+
+			int result = ObjectUtils.nullSafeHashCode(path);
+			result += ObjectUtils.nullSafeHashCode(values);
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (!(obj instanceof PathAndValue)) {
+				return false;
+			}
+			PathAndValue that = (PathAndValue) obj;
+			if (!ObjectUtils.nullSafeEquals(this.path, that.path)) {
+				return false;
+			}
+
+			return ObjectUtils.nullSafeEquals(this.values, that.values);
+		}
+
 	}
 
 	/**
