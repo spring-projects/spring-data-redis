@@ -291,16 +291,8 @@ public class LettuceConnectionFactory
 
 		resetConnection();
 
-		if (connectionProvider instanceof DisposableBean) {
-			try {
-				((DisposableBean) connectionProvider).destroy();
-			} catch (Exception e) {
-
-				if (log.isWarnEnabled()) {
-					log.warn(connectionProvider + " did not shut down gracefully.", e);
-				}
-			}
-		}
+		dispose(connectionProvider);
+		dispose(reactiveConnectionProvider);
 
 		try {
 			Duration timeout = clientConfiguration.getShutdownTimeout();
@@ -319,6 +311,20 @@ public class LettuceConnectionFactory
 				clusterCommandExecutor.destroy();
 			} catch (Exception ex) {
 				log.warn("Cannot properly close cluster command executor", ex);
+			}
+		}
+	}
+
+	private void dispose(LettuceConnectionProvider connectionProvider) {
+
+		if (connectionProvider instanceof DisposableBean) {
+			try {
+				((DisposableBean) connectionProvider).destroy();
+			} catch (Exception e) {
+
+				if (log.isWarnEnabled()) {
+					log.warn(connectionProvider + " did not shut down gracefully.", e);
+				}
 			}
 		}
 	}

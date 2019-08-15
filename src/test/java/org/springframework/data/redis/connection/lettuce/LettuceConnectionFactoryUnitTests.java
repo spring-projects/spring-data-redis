@@ -45,6 +45,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
@@ -710,6 +711,25 @@ public class LettuceConnectionFactoryUnitTests {
 		connectionFactory.getConnection().close();
 
 		verify(connectionMock).close();
+	}
+
+	@Test // DATAREDIS-1027
+	public void shouldDisposeConnectionProviders() throws Exception {
+
+		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class,
+				withSettings().extraInterfaces(DisposableBean.class));
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory() {
+			@Override
+			protected LettuceConnectionProvider doCreateConnectionProvider(AbstractRedisClient client,
+					RedisCodec<?, ?> codec) {
+				return connectionProviderMock;
+			}
+		};
+
+		connectionFactory.afterPropertiesSet();
+		connectionFactory.destroy();
+
+		verify((DisposableBean) connectionProviderMock, times(2)).destroy();
 	}
 
 	@Test // DATAREDIS-842
