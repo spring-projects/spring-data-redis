@@ -2,7 +2,11 @@ package org.springframework.data.redis.core.index;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 /**
+ * CompositeSortingIndexDefinition serves the requirement that key name and value derive from different attributes of the
+ * same parent object.
+ * 
  * @author Yan Ma
  */
 public class CompositeSortingIndexDefinition<T> extends SortingIndexDefinition {
@@ -12,7 +16,7 @@ public class CompositeSortingIndexDefinition<T> extends SortingIndexDefinition {
 
 	public CompositeSortingIndexDefinition(String keyspace, String path, IndexNameHandler<T> indexNameHandler,
 			IndexValueHandler<T> indexValueHandler) {
-		
+
 		super(keyspace, path, path);
 		this.indexNameHandler = indexNameHandler;
 		this.indexValueHandler = indexValueHandler;
@@ -20,7 +24,7 @@ public class CompositeSortingIndexDefinition<T> extends SortingIndexDefinition {
 	}
 
 	public String getIndexName(T obj) {
-		
+
 		T typedObj = obj;
 		String indexName = null;
 		try {
@@ -33,7 +37,7 @@ public class CompositeSortingIndexDefinition<T> extends SortingIndexDefinition {
 	}
 
 	public Object getIndexValue(T value) {
-		
+
 		T typedValue = (T) value;
 		Double indexValue = null;
 		try {
@@ -54,7 +58,7 @@ public class CompositeSortingIndexDefinition<T> extends SortingIndexDefinition {
 
 		@Override
 		public Object convert(Object source) {
-			
+
 			Double value = null;
 			try {
 				value = indexValueHandler.getValue((T) source);

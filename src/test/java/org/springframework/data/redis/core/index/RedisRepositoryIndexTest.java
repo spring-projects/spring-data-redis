@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.logging.Log;
@@ -25,6 +26,7 @@ import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.context.ContextConfiguration;
 
 import kotlin.random.Random;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPoolConfig;
 
 /**
@@ -64,7 +66,7 @@ public class RedisRepositoryIndexTest {
 	}
 
 	@Autowired TestPersonRepository repo;
-	
+	Jedis jedis = null;
 	@Before
 	public void setup(){
 		repo.deleteAll();
@@ -73,6 +75,9 @@ public class RedisRepositoryIndexTest {
 	@After
 	public void cleanup(){
 		repo.deleteAll();
+		if(jedis!=null){
+			jedis.close();
+		}
 	}
 
 	@Test
@@ -85,6 +90,7 @@ public class RedisRepositoryIndexTest {
 		logger.info("random number = " + random);
 		String lastName = "my.last.name" + new Date();
 		String city = "Pleasanton";
+		TestState testState = TestState.CA;
 		for (int i = 0; i < random; i++) {
 			TestPerson p = new TestPerson();
 			p.id = UUID.randomUUID();
@@ -93,7 +99,7 @@ public class RedisRepositoryIndexTest {
 			p.lastName = lastName;
 			p.address = new TestAddress();
 			p.address.city = city;
-			p.address.state = TestState.CA;
+			p.address.state = testState;
 			p.address.streetNumber = 6220;
 			p.address.street = "stoneridge mall rd";
 			p.gender = TestGender.FEMALE;
@@ -137,6 +143,21 @@ public class RedisRepositoryIndexTest {
 		// test batch simple query on nested attributes
 		List<TestPerson> findByAddressCity = repo.findByAddressCity(city);
 		assertEquals(random, findByAddressCity.size());
+		// To test the CompositeSortingIndex
+		// The key set name should be West
+		jedis = jedis==null? new Jedis() :jedis;
+		String zset = "TestPerson" + ":" + TestAddress.getStateCategory(testState);
+		assertEquals("zset", jedis.type(zset));
+		// The total number of values should be the same as the random int
+		assertTrue(random == jedis.zcard(zset));
+		// They should be sorted per createdTimestamp
+		Set<String> zrange = jedis.zrange(zset, 0, -1);
+		double prev = 0;
+		for(String key : zrange){
+			double curr = Double.valueOf(jedis.hget("TestPerson" + ":" + key, "createdTimestamp"));
+			assertTrue(prev < curr);
+			prev = curr; 
+		}
 	}
 
 	@Test
@@ -151,6 +172,7 @@ public class RedisRepositoryIndexTest {
 		p1.address = new TestAddress();
 		String cityName = "city";
 		p1.address.city = cityName;
+		p1.address.state = TestState.CA;
 		repo.save(p1);
 		TestPerson p2 = new TestPerson();
 		p2.id = UUID.randomUUID();
@@ -158,6 +180,7 @@ public class RedisRepositoryIndexTest {
 		p2.lastName = lastName;
 		p2.address = new TestAddress();
 		p2.address.city = cityName;
+		p2.address.state = TestState.CA;
 		repo.save(p2);
 		TestPerson p3 = new TestPerson();
 		p3.id = UUID.randomUUID();
@@ -165,6 +188,7 @@ public class RedisRepositoryIndexTest {
 		p3.lastName = lastName;
 		p3.address = new TestAddress();
 		p3.address.city = cityName;
+		p3.address.state = TestState.CA;
 		repo.save(p3);
 
 		Date end = new Date();
@@ -214,4 +238,5 @@ public class RedisRepositoryIndexTest {
 		List<TestPerson> findByAddressCityOrCreatedTimestampGreaterThan5 = repo.findByAddressCityOrCreatedTimestampGreaterThan(cityName+SOME_POSTFIX, oneSecondAfter);
 		assertEquals(0, findByAddressCityOrCreatedTimestampGreaterThan5.size());
 	}
+	
 }
