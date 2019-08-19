@@ -114,7 +114,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long del(byte[]... keys) {
 
-		Assert.noNullElements(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		try {
