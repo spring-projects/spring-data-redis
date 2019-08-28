@@ -58,7 +58,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Connection factory creating <a href="https://github.com/xetorthio/jedis">Jedis</a> based connections.
@@ -425,12 +424,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects() : 5;
 
-		int connectTimeout = getConnectTimeout();
-		int readTimeout = getReadTimeout();
-
-		return StringUtils.hasText(getPassword())
-				? new JedisCluster(hostAndPort, connectTimeout, readTimeout, redirects, getPassword(), poolConfig)
-				: new JedisCluster(hostAndPort, connectTimeout, readTimeout, redirects, poolConfig);
+		return new JedisCluster(hostAndPort, getConnectTimeout(), getReadTimeout(), redirects, getPassword(),
+				clientConfiguration.getClientName().orElse(null), poolConfig, isUseSsl(),
+				clientConfiguration.getSslSocketFactory().orElse(null), clientConfiguration.getSslParameters().orElse(null),
+				clientConfiguration.getHostnameVerifier().orElse(null), null);
 	}
 
 	/*

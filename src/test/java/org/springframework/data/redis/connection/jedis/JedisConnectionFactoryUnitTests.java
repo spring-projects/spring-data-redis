@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisClusterConnectionHandler;
+import redis.clients.jedis.JedisClusterInfoCache;
 import redis.clients.jedis.JedisPoolConfig;
 import sun.net.www.protocol.https.DefaultHostnameVerifier;
 
@@ -27,6 +29,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocketFactory;
@@ -34,6 +37,7 @@ import javax.net.ssl.SSLSocketFactory;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -285,6 +289,49 @@ public class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getStandaloneConfiguration()).isNotNull();
 		assertThat(connectionFactory.getSentinelConfiguration()).isNull();
 		assertThat(connectionFactory.getClusterConfiguration()).isSameAs(configuration);
+	}
+
+	@Test // DATAREDIS-975
+	public void shouldApplySslConfigWhenCreatingClusterClient() throws NoSuchAlgorithmException {
+
+		SSLParameters sslParameters = new SSLParameters();
+		SSLContext context = SSLContext.getDefault();
+		SSLSocketFactory socketFactory = context.getSocketFactory();
+		JedisPoolConfig poolConfig = new JedisPoolConfig();
+		HostnameVerifier hostNameVerifier = new DefaultHostnameVerifier();
+
+		JedisClientConfiguration configuration = JedisClientConfiguration.builder() //
+				.useSsl() //
+				.hostnameVerifier(hostNameVerifier) //
+				.sslParameters(sslParameters) //
+				.sslSocketFactory(socketFactory).and() //
+				.clientName("my-client") //
+				.connectTimeout(Duration.ofMinutes(1)) //
+				.readTimeout(Duration.ofMinutes(5)) //
+				.usePooling().poolConfig(poolConfig) //
+				.build();
+
+		connectionFactory = new JedisConnectionFactory(new RedisClusterConfiguration(), configuration);
+		connectionFactory.afterPropertiesSet();
+
+		RedisClusterConnection connection = connectionFactory.getClusterConnection();
+		assertThat(connection).isInstanceOf(JedisClusterConnection.class);
+
+		JedisCluster cluster = ((JedisClusterConnection) connection).getCluster();
+
+		JedisClusterConnectionHandler connectionHandler = (JedisClusterConnectionHandler) ReflectionTestUtils
+				.getField(cluster, "connectionHandler");
+		JedisClusterInfoCache cache = (JedisClusterInfoCache) ReflectionTestUtils.getField(connectionHandler, "cache");
+
+		assertThat(ReflectionTestUtils.getField(cache, "connectionTimeout")).isEqualTo(60000);
+		assertThat(ReflectionTestUtils.getField(cache, "soTimeout")).isEqualTo(300000);
+		assertThat(ReflectionTestUtils.getField(cache, "password")).isNull();
+		assertThat(ReflectionTestUtils.getField(cache, "clientName")).isEqualTo("my-client");
+		assertThat(ReflectionTestUtils.getField(cache, "ssl")).isEqualTo(true);
+		assertThat(ReflectionTestUtils.getField(cache, "sslSocketFactory")).isEqualTo(socketFactory);
+		assertThat(ReflectionTestUtils.getField(cache, "sslParameters")).isEqualTo(sslParameters);
+		assertThat(ReflectionTestUtils.getField(cache, "hostnameVerifier")).isEqualTo(hostNameVerifier);
+		assertThat(ReflectionTestUtils.getField(cache, "hostAndPortMap")).isNull();
 	}
 
 	@Test(expected = IllegalStateException.class) // DATAREDIS-574
