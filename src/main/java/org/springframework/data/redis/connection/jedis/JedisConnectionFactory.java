@@ -425,9 +425,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects() : 5;
 
 		return new JedisCluster(hostAndPort, getConnectTimeout(), getReadTimeout(), redirects, getPassword(),
-				clientConfiguration.getClientName().orElse(null), poolConfig, isUseSsl(),
-				clientConfiguration.getSslSocketFactory().orElse(null), clientConfiguration.getSslParameters().orElse(null),
-				clientConfiguration.getHostnameVerifier().orElse(null), null);
+				getClientName(), poolConfig, isUseSsl(), clientConfiguration.getSslSocketFactory().orElse(null),
+				clientConfiguration.getSslParameters().orElse(null), clientConfiguration.getHostnameVerifier().orElse(null),
+				null);
 	}
 
 	/*
@@ -473,9 +473,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		Jedis jedis = fetchJedisConnector();
-		String clientName = clientConfiguration.getClientName().orElse(null);
-		JedisConnection connection = (getUsePool() ? new JedisConnection(jedis, pool, getDatabase(), clientName)
-				: new JedisConnection(jedis, null, getDatabase(), clientName));
+		JedisConnection connection = (getUsePool() ? new JedisConnection(jedis, pool, getDatabase(), getClientName())
+				: new JedisConnection(jedis, null, getDatabase(), getClientName()));
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return postProcessConnection(connection);
 	}
@@ -549,6 +548,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 *
 	 * @return password for authentication.
 	 */
+	@Nullable
 	public String getPassword() {
 		return getRedisPassword().map(String::new).orElse(null);
 	}

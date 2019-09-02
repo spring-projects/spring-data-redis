@@ -291,7 +291,7 @@ public class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClusterConfiguration()).isSameAs(configuration);
 	}
 
-	@Test // DATAREDIS-975
+	@Test // DATAREDIS-974
 	public void shouldApplySslConfigWhenCreatingClusterClient() throws NoSuchAlgorithmException {
 
 		SSLParameters sslParameters = new SSLParameters();
