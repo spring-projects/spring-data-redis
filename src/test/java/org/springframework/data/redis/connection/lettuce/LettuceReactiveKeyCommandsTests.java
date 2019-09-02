@@ -278,7 +278,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-1031
 	public void shouldPreciseExpireKeysCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -289,9 +289,10 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 				.verify();
 
 		assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+		assertThat(nativeCommands.ttl(KEY_1), is(lessThan(11L)));
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-1031
 	public void shouldExpireAtKeysCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -303,9 +304,10 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 				.verify();
 
 		assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+		assertThat(nativeCommands.ttl(KEY_1), is(lessThan(11L)));
 	}
 
-	@Test // DATAREDIS-602
+	@Test // DATAREDIS-602, DATAREDIS-1031
 	public void shouldPreciseExpireAtKeysCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -317,6 +319,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 				.verify();
 
 		assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+		assertThat(nativeCommands.ttl(KEY_1), is(lessThan(11L)));
 	}
 
 	@Test // DATAREDIS-602
