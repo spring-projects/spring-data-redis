@@ -75,7 +75,7 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		Assert.state(this.scriptSource != null, "Either script, script location," + " or script source is required");
 	}
 
