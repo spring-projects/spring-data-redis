@@ -18,10 +18,12 @@ package org.springframework.data.redis.cache;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -301,6 +303,37 @@ public class RedisCacheConfiguration {
 	 */
 	public ConversionService getConversionService() {
 		return conversionService;
+	}
+
+	/**
+	 * Add a {@link Converter} for extracting the {@link String} representation of a cache key if no suitable
+	 * {@link Object#toString()} method is present.
+	 *
+	 * @param cacheKeyConverter
+	 * @throws IllegalStateException if {@link #getConversionService()} does not allow converter registration.
+	 * @since 2.2
+	 */
+	public void addCacheKeyConverter(Converter<?, String> cacheKeyConverter) {
+		configureKeyConverters(it -> it.addConverter(cacheKeyConverter));
+	}
+
+	/**
+	 * Configure the underlying conversion system used to extract the cache key.
+	 *
+	 * @param registryConsumer never {@literal null}.
+	 * @throws IllegalStateException if {@link #getConversionService()} does not allow converter registration.
+	 * @since 2.2
+	 */
+	public void configureKeyConverters(Consumer<ConverterRegistry> registryConsumer) {
+
+		if (!(getConversionService() instanceof ConverterRegistry)) {
+			throw new IllegalStateException(String.format(
+					"'%s' returned by getConversionService() does not allow converter registration." //
+							+ " Please make sure to provide a ConversionService that implements ConverterRegistry.",
+					getConversionService().getClass().getSimpleName()));
+		}
+
+		registryConsumer.accept((ConverterRegistry) getConversionService());
 	}
 
 	/**

@@ -19,7 +19,9 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
+import org.springframework.lang.Nullable;
 
 /**
  * Unit tests for {@link RedisCacheConfiguration}.
@@ -42,5 +44,27 @@ public class RedisCacheConfigurationUnitTests {
 		Object usedClassLoader = new DirectFieldAccessor(deserializer).getPropertyValue("classLoader");
 
 		assertThat(usedClassLoader).isSameAs(classLoader);
+	}
+
+	@Test // DATAREDIS-1032
+	public void shouldAllowConverterRegistration() {
+
+		RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig();
+		config.configureKeyConverters(registry -> registry.addConverter(new DomainTypeConverter()));
+
+		assertThat(config.getConversionService().canConvert(DomainType.class, String.class)).isTrue();
+	}
+
+	private static class DomainType {
+
+	}
+
+	static class DomainTypeConverter implements Converter<DomainType, String> {
+
+		@Nullable
+		@Override
+		public String convert(DomainType source) {
+			return null;
+		}
 	}
 }
