@@ -309,7 +309,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		throw new IllegalStateException(String.format(
-				"Cannot convert cache key %s to String. Please provide a suitable Converter via 'RedisCacheConfiguration.withConversionService(...)' or override '%s.toString()'.",
+				"Cannot convert cache key %s to String. Please register a suitable Converter via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'.",
 				source, key != null ? key.getClass().getSimpleName() : "Object"));
 	}
 
