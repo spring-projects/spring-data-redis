@@ -17,11 +17,17 @@ package org.springframework.data.redis.cache;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.cache.support.NullValue;
 import org.springframework.cache.support.SimpleValueWrapper;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -33,14 +39,14 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * {@link org.springframework.cache.Cache} implementation using for Redis as underlying store.
- * <p />
+ * <p/>
  * Use {@link RedisCacheManager} to create {@link RedisCache} instances.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
- * @since 2.0
  * @see RedisCacheConfiguration
  * @see RedisCacheWriter
+ * @since 2.0
  */
 public class RedisCache extends AbstractValueAdaptingCache {
 
@@ -281,8 +287,19 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	protected String convertKey(Object key) {
 
 		TypeDescriptor source = TypeDescriptor.forObject(key);
+
 		if (conversionService.canConvert(source, TypeDescriptor.valueOf(String.class))) {
-			return conversionService.convert(key, String.class);
+			try {
+				return conversionService.convert(key, String.class);
+			} catch (ConversionFailedException e) {
+
+				// may fail if the given key is a collection
+				if (isCollectionLikeOrMap(source)) {
+					return convertCollectionLikeOrMapKey(key, source);
+				}
+
+				throw e;
+			}
 		}
 
 		Method toString = ReflectionUtils.findMethod(key.getClass(), "toString");
@@ -291,8 +308,39 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return key.toString();
 		}
 
-		throw new IllegalStateException(
-				String.format("Cannot convert %s to String. Register a Converter or override toString().", source));
+		throw new IllegalStateException(String.format(
+				"Cannot convert cache key %s to String. Please provide a suitable Converter via 'RedisCacheConfiguration.withConversionService(...)' or override '%s.toString()'.",
+				source, key != null ? key.getClass().getSimpleName() : "Object"));
+	}
+
+	@Nullable
+	private String convertCollectionLikeOrMapKey(Object key, TypeDescriptor source) {
+
+		if (source.isMap()) {
+
+			String target = "{";
+			for (Entry<?, ?> entry : ((Map<?, ?>) key).entrySet()) {
+				target += (convertKey(entry.getKey()) + "=" + convertKey(entry.getValue()));
+			}
+			target += "}";
+			return target;
+		} else if (source.isCollection() || source.isArray()) {
+
+			StringJoiner sj = new StringJoiner(",");
+
+			Collection<?> collection = source.isCollection() ? (Collection<?>) key
+					: Arrays.asList(ObjectUtils.toObjectArray(key));
+
+			for (Object val : collection) {
+				sj.add(convertKey(val));
+			}
+			return "[" + sj.toString() + "]";
+		}
+		return null;
+	}
+
+	private boolean isCollectionLikeOrMap(TypeDescriptor source) {
+		return source.isArray() || source.isCollection() || source.isMap();
 	}
 
 	private byte[] createAndConvertCacheKey(Object key) {
