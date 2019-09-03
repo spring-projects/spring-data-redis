@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.function.Consumer;
 
@@ -36,11 +37,11 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.interceptor.SimpleKey;
+import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.cache.support.NullValue;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
@@ -298,6 +299,58 @@ public class RedisCacheTests {
 
 		assertThat(result).isNotNull();
 		assertThat(result.get()).isEqualTo(sample);
+	}
+
+	@Test // DATAREDIS-1032
+	public void cacheShouldAllowListKeyCacheKeysOfSimpleTypes() {
+
+		Object key = SimpleKeyGenerator.generateKey(Collections.singletonList("my-cache-key-in-a-list"));
+		cache.put(key, sample);
+
+		Object target = cache.get(SimpleKeyGenerator.generateKey(Collections.singletonList("my-cache-key-in-a-list")));
+		assertThat(((ValueWrapper) target).get()).isEqualTo(sample);
+	}
+
+	@Test // DATAREDIS-1032
+	public void cacheShouldAllowArrayKeyCacheKeysOfSimpleTypes() {
+
+		Object key = SimpleKeyGenerator.generateKey(new String[] { "my-cache-key-in-an-array" });
+		cache.put(key, sample);
+
+		Object target = cache.get(SimpleKeyGenerator.generateKey(new String[] { "my-cache-key-in-an-array" }));
+		assertThat(((ValueWrapper) target).get()).isEqualTo(sample);
+	}
+
+	@Test // DATAREDIS-1032
+	public void cacheShouldAllowListCacheKeysOfComplexTypes() {
+
+		Object key = SimpleKeyGenerator
+				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstame(), sample.getBirthdate())));
+		cache.put(key, sample);
+
+		Object target = cache.get(SimpleKeyGenerator
+				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstame(), sample.getBirthdate()))));
+		assertThat(((ValueWrapper) target).get()).isEqualTo(sample);
+	}
+
+	@Test // DATAREDIS-1032
+	public void cacheShouldAllowMapCacheKeys() {
+
+		Object key = SimpleKeyGenerator
+				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstame(), sample.getBirthdate())));
+		cache.put(key, sample);
+
+		Object target = cache.get(SimpleKeyGenerator
+				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstame(), sample.getBirthdate()))));
+		assertThat(((ValueWrapper) target).get()).isEqualTo(sample);
+	}
+
+	@Test // DATAREDIS-1032
+	public void cacheShouldFailOnNonConvertibleCacheKey() {
+
+		Object key = SimpleKeyGenerator
+				.generateKey(Collections.singletonList(new InvalidKey(sample.getFirstame(), sample.getBirthdate())));
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> cache.put(key, sample));
 	}
 
 	void doWithConnection(Consumer<RedisConnection> callback) {
