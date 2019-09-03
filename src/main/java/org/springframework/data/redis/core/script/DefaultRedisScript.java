@@ -46,8 +46,7 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	/**
 	 * Creates a new {@link DefaultRedisScript}
 	 */
-	public DefaultRedisScript() {
-	}
+	public DefaultRedisScript() {}
 
 	/**
 	 * Creates a new {@link DefaultRedisScript}
@@ -117,9 +116,9 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 
 	/**
 	 * @param resultType The script result type. Should be one of Long, Boolean, List, or deserialized value type. Can be
-	 *          null if the script returns a throw-away status (i.e "OK")
+	 *          {@literal null} if the script returns a throw-away status (i.e "OK")
 	 */
-	public void setResultType(Class<T> resultType) {
+	public void setResultType(@Nullable Class<T> resultType) {
 		this.resultType = resultType;
 	}
 

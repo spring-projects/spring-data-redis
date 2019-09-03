@@ -84,10 +84,11 @@ public interface RedisScript<T> {
 	}
 
 	/**
-	 * Creates new {@link RedisScript} from {@link Resource}.
+	 * Creates new {@link RedisScript} (with throw away result) from the given {@link Resource}.
 	 *
 	 * @param resource must not be {@literal null}.
 	 * @return new instance of {@link RedisScript}.
+	 * @throws IllegalArgumentException if the required argument is {@literal null}.
 	 * @since 2.2
 	 */
 	static <T> RedisScript<T> of(Resource resource) {
@@ -96,7 +97,6 @@ public interface RedisScript<T> {
 
 		DefaultRedisScript<T> script = new DefaultRedisScript<>();
 		script.setLocation(resource);
-		script.afterPropertiesSet();
 
 		return script;
 	}
@@ -107,6 +107,7 @@ public interface RedisScript<T> {
 	 * @param resource must not be {@literal null}.
 	 * @param resultType must not be {@literal null}.
 	 * @return new instance of {@link RedisScript}.
+	 * @throws IllegalArgumentException if any required argument is {@literal null}.
 	 * @since 2.2
 	 */
 	static <T> RedisScript<T> of(Resource resource, Class<T> resultType) {
@@ -117,7 +118,6 @@ public interface RedisScript<T> {
 		DefaultRedisScript<T> script = new DefaultRedisScript<>();
 		script.setResultType(resultType);
 		script.setLocation(resource);
-		script.afterPropertiesSet();
 
 		return script;
 	}
