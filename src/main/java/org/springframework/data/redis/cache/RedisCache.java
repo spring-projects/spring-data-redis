@@ -286,6 +286,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	protected String convertKey(Object key) {
 
+		if (key instanceof String) {
+			return (String) key;
+		}
+
 		TypeDescriptor source = TypeDescriptor.forObject(key);
 
 		if (conversionService.canConvert(source, TypeDescriptor.valueOf(String.class))) {
@@ -310,20 +314,21 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 		throw new IllegalStateException(String.format(
 				"Cannot convert cache key %s to String. Please register a suitable Converter via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'.",
-				source, key != null ? key.getClass().getSimpleName() : "Object"));
+				source, key.getClass().getSimpleName()));
 	}
 
-	@Nullable
 	private String convertCollectionLikeOrMapKey(Object key, TypeDescriptor source) {
 
 		if (source.isMap()) {
 
-			String target = "{";
+			StringBuilder target = new StringBuilder("{");
+
 			for (Entry<?, ?> entry : ((Map<?, ?>) key).entrySet()) {
-				target += (convertKey(entry.getKey()) + "=" + convertKey(entry.getValue()));
+				target.append(convertKey(entry.getKey())).append("=").append(convertKey(entry.getValue()));
 			}
-			target += "}";
-			return target;
+			target.append("}");
+
+			return target.toString();
 		} else if (source.isCollection() || source.isArray()) {
 
 			StringJoiner sj = new StringJoiner(",");
@@ -336,7 +341,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			}
 			return "[" + sj.toString() + "]";
 		}
-		return null;
+
+		throw new IllegalArgumentException(String.format("Cannot convert cache key %s to String.", key));
 	}
 
 	private boolean isCollectionLikeOrMap(TypeDescriptor source) {

@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -57,7 +58,7 @@ public class RedisCacheTests {
 
 	String key = "key-1";
 	String cacheKey = "cache::" + key;
-	byte[] binaryCacheKey = cacheKey.getBytes(Charset.forName("UTF-8"));
+	byte[] binaryCacheKey = cacheKey.getBytes(StandardCharsets.UTF_8);
 
 	Person sample = new Person("calmity", new Date());
 	byte[] binarySample;
@@ -281,7 +282,7 @@ public class RedisCacheTests {
 
 		doWithConnection(connection -> {
 
-			assertThat(connection.stringCommands().get("_cache_key-1".getBytes(Charset.forName("UTF-8"))))
+			assertThat(connection.stringCommands().get("_cache_key-1".getBytes(StandardCharsets.UTF_8)))
 					.isEqualTo(binarySample);
 		});
 	}
@@ -289,7 +290,7 @@ public class RedisCacheTests {
 	@Test // DATAREDIS-715
 	public void fetchKeyWithComputedPrefixReturnsExpectedResult() {
 
-		doWithConnection(connection -> connection.set("_cache_key-1".getBytes(Charset.forName("UTF-8")), binarySample));
+		doWithConnection(connection -> connection.set("_cache_key-1".getBytes(StandardCharsets.UTF_8), binarySample));
 
 		RedisCache cacheWithCustomPrefix = new RedisCache("cache", new DefaultRedisCacheWriter(connectionFactory),
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
@@ -307,18 +308,19 @@ public class RedisCacheTests {
 		Object key = SimpleKeyGenerator.generateKey(Collections.singletonList("my-cache-key-in-a-list"));
 		cache.put(key, sample);
 
-		Object target = cache.get(SimpleKeyGenerator.generateKey(Collections.singletonList("my-cache-key-in-a-list")));
-		assertThat(((ValueWrapper) target).get()).isEqualTo(sample);
+		ValueWrapper target = cache
+				.get(SimpleKeyGenerator.generateKey(Collections.singletonList("my-cache-key-in-a-list")));
+		assertThat(target.get()).isEqualTo(sample);
 	}
 
 	@Test // DATAREDIS-1032
 	public void cacheShouldAllowArrayKeyCacheKeysOfSimpleTypes() {
 
-		Object key = SimpleKeyGenerator.generateKey(new String[] { "my-cache-key-in-an-array" });
+		Object key = SimpleKeyGenerator.generateKey("my-cache-key-in-an-array");
 		cache.put(key, sample);
 
-		Object target = cache.get(SimpleKeyGenerator.generateKey(new String[] { "my-cache-key-in-an-array" }));
-		assertThat(((ValueWrapper) target).get()).isEqualTo(sample);
+		ValueWrapper target = cache.get(SimpleKeyGenerator.generateKey("my-cache-key-in-an-array"));
+		assertThat(target.get()).isEqualTo(sample);
 	}
 
 	@Test // DATAREDIS-1032
@@ -328,9 +330,9 @@ public class RedisCacheTests {
 				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstame(), sample.getBirthdate())));
 		cache.put(key, sample);
 
-		Object target = cache.get(SimpleKeyGenerator
+		ValueWrapper target = cache.get(SimpleKeyGenerator
 				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstame(), sample.getBirthdate()))));
-		assertThat(((ValueWrapper) target).get()).isEqualTo(sample);
+		assertThat(target.get()).isEqualTo(sample);
 	}
 
 	@Test // DATAREDIS-1032
@@ -340,9 +342,9 @@ public class RedisCacheTests {
 				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstame(), sample.getBirthdate())));
 		cache.put(key, sample);
 
-		Object target = cache.get(SimpleKeyGenerator
+		ValueWrapper target = cache.get(SimpleKeyGenerator
 				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstame(), sample.getBirthdate()))));
-		assertThat(((ValueWrapper) target).get()).isEqualTo(sample);
+		assertThat(target.get()).isEqualTo(sample);
 	}
 
 	@Test // DATAREDIS-1032
