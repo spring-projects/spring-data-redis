@@ -311,7 +311,7 @@ public class RedisCacheConfiguration {
 	 *
 	 * @param cacheKeyConverter
 	 * @throws IllegalStateException if {@link #getConversionService()} does not allow converter registration.
-	 * @since 2.2
+	 * @since 2.1.11
 	 */
 	public void addCacheKeyConverter(Converter<?, String> cacheKeyConverter) {
 		configureKeyConverters(it -> it.addConverter(cacheKeyConverter));
@@ -322,7 +322,7 @@ public class RedisCacheConfiguration {
 	 *
 	 * @param registryConsumer never {@literal null}.
 	 * @throws IllegalStateException if {@link #getConversionService()} does not allow converter registration.
-	 * @since 2.2
+	 * @since 2.1.11
 	 */
 	public void configureKeyConverters(Consumer<ConverterRegistry> registryConsumer) {
 
