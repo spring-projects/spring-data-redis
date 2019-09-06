@@ -1,6 +1,17 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.0.RC3 (2019-09-06)
+-----------------------------------------
+* DATAREDIS-1032 - RedisCache fails to serialize non SimpleKey cache keys.
+* DATAREDIS-1031 - LettuceReactiveKeyCommands.pExpireAt calls EXPIREAT command instead of PEXPIREAT.
+* DATAREDIS-1030 - RedisScript of method improvement.
+* DATAREDIS-1027 - LettuceConnectionFactory.destroy() should release reactiveConnectionProvider resources.
+* DATAREDIS-1025 - Add HTTPS entries into spring.schemas.
+* DATAREDIS-1024 - Release 2.2 RC3 (Moore).
+* DATAREDIS-1021 - JedisKeyCommands.del asset error.
+
+
 Changes in version 2.2.0.RC2 (2019-08-05)
 -----------------------------------------
 * DATAREDIS-1020 - Upgrade to Lettuce 5.1.8.RELEASE.
