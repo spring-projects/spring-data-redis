@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.cache;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
@@ -120,10 +121,16 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
+
+		byte[] lockName = ByteBuffer.allocate(name.length() + key.length)
+			.put(name.getBytes(StandardCharsets.UTF_8))
+			.put(value)
+			.array();
+
 		return execute(name, connection -> {
 
 			if (isLockingCacheWriter()) {
-				doLock(name, connection);
+				doLock(lockName, connection);
 			}
 
 			try {
@@ -139,7 +146,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			} finally {
 
 				if (isLockingCacheWriter()) {
-					doUnlock(name, connection);
+					doUnlock(lockName, connection);
 				}
 			}
 		});
@@ -214,15 +221,15 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		executeLockFree(connection -> doUnlock(name, connection));
 	}
 
-	private Boolean doLock(String name, RedisConnection connection) {
+	private Boolean doLock(byte[] name, RedisConnection connection) {
 		return connection.setNX(createCacheLockKey(name), new byte[0]);
 	}
 
-	private Long doUnlock(String name, RedisConnection connection) {
+	private Long doUnlock(byte[] name, RedisConnection connection) {
 		return connection.del(createCacheLockKey(name));
 	}
 
-	boolean doCheckLock(String name, RedisConnection connection) {
+	boolean doCheckLock(byte[] name, RedisConnection connection) {
 		return connection.exists(createCacheLockKey(name));
 	}
 
@@ -233,7 +240,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		return !sleepTime.isZero() && !sleepTime.isNegative();
 	}
 
-	private <T> T execute(String name, Function<RedisConnection, T> callback) {
+	private <T> T execute(byte[] name, Function<RedisConnection, T> callback) {
 
 		RedisConnection connection = connectionFactory.getConnection();
 		try {
@@ -256,7 +263,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 	}
 
-	private void checkAndPotentiallyWaitUntilUnlocked(String name, RedisConnection connection) {
+	private void checkAndPotentiallyWaitUntilUnlocked(byte[] name, RedisConnection connection) {
 
 		if (!isLockingCacheWriter()) {
 			return;
@@ -281,7 +288,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		return ttl != null && !ttl.isZero() && !ttl.isNegative();
 	}
 
-	private static byte[] createCacheLockKey(String name) {
-		return (name + "~lock").getBytes(StandardCharsets.UTF_8);
+	private static byte[] createCacheLockKey(byte[] name) {
+		return ByteBuffer.allocate(name.length + 5)
+			.put(name)
+			.put("~lock".getBytes())
+			.array();
 	}
 }
