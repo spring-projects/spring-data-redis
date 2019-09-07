@@ -123,7 +123,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 
 		byte[] lockName = ByteBuffer.allocate(name.length() + key.length)
-			.put(name.getBytes(StandardCharsets.UTF_8))
+			.put(key.getBytes(StandardCharsets.UTF_8))
 			.put(value)
 			.array();
 
