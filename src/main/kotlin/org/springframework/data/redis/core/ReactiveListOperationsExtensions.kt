@@ -25,7 +25,7 @@ import java.time.Duration
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.trimAndAwait(key: K, start: Long, end: Long): Boolean =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.trimAndAwait(key: K, start: Long, end: Long): Boolean =
 		trim(key, start, end).awaitSingle()
 
 /**
@@ -34,7 +34,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.sizeAndAwait(key: K): Long =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.sizeAndAwait(key: K): Long =
 		size(key).awaitSingle()
 
 /**
@@ -43,7 +43,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.leftPushAndAwait(key: K, value: V): Long =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.leftPushAndAwait(key: K, value: V): Long =
 		leftPush(key, value).awaitSingle()
 
 /**
@@ -52,7 +52,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.leftPushAllAndAwait(key: K, vararg values: V): Long =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.leftPushAllAndAwait(key: K, vararg values: V): Long =
 		leftPushAll(key, *values).awaitSingle()
 
 /**
@@ -61,7 +61,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.leftPushAllAndAwait(key: K, values: Collection<V>): Long =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.leftPushAllAndAwait(key: K, values: Collection<V>): Long =
 		leftPushAll(key, values).awaitSingle()
 
 /**
@@ -70,7 +70,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.leftPushIfPresentAndAwait(key: K, value: V): Long =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.leftPushIfPresentAndAwait(key: K, value: V): Long =
 		leftPushIfPresent(key, value).awaitSingle()
 
 /**
@@ -79,7 +79,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.leftPushAndAwait(key: K, pivot: V, value: V): Long =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.leftPushAndAwait(key: K, pivot: V, value: V): Long =
 		leftPush(key, pivot, value).awaitSingle()
 
 /**
@@ -88,7 +88,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.rightPushAndAwait(key: K, value: V): Long =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPushAndAwait(key: K, value: V): Long =
 		rightPush(key, value).awaitSingle()
 
 /**
@@ -97,7 +97,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.rightPushAllAndAwait(key: K, vararg values: V): Long =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPushAllAndAwait(key: K, vararg values: V): Long =
 		rightPushAll(key, *values).awaitSingle()
 
 /**
@@ -106,7 +106,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.rightPushAllAndAwait(key: K, values: Collection<V>): Long =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPushAllAndAwait(key: K, values: Collection<V>): Long =
 		rightPushAll(key, values).awaitSingle()
 
 /**
@@ -115,7 +115,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.rightPushIfPresentAndAwait(key: K, value: V): Long =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPushIfPresentAndAwait(key: K, value: V): Long =
 		rightPushIfPresent(key, value).awaitSingle()
 
 /**
@@ -124,7 +124,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.rightPushAndAwait(key: K, pivot: V, value: V): Long =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPushAndAwait(key: K, pivot: V, value: V): Long =
 		rightPush(key, pivot, value).awaitSingle()
 
 /**
@@ -133,7 +133,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.setAndAwait(key: K, index: Long, value: V): Boolean =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.setAndAwait(key: K, index: Long, value: V): Boolean =
 		set(key, index, value).awaitSingle()
 
 /**
@@ -142,7 +142,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.removeAndAwait(key: K, count: Long, value: V): Long =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.removeAndAwait(key: K, count: Long, value: V): Long =
 		remove(key, count, value).awaitSingle()
 
 /**
@@ -151,7 +151,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.indexAndAwait(key: K, index: Long): V? =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.indexAndAwait(key: K, index: Long): V? =
 		index(key, index).awaitFirstOrNull()
 
 /**
@@ -160,7 +160,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.leftPopAndAwait(key: K): V? =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.leftPopAndAwait(key: K): V? =
 		leftPop(key).awaitFirstOrNull()
 
 /**
@@ -169,7 +169,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.leftPopAndAwait(key: K, timeout: Duration): V? =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.leftPopAndAwait(key: K, timeout: Duration): V? =
 		leftPop(key, timeout).awaitFirstOrNull()
 
 /**
@@ -178,7 +178,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.rightPopAndAwait(key: K): V? =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPopAndAwait(key: K): V? =
 		rightPop(key).awaitFirstOrNull()
 
 /**
@@ -187,7 +187,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.rightPopAndAwait(key: K, timeout: Duration): V? =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPopAndAwait(key: K, timeout: Duration): V? =
 		rightPop(key, timeout).awaitFirstOrNull()
 
 /**
@@ -196,5 +196,5 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveListOperations<K, V>.deleteAndAwait(key: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.deleteAndAwait(key: K): Boolean =
 		delete(key).awaitSingle()

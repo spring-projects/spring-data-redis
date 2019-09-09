@@ -23,7 +23,7 @@ import kotlinx.coroutines.reactive.awaitSingle
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveHyperLogLogOperations<K, V>.addAndAwait(key: K, vararg values: V): Long =
+suspend fun <K : Any, V : Any> ReactiveHyperLogLogOperations<K, V>.addAndAwait(key: K, vararg values: V): Long =
 		add(key, *values).awaitSingle()
 
 /**
@@ -32,7 +32,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveHyperLogLogOperati
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveHyperLogLogOperations<K, V>.sizeAndAwait(vararg keys: K): Long =
+suspend fun <K : Any, V : Any> ReactiveHyperLogLogOperations<K, V>.sizeAndAwait(vararg keys: K): Long =
 		size(*keys).awaitSingle()
 
 /**
@@ -41,7 +41,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveHyperLogLogOperati
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveHyperLogLogOperations<K, V>.unionAndAwait(destination: K, vararg sourceKeys: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveHyperLogLogOperations<K, V>.unionAndAwait(destination: K, vararg sourceKeys: K): Boolean =
 		union(destination, *sourceKeys).awaitSingle()
 
 /**
@@ -50,5 +50,5 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveHyperLogLogOperati
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveHyperLogLogOperations<K, V>.deleteAndAwait(key: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveHyperLogLogOperations<K, V>.deleteAndAwait(key: K): Boolean =
 		delete(key).awaitSingle()

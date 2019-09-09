@@ -24,7 +24,7 @@ import kotlinx.coroutines.reactive.awaitSingle
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.addAndAwait(key: K, vararg values: V): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.addAndAwait(key: K, vararg values: V): Long =
 		add(key, *values).awaitSingle()
 
 /**
@@ -33,7 +33,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.removeAndAwait(key: K, vararg values: V): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.removeAndAwait(key: K, vararg values: V): Long =
 		remove(key, *values).awaitSingle()
 
 /**
@@ -42,7 +42,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.popAndAwait(key: K): V? =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.popAndAwait(key: K): V? =
 		pop(key).awaitFirstOrNull()
 
 /**
@@ -51,7 +51,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.moveAndAwait(sourceKey: K, value: V, destKey: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.moveAndAwait(sourceKey: K, value: V, destKey: K): Boolean =
 		move(sourceKey, value, destKey).awaitSingle()
 
 /**
@@ -60,7 +60,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.sizeAndAwait(key: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.sizeAndAwait(key: K): Long =
 		size(key).awaitSingle()
 
 /**
@@ -69,7 +69,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.isMemberAndAwait(key: K, value: V): Boolean =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.isMemberAndAwait(key: K, value: V): Boolean =
 		isMember(key, value).awaitSingle()
 
 /**
@@ -78,7 +78,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
 		intersectAndStore(key, otherKey, destKey).awaitSingle()
 
 /**
@@ -87,7 +87,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.intersectAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.intersectAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
 		intersectAndStore(keys, destKey).awaitSingle()
 
 /**
@@ -96,7 +96,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
 		unionAndStore(key, otherKey, destKey).awaitSingle()
 
 /**
@@ -105,7 +105,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.unionAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.unionAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
 		unionAndStore(keys, destKey).awaitSingle()
 
 /**
@@ -114,7 +114,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.differenceAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.differenceAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
 		differenceAndStore(key, otherKey, destKey).awaitSingle()
 
 /**
@@ -123,7 +123,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.differenceAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.differenceAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
 		differenceAndStore(keys, destKey).awaitSingle()
 
 /**
@@ -132,7 +132,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.randomMemberAndAwait(key: K): V? =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.randomMemberAndAwait(key: K): V? =
 		randomMember(key).awaitFirstOrNull()
 
 /**
@@ -141,7 +141,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.deleteAndAwait(key: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.deleteAndAwait(key: K): Boolean =
 		delete(key).awaitSingle()
 
 
