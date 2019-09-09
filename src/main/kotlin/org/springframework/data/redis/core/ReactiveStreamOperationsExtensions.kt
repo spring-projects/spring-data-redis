@@ -24,7 +24,7 @@ import org.springframework.data.redis.connection.stream.*
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.acknowledgeAndAwait(key: K, group: String, vararg recordIds: String): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.acknowledgeAndAwait(key: K, group: String, vararg recordIds: String): Long =
 		acknowledge(key, group, *recordIds).awaitSingle()
 
 /**
@@ -33,7 +33,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.acknowledgeAndAwait(key: K, group: String, vararg recordIds: RecordId): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.acknowledgeAndAwait(key: K, group: String, vararg recordIds: RecordId): Long =
 		acknowledge(key, group, *recordIds).awaitSingle()
 
 /**
@@ -42,7 +42,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.acknowledgeAndAwait(group: String, record: Record<K, *>): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.acknowledgeAndAwait(group: String, record: Record<K, *>): Long =
 		acknowledge(group, record).awaitSingle()
 
 /**
@@ -51,7 +51,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.addAndAwait(record: MapRecord<K, HK, HV>): RecordId =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.addAndAwait(record: MapRecord<K, HK, HV>): RecordId =
 		add(record).awaitSingle()
 
 /**
@@ -60,7 +60,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.addAndAwait(record: Record<K, *>): RecordId =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.addAndAwait(record: Record<K, *>): RecordId =
 		add(record).awaitSingle()
 
 /**
@@ -69,7 +69,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteAndAwait(key: K, vararg recordIds: String): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteAndAwait(key: K, vararg recordIds: String): Long =
 		delete(key, *recordIds).awaitSingle()
 
 /**
@@ -78,7 +78,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteAndAwait(record: Record<K, *>): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteAndAwait(record: Record<K, *>): Long =
 		delete(record).awaitSingle()
 
 /**
@@ -87,7 +87,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteAndAwait(key: K, vararg recordIds: RecordId): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteAndAwait(key: K, vararg recordIds: RecordId): Long =
 		delete(key, *recordIds).awaitSingle()
 
 /**
@@ -96,7 +96,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.createGroupAndAwait(key: K, group: String): String =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.createGroupAndAwait(key: K, group: String): String =
 		createGroup(key, group).awaitSingle()
 
 /**
@@ -105,7 +105,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.createGroupAndAwait(key: K, readOffset: ReadOffset, group: String): String =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.createGroupAndAwait(key: K, readOffset: ReadOffset, group: String): String =
 		createGroup(key, readOffset, group).awaitSingle()
 
 /**
@@ -114,7 +114,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteConsumerAndAwait(key: K, consumer: Consumer): String =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteConsumerAndAwait(key: K, consumer: Consumer): String =
 		deleteConsumer(key, consumer).awaitSingle()
 
 /**
@@ -123,7 +123,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.destroyGroupAndAwait(key: K, group: String): String =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.destroyGroupAndAwait(key: K, group: String): String =
 		destroyGroup(key, group).awaitSingle()
 
 /**
@@ -132,7 +132,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.sizeAndAwait(key: K): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.sizeAndAwait(key: K): Long =
 		size(key).awaitSingle()
 
 /**
@@ -141,5 +141,5 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.trimAndAwait(key: K, count: Long): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.trimAndAwait(key: K, count: Long): Long =
 		trim(key, count).awaitSingle()

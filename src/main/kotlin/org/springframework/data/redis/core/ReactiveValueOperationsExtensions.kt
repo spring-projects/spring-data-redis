@@ -26,7 +26,7 @@ import java.time.Duration
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V): Boolean =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V): Boolean =
 		set(key, value).awaitSingle()
 
 /**
@@ -35,7 +35,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V, timeout: Duration): Boolean =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V, timeout: Duration): Boolean =
 		set(key, value, timeout).awaitSingle()
 
 /**
@@ -44,7 +44,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait(key: K, value: V): Boolean =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait(key: K, value: V): Boolean =
 		setIfAbsent(key, value).awaitSingle()
 
 /**
@@ -53,7 +53,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait(key: K, value: V, timeout: Duration): Boolean =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait(key: K, value: V, timeout: Duration): Boolean =
 		setIfAbsent(key, value, timeout).awaitSingle()
 
 /**
@@ -62,7 +62,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwait(key: K, value: V): Boolean =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwait(key: K, value: V): Boolean =
 		setIfPresent(key, value).awaitSingle()
 
 /**
@@ -71,7 +71,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwait(key: K, value: V, timeout: Duration): Boolean =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwait(key: K, value: V, timeout: Duration): Boolean =
 		setIfPresent(key, value, timeout).awaitSingle()
 
 /**
@@ -80,7 +80,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.multiSetAndAwait(map: Map<K, V>): Boolean =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.multiSetAndAwait(map: Map<K, V>): Boolean =
 		multiSet(map).awaitSingle()
 
 /**
@@ -89,7 +89,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.multiSetIfAbsentAndAwait(map: Map<K, V>): Boolean =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.multiSetIfAbsentAndAwait(map: Map<K, V>): Boolean =
 		multiSetIfAbsent(map).awaitSingle()
 
 /**
@@ -98,7 +98,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.getAndAwait(key: K): V? =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.getAndAwait(key: K): V? =
 		get(key).awaitFirstOrNull()
 
 /**
@@ -108,7 +108,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Christoph Strobl
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.getAndSetAndAwait(key: K, value: V): V? =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.getAndSetAndAwait(key: K, value: V): V? =
 		getAndSet(key, value).awaitFirstOrNull()
 
 /**
@@ -117,7 +117,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.multiGetAndAwait(vararg keys: K): List<V?> =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.multiGetAndAwait(vararg keys: K): List<V?> =
 		multiGet(keys.toCollection(ArrayList())).awaitSingle()
 
 /**
@@ -126,7 +126,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.multiGetAndAwait(keys: Collection<K>): List<V?> =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.multiGetAndAwait(keys: Collection<K>): List<V?> =
 		multiGet(keys).awaitSingle()
 
 /**
@@ -135,7 +135,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.incrementAndAwait(key: K): Long =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.incrementAndAwait(key: K): Long =
 		increment(key).awaitSingle()
 
 /**
@@ -144,7 +144,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.incrementAndAwait(key: K, delta: Long): Long =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.incrementAndAwait(key: K, delta: Long): Long =
 		increment(key, delta).awaitSingle()
 
 /**
@@ -153,7 +153,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.incrementAndAwait(key: K, delta: Double): Double =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.incrementAndAwait(key: K, delta: Double): Double =
 		increment(key, delta).awaitSingle()
 
 /**
@@ -162,7 +162,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.decrementAndAwait(key: K): Long =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.decrementAndAwait(key: K): Long =
 		decrement(key).awaitSingle()
 
 /**
@@ -171,7 +171,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.decrementAndAwait(key: K, delta: Long): Long =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.decrementAndAwait(key: K, delta: Long): Long =
 		decrement(key, delta).awaitSingle()
 
 /**
@@ -180,7 +180,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.appendAndAwait(key: K, value: String): Long =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.appendAndAwait(key: K, value: String): Long =
 		append(key, value).awaitSingle()
 
 /**
@@ -189,7 +189,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.getAndAwait(key: K, start: Long, end: Long): String? =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.getAndAwait(key: K, start: Long, end: Long): String? =
 		get(key, start, end).awaitFirstOrNull()
 
 /**
@@ -198,7 +198,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V, offset: Long): Long =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V, offset: Long): Long =
 		set(key, value, offset).awaitSingle()
 
 /**
@@ -208,7 +208,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Christoph Strobl
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.sizeAndAwait(key: K): Long =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.sizeAndAwait(key: K): Long =
 		size(key).awaitSingle()
 
 /**
@@ -217,7 +217,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.setBitAndAwait(key: K, offset: Long, value: Boolean): Boolean =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setBitAndAwait(key: K, offset: Long, value: Boolean): Boolean =
 		setBit(key, offset, value).awaitSingle()
 
 /**
@@ -226,7 +226,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.getBitAndAwait(key: K, offset: Long): Boolean =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.getBitAndAwait(key: K, offset: Long): Boolean =
 		getBit(key, offset).awaitSingle()
 
 /**
@@ -235,7 +235,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.bitFieldAndAwait(key: K, commands: BitFieldSubCommands): List<Long?> =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.bitFieldAndAwait(key: K, commands: BitFieldSubCommands): List<Long?> =
 		bitField(key, commands).awaitSingle()
 
 /**
@@ -244,5 +244,5 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveValueOperations<K, V>.deleteAndAwait(key: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.deleteAndAwait(key: K): Boolean =
 		delete(key).awaitSingle()

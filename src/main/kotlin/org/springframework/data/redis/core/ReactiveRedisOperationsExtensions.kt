@@ -27,7 +27,7 @@ import java.time.Instant
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.sendAndAwait(destination: String, message: V): Long =
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.sendAndAwait(destination: String, message: V): Long =
 		convertAndSend(destination, message).awaitSingle()
 
 /**
@@ -36,7 +36,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.hasKeyAndAwait(key: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.hasKeyAndAwait(key: K): Boolean =
 		hasKey(key).awaitSingle()
 
 /**
@@ -45,7 +45,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.typeAndAwait(key: K): DataType =
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.typeAndAwait(key: K): DataType =
 		type(key).awaitSingle()
 
 /**
@@ -54,7 +54,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.randomKeyAndAwait(): K? =
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.randomKeyAndAwait(): K? =
 		randomKey().awaitFirstOrNull()
 
 /**
@@ -63,7 +63,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.renameAndAwait(oldKey: K, newKey: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.renameAndAwait(oldKey: K, newKey: K): Boolean =
 		rename(oldKey, newKey).awaitSingle()
 
 /**
@@ -72,7 +72,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.renameIfAbsentAndAwait(oldKey: K, newKey: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.renameIfAbsentAndAwait(oldKey: K, newKey: K): Boolean =
 		renameIfAbsent(oldKey, newKey).awaitSingle()
 
 /**
@@ -81,7 +81,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.deleteAndAwait(vararg key: K): Long =
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.deleteAndAwait(vararg key: K): Long =
 		delete(*key).awaitSingle()
 
 /**
@@ -90,7 +90,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.unlinkAndAwait(vararg key: K): Long =
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.unlinkAndAwait(vararg key: K): Long =
 		unlink(*key).awaitSingle()
 
 /**
@@ -99,7 +99,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.expireAndAwait(key: K, timeout: Duration): Boolean =
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.expireAndAwait(key: K, timeout: Duration): Boolean =
 		expire(key, timeout).awaitSingle()
 
 /**
@@ -108,7 +108,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.expireAtAndAwait(key: K, expireAt: Instant): Boolean = expireAt(key, expireAt).awaitSingle()
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.expireAtAndAwait(key: K, expireAt: Instant): Boolean = expireAt(key, expireAt).awaitSingle()
 
 
 /**
@@ -117,7 +117,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.persistAndAwait(key: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.persistAndAwait(key: K): Boolean =
 		persist(key).awaitSingle()
 
 /**
@@ -126,7 +126,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.moveAndAwait(key: K, dbIndex: Int): Boolean = move(key, dbIndex).awaitSingle()
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.moveAndAwait(key: K, dbIndex: Int): Boolean = move(key, dbIndex).awaitSingle()
 
 /**
  * Coroutines variant of [ReactiveRedisOperations.getExpire].
@@ -134,4 +134,4 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K,
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveRedisOperations<K, V>.getExpireAndAwait(key: K): Duration? = getExpire(key).awaitFirstOrNull()
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.getExpireAndAwait(key: K): Duration? = getExpire(key).awaitFirstOrNull()
