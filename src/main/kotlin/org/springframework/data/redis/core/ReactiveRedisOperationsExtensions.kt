@@ -15,11 +15,51 @@
  */
 package org.springframework.data.redis.core
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.asPublisher
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.redis.connection.DataType
+import org.springframework.data.redis.connection.ReactiveRedisConnection
+import org.springframework.data.redis.connection.ReactiveSubscription.*
+import org.springframework.data.redis.core.script.RedisScript
+import org.springframework.data.redis.listener.Topic
+import org.springframework.data.redis.serializer.RedisElementReader
+import org.springframework.data.redis.serializer.RedisElementWriter
 import java.time.Duration
 import java.time.Instant
+
+/**
+ * Coroutines variant of [ReactiveRedisOperations.execute].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any, T : Any> ReactiveRedisOperations<K, V>.executeAsFlow(action: (ReactiveRedisConnection) -> Flow<T>): Flow<T> =
+		execute { action(it).asPublisher() }.asFlow()
+
+/**
+ * Coroutines variant of [ReactiveRedisOperations.execute].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any, T : Any> ReactiveRedisOperations<K, V>.executeAsFlow(script: RedisScript<T>, keys: List<K> = emptyList(), args: List<*> = emptyList<Any>()): Flow<T> =
+		execute(script, keys, args).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveRedisOperations.execute].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any, T : Any> ReactiveRedisOperations<K, V>.executeAsFlow(script: RedisScript<T>, keys: List<K> = emptyList(), args: List<*> = emptyList<Any>(), argsWriter: RedisElementWriter<*>, resultReader: RedisElementReader<T>): Flow<T> =
+		execute(script, keys, args, argsWriter, resultReader).asFlow()
 
 /**
  * Coroutines variant of [ReactiveRedisOperations.convertAndSend].
@@ -29,6 +69,36 @@ import java.time.Instant
  */
 suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.sendAndAwait(destination: String, message: V): Long =
 		convertAndSend(destination, message).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveRedisOperations.listenToChannel].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.listenToChannelAsFlow(vararg channels: String): Flow<Message<String, V>> =
+		listenToChannel(*channels).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveRedisOperations.listenToPattern].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.listenToPatternAsFlow(vararg patterns: String): Flow<Message<String, V>> =
+		listenToPattern(*patterns).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveRedisOperations.listenTo].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.listenToAsFlow(vararg topics: Topic): Flow<Message<String, V>> =
+		listenTo(*topics).asFlow()
 
 /**
  * Coroutines variant of [ReactiveRedisOperations.hasKey].
@@ -47,6 +117,26 @@ suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.hasKeyAndAwait(key:
  */
 suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.typeAndAwait(key: K): DataType =
 		type(key).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveRedisOperations.keys].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.keysAsFlow(pattern: K): Flow<K> =
+		keys(pattern).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveRedisOperations.scan].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.scanAsFlow(options: ScanOptions = ScanOptions.NONE): Flow<K> =
+		scan(options).asFlow()
 
 /**
  * Coroutines variant of [ReactiveRedisOperations.randomKey].

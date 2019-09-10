@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.core
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 
@@ -54,6 +57,16 @@ suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.mult
  */
 suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.incrementAndAwait(key: H, hashKey: HK, delta: Long): Long =
 		increment(key, hashKey, delta).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveHashOperations.keys].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.keysAsFlow(key: H): Flow<HK> =
+		keys(key).asFlow()
 
 /**
  * Coroutines variant of [ReactiveHashOperations.increment].
@@ -99,6 +112,36 @@ suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.putA
  */
 suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.putIfAbsentAndAwait(key: H, hashKey: HK, hashValue: HV): Boolean =
 		putIfAbsent(key, hashKey, hashValue).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveHashOperations.values].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.valuesAsFlow(key: H): Flow<HV> =
+		values(key).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveHashOperations.entries].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.entriesAsFlow(key: H): Flow<Map.Entry<HK, HV>> =
+		entries(key).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveHashOperations.scan].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.scanAsFlow(key: H, options: ScanOptions = ScanOptions.NONE): Flow<Map.Entry<HK, HV>> =
+		scan(key, options).asFlow()
 
 /**
  * Coroutines variant of [ReactiveHashOperations.remove].
