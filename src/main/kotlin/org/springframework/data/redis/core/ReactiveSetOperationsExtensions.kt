@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.core
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 
@@ -46,6 +49,16 @@ suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.popAndAwait(key: K): 
 		pop(key).awaitFirstOrNull()
 
 /**
+ * Coroutines variant of [ReactiveSetOperations.pop].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.popAsFlow(key: K, count: Long): Flow<V> =
+		pop(key, count).asFlow()
+
+/**
  * Coroutines variant of [ReactiveSetOperations.move].
  *
  * @author Mark Paluch
@@ -73,6 +86,36 @@ suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.isMemberAndAwait(key:
 		isMember(key, value).awaitSingle()
 
 /**
+ * Coroutines variant of [ReactiveSetOperations.intersect].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.intersectAsFlow(key: K, otherKey: K): Flow<V> =
+		intersect(key, otherKey).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.intersect].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.intersectAsFlow(key: K, otherKeys: Collection<K>): Flow<V> =
+		intersect(key, otherKeys).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.intersect].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.intersectAsFlow(otherKeys: Collection<K>): Flow<V> =
+		intersect(otherKeys).asFlow()
+
+/**
  * Coroutines variant of [ReactiveSetOperations.intersectAndStore].
  *
  * @author Mark Paluch
@@ -89,6 +132,36 @@ suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.intersectAndStoreAndA
  */
 suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.intersectAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
 		intersectAndStore(keys, destKey).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.union].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.unionAsFlow(key: K, otherKey: K): Flow<V> =
+		union(key, otherKey).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.union].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.unionAsFlow(key: K, otherKeys: Collection<K>): Flow<V> =
+		union(key, otherKeys).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.union].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.unionAsFlow(otherKeys: Collection<K>): Flow<V> =
+		union(otherKeys).asFlow()
 
 /**
  * Coroutines variant of [ReactiveSetOperations.unionAndStore].
@@ -109,6 +182,36 @@ suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.unionAndStoreAndAwait
 		unionAndStore(keys, destKey).awaitSingle()
 
 /**
+ * Coroutines variant of [ReactiveSetOperations.difference].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.differenceAsFlow(key: K, otherKey: K): Flow<V> =
+		difference(key, otherKey).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.difference].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.differenceAsFlow(key: K, otherKeys: Collection<K>): Flow<V> =
+		difference(key, otherKeys).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.difference].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.differenceAsFlow(otherKeys: Collection<K>): Flow<V> =
+		difference(otherKeys).asFlow()
+
+/**
  * Coroutines variant of [ReactiveSetOperations.differenceAndStore].
  *
  * @author Mark Paluch
@@ -127,6 +230,25 @@ suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.differenceAndStoreAnd
 		differenceAndStore(keys, destKey).awaitSingle()
 
 /**
+ * Coroutines variant of [ReactiveSetOperations.members].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.membersAsFlow(key: K): Flow<V> =
+		members(key).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveHashOperations.scan].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.scanAsFlow(key: K, options: ScanOptions = ScanOptions.NONE): Flow<V> =
+		scan(key, options).asFlow()
+/**
  * Coroutines variant of [ReactiveSetOperations.randomMember].
  *
  * @author Mark Paluch
@@ -134,6 +256,26 @@ suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.differenceAndStoreAnd
  */
 suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.randomMemberAndAwait(key: K): V? =
 		randomMember(key).awaitFirstOrNull()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.distinctRandomMembers].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.distinctRandomMembersAsFlow(key: K, count: Long): Flow<V> =
+		distinctRandomMembers(key, count).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.randomMembers].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+@ExperimentalCoroutinesApi
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.randomMembersAsFlow(key: K, count: Long): Flow<V> =
+		randomMembers(key, count).asFlow()
 
 /**
  * Coroutines variant of [ReactiveSetOperations.delete].

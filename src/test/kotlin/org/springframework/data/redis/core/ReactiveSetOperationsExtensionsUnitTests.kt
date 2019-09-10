@@ -18,13 +18,16 @@ package org.springframework.data.redis.core
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
- * Unit tests for [ReactiveSetOperationsExtensions].
+ * Unit tests for `ReactiveSetOperationsExtensions`.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
@@ -73,6 +76,22 @@ class ReactiveSetOperationsExtensionsUnitTests {
 
 		verify {
 			operations.pop("foo")
+		}
+	}
+
+	@Test
+	@ExperimentalCoroutinesApi
+	fun `pop as Flow`() {
+
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.pop(any(), any()) } returns Flux.just("bar")
+
+		runBlocking {
+			assertThat(operations.popAsFlow("foo", 1).toList()).contains("bar")
+		}
+
+		verify {
+			operations.pop("foo", 1)
 		}
 	}
 
@@ -136,6 +155,51 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test
+	@ExperimentalCoroutinesApi
+	fun intersect() {
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.intersect("foo", "bar") } returns Flux.just("baz")
+
+		runBlocking {
+			assertThat(operations.intersectAsFlow("foo", "bar").toList()).contains("baz")
+		}
+
+		verify {
+			operations.intersect("foo", "bar")
+		}
+	}
+
+	@Test
+	@ExperimentalCoroutinesApi
+	fun `intersect with key and collection`() {
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.intersect("foo", listOf("bar")) } returns Flux.just("baz")
+
+		runBlocking {
+			assertThat(operations.intersectAsFlow("foo", listOf("bar")).toList()).contains("baz")
+		}
+
+		verify {
+			operations.intersect("foo", listOf("bar"))
+		}
+	}
+
+	@Test
+	@ExperimentalCoroutinesApi
+	fun `intersect with collection`() {
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.intersect(listOf("bar")) } returns Flux.just("baz")
+
+		runBlocking {
+			assertThat(operations.intersectAsFlow(listOf("bar")).toList()).contains("baz")
+		}
+
+		verify {
+			operations.intersect(listOf("bar"))
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun intersectAndStore() {
 
@@ -163,6 +227,51 @@ class ReactiveSetOperationsExtensionsUnitTests {
 
 		verify {
 			operations.intersectAndStore(listOf("foo", "bar"), "baz")
+		}
+	}
+
+	@Test
+	@ExperimentalCoroutinesApi
+	fun union() {
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.union("foo", "bar") } returns Flux.just("baz")
+
+		runBlocking {
+			assertThat(operations.unionAsFlow("foo", "bar").toList()).contains("baz")
+		}
+
+		verify {
+			operations.union("foo", "bar")
+		}
+	}
+
+	@Test
+	@ExperimentalCoroutinesApi
+	fun `union with key and collection`() {
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.union("foo", listOf("bar")) } returns Flux.just("baz")
+
+		runBlocking {
+			assertThat(operations.unionAsFlow("foo", listOf("bar")).toList()).contains("baz")
+		}
+
+		verify {
+			operations.union("foo", listOf("bar"))
+		}
+	}
+
+	@Test
+	@ExperimentalCoroutinesApi
+	fun `union with collection`() {
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.union(listOf("bar")) } returns Flux.just("baz")
+
+		runBlocking {
+			assertThat(operations.unionAsFlow(listOf("bar")).toList()).contains("baz")
+		}
+
+		verify {
+			operations.union(listOf("bar"))
 		}
 	}
 
@@ -196,6 +305,51 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test
+	@ExperimentalCoroutinesApi
+	fun difference() {
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.difference("foo", "bar") } returns Flux.just("baz")
+
+		runBlocking {
+			assertThat(operations.differenceAsFlow("foo", "bar").toList()).contains("baz")
+		}
+
+		verify {
+			operations.difference("foo", "bar")
+		}
+	}
+
+	@Test
+	@ExperimentalCoroutinesApi
+	fun `difference with key and collection`() {
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.difference("foo", listOf("bar")) } returns Flux.just("baz")
+
+		runBlocking {
+			assertThat(operations.differenceAsFlow("foo", listOf("bar")).toList()).contains("baz")
+		}
+
+		verify {
+			operations.difference("foo", listOf("bar"))
+		}
+	}
+
+	@Test
+	@ExperimentalCoroutinesApi
+	fun `difference with collection`() {
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.difference(listOf("bar")) } returns Flux.just("baz")
+
+		runBlocking {
+			assertThat(operations.differenceAsFlow(listOf("bar")).toList()).contains("baz")
+		}
+
+		verify {
+			operations.difference(listOf("bar"))
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun differenceAndStore() {
 
@@ -226,6 +380,37 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test
+	@ExperimentalCoroutinesApi
+	fun members() {
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.members("foo") } returns Flux.just("baz")
+
+		runBlocking {
+			assertThat(operations.membersAsFlow("foo").toList()).contains("baz")
+		}
+
+		verify {
+			operations.members("foo")
+		}
+	}
+
+	@Test
+	@ExperimentalCoroutinesApi
+	fun scan() {
+
+		val operations =  mockk<ReactiveSetOperations<String, String>>()
+		every { operations.scan(any(), any()) } returns Flux.just("bar")
+
+		runBlocking {
+			assertThat(operations.scanAsFlow("foo").toList()).contains("bar")
+		}
+
+		verify {
+			operations.scan("foo", ScanOptions.NONE)
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun randomMember() {
 
@@ -253,6 +438,38 @@ class ReactiveSetOperationsExtensionsUnitTests {
 
 		verify {
 			operations.randomMember("foo")
+		}
+	}
+
+	@Test
+	@ExperimentalCoroutinesApi
+	fun distinctRandomMembers() {
+
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.distinctRandomMembers(any(), any()) } returns Flux.just("bar")
+
+		runBlocking {
+			assertThat(operations.distinctRandomMembersAsFlow("foo", 1).toList()).contains("bar")
+		}
+
+		verify {
+			operations.distinctRandomMembers("foo", 1)
+		}
+	}
+
+	@Test
+	@ExperimentalCoroutinesApi
+	fun randomMembers() {
+
+		val operations = mockk<ReactiveSetOperations<String, String>>()
+		every { operations.randomMembers(any(), any()) } returns Flux.just("bar")
+
+		runBlocking {
+			assertThat(operations.randomMembersAsFlow("foo", 1).toList()).contains("bar")
+		}
+
+		verify {
+			operations.randomMembers("foo", 1)
 		}
 	}
 

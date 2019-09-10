@@ -18,18 +18,37 @@ package org.springframework.data.redis.core
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.Duration
 
 /**
- * Unit tests for [ReactiveListOperationsExtensions]
+ * Unit tests for `ReactiveListOperationsExtensions`
  *
  * @author Mark Paluch
  */
 class ReactiveListOperationsExtensionsUnitTests {
+
+	@Test
+	@ExperimentalCoroutinesApi
+	fun range() {
+
+		val operations = mockk<ReactiveListOperations<String, String>>()
+		every { operations.range(any(), any(), any()) } returns Flux.just("foo", "bar")
+
+		runBlocking {
+			assertThat(operations.rangeAsFlow("foo", 2, 3).toList()).contains("foo", "bar")
+		}
+
+		verify {
+			operations.range("foo", 2, 3)
+		}
+	}
 
 	@Test // DATAREDIS-937
 	fun trim() {
