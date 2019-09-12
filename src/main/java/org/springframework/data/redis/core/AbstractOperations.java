@@ -44,6 +44,7 @@ import org.springframework.util.CollectionUtils;
  * @author Christoph Strobl
  * @author David Liu
  * @author Mark Paluch
+ * @author Denis Zavedeev
  */
 abstract class AbstractOperations<K, V> {
 
@@ -64,7 +65,7 @@ abstract class AbstractOperations<K, V> {
 		protected abstract byte[] inRedis(byte[] rawKey, RedisConnection connection);
 	}
 
-	RedisTemplate<K, V> template;
+	final RedisTemplate<K, V> template;
 
 	AbstractOperations(RedisTemplate<K, V> template) {
 		this.template = template;
