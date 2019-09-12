@@ -24,7 +24,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * {@link RedisKeyExpiredEvent} is Redis specific {@link ApplicationEvent} published when a specific key in Redis
- * expires. It might but must not hold the expired value itself next to the key.
+ * expires. It might hold the expired value itself next to the key, but is not required to do so.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
