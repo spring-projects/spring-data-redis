@@ -81,6 +81,7 @@ import org.springframework.util.CollectionUtils;
  * @author Ninad Divadkar
  * @author Anqing Shao
  * @author Mark Paluch
+ * @author Denis Zavedeev
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -102,14 +103,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	private @Nullable ScriptExecutor<K> scriptExecutor;
 
-	// cache singleton objects (where possible)
-	private @Nullable ValueOperations<K, V> valueOps;
-	private @Nullable ListOperations<K, V> listOps;
-	private @Nullable SetOperations<K, V> setOps;
-	private @Nullable StreamOperations<K, ?, ?> streamOps;
-	private @Nullable ZSetOperations<K, V> zSetOps;
-	private @Nullable GeoOperations<K, V> geoOps;
-	private @Nullable HyperLogLogOperations<K, V> hllOps;
+	private final ValueOperations<K, V> valueOps = new DefaultValueOperations<>(this);
+	private final ListOperations<K, V> listOps = new DefaultListOperations<>(this);
+	private final SetOperations<K, V> setOps = new DefaultSetOperations<>(this);
+	private final StreamOperations<K, ?, ?> streamOps = new DefaultStreamOperations<>(this, new ObjectHashMapper());
+	private final ZSetOperations<K, V> zSetOps = new DefaultZSetOperations<>(this);
+	private final GeoOperations<K, V> geoOps = new DefaultGeoOperations<>(this);
+	private final HyperLogLogOperations<K, V> hllOps = new DefaultHyperLogLogOperations<>(this);
+	private final ClusterOperations<K, V> clusterOps = new DefaultClusterOperations<>(this);
 
 	/**
 	 * Constructs a new <code>RedisTemplate</code> instance.
@@ -1203,7 +1204,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 */
 	@Override
 	public ClusterOperations<K, V> opsForCluster() {
-		return new DefaultClusterOperations<>(this);
+		return clusterOps;
 	}
 
 	/*
@@ -1212,10 +1213,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 */
 	@Override
 	public GeoOperations<K, V> opsForGeo() {
-
-		if (geoOps == null) {
-			geoOps = new DefaultGeoOperations<>(this);
-		}
 		return geoOps;
 	}
 
@@ -1252,10 +1249,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 */
 	@Override
 	public HyperLogLogOperations<K, V> opsForHyperLogLog() {
-
-		if (hllOps == null) {
-			hllOps = new DefaultHyperLogLogOperations<>(this);
-		}
 		return hllOps;
 	}
 
@@ -1265,10 +1258,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 */
 	@Override
 	public ListOperations<K, V> opsForList() {
-
-		if (listOps == null) {
-			listOps = new DefaultListOperations<>(this);
-		}
 		return listOps;
 	}
 
@@ -1296,10 +1285,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 */
 	@Override
 	public SetOperations<K, V> opsForSet() {
-
-		if (setOps == null) {
-			setOps = new DefaultSetOperations<>(this);
-		}
 		return setOps;
 	}
 
@@ -1309,10 +1294,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 */
 	@Override
 	public <HK, HV> StreamOperations<K, HK, HV> opsForStream() {
-
-		if (streamOps == null) {
-			streamOps = new DefaultStreamOperations<>(this, new ObjectHashMapper());
-		}
 		return (StreamOperations<K, HK, HV>) streamOps;
 	}
 
@@ -1350,10 +1331,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 */
 	@Override
 	public ValueOperations<K, V> opsForValue() {
-
-		if (valueOps == null) {
-			valueOps = new DefaultValueOperations<>(this);
-		}
 		return valueOps;
 	}
 
@@ -1372,10 +1349,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 */
 	@Override
 	public ZSetOperations<K, V> opsForZSet() {
-
-		if (zSetOps == null) {
-			zSetOps = new DefaultZSetOperations<>(this);
-		}
 		return zSetOps;
 	}
 
