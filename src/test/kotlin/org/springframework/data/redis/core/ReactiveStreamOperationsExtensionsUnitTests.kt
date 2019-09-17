@@ -35,6 +35,7 @@ import reactor.core.publisher.Mono
  * Unit tests for `ReactiveStreamOperationsExtensions`.
  *
  * @author Mark Paluch
+ * @author Sebastien Deleuze
  */
 class ReactiveStreamOperationsExtensionsUnitTests {
 
@@ -101,12 +102,11 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `add as Flow`() {
 
 		val map = mapOf("a" to "b")
-		val bodyPublisher = Mono.just(map)
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
 		val recordId = RecordId.of("0-0")
 		every { operations.add(any(), any<Publisher<Map<String, String>>>()) } returns Flux.just(recordId)
@@ -260,7 +260,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun range() {
 
@@ -278,7 +278,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun rangeWithType() {
 
@@ -296,9 +296,10 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `read with StreamOffset vararg`() {
+
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
 		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
 		val record = MapRecord.create("foo", mapOf("a" to "b"))
@@ -314,9 +315,10 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `read with options and StreamOffset vararg` () {
+
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
 		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
 		val options = StreamReadOptions.empty()
@@ -333,9 +335,10 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `read with type and StreamOffset vararg`() {
+
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
 		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
 		val record = ObjectRecord.create("a", "b")
@@ -351,9 +354,10 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `read with type, options and StreamOffset vararg` () {
+
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
 		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
 		val options = StreamReadOptions.empty()
@@ -370,9 +374,10 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `read with consumer and StreamOffset vararg`() {
+
 		val consumer = Consumer.from("a", "b")
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
 		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
@@ -389,9 +394,10 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `read with consumer, options and StreamOffset vararg`() {
+
 		val consumer = Consumer.from("a", "b")
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
 		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
@@ -409,9 +415,10 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `read with type, consumer and StreamOffset vararg`() {
+
 		val consumer = Consumer.from("a", "b")
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
 		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
@@ -428,9 +435,10 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `read with type, consumer, options and StreamOffset vararg`() {
+
 		val consumer = Consumer.from("a", "b")
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
 		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
@@ -448,7 +456,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun reverseRange() {
 
@@ -466,7 +474,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun reverseRangeWithType() {
 

@@ -31,10 +31,11 @@ import java.time.Duration
  * Unit tests for `ReactiveListOperationsExtensions`
  *
  * @author Mark Paluch
+ * @author Sebastien Deleuze
  */
 class ReactiveListOperationsExtensionsUnitTests {
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun range() {
 
@@ -349,5 +350,4 @@ class ReactiveListOperationsExtensionsUnitTests {
 			operations.delete("foo")
 		}
 	}
-
 }

@@ -40,10 +40,11 @@ import java.time.Instant
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Sebastien Deleuze
  */
 class ReactiveRedisOperationsExtensionsUnitTests {
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `execute with calllback`() {
 
@@ -59,7 +60,7 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `execute with script`() {
 
@@ -76,7 +77,7 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `execute with script, argsWriter and resultReader`() {
 
@@ -84,7 +85,7 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 		val argsWriter = mockk<RedisElementWriter<Any>>(relaxed = true)
 		val resultReader = mockk<RedisElementReader<String>>(relaxed = true)
 		val operations = mockk<ReactiveRedisOperations<String, String>>()
-		every { operations.execute(any<RedisScript<*>>(), any(), any(), any(), any()) } returns Flux.just("foo")
+		every { operations.execute(any<RedisScript<String>>(), any(), any(), any(), any()) } returns Flux.just("foo")
 
 		runBlocking {
 			assertThat(operations.executeAsFlow(script, argsWriter = argsWriter, resultReader = resultReader).toList()).contains("foo")
@@ -110,7 +111,7 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun listenToChannel() {
 
@@ -127,7 +128,7 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun listenToPattern() {
 
@@ -144,7 +145,7 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun listenTo() {
 
@@ -193,7 +194,7 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun keys() {
 
@@ -209,7 +210,7 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun scan() {
 
@@ -224,7 +225,6 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 			operations.scan(ScanOptions.NONE)
 		}
 	}
-
 
 	@Test // DATAREDIS-937
 	fun randomKey() {

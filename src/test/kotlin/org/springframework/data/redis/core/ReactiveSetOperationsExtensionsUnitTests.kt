@@ -31,6 +31,7 @@ import reactor.core.publisher.Mono
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Sebastien Deleuze
  */
 class ReactiveSetOperationsExtensionsUnitTests {
 
@@ -79,7 +80,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `pop as Flow`() {
 
@@ -155,7 +156,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun intersect() {
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -170,7 +171,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `intersect with key and collection`() {
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -185,7 +186,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `intersect with collection`() {
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -230,9 +231,10 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun union() {
+
 		val operations = mockk<ReactiveSetOperations<String, String>>()
 		every { operations.union("foo", "bar") } returns Flux.just("baz")
 
@@ -245,9 +247,10 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `union with key and collection`() {
+
 		val operations = mockk<ReactiveSetOperations<String, String>>()
 		every { operations.union("foo", listOf("bar")) } returns Flux.just("baz")
 
@@ -260,9 +263,10 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `union with collection`() {
+
 		val operations = mockk<ReactiveSetOperations<String, String>>()
 		every { operations.union(listOf("bar")) } returns Flux.just("baz")
 
@@ -305,9 +309,10 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun difference() {
+
 		val operations = mockk<ReactiveSetOperations<String, String>>()
 		every { operations.difference("foo", "bar") } returns Flux.just("baz")
 
@@ -320,9 +325,10 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `difference with key and collection`() {
+
 		val operations = mockk<ReactiveSetOperations<String, String>>()
 		every { operations.difference("foo", listOf("bar")) } returns Flux.just("baz")
 
@@ -335,9 +341,10 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun `difference with collection`() {
+
 		val operations = mockk<ReactiveSetOperations<String, String>>()
 		every { operations.difference(listOf("bar")) } returns Flux.just("baz")
 
@@ -380,9 +387,10 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun members() {
+
 		val operations = mockk<ReactiveSetOperations<String, String>>()
 		every { operations.members("foo") } returns Flux.just("baz")
 
@@ -395,7 +403,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun scan() {
 
@@ -441,7 +449,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun distinctRandomMembers() {
 
@@ -457,7 +465,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun randomMembers() {
 

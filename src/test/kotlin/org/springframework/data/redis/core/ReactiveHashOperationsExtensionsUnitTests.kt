@@ -31,6 +31,7 @@ import reactor.core.publisher.Mono
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Sebastien Deleuze
  */
 class ReactiveHashOperationsExtensionsUnitTests {
 
@@ -109,7 +110,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun keys() {
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -199,7 +200,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun values() {
 
@@ -215,7 +216,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun entries() {
 
@@ -232,7 +233,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun scan() {
 

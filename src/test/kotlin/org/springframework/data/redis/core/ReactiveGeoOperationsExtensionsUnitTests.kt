@@ -41,6 +41,7 @@ import reactor.core.publisher.Mono
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Sebastien Deleuze
  */
 class ReactiveGeoOperationsExtensionsUnitTests {
 
@@ -104,9 +105,10 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun addGeoLocationFlow() {
+
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
 		every { operations.add(any(), any<Publisher<List<GeoLocation<String>>>>()) } returns Flux.just(1)
 		val flow = flow { emit(listOf(GeoLocation("bar", Point(1.0, 2.0)))) }
@@ -271,9 +273,10 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun radiusAsFlowCircle() {
+
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
 		val result = GeoResult(GeoLocation("bar", Point(1.0, 2.0)), Distance(1.0))
 		val circle = Circle(1.0, 2.0, 3.0)
@@ -288,9 +291,10 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun radiusAsFlowCircleAndArgs() {
+
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
 		val result = GeoResult(GeoLocation("bar", Point(1.0, 2.0)), Distance(1.0))
 		val circle = Circle(1.0, 2.0, 3.0)
@@ -306,9 +310,10 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun radiusAsFlowMemberAndRadius() {
+
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
 		val result = GeoResult(GeoLocation("bar", Point(1.0, 2.0)), Distance(1.0))
 
@@ -323,9 +328,10 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun radiusAsFlowDistance() {
+
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
 		val result = GeoResult(GeoLocation("bar", Point(1.0, 2.0)), Distance(1.0))
 		val distance = Distance(2.0)
@@ -341,13 +347,14 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1033
 	@ExperimentalCoroutinesApi
 	fun radiusAsFlowDistanceAndArgs() {
+
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
 		val result = GeoResult(GeoLocation("bar", Point(1.0, 2.0)), Distance(1.0))
 		val distance = Distance(2.0)
-		val args = GeoRadiusCommandArgs.newGeoRadiusArgs()
+		val args = GeoRadiusCommandArgs.newGeoRadiusArgs().limit(1)
 
 		every { operations.radius(any(), any(), any(), any()) } returns Flux.just(result)
 
