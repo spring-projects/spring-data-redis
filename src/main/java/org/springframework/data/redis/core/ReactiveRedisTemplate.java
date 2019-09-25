@@ -69,6 +69,14 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	private final RedisSerializationContext<K, V> serializationContext;
 	private final boolean exposeConnection;
 	private final ReactiveScriptExecutor<K> reactiveScriptExecutor;
+	private final ReactiveGeoOperations<K, V> geoOps;
+	private final ReactiveHashOperations<K, ?, ?> hashOps;
+	private final ReactiveHyperLogLogOperations<K, V> hllOps;
+	private final ReactiveListOperations<K, V> listOps;
+	private final ReactiveSetOperations<K, V> setOps;
+	private final ReactiveStreamOperations<K, ?, ?> streamOps;
+	private final ReactiveValueOperations<K, V> valueOps;
+	private final ReactiveZSetOperations<K, V> zsetOps;
 
 	/**
 	 * Creates new {@link ReactiveRedisTemplate} using given {@link ReactiveRedisConnectionFactory} and
@@ -100,6 +108,15 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		this.serializationContext = serializationContext;
 		this.exposeConnection = exposeConnection;
 		this.reactiveScriptExecutor = new DefaultReactiveScriptExecutor<>(connectionFactory, serializationContext);
+
+		this.geoOps = opsForGeo(serializationContext);
+		this.hashOps = opsForHash(serializationContext);
+		this.hllOps = opsForHyperLogLog(serializationContext);
+		this.listOps = opsForList(serializationContext);
+		this.setOps = opsForSet(serializationContext);
+		this.streamOps = opsForStream(serializationContext);
+		this.valueOps = opsForValue(serializationContext);
+		this.zsetOps = opsForZSet(serializationContext);
 	}
 
 	/**
@@ -343,7 +360,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return createFlux(connection -> connection.keyCommands() //
 				.mDel(Flux.from(keys).map(this::rawKey).buffer(128)) //
 				.map(CommandResponse::getOutput)) //
-				.collect(Collectors.summingLong(value -> value));
+						.collect(Collectors.summingLong(value -> value));
 	}
 
 	/*
@@ -378,7 +395,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return createFlux(connection -> connection.keyCommands() //
 				.mUnlink(Flux.from(keys).map(this::rawKey).buffer(128)) //
 				.map(CommandResponse::getOutput)) //
-				.collect(Collectors.summingLong(value -> value));
+						.collect(Collectors.summingLong(value -> value));
 	}
 
 	/*
@@ -530,7 +547,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 */
 	@Override
 	public ReactiveGeoOperations<K, V> opsForGeo() {
-		return opsForGeo(serializationContext);
+		return geoOps;
 	}
 
 	/*
@@ -547,8 +564,9 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHash()
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public <HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash() {
-		return opsForHash(serializationContext);
+		return (ReactiveHashOperations<K, HK, HV>) hashOps;
 	}
 
 	/*
@@ -567,7 +585,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 */
 	@Override
 	public ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog() {
-		return opsForHyperLogLog(serializationContext);
+		return hllOps;
 	}
 
 	/*
@@ -586,7 +604,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 */
 	@Override
 	public ReactiveListOperations<K, V> opsForList() {
-		return opsForList(serializationContext);
+		return listOps;
 	}
 
 	/*
@@ -604,7 +622,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 */
 	@Override
 	public ReactiveSetOperations<K, V> opsForSet() {
-		return opsForSet(serializationContext);
+		return setOps;
 	}
 
 	/*
@@ -621,8 +639,9 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForStream()
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public <HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream() {
-		return opsForStream(serializationContext);
+		return (ReactiveStreamOperations<K, HK, HV>) streamOps;
 	}
 
 	/*
@@ -630,7 +649,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForStream(HashMapper)
 	 */
 	@Override
-	public <HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream(HashMapper<? super K, ? super HK, ? super HV> hashMapper) {
+	public <HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream(
+			HashMapper<? super K, ? super HK, ? super HV> hashMapper) {
 		return opsForStream(serializationContext, hashMapper);
 	}
 
@@ -645,7 +665,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	}
 
 	protected <HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream(
-			RedisSerializationContext<K, ?> serializationContext, @Nullable HashMapper<? super K, ? super HK, ? super HV> hashMapper) {
+			RedisSerializationContext<K, ?> serializationContext,
+			@Nullable HashMapper<? super K, ? super HK, ? super HV> hashMapper) {
 		return new DefaultReactiveStreamOperations<>(this, serializationContext, hashMapper);
 	}
 
@@ -655,7 +676,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 */
 	@Override
 	public ReactiveValueOperations<K, V> opsForValue() {
-		return opsForValue(serializationContext);
+		return valueOps;
 	}
 
 	/*
@@ -673,7 +694,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 */
 	@Override
 	public ReactiveZSetOperations<K, V> opsForZSet() {
-		return opsForZSet(serializationContext);
+		return zsetOps;
 	}
 
 	/*
