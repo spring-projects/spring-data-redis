@@ -21,7 +21,7 @@
 		<beanutils>1.9.2</beanutils>
 		<xstream>1.4.8</xstream>
 		<pool>2.7.0</pool>
-		<lettuce>5.1.8.RELEASE</lettuce>
+		<lettuce>5.2.0.RELEASE</lettuce>
 		<jedis>3.1.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
 		<netty>4.1.42.Final</netty>
