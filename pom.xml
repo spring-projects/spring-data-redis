@@ -24,7 +24,7 @@
 		<lettuce>5.1.8.RELEASE</lettuce>
 		<jedis>3.1.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
-		<netty>4.1.22.Final</netty>
+		<netty>4.1.42.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
 	</properties>
 
