@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -71,7 +70,6 @@ suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.addAndAwait(key: K, l
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.add(key: K, locations: Flow<Collection<GeoLocation<M>>>): Flow<Long> =
 		add(key, locations.asFlux()).asFlow()
 
@@ -138,7 +136,6 @@ suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.positionAndAwait(key:
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.radiusAsFlow(key: K, within: Circle, args: GeoRadiusCommandArgs? = null): Flow<GeoResult<GeoLocation<M>>> =
 		(if (args != null) radius(key, within, args) else radius(key, within)).asFlow()
 
@@ -149,7 +146,6 @@ fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.radiusAsFlow(key: K, within: 
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.radiusAsFlow(key: K, member: M, radius: Double): Flow<GeoResult<GeoLocation<M>>> =
 		radius(key, member, radius).asFlow()
 
@@ -159,7 +155,6 @@ fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.radiusAsFlow(key: K, member: 
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.radiusAsFlow(key: K, member: M, distance: Distance, args: GeoRadiusCommandArgs? = null): Flow<GeoResult<GeoLocation<M>>> =
 		(if (args != null) radius(key, member, distance, args) else radius(key, member, distance)).asFlow()
 

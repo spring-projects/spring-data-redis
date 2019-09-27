@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -85,7 +84,6 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRankAndAwait(
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeAsFlow(key: K, range: Range<Long>): Flow<V> =
 		range(key, range).asFlow()
 
@@ -95,7 +93,6 @@ fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeAsFlow(key: K, range: R
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeWithScoresAsFlow(key: K, range: Range<Long>): Flow<TypedTuple<V>> =
 		rangeWithScores(key, range).asFlow()
 
@@ -105,7 +102,6 @@ fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeWithScoresAsFlow(key: K
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByScoreAsFlow(key: K, range: Range<Double>, limit: Limit? = null): Flow<V> =
 		(if (limit == null) rangeByScore(key, range) else rangeByScore(key, range, limit)).asFlow()
 
@@ -115,7 +111,6 @@ fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByScoreAsFlow(key: K, r
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByScoreWithScoresAsFlow(key: K, range: Range<Double>, limit: Limit? = null): Flow<TypedTuple<V>> =
 		(if (limit == null) rangeByScoreWithScores(key, range) else rangeByScoreWithScores(key, range, limit)).asFlow()
 
@@ -125,7 +120,6 @@ fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByScoreWithScoresAsFlow
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeAsFlow(key: K, range: Range<Long>): Flow<V> =
 		reverseRange(key, range).asFlow()
 
@@ -135,7 +129,6 @@ fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeAsFlow(key: K, r
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeWithScoresAsFlow(key: K, range: Range<Long>): Flow<TypedTuple<V>> =
 		reverseRangeWithScores(key, range).asFlow()
 
@@ -145,7 +138,6 @@ fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeWithScoresAsFlow
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByScoreAsFlow(key: K, range: Range<Double>, limit: Limit? = null): Flow<V> =
 		(if (limit == null) reverseRangeByScore(key, range) else reverseRangeByScore(key, range, limit)).asFlow()
 
@@ -155,7 +147,6 @@ fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByScoreAsFlow(ke
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByScoreWithScoresAsFlow(key: K, range: Range<Double>, limit: Limit? = null): Flow<TypedTuple<V>> =
 		(if (limit == null) reverseRangeByScoreWithScores(key, range) else reverseRangeByScoreWithScores(key, range, limit)).asFlow()
 

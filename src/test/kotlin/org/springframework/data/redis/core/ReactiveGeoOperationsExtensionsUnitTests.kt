@@ -18,7 +18,6 @@ package org.springframework.data.redis.core
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
@@ -106,7 +105,6 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun addGeoLocationFlow() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -274,7 +272,6 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun radiusAsFlowCircle() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -292,7 +289,6 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun radiusAsFlowCircleAndArgs() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -311,7 +307,6 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun radiusAsFlowMemberAndRadius() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -329,7 +324,6 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun radiusAsFlowDistance() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -348,7 +342,6 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun radiusAsFlowDistanceAndArgs() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()

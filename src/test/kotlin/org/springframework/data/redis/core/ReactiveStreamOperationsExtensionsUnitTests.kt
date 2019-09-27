@@ -18,7 +18,6 @@ package org.springframework.data.redis.core
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -103,7 +102,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun `add as Flow`() {
 
 		val map = mapOf("a" to "b")
@@ -261,7 +259,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun range() {
 
 		val record = MapRecord.create("foo", mapOf("a" to "b"))
@@ -279,7 +276,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun rangeWithType() {
 
 		val record = ObjectRecord.create("a", "b")
@@ -297,7 +293,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun `read with StreamOffset vararg`() {
 
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
@@ -316,7 +311,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun `read with options and StreamOffset vararg` () {
 
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
@@ -336,7 +330,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun `read with type and StreamOffset vararg`() {
 
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
@@ -355,7 +348,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun `read with type, options and StreamOffset vararg` () {
 
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
@@ -375,7 +367,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun `read with consumer and StreamOffset vararg`() {
 
 		val consumer = Consumer.from("a", "b")
@@ -395,7 +386,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun `read with consumer, options and StreamOffset vararg`() {
 
 		val consumer = Consumer.from("a", "b")
@@ -416,7 +406,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun `read with type, consumer and StreamOffset vararg`() {
 
 		val consumer = Consumer.from("a", "b")
@@ -436,7 +425,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun `read with type, consumer, options and StreamOffset vararg`() {
 
 		val consumer = Consumer.from("a", "b")
@@ -457,7 +445,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun reverseRange() {
 
 		val record = MapRecord.create("foo", mapOf("a" to "b"))
@@ -475,7 +462,6 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun reverseRangeWithType() {
 
 		val record = ObjectRecord.create("a", "b")
