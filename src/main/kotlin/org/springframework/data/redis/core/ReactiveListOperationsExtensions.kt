@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -28,7 +27,6 @@ import java.time.Duration
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, V : Any> ReactiveListOperations<K, V>.rangeAsFlow(key: K, start: Long, end: Long): Flow<V> =
 		range(key, start, end).asFlow()
 

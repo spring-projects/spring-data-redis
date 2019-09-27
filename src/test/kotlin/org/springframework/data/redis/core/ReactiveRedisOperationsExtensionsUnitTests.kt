@@ -18,7 +18,6 @@ package org.springframework.data.redis.core
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -45,7 +44,6 @@ import java.time.Instant
 class ReactiveRedisOperationsExtensionsUnitTests {
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun `execute with calllback`() {
 
 		val operations = mockk<ReactiveRedisOperations<String, String>>()
@@ -61,7 +59,6 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun `execute with script`() {
 
 		val script = RedisScript.of<String>("foo")
@@ -78,7 +75,6 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun `execute with script, argsWriter and resultReader`() {
 
 		val script = RedisScript.of<String>("foo")
@@ -112,7 +108,6 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun listenToChannel() {
 
 		val message = ReactiveSubscription.ChannelMessage("a", "b")
@@ -129,7 +124,6 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun listenToPattern() {
 
 		val message = ReactiveSubscription.ChannelMessage("a", "b")
@@ -146,7 +140,6 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun listenTo() {
 
 		val topic1 = ChannelTopic.of("foo")
@@ -195,7 +188,6 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun keys() {
 
 		val operations = mockk<ReactiveRedisOperations<String, String>>()
@@ -211,7 +203,6 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun scan() {
 
 		val operations = mockk<ReactiveRedisOperations<String, String>>()

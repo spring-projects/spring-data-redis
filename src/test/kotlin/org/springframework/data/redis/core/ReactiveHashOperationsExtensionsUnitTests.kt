@@ -18,7 +18,6 @@ package org.springframework.data.redis.core
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -111,7 +110,6 @@ class ReactiveHashOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun keys() {
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
 		every { operations.keys(any()) } returns Flux.just("bar", "baz")
@@ -201,7 +199,6 @@ class ReactiveHashOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun values() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -217,7 +214,6 @@ class ReactiveHashOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun entries() {
 
 		val entry = java.util.AbstractMap.SimpleEntry("bar", "baz")
@@ -234,7 +230,6 @@ class ReactiveHashOperationsExtensionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1033
-	@ExperimentalCoroutinesApi
 	fun scan() {
 
 		val entry = java.util.AbstractMap.SimpleEntry("bar", "baz")

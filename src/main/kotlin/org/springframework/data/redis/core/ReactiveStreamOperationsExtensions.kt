@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.asPublisher
@@ -57,7 +56,6 @@ suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.ac
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.add(key: K, bodyFlow: Flow<Map<HK, HV>>): Flow<RecordId> =
 		add(key, bodyFlow.asPublisher()).asFlow()
 
@@ -158,7 +156,6 @@ suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.si
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.rangeAsFlow(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<MapRecord<K, HK, HV>>
 		= range(key, range, limit).asFlow()
 
@@ -168,7 +165,6 @@ fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.rangeAsFlo
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.rangeWithTypeAsFlow(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<ObjectRecord<K, V>>
 		= range(V::class.java, key, range, limit).asFlow()
 
@@ -178,7 +174,6 @@ inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.rangeWit
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.readAsFlow(vararg stream: StreamOffset<K>): Flow<MapRecord<K, HK, HV>> =
 		read(*stream).asFlow()
 
@@ -188,7 +183,6 @@ fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.readAsFlow
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.readAsFlow(readOptions: StreamReadOptions, vararg stream: StreamOffset<K>): Flow<MapRecord<K, HK, HV>> =
 		read(readOptions, *stream).asFlow()
 
@@ -198,7 +192,6 @@ fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.readAsFlow
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.readWithTypeAsFlow(vararg stream: StreamOffset<K>): Flow<ObjectRecord<K, V>> =
 		read(V::class.java, *stream).asFlow()
 
@@ -209,7 +202,6 @@ inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.readWith
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.readWithTypeAsFlow(readOptions: StreamReadOptions, vararg stream: StreamOffset<K>): Flow<ObjectRecord<K, V>> =
 		read(V::class.java, readOptions, *stream).asFlow()
 
@@ -219,7 +211,6 @@ inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.readWith
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.readAsFlow(consumer: Consumer, vararg stream: StreamOffset<K>): Flow<MapRecord<K, HK, HV>> =
 		read(consumer, *stream).asFlow()
 
@@ -229,7 +220,6 @@ fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.readAsFlow
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.readAsFlow(consumer: Consumer, readOptions: StreamReadOptions, vararg stream: StreamOffset<K>): Flow<MapRecord<K, HK, HV>> =
 		read(consumer, readOptions, *stream).asFlow()
 
@@ -239,7 +229,6 @@ fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.readAsFlow
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.readWithTypeAsFlow(consumer: Consumer, vararg stream: StreamOffset<K>): Flow<ObjectRecord<K, V>> =
 		read(V::class.java, consumer, *stream).asFlow()
 
@@ -249,7 +238,6 @@ inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.readWith
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.readWithTypeAsFlow(consumer: Consumer, readOptions: StreamReadOptions, vararg stream: StreamOffset<K>): Flow<ObjectRecord<K, V>> =
 		read(V::class.java, consumer, readOptions, *stream).asFlow()
 
@@ -259,7 +247,6 @@ inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.readWith
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.reverseRangeAsFlow(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<MapRecord<K, HK, HV>>
 		= reverseRange(key, range, limit).asFlow()
 
@@ -269,7 +256,6 @@ fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.reverseRan
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.reverseRangeWithTypeAsFlow(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<ObjectRecord<K, V>> =
 		reverseRange(V::class.java, key, range, limit).asFlow()
 

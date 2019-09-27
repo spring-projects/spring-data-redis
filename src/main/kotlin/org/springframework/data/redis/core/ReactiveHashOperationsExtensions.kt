@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -64,7 +63,7 @@ suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.incr
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
+
 fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.keysAsFlow(key: H): Flow<HK> =
 		keys(key).asFlow()
 
@@ -119,7 +118,6 @@ suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.putI
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.valuesAsFlow(key: H): Flow<HV> =
 		values(key).asFlow()
 
@@ -129,7 +127,6 @@ fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.valuesAsFlow
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.entriesAsFlow(key: H): Flow<Map.Entry<HK, HV>> =
 		entries(key).asFlow()
 
@@ -139,7 +136,6 @@ fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.entriesAsFlo
  * @author Sebastien Deleuze
  * @since 2.2
  */
-@ExperimentalCoroutinesApi
 fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.scanAsFlow(key: H, options: ScanOptions = ScanOptions.NONE): Flow<Map.Entry<HK, HV>> =
 		scan(key, options).asFlow()
 

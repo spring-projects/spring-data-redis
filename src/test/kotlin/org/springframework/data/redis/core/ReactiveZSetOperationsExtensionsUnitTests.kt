@@ -18,7 +18,6 @@ package org.springframework.data.redis.core
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -159,7 +158,6 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 	}
 
 	@Test
-	@ExperimentalCoroutinesApi
 	fun range() {
 
 		val range = Range.unbounded<Long>()
@@ -176,7 +174,6 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 	}
 
 	@Test
-	@ExperimentalCoroutinesApi
 	fun rangeWithScores() {
 
 		val tuple = mockk<TypedTuple<String>>(relaxed = true)
@@ -194,7 +191,6 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 	}
 
 	@Test
-	@ExperimentalCoroutinesApi
 	fun rangeByScore() {
 
 		val range = Range.unbounded<Double>()
@@ -211,7 +207,6 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 	}
 
 	@Test
-	@ExperimentalCoroutinesApi
 	fun rangeByScoreWithScores() {
 
 		val tuple = mockk<TypedTuple<String>>(relaxed = true)
@@ -229,7 +224,6 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 	}
 
 	@Test
-	@ExperimentalCoroutinesApi
 	fun reverseRange() {
 
 		val range = Range.unbounded<Long>()
@@ -246,7 +240,6 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 	}
 
 	@Test
-	@ExperimentalCoroutinesApi
 	fun reverseRangeWithScores() {
 
 		val tuple = mockk<TypedTuple<String>>(relaxed = true)
@@ -264,7 +257,6 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 	}
 
 	@Test
-	@ExperimentalCoroutinesApi
 	fun reverseRangeByScore() {
 
 		val range = Range.unbounded<Double>()
@@ -281,7 +273,6 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 	}
 
 	@Test
-	@ExperimentalCoroutinesApi
 	fun reverseRangeByScoreWithScores() {
 
 		val tuple = mockk<TypedTuple<String>>(relaxed = true)
