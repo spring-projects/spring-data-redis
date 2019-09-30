@@ -1,6 +1,19 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.0.RELEASE (2019-09-30)
+---------------------------------------------
+* DATAREDIS-1037 - Remove @ExperimentalCoroutinesApi annotations.
+* DATAREDIS-1036 - Upgrade to Netty 4.1.42.Final.
+* DATAREDIS-1035 - Improve documentation.
+* DATAREDIS-1034 - RedisTemplate.opsFor* methods not thread-safe.
+* DATAREDIS-1033 - Add Kotlin Flow based extensions.
+* DATAREDIS-1023 - Release 2.2 GA (Moore).
+* DATAREDIS-998 - Upgrade to Lettuce 5.2.0.
+* DATAREDIS-974 - Add SSL support for Redis Cluster using jedis.
+* DATAREDIS-575 - Support client name for JedisCluster.
+
+
 Changes in version 2.1.11.RELEASE (2019-09-30)
 ----------------------------------------------
 * DATAREDIS-1035 - Improve documentation.
