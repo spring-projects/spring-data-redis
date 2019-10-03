@@ -27,6 +27,7 @@ import org.springframework.lang.Nullable;
  * Unit tests for {@link RedisCacheConfiguration}.
  *
  * @author Mark Paluch
+ * @author Dmitriy Poboyko
  */
 public class RedisCacheConfigurationUnitTests {
 
@@ -53,6 +54,15 @@ public class RedisCacheConfigurationUnitTests {
 		config.configureKeyConverters(registry -> registry.addConverter(new DomainTypeConverter()));
 
 		assertThat(config.getConversionService().canConvert(DomainType.class, String.class)).isTrue();
+	}
+
+	@Test // DATAREDIS-1041
+	public void shouldAppendCacheNameAfterKeyPrefix() {
+
+		RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+				.prefixKeysWith("prefix");
+
+		assertThat(config.getKeyPrefixFor("cacheName")).isEqualTo("prefix::cacheName::");
 	}
 
 	private static class DomainType {
