@@ -27,6 +27,7 @@ import org.springframework.lang.Nullable;
  * Unit tests for {@link RedisCacheConfiguration}.
  *
  * @author Mark Paluch
+ * @author Dmitriy Poboyko
  */
 public class RedisCacheConfigurationUnitTests {
 
