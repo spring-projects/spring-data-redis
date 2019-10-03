@@ -55,6 +55,15 @@ public class RedisCacheConfigurationUnitTests {
 		assertThat(config.getConversionService().canConvert(DomainType.class, String.class)).isTrue();
 	}
 
+	@Test // DATAREDIS-1041
+	public void shouldAppendCacheNameAfterKeyPrefix() {
+
+		RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+				.prefixKeysWith("prefix");
+
+		assertThat(config.getKeyPrefixFor("cacheName")).isEqualTo("prefix::cacheName::");
+	}
+
 	private static class DomainType {
 
 	}
