@@ -173,7 +173,7 @@ public class IndexWriterUnitTests {
 	@Test // DATAREDIS-512
 	public void updateIndexShouldRemoveExistingValues() {
 
-		when(connectionMock.keys(any(byte[].class)))
+		when(connectionMock.sMembers(any(byte[].class)))
 				.thenReturn(new LinkedHashSet<>(Arrays.asList("persons:firstname:rand".getBytes(CHARSET))));
 
 		writer.updateIndexes(KEY_BIN,

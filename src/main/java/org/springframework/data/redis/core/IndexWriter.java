@@ -111,7 +111,12 @@ class IndexWriter {
 				}
 			}
 		} else if (ObjectUtils.nullSafeEquals(IndexWriteMode.PARTIAL_UPDATE, writeMode)) {
-			removeKeyFromExistingIndexes(binKey, indexValues);
+			if (indexValues.iterator().hasNext()) {
+				IndexedData data = indexValues.iterator().next();
+				if (data != null) {
+					removeKeyFromIndexes(data.getKeyspace(), binKey);
+				}
+			}
 		}
 
 		addKeyToIndexes(binKey, indexValues);
