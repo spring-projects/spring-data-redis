@@ -172,11 +172,10 @@ class IndexWriter {
 		Assert.notNull(indexedData, "IndexedData must not be null!");
 
 		Set<byte[]> existingKeys = connection
-				.keys(toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":*"));
+				.sMembers(toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":idx"));
 
 		if (!CollectionUtils.isEmpty(existingKeys)) {
 			for (byte[] existingKey : existingKeys) {
-
 				if (indexedData instanceof GeoIndexedPropertyValue) {
 					connection.geoRemove(existingKey, key);
 				} else {

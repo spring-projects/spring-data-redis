@@ -89,7 +89,7 @@ public class IndexWriterUnitTests {
 
 		writer.removeKeyFromExistingIndexes(KEY_BIN, new StubIndxedData());
 
-		verify(connectionMock).keys(eq(("persons:address.city:*").getBytes(CHARSET)));
+		verify(connectionMock).sMembers(eq(("persons:address.city:idx").getBytes(CHARSET)));
 		verifyNoMoreInteractions(connectionMock);
 	}
 
@@ -99,7 +99,7 @@ public class IndexWriterUnitTests {
 		byte[] indexKey1 = "persons:firstname:rand".getBytes(CHARSET);
 		byte[] indexKey2 = "persons:firstname:mat".getBytes(CHARSET);
 
-		when(connectionMock.keys(any(byte[].class)))
+		when(connectionMock.sMembers(any(byte[].class)))
 				.thenReturn(new LinkedHashSet<>(Arrays.asList(indexKey1, indexKey2)));
 
 		writer.removeKeyFromExistingIndexes(KEY_BIN, new StubIndxedData());
@@ -173,7 +173,7 @@ public class IndexWriterUnitTests {
 	@Test // DATAREDIS-512
 	public void updateIndexShouldRemoveExistingValues() {
 
-		when(connectionMock.keys(any(byte[].class)))
+		when(connectionMock.sMembers(any(byte[].class)))
 				.thenReturn(new LinkedHashSet<>(Arrays.asList("persons:firstname:rand".getBytes(CHARSET))));
 
 		writer.updateIndexes(KEY_BIN,
@@ -190,7 +190,7 @@ public class IndexWriterUnitTests {
 
 		byte[] indexKey1 = "persons:location".getBytes(CHARSET);
 
-		when(connectionMock.keys(any(byte[].class))).thenReturn(new LinkedHashSet<>(Arrays.asList(indexKey1)));
+		when(connectionMock.sMembers(any(byte[].class))).thenReturn(new LinkedHashSet<>(Arrays.asList(indexKey1)));
 
 		writer.removeKeyFromExistingIndexes(KEY_BIN, new GeoIndexedPropertyValue(KEYSPACE, "address.city", null));
 
