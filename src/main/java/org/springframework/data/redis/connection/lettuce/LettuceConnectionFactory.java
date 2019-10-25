@@ -1217,7 +1217,7 @@ public class LettuceConnectionFactory
 
 				if (!valid) {
 
-					log.warn("Validation of shared connection failed. Creating a new connection.");
+					log.info("Validation of shared connection failed. Creating a new connection.");
 					resetConnection();
 					this.connection = getNativeConnection();
 				}
