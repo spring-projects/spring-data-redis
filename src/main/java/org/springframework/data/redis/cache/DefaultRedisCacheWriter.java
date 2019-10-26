@@ -16,8 +16,6 @@
 package org.springframework.data.redis.cache;
 
 import java.time.Duration;
-import java.util.Collections;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -30,17 +28,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * {@link RedisCacheWriter} implementation capable of reading/writing binary data from/to Redis in {@literal standalone}
- * and {@literal cluster} environments. Works upon a given {@link RedisConnectionFactory} to obtain the actual
- * {@link RedisConnection}. <br />
- * {@link DefaultRedisCacheWriter} can be used in
- * {@link RedisCacheWriter#lockingRedisCacheWriter(RedisConnectionFactory) locking} or
- * {@link RedisCacheWriter#nonLockingRedisCacheWriter(RedisConnectionFactory) non-locking} mode. While
- * {@literal non-locking} aims for maximum performance it may result in overlapping, non atomic, command execution for
- * operations spanning multiple Redis interactions like {@code putIfAbsent}. The {@literal locking} counterpart prevents
- * command overlap by setting an explicit lock key and checking against presence of this key which leads to additional
- * requests and potential command wait times.
- *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Joongsoo Park
@@ -49,27 +36,15 @@ import org.springframework.util.Assert;
 class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	private final RedisConnectionFactory connectionFactory;
-	private final Duration sleepTime;
 
 	/**
 	 * @param connectionFactory must not be {@literal null}.
 	 */
 	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory) {
-		this(connectionFactory, Duration.ZERO);
-	}
-
-	/**
-	 * @param connectionFactory must not be {@literal null}.
-	 * @param sleepTime sleep time between lock request attempts. Must not be {@literal null}. Use {@link Duration#ZERO}
-	 *          to disable locking.
-	 */
-	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
-		Assert.notNull(sleepTime, "SleepTime must not be null!");
 
 		this.connectionFactory = connectionFactory;
-		this.sleepTime = sleepTime;
 	}
 
 	/*
@@ -163,32 +138,16 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(pattern, "Pattern must not be null!");
 
 		execute(connection -> {
-			if (isLockingCacheWriter()) {
-				connection.eval((
-						"local k = unpack(redis.call('keys', ARGV[1])); " +
-						"if (k ~= nil) then " +
+			connection.eval((
+					"local k = unpack(redis.call('keys', ARGV[1])); " +
+							"if (k ~= nil) then " +
 							"return redis.call('del', k); " +
-						"end; " +
-						"return 0;"
-				).getBytes(), ReturnType.INTEGER, 0, pattern);
-			} else {
-				byte[][] keys = Optional.ofNullable(connection.keys(pattern)).orElse(Collections.emptySet())
-						.toArray(new byte[0][]);
-
-				if (keys.length > 0) {
-					connection.del(keys);
-				}
-			}
+							"end; " +
+							"return 0;"
+			).getBytes(), ReturnType.INTEGER, 0, pattern);
 
 			return "OK";
 		});
-	}
-
-	/**
-	 * @return {@literal true} if {@link RedisCacheWriter} uses locks.
-	 */
-	private boolean isLockingCacheWriter() {
-		return !sleepTime.isZero() && !sleepTime.isNegative();
 	}
 
 	private <T> T execute(Function<RedisConnection, T> callback) {

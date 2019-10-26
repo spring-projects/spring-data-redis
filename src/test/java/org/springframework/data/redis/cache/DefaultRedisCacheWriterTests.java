@@ -87,7 +87,7 @@ public class DefaultRedisCacheWriterTests {
 	@Test // DATAREDIS-481
 	public void putShouldAddEternalEntry() {
 
-		nonLockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+		newDefaultRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
 
 		doWithConnection(connection -> {
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
@@ -98,7 +98,7 @@ public class DefaultRedisCacheWriterTests {
 	@Test // DATAREDIS-481
 	public void putShouldAddExpiringEntry() {
 
-		nonLockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue,
+		newDefaultRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue,
 				Duration.ofSeconds(1));
 
 		doWithConnection(connection -> {
@@ -112,7 +112,7 @@ public class DefaultRedisCacheWriterTests {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, "foo".getBytes()));
 
-		nonLockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+		newDefaultRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
 
 		doWithConnection(connection -> {
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
@@ -126,7 +126,7 @@ public class DefaultRedisCacheWriterTests {
 		doWithConnection(connection -> connection.set(binaryCacheKey, "foo".getBytes(),
 				Expiration.from(1, TimeUnit.MINUTES), SetOption.upsert()));
 
-		nonLockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue,
+		newDefaultRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue,
 				Duration.ofSeconds(5));
 
 		doWithConnection(connection -> {
@@ -140,19 +140,19 @@ public class DefaultRedisCacheWriterTests {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
 
-		assertThat(nonLockingRedisCacheWriter(connectionFactory).get(CACHE_NAME, binaryCacheKey))
+		assertThat(newDefaultRedisCacheWriter(connectionFactory).get(CACHE_NAME, binaryCacheKey))
 				.isEqualTo(binaryCacheValue);
 	}
 
 	@Test // DATAREDIS-481
 	public void getShouldReturnNullWhenKeyDoesNotExist() {
-		assertThat(nonLockingRedisCacheWriter(connectionFactory).get(CACHE_NAME, binaryCacheKey)).isNull();
+		assertThat(newDefaultRedisCacheWriter(connectionFactory).get(CACHE_NAME, binaryCacheKey)).isNull();
 	}
 
 	@Test // DATAREDIS-481
 	public void putIfAbsentShouldAddEternalEntryWhenKeyDoesNotExist() {
 
-		assertThat(nonLockingRedisCacheWriter(connectionFactory).putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue,
+		assertThat(newDefaultRedisCacheWriter(connectionFactory).putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue,
 				Duration.ZERO)).isNull();
 
 		doWithConnection(connection -> {
@@ -165,7 +165,7 @@ public class DefaultRedisCacheWriterTests {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
 
-		assertThat(nonLockingRedisCacheWriter(connectionFactory).putIfAbsent(CACHE_NAME, binaryCacheKey, "foo".getBytes(),
+		assertThat(newDefaultRedisCacheWriter(connectionFactory).putIfAbsent(CACHE_NAME, binaryCacheKey, "foo".getBytes(),
 				Duration.ZERO)).isEqualTo(binaryCacheValue);
 
 		doWithConnection(connection -> {
@@ -176,7 +176,7 @@ public class DefaultRedisCacheWriterTests {
 	@Test // DATAREDIS-481
 	public void putIfAbsentShouldAddExpiringEntryWhenKeyDoesNotExist() {
 
-		assertThat(nonLockingRedisCacheWriter(connectionFactory).putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue,
+		assertThat(newDefaultRedisCacheWriter(connectionFactory).putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue,
 				Duration.ofSeconds(5))).isNull();
 
 		doWithConnection(connection -> {
@@ -189,7 +189,7 @@ public class DefaultRedisCacheWriterTests {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
 
-		nonLockingRedisCacheWriter(connectionFactory).remove(CACHE_NAME, binaryCacheKey);
+		newDefaultRedisCacheWriter(connectionFactory).remove(CACHE_NAME, binaryCacheKey);
 
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isFalse());
 	}
@@ -202,7 +202,7 @@ public class DefaultRedisCacheWriterTests {
 			connection.set("foo".getBytes(), "bar".getBytes());
 		});
 
-		nonLockingRedisCacheWriter(connectionFactory).clean(CACHE_NAME,
+		newDefaultRedisCacheWriter(connectionFactory).clean(CACHE_NAME,
 				(CACHE_NAME + "::*").getBytes(Charset.forName("UTF-8")));
 
 		doWithConnection(connection -> {
