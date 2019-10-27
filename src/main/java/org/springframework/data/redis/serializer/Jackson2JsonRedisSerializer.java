@@ -18,13 +18,13 @@ package org.springframework.data.redis.serializer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.SerializerFactory;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 
 /**
  * {@link RedisSerializer} that can read and write JSON using
@@ -41,9 +41,9 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 
 	public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
-	private final JavaType javaType;
-
 	private ObjectMapper objectMapper = new ObjectMapper();
+
+	private final DeSerializer deSerializer;
 
 	/**
 	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link Class}.
@@ -51,7 +51,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 * @param type
 	 */
 	public Jackson2JsonRedisSerializer(Class<T> type) {
-		this.javaType = getJavaType(type);
+		this.deSerializer = (bytes) -> this.objectMapper.readValue(bytes, type);
 	}
 
 	/**
@@ -60,7 +60,16 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 * @param javaType
 	 */
 	public Jackson2JsonRedisSerializer(JavaType javaType) {
-		this.javaType = javaType;
+		this.deSerializer = (bytes) -> this.objectMapper.readValue(bytes, javaType);
+	}
+
+	/**
+	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link TypeReference}.
+	 *
+	 * @param typeReference
+	 */
+	public Jackson2JsonRedisSerializer(TypeReference<T> typeReference) {
+		this.deSerializer = (bytes) -> this.objectMapper.readValue(bytes, typeReference);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -70,7 +79,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 			return null;
 		}
 		try {
-			return (T) this.objectMapper.readValue(bytes, 0, bytes.length, javaType);
+			return (T) this.deSerializer.deserialize(bytes);
 		} catch (Exception ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
@@ -104,26 +113,15 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 		this.objectMapper = objectMapper;
 	}
 
-	/**
-	 * Returns the Jackson {@link JavaType} for the specific class.
-	 * <p>
-	 * Default implementation returns {@link TypeFactory#constructType(java.lang.reflect.Type)}, but this can be
-	 * overridden in subclasses, to allow for custom generic collection handling. For instance:
-	 *
-	 * <pre class="code">
-	 * protected JavaType getJavaType(Class&lt;?&gt; clazz) {
-	 * 	if (List.class.isAssignableFrom(clazz)) {
-	 * 		return TypeFactory.defaultInstance().constructCollectionType(ArrayList.class, MyBean.class);
-	 * 	} else {
-	 * 		return super.getJavaType(clazz);
-	 * 	}
-	 * }
-	 * </pre>
-	 *
-	 * @param clazz the class to return the java type for
-	 * @return the java type
-	 */
-	protected JavaType getJavaType(Class<?> clazz) {
-		return TypeFactory.defaultInstance().constructType(clazz);
+	private interface DeSerializer<T> {
+		/**
+		 * Deserialize an object from the given binary data.
+		 *
+		 * @param bytes object binary representation. Can be {@literal null}.
+		 * @return the equivalent object instance. Can be {@literal null}.
+		 */
+		@Nullable
+		T deserialize(@Nullable byte[] bytes) throws Exception;
 	}
+
 }
