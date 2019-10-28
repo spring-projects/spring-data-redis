@@ -240,7 +240,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return container
 				.receive(Arrays.asList(topics), getSerializationContext().getStringSerializationPair(),
 						getSerializationContext().getValueSerializationPair()) //
-				.doFinally((signalType) -> container.destroyLater().subscribeOn(Schedulers.elastic()));
+				.doFinally((signalType) -> container.destroyLater().subscribe());
 	}
 
 	// -------------------------------------------------------------------------
