@@ -15,15 +15,21 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.Test;
 
+import org.springframework.data.redis.connection.ReactivePubSubCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 /**
@@ -51,5 +57,32 @@ public class ReactiveRedisTemplateUnitTests {
 
 		verify(connectionMock).closeLater();
 		verifyNoMoreInteractions(connectionMock);
+	}
+
+	@Test // DATAREDIS-999
+	public void listenToShouldSubscribeToChannel() {
+
+		AtomicBoolean closed = new AtomicBoolean();
+		when(connectionFactoryMock.getReactiveConnection()).thenReturn(connectionMock);
+		when(connectionMock.closeLater()).thenReturn(Mono.<Void> empty().doOnSubscribe(ignore -> closed.set(true)));
+
+		ReactivePubSubCommands pubSubCommands = mock(ReactivePubSubCommands.class);
+		ReactiveSubscription subscription = mock(ReactiveSubscription.class);
+
+		when(connectionMock.pubSubCommands()).thenReturn(pubSubCommands);
+		when(pubSubCommands.subscribe(any())).thenReturn(Mono.empty());
+		when(pubSubCommands.createSubscription()).thenReturn(Mono.just(subscription));
+		when(subscription.receive()).thenReturn(Flux.create(sink -> {}));
+
+		ReactiveRedisTemplate<String, String> template = new ReactiveRedisTemplate<>(connectionFactoryMock,
+				RedisSerializationContext.string());
+
+		template.listenToChannel("channel") //
+				.as(StepVerifier::create) //
+				.thenAwait() //
+				.thenCancel() //
+				.verify();
+
+		assertThat(closed).isTrue();
 	}
 }

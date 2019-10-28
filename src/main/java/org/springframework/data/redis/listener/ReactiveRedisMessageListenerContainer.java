@@ -18,7 +18,6 @@ package org.springframework.data.redis.listener;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
-import reactor.core.scheduler.Schedulers;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -97,6 +96,12 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 * @return the {@link Mono} signalling container termination.
 	 */
 	public Mono<Void> destroyLater() {
+		return Mono.defer(this::doDestroy);
+	}
+
+	private Mono<Void> doDestroy() {
+
+		ReactiveRedisConnection connection = this.connection;
 
 		if (connection != null) {
 
@@ -116,12 +121,8 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 				}
 			}
 
-			if (terminationSignals != null) {
-				return terminationSignals.collectList()
-						.doFinally(signalType -> connection.closeLater().subscribeOn(Schedulers.immediate()))
-						.flatMap(all -> Mono.empty());
-			}
 			this.connection = null;
+			return terminationSignals != null ? terminationSignals.then(connection.closeLater()) : connection.closeLater();
 		}
 
 		return Mono.empty();
@@ -344,7 +345,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 		/**
 		 * Unregister a subscriber and decrement subscriber count.
-		 * 
+		 *
 		 * @return {@literal true} if this was the last unregistered subscriber.
 		 */
 		boolean unregister() {
