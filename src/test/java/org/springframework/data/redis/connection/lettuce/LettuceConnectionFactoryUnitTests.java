@@ -179,7 +179,7 @@ public class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	@Test // DATAREDIS-524
+	@Test // DATAREDIS-524, DATAREDIS-1045
 	public void passwordShouldBeSetCorrectlyOnSentinelClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
@@ -195,6 +195,11 @@ public class LettuceConnectionFactoryUnitTests {
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
 		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
+
+		for (RedisURI sentinel : redisUri.getSentinels()) {
+			assertThat(sentinel.getPassword())
+					.isEqualTo(connectionFactory.getPassword().toCharArray());
+		}
 	}
 
 	@Test // DATAREDIS-462
