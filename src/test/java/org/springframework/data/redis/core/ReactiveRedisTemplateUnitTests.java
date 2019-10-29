@@ -25,7 +25,6 @@ import reactor.test.StepVerifier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
-
 import org.springframework.data.redis.connection.ReactivePubSubCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
@@ -59,7 +58,7 @@ public class ReactiveRedisTemplateUnitTests {
 		verifyNoMoreInteractions(connectionMock);
 	}
 
-	@Test // DATAREDIS-999
+	@Test // DATAREDIS-1053
 	public void listenToShouldSubscribeToChannel() {
 
 		AtomicBoolean closed = new AtomicBoolean();
