@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -1077,16 +1078,26 @@ public class LettuceConnectionFactory
 		RedisURI redisUri = LettuceConverters.sentinelConfigurationToRedisURI(
 				(org.springframework.data.redis.connection.RedisSentinelConfiguration) configuration);
 
-		getRedisPassword().toOptional().ifPresent(redisUri::setPassword);
-		clientConfiguration.getClientName().ifPresent(redisUri::setClientName);
+		applyToAll(redisUri, it -> {
 
-		redisUri.setSsl(clientConfiguration.isUseSsl());
-		redisUri.setVerifyPeer(clientConfiguration.isVerifyPeer());
-		redisUri.setStartTls(clientConfiguration.isStartTls());
-		redisUri.setTimeout(clientConfiguration.getCommandTimeout());
+			getRedisPassword().toOptional().ifPresent(redisUri::setPassword);
+			clientConfiguration.getClientName().ifPresent(it::setClientName);
+
+			it.setSsl(clientConfiguration.isUseSsl());
+			it.setVerifyPeer(clientConfiguration.isVerifyPeer());
+			it.setStartTls(clientConfiguration.isStartTls());
+			it.setTimeout(clientConfiguration.getCommandTimeout());
+		});
+
 		redisUri.setDatabase(getDatabase());
 
 		return redisUri;
+	}
+
+	private static void applyToAll(RedisURI source, Consumer<RedisURI> action) {
+
+		action.accept(source);
+		source.getSentinels().forEach(action);
 	}
 
 	private RedisURI createRedisURIAndApplySettings(String host, int port) {
