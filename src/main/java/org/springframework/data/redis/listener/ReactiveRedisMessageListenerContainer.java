@@ -101,31 +101,30 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 	private Mono<Void> doDestroy() {
 
-		ReactiveRedisConnection connection = this.connection;
-
-		if (connection != null) {
-
-			Flux<Void> terminationSignals = null;
-			while (!subscriptions.isEmpty()) {
-
-				Map<ReactiveSubscription, Subscribers> local = new HashMap<>(subscriptions);
-				List<Mono<Void>> monos = local.keySet().stream() //
-						.peek(subscriptions::remove) //
-						.map(ReactiveSubscription::cancel) //
-						.collect(Collectors.toList());
-
-				if (terminationSignals == null) {
-					terminationSignals = Flux.concat(monos);
-				} else {
-					terminationSignals = terminationSignals.mergeWith(Flux.concat(monos));
-				}
-			}
-
-			this.connection = null;
-			return terminationSignals != null ? terminationSignals.then(connection.closeLater()) : connection.closeLater();
+		if (this.connection == null) {
+			return Mono.empty();
 		}
 
-		return Mono.empty();
+		ReactiveRedisConnection connection = this.connection;
+
+		Flux<Void> terminationSignals = null;
+		while (!subscriptions.isEmpty()) {
+
+			Map<ReactiveSubscription, Subscribers> local = new HashMap<>(subscriptions);
+			List<Mono<Void>> monos = local.keySet().stream() //
+					.peek(subscriptions::remove) //
+					.map(ReactiveSubscription::cancel) //
+					.collect(Collectors.toList());
+
+			if (terminationSignals == null) {
+				terminationSignals = Flux.concat(monos);
+			} else {
+				terminationSignals = terminationSignals.mergeWith(Flux.concat(monos));
+			}
+		}
+
+		this.connection = null;
+		return terminationSignals != null ? terminationSignals.then(connection.closeLater()) : connection.closeLater();
 	}
 
 	/**
