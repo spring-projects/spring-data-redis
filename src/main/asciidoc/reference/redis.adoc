@@ -178,6 +178,11 @@ public RedisConnectionFactory lettuceConnectionFactory() {
 
 Sometimes, direct interaction with one of the Sentinels is required. Using `RedisConnectionFactory.getSentinelConnection()` or `RedisConnection.getSentinelCommands()` gives you access to the first active Sentinel configured.
 
+[NOTE]
+====
+Configuration options like password, timeouts, SSL... also get applied to Redis Sentinel when using https://lettuce.io/[Lettuce].
+====
+
 [[redis:template]]
 == Working with Objects through RedisTemplate
 
