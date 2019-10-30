@@ -168,7 +168,7 @@ public @interface EnableRedisRepositories {
 
 	/**
 	 * Configure the {@literal notify-keyspace-events} property if not already set. <br />
-	 * Use an empty {@link String} to keep <b>not</b> alter existing server configuration.
+	 * Use an empty {@link String} to keep (<b>not</b> alter) existing server configuration.
 	 *
 	 * @return {@literal Ex} by default.
 	 * @since 1.8
