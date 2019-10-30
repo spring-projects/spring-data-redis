@@ -144,7 +144,7 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 				.addPropertyValue("enableKeyspaceEvents",
 						configuration.getRequiredAttribute("enableKeyspaceEvents", EnableKeyspaceEvents.class)) //
 				.addPropertyValue("keyspaceNotificationsConfigParameter",
-						configuration.getRequiredAttribute("keyspaceNotificationsConfigParameter", String.class)) //
+						configuration.getAttribute("keyspaceNotificationsConfigParameter", String.class).orElse("")) //
 				.getBeanDefinition();
 	}
 
