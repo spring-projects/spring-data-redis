@@ -1,6 +1,16 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.1.RELEASE (2019-11-04)
+---------------------------------------------
+* DATAREDIS-1055 - Upgrade to Lettuce 5.2.1.
+* DATAREDIS-1053 - ListenToChannel doesn't close connection / channels on doFinally.
+* DATAREDIS-1049 - Exception raised when use empty string with keyspaceNotificationsConfigParameter with @EnableRedisRepositories annotation.
+* DATAREDIS-1048 - typo: xml tag incomplete.
+* DATAREDIS-1045 - Redis Sentinel Authentication not supported.
+* DATAREDIS-1039 - Release 2.2.1 (Moore SR1).
+
+
 Changes in version 2.1.12.RELEASE (2019-11-04)
 ----------------------------------------------
 * DATAREDIS-1053 - ListenToChannel doesn't close connection / channels on doFinally.
