@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.12.RELEASE (2019-11-04)
+----------------------------------------------
+* DATAREDIS-1053 - ListenToChannel doesn't close connection / channels on doFinally.
+* DATAREDIS-1048 - typo: xml tag incomplete.
+* DATAREDIS-1038 - Release 2.1.12 (Lovelace SR12).
+
+
 Changes in version 2.2.0.RELEASE (2019-09-30)
 ---------------------------------------------
 * DATAREDIS-1037 - Remove @ExperimentalCoroutinesApi annotations.
