@@ -12,27 +12,87 @@ pipeline {
 	}
 
 	stages {
-		stage('Publish OpenJDK 8 + Redis 5.0 docker image') {
-			when {
-				anyOf {
-					changeset "ci/Dockerfile"
-					changeset "Makefile"
-				}
-			}
-			agent { label 'data' }
-			options { timeout(time: 20, unit: 'MINUTES') }
+		stage("Docker images") {
+			parallel {
+				stage('Publish OpenJDK 8 + Redis 5.0 docker image') {
+					when {
+						anyOf {
+							changeset "ci/openjdk8-redis-5.0/**"
+							changeset "Makefile"
+						}
+					}
+					agent { label 'data' }
+					options { timeout(time: 20, unit: 'MINUTES') }
 
-			steps {
-				script {
-					def image = docker.build("springci/spring-data-openjdk8-with-redis-5.0", "-f ci/Dockerfile .")
-					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						image.push()
+					steps {
+						script {
+							def image = docker.build("springci/spring-data-openjdk8-with-redis-5.0", "-f ci/openjdk8-redis-5.0/Dockerfile .")
+							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+								image.push()
+							}
+						}
+					}
+				}
+				stage('Publish OpenJDK 11 + Redis 5.0 docker image') {
+					when {
+						anyOf {
+							changeset "ci/openjdk11-redis-5.0/**"
+							changeset "Makefile"
+						}
+					}
+					agent { label 'data' }
+					options { timeout(time: 20, unit: 'MINUTES') }
+
+					steps {
+						script {
+							def image = docker.build("springci/spring-data-openjdk11-with-redis-5.0", "-f ci/openjdk11-redis-5.0/Dockerfile .")
+							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+								image.push()
+							}
+						}
 					}
 				}
 			}
 		}
 
-		stage("Test") {
+		stage("test: baseline") {
+			when {
+				anyOf {
+					branch 'master'
+					not { triggeredBy 'UpstreamCause' }
+				}
+			}
+			agent {
+				docker {
+					image 'springci/spring-data-openjdk8-with-redis-5.0:latest'
+					label 'data'
+					args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
+				}
+			}
+			options { timeout(time: 30, unit: 'MINUTES') }
+			steps {
+				// Create link to directory with Redis binaries
+				sh 'ln -sf /work'
+
+				// Launch Redis in proper configuration
+				sh 'make start'
+
+				// Execute maven test
+				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean test -DrunLongTests=true -U -B'
+
+				// Capture resulting exit code from maven (pass/fail)
+				sh 'RESULT=\$?'
+
+				// Shutdown Redis
+				sh 'make stop'
+
+				// Return maven results
+				sh 'exit \$RESULT'
+
+			}
+		}
+
+		stage("Test other configurations") {
 			when {
 				anyOf {
 					branch 'master'
@@ -40,18 +100,16 @@ pipeline {
 				}
 			}
 			parallel {
-				stage("test: baseline") {
+				stage("test: baseline (jdk11)") {
 					agent {
 						docker {
-							image 'springci/spring-data-openjdk8-with-redis-5.0:latest'
+							image 'springci/spring-data-openjdk11-with-redis-5.0:latest'
 							label 'data'
-							args '-v $HOME:/tmp/jenkins-home'
+							args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
 						}
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
 					steps {
-						sh 'rm -rf ?'
-
 						// Create link to directory with Redis binaries
 						sh 'ln -sf /work'
 
@@ -59,7 +117,7 @@ pipeline {
 						sh 'make start'
 
 						// Execute maven test
-						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean test -DrunLongTests=true -U -B'
+						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pjava11 clean test -DrunLongTests=true -U -B'
 
 						// Capture resulting exit code from maven (pass/fail)
 						sh 'RESULT=\$?'
@@ -86,7 +144,7 @@ pipeline {
 				docker {
 					image 'adoptopenjdk/openjdk8:latest'
 					label 'data'
-					args '-v $HOME:/tmp/jenkins-home'
+					args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
 				}
 			}
 			options { timeout(time: 20, unit: 'MINUTES') }
@@ -96,7 +154,6 @@ pipeline {
 			}
 
 			steps {
-				sh 'rm -rf ?'
 				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,artifactory ' +
 						'-Dartifactory.server=https://repo.spring.io ' +
 						"-Dartifactory.username=${ARTIFACTORY_USR} " +
@@ -116,7 +173,7 @@ pipeline {
 				docker {
 					image 'adoptopenjdk/openjdk8:latest'
 					label 'data'
-					args '-v $HOME:/tmp/jenkins-home'
+					args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
 				}
 			}
 			options { timeout(time: 20, unit: 'MINUTES') }

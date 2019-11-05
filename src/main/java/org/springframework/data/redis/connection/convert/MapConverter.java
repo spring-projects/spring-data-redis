@@ -15,11 +15,11 @@
  */
 package org.springframework.data.redis.connection.convert;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.springframework.core.convert.converter.Converter;
 
 /**
@@ -49,10 +49,11 @@ public class MapConverter<S, T> implements Converter<Map<S, S>, Map<T, T>> {
 	@Override
 	public Map<T, T> convert(Map<S, S> source) {
 
-		return source.entrySet().stream()
-				.collect(Collectors.toMap(e -> itemConverter.convert(e.getKey()), e -> itemConverter.convert(e.getValue()),
-						(a, b) -> a, source instanceof LinkedHashMap ? LinkedHashMap::new : HashedMap::new));
-
+		return source.entrySet().stream() //
+				.collect(Collectors.toMap( //
+						e -> itemConverter.convert(e.getKey()), //
+						e -> itemConverter.convert(e.getValue()), //
+						(a, b) -> a, source instanceof LinkedHashMap ? LinkedHashMap::new : HashMap::new));
 	}
 
 }

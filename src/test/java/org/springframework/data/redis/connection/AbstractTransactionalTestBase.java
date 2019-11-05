@@ -142,22 +142,22 @@ public abstract class AbstractTransactionalTestBase {
 		}
 	}
 
-	@Rollback(true)
-	@Test // DATAREDIS-73
+	@Rollback
+	@Test // DATAREDIS-73, DATAREDIS-1063
 	public void listOperationLPushShoudBeRolledBackCorrectly() {
 
 		for (String key : KEYS) {
-			template.opsForList().leftPushAll(key, (String[]) KEYS.toArray());
+			template.opsForList().leftPushAll(key, KEYS.toArray(new String[0]));
 		}
 	}
 
 	@Rollback(false)
-	@Test // DATAREDIS-73
+	@Test // DATAREDIS-73, DATAREDIS-1063
 	public void listOperationLPushShouldBeCommittedCorrectly() {
 
 		this.valuesShouldHaveBeenPersisted = true;
 		for (String key : KEYS) {
-			template.opsForList().leftPushAll(key, (String[]) KEYS.toArray());
+			template.opsForList().leftPushAll(key, KEYS.toArray(new String[0]));
 		}
 	}
 }

@@ -18,24 +18,23 @@ package org.springframework.data.redis.connection.jedis;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisClusterConnectionHandler;
-import redis.clients.jedis.JedisClusterInfoCache;
-import redis.clients.jedis.JedisPoolConfig;
-import sun.net.www.protocol.https.DefaultHostnameVerifier;
-
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisClusterConnectionHandler;
+import redis.clients.jedis.JedisClusterInfoCache;
+import redis.clients.jedis.JedisPoolConfig;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisPassword;
@@ -237,9 +236,9 @@ public class JedisConnectionFactoryUnitTests {
 		SSLContext context = SSLContext.getDefault();
 		SSLSocketFactory socketFactory = context.getSocketFactory();
 		JedisPoolConfig poolConfig = new JedisPoolConfig();
-
+		
 		JedisClientConfiguration configuration = JedisClientConfiguration.builder().useSsl() //
-				.hostnameVerifier(new DefaultHostnameVerifier()) //
+				.hostnameVerifier(HttpsURLConnection.getDefaultHostnameVerifier()) //
 				.sslParameters(sslParameters) //
 				.sslSocketFactory(socketFactory).and() //
 				.clientName("my-client") //
@@ -298,7 +297,7 @@ public class JedisConnectionFactoryUnitTests {
 		SSLContext context = SSLContext.getDefault();
 		SSLSocketFactory socketFactory = context.getSocketFactory();
 		JedisPoolConfig poolConfig = new JedisPoolConfig();
-		HostnameVerifier hostNameVerifier = new DefaultHostnameVerifier();
+		HostnameVerifier hostNameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
 
 		JedisClientConfiguration configuration = JedisClientConfiguration.builder() //
 				.useSsl() //

@@ -1,17 +1,5 @@
 language: java
 
-jdk:
-  - oraclejdk8
-
-env:
-  matrix:
-    - PROFILE=spring5-next
-
-addons:
-  apt:
-    packages:
-    - oracle-java8-installer
-
 cache:
   directories:
     - $HOME/.m2
@@ -20,4 +8,4 @@ sudo: false
 
 install: true
 
-script: travis_wait make test SPRING_PROFILE=${PROFILE}
+script: make test SPRING_PROFILE=java11
