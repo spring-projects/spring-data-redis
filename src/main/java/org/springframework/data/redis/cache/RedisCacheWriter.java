@@ -29,34 +29,22 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Joongsoo Park
  * @since 2.0
  */
 public interface RedisCacheWriter {
 
 	/**
-	 * Create new {@link RedisCacheWriter} without locking behavior.
+	 * Create new {@link RedisCacheWriter}
 	 *
 	 * @param connectionFactory must not be {@literal null}.
 	 * @return new instance of {@link DefaultRedisCacheWriter}.
 	 */
-	static RedisCacheWriter nonLockingRedisCacheWriter(RedisConnectionFactory connectionFactory) {
+	static RedisCacheWriter newDefaultRedisCacheWriter(RedisConnectionFactory connectionFactory) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
 
 		return new DefaultRedisCacheWriter(connectionFactory);
-	}
-
-	/**
-	 * Create new {@link RedisCacheWriter} with locking behavior.
-	 *
-	 * @param connectionFactory must not be {@literal null}.
-	 * @return new instance of {@link DefaultRedisCacheWriter}.
-	 */
-	static RedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory) {
-
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
-
-		return new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(50));
 	}
 
 	/**
