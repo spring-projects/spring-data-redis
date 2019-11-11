@@ -79,6 +79,9 @@ public interface JedisClientConfiguration {
 
 	/**
 	 * @return {@literal true} to use connection-pooling.
+	 * <p>
+	 * valid only for single node Redis, and Jedis Sentinel and Cluster will always use connection-pooling regardless of the setting here.
+	 * </p>
 	 */
 	boolean isUsePooling();
 
@@ -149,7 +152,9 @@ public interface JedisClientConfiguration {
 
 		/**
 		 * Enable connection-pooling.
-		 *
+		 * <p>
+		 * Apply only to single node Redis, and Jedis Sentinel and Cluster will always use connection-pooling.
+		 * </p>
 		 * @return {@link JedisPoolingClientConfigurationBuilder}.
 		 */
 		JedisPoolingClientConfigurationBuilder usePooling();
