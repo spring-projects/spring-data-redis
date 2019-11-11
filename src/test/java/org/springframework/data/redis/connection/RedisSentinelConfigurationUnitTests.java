@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import org.junit.Test;
-
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockPropertySource;
 import org.springframework.util.StringUtils;
@@ -51,8 +50,7 @@ public class RedisSentinelConfigurationUnitTests {
 	public void shouldCreateRedisSentinelConfigurationCorrectlyGivenMasterAndMultipleHostAndPortStrings() {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster",
-				new HashSet<>(Arrays.asList(
-				HOST_AND_PORT_1, HOST_AND_PORT_2, HOST_AND_PORT_3)));
+				new HashSet<>(Arrays.asList(HOST_AND_PORT_1, HOST_AND_PORT_2, HOST_AND_PORT_3)));
 
 		assertThat(config.getSentinels().size()).isEqualTo(3);
 		assertThat(config.getSentinels()).contains(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456),
@@ -120,5 +118,66 @@ public class RedisSentinelConfigurationUnitTests {
 		assertThat(config.getSentinels().size()).isEqualTo(3);
 		assertThat(config.getSentinels()).contains(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456),
 				new RedisNode("localhost", 789));
+	}
+
+	@Test // DATAREDIS-1060
+	public void throwsExceptionOnSentinelPasswordAlreadySetWhenTryingToReuseDataNodePassword() {
+
+		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration("myMaster",
+				Collections.singleton(HOST_AND_PORT_1));
+		configuration.setSentinelPassword(RedisPassword.of("so-secret-you'll-never-guess-123"));
+
+		assertThatExceptionOfType(IllegalStateException.class)
+				.isThrownBy(() -> configuration.useDataNodeAuthenticationForSentinel(true));
+	}
+
+	@Test // DATAREDIS-1060
+	public void throwsExceptionOnSettingSentinelPasswordWhenAlreadyReusingDataNodePassword() {
+
+		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration("myMaster",
+				Collections.singleton(HOST_AND_PORT_1));
+		configuration.setPassword(RedisPassword.of("qwerty"));
+		configuration.useDataNodeAuthenticationForSentinel(true);
+
+		assertThatExceptionOfType(IllegalStateException.class)
+				.isThrownBy(() -> configuration.setSentinelPassword(RedisPassword.of("who-needs-security-anyway")));
+	}
+
+	@Test // DATAREDIS-1060
+	public void settingSentinelPasswordReturnsDataNodePasswordIfUseDataNodeAuthIsTrue() {
+
+		RedisPassword password = RedisPassword.of("monkey-dragon->yeah-getting-better-combining-trivial-ones");
+		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration("myMaster",
+				Collections.singleton(HOST_AND_PORT_1));
+		configuration.setPassword(password);
+		configuration.useDataNodeAuthenticationForSentinel(true);
+
+		assertThat(configuration.getSentinelPassword()).isEqualTo(password);
+	}
+
+	@Test // DATAREDIS-1060
+	public void dataNodePasswordDoesNotAffectSentinelPassword() {
+
+		RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
+		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration("myMaster",
+				Collections.singleton(HOST_AND_PORT_1));
+		configuration.setPassword(password);
+
+		assertThat(configuration.getSentinelPassword()).isEqualTo(RedisPassword.none());
+	}
+
+	@Test // DATAREDIS-1060
+	public void readSentinelPasswordFromConfigProperty() {
+
+		MockPropertySource propertySource = new MockPropertySource();
+		propertySource.setProperty("spring.redis.sentinel.master", "myMaster");
+		propertySource.setProperty("spring.redis.sentinel.nodes", HOST_AND_PORT_1);
+		propertySource.setProperty("spring.redis.sentinel.password", "computer-says-no");
+
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration(propertySource);
+
+		assertThat(config.getSentinelPassword()).isEqualTo(RedisPassword.of("computer-says-no"));
+		assertThat(config.getSentinels().size()).isEqualTo(1);
+		assertThat(config.getSentinels()).contains(new RedisNode("127.0.0.1", 123));
 	}
 }

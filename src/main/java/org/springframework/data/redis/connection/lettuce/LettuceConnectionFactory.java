@@ -1080,7 +1080,6 @@ public class LettuceConnectionFactory
 
 		applyToAll(redisUri, it -> {
 
-			getRedisPassword().toOptional().ifPresent(it::setPassword);
 			clientConfiguration.getClientName().ifPresent(it::setClientName);
 
 			it.setSsl(clientConfiguration.isUseSsl());
