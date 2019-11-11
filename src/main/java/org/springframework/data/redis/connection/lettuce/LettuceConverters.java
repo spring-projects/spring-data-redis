@@ -50,6 +50,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
+import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
@@ -198,7 +199,8 @@ abstract public class LettuceConverters extends Converters {
 		};
 
 		SCORED_VALUE_TO_TUPLE = source -> source != null
-				? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore())) : null;
+				? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore()))
+				: null;
 
 		BYTES_LIST_TO_TUPLE_LIST_CONVERTER = source -> {
 
@@ -297,7 +299,8 @@ abstract public class LettuceConverters extends Converters {
 		};
 
 		GEO_COORDINATE_TO_POINT_CONVERTER = geoCoordinate -> geoCoordinate != null
-				? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue()) : null;
+				? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue())
+				: null;
 		GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER = new ListConverter<>(GEO_COORDINATE_TO_POINT_CONVERTER);
 
 		KEY_VALUE_UNWRAPPER = source -> source.getValueOrElse(null);
@@ -637,15 +640,21 @@ abstract public class LettuceConverters extends Converters {
 		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration is required");
 
 		Set<RedisNode> sentinels = sentinelConfiguration.getSentinels();
-		RedisURI.Builder builder = null;
+		RedisURI.Builder builder = RedisURI.builder();
 		for (RedisNode sentinel : sentinels) {
 
-			if (builder == null) {
-				builder = RedisURI.Builder.sentinel(sentinel.getHost(), sentinel.getPort(),
-						sentinelConfiguration.getMaster().getName());
-			} else {
-				builder.withSentinel(sentinel.getHost(), sentinel.getPort());
+			RedisURI.Builder uri = RedisURI.Builder.sentinel(sentinel.getHost(), sentinel.getPort(),
+					sentinelConfiguration.getMaster().getName());
+
+			if (sentinelConfiguration.getSentinelPassword().isPresent()) {
+				uri.withPassword(sentinelConfiguration.getSentinelPassword().get());
 			}
+			builder.withSentinel(uri.build());
+		}
+
+		RedisPassword password = sentinelConfiguration.getPassword();
+		if (password.isPresent()) {
+			builder.withPassword(password.get());
 		}
 
 		return builder.build();
