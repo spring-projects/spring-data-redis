@@ -174,13 +174,14 @@ public RedisConnectionFactory lettuceConnectionFactory() {
 .Configuration Properties
 * `spring.redis.sentinel.master`: name of the master node.
 * `spring.redis.sentinel.nodes`: Comma delimited list of host:port pairs.
+* `spring.redis.sentinel.password`: The password to apply when authenticating with Redis Sentinel
 ====
 
 Sometimes, direct interaction with one of the Sentinels is required. Using `RedisConnectionFactory.getSentinelConnection()` or `RedisConnection.getSentinelCommands()` gives you access to the first active Sentinel configured.
 
 [NOTE]
 ====
-Configuration options like password, timeouts, SSL... also get applied to Redis Sentinel when using https://lettuce.io/[Lettuce].
+Sentinel authentication is only available using https://lettuce.io/[Lettuce].
 ====
 
 [[redis:template]]

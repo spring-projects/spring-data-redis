@@ -337,6 +337,79 @@ public interface RedisConfiguration {
 		 * @return {@link Set} of sentinels. Never {@literal null}.
 		 */
 		Set<RedisNode> getSentinels();
+
+		/**
+		 * Get the {@link RedisPassword} used when authenticating with a Redis Server.
+		 * 
+		 * @return never {@literal null}.
+		 */
+		default RedisPassword getDataNodePassword() {
+			return getPassword();
+		}
+
+		/**
+		 * Create and set a {@link RedisPassword} to be used when authenticating with Sentinel from the given {@link String}
+		 *
+		 * @param password can be {@literal null}.
+		 * @throws IllegalStateException if the {@link #useDataNodeAuthenticationForSentinel(boolean) Data Node Password}
+		 *           should be used for authenticating with Redis Sentinel.
+		 * @since 2.2.2
+		 */
+		default void setSentinelPassword(@Nullable String password) {
+			setSentinelPassword(RedisPassword.of(password));
+		}
+
+		/**
+		 * Create and set a {@link RedisPassword} to be used when authenticating with Sentinel from the given
+		 * {@link Character} sequence.
+		 *
+		 * @param password can be {@literal null}.
+		 * @throws IllegalStateException if the {@link #useDataNodeAuthenticationForSentinel(boolean) Data Node Password}
+		 *           should be used for authenticating with Redis Sentinel.
+		 * @since 2.2.2
+		 */
+		default void setSentinelPassword(@Nullable char[] password) {
+			setSentinelPassword(RedisPassword.of(password));
+		}
+
+		/**
+		 * Set a {@link RedisPassword} to be used when authenticating with Sentinel.
+		 *
+		 * @param password must not be {@literal null} use {@link RedisPassword#none()} instead.
+		 * @throws IllegalStateException if the {@link #useDataNodeAuthenticationForSentinel(boolean) Data Node Password}
+		 *           should be used for authenticating with Redis Sentinel.
+		 * @since 2.2.2
+		 */
+		void setSentinelPassword(RedisPassword password);
+
+		/**
+		 * Get the {@link RedisPassword} to use when connecting to a Redis Sentinel. <br />
+		 * This can be the password explicitly set via {@link #setSentinelPassword(RedisPassword)}, or the
+		 * {@link #getDataNodePassword() Data Node password} if it should be also used for
+		 * {@link #getUseDataNodeAuthenticationForSentinel() sentinel}, or {@link RedisPassword#none()} if no password has
+		 * been set.
+		 *
+		 * @return the {@link RedisPassword} for authenticating with Sentinel.
+		 * @since 2.2.2
+		 */
+		RedisPassword getSentinelPassword();
+
+		/**
+		 * Use the {@link #getDataNodePassword() RedisPassword} also for authentication with Redis Sentinel.
+		 * 
+		 * @param useDataNodeAuthenticationForSentinel
+		 * @throws IllegalStateException if a {@link #getSentinelPassword() Sentinel Password} is already set.
+		 * @since 2.2.2
+		 */
+		void useDataNodeAuthenticationForSentinel(boolean useDataNodeAuthenticationForSentinel);
+
+		/**
+		 * Use the {@link #getDataNodePassword() RedisPassword} also for authentication with Redis Sentinel.
+		 *
+		 * @return
+		 * @since 2.2.2
+		 */
+		boolean getUseDataNodeAuthenticationForSentinel();
 	}
 
 	/**

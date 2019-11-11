@@ -46,7 +46,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.ConnectionFactoryTracker;
@@ -179,8 +178,8 @@ public class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	@Test // DATAREDIS-524, DATAREDIS-1045
-	public void passwordShouldBeSetCorrectlyOnSentinelClient() {
+	@Test // DATAREDIS-524, DATAREDIS-1045, DATAREDIS-1060
+	public void passwordShouldNotBeSetOnSentinelClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
 				new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234")));
@@ -197,8 +196,78 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
 
 		for (RedisURI sentinel : redisUri.getSentinels()) {
-			assertThat(sentinel.getPassword())
-					.isEqualTo(connectionFactory.getPassword().toCharArray());
+			assertThat(sentinel.getPassword()).isNull();
+		}
+	}
+
+	@Test // DATAREDIS-1060
+	public void sentinelPasswordShouldBeSetOnSentinelClient() {
+
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
+		config.setSentinelPassword("sentinel-pwd");
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config);
+		connectionFactory.setClientResources(getSharedClientResources());
+		connectionFactory.setPassword("o_O");
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isInstanceOf(RedisClient.class);
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
+
+		for (RedisURI sentinel : redisUri.getSentinels()) {
+			assertThat(sentinel.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
+		}
+	}
+
+	@Test // DATAREDIS-1060
+	public void redisPasswordShouldBeSetOnSentinelClientIfItShouldBeReused() {
+
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
+		config.useDataNodeAuthenticationForSentinel(true);
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config);
+		connectionFactory.setClientResources(getSharedClientResources());
+		connectionFactory.setPassword("o_O");
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isInstanceOf(RedisClient.class);
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
+
+		for (RedisURI sentinel : redisUri.getSentinels()) {
+			assertThat(sentinel.getPassword()).isEqualTo("o_O".toCharArray());
+		}
+	}
+
+	@Test // DATAREDIS-1060
+	public void sentinelPasswordShouldNotLeakIntoDataNodeClient() {
+
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
+		config.setSentinelPassword("sentinel-pwd");
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config);
+		connectionFactory.setClientResources(getSharedClientResources());
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isInstanceOf(RedisClient.class);
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.getPassword()).isNull();
+
+		for (RedisURI sentinel : redisUri.getSentinels()) {
+			assertThat(sentinel.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
 		}
 	}
 
