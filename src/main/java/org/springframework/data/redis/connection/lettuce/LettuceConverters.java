@@ -640,22 +640,24 @@ abstract public class LettuceConverters extends Converters {
 		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration is required");
 
 		Set<RedisNode> sentinels = sentinelConfiguration.getSentinels();
+		RedisPassword sentinelPassword = sentinelConfiguration.getSentinelPassword();
 		RedisURI.Builder builder = RedisURI.builder();
 		for (RedisNode sentinel : sentinels) {
 
-			RedisURI.Builder uri = RedisURI.Builder.sentinel(sentinel.getHost(), sentinel.getPort(),
-					sentinelConfiguration.getMaster().getName());
+			RedisURI.Builder sentinelBuilder = RedisURI.Builder.redis(sentinel.getHost(), sentinel.getPort());
 
-			if (sentinelConfiguration.getSentinelPassword().isPresent()) {
-				uri.withPassword(sentinelConfiguration.getSentinelPassword().get());
+			if (sentinelPassword.isPresent()) {
+				sentinelBuilder.withPassword(sentinelPassword.get());
 			}
-			builder.withSentinel(uri.build());
+			builder.withSentinel(sentinelBuilder.build());
 		}
 
 		RedisPassword password = sentinelConfiguration.getPassword();
 		if (password.isPresent()) {
 			builder.withPassword(password.get());
 		}
+
+		builder.withSentinelMasterId(sentinelConfiguration.getMaster().getName());
 
 		return builder.build();
 	}

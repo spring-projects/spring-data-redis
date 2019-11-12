@@ -225,30 +225,6 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-1060
-	public void redisPasswordShouldBeSetOnSentinelClientIfItShouldBeReused() {
-
-		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
-		config.useDataNodeAuthenticationForSentinel(true);
-
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config);
-		connectionFactory.setClientResources(getSharedClientResources());
-		connectionFactory.setPassword("o_O");
-		connectionFactory.afterPropertiesSet();
-		ConnectionFactoryTracker.add(connectionFactory);
-
-		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client).isInstanceOf(RedisClient.class);
-
-		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
-
-		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
-
-		for (RedisURI sentinel : redisUri.getSentinels()) {
-			assertThat(sentinel.getPassword()).isEqualTo("o_O".toCharArray());
-		}
-	}
-
-	@Test // DATAREDIS-1060
 	public void sentinelPasswordShouldNotLeakIntoDataNodeClient() {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
