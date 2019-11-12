@@ -975,9 +975,12 @@ public class LettuceConnection extends AbstractRedisConnection {
 		if (asyncDedicatedConn == null) {
 
 			asyncDedicatedConn = doGetAsyncDedicatedConnection();
-
-			if (asyncDedicatedConn instanceof StatefulRedisConnection) {
+			
+			if (asyncDedicatedConn instanceof StatefulRedisConnection && dbIndex > 0) {
 				((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync().select(dbIndex);
+			}
+			else if (asyncDedicatedConn instanceof StatefulRedisConnection) {
+				((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync();
 			}
 		}
 
