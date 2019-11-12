@@ -363,7 +363,7 @@ public class ApplicationConfig {
   public RedisMappingContext keyValueMappingContext() {
     return new RedisMappingContext(
       new MappingConfiguration(
-        new MyKeyspaceConfiguration(), new IndexConfiguration()));
+        new IndexConfiguration(), new MyKeyspaceConfiguration()));
   }
 
   public static class MyKeyspaceConfiguration extends KeyspaceConfiguration {
