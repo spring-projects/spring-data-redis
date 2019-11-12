@@ -52,7 +52,6 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 
 	private RedisPassword dataNodePassword = RedisPassword.none();
 	private RedisPassword sentinelPassword = RedisPassword.none();
-	private boolean useDataNodePasswordForSentinel = false;
 
 	/**
 	 * Creates new {@link RedisSentinelConfiguration}.
@@ -253,47 +252,21 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#setSentinelPassword(org.springframework.data.redis.connection.RedisPassword)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#setSentinelPassword(org.springframework.data.redis.connection.RedisPassword)
 	 */
 	public void setSentinelPassword(RedisPassword sentinelPassword) {
 
-		Assert.state(!useDataNodePasswordForSentinel,
-				"Configuration uses Redis Data Node password for authenticating with Sentinel. Please set 'RedisSentinelConfiguration.useDataNodeAuthenticationForSentinel(false)' before using this option.");
 		Assert.notNull(sentinelPassword, "SentinelPassword must not be null!");
 		this.sentinelPassword = sentinelPassword;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#setSentinelPassword()
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#setSentinelPassword()
 	 */
 	@Override
 	public RedisPassword getSentinelPassword() {
-		return getUseDataNodeAuthenticationForSentinel() ? this.dataNodePassword : sentinelPassword;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#useDataNodeAuthenticationForSentinel(boolean)
-	 */
-	@Override
-	public void useDataNodeAuthenticationForSentinel(boolean useDataNodeAuthenticationForSentinel) {
-
-		if (useDataNodeAuthenticationForSentinel) {
-			Assert.state(!this.sentinelPassword.isPresent(),
-					"Configuration already defines a password for authenticating with Sentinel. Please use 'RedisSentinelConfiguration.setSentinelPassword(RedisPassword.none())' remove the password.");
-		}
-
-		this.useDataNodePasswordForSentinel = useDataNodeAuthenticationForSentinel;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#getUseDataNodeAuthenticationForSentinel()
-	 */
-	@Override
-	public boolean getUseDataNodeAuthenticationForSentinel() {
-		return this.useDataNodePasswordForSentinel;
+		return sentinelPassword;
 	}
 
 	private RedisNode readHostAndPortFromString(String hostAndPort) {

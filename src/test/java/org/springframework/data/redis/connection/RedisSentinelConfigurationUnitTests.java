@@ -121,41 +121,6 @@ public class RedisSentinelConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-1060
-	public void throwsExceptionOnSentinelPasswordAlreadySetWhenTryingToReuseDataNodePassword() {
-
-		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration("myMaster",
-				Collections.singleton(HOST_AND_PORT_1));
-		configuration.setSentinelPassword(RedisPassword.of("so-secret-you'll-never-guess-123"));
-
-		assertThatExceptionOfType(IllegalStateException.class)
-				.isThrownBy(() -> configuration.useDataNodeAuthenticationForSentinel(true));
-	}
-
-	@Test // DATAREDIS-1060
-	public void throwsExceptionOnSettingSentinelPasswordWhenAlreadyReusingDataNodePassword() {
-
-		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration("myMaster",
-				Collections.singleton(HOST_AND_PORT_1));
-		configuration.setPassword(RedisPassword.of("qwerty"));
-		configuration.useDataNodeAuthenticationForSentinel(true);
-
-		assertThatExceptionOfType(IllegalStateException.class)
-				.isThrownBy(() -> configuration.setSentinelPassword(RedisPassword.of("who-needs-security-anyway")));
-	}
-
-	@Test // DATAREDIS-1060
-	public void settingSentinelPasswordReturnsDataNodePasswordIfUseDataNodeAuthIsTrue() {
-
-		RedisPassword password = RedisPassword.of("monkey-dragon->yeah-getting-better-combining-trivial-ones");
-		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration("myMaster",
-				Collections.singleton(HOST_AND_PORT_1));
-		configuration.setPassword(password);
-		configuration.useDataNodeAuthenticationForSentinel(true);
-
-		assertThat(configuration.getSentinelPassword()).isEqualTo(password);
-	}
-
-	@Test // DATAREDIS-1060
 	public void dataNodePasswordDoesNotAffectSentinelPassword() {
 
 		RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
@@ -177,7 +142,6 @@ public class RedisSentinelConfigurationUnitTests {
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration(propertySource);
 
 		assertThat(config.getSentinelPassword()).isEqualTo(RedisPassword.of("computer-says-no"));
-		assertThat(config.getSentinels().size()).isEqualTo(1);
-		assertThat(config.getSentinels()).contains(new RedisNode("127.0.0.1", 123));
+		assertThat(config.getSentinels()).hasSize(1).contains(new RedisNode("127.0.0.1", 123));
 	}
 }
