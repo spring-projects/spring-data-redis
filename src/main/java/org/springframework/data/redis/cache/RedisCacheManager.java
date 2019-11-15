@@ -278,11 +278,12 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 */
 	public static class RedisCacheManagerBuilder {
 
-	    protected final RedisCacheWriter cacheWriter;
-	    protected RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
-	    protected final Map<String, RedisCacheConfiguration> initialCaches = new LinkedHashMap<>();
-	    protected boolean enableTransactions;
-	    protected allowInFlightCacheCreation = true;
+		protected final RedisCacheWriter cacheWriter;
+		protected RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
+		protected final Map<String, RedisCacheConfiguration> initialCaches = new LinkedHashMap<>();
+		protected boolean enableTransactions;
+
+		protected allowInFlightCacheCreation = true;
 
 	    protected RedisCacheManagerBuilder(RedisCacheWriter cacheWriter) {
 			this.cacheWriter = cacheWriter;
