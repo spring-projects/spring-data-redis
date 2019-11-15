@@ -47,10 +47,10 @@ import org.springframework.util.Assert;
  */
 public class RedisCacheManager extends AbstractTransactionSupportingCacheManager {
 
-	private final RedisCacheWriter cacheWriter;
-	private final RedisCacheConfiguration defaultCacheConfig;
-	private final Map<String, RedisCacheConfiguration> initialCacheConfiguration;
-	private final boolean allowInFlightCacheCreation;
+	protected final RedisCacheWriter cacheWriter;
+	protected final RedisCacheConfiguration defaultCacheConfig;
+	protected final Map<String, RedisCacheConfiguration> initialCacheConfiguration;
+	protected final boolean allowInFlightCacheCreation;
 
 	/**
 	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
@@ -278,13 +278,13 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 */
 	public static class RedisCacheManagerBuilder {
 
-		private final RedisCacheWriter cacheWriter;
-		private RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
-		private final Map<String, RedisCacheConfiguration> initialCaches = new LinkedHashMap<>();
-		private boolean enableTransactions;
-		boolean allowInFlightCacheCreation = true;
+	    protected final RedisCacheWriter cacheWriter;
+	    protected RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
+	    protected final Map<String, RedisCacheConfiguration> initialCaches = new LinkedHashMap<>();
+	    protected boolean enableTransactions;
+	    protected allowInFlightCacheCreation = true;
 
-		private RedisCacheManagerBuilder(RedisCacheWriter cacheWriter) {
+	    protected RedisCacheManagerBuilder(RedisCacheWriter cacheWriter) {
 			this.cacheWriter = cacheWriter;
 		}
 
