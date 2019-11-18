@@ -1,6 +1,15 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.13.RELEASE (2019-11-18)
+----------------------------------------------
+* DATAREDIS-1067 - Documentation for MappingConfiguration uses wrong arguments.
+* DATAREDIS-1066 - Improve documentation for Jedis pooling configuration.
+* DATAREDIS-1064 - ListOperations.rPush/lPush with pivot comments wrong.
+* DATAREDIS-1058 - Typo in assert message.
+* DATAREDIS-1057 - Release 2.1.13 (Lovelace SR13).
+
+
 Changes in version 2.2.1.RELEASE (2019-11-04)
 ---------------------------------------------
 * DATAREDIS-1055 - Upgrade to Lettuce 5.2.1.
