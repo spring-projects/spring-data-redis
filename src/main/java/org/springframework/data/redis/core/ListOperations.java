@@ -110,7 +110,7 @@ public interface ListOperations<K, V> {
 	Long leftPushIfPresent(K key, V value);
 
 	/**
-	 * Append {@code value} to {@code key} before {@code pivot}.
+	 * Insert {@code value} to {@code key} before {@code pivot}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param pivot must not be {@literal null}.
@@ -167,7 +167,7 @@ public interface ListOperations<K, V> {
 	Long rightPushIfPresent(K key, V value);
 
 	/**
-	 * Append {@code value} to {@code key} after {@code pivot}.
+	 * Insert {@code value} to {@code key} after {@code pivot}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param pivot must not be {@literal null}.
