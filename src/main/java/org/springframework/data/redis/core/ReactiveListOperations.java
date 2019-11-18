@@ -104,12 +104,13 @@ public interface ReactiveListOperations<K, V> {
 	Mono<Long> leftPushIfPresent(K key, V value);
 
 	/**
-	 * Prepend {@code values} to {@code key} before {@code value}.
+	 * Insert {@code value} to {@code key} before {@code pivot}.
 	 *
 	 * @param key must not be {@literal null}.
+	 * @param pivot must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="https://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
 	Mono<Long> leftPush(K key, V pivot, V value);
 
@@ -155,12 +156,13 @@ public interface ReactiveListOperations<K, V> {
 	Mono<Long> rightPushIfPresent(K key, V value);
 
 	/**
-	 * Append {@code values} to {@code key} before {@code value}.
+	 * Insert {@code value} to {@code key} after {@code pivot}.
 	 *
 	 * @param key must not be {@literal null}.
+	 * @param pivot must not be {@literal null}.
 	 * @param value
 	 * @return
-	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: RPUSH</a>
+	 * @see <a href="https://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
 	Mono<Long> rightPush(K key, V pivot, V value);
 
