@@ -1,6 +1,16 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.2.RELEASE (2019-11-18)
+---------------------------------------------
+* DATAREDIS-1067 - Documentation for MappingConfiguration uses wrong arguments.
+* DATAREDIS-1066 - Improve documentation for Jedis pooling configuration.
+* DATAREDIS-1064 - ListOperations.rPush/lPush with pivot comments wrong.
+* DATAREDIS-1060 - Redis password should not automatically be applied to sentinel.
+* DATAREDIS-1059 - Release 2.2.2 (Moore SR2).
+* DATAREDIS-1058 - Typo in assert message.
+
+
 Changes in version 2.1.13.RELEASE (2019-11-18)
 ----------------------------------------------
 * DATAREDIS-1067 - Documentation for MappingConfiguration uses wrong arguments.
