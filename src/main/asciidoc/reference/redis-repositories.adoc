@@ -362,8 +362,7 @@ public class ApplicationConfig {
   @Bean
   public RedisMappingContext keyValueMappingContext() {
     return new RedisMappingContext(
-      new MappingConfiguration(
-        new IndexConfiguration(), new MyKeyspaceConfiguration()));
+      new MappingConfiguration(new IndexConfiguration(), new MyKeyspaceConfiguration()));
   }
 
   public static class MyKeyspaceConfiguration extends KeyspaceConfiguration {
