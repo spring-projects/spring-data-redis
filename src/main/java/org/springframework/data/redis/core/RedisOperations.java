@@ -16,6 +16,8 @@
 package org.springframework.data.redis.core;
 
 import java.io.Closeable;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -31,6 +33,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Interface that specified a basic set of Redis operations, implemented by {@link RedisTemplate}. Not often used but a
@@ -270,7 +273,7 @@ public interface RedisOperations<K, V> {
 	Boolean renameIfAbsent(K oldKey, K newKey);
 
 	/**
-	 * Set time to live for given {@code key}..
+	 * Set time to live for given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeout
@@ -281,6 +284,24 @@ public interface RedisOperations<K, V> {
 	Boolean expire(K key, long timeout, TimeUnit unit);
 
 	/**
+	 * Set time to live for given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	default Boolean expire(K key, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return TimeoutUtils.hasMillis(timeout) ? expire(key, timeout.toMillis(), TimeUnit.MILLISECONDS)
+				: expire(key, timeout.getSeconds(), TimeUnit.SECONDS);
+	}
+
+	/**
 	 * Set the expiration for given {@code key} as a {@literal date} timestamp.
 	 *
 	 * @param key must not be {@literal null}.
@@ -289,6 +310,22 @@ public interface RedisOperations<K, V> {
 	 */
 	@Nullable
 	Boolean expireAt(K key, Date date);
+
+	/**
+	 * Set the expiration for given {@code key} as a {@literal date} timestamp.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expireAt must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	default Boolean expireAt(K key, Instant expireAt) {
+
+		Assert.notNull(expireAt, "Timestamp must not be null");
+
+		return expireAt(key, Date.from(expireAt));
+	}
 
 	/**
 	 * Remove the expiration from given {@code key}.
@@ -574,7 +611,7 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Returns the operations performed on hash values bound to the given key. * @param <HK> hash key (or field) type
-	 * 
+	 *
 	 * @param <HV> hash value type
 	 * @param key Redis key
 	 * @return hash operations bound to the given key.

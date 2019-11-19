@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-abstract public class TimeoutUtils {
+public abstract class TimeoutUtils {
 
 	/**
 	 * Check if a given Duration can be represented in {@code sec} or requires {@code msec} representation.
@@ -36,6 +36,20 @@ abstract public class TimeoutUtils {
 	 */
 	public static boolean hasMillis(Duration duration) {
 		return duration.toMillis() % 1000 != 0;
+	}
+
+	/**
+	 * Converts the given timeout to seconds.
+	 * <p>
+	 * Since a 0 timeout blocks some Redis ops indefinitely, this method will return 1 if the original value is greater
+	 * than 0 but is truncated to 0 on conversion.
+	 *
+	 * @param duration The duration to convert
+	 * @return The converted timeout
+	 * @since 2.3
+	 */
+	public static long toSeconds(Duration duration) {
+		return roundUpIfNecessary(duration.toMillis(), duration.getSeconds());
 	}
 
 	/**

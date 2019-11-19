@@ -15,11 +15,13 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Redis list specific operations.
@@ -235,6 +237,25 @@ public interface ListOperations<K, V> {
 	V leftPop(K key, long timeout, TimeUnit unit);
 
 	/**
+	 * Removes and returns first element from lists stored at {@code key} . <br>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @since 2.3
+	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
+	 */
+	@Nullable
+	default V leftPop(K key, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return leftPop(key, TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+	}
+
+	/**
 	 * Removes and returns last element in list stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -256,6 +277,25 @@ public interface ListOperations<K, V> {
 	 */
 	@Nullable
 	V rightPop(K key, long timeout, TimeUnit unit);
+
+	/**
+	 * Removes and returns last element from lists stored at {@code key}. <br>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @since 2.3
+	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
+	 */
+	@Nullable
+	default V rightPop(K key, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return rightPop(key, TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+	}
 
 	/**
 	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its value.
@@ -281,6 +321,26 @@ public interface ListOperations<K, V> {
 	 */
 	@Nullable
 	V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit);
+
+	/**
+	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value.<br>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @since 2.3
+	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
+	 */
+	@Nullable
+	default V rightPopAndLeftPush(K sourceKey, K destinationKey, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return rightPopAndLeftPush(sourceKey, destinationKey, TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+	}
 
 	RedisOperations<K, V> getOperations();
 }
