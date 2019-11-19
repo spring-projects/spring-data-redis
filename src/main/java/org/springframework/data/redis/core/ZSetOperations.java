@@ -225,7 +225,7 @@ public interface ZSetOperations<K, V> {
 	 * @param min
 	 * @param max
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
+	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	@Nullable
 	Set<V> reverseRangeByScore(K key, double min, double max);
