@@ -20,6 +20,9 @@ import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -526,12 +529,22 @@ public class RedisTemplateTests<K, V> {
 	@Test // DATAREDIS-526
 	public void testGetExpireMillis() {
 
-		assumeTrue(redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory
-				|| redisTemplate.getConnectionFactory() instanceof LettuceConnectionFactory);
-
 		K key = keyFactory.instance();
 		redisTemplate.boundValueOps(key).set(valueFactory.instance());
 		redisTemplate.expire(key, 1, TimeUnit.DAYS);
+
+		Long ttl = redisTemplate.getExpire(key, TimeUnit.HOURS);
+
+		assertThat(ttl).isGreaterThanOrEqualTo(23L);
+		assertThat(ttl).isLessThan(25L);
+	}
+
+	@Test // DATAREDIS-611
+	public void testGetExpireDuration() {
+
+		K key = keyFactory.instance();
+		redisTemplate.boundValueOps(key).set(valueFactory.instance());
+		redisTemplate.expire(key, Duration.ofDays(1));
 
 		Long ttl = redisTemplate.getExpire(key, TimeUnit.HOURS);
 
@@ -593,29 +606,20 @@ public class RedisTemplateTests<K, V> {
 	}
 
 	@Test
-	public void testGetExpireMillisNotSupported() {
-
-		assumeTrue(redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory);
-
-		K key1 = keyFactory.instance();
-		V value1 = valueFactory.instance();
-
-		assumeTrue(key1 instanceof String && value1 instanceof String);
-
-		StringRedisTemplate template2 = new StringRedisTemplate(redisTemplate.getConnectionFactory());
-		template2.boundValueOps((String) key1).set((String) value1);
-		template2.expire((String) key1, 5, TimeUnit.SECONDS);
-		long expire = template2.getExpire((String) key1, TimeUnit.MILLISECONDS);
-		// we should still get expire in milliseconds if requested
-		assertThat(expire > 1000 && expire <= 5000).isTrue();
-	}
-
-	@Test
 	public void testExpireAt() {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
 		redisTemplate.expireAt(key1, new Date(System.currentTimeMillis() + 5L));
+		waitFor(() -> (!redisTemplate.hasKey(key1)), 5L);
+	}
+
+	@Test // DATAREDIS-611
+	public void testExpireAtInstant() {
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		redisTemplate.boundValueOps(key1).set(value1);
+		redisTemplate.expireAt(key1, Instant.now().plus(5, ChronoUnit.MILLIS));
 		waitFor(() -> (!redisTemplate.hasKey(key1)), 5L);
 	}
 

@@ -15,10 +15,12 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * List operations bound to a certain key.
@@ -189,6 +191,24 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	V leftPop(long timeout, TimeUnit unit);
 
 	/**
+	 * Removes and returns first element from lists stored at the bound key . <br>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when timeout reached or used in pipeline / transaction.
+	 * @since 2.3
+	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
+	 */
+	@Nullable
+	default V leftPop(Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return leftPop(TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+	}
+
+	/**
 	 * Removes and returns last element in list stored at the bound key.
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -208,6 +228,24 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	V rightPop(long timeout, TimeUnit unit);
+
+	/**
+	 * Removes and returns last element from lists stored at the bound key. <br>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when timeout reached or used in pipeline / transaction.
+	 * @since 2.3
+	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
+	 */
+	@Nullable
+	default V rightPop(Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return rightPop(TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+	}
 
 	RedisOperations<K, V> getOperations();
 }

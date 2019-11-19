@@ -15,11 +15,14 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Operations over a Redis key. Useful for executing common key-'bound' operations to all implementations.
@@ -60,6 +63,22 @@ public interface BoundKeyOperations<K> {
 	/**
 	 * Sets the key time-to-live/expiration.
 	 *
+	 * @param timeout must not be {@literal null}.
+	 * @return true if expiration was set, false otherwise. {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	default Boolean expire(Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return expire(timeout.toMillis(), TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * Sets the key time-to-live/expiration.
+	 *
 	 * @param timeout expiration value
 	 * @param unit expiration unit
 	 * @return true if expiration was set, false otherwise. {@literal null} when used in pipeline / transaction.
@@ -75,6 +94,21 @@ public interface BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Boolean expireAt(Date date);
+
+	/**
+	 * Sets the key time-to-live/expiration.
+	 *
+	 * @param time expiration time.
+	 * @return true if expiration was set, false otherwise. {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	default Boolean expireAt(Instant expireAt) {
+
+		Assert.notNull(expireAt, "Timestamp must not be null");
+
+		return expireAt(Date.from(expireAt));
+	}
 
 	/**
 	 * Removes the expiration (if any) of the key.
