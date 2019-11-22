@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -213,18 +214,33 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		pool.destroy();
 	}
 
-	@Test
+	@Test // DATAREDIS-1062
 	public void testSelectNotShared() {
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
+		GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+		config.setMaxTotal(1);
+		config.setMaxIdle(1);
+		pool.setPoolConfig(config);
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
+		factory2.setDatabase(0);
 		factory2.setShutdownTimeout(0);
 		factory2.setShareNativeConnection(false);
 		factory2.afterPropertiesSet();
 		RedisConnection connection = factory2.getConnection();
+
 		connection.select(2);
+		connection.rPush("key".getBytes(), "value1".getBytes(), "value2".getBytes());
+		List<byte[]> bytes = connection.bLPop(1, "key".getBytes());
+		assertThat(bytes).hasSize(2);
 		connection.close();
+
+		connection = factory2.getConnection();
+		assertThat(connection.lLen("key".getBytes())).isEqualTo(0);
+		connection.select(2);
+		assertThat(connection.lLen("key".getBytes())).isEqualTo(1);
+
 		factory2.destroy();
 		pool.destroy();
 	}
