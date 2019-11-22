@@ -84,6 +84,7 @@ import org.springframework.util.ObjectUtils;
  * @author David Liu
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Tamil Selvan
  */
 public class LettuceConnection extends AbstractRedisConnection {
 
@@ -451,6 +452,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		if (asyncDedicatedConn != null) {
 			try {
+				if (customizedDatabaseIndex()) {
+					potentiallySelectDatabase(defaultDbIndex);
+				}
 				connectionProvider.release(asyncDedicatedConn);
 			} catch (RuntimeException ex) {
 				throw convertLettuceAccessException(ex);
@@ -946,12 +950,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	protected RedisClusterAsyncCommands<byte[], byte[]> getAsyncDedicatedConnection() {
 
 		if (asyncDedicatedConn == null) {
-
 			asyncDedicatedConn = doGetAsyncDedicatedConnection();
-
-			if (asyncDedicatedConn instanceof StatefulRedisConnection) {
-				((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync().select(dbIndex);
-			}
 		}
 
 		if (asyncDedicatedConn instanceof StatefulRedisConnection) {
@@ -965,6 +964,16 @@ public class LettuceConnection extends AbstractRedisConnection {
 				String.format("%s is not a supported connection type.", asyncDedicatedConn.getClass().getName()));
 	}
 
+	private boolean customizedDatabaseIndex() {
+		return defaultDbIndex != dbIndex;
+	}
+
+	private void potentiallySelectDatabase(int dbIndex) {
+		if (asyncDedicatedConn instanceof StatefulRedisConnection) {
+			((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync().select(dbIndex);
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	private RedisCommands<byte[], byte[]> getDedicatedRedisCommands() {
 		return (RedisCommands) getDedicatedConnection();
@@ -973,15 +982,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	RedisClusterCommands<byte[], byte[]> getDedicatedConnection() {
 
 		if (asyncDedicatedConn == null) {
-
 			asyncDedicatedConn = doGetAsyncDedicatedConnection();
-			
-			if (asyncDedicatedConn instanceof StatefulRedisConnection && dbIndex > 0) {
-				((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync().select(dbIndex);
-			}
-			else if (asyncDedicatedConn instanceof StatefulRedisConnection) {
-				((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync();
-			}
 		}
 
 		if (asyncDedicatedConn instanceof StatefulRedisConnection) {
@@ -997,7 +998,14 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	@SuppressWarnings("unchecked")
 	protected StatefulConnection<byte[], byte[]> doGetAsyncDedicatedConnection() {
-		return connectionProvider.getConnection(StatefulConnection.class);
+
+		StatefulConnection connection = connectionProvider.getConnection(StatefulConnection.class);
+
+		if (customizedDatabaseIndex()) {
+			potentiallySelectDatabase(dbIndex);
+		}
+
+		return connection;
 	}
 
 	io.lettuce.core.ScanCursor getScanCursor(long cursorId) {
