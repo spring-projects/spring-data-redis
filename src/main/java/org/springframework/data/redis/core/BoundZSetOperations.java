@@ -170,7 +170,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param min
 	 * @param max
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
+	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	@Nullable
 	Set<V> reverseRangeByScore(double min, double max);
