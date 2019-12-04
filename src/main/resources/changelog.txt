@@ -1,6 +1,12 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.14.RELEASE (2019-12-04)
+----------------------------------------------
+* DATAREDIS-1070 - Fix comment on ZSetOperations.reverseRangeByScore.
+* DATAREDIS-1068 - Release 2.1.14 (Lovelace SR14).
+
+
 Changes in version 2.2.2.RELEASE (2019-11-18)
 ---------------------------------------------
 * DATAREDIS-1067 - Documentation for MappingConfiguration uses wrong arguments.
@@ -1819,3 +1825,4 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
