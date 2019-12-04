@@ -1,6 +1,14 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.3.RELEASE (2019-12-04)
+---------------------------------------------
+* DATAREDIS-1070 - Fix comment on ZSetOperations.reverseRangeByScore.
+* DATAREDIS-1069 - Release 2.2.3 (Moore SR3).
+* DATAREDIS-1062 - Disable select database command before executing each command.
+* DATAREDIS-1055 - Upgrade to Lettuce 5.2.1.
+
+
 Changes in version 2.1.14.RELEASE (2019-12-04)
 ----------------------------------------------
 * DATAREDIS-1070 - Fix comment on ZSetOperations.reverseRangeByScore.
@@ -1825,4 +1833,5 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
