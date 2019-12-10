@@ -29,12 +29,13 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @since 1.7
  */
-public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListener implements
-		ApplicationEventPublisherAware {
+public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListener
+		implements ApplicationEventPublisherAware {
 
-	private static final Topic KEYEVENT_EXPIRED_TOPIC = new PatternTopic("__keyevent@*__:expired");
+	private static final String KEYEVENT_EXPIRED_TOPIC_PATTERN = "__keyevent@%s__:expired";
 
 	private @Nullable ApplicationEventPublisher publisher;
+	private @Nullable Integer database;
 
 	/**
 	 * Creates new {@link MessageListener} for {@code __keyevent@*__:expired} messages.
@@ -42,7 +43,22 @@ public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListe
 	 * @param listenerContainer must not be {@literal null}.
 	 */
 	public KeyExpirationEventMessageListener(RedisMessageListenerContainer listenerContainer) {
+		this(listenerContainer, null);
+	}
+
+	/**
+	 * Creates new {@link MessageListener} for {@code __keyevent@database__:expired} messages.
+	 *
+	 * @param listenerContainer must not be {@literal null}.
+	 * @param database the database index to listen to for keyspace notifications. Use {@literal null} or negative value
+	 *          for all.
+	 * @since 2.3
+	 */
+	public KeyExpirationEventMessageListener(RedisMessageListenerContainer listenerContainer,
+			@Nullable Integer database) {
+
 		super(listenerContainer);
+		this.database = database;
 	}
 
 	/*
@@ -51,7 +67,7 @@ public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListe
 	 */
 	@Override
 	protected void doRegister(RedisMessageListenerContainer listenerContainer) {
-		listenerContainer.addMessageListener(this, KEYEVENT_EXPIRED_TOPIC);
+		listenerContainer.addMessageListener(this, computeTopic(database()));
 	}
 
 	/*
@@ -75,6 +91,17 @@ public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListe
 		}
 	}
 
+	/**
+	 * Get the database index to listen to.
+	 *
+	 * @return can be {@literal null}.
+	 * @since 2.3
+	 */
+	@Nullable
+	public Integer database() {
+		return this.database;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.context.ApplicationEventPublisherAware#setApplicationEventPublisher(org.springframework.context.ApplicationEventPublisher)
@@ -82,5 +109,17 @@ public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListe
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.publisher = applicationEventPublisher;
+	}
+
+	/**
+	 * Compute the {@link Topic} for the actual subscription.
+	 *
+	 * @param database can be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	protected Topic computeTopic(@Nullable Integer database) {
+
+		return new PatternTopic(
+				String.format(KEYEVENT_EXPIRED_TOPIC_PATTERN, database != null && database >= 0 ? database : "*"));
 	}
 }

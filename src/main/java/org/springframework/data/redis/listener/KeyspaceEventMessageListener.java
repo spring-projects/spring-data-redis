@@ -40,7 +40,7 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 
 	private final RedisMessageListenerContainer listenerContainer;
 
-	private String keyspaceNotificationsConfigParameter = "EA";
+	private @Nullable String keyspaceNotificationsConfigParameter = "EA";
 
 	/**
 	 * Creates new {@link KeyspaceEventMessageListener}.
@@ -124,7 +124,7 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 	 * @param keyspaceNotificationsConfigParameter can be {@literal null}.
 	 * @since 1.8
 	 */
-	public void setKeyspaceNotificationsConfigParameter(String keyspaceNotificationsConfigParameter) {
+	public void setKeyspaceNotificationsConfigParameter(@Nullable String keyspaceNotificationsConfigParameter) {
 		this.keyspaceNotificationsConfigParameter = keyspaceNotificationsConfigParameter;
 	}
 

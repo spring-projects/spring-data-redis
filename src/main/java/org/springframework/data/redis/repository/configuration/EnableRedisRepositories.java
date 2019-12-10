@@ -159,7 +159,9 @@ public @interface EnableRedisRepositories {
 	Class<? extends KeyspaceConfiguration> keyspaceConfiguration() default KeyspaceConfiguration.class;
 
 	/**
-	 * Configure usage of {@link KeyExpirationEventMessageListener}.
+	 * Configure usage of {@link KeyExpirationEventMessageListener}. <br />
+	 * <strong>NOTE</strong> For more configuration options please use {@link EnableKeyspaceNotifications}.
+	 *
 	 *
 	 * @return
 	 * @since 1.8
@@ -168,7 +170,8 @@ public @interface EnableRedisRepositories {
 
 	/**
 	 * Configure the {@literal notify-keyspace-events} property if not already set. <br />
-	 * Use an empty {@link String} to keep (<b>not</b> alter) existing server configuration.
+	 * Use an empty {@link String} to keep (<b>not</b> alter) existing server configuration. <br />
+	 * <strong>NOTE</strong> For more configuration options please use {@link EnableKeyspaceNotifications}.
 	 *
 	 * @return {@literal Ex} by default.
 	 * @since 1.8

@@ -21,7 +21,6 @@ import java.util.Collection;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
@@ -123,6 +122,16 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 		assertThat(getKeyspaceNotificationsConfigParameter(beanDefintionRegistry)).isEqualTo("");
 	}
 
+	@Test // DATAREDIS-1075
+	public void explicitlEnableKeyspaceNotificationsAnnotationShouldBeCaptured() {
+
+		metadata = new StandardAnnotationMetadata(ConfigWithKeyspaceEventsEnabledViaAnnotation.class, true);
+		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
+
+		assertThat(getKeyspaceNotificationsConfigParameter(beanDefintionRegistry)).isEqualTo((Object) "KEA");
+		assertThat(getKeyspaceNotificationsDatabaseConfigParameter(beanDefintionRegistry)).isEqualTo((Object) 0);
+	}
+
 	private static void assertDoesNotHaveRepo(Class<?> repositoryInterface,
 			Collection<RepositoryConfiguration<RepositoryConfigurationSource>> configs) {
 
@@ -172,6 +181,11 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 				.getPropertyValue("keyspaceNotificationsConfigParameter").getValue();
 	}
 
+	private Object getKeyspaceNotificationsDatabaseConfigParameter(BeanDefinitionRegistry beanDefintionRegistry) {
+		return beanDefintionRegistry.getBeanDefinition("redisKeyValueAdapter").getPropertyValues()
+				.getPropertyValue("keyspaceNotificationsDatabase").getValue();
+	}
+
 	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP)
 	static class Config {
 
@@ -191,6 +205,13 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP,
 			keyspaceNotificationsConfigParameter = "")
 	static class ConfigWithEmptyConfigParameter {
+
+	}
+
+	@EnableRedisRepositories(considerNestedRepositories = true)
+	@EnableKeyspaceNotifications(enabled = EnableKeyspaceEvents.ON_STARTUP,
+			notifyKeyspaceEvents = "KEA", database = 0)
+	static class ConfigWithKeyspaceEventsEnabledViaAnnotation {
 
 	}
 

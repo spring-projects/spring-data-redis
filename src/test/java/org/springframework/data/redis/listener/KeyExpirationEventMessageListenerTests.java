@@ -27,7 +27,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -86,21 +85,8 @@ public class KeyExpirationEventMessageListenerTests {
 
 		byte[] key = ("to-expire:" + UUID.randomUUID().toString()).getBytes();
 
-		RedisConnection connection = connectionFactory.getConnection();
-		try {
-			connection.setEx(key, 2, "foo".getBytes());
+		setAndWaitForExpiry(key, connectionFactory.getConnection());
 
-			int iteration = 0;
-			while (connection.get(key) != null || iteration >= 3) {
-
-				Thread.sleep(2000);
-				iteration++;
-			}
-		} finally {
-			connection.close();
-		}
-
-		Thread.sleep(2000);
 		ArgumentCaptor<ApplicationEvent> captor = ArgumentCaptor.forClass(ApplicationEvent.class);
 
 		verify(publisherMock, times(1)).publishEvent(captor.capture());
@@ -125,5 +111,71 @@ public class KeyExpirationEventMessageListenerTests {
 
 		Thread.sleep(2000);
 		verifyZeroInteractions(publisherMock);
+	}
+
+	@Test // DATAREDIS-1075
+	public void databaseBoundListenerShouldNotReceiveEventsFromOtherDatabase() throws InterruptedException {
+
+		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+
+		listener = new KeyExpirationEventMessageListener(container, 0);
+		listener.setApplicationEventPublisher(publisher);
+		listener.init();
+
+		byte[] key = ("to-expire:" + UUID.randomUUID().toString()).getBytes();
+
+		RedisConnection connection = connectionFactory.getConnection();
+		setAndWaitForExpiry(key, 1, connection);
+
+		verify(publisherMock).publishEvent(any());
+		verify(publisher, never()).publishEvent(any());
+	}
+
+	@Test // DATAREDIS-1075
+	public void databaseBoundListenerShouldReceiveEventsFromSelectedDatabase() throws InterruptedException {
+
+		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+
+		listener = new KeyExpirationEventMessageListener(container, 1);
+		listener.setApplicationEventPublisher(publisher);
+		listener.init();
+
+		byte[] key = ("to-expire:" + UUID.randomUUID().toString()).getBytes();
+
+		RedisConnection connection = connectionFactory.getConnection();
+		setAndWaitForExpiry(key, 1, connection);
+
+		ArgumentCaptor<ApplicationEvent> captor = ArgumentCaptor.forClass(ApplicationEvent.class);
+
+		verify(publisherMock).publishEvent(any());
+		verify(publisherMock).publishEvent(captor.capture());
+		assertThat((byte[]) captor.getValue().getSource()).isEqualTo(key);
+	}
+
+	private void setAndWaitForExpiry(byte[] key, RedisConnection connection) throws InterruptedException {
+		setAndWaitForExpiry(key, null, connection);
+	}
+
+	private void setAndWaitForExpiry(byte[] key, Integer database, RedisConnection connection)
+			throws InterruptedException {
+
+		if (database != null) {
+			connection.select(database);
+		}
+
+		try {
+			connection.setEx(key, 2, "foo".getBytes());
+
+			int iteration = 0;
+			while (connection.get(key) != null || iteration >= 3) {
+
+				Thread.sleep(2000);
+				iteration++;
+			}
+		} finally {
+			connection.close();
+		}
+
+		Thread.sleep(2000);
 	}
 }
