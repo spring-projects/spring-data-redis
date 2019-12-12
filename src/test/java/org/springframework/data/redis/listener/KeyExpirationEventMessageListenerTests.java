@@ -20,13 +20,13 @@ import static org.mockito.Mockito.*;
 
 import java.util.UUID;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -37,7 +37,7 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 /**
  * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class KeyExpirationEventMessageListenerTests {
 
 	RedisMessageListenerContainer container;
@@ -46,8 +46,8 @@ public class KeyExpirationEventMessageListenerTests {
 
 	@Mock ApplicationEventPublisher publisherMock;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void beforeEach() {
 
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.afterPropertiesSet();
@@ -63,8 +63,8 @@ public class KeyExpirationEventMessageListenerTests {
 		listener.init();
 	}
 
-	@After
-	public void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 
 		RedisConnection connection = connectionFactory.getConnection();
 		try {
@@ -81,7 +81,7 @@ public class KeyExpirationEventMessageListenerTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void listenerShouldPublishEventCorrectly() throws InterruptedException {
+	void listenerShouldPublishEventCorrectly() throws InterruptedException {
 
 		byte[] key = ("to-expire:" + UUID.randomUUID().toString()).getBytes();
 
@@ -94,7 +94,7 @@ public class KeyExpirationEventMessageListenerTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void listenerShouldNotReactToDeleteEvents() throws InterruptedException {
+	void listenerShouldNotReactToDeleteEvents() throws InterruptedException {
 
 		byte[] key = ("to-delete:" + UUID.randomUUID().toString()).getBytes();
 
@@ -114,7 +114,7 @@ public class KeyExpirationEventMessageListenerTests {
 	}
 
 	@Test // DATAREDIS-1075
-	public void databaseBoundListenerShouldNotReceiveEventsFromOtherDatabase() throws InterruptedException {
+	void databaseBoundListenerShouldNotReceiveEventsFromOtherDatabase() throws InterruptedException {
 
 		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
 
@@ -132,7 +132,7 @@ public class KeyExpirationEventMessageListenerTests {
 	}
 
 	@Test // DATAREDIS-1075
-	public void databaseBoundListenerShouldReceiveEventsFromSelectedDatabase() throws InterruptedException {
+	void databaseBoundListenerShouldReceiveEventsFromSelectedDatabase() throws InterruptedException {
 
 		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
 
