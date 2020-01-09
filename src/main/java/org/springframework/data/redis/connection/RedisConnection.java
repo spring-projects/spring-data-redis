@@ -28,7 +28,7 @@ import org.springframework.dao.DataAccessException;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public interface RedisConnection extends RedisCommands {
+public interface RedisConnection extends RedisCommands, AutoCloseable {
 
 	/**
 	 * Get {@link RedisGeoCommands}.
