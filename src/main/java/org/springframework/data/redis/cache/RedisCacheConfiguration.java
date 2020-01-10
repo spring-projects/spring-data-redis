@@ -144,16 +144,35 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * Use the given prefix instead of the default one.
+	 * Use the given prefix instead of the default one. <br />
+	 * This option overrides the default cache name and is not recommended. {@link #prefixCacheNameWith(String)} or
+	 * {@link #computePrefixWith(CacheKeyPrefix)}. <br />
+	 * The generated cache key will be: {@code prefix + cache entry key}.
 	 *
 	 * @param prefix must not be {@literal null}.
 	 * @return new {@link RedisCacheConfiguration}.
+	 * @deprecated since 2.3. Use {@link #prefixCacheNameWith(String)} or {@link #computePrefixWith(CacheKeyPrefix)} instead.
 	 */
+	@Deprecated
 	public RedisCacheConfiguration prefixKeysWith(String prefix) {
 
 		Assert.notNull(prefix, "Prefix must not be null!");
 
 		return computePrefixWith((cacheName) -> prefix);
+	}
+
+	/**
+	 * Prefix the {@link RedisCache#getName() cache name} with the given value. <br />
+	 * The generated cache key will be: {@code prefix + cache name + "::" + cache entry key}.
+	 *
+	 * @param prefix the prefix to prepend to the cache name.
+	 * @return this.
+	 * @see #computePrefixWith(CacheKeyPrefix)
+	 * @see CacheKeyPrefix#prefixed(String)
+	 * @since 2.3
+	 */
+	public RedisCacheConfiguration prefixCacheNameWith(String prefix) {
+		return computePrefixWith(CacheKeyPrefix.prefixed(prefix));
 	}
 
 	/**

@@ -287,6 +287,22 @@ public class RedisCacheTests {
 		});
 	}
 
+	@Test // DATAREDIS-1041
+	public void prefixCacheNameCreatesCacheKeyCorrectly() {
+
+		RedisCache cacheWithCustomPrefix = new RedisCache("cache", new DefaultRedisCacheWriter(connectionFactory),
+				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
+						.prefixCacheNameWith("redis::"));
+
+		cacheWithCustomPrefix.put("key-1", sample);
+
+		doWithConnection(connection -> {
+
+			assertThat(connection.stringCommands().get("redis::cache::key-1".getBytes(StandardCharsets.UTF_8)))
+					.isEqualTo(binarySample);
+		});
+	}
+
 	@Test // DATAREDIS-715
 	public void fetchKeyWithComputedPrefixReturnsExpectedResult() {
 
