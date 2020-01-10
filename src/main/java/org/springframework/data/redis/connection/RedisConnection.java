@@ -27,6 +27,7 @@ import org.springframework.dao.DataAccessException;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author James Howe
  */
 public interface RedisConnection extends RedisCommands, AutoCloseable {
 
@@ -145,6 +146,7 @@ public interface RedisConnection extends RedisCommands, AutoCloseable {
 	 *
 	 * @throws DataAccessException
 	 */
+	@Override
 	void close() throws DataAccessException;
 
 	/**

@@ -52,6 +52,7 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConfiguration;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSocketConfiguration;
@@ -800,7 +801,9 @@ public class LettuceConnectionFactoryUnitTests {
 		connectionFactory.setValidateConnection(true);
 		connectionFactory.afterPropertiesSet();
 
-		connectionFactory.getConnection().close();
+		try (RedisConnection connection = connectionFactory.getConnection()) {
+			connection.ping();
+		}
 
 		verify(syncMock).ping();
 	}
