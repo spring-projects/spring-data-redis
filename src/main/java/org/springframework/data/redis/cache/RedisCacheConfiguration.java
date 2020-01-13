@@ -144,14 +144,15 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * Use the given prefix instead of the default one. <br />
-	 * This option overrides the default cache name and is not recommended. {@link #prefixCacheNameWith(String)} or
-	 * {@link #computePrefixWith(CacheKeyPrefix)}. <br />
+	 * Use the given prefix instead of using the cache name. <br />
+	 * This option replaces the cache name with {@code prefix} therefore we recommend rather using
+	 * {@link #prefixCacheNameWith(String)} or {@link #computePrefixWith(CacheKeyPrefix)} for more control. <br />
 	 * The generated cache key will be: {@code prefix + cache entry key}.
 	 *
 	 * @param prefix must not be {@literal null}.
 	 * @return new {@link RedisCacheConfiguration}.
-	 * @deprecated since 2.3. Use {@link #prefixCacheNameWith(String)} or {@link #computePrefixWith(CacheKeyPrefix)} instead.
+	 * @deprecated since 2.3. Use {@link #prefixCacheNameWith(String)} or {@link #computePrefixWith(CacheKeyPrefix)}
+	 *             instead.
 	 */
 	@Deprecated
 	public RedisCacheConfiguration prefixKeysWith(String prefix) {
@@ -176,12 +177,13 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * Use the given {@link CacheKeyPrefix} to compute the prefix for the actual Redis {@literal key} on the
-	 * {@literal cache name}.
+	 * Use the given {@link CacheKeyPrefix} to compute the prefix for the actual Redis {@literal key} given the
+	 * {@literal cache name} as function input.
 	 *
 	 * @param cacheKeyPrefix must not be {@literal null}.
 	 * @return new {@link RedisCacheConfiguration}.
 	 * @since 2.0.4
+	 * @see CacheKeyPrefix
 	 */
 	public RedisCacheConfiguration computePrefixWith(CacheKeyPrefix cacheKeyPrefix) {
 

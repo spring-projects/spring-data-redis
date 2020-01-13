@@ -30,7 +30,7 @@ public interface CacheKeyPrefix {
 
 	/**
 	 * Default separator.
-	 * 
+	 *
 	 * @since 2.3
 	 */
 	String SEPARATOR = "::";
@@ -54,9 +54,9 @@ public interface CacheKeyPrefix {
 	}
 
 	/**
-	 * Creates a {@link CacheKeyPrefix} scheme that prefixes cache keys with the given {@code prefix} prepended to the
-	 * {@code cacheName} followed by double colons. A cache named {@code myCache} with prefix {@code redis-} will result
-	 * in {@code redis-myCache::}.
+	 * Creates a {@link CacheKeyPrefix} scheme that prefixes cache keys with the given {@code prefix}. The prefix is
+	 * prepended to the {@code cacheName} followed by double colons. A prefix {@code redis-} with a cache named
+	 * {@code myCache} results in {@code redis-myCache::}.
 	 *
 	 * @param prefix must not be {@literal null}.
 	 * @return the default {@link CacheKeyPrefix} scheme.
