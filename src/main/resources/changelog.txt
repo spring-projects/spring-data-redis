@@ -1,6 +1,12 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.4.RELEASE (2020-01-15)
+---------------------------------------------
+* DATAREDIS-1083 - Update copyright years to 2020.
+* DATAREDIS-1074 - Release 2.2.4 (Moore SR4).
+
+
 Changes in version 2.1.15.RELEASE (2020-01-15)
 ----------------------------------------------
 * DATAREDIS-1083 - Update copyright years to 2020.
@@ -1839,6 +1845,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
