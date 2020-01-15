@@ -1,6 +1,12 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.15.RELEASE (2020-01-15)
+----------------------------------------------
+* DATAREDIS-1083 - Update copyright years to 2020.
+* DATAREDIS-1073 - Release 2.1.15 (Lovelace SR15).
+
+
 Changes in version 2.2.3.RELEASE (2019-12-04)
 ---------------------------------------------
 * DATAREDIS-1070 - Fix comment on ZSetOperations.reverseRangeByScore.
@@ -1833,5 +1839,6 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
