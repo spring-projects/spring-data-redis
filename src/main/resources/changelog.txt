@@ -1,6 +1,28 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.3.0.M1 (2020-01-16)
+----------------------------------------
+* DATAREDIS-1086 - Upgrade to Jedis 3.2.0.
+* DATAREDIS-1083 - Update copyright years to 2020.
+* DATAREDIS-1070 - Fix comment on ZSetOperations.reverseRangeByScore.
+* DATAREDIS-1067 - Documentation for MappingConfiguration uses wrong arguments.
+* DATAREDIS-1066 - Improve documentation for Jedis pooling configuration.
+* DATAREDIS-1064 - ListOperations.rPush/lPush with pivot comments wrong.
+* DATAREDIS-1063 - Enable building with JDK11+.
+* DATAREDIS-1062 - Disable select database command before executing each command.
+* DATAREDIS-1060 - Redis password should not automatically be applied to sentinel.
+* DATAREDIS-1058 - Typo in assert message.
+* DATAREDIS-1055 - Upgrade to Lettuce 5.2.1.
+* DATAREDIS-1053 - ListenToChannel doesn't close connection / channels on doFinally.
+* DATAREDIS-1049 - Exception raised when use empty string with keyspaceNotificationsConfigParameter with @EnableRedisRepositories annotation.
+* DATAREDIS-1048 - typo: xml tag incomplete.
+* DATAREDIS-1045 - Redis Sentinel Authentication not supported.
+* DATAREDIS-1041 - RedisCacheConfiguration.prefixKeysWith(…)  does not consider cache name.
+* DATAREDIS-1040 - Release 2.3 M1 (Neumann).
+* DATAREDIS-367 - RedisConnection extend AutoCloseable for try-with-resources.
+
+
 Changes in version 2.2.4.RELEASE (2020-01-15)
 ---------------------------------------------
 * DATAREDIS-1083 - Update copyright years to 2020.
@@ -1845,6 +1867,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
