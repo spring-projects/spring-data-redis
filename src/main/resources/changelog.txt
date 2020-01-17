@@ -1,6 +1,11 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.3.0.M2 (2020-01-17)
+----------------------------------------
+* DATAREDIS-1090 - Release 2.3 M2 (Neumann).
+
+
 Changes in version 2.3.0.M1 (2020-01-16)
 ----------------------------------------
 * DATAREDIS-1086 - Upgrade to Jedis 3.2.0.
@@ -1867,6 +1872,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
