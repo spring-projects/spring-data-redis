@@ -47,6 +47,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
  * Default implementation of {@link StreamReceiver}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
 class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver<K, V> {
@@ -134,7 +135,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		}
 
 		BiFunction<K, ReadOffset, Flux<? extends Record<?, ?>>> readFunction = getConsumeReadFunction(consumer,
-				this.readOptions);
+				this.readOptions.autoAcknowledge());
 
 		return Flux.defer(() -> {
 
@@ -157,7 +158,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		}
 
 		BiFunction<K, ReadOffset, Flux<? extends Record<?, ?>>> readFunction = getConsumeReadFunction(consumer,
-				this.readOptions.noack());
+				this.readOptions);
 
 		return Flux.defer(() -> {
 			PollState pollState = PollState.consumer(consumer, streamOffset.getOffset());

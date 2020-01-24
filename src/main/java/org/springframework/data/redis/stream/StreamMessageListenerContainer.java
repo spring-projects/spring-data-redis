@@ -104,6 +104,7 @@ import org.springframework.util.ErrorHandler;
  * </pre>
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @param <K> Stream key and Stream field type.
  * @param <V> Stream value type.
  * @since 2.2
@@ -196,7 +197,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 * @see ReadOffset#lastConsumed()
 	 */
 	default Subscription receive(Consumer consumer, StreamOffset<K> streamOffset, StreamListener<K, V> listener) {
-		return register(StreamReadRequest.builder(streamOffset).consumer(consumer).build(), listener);
+		return register(StreamReadRequest.builder(streamOffset).consumer(consumer).autoAck(false).build(), listener);
 	}
 
 	/**

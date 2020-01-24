@@ -18,11 +18,14 @@ package org.springframework.data.redis.stream;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
+import io.lettuce.core.codec.StringCodec;
+import io.lettuce.core.output.NestedMultiOutput;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +41,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnection;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -50,11 +54,13 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamMessageListenerContainerOptions;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamReadRequest;
+import org.springframework.util.NumberUtils;
 
 /**
  * Integration tests for {@link StreamMessageListenerContainer}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class StreamMessageListenerContainerIntegrationTests {
 
@@ -103,8 +109,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	public void shouldReceiveMapMessages() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
-				.create(connectionFactory,
-				containerOptions);
+				.create(connectionFactory, containerOptions);
 		BlockingQueue<MapRecord<String, String, String>> queue = new LinkedBlockingQueue<>();
 
 		container.start();
@@ -174,12 +179,11 @@ public class StreamMessageListenerContainerIntegrationTests {
 		assertThat(subscription.isActive()).isFalse();
 	}
 
-	@Test // DATAREDIS-864
+	@Test // DATAREDIS-864, DATAREDIS-1079
 	public void shouldReceiveMessagesInConsumerGroup() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
-				.create(connectionFactory,
-				containerOptions);
+				.create(connectionFactory, containerOptions);
 		BlockingQueue<MapRecord<String, String, String>> queue = new LinkedBlockingQueue<>();
 		RecordId messageId = redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
 		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from(messageId), "my-group");
@@ -196,6 +200,34 @@ public class StreamMessageListenerContainerIntegrationTests {
 		assertThat(message).isNotNull();
 		assertThat(message.getValue()).containsEntry("key", "value2");
 
+		assertThat(getNumberOfPending("my-stream", "my-group")).isOne();
+
+		cancelAwait(subscription);
+	}
+
+	@Test // DATAREDIS-1079
+	public void shouldReceiveAndAckMessagesInConsumerGroup() throws InterruptedException {
+
+		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+				.create(connectionFactory, containerOptions);
+		BlockingQueue<MapRecord<String, String, String>> queue = new LinkedBlockingQueue<>();
+		RecordId messageId = redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
+		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from(messageId), "my-group");
+
+		container.start();
+		Subscription subscription = container.receiveAutoAck(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create("my-stream", ReadOffset.lastConsumed()), queue::add);
+
+		subscription.await(Duration.ofSeconds(2));
+
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value2"));
+
+		MapRecord<String, String, String> message = queue.poll(1, TimeUnit.SECONDS);
+		assertThat(message).isNotNull();
+		assertThat(message.getValue()).containsEntry("key", "value2");
+
+		assertThat(getNumberOfPending("my-stream", "my-group")).isZero();
+
 		cancelAwait(subscription);
 	}
 
@@ -207,8 +239,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 		StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> containerOptions = StreamMessageListenerContainerOptions
 				.builder().errorHandler(failures::add).pollTimeout(Duration.ofMillis(100)).build();
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
-				.create(connectionFactory,
-				containerOptions);
+				.create(connectionFactory, containerOptions);
 
 		container.start();
 		Subscription subscription = container.receive(Consumer.from("my-group", "my-consumer"),
@@ -229,8 +260,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 		BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
-				.create(connectionFactory,
-				containerOptions);
+				.create(connectionFactory, containerOptions);
 
 		StreamReadRequest<String> readRequest = StreamReadRequest
 				.builder(StreamOffset.create("my-stream", ReadOffset.lastConsumed())).errorHandler(failures::add)
@@ -260,8 +290,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 		BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
-				.create(connectionFactory,
-				containerOptions);
+				.create(connectionFactory, containerOptions);
 
 		StreamReadRequest<String> readRequest = StreamReadRequest
 				.builder(StreamOffset.create("my-stream", ReadOffset.lastConsumed())) //
@@ -291,8 +320,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	public void cancelledStreamShouldNotReceiveMessages() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
-				.create(connectionFactory,
-				containerOptions);
+				.create(connectionFactory, containerOptions);
 		BlockingQueue<MapRecord<String, String, String>> queue = new LinkedBlockingQueue<>();
 
 		container.start();
@@ -310,8 +338,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	public void containerRestartShouldRestartSubscription() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
-				.create(connectionFactory,
-				containerOptions);
+				.create(connectionFactory, containerOptions);
 		BlockingQueue<MapRecord<String, String, String>> queue = new LinkedBlockingQueue<>();
 
 		container.start();
@@ -343,6 +370,14 @@ public class StreamMessageListenerContainerIntegrationTests {
 		while (subscription.isActive()) {
 			Thread.sleep(10);
 		}
+	}
+
+	private Integer getNumberOfPending(String stream, String group) {
+
+		String value = ((List) ((LettuceConnection) connectionFactory.getConnection()).execute("XPENDING",
+				new NestedMultiOutput(StringCodec.UTF8), new byte[][] { stream.getBytes(), group.getBytes() })).iterator()
+						.next().toString();
+		return NumberUtils.parseNumber(value, Integer.class);
 	}
 
 	@Data
