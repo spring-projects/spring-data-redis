@@ -45,6 +45,7 @@ import org.springframework.util.ErrorHandler;
  * This message container creates long-running tasks that are executed on {@link Executor}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
 class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implements StreamMessageListenerContainer<K, V> {
@@ -223,7 +224,7 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 
 			ConsumerStreamReadRequest<K> consumerStreamRequest = (ConsumerStreamReadRequest<K>) streamRequest;
 
-			StreamReadOptions readOptions = consumerStreamRequest.isAutoAck() ? this.readOptions : this.readOptions.noack();
+			StreamReadOptions readOptions = consumerStreamRequest.isAutoAck() ? this.readOptions.autoAcknowledge() : this.readOptions;
 			Consumer consumer = consumerStreamRequest.getConsumer();
 
 			if (this.containerOptions.getHashMapper() != null) {
