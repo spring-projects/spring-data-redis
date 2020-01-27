@@ -243,6 +243,7 @@ public interface ListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @return can be {@literal null}.
+	 * @throws IllegalArgumentException if the timeout is {@literal null} or negative.
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
@@ -330,6 +331,7 @@ public interface ListOperations<K, V> {
 	 * @param destinationKey must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @return can be {@literal null}.
+	 * @throws IllegalArgumentException if the timeout is {@literal null} or negative.
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 */

@@ -289,13 +289,13 @@ public interface RedisOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if the timeout is {@literal null}.
 	 * @since 2.3
 	 */
 	@Nullable
 	default Boolean expire(K key, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
-		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
 
 		return TimeoutUtils.hasMillis(timeout) ? expire(key, timeout.toMillis(), TimeUnit.MILLISECONDS)
 				: expire(key, timeout.getSeconds(), TimeUnit.SECONDS);
@@ -317,6 +317,7 @@ public interface RedisOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param expireAt must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
 	 * @since 2.3
 	 */
 	@Nullable

@@ -64,14 +64,15 @@ public interface BoundKeyOperations<K> {
 	 * Sets the key time-to-live/expiration.
 	 *
 	 * @param timeout must not be {@literal null}.
-	 * @return true if expiration was set, false otherwise. {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if expiration was set, {@literal false} otherwise. {@literal null} when used in pipeline /
+	 *         transaction.
+	 * @throws IllegalArgumentException if the timeout is {@literal null}.
 	 * @since 2.3
 	 */
 	@Nullable
 	default Boolean expire(Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
-		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
 
 		return expire(timeout.toMillis(), TimeUnit.MILLISECONDS);
 	}
@@ -98,14 +99,16 @@ public interface BoundKeyOperations<K> {
 	/**
 	 * Sets the key time-to-live/expiration.
 	 *
-	 * @param time expiration time.
-	 * @return true if expiration was set, false otherwise. {@literal null} when used in pipeline / transaction.
+	 * @param expireAt expiration time.
+	 * @return {@literal true} if expiration was set, {@literal false} otherwise. {@literal null} when used in pipeline /
+	 *         transaction.
+	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
 	 * @since 2.3
 	 */
 	@Nullable
 	default Boolean expireAt(Instant expireAt) {
 
-		Assert.notNull(expireAt, "Timestamp must not be null");
+		Assert.notNull(expireAt, "ExpireAt must not be null");
 
 		return expireAt(Date.from(expireAt));
 	}

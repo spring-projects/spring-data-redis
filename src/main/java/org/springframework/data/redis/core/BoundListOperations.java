@@ -196,6 +196,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param timeout must not be {@literal null}.
 	 * @return {@literal null} when timeout reached or used in pipeline / transaction.
+	 * @throws IllegalArgumentException if the timeout is {@literal null} or negative.
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
@@ -235,6 +236,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param timeout must not be {@literal null}.
 	 * @return {@literal null} when timeout reached or used in pipeline / transaction.
+	 * @throws IllegalArgumentException if the timeout is {@literal null} or negative.
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */

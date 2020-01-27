@@ -131,8 +131,9 @@ public class DefaultListOperationsTests<K, V> {
 		assertThat(listOps.range(key, 0, -1)).contains(v3, v2, v1);
 	}
 
-	@Test
+	@Test // DATAREDIS-611
 	public void testLeftPopDuration() {
+
 		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 		assumeTrue(valueFactory instanceof StringObjectFactory);
@@ -146,8 +147,9 @@ public class DefaultListOperationsTests<K, V> {
 		assertThat(listOps.leftPop(key, Duration.ofSeconds(1))).isEqualTo(v1);
 	}
 
-	@Test
+	@Test // DATAREDIS-611
 	public void testRightPopDuration() {
+
 		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 		assumeTrue(valueFactory instanceof StringObjectFactory);
