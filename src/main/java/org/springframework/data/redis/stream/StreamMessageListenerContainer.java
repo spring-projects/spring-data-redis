@@ -145,8 +145,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 * @return the new {@link StreamMessageListenerContainer}.
 	 */
 	static <K, V extends Record<K, ?>> StreamMessageListenerContainer<K, V> create(
-			RedisConnectionFactory connectionFactory,
-			StreamMessageListenerContainerOptions<K, V> options) {
+			RedisConnectionFactory connectionFactory, StreamMessageListenerContainerOptions<K, V> options) {
 
 		Assert.notNull(connectionFactory, "RedisConnectionFactory must not be null!");
 		Assert.notNull(options, "StreamMessageListenerContainerOptions must not be null!");
@@ -183,8 +182,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 * {@link org.springframework.data.redis.core.StreamOperations#acknowledge(Object, String, String...)} after
 	 * processing.
 	 * <p/>
-	 * Errors during {@link org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage} retrieval lead to
-	 * {@link Subscription#cancel() cancellation} of the underlying task.
+	 * Errors during {@link Record} retrieval lead to {@link Subscription#cancel() cancellation} of the underlying task.
 	 * <p/>
 	 * On {@link StreamMessageListenerContainer#stop()} all {@link Subscription subscriptions} are cancelled prior to
 	 * shutting down the container itself.
@@ -197,7 +195,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 * @see ReadOffset#lastConsumed()
 	 */
 	default Subscription receive(Consumer consumer, StreamOffset<K> streamOffset, StreamListener<K, V> listener) {
-		return register(StreamReadRequest.builder(streamOffset).consumer(consumer).autoAck(false).build(), listener);
+		return register(StreamReadRequest.builder(streamOffset).consumer(consumer).autoAcknowledge(false).build(),
+				listener);
 	}
 
 	/**
@@ -207,8 +206,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 * <p/>
 	 * Every message is acknowledged when received.
 	 * <p/>
-	 * Errors during {@link org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage} retrieval lead to
-	 * {@link Subscription#cancel() cancellation} of the underlying task.
+	 * Errors during {@link Record} retrieval lead to {@link Subscription#cancel() cancellation} of the underlying task.
 	 * <p/>
 	 * On {@link StreamMessageListenerContainer#stop()} all {@link Subscription subscriptions} are cancelled prior to
 	 * shutting down the container itself.
@@ -221,7 +219,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 * @see ReadOffset#lastConsumed()
 	 */
 	default Subscription receiveAutoAck(Consumer consumer, StreamOffset<K> streamOffset, StreamListener<K, V> listener) {
-		return register(StreamReadRequest.builder(streamOffset).consumer(consumer).autoAck(true).build(), listener);
+		return register(StreamReadRequest.builder(streamOffset).consumer(consumer).autoAcknowledge(true).build(), listener);
 	}
 
 	/**
@@ -229,15 +227,13 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 * running} the {@link Subscription} will be added and run immediately, otherwise it'll be scheduled and started once
 	 * the container is actually {@link StreamMessageListenerContainer#start() started}.
 	 * <p/>
-	 * Errors during {@link org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage} are tested
-	 * against test {@link StreamReadRequest#getCancelSubscriptionOnError() cancellation predicate} whether to cancel the
-	 * underlying task.
+	 * Errors during {@link Record} are tested against test {@link StreamReadRequest#getCancelSubscriptionOnError()
+	 * cancellation predicate} whether to cancel the underlying task.
 	 * <p/>
 	 * On {@link StreamMessageListenerContainer#stop()} all {@link Subscription subscriptions} are cancelled prior to
 	 * shutting down the container itself.
 	 * <p />
-	 * Errors during {@link org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage} retrieval are
-	 * delegated to the given {@link StreamReadRequest#getErrorHandler()}.
+	 * Errors during {@link Record} retrieval are delegated to the given {@link StreamReadRequest#getErrorHandler()}.
 	 *
 	 * @param streamRequest must not be {@literal null}.
 	 * @param listener must not be {@literal null}.
@@ -320,7 +316,20 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			return consumer;
 		}
 
+		/**
+		 * @return
+		 * @deprecated since 2.2.5, use {@link #isAutoAcknowledge()} for improved readability instead.
+		 */
+		@Deprecated
 		public boolean isAutoAck() {
+			return isAutoAcknowledge();
+		}
+
+		/**
+		 * @return
+		 * @since 2.2.5
+		 */
+		public boolean isAutoAcknowledge() {
 			return autoAck;
 		}
 	}
@@ -449,8 +458,23 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 * @param autoAck {@literal true} (default) to auto-acknowledge received messages or {@literal false} for external
 		 *          acknowledgement.
 		 * @return {@code this} {@link ConsumerStreamReadRequestBuilder}.
+		 * @deprecated since 2.2.5, use {@link #autoAcknowledge(boolean)} instead.
 		 */
+		@Deprecated
 		public ConsumerStreamReadRequestBuilder<K> autoAck(boolean autoAck) {
+			return autoAcknowledge(autoAck);
+		}
+
+		/**
+		 * Configure auto-acknowledgement for stream message consumption. This method is an alias for
+		 * {@link #autoAck(boolean)} for improved readability.
+		 *
+		 * @param autoAck {@literal true} (default) to auto-acknowledge received messages or {@literal false} for external
+		 *          acknowledgement.
+		 * @return {@code this} {@link ConsumerStreamReadRequestBuilder}.
+		 * @since 2.2.5
+		 */
+		public ConsumerStreamReadRequestBuilder<K> autoAcknowledge(boolean autoAck) {
 
 			this.autoAck = autoAck;
 			return this;
@@ -487,10 +511,9 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 
 		@SuppressWarnings("unchecked")
 		private StreamMessageListenerContainerOptions(Duration pollTimeout, @Nullable Integer batchSize,
-				RedisSerializer<K> keySerializer,
-				RedisSerializer<Object> hashKeySerializer, RedisSerializer<Object> hashValueSerializer,
-				@Nullable Class<?> targetType, @Nullable HashMapper<V, ?, ?> hashMapper, ErrorHandler errorHandler,
-				Executor executor) {
+				RedisSerializer<K> keySerializer, RedisSerializer<Object> hashKeySerializer,
+				RedisSerializer<Object> hashValueSerializer, @Nullable Class<?> targetType,
+				@Nullable HashMapper<V, ?, ?> hashMapper, ErrorHandler errorHandler, Executor executor) {
 			this.pollTimeout = pollTimeout;
 			this.batchSize = batchSize;
 			this.keySerializer = keySerializer;
@@ -754,8 +777,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 */
 		public StreamMessageListenerContainerOptions<K, V> build() {
 			return new StreamMessageListenerContainerOptions<>(pollTimeout, batchSize, keySerializer, hashKeySerializer,
-					hashValueSerializer, targetType, hashMapper,
-					errorHandler, executor);
+					hashValueSerializer, targetType, hashMapper, errorHandler, executor);
 		}
 	}
 }

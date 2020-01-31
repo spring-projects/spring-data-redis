@@ -224,7 +224,8 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 
 			ConsumerStreamReadRequest<K> consumerStreamRequest = (ConsumerStreamReadRequest<K>) streamRequest;
 
-			StreamReadOptions readOptions = consumerStreamRequest.isAutoAck() ? this.readOptions.autoAcknowledge() : this.readOptions;
+			StreamReadOptions readOptions = consumerStreamRequest.isAutoAcknowledge() ? this.readOptions.autoAcknowledge()
+					: this.readOptions;
 			Consumer consumer = consumerStreamRequest.getConsumer();
 
 			if (this.containerOptions.getHashMapper() != null) {

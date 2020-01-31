@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 
 /**
  * Options for reading messages from a Redis Stream.
- * 
+ *
  * @author Mark Paluch
  * @author Christoph Strobl
  * @see 2.2
@@ -58,18 +58,21 @@ public class StreamReadOptions {
 	}
 
 	/**
-	 * Enable auto-acknowledgement by setting the {@code NOACK} flag when reading in the context of a consumer group.
+	 * Enable auto-acknowledgement by setting the {@code NOACK} flag when reading in the context of a consumer group. This
+	 * method is an alias for {@link #autoAcknowledge()} for readability reasons.
 	 *
 	 * @return {@link StreamReadOptions} with {@code noack} applied.
 	 */
 	public StreamReadOptions noack() {
-		return new StreamReadOptions(block, count, true);
+		return autoAcknowledge();
 	}
 
 	/**
-	 * Enable auto-acknowledgement by setting the {@code NOACK} flag when reading in the context of a consumer group.
+	 * Enable auto-acknowledgement by setting the {@code NOACK} flag when reading in the context of a consumer group. This
+	 * method is an alias for {@link #noack()} for readability reasons.
 	 *
 	 * @return new instance of {@link StreamReadOptions} with {@code noack} applied.
+	 * @since 2.2.5
 	 */
 	public StreamReadOptions autoAcknowledge() {
 		return new StreamReadOptions(block, count, true);
@@ -80,7 +83,7 @@ public class StreamReadOptions {
 	 * read.
 	 *
 	 * @param timeout the timeout for the blocking read, must not be {@literal null} or negative.
-	 * @return {@link StreamReadOptions} with {@code block} applied.
+	 * @return new instance of {@link StreamReadOptions} with {@code block} applied.
 	 */
 	public StreamReadOptions block(Duration timeout) {
 
