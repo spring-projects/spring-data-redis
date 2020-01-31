@@ -372,11 +372,11 @@ public class StreamMessageListenerContainerIntegrationTests {
 		}
 	}
 
-	private Integer getNumberOfPending(String stream, String group) {
+	private int getNumberOfPending(String stream, String group) {
 
 		String value = ((List) ((LettuceConnection) connectionFactory.getConnection()).execute("XPENDING",
-				new NestedMultiOutput(StringCodec.UTF8), new byte[][] { stream.getBytes(), group.getBytes() })).iterator()
-						.next().toString();
+				new NestedMultiOutput<>(StringCodec.UTF8), new byte[][] { stream.getBytes(), group.getBytes() })).get(0)
+						.toString();
 		return NumberUtils.parseNumber(value, Integer.class);
 	}
 
