@@ -17,7 +17,6 @@ package org.springframework.data.redis.core;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.lang.reflect.Proxy;
 import java.nio.ByteBuffer;
@@ -205,7 +204,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 			return postProcessResult(result, conn, false);
 
-		}, ReactiveRedisConnection::closeLater, ReactiveRedisConnection::closeLater);
+		}, ReactiveRedisConnection::closeLater);
 	}
 
 	/*
