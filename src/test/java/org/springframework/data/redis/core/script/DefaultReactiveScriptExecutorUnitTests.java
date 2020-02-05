@@ -18,6 +18,7 @@ package org.springframework.data.redis.core.script;
 import static org.mockito.Mockito.*;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -37,6 +38,8 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 /**
+ * Unit tests for {@link DefaultReactiveScriptExecutor}.
+ *
  * @author Mark Paluch
  * @author Christoph Strobl
  */
@@ -56,6 +59,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 
 		when(connectionFactoryMock.getReactiveConnection()).thenReturn(connectionMock);
 		when(connectionMock.scriptingCommands()).thenReturn(scriptingCommandsMock);
+		when(connectionMock.closeLater()).thenReturn(Mono.empty());
 
 		executor = new DefaultReactiveScriptExecutor<>(connectionFactoryMock, RedisSerializationContext.string());
 	}
@@ -108,7 +112,8 @@ public class DefaultReactiveScriptExecutorUnitTests {
 
 		StepVerifier.create(execute).expectNext("FOO").verifyComplete();
 
-		verify(connectionMock).close();
+		verify(connectionMock).closeLater();
+		verify(connectionMock, never()).close();
 	}
 
 	@Test // DATAREDIS-683
@@ -119,7 +124,8 @@ public class DefaultReactiveScriptExecutorUnitTests {
 
 		StepVerifier.create(executor.execute(SCRIPT)).expectError().verify();
 
-		verify(connectionMock).close();
+		verify(connectionMock).closeLater();
+		verify(connectionMock, never()).close();
 	}
 
 	@Test // DATAREDIS-683
