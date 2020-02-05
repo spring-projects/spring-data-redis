@@ -70,7 +70,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.just(ByteBuffer.wrap("FOO".getBytes())));
 
-		StepVerifier.create(executor.execute(SCRIPT)).expectNext("FOO").verifyComplete();
+		executor.execute(SCRIPT).as(StepVerifier::create).expectNext("FOO").verifyComplete();
 
 		verify(scriptingCommandsMock).evalSha(anyString(), any(ReturnType.class), anyInt());
 		verify(scriptingCommandsMock, never()).eval(any(), any(ReturnType.class), anyInt());
@@ -85,7 +85,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 		when(scriptingCommandsMock.eval(any(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.just(ByteBuffer.wrap("FOO".getBytes())));
 
-		StepVerifier.create(executor.execute(SCRIPT)).expectNext("FOO").verifyComplete();
+		executor.execute(SCRIPT).as(StepVerifier::create).expectNext("FOO").verifyComplete();
 
 		verify(scriptingCommandsMock).evalSha(anyString(), any(ReturnType.class), anyInt());
 		verify(scriptingCommandsMock).eval(any(), any(ReturnType.class), anyInt());
@@ -97,7 +97,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn(Flux
 				.error(new UnsupportedOperationException("NOSCRIPT No matching script. Please use EVAL.", new Exception())));
 
-		StepVerifier.create(executor.execute(SCRIPT)).expectError(UnsupportedOperationException.class).verify();
+		executor.execute(SCRIPT).as(StepVerifier::create).verifyError(UnsupportedOperationException.class);
 	}
 
 	@Test // DATAREDIS-683
@@ -110,7 +110,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 
 		verify(connectionMock, never()).close();
 
-		StepVerifier.create(execute).expectNext("FOO").verifyComplete();
+		execute.as(StepVerifier::create).expectNext("FOO").verifyComplete();
 
 		verify(connectionMock).closeLater();
 		verify(connectionMock, never()).close();
@@ -122,7 +122,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.error(new RuntimeException()));
 
-		StepVerifier.create(executor.execute(SCRIPT)).expectError().verify();
+		executor.execute(SCRIPT).as(StepVerifier::create).verifyError();
 
 		verify(connectionMock).closeLater();
 		verify(connectionMock, never()).close();
@@ -136,6 +136,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.just(returnValue));
 
-		StepVerifier.create(executor.execute(RedisScript.of("return KEYS[0]"))).expectNext(returnValue).verifyComplete();
+		executor.execute(RedisScript.of("return KEYS[0]")).as(StepVerifier::create).expectNext(returnValue)
+				.verifyComplete();
 	}
 }
