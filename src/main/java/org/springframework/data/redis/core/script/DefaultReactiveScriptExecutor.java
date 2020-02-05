@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core.script;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -161,15 +162,9 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 		Assert.notNull(action, "Callback object must not be null");
 
 		ReactiveRedisConnectionFactory factory = getConnectionFactory();
-		ReactiveRedisConnection conn = factory.getReactiveConnection();
 
-		try {
-			return Flux.defer(() -> action.doInRedis(conn)).doFinally(signal -> conn.close());
-		} catch (RuntimeException e) {
-
-			conn.close();
-			throw e;
-		}
+		return Flux.usingWhen(Mono.fromSupplier(factory::getReactiveConnection), action::doInRedis,
+				ReactiveRedisConnection::closeLater);
 	}
 
 	public ReactiveRedisConnectionFactory getConnectionFactory() {
