@@ -20,8 +20,8 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.codec.RedisCodec;
-import io.lettuce.core.masterslave.MasterSlave;
-import io.lettuce.core.masterslave.StatefulRedisMasterSlaveConnection;
+import io.lettuce.core.masterreplica.MasterReplica;
+import io.lettuce.core.masterreplica.StatefulRedisMasterReplicaConnection;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -72,8 +72,7 @@ class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider
 
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
 
-			// See https://github.com/lettuce-io/lettuce-core/issues/845 for MasterSlave -> MasterReplica change.
-			StatefulRedisMasterSlaveConnection<?, ?> connection = MasterSlave.connect(client, codec, nodes);
+			StatefulRedisMasterReplicaConnection<?, ?> connection = MasterReplica.connect(client, codec, nodes);
 			readFrom.ifPresent(connection::setReadFrom);
 
 			return connectionType.cast(connection);
@@ -91,8 +90,7 @@ class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider
 
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
 
-			// See https://github.com/lettuce-io/lettuce-core/issues/845 for MasterSlave -> MasterReplica change.
-			CompletableFuture<? extends StatefulRedisMasterSlaveConnection<?, ?>> connection = MasterSlave
+			CompletableFuture<? extends StatefulRedisMasterReplicaConnection<?, ?>> connection = MasterReplica
 					.connectAsync(client, codec, nodes);
 
 			connection.thenApply(it -> {

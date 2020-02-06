@@ -18,9 +18,9 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.*;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
-import io.lettuce.core.protocol.LettuceCharsets;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -452,7 +452,7 @@ abstract public class LettuceConverters extends Converters {
 			return args;
 		}
 		if (params.getByPattern() != null) {
-			args.by(new String(params.getByPattern(), LettuceCharsets.ASCII));
+			args.by(new String(params.getByPattern(), StandardCharsets.US_ASCII));
 		}
 		if (params.getLimit() != null) {
 			args.limit(params.getLimit().getStart(), params.getLimit().getCount());
@@ -460,7 +460,7 @@ abstract public class LettuceConverters extends Converters {
 		if (params.getGetPattern() != null) {
 			byte[][] pattern = params.getGetPattern();
 			for (byte[] bs : pattern) {
-				args.get(new String(bs, LettuceCharsets.ASCII));
+				args.get(new String(bs, StandardCharsets.US_ASCII));
 			}
 		}
 		if (params.getOrder() != null) {
@@ -602,8 +602,8 @@ abstract public class LettuceConverters extends Converters {
 						|| ObjectUtils.nullSafeEquals(value, "-")) {
 					return Range.Boundary.unbounded();
 				}
-				return inclusive ? Range.Boundary.including(value.toString().getBytes(LettuceCharsets.UTF8))
-						: Range.Boundary.excluding(value.toString().getBytes(LettuceCharsets.UTF8));
+				return inclusive ? Range.Boundary.including(value.toString().getBytes(StandardCharsets.UTF_8))
+						: Range.Boundary.excluding(value.toString().getBytes(StandardCharsets.UTF_8));
 			}
 
 			return inclusive ? Range.Boundary.including((byte[]) value) : Range.Boundary.excluding((byte[]) value);
