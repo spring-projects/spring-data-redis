@@ -21,6 +21,7 @@ import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.resource.ClientResources;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.pool2.BasePooledObjectFactory;
@@ -139,7 +140,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	}
 
 	private RedisURI createSimpleHostRedisURI() {
-		return RedisURI.Builder.redis(hostName, port).withTimeout(timeout, TimeUnit.MILLISECONDS).build();
+		return RedisURI.Builder.redis(hostName, port).withTimeout(Duration.ofMillis(timeout)).build();
 	}
 
 	/*

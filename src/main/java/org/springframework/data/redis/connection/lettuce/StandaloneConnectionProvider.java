@@ -22,6 +22,8 @@ import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
+import io.lettuce.core.masterreplica.MasterReplica;
+import io.lettuce.core.masterreplica.StatefulRedisMasterReplicaConnection;
 import io.lettuce.core.masterslave.MasterSlave;
 import io.lettuce.core.masterslave.StatefulRedisMasterSlaveConnection;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
@@ -156,8 +158,7 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 
 	private StatefulRedisConnection masterReplicaConnection(RedisURI redisUri, ReadFrom readFrom) {
 
-		// See https://github.com/lettuce-io/lettuce-core/issues/845 for MasterSlave -> MasterReplica change.
-		StatefulRedisMasterSlaveConnection<?, ?> connection = MasterSlave.connect(client, codec, redisUri);
+		StatefulRedisMasterReplicaConnection<?, ?> connection = MasterReplica.connect(client, codec, redisUri);
 		connection.setReadFrom(readFrom);
 
 		return connection;
@@ -166,7 +167,8 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 	private CompletionStage<StatefulRedisConnection<?, ?>> masterReplicaConnectionAsync(RedisURI redisUri,
 			ReadFrom readFrom) {
 
-		CompletableFuture<? extends StatefulRedisMasterSlaveConnection<?, ?>> connection = MasterSlave.connectAsync(client,
+		CompletableFuture<? extends StatefulRedisMasterReplicaConnection<?, ?>> connection = MasterReplica
+				.connectAsync(client,
 				codec, redisUri);
 
 		return connection.thenApply(conn -> {
