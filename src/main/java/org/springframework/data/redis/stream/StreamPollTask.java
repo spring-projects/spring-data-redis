@@ -148,11 +148,11 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 				Thread.currentThread().interrupt();
 			} catch (RuntimeException e) {
 
-				errorHandler.handleError(e);
-
 				if (cancelSubscriptionOnError.test(e)) {
 					cancel();
 				}
+
+				errorHandler.handleError(e);
 			}
 		} while (pollState.isSubscriptionActive());
 	}
