@@ -1,6 +1,18 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.3.0.M3 (2020-02-12)
+----------------------------------------
+* DATAREDIS-1098 - Upgrade to Lettuce 5.2.2.
+* DATAREDIS-1097 - Improve synchronization on failure in StreamMessageListenerContainer.
+* DATAREDIS-1096 - Move off deprecated Lettuce API.
+* DATAREDIS-1095 - ReactiveRedisConnection close is block.
+* DATAREDIS-1092 - Release 2.3 M3 (Neumann).
+* DATAREDIS-1079 - StreamMessageListenerContainer autoAck does not work.
+* DATAREDIS-611 - Improve Template API by using Java 8 types.
+* DATAREDIS-538 - Non-public inner classes causes IllegalAccessException when accessing @TimeToLive methods.
+
+
 Changes in version 2.3.0.M2 (2020-01-17)
 ----------------------------------------
 * DATAREDIS-1090 - Release 2.3 M2 (Neumann).
@@ -1872,6 +1884,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
