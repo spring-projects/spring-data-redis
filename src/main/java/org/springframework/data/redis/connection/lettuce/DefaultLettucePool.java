@@ -22,7 +22,6 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
@@ -55,7 +54,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	private String hostName = "localhost";
 	private int port = 6379;
 	private @Nullable String password;
-	private long timeout = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
+	private long timeout = Duration.ofMinutes(1).toMillis();
 	private @Nullable RedisSentinelConfiguration sentinelConfiguration;
 	private @Nullable ClientResources clientResources;
 
@@ -120,7 +119,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 			this.client = RedisClient.create(getRedisURI());
 		}
 
-		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
+		client.setDefaultTimeout(Duration.ofMillis(timeout));
 		this.internalPool = new GenericObjectPool<>(new LettuceFactory(client, dbIndex), poolConfig);
 	}
 
