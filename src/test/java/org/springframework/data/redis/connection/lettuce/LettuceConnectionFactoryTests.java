@@ -15,8 +15,11 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assume.*;
 
 import io.lettuce.core.EpollProvider;
@@ -37,6 +40,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
@@ -435,7 +439,8 @@ public class LettuceConnectionFactoryTests {
 		assumeTrue(EpollProvider.isAvailable() || KqueueProvider.isAvailable());
 		assumeTrue(new File(SettingsUtils.getSocket()).exists());
 
-		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.create();
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder()
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SettingsUtils.socketConfiguration(), configuration);
 		factory.setShareNativeConnection(false);
@@ -455,7 +460,7 @@ public class LettuceConnectionFactoryTests {
 				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0, is(true));
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
-				.build();
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
 		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(
 				SettingsUtils.getHost()).node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
@@ -490,8 +495,8 @@ public class LettuceConnectionFactoryTests {
 
 		RedisConnection connection = factory.getConnection();
 
-		assertThatThrownBy(() -> connection.pSubscribe((message, pattern) -> {
-		}, "foo".getBytes())).isInstanceOf(RedisSystemException.class).hasCauseInstanceOf(UnsupportedOperationException.class);
+		assertThatThrownBy(() -> connection.pSubscribe((message, pattern) -> {}, "foo".getBytes()))
+				.isInstanceOf(RedisSystemException.class).hasCauseInstanceOf(UnsupportedOperationException.class);
 
 		connection.close();
 		factory.destroy();
