@@ -114,6 +114,7 @@ public class LettuceConnectionFactory
 	private boolean convertPipelineAndTxResults = true;
 
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost", 6379);
+	private PipeliningFlushPolicy pipeliningFlushPolicy = PipeliningFlushPolicy.flushEachCommand();
 
 	private @Nullable RedisConfiguration configuration;
 
@@ -393,7 +394,10 @@ public class LettuceConnectionFactory
 			@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, LettuceConnectionProvider connectionProvider,
 			long timeout, int database) {
 
-		return new LettuceConnection(sharedConnection, connectionProvider, timeout, database);
+		LettuceConnection connection = new LettuceConnection(sharedConnection, connectionProvider, timeout, database);
+		connection.setPipeliningFlushPolicy(this.pipeliningFlushPolicy);
+
+		return connection;
 	}
 
 	/**
@@ -414,8 +418,11 @@ public class LettuceConnectionFactory
 			LettuceConnectionProvider connectionProvider, ClusterTopologyProvider topologyProvider,
 			ClusterCommandExecutor clusterCommandExecutor, Duration commandTimeout) {
 
-		return new LettuceClusterConnection(sharedConnection, connectionProvider, topologyProvider, clusterCommandExecutor,
-				commandTimeout);
+		LettuceClusterConnection connection = new LettuceClusterConnection(sharedConnection, connectionProvider,
+				topologyProvider, clusterCommandExecutor, commandTimeout);
+		connection.setPipeliningFlushPolicy(this.pipeliningFlushPolicy);
+
+		return connection;
 	}
 
 	/*
@@ -550,6 +557,21 @@ public class LettuceConnectionFactory
 	@Deprecated
 	public void setPort(int port) {
 		standaloneConfig.setPort(port);
+	}
+
+	/**
+	 * Configures the flushing policy when using pipelining. Defaults to {@link PipeliningFlushPolicy#flushEachCommand()
+	 * flush on each command}.
+	 *
+	 * @param pipeliningFlushPolicy the flushing policy to control when commands get written to the Redis connection.
+	 * @see LettuceConnection#openPipeline()
+	 * @see StatefulRedisConnection#flushCommands()
+	 */
+	public void setPipeliningFlushPolicy(PipeliningFlushPolicy pipeliningFlushPolicy) {
+
+		Assert.notNull(pipeliningFlushPolicy, "PipeliningFlushingPolicy must not be null!");
+
+		this.pipeliningFlushPolicy = pipeliningFlushPolicy;
 	}
 
 	/**
