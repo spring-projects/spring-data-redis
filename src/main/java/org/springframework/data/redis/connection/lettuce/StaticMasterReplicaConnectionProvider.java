@@ -22,6 +22,7 @@ import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.masterslave.MasterSlave;
 import io.lettuce.core.masterslave.StatefulRedisMasterSlaveConnection;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -69,6 +70,10 @@ class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider
 	 */
 	@Override
 	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
+
+		if (connectionType.equals(StatefulRedisPubSubConnection.class)) {
+			throw new UnsupportedOperationException("Pub/Sub connections not supported with Master/Replica configurations");
+		}
 
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
 
