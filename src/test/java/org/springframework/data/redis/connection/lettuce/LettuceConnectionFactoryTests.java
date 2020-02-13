@@ -475,6 +475,28 @@ public class LettuceConnectionFactoryTests {
 		factory.destroy();
 	}
 
+	@Test // DATAREDIS-1093
+	public void pubSubDoesNotSupportMasterReplicaConnections() {
+
+		assumeTrue(String.format("No replicas connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
+				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0);
+
+		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(
+				SettingsUtils.getHost()).node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache);
+		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		factory.afterPropertiesSet();
+
+		RedisConnection connection = factory.getConnection();
+
+		assertThatThrownBy(() -> connection.pSubscribe((message, pattern) -> {
+		}, "foo".getBytes())).isInstanceOf(RedisSystemException.class).hasCauseInstanceOf(UnsupportedOperationException.class);
+
+		connection.close();
+		factory.destroy();
+	}
+
 	@Test // DATAREDIS-762, DATAREDIS-869
 	public void factoryUsesElastiCacheMasterWithoutMaster() {
 

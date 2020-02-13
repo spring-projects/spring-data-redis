@@ -27,6 +27,7 @@ import org.springframework.util.Assert;
  * Master / Replica configuration to nodes know to not change address. Eg. when connecting to
  * <a href="https://aws.amazon.com/documentation/elasticache/">AWS ElastiCache with Read Replicas</a>. <br/>
  * Note: Redis is undergoing a nomenclature change where the term replica is used synonymously to slave.
+ * Please also note that a Master/Replica connection cannot be used for Pub/Sub operations.
  *
  * @author Mark Paluch
  * @author Christoph Strobl

@@ -133,7 +133,7 @@ class WriteToMasterReadFromReplicaConfiguration {
 }
 ----
 
-TIP: For environments reporting non-public addresses through the `INFO` command (for example, when using AWS), use `RedisStaticMasterReplicaConfiguration` instead of `RedisStandaloneConfiguration`.
+TIP: For environments reporting non-public addresses through the `INFO` command (for example, when using AWS), use `RedisStaticMasterReplicaConfiguration` instead of `RedisStandaloneConfiguration`. Please note that `RedisStaticMasterReplicaConfiguration` does not support Pub/Sub because of missing Pub/Sub message propagation across individual servers.
 
 [[redis:sentinel]]
 == Redis Sentinel Support
