@@ -22,8 +22,9 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
- * @deprecated use {@link GenericObjectPoolConfig} instead. Will be removed in {@literal 1.4}.
+ * @deprecated use {@link GenericObjectPoolConfig} instead. Will be removed in a future revision.
  */
+@Deprecated
 public class PoolConfig extends GenericObjectPoolConfig {
 
 	public PoolConfig() {
