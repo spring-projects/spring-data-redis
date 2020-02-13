@@ -852,6 +852,7 @@ public class LettuceConnectionFactoryUnitTests {
 				return connectionProviderMock;
 			}
 		};
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.setEagerInitialization(true);
 
 		connectionFactory.afterPropertiesSet();
