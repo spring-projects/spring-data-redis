@@ -435,7 +435,8 @@ public class LettuceConnectionFactoryTests {
 		assumeTrue(EpollProvider.isAvailable() || KqueueProvider.isAvailable());
 		assumeTrue(new File(SettingsUtils.getSocket()).exists());
 
-		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.create();
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder()
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SettingsUtils.socketConfiguration(), configuration);
 		factory.setShareNativeConnection(false);
@@ -455,7 +456,7 @@ public class LettuceConnectionFactoryTests {
 				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0);
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
-				.build();
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
 		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(
 				SettingsUtils.getHost()).node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);

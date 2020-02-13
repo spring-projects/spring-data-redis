@@ -34,6 +34,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
@@ -62,6 +63,7 @@ class CacheTestParams {
 
 		// Lettuce Standalone
 		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(config);
+		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		lettuceConnectionFactory.afterPropertiesSet();
 		factoryList.add(new FixDamnedJunitParameterizedNameForConnectionFactory(lettuceConnectionFactory, ""));
 
@@ -78,6 +80,7 @@ class CacheTestParams {
 
 			// Lettuce Cluster
 			LettuceConnectionFactory lettuceClusterConnectionFactory = new LettuceConnectionFactory(clusterConfiguration);
+			lettuceClusterConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 			lettuceClusterConnectionFactory.afterPropertiesSet();
 
 			factoryList
@@ -101,13 +104,10 @@ class CacheTestParams {
 		GenericJackson2JsonRedisSerializer jackson2Serializer = new GenericJackson2JsonRedisSerializer();
 		JdkSerializationRedisSerializer jdkSerializer = new JdkSerializationRedisSerializer();
 
-		return connectionFactories()
-				.stream().flatMap(factory -> Arrays
-						.asList( //
-								new Object[] { factory, new FixDamnedJunitParameterizedNameForRedisSerializer(jdkSerializer) }, //
-								new Object[] { factory, new FixDamnedJunitParameterizedNameForRedisSerializer(jackson2Serializer) }, //
-								new Object[] { factory, new FixDamnedJunitParameterizedNameForRedisSerializer(oxmSerializer) })
-						.stream())
+		return connectionFactories().stream().flatMap(factory -> Arrays.asList( //
+				new Object[] { factory, new FixDamnedJunitParameterizedNameForRedisSerializer(jdkSerializer) }, //
+				new Object[] { factory, new FixDamnedJunitParameterizedNameForRedisSerializer(jackson2Serializer) }, //
+				new Object[] { factory, new FixDamnedJunitParameterizedNameForRedisSerializer(oxmSerializer) }).stream())
 				.collect(Collectors.toList());
 	}
 
