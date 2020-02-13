@@ -54,7 +54,8 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	private final RedisOperations<String, Double> generalOps;
 
 	/**
-	 * Constructs a new {@link RedisAtomicDouble} instance. Uses the value existing in Redis or 0 if none is found.
+	 * Constructs a new {@link RedisAtomicDouble} instance. Uses the value existing in Redis or {@code 0} if none is
+	 * found.
 	 *
 	 * @param redisCounter Redis key of this counter.
 	 * @param factory connection factory.
@@ -64,11 +65,11 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Constructs a new {@link RedisAtomicDouble} instance.
+	 * Constructs a new {@link RedisAtomicDouble} instance with a {@code initialValue} that overwrites the existing value.
 	 *
 	 * @param redisCounter Redis key of this counter.
 	 * @param factory connection factory.
-	 * @param initialValue initial value to set if the Redis key is absent.
+	 * @param initialValue initial value to set.
 	 */
 	public RedisAtomicDouble(String redisCounter, RedisConnectionFactory factory, double initialValue) {
 		this(redisCounter, factory, Double.valueOf(initialValue));
@@ -109,10 +110,14 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	/**
-	 * Constructs a new {@link RedisAtomicDouble} instance. Note: You need to configure the given {@code template} with
-	 * appropriate {@link RedisSerializer} for the key and value. As an alternative one could use the
-	 * {@link #RedisAtomicDouble(String, RedisConnectionFactory, Double)} constructor which uses appropriate default
-	 * serializers.
+	 * Constructs a new {@link RedisAtomicDouble} instance with a {@code initialValue} that overwrites the existing value
+	 * at {@code redisCounter}.
+	 * <p>
+	 * Note: You need to configure the given {@code template} with appropriate {@link RedisSerializer} for the key and
+	 * value.
+	 * <p>
+	 * As an alternative one could use the {@link #RedisAtomicDouble(String, RedisConnectionFactory, Double)} constructor
+	 * which uses appropriate default serializers.
 	 *
 	 * @param redisCounter Redis key of this counter.
 	 * @param template the template

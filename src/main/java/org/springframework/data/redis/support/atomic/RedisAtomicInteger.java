@@ -55,7 +55,8 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	private final RedisOperations<String, Integer> generalOps;
 
 	/**
-	 * Constructs a new {@link RedisAtomicInteger} instance. Uses the value existing in Redis or 0 if none is found.
+	 * Constructs a new {@link RedisAtomicInteger} instance. Uses the value existing in Redis or {@code 0} if none is
+	 * found.
 	 *
 	 * @param redisCounter Redis key of this counter.
 	 * @param factory connection factory.
@@ -65,18 +66,20 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Constructs a new {@link RedisAtomicInteger} instance.
+	 * Constructs a new {@link RedisAtomicInteger} instance with a {@code initialValue} that overwrites the existing
+	 * value.
 	 *
 	 * @param redisCounter Redis key of this counter.
 	 * @param factory connection factory.
-	 * @param initialValue initial value to set if the Redis key is absent.
+	 * @param initialValue initial value to set.
 	 */
 	public RedisAtomicInteger(String redisCounter, RedisConnectionFactory factory, int initialValue) {
 		this(redisCounter, factory, Integer.valueOf(initialValue));
 	}
 
 	/**
-	 * Constructs a new {@link RedisAtomicInteger} instance. Uses the value existing in Redis or 0 if none is found.
+	 * Constructs a new {@link RedisAtomicInteger} instance. Uses the value existing in Redis or {@code 0} if none is
+	 * found.
 	 *
 	 * @param redisCounter Redis key of this counter.
 	 * @param template the template.
@@ -87,10 +90,14 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Constructs a new {@link RedisAtomicInteger} instance. Note: You need to configure the given {@code template} with
-	 * appropriate {@link RedisSerializer} for the key and value. As an alternative one could use the
-	 * {@link #RedisAtomicInteger(String, RedisConnectionFactory, Integer)} constructor which uses appropriate default
-	 * serializers.
+	 * Constructs a new {@link RedisAtomicInteger} instance instance with a {@code initialValue} that overwrites the
+	 * existing value.
+	 * <p>
+	 * Note: You need to configure the given {@code template} with appropriate {@link RedisSerializer} for the key and
+	 * value.
+	 * <p>
+	 * As an alternative one could use the {@link #RedisAtomicInteger(String, RedisConnectionFactory, Integer)}
+	 * constructor which uses appropriate default serializers.
 	 *
 	 * @param redisCounter Redis key of this counter.
 	 * @param template the template.
