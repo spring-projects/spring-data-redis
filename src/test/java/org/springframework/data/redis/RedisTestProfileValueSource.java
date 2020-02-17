@@ -129,4 +129,18 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 		}
 		return INSTANCE.get(key) != null ? INSTANCE.get(key).equals(value) : value == null;
 	}
+
+	public static boolean atLeast(String key, String value) {
+
+		if (INSTANCE == null) {
+			INSTANCE = new RedisTestProfileValueSource();
+		}
+
+		String current = INSTANCE.get(key);
+		if(current == null) {
+			return value == null;
+		}
+
+		return org.springframework.data.util.Version.parse(current).isGreaterThanOrEqualTo(org.springframework.data.util.Version.parse(value));
+	}
 }

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -182,6 +184,40 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 		return createMono(connection -> connection.xGroupDestroy(rawKey(key), group));
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, java.lang.String, org.springframework.data.domain.Range, java.lang.Long)
+	 */
+	@Override
+	public Mono<PendingMessages> pending(K key, String group, Range<?> range, Long count) {
+
+		ByteBuffer rawKey = rawKey(key);
+		return createMono(connection -> connection.xPending(rawKey, group, range, count));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, org.springframework.data.redis.connection.stream.Consumer, org.springframework.data.domain.Range, java.lang.Long)
+	 */
+	@Override
+	public Mono<PendingMessages> pending(K key, Consumer consumer, Range<?> range, Long count) {
+
+		ByteBuffer rawKey = rawKey(key);
+		return createMono(connection -> connection.xPending(rawKey, consumer, range, count));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, java.lang.String)
+	 */
+	@Override
+	public Mono<PendingMessagesSummary> pending(K key, String group) {
+
+		ByteBuffer rawKey = rawKey(key);
+		return createMono(connection -> connection.xPending(rawKey, group));
+	}
+
 
 	/*
 	 * (non-Javadoc)

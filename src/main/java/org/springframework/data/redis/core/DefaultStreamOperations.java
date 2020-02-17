@@ -29,6 +29,8 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.RecordId;
@@ -181,6 +183,39 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, java.lang.String, org.springframework.data.domain.Range, java.lang.Long)
+	 */
+	@Override
+	public PendingMessages pending(K key, String group, Range<?> range, Long count) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.xPending(rawKey, group, range, count), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, org.springframework.data.redis.connection.stream.Consumer, org.springframework.data.domain.Range, java.lang.Long)
+	 */
+	@Override
+	public PendingMessages pending(K key, Consumer consumer, Range<?> range, Long count) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.xPending(rawKey, consumer, range, count), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, java.lang.String)
+	 */
+	@Override
+	public PendingMessagesSummary pending(K key, String group) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.xPending(rawKey, group), true);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.StreamOperations#size(java.lang.Object)
 	 */
 	@Override
@@ -279,7 +314,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return hashValueSerializer() != null;
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private byte[] serialize(Object value, RedisSerializer serializer) {
 
 		Object _value = value;
@@ -303,7 +338,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		public final List<MapRecord<K, HK, HV>> doInRedis(RedisConnection connection) {
 
 			List<ByteRecord> raw = inRedis(connection);
-			if(raw == null) {
+			if (raw == null) {
 				return Collections.emptyList();
 			}
 

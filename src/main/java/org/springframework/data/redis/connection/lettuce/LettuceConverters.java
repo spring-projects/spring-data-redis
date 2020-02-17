@@ -18,11 +18,16 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.*;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
+import io.lettuce.core.models.stream.PendingMessage;
+import io.lettuce.core.models.stream.PendingMessages;
+import io.lettuce.core.models.stream.PendingParser;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
@@ -64,6 +69,9 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
+import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -71,6 +79,7 @@ import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -108,6 +117,8 @@ abstract public class LettuceConverters extends Converters {
 	private static final Converter<KeyValue<Object, Object>, Object> KEY_VALUE_UNWRAPPER;
 	private static final ListConverter<KeyValue<Object, Object>, Object> KEY_VALUE_LIST_UNWRAPPER;
 	private static final Converter<TransactionResult, List<Object>> TRANSACTION_RESULT_UNWRAPPER;
+	private static final BiFunction<List<Object>, String, org.springframework.data.redis.connection.stream.PendingMessages> PENDING_MESSAGES_CONVERTER;
+	private static final BiFunction<List<Object>, String, PendingMessagesSummary> PENDING_MESSAGES_SUMMARY_CONVERTER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -308,6 +319,70 @@ abstract public class LettuceConverters extends Converters {
 		KEY_VALUE_LIST_UNWRAPPER = new ListConverter<>(KEY_VALUE_UNWRAPPER);
 
 		TRANSACTION_RESULT_UNWRAPPER = transactionResult -> transactionResult.stream().collect(Collectors.toList());
+
+		PENDING_MESSAGES_CONVERTER = (source, groupName) -> {
+
+			List<Object> target = source.stream().map(LettuceConverters::preConvertNativeValues).collect(Collectors.toList());
+			List<PendingMessage> pendingMessages = PendingParser.parseRange(target);
+
+			List<org.springframework.data.redis.connection.stream.PendingMessage> messages = pendingMessages.stream()
+					.map(it -> {
+
+						RecordId id = RecordId.of(it.getId());
+						Consumer consumer = Consumer.from(groupName, it.getConsumer());
+
+						return new org.springframework.data.redis.connection.stream.PendingMessage(id, consumer,
+								Duration.ofMillis(it.getMsSinceLastDelivery()), it.getRedeliveryCount());
+
+					}).collect(Collectors.toList());
+
+			return new org.springframework.data.redis.connection.stream.PendingMessages(groupName, messages);
+
+		};
+
+		PENDING_MESSAGES_SUMMARY_CONVERTER = (source, groupName) -> {
+
+			List<Object> target = source.stream().map(LettuceConverters::preConvertNativeValues).collect(Collectors.toList());
+
+			PendingMessages pendingMessages = PendingParser.parse(target);
+			org.springframework.data.domain.Range<String> range = org.springframework.data.domain.Range.open(
+					pendingMessages.getMessageIds().getLower().getValue(), pendingMessages.getMessageIds().getUpper().getValue());
+
+			return new PendingMessagesSummary(groupName, pendingMessages.getCount(), range,
+					pendingMessages.getConsumerMessageCount());
+		};
+	}
+
+	/**
+	 * We need to convert values into the correct target type since lettuce will give us {@link ByteBuffer} or arrays but
+	 * the parser requires us to have them as {@link String} or numeric values. Oh and {@literal null} values aren't real
+	 * good citizens as well, so we make them empty strings instead - see it works - somehow ;P
+	 * 
+	 * @param value dont't get me started om this.
+	 * @return preconverted values that Lettuce parsers are able to understand \ö/.
+	 */
+	private static Object preConvertNativeValues(Object value) {
+
+		if (value instanceof ByteBuffer || value instanceof byte[]) {
+
+			byte[] targetArray = value instanceof ByteBuffer ? ByteUtils.getBytes((ByteBuffer) value) : (byte[]) value;
+			String tmp = toString(targetArray);
+
+			try {
+				return NumberUtils.parseNumber(tmp, Long.class);
+			} catch (NumberFormatException e) {
+				return tmp;
+			}
+		}
+		if (value instanceof List) {
+			List<Object> targetList = new ArrayList<>();
+			for (Object it : (List) value) {
+				targetList.add(preConvertNativeValues(it));
+			}
+			return targetList;
+		}
+
+		return value != null ? value : "";
 	}
 
 	public static List<Tuple> toTuple(List<byte[]> list) {
@@ -1040,6 +1115,32 @@ abstract public class LettuceConverters extends Converters {
 	 */
 	static long getUpperBoundIndex(org.springframework.data.domain.Range<Long> range) {
 		return getUpperBound(range).orElse(INDEXED_RANGE_END);
+	}
+
+	/**
+	 * Convert the raw lettuce xpending result to {@link PendingMessages}.
+	 *
+	 * @param groupName the group name
+	 * @param range the range of messages requested
+	 * @param source the raw lettuce response.
+	 * @return
+	 * @since 2.3
+	 */
+	static org.springframework.data.redis.connection.stream.PendingMessages toPendingMessages(String groupName,
+			org.springframework.data.domain.Range<?> range, List<Object> source) {
+		return PENDING_MESSAGES_CONVERTER.apply(source, groupName).withinRange(range);
+	}
+
+	/**
+	 * Convert the raw lettuce xpending result to {@link PendingMessagesSummary}.
+	 * 
+	 * @param groupName
+	 * @param source the raw lettuce response.
+	 * @return
+	 * @since 2.3
+	 */
+	static PendingMessagesSummary toPendingMessagesInfo(String groupName, List<Object> source) {
+		return PENDING_MESSAGES_SUMMARY_CONVERTER.apply(source, groupName);
 	}
 
 	/**
