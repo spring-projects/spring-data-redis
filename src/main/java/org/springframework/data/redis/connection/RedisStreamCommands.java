@@ -23,6 +23,7 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
 
 /**
  * Stream-specific Redis commands.
@@ -161,6 +162,212 @@ public interface RedisStreamCommands {
 	 */
 	@Nullable
 	Long xLen(byte[] key);
+
+	/**
+	 * Obtain the {@link PendingMessagesSummary} for a given {@literal consumer group}.
+	 * 
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @return a summary of pending messages within the given {@literal consumer group} or {@literal null} when used in
+	 *         pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	PendingMessagesSummary xPending(byte[] key, String groupName);
+
+	/**
+	 * Obtained detailed information about all pending messages for a given {@link Consumer}.
+	 * 
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param consumer the consumer to fetch {@link PendingMessages} for. Must not be {@literal null}.
+	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	default PendingMessages xPending(byte[] key, Consumer consumer) {
+		return xPending(key, consumer.getGroup(), consumer.getName());
+	}
+
+	/**
+	 * Obtained detailed information about all pending messages for a given {@literal consumer}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param consumerName the consumer to fetch {@link PendingMessages} for. Must not be {@literal null}.
+	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	default PendingMessages xPending(byte[] key, String groupName, String consumerName) {
+		return xPending(key, groupName, XPendingOptions.unbounded().consumer(consumerName));
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} within a
+	 * {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
+	 *         transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	default PendingMessages xPending(byte[] key, String groupName, Range<?> range, Long count) {
+		return xPending(key, groupName, XPendingOptions.range(range, count));
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
+	 * {@link Consumer} within a {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param consumer the name of the {@link Consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	default PendingMessages xPending(byte[] key, Consumer consumer, Range<?> range, Long count) {
+		return xPending(key, consumer.getGroup(), consumer.getName(), range, count);
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
+	 * {@literal consumer} within a {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param consumerName the name of the {@literal consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @return pending messages for the given {@literal consumer} in given {@literal consumer group} or {@literal null}
+	 *         when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	default PendingMessages xPending(byte[] key, String groupName, String consumerName, Range<?> range, Long count) {
+		return xPending(key, groupName, XPendingOptions.range(range, count).consumer(consumerName));
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} applying given {@link XPendingOptions
+	 * options}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param options the options containing {@literal range}, {@literal consumer} and {@literal count}. Must not be
+	 *          {@literal null}.
+	 * @return pending messages matching given criteria or {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	PendingMessages xPending(byte[] key, String groupName, XPendingOptions options);
+
+	/**
+	 * Value Object holding parameters for obtaining pending messages.
+	 *
+	 * @author Christoph Strobl
+	 * @since 2.3
+	 */
+	class XPendingOptions {
+
+		private final @Nullable String consumerName;
+		private final Range<?> range;
+		private final @Nullable Long count;
+
+		private XPendingOptions(@Nullable String consumerName, Range<?> range, @Nullable Long count) {
+
+			this.range = range;
+			this.count = count;
+			this.consumerName = consumerName;
+		}
+
+		/**
+		 * Create new {@link XPendingOptions} with an unbounded {@link Range} ({@literal - +}).
+		 * 
+		 * @return new instance of {@link XPendingOptions}.
+		 */
+		public static XPendingOptions unbounded() {
+			return new XPendingOptions(null, Range.unbounded(), null);
+		}
+
+		/**
+		 * Create new {@link XPendingOptions} with an unbounded {@link Range} ({@literal - +}).
+		 *
+		 * @param count the max number of messages to return. Must not be {@literal null}.
+		 * @return new instance of {@link XPendingOptions}.
+		 */
+		public static XPendingOptions unbounded(Long count) {
+			return new XPendingOptions(null, Range.unbounded(), count);
+		}
+
+		/**
+		 * Create new {@link XPendingOptions} with given {@link Range} and limit.
+		 * 
+		 * @return new instance of {@link XPendingOptions}.
+		 */
+		public static XPendingOptions range(Range<?> range, Long count) {
+			return new XPendingOptions(null, range, count);
+		}
+
+		/**
+		 * Append given consumer.
+		 * 
+		 * @param consumerName must not be {@literal null}.
+		 * @return new instance of {@link XPendingOptions}.
+		 */
+		public XPendingOptions consumer(String consumerName) {
+			return new XPendingOptions(consumerName, range, count);
+		}
+
+		/**
+		 * @return never {@literal null}.
+		 */
+		public Range<?> getRange() {
+			return range;
+		}
+
+		/**
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public Long getCount() {
+			return count;
+		}
+
+		/**
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public String getConsumerName() {
+			return consumerName;
+		}
+
+		/**
+		 * @return {@literal true} if a consumer name is present.
+		 */
+		public boolean hasConsumer() {
+			return StringUtils.hasText(consumerName);
+		}
+
+		/**
+		 * @return {@literal true} count is set.
+		 */
+		public boolean isLimited() {
+			return count != null && count > -1;
+		}
+	}
 
 	/**
 	 * Retrieve all {@link ByteRecord records} within a specific {@link Range} from the stream stored at {@literal key}.

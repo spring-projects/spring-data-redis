@@ -23,12 +23,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.PendingMessage;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamOffset;
@@ -2070,6 +2074,68 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	Long xLen(String key);
+
+	/**
+	 * Obtain the {@link PendingMessagesSummary} for a given {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @return a summary of pending messages within the given {@literal consumer group} or {@literal null} when used in
+	 *         pipeline / transaction.
+	 *         @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	PendingMessagesSummary xPending(String key, String groupName);
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link org.springframework.data.domain.Range} within a
+	 * {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param consumerName the name of the {@literal consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
+	 *         transaction.
+	 *         @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	PendingMessages xPending(String key, String groupName, String consumerName, org.springframework.data.domain.Range<String> range, Long count);
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link org.springframework.data.domain.Range} within a
+	 * {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
+	 *         transaction.
+	 *         @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	PendingMessages xPending(String key, String groupName, org.springframework.data.domain.Range<String> range, Long count);
+
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} applying given {@link XPendingOptions
+	 * options}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param options the options containing {@literal range}, {@literal consumer} and {@literal count}. Must not be
+	 *          {@literal null}.
+	 * @return pending messages matching given criteria or {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	PendingMessages xPending(String key, String groupName, XPendingOptions options);
 
 	/**
 	 * Read records from a stream within a specific {@link Range}.

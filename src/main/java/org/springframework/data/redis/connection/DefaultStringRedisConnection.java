@@ -37,6 +37,8 @@ import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamOffset;
@@ -3696,6 +3698,44 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xPending(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public PendingMessagesSummary xPending(String key, String groupName) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xPending(java.lang.String, java.lang.String, java.lang.String, org.springframework.data.domain.Range, java.lang.Long)
+	 */
+	@Override
+	public PendingMessages xPending(String key, String groupName, String consumer,
+			org.springframework.data.domain.Range<String> range, Long count) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, consumer, range, count), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xPending(java.lang.String, java.lang.String, org.springframework.data.domain.Range, java.lang.Long)
+	 */
+	@Override
+	public PendingMessages xPending(String key, String groupName, org.springframework.data.domain.Range<String> range,
+			Long count) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, range, count), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xPending(java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions)
+	 */
+	@Override
+	public PendingMessages xPending(String key, String groupName, XPendingOptions options) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, options), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#xRange(java.lang.String, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
@@ -3719,7 +3759,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<StringRecord> xReadGroupAsString(Consumer consumer, StreamReadOptions readOptions,
-												 StreamOffset<String>... streams) {
+			StreamOffset<String>... streams) {
 
 		return convertAndReturn(delegate.xReadGroup(consumer, readOptions, serialize(streams)),
 				listByteMapRecordToStringMapRecordConverter);
@@ -3810,6 +3850,24 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xPending(byte[], java.lang.String)
+	 */
+	@Override
+	public PendingMessagesSummary xPending(byte[] key, String groupName) {
+		return delegate.xPending(key, groupName);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xPending(byte[], java.lang.String)
+	 */
+	@Override
+	public PendingMessages xPending(byte[] key, String groupName, XPendingOptions options) {
+		return delegate.xPending(key, groupName, options);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xRange(byte[], org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
@@ -3832,7 +3890,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<ByteRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
-									   StreamOffset<byte[]>... streams) {
+			StreamOffset<byte[]>... streams) {
 		return delegate.xReadGroup(consumer, readOptions, streams);
 	}
 

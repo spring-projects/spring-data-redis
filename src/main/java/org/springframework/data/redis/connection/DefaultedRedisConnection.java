@@ -31,6 +31,8 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamOffset;
@@ -489,6 +491,20 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
+	default PendingMessagesSummary xPending(byte[] key, String groupName) {
+		return streamCommands().xPending(key, groupName);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default PendingMessages xPending(byte[] key, String groupName, XPendingOptions options) {
+		return streamCommands().xPending(key, groupName, options);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
 	default List<ByteRecord> xRange(byte[] key, org.springframework.data.domain.Range<String> range) {
 		return streamCommands().xRange(key, range);
 	}
@@ -525,7 +541,7 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Override
 	@Deprecated
 	default List<ByteRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
-										StreamOffset<byte[]>... streams) {
+			StreamOffset<byte[]>... streams) {
 		return streamCommands().xReadGroup(consumer, readOptions, streams);
 	}
 

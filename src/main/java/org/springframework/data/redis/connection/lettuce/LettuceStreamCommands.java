@@ -28,11 +28,13 @@ import java.util.function.Function;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range;
-import org.springframework.data.redis.connection.stream.ByteRecord;
-import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
+import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamOffset;
@@ -237,6 +239,78 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				return null;
 			}
 			return getConnection().xlen(key);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xPending(byte[], java.lang.String)
+	 */
+	@Override
+	public PendingMessagesSummary xPending(byte[] key, String groupName) {
+
+		byte[] group = LettuceConverters.toBytes(groupName);
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().xpending(key, group),
+						it -> LettuceConverters.toPendingMessagesInfo(groupName, it)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().xpending(key, group),
+						it -> LettuceConverters.toPendingMessagesInfo(groupName, it)));
+				return null;
+			}
+			return LettuceConverters.toPendingMessagesInfo(groupName, getConnection().xpending(key, group));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xPending(byte[], java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions)
+	 */
+	@Override
+	public PendingMessages xPending(byte[] key, String groupName, XPendingOptions options) {
+
+		byte[] group = LettuceConverters.toBytes(groupName);
+		io.lettuce.core.Range<String> range = RangeConverter.toRangeWithDefault(options.getRange(), "-", "+");
+		io.lettuce.core.Limit limit = options.isLimited() ? io.lettuce.core.Limit.from(options.getCount())
+				: io.lettuce.core.Limit.from(Long.MAX_VALUE);
+
+		try {
+			if (!options.hasConsumer()) {
+				if (isPipelined()) {
+					pipeline(connection.newLettuceResult(getAsyncConnection().xpending(key, group, range, limit),
+							it -> LettuceConverters.toPendingMessages(groupName, options.getRange(), (List<Object>) it)));
+					return null;
+				}
+				if (isQueueing()) {
+					transaction(connection.newLettuceResult(getAsyncConnection().xpending(key, group, range, limit),
+							it -> LettuceConverters.toPendingMessages(groupName, options.getRange(), (List<Object>) it)));
+					return null;
+				}
+				return LettuceConverters.toPendingMessages(groupName, options.getRange(),
+						getConnection().xpending(key, group, range, limit));
+			} else {
+				if (isPipelined()) {
+					pipeline(connection.newLettuceResult(getAsyncConnection().xpending(key,
+							io.lettuce.core.Consumer.from(group, LettuceConverters.toBytes(options.getConsumerName())), range, limit),
+							it -> LettuceConverters.toPendingMessages(groupName, options.getRange(), (List<Object>) it)));
+					return null;
+				}
+				if (isQueueing()) {
+					transaction(connection.newLettuceResult(getAsyncConnection().xpending(key,
+							io.lettuce.core.Consumer.from(group, LettuceConverters.toBytes(options.getConsumerName())), range, limit),
+							it -> LettuceConverters.toPendingMessages(groupName, options.getRange(), (List<Object>) it)));
+					return null;
+				}
+				return LettuceConverters.toPendingMessages(groupName, options.getRange(), getConnection().xpending(key,
+						io.lettuce.core.Consumer.from(group, LettuceConverters.toBytes(options.getConsumerName())), range, limit));
+			}
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
