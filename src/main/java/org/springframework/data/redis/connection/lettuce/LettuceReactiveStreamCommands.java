@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.XAddArgs;
+import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.XReadArgs.StreamOffset;
 import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
@@ -102,6 +103,50 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 			return cmd.xadd(command.getKey(), args, command.getBody())
 					.map(value -> new CommandResponse<>(command, RecordId.of(value)));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xClaimJustId(byte[], java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
+	 */
+	@Override
+	public Flux<CommandResponse<XClaimCommand, Flux<RecordId>>> xClaimJustId(Publisher<XClaimCommand> commands) {
+
+		if (true /* TODO: set the JUSTID flag */ ) {
+			throw new UnsupportedOperationException("Lettuce does not support XCLAIM with JUSTID. (Ref: lettuce-io#1233)");
+		}
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			String[] ids = command.getOptions().getIdsAsStringArray();
+			io.lettuce.core.Consumer<ByteBuffer> from = io.lettuce.core.Consumer
+					.from(ByteUtils.getByteBuffer(command.getGroupName()), ByteUtils.getByteBuffer(command.getConsumerName()));
+			XClaimArgs args = StreamConverters.toXClaimArgs(command.getOptions());
+
+			Flux<RecordId> result = cmd.xclaim(command.getKey(), from, args, ids).map(it -> RecordId.of(it.getId()));
+			return new CommandResponse<>(command, result);
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xClaim(byte[], java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
+	 */
+	@Override
+	public Flux<CommandResponse<XClaimCommand, Flux<ByteBufferRecord>>> xClaim(Publisher<XClaimCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			String[] ids = command.getOptions().getIdsAsStringArray();
+			io.lettuce.core.Consumer<ByteBuffer> from = io.lettuce.core.Consumer
+					.from(ByteUtils.getByteBuffer(command.getGroupName()), ByteUtils.getByteBuffer(command.getConsumerName()));
+			XClaimArgs args = StreamConverters.toXClaimArgs(command.getOptions());
+
+			Flux<ByteBufferRecord> result = cmd.xclaim(command.getKey(), from, args, ids)
+					.map(it -> StreamRecords.newRecord().in(it.getStream()).withId(it.getId()).ofBuffer(it.getBody()));
+			return new CommandResponse<>(command, result);
+
 		}));
 	}
 

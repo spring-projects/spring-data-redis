@@ -21,6 +21,7 @@ import static org.junit.Assume.*;
 import io.lettuce.core.XReadArgs;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.util.Collections;
 
 import org.junit.Before;
@@ -28,6 +29,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.RedisTestProfileValueSource;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.ReadOffset;
@@ -291,8 +293,8 @@ public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsT
 				.then().as(StepVerifier::create) //
 				.verifyComplete();
 
-		connection.streamCommands().xPending(KEY_1_BBUFFER, "my-group", "my-consumer", Range.open("-", "+"), 10L).as(StepVerifier::create)
-				.assertNext(it -> {
+		connection.streamCommands().xPending(KEY_1_BBUFFER, "my-group", "my-consumer", Range.open("-", "+"), 10L)
+				.as(StepVerifier::create).assertNext(it -> {
 
 					assertThat(it.size()).isOne();
 					assertThat(it.get(0).getConsumerName()).isEqualTo("my-consumer");
@@ -316,8 +318,8 @@ public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsT
 				.then().as(StepVerifier::create) //
 				.verifyComplete();
 
-		connection.streamCommands().xPending(KEY_1_BBUFFER, "my-group", "my-consumer-2", Range.open("-", "+"), 10L).as(StepVerifier::create)
-				.assertNext(it -> {
+		connection.streamCommands().xPending(KEY_1_BBUFFER, "my-group", "my-consumer-2", Range.open("-", "+"), 10L)
+				.as(StepVerifier::create).assertNext(it -> {
 
 					assertThat(it.size()).isZero();
 				}).verifyComplete();
@@ -335,6 +337,28 @@ public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsT
 				.assertNext(it -> {
 					assertThat(it.isEmpty()).isTrue();
 				}).verifyComplete();
+	}
+
+	@Test // DATAREDIS-1084
+	public void xClaim() {
+
+		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, initialMessage), "my-group");
+
+		String expected = nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed())) //
+				.delayElements(Duration.ofMillis(5)).next() //
+				.flatMapMany(record -> {
+					return connection.streamCommands().xClaim(KEY_1_BBUFFER, "my-group", "my-consumer",
+							XClaimOptions.minIdle(Duration.ofMillis(1)).ids(record.getId()));
+				}
+
+				).as(StepVerifier::create) //
+				.assertNext(it -> assertThat(it.getId().getValue()).isEqualTo(expected)) //
+				.verifyComplete();
 	}
 
 }

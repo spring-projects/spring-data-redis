@@ -57,6 +57,7 @@ import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -3137,89 +3138,110 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.getPendingMessagesPerConsumer()).isEmpty();
 	}
 
-	 @Test // DATAREDIS-1084
-	 @IfProfileValue(name = "redisVersion", value = "5.0")
-	 @WithRedisDriver({ RedisDriver.LETTUCE })
-	 public void xPendingShouldLoadPendingMessages() {
+	@Test // DATAREDIS-1084
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xPendingShouldLoadPendingMessages() {
 
-		 actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
-		 actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
-		 actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
-				 StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
-		 actual.add(connection.xPending(KEY_1, "my-group", org.springframework.data.domain.Range.open("-", "+"), 10L));
+		actual.add(connection.xPending(KEY_1, "my-group", org.springframework.data.domain.Range.open("-", "+"), 10L));
 
-		 List<Object> results = getResults();
-		 assertThat(results).hasSize(4);
-		 PendingMessages pending = (PendingMessages) results.get(3);
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		PendingMessages pending = (PendingMessages) results.get(3);
 
-	 assertThat(pending.size()).isOne();
-	 assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
-	 assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
-	 assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
-	 assertThat(pending.get(0).getStringId()).isNotNull();
+		assertThat(pending.size()).isOne();
+		assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
+		assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
+		assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
+		assertThat(pending.get(0).getStringId()).isNotNull();
 
-	 }
+	}
 
-	 @Test // DATAREDIS-1084
-	 @IfProfileValue(name = "redisVersion", value = "5.0")
-	 @WithRedisDriver({ RedisDriver.LETTUCE })
-	 public void xPendingShouldLoadPendingMessagesForConsumer() {
+	@Test // DATAREDIS-1084
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xPendingShouldLoadPendingMessagesForConsumer() {
 
-		 actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
-		 actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
-		 actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
-				 StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
-		 actual.add(connection.xPending(KEY_1, "my-group", "my-consumer", org.springframework.data.domain.Range.open("-", "+"), 10L));
+		actual.add(connection.xPending(KEY_1, "my-group", "my-consumer",
+				org.springframework.data.domain.Range.open("-", "+"), 10L));
 
-		 List<Object> results = getResults();
-		 assertThat(results).hasSize(4);
-		 PendingMessages pending = (PendingMessages) results.get(3);
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		PendingMessages pending = (PendingMessages) results.get(3);
 
-		 assertThat(pending.size()).isOne();
-		 assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
-		 assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
-		 assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
-		 assertThat(pending.get(0).getStringId()).isNotNull();
-	 }
+		assertThat(pending.size()).isOne();
+		assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
+		assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
+		assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
+		assertThat(pending.get(0).getStringId()).isNotNull();
+	}
 
-	 @Test // DATAREDIS-1084
-	 @IfProfileValue(name = "redisVersion", value = "5.0")
-	 @WithRedisDriver({ RedisDriver.LETTUCE })
-	 public void xPendingShouldLoadPendingMessagesForNonExistingConsumer() {
+	@Test // DATAREDIS-1084
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xPendingShouldLoadPendingMessagesForNonExistingConsumer() {
 
-		 actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
-		 actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
-		 actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
-				 StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
-		 actual.add(connection.xPending(KEY_1, "my-group", "my-consumer-2", org.springframework.data.domain.Range.open("-", "+"), 10L));
+		actual.add(connection.xPending(KEY_1, "my-group", "my-consumer-2",
+				org.springframework.data.domain.Range.open("-", "+"), 10L));
 
-		 List<Object> results = getResults();
-		 assertThat(results).hasSize(4);
-		 PendingMessages pending = (PendingMessages) results.get(3);
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		PendingMessages pending = (PendingMessages) results.get(3);
 
-		 assertThat(pending.size()).isZero();
-	 }
+		assertThat(pending.size()).isZero();
+	}
 
-	 @Test // DATAREDIS-1084
-	 @IfProfileValue(name = "redisVersion", value = "5.0")
-	 @WithRedisDriver({ RedisDriver.LETTUCE })
-	 public void xPendingShouldLoadEmptyPendingMessages() {
+	@Test // DATAREDIS-1084
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xPendingShouldLoadEmptyPendingMessages() {
 
-		 actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
-		 actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
 
-		 actual.add(connection.xPending(KEY_1, "my-group", org.springframework.data.domain.Range.open("-", "+"), 10L));
+		actual.add(connection.xPending(KEY_1, "my-group", org.springframework.data.domain.Range.open("-", "+"), 10L));
 
+		List<Object> results = getResults();
+		assertThat(results).hasSize(3);
+		PendingMessages pending = (PendingMessages) results.get(2);
 
-		 List<Object> results = getResults();
-		 assertThat(results).hasSize(3);
-		 PendingMessages pending = (PendingMessages) results.get(2);
+		assertThat(pending.size()).isZero();
+	}
 
-		 assertThat(pending.size()).isZero();
-	 }
+	@Test // DATAREDIS-1084
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xClaim() throws InterruptedException {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+
+		List<MapRecord<String, String, String>> messages = (List<MapRecord<String, String, String>>) getResults().get(2);
+		TimeUnit.MILLISECONDS.sleep(5);
+
+		actual.add(connection.xClaim(KEY_1, "my-group", "my-consumer",
+				XClaimOptions.minIdle(Duration.ofMillis(1)).ids(messages.get(0).getId())));
+
+		List<MapRecord<String, String, String>> claimed = (List<MapRecord<String, String, String>>) getResults().get(3);
+		assertThat(claimed).containsAll(messages);
+	}
 
 	protected void verifyResults(List<Object> expected) {
 		assertThat(getResults()).isEqualTo(expected);

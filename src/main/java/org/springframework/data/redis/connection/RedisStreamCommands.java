@@ -15,9 +15,13 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
@@ -83,6 +87,249 @@ public interface RedisStreamCommands {
 	 * @return the {@link RecordId id} after save. {@literal null} when used in pipeline / transaction.
 	 */
 	RecordId xAdd(MapRecord<byte[], byte[], byte[]> record);
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer} without increasing the delivered
+	 * count.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return list of {@link RecordId ids} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options);
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param minIdleTime must not be {@literal null}.
+	 * @param recordIds must not be {@literal null}.
+	 * @return list of {@link ByteRecord} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	default List<ByteRecord> xClaim(byte[] key, String group, String newOwner, Duration minIdleTime,
+			RecordId... recordIds) {
+		return xClaim(key, group, newOwner, XClaimOptions.minIdle(minIdleTime).ids(recordIds));
+	}
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer}.
+	 * 
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return list of {@link ByteRecord} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options);
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 2.3
+	 */
+	class XClaimOptions {
+
+		private final List<RecordId> ids;
+		private final Duration minIdleTime;
+		private final @Nullable Duration idleTime;
+		private final @Nullable Instant unixTime;
+		private final @Nullable Long retryCount;
+		private final boolean force;
+
+		private XClaimOptions(List<RecordId> ids, Duration minIdleTime, Duration idleTime, Instant unixTime,
+				Long retryCount, boolean force) {
+
+			this.ids = new ArrayList<>(ids);
+			this.minIdleTime = minIdleTime;
+			this.idleTime = idleTime;
+			this.unixTime = unixTime;
+			this.retryCount = retryCount;
+			this.force = force;
+		}
+
+		/**
+		 * Set the {@literal min-idle-time} to limit the command to messages that have been idle for at at least the given
+		 * {@link Duration}.
+		 * 
+		 * @param minIdleTime must not be {@literal null}.
+		 * @return new instance of {@link XClaimOptions}.
+		 */
+		public static XClaimOptionsBuilder minIdle(Duration minIdleTime) {
+			return new XClaimOptionsBuilder(minIdleTime);
+		}
+
+		/**
+		 * Set the {@literal min-idle-time} to limit the command to messages that have been idle for at at least the given
+		 * {@literal milliseconds}.
+		 *
+		 * @param millis
+		 * @return new instance of {@link XClaimOptions}.
+		 */
+		public static XClaimOptionsBuilder minIdleMs(long millis) {
+			return minIdle(Duration.ofMillis(millis));
+		}
+
+		/**
+		 * Set the idle time since last delivery of a message. To specify a specific point in time use
+		 * {@link #time(Instant)}.
+		 *
+		 * @param idleTime idle time.
+		 * @return {@code this}.
+		 */
+		public XClaimOptions idle(Duration idleTime) {
+			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, force);
+		}
+
+		/**
+		 * Sets the idle time to a specific unix time (in milliseconds). To define a relative idle time use
+		 * {@link #idle(Duration)}.
+		 *
+		 * @param unixTime idle time.
+		 * @return {@code this}.
+		 */
+		public XClaimOptions time(Instant unixTime) {
+			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, force);
+		}
+
+		/**
+		 * Set the retry counter to the specified value.
+		 *
+		 * @param retryCount can be {@literal null}. If {@literal null} no change to the retry counter will be made.
+		 * @return new instance of {@link XClaimOptions}.
+		 */
+		public XClaimOptions retryCount(@Nullable Long retryCount) {
+			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, force);
+		}
+
+		/**
+		 * Forces creation of a pending message entry in the PEL even if it does not already exist as long a the given
+		 * stream record id is valid.
+		 *
+		 * @return new instance of {@link XClaimOptions}.
+		 */
+		public XClaimOptions force() {
+			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, true);
+		}
+
+		/**
+		 * Get the {@link List} of {@literal ID}.
+		 *
+		 * @return never {@literal null}.
+		 */
+		public List<RecordId> getIds() {
+			return ids;
+		}
+
+		/**
+		 * Get the {@literal ID} array as {@link String strings}.
+		 *
+		 * @return never {@literal null}.
+		 */
+		public String[] getIdsAsStringArray() {
+			return getIds().stream().map(RecordId::getValue).toArray(String[]::new);
+		}
+
+		/**
+		 * Get the {@literal min-idle-time}.
+		 *
+		 * @return never {@literal null}.
+		 */
+		public Duration getMinIdleTime() {
+			return minIdleTime;
+		}
+
+		/**
+		 * Get the {@literal IDLE ms} time.
+		 * 
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public Duration getIdleTime() {
+			return idleTime;
+		}
+
+		/**
+		 * Get the {@literal TIME ms-unix-time}
+		 * 
+		 * @return
+		 */
+		@Nullable
+		public Instant getUnixTime() {
+			return unixTime;
+		}
+
+		/**
+		 * Get the {@literal RETRYCOUNT count}.
+		 * 
+		 * @return
+		 */
+		@Nullable
+		public Long getRetryCount() {
+			return retryCount;
+		}
+
+		/**
+		 * Get the {@literal FORCE} flag.
+		 * 
+		 * @return
+		 */
+		public boolean isForce() {
+			return force;
+		}
+
+		public static class XClaimOptionsBuilder {
+
+			private Duration minIdleTime;
+
+			XClaimOptionsBuilder(Duration minIdleTime) {
+				this.minIdleTime = minIdleTime;
+			}
+
+			/**
+			 * Set the {@literal ID}s to claim.
+			 *
+			 * @param ids must not be {@literal null}.
+			 * @return
+			 */
+			public XClaimOptions ids(List<?> ids) {
+
+				List<RecordId> idList = ids.stream()
+						.map(it -> it instanceof RecordId ? (RecordId) it : RecordId.of(it.toString()))
+						.collect(Collectors.toList());
+
+				return new XClaimOptions(idList, minIdleTime, null, null, null, false);
+			}
+
+			/**
+			 * Set the {@literal ID}s to claim.
+			 *
+			 * @param ids must not be {@literal null}.
+			 * @return
+			 */
+			public XClaimOptions ids(RecordId... ids) {
+				return ids(Arrays.asList(ids));
+			}
+
+			/**
+			 * Set the {@literal ID}s to claim.
+			 *
+			 * @param ids must not be {@literal null}.
+			 * @return
+			 */
+			public XClaimOptions ids(String... ids) {
+				return ids(Arrays.asList(ids));
+			}
+		}
+	}
 
 	/**
 	 * Removes the records with the given id's from the stream. Returns the number of items deleted, that may be different

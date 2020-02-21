@@ -3653,6 +3653,24 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xClaimJustId(java.lang.String, java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
+	 */
+	@Override
+	public List<RecordId> xClaimJustId(String key, String group, String consumer, XClaimOptions options) {
+		return convertAndReturn(delegate.xClaimJustId(serialize(key), group, consumer, options), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xClaim(java.lang.String, java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
+	 */
+	@Override
+	public List<StringRecord> xClaim(String key, String group, String consumer, XClaimOptions options) {
+		return convertAndReturn(delegate.xClaim(serialize(key), group, consumer, options), listByteMapRecordToStringMapRecordConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#xDel(java.lang.String, java.lang.String[])
 	 */
 	@Override
@@ -3801,6 +3819,24 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
 		return delegate.xAdd(record);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xClaimJustId(byte[], java.lang.String, java.lag.String, org.springframework.data.redis.connection.RedisStreamCommands.XCLaimOptions)
+	 */
+	@Override
+	public List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options) {
+		return delegate.xClaimJustId(key, group, newOwner, options);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xClaim(byte[], java.lang.String, java.lag.String, org.springframework.data.redis.connection.RedisStreamCommands.XCLaimOptions)
+	 */
+	@Override
+	public List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options) {
+		return delegate.xClaim(key, group, newOwner, options);
 	}
 
 	/*
