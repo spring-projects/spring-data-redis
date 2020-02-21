@@ -114,6 +114,12 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 		super.scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection();
 	}
 
+	@Test
+	@Ignore
+	public void xClaim() throws InterruptedException {
+		super.xClaim();
+	}
+
 	protected void initConnection() {
 		connection.multi();
 	}

@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -2014,6 +2013,50 @@ public interface StringRedisConnection extends RedisConnection {
 	RecordId xAdd(StringRecord record);
 
 	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer} without increasing the delivered
+	 * count.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return list of {@link RecordId ids} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	List<RecordId> xClaimJustId(String key, String group, String newOwner, XClaimOptions options);
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param minIdleTime must not be {@literal null}.
+	 * @param recordIds must not be {@literal null}.
+	 * @return list of {@link StringRecord} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	default List<StringRecord> xClaim(String key, String group, String newOwner, Duration minIdleTime,
+			RecordId... recordIds) {
+		return xClaim(key, group, newOwner, XClaimOptions.minIdle(minIdleTime).ids(recordIds));
+	}
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return list of {@link StringRecord} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	List<StringRecord> xClaim(String key, String group, String newOwner, XClaimOptions options);
+
+	/**
 	 * Removes the specified entries from the stream. Returns the number of items deleted, that may be different from the
 	 * number of IDs passed in case certain IDs do not exist.
 	 *
@@ -2082,15 +2125,15 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
 	 * @return a summary of pending messages within the given {@literal consumer group} or {@literal null} when used in
 	 *         pipeline / transaction.
-	 *         @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
 	@Nullable
 	PendingMessagesSummary xPending(String key, String groupName);
 
 	/**
-	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link org.springframework.data.domain.Range} within a
-	 * {@literal consumer group}.
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given
+	 * {@link org.springframework.data.domain.Range} within a {@literal consumer group}.
 	 *
 	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
 	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
@@ -2099,15 +2142,16 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param count limit the number of results. Must not be {@literal null}.
 	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
 	 *         transaction.
-	 *         @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
 	@Nullable
-	PendingMessages xPending(String key, String groupName, String consumerName, org.springframework.data.domain.Range<String> range, Long count);
+	PendingMessages xPending(String key, String groupName, String consumerName,
+			org.springframework.data.domain.Range<String> range, Long count);
 
 	/**
-	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link org.springframework.data.domain.Range} within a
-	 * {@literal consumer group}.
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given
+	 * {@link org.springframework.data.domain.Range} within a {@literal consumer group}.
 	 *
 	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
 	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
@@ -2115,12 +2159,12 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param count limit the number of results. Must not be {@literal null}.
 	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
 	 *         transaction.
-	 *         @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
 	@Nullable
-	PendingMessages xPending(String key, String groupName, org.springframework.data.domain.Range<String> range, Long count);
-
+	PendingMessages xPending(String key, String groupName, org.springframework.data.domain.Range<String> range,
+			Long count);
 
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} applying given {@link XPendingOptions

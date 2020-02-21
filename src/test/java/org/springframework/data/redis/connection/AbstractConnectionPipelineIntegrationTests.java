@@ -126,6 +126,12 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends Abstrac
 		super.scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection();
 	}
 
+	@Test
+	@Ignore
+	public void xClaim() throws InterruptedException {
+		super.xClaim();
+	}
+
 	protected void initConnection() {
 		connection.openPipeline();
 	}

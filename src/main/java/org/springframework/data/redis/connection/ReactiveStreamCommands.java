@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,6 +31,7 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
@@ -284,6 +286,112 @@ public interface ReactiveStreamCommands {
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
 	Flux<CommandResponse<AddStreamRecord, RecordId>> xAdd(Publisher<AddStreamRecord> commands);
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer} without increasing the delivered
+	 * count.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return a {@link Flux} emitting {@link RecordId is} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	default Flux<RecordId> xClaimJustId(ByteBuffer key, String group, String newOwner, XClaimOptions options) {
+
+		return xClaimJustId(Mono.just(new XClaimCommand(key, group, newOwner, options))).next()
+				.flatMapMany(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer} without increasing the delivered
+	 * count.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting {@link RecordId is} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	Flux<CommandResponse<XClaimCommand, Flux<RecordId>>> xClaimJustId(Publisher<XClaimCommand> commands);
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param minIdleTime must not be {@literal null}.
+	 * @param recordIds must not be {@literal null}.
+	 * @return a {@link Flux} emitting {@link ByteBufferRecord} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	default Flux<ByteBufferRecord> xClaim(ByteBuffer key, String group, String newOwner, Duration minIdleTime,
+			RecordId... recordIds) {
+
+		return xClaim(key, group, newOwner, XClaimOptions.minIdle(minIdleTime).ids(recordIds));
+	}
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return a {@link Flux} emitting {@link ByteBufferRecord} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	default Flux<ByteBufferRecord> xClaim(ByteBuffer key, String group, String newOwner, XClaimOptions options) {
+
+		return xClaim(Mono.just(new XClaimCommand(key, group, newOwner, options))).next()
+				.flatMapMany(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer}.
+	 * 
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	Flux<CommandResponse<XClaimCommand, Flux<ByteBufferRecord>>> xClaim(Publisher<XClaimCommand> commands);
+
+	/**
+	 * {@code XCLAIM} command parameters.
+	 *
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 */
+	class XClaimCommand extends KeyCommand {
+
+		private final String groupName;
+		private final String consumerName;
+		private final XClaimOptions options;
+
+		private XClaimCommand(@Nullable ByteBuffer key, String groupName, String consumerName, XClaimOptions options) {
+
+			super(key);
+			this.groupName = groupName;
+			this.consumerName = consumerName;
+			this.options = options;
+		}
+
+		public XClaimOptions getOptions() {
+			return options;
+		}
+
+		public String getConsumerName() {
+			return consumerName;
+		}
+
+		public String getGroupName() {
+			return groupName;
+		}
+	}
 
 	/**
 	 * {@code XDEL} command parameters.

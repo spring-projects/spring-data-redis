@@ -456,6 +456,20 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
+	default List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options) {
+		return streamCommands().xClaimJustId(key, group, newOwner, options);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options) {
+		return streamCommands().xClaim(key, group, newOwner, options);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
 	default Long xDel(byte[] key, RecordId... recordIds) {
 		return streamCommands().xDel(key, recordIds);
 	}

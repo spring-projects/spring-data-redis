@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.XAddArgs;
+import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
@@ -106,6 +107,72 @@ class LettuceStreamCommands implements RedisStreamCommands {
 			}
 			return RecordId.of(getConnection().xadd(record.getStream(), args, record.getValue()));
 
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xClaimJustId(byte[], java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
+	 */
+	@Override
+	public List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options) {
+
+		String[] ids = options.getIdsAsStringArray();
+		io.lettuce.core.Consumer<byte[]> from = io.lettuce.core.Consumer.from(LettuceConverters.toBytes(group),
+				LettuceConverters.toBytes(newOwner));
+		XClaimArgs args = StreamConverters.toXClaimArgs(options);
+
+		if (true /* TODO: set the JUSTID flag */ ) {
+			throw new UnsupportedOperationException("Lettuce does not support XCLAIM with JUSTID. (Ref: lettuce-io#1233)");
+		}
+
+		try {
+			if (isPipelined()) {
+
+				pipeline(connection.newLettuceResult(getAsyncConnection().xclaim(key, from, args, ids),
+						StreamConverters.messagesToIds()));
+				return null;
+			}
+			if (isQueueing()) {
+
+				transaction(connection.newLettuceResult(getAsyncConnection().xclaim(key, from, args, ids),
+						StreamConverters.messagesToIds()));
+				return null;
+			}
+
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+
+		return StreamConverters.messagesToIds().convert(getConnection().xclaim(key, from, args, ids));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xClaim(byte[], java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
+	 */
+	@Override
+	public List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options) {
+
+		String[] ids = options.getIdsAsStringArray();
+		io.lettuce.core.Consumer<byte[]> from = io.lettuce.core.Consumer.from(LettuceConverters.toBytes(group),
+				LettuceConverters.toBytes(newOwner));
+		XClaimArgs args = StreamConverters.toXClaimArgs(options);
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().xclaim(key, from, args, ids),
+						StreamConverters.byteRecordListConverter()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().xclaim(key, from, args, ids),
+						StreamConverters.byteRecordListConverter()));
+				return null;
+			}
+			return StreamConverters.byteRecordListConverter().convert(getConnection().xclaim(key, from, args, ids));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
