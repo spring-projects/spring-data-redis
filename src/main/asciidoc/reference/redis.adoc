@@ -9,6 +9,53 @@ Redis is an advanced key-value store. It is similar to memcached but the dataset
 
 Spring Data Redis provides easy configuration and access to Redis from Spring applications. It offers both low-level and high-level abstractions for interacting with the store, freeing the user from infrastructural concerns.
 
+[[redis:setup]]
+== Getting Started
+
+An easy way to setting up a working environment is to create a Spring-based project in https://spring.io/tools/sts[STS].
+
+First, you need to set up a running Redis server.
+
+To create a Spring project in STS:
+
+. Go to File -> New -> Spring Template Project -> Simple Spring Utility Project, and press Yes when prompted. Then enter a project and a package name, such as `org.spring.redis.example`.
+.Add the following to the pom.xml files `dependencies` element:
++
+[source,xml,subs="+attributes"]
+----
+<dependencies>
+
+  <!-- other dependency elements omitted -->
+
+  <dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-redis</artifactId>
+    <version>{version}</version>
+  </dependency>
+
+</dependencies>
+----
+. Change the version of Spring in the pom.xml to be
++
+[source,xml,subs="+attributes"]
+----
+<spring.framework.version>{springVersion}</spring.framework.version>
+----
+. Add the following location of the Spring Milestone repository for Maven to your `pom.xml` such that it is at the same level of your `<dependencies/>` element:
++
+[source,xml]
+----
+<repositories>
+  <repository>
+    <id>spring-milestone</id>
+    <name>Spring Maven MILESTONE Repository</name>
+    <url>https://repo.spring.io/libs-milestone</url>
+  </repository>
+</repositories>
+----
+
+The repository is also https://repo.spring.io/milestone/org/springframework/data/[browseable here].
+
 [[redis:requirements]]
 == Redis Requirements
 
@@ -37,12 +84,90 @@ NOTE: Depending on the underlying configuration, the factory can return a new co
 
 The easiest way to work with a `RedisConnectionFactory` is to configure the appropriate connector through the IoC container and inject it into the using class.
 
-IMPORTANT: Unfortunately, currently, not all connectors support all Redis features. When invoking a method on the Connection API that is unsupported by the underlying library, an `UnsupportedOperationException` is thrown.
+Unfortunately, currently, not all connectors support all Redis features. When invoking a method on the Connection API that is unsupported by the underlying library, an `UnsupportedOperationException` is thrown. The following overview explains features that are supported by the individual Redis connectors:
+
+
+[[redis:connectors:overview]]
+.Feature Availability across Redis Connectors
+|===
+| Supported Feature | Lettuce | Jedis
+
+| Standalone Connections
+| X
+| X
+
+| <<redis:write-to-master-read-from-replica,Master/Replica Connections>>
+| X
+|
+
+| <<redis:sentinel,Redis Sentinel>>
+| Master Lookup, Sentinel Authentication, Replica Reads
+| Master Lookup
+
+| <<cluster,Redis Cluster>>
+| Cluster Connections, Cluster Node Connections, Replica Reads
+| Cluster Connections, Cluster Node Connections
+
+| Transport Channels
+| TCP, OS-native TCP (epoll, kqueue), Unix Domain Sockets
+| TCP
+
+| Connection Pooling
+| X (using `commons-pool2`)
+| X (using `commons-pool2`)
+
+| Other Connection Features
+| Singleton-connection sharing for non-blocking commands
+| `JedisShardInfo` support
+
+| SSL Support
+| X
+| X
+
+| <<pubsub,Pub/Sub>>
+| X
+| X
+
+| <<pipeline,Pipelining>>
+| X
+| X
+
+| <<tx,Transactions>>
+| X
+| X
+
+| Datatype support
+| Key, String, List, Set, Sorted Set, Hash, Server, Stream, Scripting, Geo, HyperLogLog
+| Key, String, List, Set, Sorted Set, Hash, Server, Scripting, Geo, HyperLogLog
+
+| <<redis:reactive,Reactive (non-blocking) API>>
+| X
+|
+
+|===
 
 [[redis:connectors:lettuce]]
 === Configuring the Lettuce Connector
 
-https://github.com/lettuce-io/lettuce-core[Lettuce] is a https://netty.io/[Netty]-based open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.lettuce` package. The following example shows how to create a new Lettuce connection factory:
+https://github.com/lettuce-io/lettuce-core[Lettuce] is a https://netty.io/[Netty]-based open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.lettuce` package.
+
+.Add the following to the pom.xml files `dependencies` element:
+[source,xml,subs="+attributes"]
+----
+<dependencies>
+
+  <!-- other dependency elements omitted -->
+
+  <dependency>
+    <groupId>io.lettuce</groupId>
+    <artifactId>lettuce-core</artifactId>
+    <version>{lettuce}</version>
+  </dependency>
+
+</dependencies>
+----
+
+The following example shows how to create a new Lettuce connection factory:
 
 [source,java]
 ----
@@ -79,7 +204,27 @@ NOTE: Netty currently supports the epoll (Linux) and kqueue (BSD/macOS) interfac
 [[redis:connectors:jedis]]
 === Configuring the Jedis Connector
 
-https://github.com/xetorthio/jedis[Jedis] is a community-driven connector supported by the Spring Data Redis module through the `org.springframework.data.redis.connection.jedis` package. In its simplest form, the Jedis configuration looks as follow:
+https://github.com/xetorthio/jedis[Jedis] is a community-driven connector supported by the Spring Data Redis module through the `org.springframework.data.redis.connection.jedis` package.
+
+
+.Add the following to the pom.xml files `dependencies` element:
+[source,xml,subs="+attributes"]
+----
+<dependencies>
+
+  <!-- other dependency elements omitted -->
+
+  <dependency>
+    <groupId>redis.clients</groupId>
+    <artifactId>jedis</artifactId>
+    <version>{jedis}</version>
+  </dependency>
+
+</dependencies>
+----
+
+
+In its simplest form, the Jedis configuration looks as follow:
 
 [source,java]
 ----
@@ -634,7 +779,7 @@ The following table lists the default settings for `RedisCacheManager`:
 |Initial Caches
 |None
 
-|Trasaction Aware
+|Transaction Aware
 |No
 |====
 

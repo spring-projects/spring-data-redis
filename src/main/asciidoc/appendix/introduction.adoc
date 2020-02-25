@@ -1,4 +1,4 @@
-[float]
+[[appendix]]
 = Appendix Document Structure
 
 The appendix contains various additional detail that complements the information in the rest of the reference documentation:
