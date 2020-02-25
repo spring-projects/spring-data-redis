@@ -62,14 +62,14 @@ public abstract class RedisConnectionUtils {
 
 	/**
 	 * Binds a new Redis connection (from the given factory) to the current thread, if none is already bound and enables
-	 * transaction support if {@code enableTranactionSupport} is set to {@literal true}.
+	 * transaction support if {@code transactionSupport} is set to {@literal true}.
 	 *
-	 * @param factory connection factory
-	 * @param enableTranactionSupport
+	 * @param factory connection factory.
+	 * @param transactionSupport whether transaction support is enabled.
 	 * @return a new Redis connection with transaction support if requested.
 	 */
-	public static RedisConnection bindConnection(RedisConnectionFactory factory, boolean enableTranactionSupport) {
-		return doGetConnection(factory, true, true, enableTranactionSupport);
+	public static RedisConnection bindConnection(RedisConnectionFactory factory, boolean transactionSupport) {
+		return doGetConnection(factory, true, true, transactionSupport);
 	}
 
 	/**
@@ -77,7 +77,7 @@ public abstract class RedisConnectionUtils {
 	 * bound to the current thread, for example when using a transaction manager. Will always create a new connection
 	 * otherwise.
 	 *
-	 * @param factory connection factory for creating the connection
+	 * @param factory connection factory for creating the connection.
 	 * @return an active Redis connection without transaction management.
 	 */
 	public static RedisConnection getConnection(RedisConnectionFactory factory) {
@@ -89,12 +89,12 @@ public abstract class RedisConnectionUtils {
 	 * bound to the current thread, for example when using a transaction manager. Will always create a new connection
 	 * otherwise.
 	 *
-	 * @param factory connection factory for creating the connection
-	 * @param enableTranactionSupport
+	 * @param factory connection factory for creating the connection.
+	 * @param transactionSupport whether transaction support is enabled.
 	 * @return an active Redis connection with transaction management if requested.
 	 */
-	public static RedisConnection getConnection(RedisConnectionFactory factory, boolean enableTranactionSupport) {
-		return doGetConnection(factory, true, false, enableTranactionSupport);
+	public static RedisConnection getConnection(RedisConnectionFactory factory, boolean transactionSupport) {
+		return doGetConnection(factory, true, false, transactionSupport);
 	}
 
 	/**
@@ -102,22 +102,22 @@ public abstract class RedisConnectionUtils {
 	 * thread, for example when using a transaction manager. Will create a new Connection otherwise, if
 	 * {@code allowCreate} is <tt>true</tt>.
 	 *
-	 * @param factory connection factory for creating the connection
+	 * @param factory connection factory for creating the connection.
 	 * @param allowCreate whether a new (unbound) connection should be created when no connection can be found for the
-	 *          current thread
-	 * @param bind binds the connection to the thread, in case one was created
-	 * @param enableTransactionSupport
-	 * @return an active Redis connection
+	 *          current thread.
+	 * @param bind binds the connection to the thread, in case one was created-
+	 * @param transactionSupport whether transaction support is enabled.
+	 * @return an active Redis connection.
 	 */
 	public static RedisConnection doGetConnection(RedisConnectionFactory factory, boolean allowCreate, boolean bind,
-			boolean enableTransactionSupport) {
+			boolean transactionSupport) {
 
 		Assert.notNull(factory, "No RedisConnectionFactory specified");
 
 		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
 
 		if (connHolder != null) {
-			if (enableTransactionSupport) {
+			if (transactionSupport) {
 				potentiallyRegisterTransactionSynchronisation(connHolder, factory);
 			}
 			return connHolder.getConnection();
@@ -136,14 +136,14 @@ public abstract class RedisConnectionUtils {
 		if (bind) {
 
 			RedisConnection connectionToBind = conn;
-			if (enableTransactionSupport && isActualNonReadonlyTransactionActive()) {
+			if (transactionSupport && isActualNonReadonlyTransactionActive()) {
 				connectionToBind = createConnectionProxy(conn, factory);
 			}
 
 			connHolder = new RedisConnectionHolder(connectionToBind);
 
 			TransactionSynchronizationManager.bindResource(factory, connHolder);
-			if (enableTransactionSupport) {
+			if (transactionSupport) {
 				potentiallyRegisterTransactionSynchronisation(connHolder, factory);
 			}
 
