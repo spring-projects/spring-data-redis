@@ -24,8 +24,10 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.cglib.proxy.MethodProxy;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.lang.Nullable;
@@ -236,12 +238,8 @@ public abstract class RedisConnectionUtils {
 					log.debug("Leaving bound Redis Connection attached.");
 				}
 			}
-
 		} else {
-			if (log.isDebugEnabled()) {
-				log.debug("Closing Redis Connection.");
-			}
-			conn.close();
+			doCloseConnection(conn);
 		}
 	}
 
@@ -264,11 +262,7 @@ public abstract class RedisConnectionUtils {
 				log.debug("Redis Connection will be closed when outer transaction finished.");
 			}
 		} else {
-			if (log.isDebugEnabled()) {
-				log.debug("Closing bound connection.");
-			}
-			RedisConnection connection = connHolder.getConnection();
-			connection.close();
+			doCloseConnection(connHolder.getConnection());
 		}
 	}
 
@@ -288,6 +282,21 @@ public abstract class RedisConnectionUtils {
 				.getResource(connFactory);
 
 		return (connHolder != null && conn == connHolder.getConnection());
+	}
+
+	private static void doCloseConnection(RedisConnection connection) {
+
+		if (log.isDebugEnabled()) {
+			log.debug("Closing Redis Connection.");
+		}
+
+		try {
+			connection.close();
+		} catch (DataAccessException ex) {
+			log.debug("Could not close Redis Connection", ex);
+		} catch (Throwable ex) {
+			log.debug("Unexpected exception on closing Redis Connection", ex);
+		}
 	}
 
 	/**
@@ -326,7 +335,7 @@ public abstract class RedisConnectionUtils {
 				}
 
 				connHolder.setTransactionSyncronisationActive(false);
-				connection.close();
+				doCloseConnection(connection);
 				TransactionSynchronizationManager.unbindResource(factory);
 			}
 		}
@@ -370,7 +379,7 @@ public abstract class RedisConnectionUtils {
 			} finally {
 				// properly close the unbound connection after executing command
 				if (!connection.isClosed()) {
-					connection.close();
+					doCloseConnection(connection);
 				}
 			}
 		}
