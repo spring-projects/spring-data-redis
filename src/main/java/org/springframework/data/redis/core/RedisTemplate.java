@@ -450,7 +450,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the default serializer to use for this template. All serializers (expect the
+	 * Sets the default serializer to use for this template. All serializers (except the
 	 * {@link #setStringSerializer(RedisSerializer)}) are initialized to this value unless explicitly set. Defaults to
 	 * {@link JdkSerializationRedisSerializer}.
 	 *
