@@ -1,6 +1,16 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.16.RELEASE (2020-02-26)
+----------------------------------------------
+* DATAREDIS-1105 - Fix typo on RedisTemplate javadoc.
+* DATAREDIS-1104 - RedisTemplate executing exception is swallowed when release connection errors.
+* DATAREDIS-1095 - ReactiveRedisConnection close is blocking.
+* DATAREDIS-1093 - ClassCastException when doing pub/sub from RedisStaticMasterReplicaConfiguration.
+* DATAREDIS-1088 - Release 2.1.16 (Lovelace SR16).
+* DATAREDIS-1080 - RedisAtomicInteger remove existing key when a value for initialValue is provided.
+
+
 Changes in version 2.3.0.M3 (2020-02-12)
 ----------------------------------------
 * DATAREDIS-1098 - Upgrade to Lettuce 5.2.2.
@@ -1884,6 +1894,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
