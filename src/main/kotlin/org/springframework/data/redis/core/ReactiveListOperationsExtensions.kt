@@ -202,6 +202,24 @@ suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPopAndAwait(key
 		rightPop(key, timeout).awaitFirstOrNull()
 
 /**
+ * Coroutines variant of [ReactiveListOperations.rightPopAndLeftPush].
+ *
+ * @author Wonwoo Lee
+ * @since 2.3
+ */
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPopAndLeftPushAndAwait(key: K, destinationKey: K): V? =
+	rightPopAndLeftPush(key, destinationKey).awaitFirstOrNull()
+
+/**
+ * Coroutines variant of [ReactiveListOperations.rightPopAndLeftPush].
+ *
+ * @author Wonwoo Lee
+ * @since 2.3
+ */
+suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPopAndLeftPushAndAwait(key: K, destinationKey: K, timeout: Duration): V? =
+	rightPopAndLeftPush(key, destinationKey, timeout).awaitFirstOrNull()
+
+/**
  * Coroutines variant of [ReactiveListOperations.delete].
  *
  * @author Mark Paluch

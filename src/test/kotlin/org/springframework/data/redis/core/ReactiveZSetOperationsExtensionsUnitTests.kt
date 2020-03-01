@@ -304,6 +304,21 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test
+	fun size() {
+
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.size(any()) } returns Mono.just(1)
+
+		runBlocking {
+			assertThat(operations.sizeAndAwait("foo")).isEqualTo(1)
+		}
+
+		verify {
+			operations.size("foo")
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun score() {
 
@@ -481,6 +496,51 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 
 		verify {
 			operations.intersectAndStore("foo", listOf("bar"), "baz", Aggregate.MAX, Weights.fromSetCount(1))
+		}
+	}
+
+	@Test
+	fun rangeByLex() {
+
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.rangeByLex(any(), any()) } returns Flux.just("bar")
+
+		runBlocking {
+			assertThat(operations.rangeByLexAndAwait("foo", Range.just("bar")).toList()).contains("bar")
+		}
+
+		verify {
+			operations.rangeByLex("foo", Range.just("bar"))
+		}
+	}
+
+	@Test
+	fun reverseRangeByLexAndAwait() {
+
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.reverseRangeByLex(any(), any()) } returns Flux.just("bar")
+
+		runBlocking {
+			assertThat(operations.reverseRangeByLexAndAwait("foo", Range.just("bar")).toList()).contains("bar")
+		}
+
+		verify {
+			operations.reverseRangeByLex("foo", Range.just("bar"))
+		}
+	}
+
+	@Test
+	fun delete() {
+
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.delete(any()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.deleteAndAwait("foo")).isTrue()
+		}
+
+		verify {
+			operations.delete("foo")
 		}
 	}
 }

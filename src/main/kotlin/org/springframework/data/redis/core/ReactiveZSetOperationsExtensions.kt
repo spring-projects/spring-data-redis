@@ -160,6 +160,15 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.countAndAwait(key: K
 		count(key, range).awaitSingle()
 
 /**
+ * Coroutines variant of [ReactiveZSetOperations.size].
+ *
+ * @author Wonwoo Lee
+ * @since 2.3
+ */
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.sizeAndAwait(key: K): Long =
+	size(key).awaitSingle()
+
+/**
  * Coroutines variant of [ReactiveZSetOperations.score].
  *
  * @author Mark Paluch
@@ -257,6 +266,24 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAnd
  */
 suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate, weights: RedisZSetCommands.Weights): Long =
 		intersectAndStore(key, otherKeys, destKey, aggregate, weights).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.rangeByLex].
+ *
+ * @author Wonwoo Lee
+ * @since 2.3
+ */
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByLexAndAwait(key: K, range: Range<String>, limit: Limit? = null): Flow<V> =
+	(if (limit == null) rangeByLex(key, range) else rangeByLex(key, range, limit)).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.reverseRangeByLex].
+ *
+ * @author Wonwoo Lee
+ * @since 2.3
+ */
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByLexAndAwait(key: K, range: Range<String>, limit: Limit? = null): Flow<V> =
+	(if (limit == null) reverseRangeByLex(key, range) else reverseRangeByLex(key, range, limit)).asFlow()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.delete].
