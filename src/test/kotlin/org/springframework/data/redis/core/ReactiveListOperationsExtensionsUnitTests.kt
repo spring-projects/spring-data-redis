@@ -334,6 +334,36 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test
+	fun rightPopAndLeftPush() {
+
+		val operations = mockk<ReactiveListOperations<String, String>>()
+		every { operations.rightPopAndLeftPush(any(), any()) } returns Mono.just("foo")
+
+		runBlocking {
+			assertThat(operations.rightPopAndLeftPushAndAwait("foo", "bar")).isEqualTo("foo")
+		}
+
+		verify {
+			operations.rightPopAndLeftPush("foo", "bar")
+		}
+	}
+
+	@Test
+	fun blockingRightPopAndLeftPush() {
+
+		val operations = mockk<ReactiveListOperations<String, String>>()
+		every { operations.rightPopAndLeftPush(any(), any(), Duration.ofDays(1)) } returns Mono.just("foo")
+
+		runBlocking {
+			assertThat(operations.rightPopAndLeftPushAndAwait("foo", "bar", Duration.ofDays(1))).isEqualTo("foo")
+		}
+
+		verify {
+			operations.rightPopAndLeftPush("foo", "bar", Duration.ofDays(1))
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun delete() {
 
