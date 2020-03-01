@@ -335,7 +335,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 	}
 
 	@Test
-	fun blockingRightPopAndLeftPush() {
+	fun rightPopAndLeftPush() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
 		every { operations.rightPopAndLeftPush(any(), any()) } returns Mono.just("foo")
@@ -350,7 +350,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 	}
 
 	@Test
-	fun blockingRightPopAndLeftPushDuration() {
+	fun blockingRightPopAndLeftPush() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
 		every { operations.rightPopAndLeftPush(any(), any(), Duration.ofDays(1)) } returns Mono.just("foo")
