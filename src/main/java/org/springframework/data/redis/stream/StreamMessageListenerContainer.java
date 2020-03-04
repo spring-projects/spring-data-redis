@@ -105,6 +105,7 @@ import org.springframework.util.ErrorHandler;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Christian Rest
  * @param <K> Stream key and Stream field type.
  * @param <V> Stream value type.
  * @since 2.2
@@ -723,7 +724,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
 		public <HK, HV> StreamMessageListenerContainerOptionsBuilder<K, MapRecord<K, HK, HV>> hashValueSerializer(
-				RedisSerializer<HK> serializer) {
+				RedisSerializer<HV> serializer) {
 
 			Assert.notNull(serializer, "RedisSerializer must not be null");
 
