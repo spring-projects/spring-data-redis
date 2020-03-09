@@ -31,6 +31,7 @@ import java.time.Duration
  *
  * @author Mark Paluch
  * @author Sebastien Deleuze
+ * @author Wonwoo Lee
  */
 class ReactiveListOperationsExtensionsUnitTests {
 
@@ -334,7 +335,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1111
 	fun rightPopAndLeftPush() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -349,7 +350,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // DATAREDIS-1111
 	fun blockingRightPopAndLeftPush() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()

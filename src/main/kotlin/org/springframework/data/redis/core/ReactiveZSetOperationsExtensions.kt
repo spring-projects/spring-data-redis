@@ -102,8 +102,8 @@ fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeWithScoresAsFlow(key: K
  * @author Sebastien Deleuze
  * @since 2.2
  */
-fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByScoreAsFlow(key: K, range: Range<Double>, limit: Limit? = null): Flow<V> =
-		(if (limit == null) rangeByScore(key, range) else rangeByScore(key, range, limit)).asFlow()
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByScoreAsFlow(key: K, range: Range<Double>, limit: Limit = Limit.unlimited()): Flow<V> =
+		rangeByScore(key, range, limit).asFlow()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.rangeByScoreWithScores].
@@ -111,8 +111,8 @@ fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByScoreAsFlow(key: K, r
  * @author Sebastien Deleuze
  * @since 2.2
  */
-fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByScoreWithScoresAsFlow(key: K, range: Range<Double>, limit: Limit? = null): Flow<TypedTuple<V>> =
-		(if (limit == null) rangeByScoreWithScores(key, range) else rangeByScoreWithScores(key, range, limit)).asFlow()
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByScoreWithScoresAsFlow(key: K, range: Range<Double>, limit: Limit = Limit.unlimited()): Flow<TypedTuple<V>> =
+		rangeByScoreWithScores(key, range, limit).asFlow()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.reverseRange].
@@ -138,8 +138,8 @@ fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeWithScoresAsFlow
  * @author Sebastien Deleuze
  * @since 2.2
  */
-fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByScoreAsFlow(key: K, range: Range<Double>, limit: Limit? = null): Flow<V> =
-		(if (limit == null) reverseRangeByScore(key, range) else reverseRangeByScore(key, range, limit)).asFlow()
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByScoreAsFlow(key: K, range: Range<Double>, limit: Limit = Limit.unlimited()): Flow<V> =
+		reverseRangeByScore(key, range, limit).asFlow()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.reverseRangeByScoreWithScores].
@@ -147,8 +147,8 @@ fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByScoreAsFlow(ke
  * @author Sebastien Deleuze
  * @since 2.2
  */
-fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByScoreWithScoresAsFlow(key: K, range: Range<Double>, limit: Limit? = null): Flow<TypedTuple<V>> =
-		(if (limit == null) reverseRangeByScoreWithScores(key, range) else reverseRangeByScoreWithScores(key, range, limit)).asFlow()
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByScoreWithScoresAsFlow(key: K, range: Range<Double>, limit: Limit = Limit.unlimited()): Flow<TypedTuple<V>> =
+		reverseRangeByScoreWithScores(key, range, limit).asFlow()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.count].
@@ -273,8 +273,8 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAnd
  * @author Wonwoo Lee
  * @since 2.3
  */
-fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByLexAndAwait(key: K, range: Range<String>, limit: Limit? = null): Flow<V> =
-	(if (limit == null) rangeByLex(key, range) else rangeByLex(key, range, limit)).asFlow()
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByLexAndAwait(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<V> =
+	rangeByLex(key, range, limit).asFlow()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.reverseRangeByLex].
@@ -282,8 +282,8 @@ fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByLexAndAwait(key: K, r
  * @author Wonwoo Lee
  * @since 2.3
  */
-fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByLexAndAwait(key: K, range: Range<String>, limit: Limit? = null): Flow<V> =
-	(if (limit == null) reverseRangeByLex(key, range) else reverseRangeByLex(key, range, limit)).asFlow()
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByLexAndAwait(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<V> =
+	reverseRangeByLex(key, range, limit).asFlow()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.delete].
