@@ -560,12 +560,13 @@ public class LettuceConnectionFactory
 	}
 
 	/**
-	 * Configures the flushing policy when using pipelining. Defaults to {@link PipeliningFlushPolicy#flushEachCommand()
-	 * flush on each command}.
+	 * Configures the flushing policy when using pipelining. If not set, defaults to
+	 * {@link PipeliningFlushPolicy#flushEachCommand() flush on each command}.
 	 *
 	 * @param pipeliningFlushPolicy the flushing policy to control when commands get written to the Redis connection.
 	 * @see LettuceConnection#openPipeline()
 	 * @see StatefulRedisConnection#flushCommands()
+	 * @since 2.3
 	 */
 	public void setPipeliningFlushPolicy(PipeliningFlushPolicy pipeliningFlushPolicy) {
 

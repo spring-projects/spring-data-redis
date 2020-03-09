@@ -65,9 +65,9 @@ import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceResultBuilder;
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceStatusResult;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
 import org.springframework.data.redis.core.RedisCommand;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -518,6 +518,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public void openPipeline() {
+
 		if (!isPipelined) {
 			isPipelined = true;
 			ppline = new ArrayList<>();
@@ -877,6 +878,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @see PipeliningFlushPolicy#flushEachCommand()
 	 * @see #openPipeline()
 	 * @see StatefulRedisConnection#flushCommands()
+	 * @since 2.3
 	 */
 	public void setPipeliningFlushPolicy(PipeliningFlushPolicy pipeliningFlushPolicy) {
 
@@ -923,15 +925,14 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	void pipeline(LettuceResult result) {
+
+		if (flushState != null) {
+			flushState.onCommand(getOrCreateDedicatedConnection());
+		}
+
 		if (isQueueing()) {
-
-			if (flushState != null) {
-				flushState.onCommand(getOrCreateDedicatedConnection());
-			}
-
 			transaction(result);
 		} else {
-			flushState.onCommand(getOrCreateDedicatedConnection());
 			ppline.add(result);
 		}
 	}
@@ -1361,6 +1362,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 *
 	 * @see StatefulRedisConnection#setAutoFlushCommands(boolean)
 	 * @see StatefulRedisConnection#flushCommands()
+	 * @author Mark Paluch
+	 * @since 2.3
 	 */
 	public interface PipeliningFlushPolicy {
 
@@ -1401,6 +1404,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * State object associated with flushing of the currently ongoing pipeline.
+	 * 
+	 * @author Mark Paluch
+	 * @since 2.3
 	 */
 	public interface PipeliningFlushState {
 
@@ -1431,6 +1437,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Implementation to flush on each command.
+	 *  @author Mark Paluch
+	 * 	@since 2.3
 	 */
 	private enum FlushEachCommand implements PipeliningFlushPolicy, PipeliningFlushState {
 
@@ -1453,6 +1461,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Implementation to flush on closing the pipeline.
+	 *  @author Mark Paluch
+	 * 	@since 2.3
 	 */
 	private enum FlushOnClose implements PipeliningFlushPolicy, PipeliningFlushState {
 
@@ -1475,13 +1485,15 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		@Override
 		public void onClose(StatefulConnection<?, ?> connection) {
-			connection.setAutoFlushCommands(true);
 			connection.flushCommands();
+			connection.setAutoFlushCommands(true);
 		}
 	}
 
 	/**
 	 * Pipeline state for buffered flushing.
+	 *  @author Mark Paluch
+	 * 	@since 2.3
 	 */
 	private static class BufferedFlushing implements PipeliningFlushState {
 
@@ -1507,8 +1519,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		@Override
 		public void onClose(StatefulConnection<?, ?> connection) {
-			connection.setAutoFlushCommands(true);
 			connection.flushCommands();
+			connection.setAutoFlushCommands(true);
 		}
 	}
 }
