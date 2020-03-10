@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,7 @@ import java.time.Duration;
  * Value object representing a single pending message containing its {@literal ID}, the {@literal consumer} that fetched
  * the message and has still to acknowledge it, the time elapsed since the messages last delivery and the the total
  * number of times delivered.
- * 
+ *
  * @author Christoph Strobl
  * @since 2.3
  */
@@ -33,7 +33,7 @@ public class PendingMessage {
 	private final Long totalDeliveryCount;
 
 	public PendingMessage(RecordId id, Consumer consumer, Duration elapsedTimeSinceLastDelivery,
-			Long totalDeliveryCount) {
+			long totalDeliveryCount) {
 
 		this.id = id;
 		this.consumer = consumer;
@@ -51,13 +51,13 @@ public class PendingMessage {
 	/**
 	 * @return the message id as {@link String}.
 	 */
-	public String getStringId() {
+	public String getIdAsString() {
 		return id.getValue();
 	}
 
 	/**
 	 * The {@link Consumer} to acknowledge the message.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public Consumer getConsumer() {
@@ -83,8 +83,9 @@ public class PendingMessage {
 	}
 
 	/**
-	 * Get the time elapsed since the messages last delivery to the {@link #getConsumer() consumer}.
-	 * 
+	 * Get the elapsed time (with milliseconds precision) since the messages last delivery to the {@link #getConsumer()
+	 * consumer}.
+	 *
 	 * @return never {@literal null}.
 	 */
 	public Duration getElapsedTimeSinceLastDelivery() {
@@ -92,20 +93,11 @@ public class PendingMessage {
 	}
 
 	/**
-	 * Get the milliseconds elapsed since the messages last delivery to the {@link #getConsumer() consumer}.
+	 * Get the total number of times the messages has been delivered to the {@link #getConsumer() consumer}.
 	 *
 	 * @return never {@literal null}.
 	 */
-	public Long getElapsedTimeSinceLastDeliveryMS() {
-		return elapsedTimeSinceLastDelivery.toMillis();
-	}
-
-	/**
-	 * Get the total number of times the messages has been delivered to the {@link #getConsumer() consumer}.
-	 * 
-	 * @return never {@literal null}.
-	 */
-	public Long getTotalDeliveryCount() {
+	public long getTotalDeliveryCount() {
 		return totalDeliveryCount;
 	}
 

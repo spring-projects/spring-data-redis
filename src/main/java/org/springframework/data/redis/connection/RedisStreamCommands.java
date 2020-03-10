@@ -27,6 +27,7 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -121,7 +122,7 @@ public interface RedisStreamCommands {
 
 	/**
 	 * Change the ownership of a pending message to the given new {@literal consumer}.
-	 * 
+	 *
 	 * @param key the {@literal key} the stream is stored at.
 	 * @param group the name of the {@literal consumer group}.
 	 * @param newOwner the name of the new {@literal consumer}.
@@ -145,8 +146,8 @@ public interface RedisStreamCommands {
 		private final @Nullable Long retryCount;
 		private final boolean force;
 
-		private XClaimOptions(List<RecordId> ids, Duration minIdleTime, Duration idleTime, Instant unixTime,
-				Long retryCount, boolean force) {
+		private XClaimOptions(List<RecordId> ids, Duration minIdleTime, @Nullable Duration idleTime,
+				@Nullable Instant unixTime, @Nullable Long retryCount, boolean force) {
 
 			this.ids = new ArrayList<>(ids);
 			this.minIdleTime = minIdleTime;
@@ -159,7 +160,7 @@ public interface RedisStreamCommands {
 		/**
 		 * Set the {@literal min-idle-time} to limit the command to messages that have been idle for at at least the given
 		 * {@link Duration}.
-		 * 
+		 *
 		 * @param minIdleTime must not be {@literal null}.
 		 * @return new instance of {@link XClaimOptions}.
 		 */
@@ -206,7 +207,7 @@ public interface RedisStreamCommands {
 		 * @param retryCount can be {@literal null}. If {@literal null} no change to the retry counter will be made.
 		 * @return new instance of {@link XClaimOptions}.
 		 */
-		public XClaimOptions retryCount(@Nullable Long retryCount) {
+		public XClaimOptions retryCount(long retryCount) {
 			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, force);
 		}
 
@@ -249,7 +250,7 @@ public interface RedisStreamCommands {
 
 		/**
 		 * Get the {@literal IDLE ms} time.
-		 * 
+		 *
 		 * @return can be {@literal null}.
 		 */
 		@Nullable
@@ -259,7 +260,7 @@ public interface RedisStreamCommands {
 
 		/**
 		 * Get the {@literal TIME ms-unix-time}
-		 * 
+		 *
 		 * @return
 		 */
 		@Nullable
@@ -269,7 +270,7 @@ public interface RedisStreamCommands {
 
 		/**
 		 * Get the {@literal RETRYCOUNT count}.
-		 * 
+		 *
 		 * @return
 		 */
 		@Nullable
@@ -279,7 +280,7 @@ public interface RedisStreamCommands {
 
 		/**
 		 * Get the {@literal FORCE} flag.
-		 * 
+		 *
 		 * @return
 		 */
 		public boolean isForce() {
@@ -288,9 +289,12 @@ public interface RedisStreamCommands {
 
 		public static class XClaimOptionsBuilder {
 
-			private Duration minIdleTime;
+			private final Duration minIdleTime;
 
 			XClaimOptionsBuilder(Duration minIdleTime) {
+
+				Assert.notNull(minIdleTime, "Min idle time must not be null!");
+
 				this.minIdleTime = minIdleTime;
 			}
 
@@ -412,7 +416,7 @@ public interface RedisStreamCommands {
 
 	/**
 	 * Obtain the {@link PendingMessagesSummary} for a given {@literal consumer group}.
-	 * 
+	 *
 	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
 	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
 	 * @return a summary of pending messages within the given {@literal consumer group} or {@literal null} when used in
@@ -425,7 +429,7 @@ public interface RedisStreamCommands {
 
 	/**
 	 * Obtained detailed information about all pending messages for a given {@link Consumer}.
-	 * 
+	 *
 	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
 	 * @param consumer the consumer to fetch {@link PendingMessages} for. Must not be {@literal null}.
 	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
@@ -542,7 +546,7 @@ public interface RedisStreamCommands {
 
 		/**
 		 * Create new {@link XPendingOptions} with an unbounded {@link Range} ({@literal - +}).
-		 * 
+		 *
 		 * @return new instance of {@link XPendingOptions}.
 		 */
 		public static XPendingOptions unbounded() {
@@ -561,7 +565,7 @@ public interface RedisStreamCommands {
 
 		/**
 		 * Create new {@link XPendingOptions} with given {@link Range} and limit.
-		 * 
+		 *
 		 * @return new instance of {@link XPendingOptions}.
 		 */
 		public static XPendingOptions range(Range<?> range, Long count) {
@@ -570,7 +574,7 @@ public interface RedisStreamCommands {
 
 		/**
 		 * Append given consumer.
-		 * 
+		 *
 		 * @param consumerName must not be {@literal null}.
 		 * @return new instance of {@link XPendingOptions}.
 		 */

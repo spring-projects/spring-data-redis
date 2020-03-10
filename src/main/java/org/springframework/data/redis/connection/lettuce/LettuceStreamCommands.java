@@ -322,15 +322,15 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().xpending(key, group),
-						it -> LettuceConverters.toPendingMessagesInfo(groupName, it)));
+						it -> StreamConverters.toPendingMessagesInfo(groupName, it)));
 				return null;
 			}
 			if (isQueueing()) {
 				transaction(connection.newLettuceResult(getAsyncConnection().xpending(key, group),
-						it -> LettuceConverters.toPendingMessagesInfo(groupName, it)));
+						it -> StreamConverters.toPendingMessagesInfo(groupName, it)));
 				return null;
 			}
-			return LettuceConverters.toPendingMessagesInfo(groupName, getConnection().xpending(key, group));
+			return StreamConverters.toPendingMessagesInfo(groupName, getConnection().xpending(key, group));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -346,37 +346,40 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		byte[] group = LettuceConverters.toBytes(groupName);
 		io.lettuce.core.Range<String> range = RangeConverter.toRangeWithDefault(options.getRange(), "-", "+");
 		io.lettuce.core.Limit limit = options.isLimited() ? io.lettuce.core.Limit.from(options.getCount())
-				: io.lettuce.core.Limit.from(Long.MAX_VALUE);
+				: io.lettuce.core.Limit.unlimited();
 
 		try {
-			if (!options.hasConsumer()) {
-				if (isPipelined()) {
-					pipeline(connection.newLettuceResult(getAsyncConnection().xpending(key, group, range, limit),
-							it -> LettuceConverters.toPendingMessages(groupName, options.getRange(), (List<Object>) it)));
-					return null;
-				}
-				if (isQueueing()) {
-					transaction(connection.newLettuceResult(getAsyncConnection().xpending(key, group, range, limit),
-							it -> LettuceConverters.toPendingMessages(groupName, options.getRange(), (List<Object>) it)));
-					return null;
-				}
-				return LettuceConverters.toPendingMessages(groupName, options.getRange(),
-						getConnection().xpending(key, group, range, limit));
-			} else {
+			if (options.hasConsumer()) {
+
 				if (isPipelined()) {
 					pipeline(connection.newLettuceResult(getAsyncConnection().xpending(key,
 							io.lettuce.core.Consumer.from(group, LettuceConverters.toBytes(options.getConsumerName())), range, limit),
-							it -> LettuceConverters.toPendingMessages(groupName, options.getRange(), (List<Object>) it)));
+							it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it)));
 					return null;
 				}
 				if (isQueueing()) {
 					transaction(connection.newLettuceResult(getAsyncConnection().xpending(key,
 							io.lettuce.core.Consumer.from(group, LettuceConverters.toBytes(options.getConsumerName())), range, limit),
-							it -> LettuceConverters.toPendingMessages(groupName, options.getRange(), (List<Object>) it)));
+							it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it)));
 					return null;
 				}
-				return LettuceConverters.toPendingMessages(groupName, options.getRange(), getConnection().xpending(key,
+				return StreamConverters.toPendingMessages(groupName, options.getRange(), getConnection().xpending(key,
 						io.lettuce.core.Consumer.from(group, LettuceConverters.toBytes(options.getConsumerName())), range, limit));
+
+			} else {
+
+				if (isPipelined()) {
+					pipeline(connection.newLettuceResult(getAsyncConnection().xpending(key, group, range, limit),
+							it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it)));
+					return null;
+				}
+				if (isQueueing()) {
+					transaction(connection.newLettuceResult(getAsyncConnection().xpending(key, group, range, limit),
+							it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it)));
+					return null;
+				}
+				return StreamConverters.toPendingMessages(groupName, options.getRange(),
+						getConnection().xpending(key, group, range, limit));
 			}
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);

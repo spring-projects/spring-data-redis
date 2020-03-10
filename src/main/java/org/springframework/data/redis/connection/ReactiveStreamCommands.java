@@ -353,7 +353,7 @@ public interface ReactiveStreamCommands {
 
 	/**
 	 * Change the ownership of a pending message to the given new {@literal consumer}.
-	 * 
+	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
@@ -365,18 +365,19 @@ public interface ReactiveStreamCommands {
 	 * {@code XCLAIM} command parameters.
 	 *
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
 	 */
 	class XClaimCommand extends KeyCommand {
 
 		private final String groupName;
-		private final String consumerName;
+		private final String newOwner;
 		private final XClaimOptions options;
 
-		private XClaimCommand(@Nullable ByteBuffer key, String groupName, String consumerName, XClaimOptions options) {
+		private XClaimCommand(@Nullable ByteBuffer key, String groupName, String newOwner, XClaimOptions options) {
 
 			super(key);
 			this.groupName = groupName;
-			this.consumerName = consumerName;
+			this.newOwner = newOwner;
 			this.options = options;
 		}
 
@@ -384,8 +385,8 @@ public interface ReactiveStreamCommands {
 			return options;
 		}
 
-		public String getConsumerName() {
-			return consumerName;
+		public String getNewOwner() {
+			return newOwner;
 		}
 
 		public String getGroupName() {
@@ -672,7 +673,7 @@ public interface ReactiveStreamCommands {
 
 		/**
 		 * Create new unbounded {@link PendingRecordsCommand}.
-		 * 
+		 *
 		 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
 		 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
 		 * @return new instance of {@link PendingRecordsCommand}.

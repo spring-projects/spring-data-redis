@@ -227,13 +227,13 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
 	 * @param group the name of the {@literal consumer group}. Must not be {@literal null}.
 	 * @param range the range of messages ids to search within. Must not be {@literal null}.
-	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param count limit the number of results.
 	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	Mono<PendingMessages> pending(K key, String group, Range<?> range, Long count);
+	Mono<PendingMessages> pending(K key, String group, Range<?> range, long count);
 
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
@@ -242,12 +242,12 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
 	 * @param consumer the name of the {@link Consumer}. Must not be {@literal null}.
 	 * @param range the range of messages ids to search within. Must not be {@literal null}.
-	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param count limit the number of results.
 	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	Mono<PendingMessages> pending(K key, Consumer consumer, Range<?> range, Long count);
+	Mono<PendingMessages> pending(K key, Consumer consumer, Range<?> range, long count);
 
 	/**
 	 * Get the length of a stream.

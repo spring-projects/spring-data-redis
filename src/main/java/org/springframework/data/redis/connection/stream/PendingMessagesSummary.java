@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,12 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.springframework.data.domain.Range;
+import org.springframework.util.Assert;
 
 /**
  * Value Object summarizing pending messages in a {@literal consumer group}. It contains the total number and ID range
  * of pending messages for this consumer group, as well as a collection of total pending messages per consumer.
- * 
+ *
  * @since 2.3
  * @author Christoph Strobl
  */
@@ -34,8 +35,11 @@ public class PendingMessagesSummary {
 	private final Range<String> idRange;
 	private final Map<String, Long> pendingMessagesPerConsumer;
 
-	public PendingMessagesSummary(String groupName, Long totalPendingMessages, Range<String> idRange,
+	public PendingMessagesSummary(String groupName, long totalPendingMessages, Range<String> idRange,
 			Map<String, Long> pendingMessagesPerConsumer) {
+
+		Assert.notNull(idRange, "ID Range must not be null");
+		Assert.notNull(pendingMessagesPerConsumer, "Pending Messages must not be null");
 
 		this.groupName = groupName;
 		this.totalPendingMessages = totalPendingMessages;
@@ -54,7 +58,7 @@ public class PendingMessagesSummary {
 
 	/**
 	 * Get the smallest ID among the pending messages.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public RecordId minRecordId() {
@@ -63,7 +67,7 @@ public class PendingMessagesSummary {
 
 	/**
 	 * Get the greatest ID among the pending messages.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public RecordId maxRecordId() {
@@ -72,7 +76,7 @@ public class PendingMessagesSummary {
 
 	/**
 	 * Get the smallest ID as {@link String} among the pending messages.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public String minMessageId() {
@@ -81,7 +85,7 @@ public class PendingMessagesSummary {
 
 	/**
 	 * Get the greatest ID as {@link String} among the pending messages.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public String maxMessageId() {
@@ -91,9 +95,9 @@ public class PendingMessagesSummary {
 	/**
 	 * Get the number of total pending messages within the {@literal consumer group}.
 	 *
-	 * @return
+	 * @return never {@literal null}.
 	 */
-	public Long getTotalPendingMessages() {
+	public long getTotalPendingMessages() {
 		return totalPendingMessages;
 	}
 
@@ -107,7 +111,7 @@ public class PendingMessagesSummary {
 	/**
 	 * Obtain a map of every {@literal consumer} in the {@literal consumer group} with at least one pending message, and
 	 * the number of pending messages.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public Map<String, Long> getPendingMessagesPerConsumer() {

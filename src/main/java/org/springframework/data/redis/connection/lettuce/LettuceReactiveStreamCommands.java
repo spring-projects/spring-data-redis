@@ -121,7 +121,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 			String[] ids = command.getOptions().getIdsAsStringArray();
 			io.lettuce.core.Consumer<ByteBuffer> from = io.lettuce.core.Consumer
-					.from(ByteUtils.getByteBuffer(command.getGroupName()), ByteUtils.getByteBuffer(command.getConsumerName()));
+					.from(ByteUtils.getByteBuffer(command.getGroupName()), ByteUtils.getByteBuffer(command.getNewOwner()));
 			XClaimArgs args = StreamConverters.toXClaimArgs(command.getOptions());
 
 			Flux<RecordId> result = cmd.xclaim(command.getKey(), from, args, ids).map(it -> RecordId.of(it.getId()));
@@ -140,7 +140,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 			String[] ids = command.getOptions().getIdsAsStringArray();
 			io.lettuce.core.Consumer<ByteBuffer> from = io.lettuce.core.Consumer
-					.from(ByteUtils.getByteBuffer(command.getGroupName()), ByteUtils.getByteBuffer(command.getConsumerName()));
+					.from(ByteUtils.getByteBuffer(command.getGroupName()), ByteUtils.getByteBuffer(command.getNewOwner()));
 			XClaimArgs args = StreamConverters.toXClaimArgs(command.getOptions());
 
 			Flux<ByteBufferRecord> result = cmd.xclaim(command.getKey(), from, args, ids)
@@ -249,7 +249,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 				// end.
 				// end.
 
-				return LettuceConverters.toPendingMessagesInfo(command.getGroupName(), target);
+				return StreamConverters.toPendingMessagesInfo(command.getGroupName(), target);
 			}).map(value -> new CommandResponse<PendingRecordsCommand, PendingMessagesSummary>(command, value));
 		}));
 	}
@@ -268,7 +268,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 			ByteBuffer groupName = ByteUtils.getByteBuffer(command.getGroupName());
 			io.lettuce.core.Range<String> range = RangeConverter.toRangeWithDefault(command.getRange(), "-", "+");
 			io.lettuce.core.Limit limit = command.isLimited() ? io.lettuce.core.Limit.from(command.getCount())
-					: io.lettuce.core.Limit.from(Long.MAX_VALUE);
+					: io.lettuce.core.Limit.unlimited();
 
 			Flux<Object> publisher = command.hasConsumer() ? cmd.xpending(command.getKey(),
 					io.lettuce.core.Consumer.from(groupName, ByteUtils.getByteBuffer(command.getConsumerName())), range, limit)
@@ -276,7 +276,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 			return publisher.collectList().map(it -> {
 
-				return LettuceConverters.toPendingMessages(command.getGroupName(), command.getRange(), it);
+				return StreamConverters.toPendingMessages(command.getGroupName(), command.getRange(), it);
 			}).map(value -> new CommandResponse<PendingRecordsCommand, PendingMessages>(command, value));
 		}));
 	}

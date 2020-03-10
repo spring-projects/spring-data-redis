@@ -190,7 +190,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, java.lang.String, org.springframework.data.domain.Range, java.lang.Long)
 	 */
 	@Override
-	public Mono<PendingMessages> pending(K key, String group, Range<?> range, Long count) {
+	public Mono<PendingMessages> pending(K key, String group, Range<?> range, long count) {
 
 		ByteBuffer rawKey = rawKey(key);
 		return createMono(connection -> connection.xPending(rawKey, group, range, count));
@@ -201,7 +201,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, org.springframework.data.redis.connection.stream.Consumer, org.springframework.data.domain.Range, java.lang.Long)
 	 */
 	@Override
-	public Mono<PendingMessages> pending(K key, Consumer consumer, Range<?> range, Long count) {
+	public Mono<PendingMessages> pending(K key, Consumer consumer, Range<?> range, long count) {
 
 		ByteBuffer rawKey = rawKey(key);
 		return createMono(connection -> connection.xPending(rawKey, consumer, range, count));

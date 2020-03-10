@@ -3158,8 +3158,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
 		assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
 		assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
-		assertThat(pending.get(0).getStringId()).isNotNull();
-
+		assertThat(pending.get(0).getIdAsString()).isNotNull();
 	}
 
 	@Test // DATAREDIS-1084
@@ -3183,7 +3182,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
 		assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
 		assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
-		assertThat(pending.get(0).getStringId()).isNotNull();
+		assertThat(pending.get(0).getIdAsString()).isNotNull();
 	}
 
 	@Test // DATAREDIS-1084
@@ -3234,7 +3233,8 @@ public abstract class AbstractConnectionIntegrationTests {
 				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
 		List<MapRecord<String, String, String>> messages = (List<MapRecord<String, String, String>>) getResults().get(2);
-		TimeUnit.MILLISECONDS.sleep(5);
+
+		TimeUnit.MILLISECONDS.sleep(15);
 
 		actual.add(connection.xClaim(KEY_1, "my-group", "my-consumer",
 				XClaimOptions.minIdle(Duration.ofMillis(1)).ids(messages.get(0).getId())));

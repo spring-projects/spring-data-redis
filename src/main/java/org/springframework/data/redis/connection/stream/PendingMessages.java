@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,11 +20,12 @@ import java.util.List;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.util.Streamable;
+import org.springframework.util.Assert;
 
 /**
  * Value object holding detailed information about pending messages in {@literal consumer group} for a given
- * {@link org.springframework.data.redis.connection.SortParameters.Range} and offset.
- * 
+ * {@link org.springframework.data.domain.Range} and offset.
+ *
  * @author Christoph Strobl
  * @since 2.3
  */
@@ -40,6 +41,9 @@ public class PendingMessages implements Streamable<PendingMessage> {
 
 	public PendingMessages(String groupName, Range<?> range, List<PendingMessage> pendingMessages) {
 
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(pendingMessages, "Pending Messages must not be null");
+
 		this.groupName = groupName;
 		this.range = range;
 		this.pendingMessages = pendingMessages;
@@ -47,7 +51,7 @@ public class PendingMessages implements Streamable<PendingMessage> {
 
 	/**
 	 * Adds the range to the current {@link PendingMessages}.
-	 * 
+	 *
 	 * @param range must not be {@literal null}.
 	 * @return new instance of {@link PendingMessages}.
 	 */
@@ -57,7 +61,7 @@ public class PendingMessages implements Streamable<PendingMessage> {
 
 	/**
 	 * The {@literal consumer group} name.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public String getGroupName() {
@@ -66,7 +70,7 @@ public class PendingMessages implements Streamable<PendingMessage> {
 
 	/**
 	 * The {@link Range} pending messages have been loaded.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public Range<?> getRange() {
@@ -89,7 +93,7 @@ public class PendingMessages implements Streamable<PendingMessage> {
 
 	/**
 	 * Get the {@link PendingMessage} at the given position.
-	 * 
+	 *
 	 * @param index
 	 * @return the {@link PendingMessage} a the given index.
 	 * @throws IndexOutOfBoundsException if the index is out of range.
@@ -99,7 +103,7 @@ public class PendingMessages implements Streamable<PendingMessage> {
 	}
 
 	/*
-	 * (non-Javadoc) 
+	 * (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */
 	@Override

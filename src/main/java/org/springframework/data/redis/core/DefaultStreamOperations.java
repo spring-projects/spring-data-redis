@@ -186,7 +186,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, java.lang.String, org.springframework.data.domain.Range, java.lang.Long)
 	 */
 	@Override
-	public PendingMessages pending(K key, String group, Range<?> range, Long count) {
+	public PendingMessages pending(K key, String group, Range<?> range, long count) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xPending(rawKey, group, range, count), true);
@@ -197,7 +197,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, org.springframework.data.redis.connection.stream.Consumer, org.springframework.data.domain.Range, java.lang.Long)
 	 */
 	@Override
-	public PendingMessages pending(K key, Consumer consumer, Range<?> range, Long count) {
+	public PendingMessages pending(K key, Consumer consumer, Range<?> range, long count) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xPending(rawKey, consumer, range, count), true);

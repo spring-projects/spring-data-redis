@@ -275,7 +275,7 @@ public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsT
 					assertThat(it.get(0).getConsumerName()).isEqualTo("my-consumer");
 					assertThat(it.get(0).getGroupName()).isEqualTo("my-group");
 					assertThat(it.get(0).getTotalDeliveryCount()).isOne();
-					assertThat(it.get(0).getStringId()).isNotNull();
+					assertThat(it.get(0).getIdAsString()).isNotNull();
 				}).verifyComplete();
 	}
 
@@ -300,7 +300,7 @@ public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsT
 					assertThat(it.get(0).getConsumerName()).isEqualTo("my-consumer");
 					assertThat(it.get(0).getGroupName()).isEqualTo("my-group");
 					assertThat(it.get(0).getTotalDeliveryCount()).isOne();
-					assertThat(it.get(0).getStringId()).isNotNull();
+					assertThat(it.get(0).getIdAsString()).isNotNull();
 				}).verifyComplete();
 	}
 
