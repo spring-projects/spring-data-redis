@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -162,7 +163,9 @@ public interface ReactiveHashCommands {
 		Assert.notNull(field, "Field must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return hSet(Mono.just(HSetCommand.value(value).ofField(field).forKey(key))).next().map(BooleanResponse::getOutput);
+		return hSet(Mono.just(HSetCommand.value(value).ofField(field).forKey(key)))
+				.next()
+				.flatMap(response->Mono.justOrEmpty(response.getOutput()));
 	}
 
 	/**
@@ -180,8 +183,9 @@ public interface ReactiveHashCommands {
 		Assert.notNull(field, "Field must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return hSet(Mono.just(HSetCommand.value(value).ofField(field).forKey(key).ifValueNotExists())).next()
-				.map(BooleanResponse::getOutput);
+		return hSet(Mono.just(HSetCommand.value(value).ofField(field).forKey(key).ifValueNotExists()))
+				.next()
+				.flatMap(response->Mono.justOrEmpty(response.getOutput()));
 	}
 
 	/**
@@ -282,7 +286,7 @@ public interface ReactiveHashCommands {
 	 * @see <a href="https://redis.io/commands/hget">Redis Documentation: HGET</a>
 	 */
 	default Mono<ByteBuffer> hGet(ByteBuffer key, ByteBuffer field) {
-		return hMGet(key, Collections.singletonList(field)).map(val -> val.isEmpty() ? null : val.iterator().next());
+		return hMGet(key, Collections.singletonList(field)).flatMapIterable(Function.identity()).next();
 	}
 
 	/**
@@ -298,7 +302,9 @@ public interface ReactiveHashCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(fields, "Fields must not be null!");
 
-		return hMGet(Mono.just(HGetCommand.fields(fields).from(key))).next().map(MultiValueResponse::getOutput);
+		return hMGet(Mono.just(HGetCommand.fields(fields).from(key)))
+				.next()
+				.flatMap(res->Mono.justOrEmpty(res.getOutput()));
 	}
 
 	/**
@@ -374,7 +380,9 @@ public interface ReactiveHashCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(field, "Field must not be null!");
 
-		return hExists(Mono.just(HExistsCommand.field(field).in(key))).next().map(BooleanResponse::getOutput);
+		return hExists(Mono.just(HExistsCommand.field(field).in(key)))
+				.next()
+				.flatMap(response->Mono.justOrEmpty(response.getOutput()));
 	}
 
 	/**
@@ -476,7 +484,9 @@ public interface ReactiveHashCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(fields, "Fields must not be null!");
 
-		return hDel(Mono.just(HDelCommand.fields(fields).from(key))).next().map(NumericResponse::getOutput);
+		return hDel(Mono.just(HDelCommand.fields(fields).from(key)))
+				.next()
+				.flatMap(response->Mono.justOrEmpty(response.getOutput()));
 	}
 
 	/**
@@ -499,7 +509,9 @@ public interface ReactiveHashCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return hLen(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
+		return hLen(Mono.just(new KeyCommand(key)))
+				.next()
+				.flatMap(response->Mono.justOrEmpty(response.getOutput()));
 	}
 
 	/**
@@ -522,7 +534,8 @@ public interface ReactiveHashCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return hKeys(Mono.just(new KeyCommand(key))).flatMap(CommandResponse::getOutput);
+		return hKeys(Mono.just(new KeyCommand(key)))
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
