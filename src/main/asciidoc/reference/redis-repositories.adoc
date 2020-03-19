@@ -591,6 +591,8 @@ NOTE: The keyspace notification message listener alters `notify-keyspace-events`
 
 NOTE: Redis Pub/Sub messages are not persistent. If a key expires while the application is down, the expiry event is not processed, which may lead to secondary indexes containing references to the expired object.
 
+NOTE: `@EnableKeyspaceEvents(shadowCopy = OFF)` disable storage of phantom copies and reduces data size within Redis. `RedisKeyExpiredEvent` will only contain the `id` of the expired key.
+
 [[redis.repositories.references]]
 == Persisting References
 Marking properties with `@Reference` allows storing a simple key reference instead of copying values into the hash itself.
