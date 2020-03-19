@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.keyvalue.repository.config.QueryCreatorType;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
+import org.springframework.data.redis.core.RedisKeyValueAdapter.ShadowCopy;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.index.IndexConfiguration;
@@ -165,6 +166,15 @@ public @interface EnableRedisRepositories {
 	 * @since 1.8
 	 */
 	EnableKeyspaceEvents enableKeyspaceEvents() default EnableKeyspaceEvents.OFF;
+
+	/**
+	 * Configuration flag controlling storage of phantom keys (shadow copies) of expiring entities to read them later when
+	 * publishing {@link org.springframework.data.redis.core.RedisKeyspaceEvent keyspace events}.
+	 * 
+	 * @return
+	 * @since 2.3
+	 */
+	ShadowCopy shadowCopy() default ShadowCopy.DEFAULT;
 
 	/**
 	 * Configure the {@literal notify-keyspace-events} property if not already set. <br />
