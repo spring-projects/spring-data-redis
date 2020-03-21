@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Joongsoo Park
  * @since 2.0
  */
 class DefaultRedisCacheWriter implements RedisCacheWriter {
@@ -170,13 +171,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 		execute(name, connection -> {
 
-			boolean wasLocked = false;
-
 			try {
 
 				if (isLockingCacheWriter()) {
 					doLock(name, connection);
-					wasLocked = true;
 				}
 
 				byte[][] keys = Optional.ofNullable(connection.keys(pattern)).orElse(Collections.emptySet())
@@ -187,7 +185,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				}
 			} finally {
 
-				if (wasLocked && isLockingCacheWriter()) {
+				if (isLockingCacheWriter()) {
 					doUnlock(name, connection);
 				}
 			}
@@ -202,7 +200,12 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 * @param name the name of the cache to lock.
 	 */
 	void lock(String name) {
-		execute(name, connection -> doLock(name, connection));
+
+		execute(name, connection -> {
+
+			doLock(name, connection);
+			return null;
+		});
 	}
 
 	/**
@@ -214,8 +217,25 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		executeLockFree(connection -> doUnlock(name, connection));
 	}
 
-	private Boolean doLock(String name, RedisConnection connection) {
-		return connection.setNX(createCacheLockKey(name), new byte[0]);
+	private void doLock(String name, RedisConnection connection) {
+
+		if (!isLockingCacheWriter()) {
+			return;
+		}
+
+		try {
+
+			while (!connection.setNX(createCacheLockKey(name), new byte[0])) {
+				Thread.sleep(sleepTime.toMillis());
+			}
+		} catch (InterruptedException ex) {
+
+			// Re-interrupt current thread, to allow other participants to react.
+			Thread.currentThread().interrupt();
+
+			throw new PessimisticLockingFailureException(String.format("Interrupted while waiting to acquire lock cache %s", name),
+					ex);
+		}
 	}
 
 	private Long doUnlock(String name, RedisConnection connection) {
