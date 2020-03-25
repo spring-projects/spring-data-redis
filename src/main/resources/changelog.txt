@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.6.RELEASE (2020-03-25)
+---------------------------------------------
+* DATAREDIS-1115 - Reduce log level for shared connection renewal.
+* DATAREDIS-1110 - Wrong type parameter in StreamMessageListenerContainerOptionsBuilder.hashValueSerializer().
+* DATAREDIS-1108 - Release 2.2.6 (Moore SR6).
+
+
 Changes in version 2.3.0.M4 (2020-03-11)
 ----------------------------------------
 * DATAREDIS-1111 - Add missing list and zset coroutine extensions.
@@ -1923,6 +1930,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
