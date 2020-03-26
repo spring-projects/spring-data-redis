@@ -65,6 +65,7 @@ public class AppConfig {
 
 NOTE: The initial configuration points driver libraries to an initial set of cluster nodes. Changes resulting from live cluster reconfiguration are kept only in the native driver and are not written back to the configuration.
 
+[[cluster.working.with.cluster]]
 == Working With Redis Cluster Connection
 
 As mentioned earlier, Redis Cluster behaves differently from single-node Redis or even a Sentinel-monitored master-replica environment. This is because the automatic sharding maps a key to one of 16384 slots, which are distributed across the nodes. Therefore, commands that involve more than one key must assert all keys map to the exact same slot to avoid cross-slot execution errors.
@@ -148,6 +149,7 @@ connection.mGet("thing1", "thing2");                                           <
 
 TIP: The preceding examples demonstrate the general strategy followed by Spring Data Redis. Be aware that some operations might require loading huge amounts of data into memory to compute the desired command. Additionally, not all cross-slot requests can safely be ported to multiple single slot requests and error if misused (for example, `PFCOUNT`).
 
+[[cluster.redistemplate]]
 == Working with `RedisTemplate` and `ClusterOperations`
 
 See the <<redis:template>> section for information about the general purpose, configuration, and usage of `RedisTemplate`.
