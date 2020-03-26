@@ -26,6 +26,9 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.*;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -403,6 +406,39 @@ public interface RedisStreamCommands {
 	 */
 	@Nullable
 	Boolean xGroupDestroy(byte[] key, String groupName);
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 * 
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	XInfoStream xInfo(byte[] key);
+
+	/**
+	 * Obtain information about {@literal consumer groups} associated with the stream stored at the specified
+	 * {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	XInfoGroups xInfoGroups(byte[] key);
+
+	/**
+	 * Obtain information about every consumer in a specific {@literal consumer group} for the stream stored at the
+	 * specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param groupName name of the {@literal consumer group}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	XInfoConsumers xInfoConsumers(byte[] key, String groupName);
 
 	/**
 	 * Get the length of a stream.

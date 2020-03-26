@@ -34,6 +34,9 @@ import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
@@ -2106,6 +2109,39 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	Boolean xGroupDestroy(String key, String group);
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	XInfoStream xInfo(String key);
+
+	/**
+	 * Obtain information about {@literal consumer groups} associated with the stream stored at the specified
+	 * {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	XInfoGroups xInfoGroups(String key);
+
+	/**
+	 * Obtain information about every consumer in a specific {@literal consumer group} for the stream stored at the
+	 * specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param groupName name of the {@literal consumer group}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	XInfoConsumers xInfoConsumers(String key, String groupName);
 
 	/**
 	 * Get the length of a stream.
