@@ -38,6 +38,9 @@ import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.util.Assert;
@@ -108,6 +111,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 						RecordId::of));
 				return null;
 			}
+
 			return RecordId.of(getConnection().xadd(record.getStream(), args, record.getValue()));
 
 		} catch (Exception ex) {
@@ -285,6 +289,83 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				return null;
 			}
 			return getConnection().xgroupDestroy(key, LettuceConverters.toBytes(groupName));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfo(byte[])
+	 */
+	@Override
+	public XInfoStream xInfo(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().xinfoStream(key), XInfoStream::fromList));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().xinfoStream(key), XInfoStream::fromList));
+				return null;
+			}
+			return XInfoStream.fromList(getConnection().xinfoStream(key));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfoGroups(byte[])
+	 */
+	@Override
+	public XInfoGroups xInfoGroups(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().xinfoGroups(key), XInfoGroups::fromList));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().xinfoGroups(key), XInfoGroups::fromList));
+				return null;
+			}
+			return XInfoGroups.fromList(getConnection().xinfoGroups(key));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfoConsumers(byte[], java.lang.String)
+	 */
+	@Override
+	public XInfoConsumers xInfoConsumers(byte[] key, String groupName) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(groupName, "GroupName must not be null!");
+
+		byte[] binaryGroupName = LettuceConverters.toBytes(groupName);
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().xinfoConsumers(key, binaryGroupName),
+						it -> XInfoConsumers.fromList(groupName, it)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().xinfoConsumers(key, binaryGroupName),
+						it -> XInfoConsumers.fromList(groupName, it)));
+				return null;
+			}
+			return XInfoConsumers.fromList(groupName, getConnection().xinfoConsumers(key, binaryGroupName));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

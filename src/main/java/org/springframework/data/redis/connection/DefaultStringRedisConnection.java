@@ -41,6 +41,9 @@ import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StringRecord;
@@ -3666,7 +3669,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<StringRecord> xClaim(String key, String group, String consumer, XClaimOptions options) {
-		return convertAndReturn(delegate.xClaim(serialize(key), group, consumer, options), listByteMapRecordToStringMapRecordConverter);
+		return convertAndReturn(delegate.xClaim(serialize(key), group, consumer, options),
+				listByteMapRecordToStringMapRecordConverter);
 	}
 
 	/*
@@ -3703,6 +3707,33 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Boolean xGroupDestroy(String key, String group) {
 		return convertAndReturn(delegate.xGroupDestroy(serialize(key), group), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xInfo(java.lang.String)
+	 */
+	@Override
+	public XInfoStream xInfo(String key) {
+		return convertAndReturn(delegate.xInfo(serialize(key)), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xInfoGroups(java.lang.String)
+	 */
+	@Override
+	public XInfoGroups xInfoGroups(String key) {
+		return convertAndReturn(delegate.xInfoGroups(serialize(key)), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xInfoConsumers(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public XInfoConsumers xInfoConsumers(String key, String groupName) {
+		return convertAndReturn(delegate.xInfoConsumers(serialize(key), groupName), identityConverter);
 	}
 
 	/*
@@ -3873,6 +3904,33 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Boolean xGroupDestroy(byte[] key, String groupName) {
 		return delegate.xGroupDestroy(key, groupName);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfo(byte[])
+	 */
+	@Override
+	public XInfoStream xInfo(byte[] key) {
+		return delegate.xInfo(key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfoGroups(byte[])
+	 */
+	@Override
+	public XInfoGroups xInfoGroups(byte[] key) {
+		return delegate.xInfoGroups(key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfoConsumers(byte[], java.lang.String)
+	 */
+	@Override
+	public XInfoConsumers xInfoConsumers(byte[] key, String groupName) {
+		return delegate.xInfoConsumers(key, groupName);
 	}
 
 	/*
