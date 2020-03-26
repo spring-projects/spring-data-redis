@@ -165,6 +165,7 @@ public class Example {
 
 include::{referenceDir}/reactive-messaging.adoc[leveloffset=+1]
 
+[[redis:reactive:scripting]]
 == Reactive Scripting
 
 Executing Redis scripts via the reactive infrastructure can be done using the `ReactiveScriptExecutor` accessed best via `ReactiveRedisTemplate`.
