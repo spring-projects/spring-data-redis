@@ -315,6 +315,10 @@ public class StreamInfo {
 		private XInfoGroup(List<Object> raw) {
 			super(raw, DEFAULT_TYPE_HINTS);
 		}
+		
+		public static XInfoGroup fromList(List<Object> raw) {
+			return new XInfoGroup(raw);
+		}
 
 		/**
 		 * The {@literal consumer group} name. Corresponds to {@literal name}.

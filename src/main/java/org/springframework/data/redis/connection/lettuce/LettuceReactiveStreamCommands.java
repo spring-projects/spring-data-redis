@@ -20,6 +20,7 @@ import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.XReadArgs.StreamOffset;
 import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumer;
 import reactor.core.publisher.Flux;
 
 import java.nio.ByteBuffer;
@@ -39,6 +40,8 @@ import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroup;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.util.ByteUtils;
@@ -342,6 +345,41 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 		return cmd.xreadgroup(lettuceConsumer, args, streamOffsets)
 				.map(it -> StreamRecords.newRecord().in(it.getStream()).withId(it.getId()).ofBuffer(it.getBody()));
+	}
+
+	@Override
+	public Flux<CommandResponse<XInfoCommand, XInfoStream>> xInfo(Publisher<XInfoCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			return cmd.xinfoStream(command.getKey()).collectList().map(XInfoStream::fromList)
+					.map(it -> new CommandResponse<>(command, it));
+		}));
+
+	}
+
+	@Override
+	public Flux<CommandResponse<XInfoCommand, Flux<XInfoGroup>>> xInfoGroups(Publisher<XInfoCommand> commands) {
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			return new CommandResponse(command, cmd.xinfoGroups(command.getKey()).map(it -> XInfoGroup.fromList((List<Object>) it)));
+		}));
+	}
+
+	@Override
+	public Flux<CommandResponse<XInfoCommand, Flux<XInfoConsumer>>> xInfoConsumers(Publisher<XInfoCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			ByteBuffer groupName = ByteUtils.getByteBuffer(command.getGroupName());
+			return new CommandResponse(command, cmd.xinfoConsumers(command.getKey(), groupName).map(it -> new XInfoConsumer(command.getGroupName(), (List<Object>) it)));
+		}));
 	}
 
 	/*

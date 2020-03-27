@@ -3246,7 +3246,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(claimed).containsAll(messages);
 	}
 
-	@Test // DATAREDIS-1084
+	@Test // DATAREDIS-1119
 	@IfProfileValue(name = "redisVersion", value = "5.0")
 	@WithRedisDriver({ RedisDriver.LETTUCE })
 	public void xinfo() {
@@ -3274,7 +3274,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.lastEntryId()).isEqualTo(lastRecord.getValue());
 	}
 
-	@Test // DATAREDIS-1084
+	@Test // DATAREDIS-1119
 	@IfProfileValue(name = "redisVersion", value = "5.0")
 	@WithRedisDriver({ RedisDriver.LETTUCE })
 	public void xinfoNoGroup() {
@@ -3299,7 +3299,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.lastEntryId()).isEqualTo(lastRecord.getValue());
 	}
 
-	@Test // DATAREDIS-1084
+	@Test // DATAREDIS-1119
 	@IfProfileValue(name = "redisVersion", value = "5.0")
 	@WithRedisDriver({ RedisDriver.LETTUCE })
 	public void xinfoGroups() {
@@ -3324,7 +3324,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.get(0).lastDeliveredId()).isEqualTo(lastRecord.getValue());
 	}
 
-	@Test // DATAREDIS-1084
+	@Test // DATAREDIS-1119
 	@IfProfileValue(name = "redisVersion", value = "5.0")
 	@WithRedisDriver({ RedisDriver.LETTUCE })
 	public void xinfoGroupsNoGroup() {
@@ -3342,7 +3342,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	}
 
-	@Test // DATAREDIS-1084
+	@Test // DATAREDIS-1119
 	@IfProfileValue(name = "redisVersion", value = "5.0")
 	@WithRedisDriver({ RedisDriver.LETTUCE })
 	public void xinfoGroupsNoConsumer() {
@@ -3365,7 +3365,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.get(0).lastDeliveredId()).isEqualTo("0-0");
 	}
 
-	@Test // DATAREDIS-1084
+	@Test // DATAREDIS-1119
 	@IfProfileValue(name = "redisVersion", value = "5.0")
 	@WithRedisDriver({ RedisDriver.LETTUCE })
 	public void xinfoConsumers() {
@@ -3389,7 +3389,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.get(0).idleTimeMs()).isCloseTo(1L, Offset.offset(200L));
 	}
 
-	@Test // DATAREDIS-1084
+	@Test // DATAREDIS-1119
 	@IfProfileValue(name = "redisVersion", value = "5.0")
 	@WithRedisDriver({ RedisDriver.LETTUCE })
 	public void xinfoConsumersNoConsumer() {
