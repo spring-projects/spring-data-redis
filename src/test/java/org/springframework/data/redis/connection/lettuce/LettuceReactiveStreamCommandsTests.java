@@ -24,6 +24,7 @@ import reactor.test.StepVerifier;
 import java.time.Duration;
 import java.util.Collections;
 
+import org.assertj.core.data.Offset;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -40,6 +41,7 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
  * Integration tests for {@link LettuceReactiveStreamCommands}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -359,6 +361,117 @@ public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsT
 				).as(StepVerifier::create) //
 				.assertNext(it -> assertThat(it.getId().getValue()).isEqualTo(expected)) //
 				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-1119
+	public void xinfo() {
+
+		String firstRecord = nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+		String lastRecord = nativeCommands.xadd(KEY_1, KEY_3, VALUE_3);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, "0"), "my-group");
+		nativeCommands.xreadgroup(io.lettuce.core.Consumer.from("my-group", "my-consumer"),
+				XReadArgs.StreamOffset.from(KEY_1, ">"));
+
+		connection.streamCommands().xInfo(KEY_1_BBUFFER).as(StepVerifier::create) //
+				.consumeNextWith(info -> {
+					assertThat(info.streamLength()).isEqualTo(2L);
+					assertThat(info.radixTreeKeySize()).isOne();
+					assertThat(info.radixTreeNodesSize()).isEqualTo(2L);
+					assertThat(info.groupCount()).isOne();
+					assertThat(info.lastGeneratedId()).isEqualTo(lastRecord);
+					assertThat(info.firstEntryId()).isEqualTo(firstRecord);
+					assertThat(info.lastEntryId()).isEqualTo(lastRecord);
+				}).verifyComplete();
+	}
+
+	@Test // DATAREDIS-1119
+	public void xinfoNoGroup() {
+
+		String firstRecord = nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+		String lastRecord = nativeCommands.xadd(KEY_1, KEY_3, VALUE_3);
+
+		connection.streamCommands().xInfo(KEY_1_BBUFFER).as(StepVerifier::create) //
+				.consumeNextWith(info -> {
+					assertThat(info.streamLength()).isEqualTo(2L);
+					assertThat(info.radixTreeKeySize()).isOne();
+					assertThat(info.radixTreeNodesSize()).isEqualTo(2L);
+					assertThat(info.groupCount()).isZero();
+					assertThat(info.lastGeneratedId()).isEqualTo(lastRecord);
+					assertThat(info.firstEntryId()).isEqualTo(firstRecord);
+					assertThat(info.lastEntryId()).isEqualTo(lastRecord);
+				}).verifyComplete();
+	}
+
+	@Test // DATAREDIS-1119
+	public void xinfoGroups() {
+
+		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+		String lastRecord = nativeCommands.xadd(KEY_1, KEY_3, VALUE_3);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, "0"), "my-group");
+		nativeCommands.xreadgroup(io.lettuce.core.Consumer.from("my-group", "my-consumer"),
+				XReadArgs.StreamOffset.from(KEY_1, ">"));
+
+		connection.streamCommands().xInfoGroups(KEY_1_BBUFFER).as(StepVerifier::create) //
+				.consumeNextWith(info -> {
+					assertThat(info.groupName()).isEqualTo("my-group");
+					assertThat(info.consumerCount()).isEqualTo(1L);
+					assertThat(info.pendingCount()).isEqualTo(2L);
+					assertThat(info.lastDeliveredId()).isEqualTo(lastRecord);
+				}).verifyComplete();
+	}
+
+	@Test // DATAREDIS-1119
+	public void xinfoGroupsNoGroup() {
+
+		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+		String lastRecord = nativeCommands.xadd(KEY_1, KEY_3, VALUE_3);
+
+		connection.streamCommands().xInfoGroups(KEY_1_BBUFFER).as(StepVerifier::create) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-1119
+	public void xinfoGroupsNoConsumer() {
+
+		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+		String lastRecord = nativeCommands.xadd(KEY_1, KEY_3, VALUE_3);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, "0"), "my-group");
+
+		connection.streamCommands().xInfoGroups(KEY_1_BBUFFER).as(StepVerifier::create) //
+				.consumeNextWith(info -> {
+					assertThat(info.groupName()).isEqualTo("my-group");
+					assertThat(info.consumerCount()).isZero();
+					assertThat(info.pendingCount()).isZero();
+					assertThat(info.lastDeliveredId()).isEqualTo("0-0");
+				}).verifyComplete();
+	}
+
+	@Test // DATAREDIS-1119
+	public void xinfoConsumers() {
+
+		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+		nativeCommands.xadd(KEY_1, KEY_3, VALUE_3);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, "0"), "my-group");
+		nativeCommands.xreadgroup(io.lettuce.core.Consumer.from("my-group", "my-consumer"),
+				XReadArgs.StreamOffset.from(KEY_1, ">"));
+
+		connection.streamCommands().xInfoConsumers(KEY_1_BBUFFER, "my-group").as(StepVerifier::create) //
+				.consumeNextWith(info -> {
+					assertThat(info.groupName()).isEqualTo("my-group");
+					assertThat(info.consumerName()).isEqualTo("my-consumer");
+					assertThat(info.pendingCount()).isEqualTo(2L);
+					assertThat(info.idleTimeMs()).isCloseTo(1L, Offset.offset(200L));
+				}).verifyComplete();
+	}
+
+	@Test // DATAREDIS-1119
+	public void xinfoConsumersNoConsumer() {
+
+		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+		nativeCommands.xadd(KEY_1, KEY_3, VALUE_3);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, "0"), "my-group");
+
+		connection.streamCommands().xInfoConsumers(KEY_1_BBUFFER, "my-group").as(StepVerifier::create).verifyComplete();
 	}
 
 }

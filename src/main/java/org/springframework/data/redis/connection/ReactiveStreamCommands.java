@@ -41,6 +41,9 @@ import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumer;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroup;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
@@ -999,6 +1002,101 @@ public interface ReactiveStreamCommands {
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
 	Flux<CommandResponse<ReadCommand, Flux<ByteBufferRecord>>> read(Publisher<ReadCommand> commands);
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 2.3
+	 */
+	class XInfoCommand extends KeyCommand {
+
+		private final @Nullable String groupName;
+
+		public XInfoCommand(@Nullable ByteBuffer key, @Nullable String groupName) {
+
+			super(key);
+			this.groupName = groupName;
+		}
+
+		public static XInfoCommand xInfo() {
+			return new XInfoCommand(null, null);
+		}
+
+		public XInfoCommand of(ByteBuffer key) {
+			return new XInfoCommand(key, groupName);
+		}
+
+		public XInfoCommand consumersIn(String groupName) {
+			return new XInfoCommand(getKey(), groupName);
+		}
+
+		public String getGroupName() {
+			return groupName;
+		}
+	}
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return a {@link Mono} emitting {@link XInfoStream} when ready.
+	 * @since 2.3
+	 */
+	default Mono<XInfoStream> xInfo(ByteBuffer key) {
+		return xInfo(Mono.just(XInfoCommand.xInfo().of(key))).next().map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.3
+	 */
+	Flux<CommandResponse<XInfoCommand, XInfoStream>> xInfo(Publisher<XInfoCommand> commands);
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return a {@link Flux} emitting consumer group info one by one.
+	 * @since 2.3
+	 */
+	default Flux<XInfoGroup> xInfoGroups(ByteBuffer key) {
+		return xInfoGroups(Mono.just(XInfoCommand.xInfo().of(key))).next().flatMapMany(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.3
+	 */
+	Flux<CommandResponse<XInfoCommand, Flux<XInfoGroup>>> xInfoGroups(Publisher<XInfoCommand> commands);
+
+	/**
+	 * Obtain information about every consumer in a specific {@literal consumer group} for the stream stored at the
+	 * specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param groupName name of the {@literal consumer group}.
+	 * @return a {@link Flux} emitting consumer info one by one.
+	 * @since 2.3
+	 */
+	default Flux<XInfoConsumer> xInfoConsumers(ByteBuffer key, String groupName) {
+		return xInfoConsumers(Mono.just(XInfoCommand.xInfo().of(key).consumersIn(groupName))).next()
+				.flatMapMany(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Obtain information about every consumer in a specific {@literal consumer group} for the stream stored at the
+	 * specified {@literal key}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.3
+	 */
+	Flux<CommandResponse<XInfoCommand, Flux<XInfoConsumer>>> xInfoConsumers(Publisher<XInfoCommand> commands);
 
 	class GroupCommand extends KeyCommand {
 
