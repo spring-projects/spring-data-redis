@@ -292,9 +292,9 @@ abstract public class Converters {
 	 * @param microseconds elapsed microseconds in current second
 	 * @return
 	 */
-	public static Long toTimeMillis(String seconds, String microseconds) {
-		return NumberUtils.parseNumber(seconds, Long.class) * 1000L
-				+ NumberUtils.parseNumber(microseconds, Long.class) / 1000L;
+	public static Long toTimeMicros(String seconds, String microseconds) {
+		return NumberUtils.parseNumber(seconds, Long.class) * 1000 * 1000L
+				+ NumberUtils.parseNumber(microseconds, Long.class);
 	}
 
 	/**

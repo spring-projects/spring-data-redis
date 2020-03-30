@@ -304,7 +304,7 @@ abstract public class LettuceConverters extends Converters {
 			Assert.isTrue(source.size() == 2,
 					"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
 
-			return toTimeMillis(toString(source.get(0)), toString(source.get(1)));
+			return toTimeMicros(toString(source.get(0)), toString(source.get(1)));
 		};
 
 		GEO_COORDINATE_TO_POINT_CONVERTER = geoCoordinate -> geoCoordinate != null

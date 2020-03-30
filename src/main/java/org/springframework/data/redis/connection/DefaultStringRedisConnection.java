@@ -3302,6 +3302,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#microseconds()
+	 */
+	@Override
+	public Long microseconds() {
+		return convertAndReturn(this.delegate.microseconds(), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#getClientList()
 	 */
 	@Override
