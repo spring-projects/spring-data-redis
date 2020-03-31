@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.3.0.RC1 (2020-03-31)
+-----------------------------------------
+* DATAREDIS-1121 - Add missing anchors.
+* DATAREDIS-1115 - Reduce log level for shared connection renewal.
+* DATAREDIS-1114 - Release 2.3 RC1 (Neumann).
+
+
 Changes in version 2.2.6.RELEASE (2020-03-25)
 ---------------------------------------------
 * DATAREDIS-1115 - Reduce log level for shared connection renewal.
@@ -1930,6 +1937,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
