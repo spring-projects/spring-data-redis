@@ -329,8 +329,14 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 				connection.del(keyToDelete);
 				connection.sRem(binKeyspace, binId);
-
 				new IndexWriter(connection, converter).removeKeyFromIndexes(asString(keyspace), binId);
+
+				RedisPersistentEntity<?> persistentEntity = converter.getMappingContext().getPersistentEntity(type);
+				if (persistentEntity != null && persistentEntity.isExpiring()) {
+
+					byte[] phantomKey = ByteUtils.concat(keyToDelete, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
+					connection.del(phantomKey);
+				}
 				return null;
 			});
 		}

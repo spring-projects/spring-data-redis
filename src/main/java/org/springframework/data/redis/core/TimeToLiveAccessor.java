@@ -31,4 +31,11 @@ public interface TimeToLiveAccessor {
 	 */
 	@Nullable
 	Long getTimeToLive(Object source);
+
+	/**
+	 * @param type must not be {@literal null}.
+	 * @return return {@literal true} if the entity could potentially expire.
+	 * @since ? (depends on backport)
+	 */
+	boolean isExpiringEntity(Class<?> type);
 }

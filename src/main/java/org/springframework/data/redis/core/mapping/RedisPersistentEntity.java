@@ -52,4 +52,11 @@ public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T, Re
 	@Nullable
 	RedisPersistentProperty getExplicitTimeToLiveProperty();
 
+	/**
+	 * @return {@literal true} if the entity could potentially expire.
+	 * @since ? (depends on backport)
+	 */
+	default boolean isExpiring() {
+		return getTimeToLiveAccessor().isExpiringEntity(getType());
+	}
 }

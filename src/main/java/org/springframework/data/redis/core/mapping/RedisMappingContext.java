@@ -206,10 +206,6 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			this.mappingContext = mappingContext;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.core.TimeToLiveResolver#resolveTimeToLive(java.lang.Object)
-		 */
 		@Override
 		@SuppressWarnings({ "rawtypes" })
 		public Long getTimeToLive(final Object source) {
@@ -281,6 +277,24 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			}
 
 			return defaultTimeout;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.core.TimeToLiveResolver#isExpiringEntity(java.lang.Class)
+		 */
+		@Override
+		public boolean isExpiringEntity(Class<?> type) {
+
+			Long defaultTimeOut = resolveDefaultTimeOut(type);
+
+			if (defaultTimeOut != null && defaultTimeOut > 0) {
+				return true;
+			}
+			if (resolveTtlProperty(type) != null) {
+				return true;
+			}
+			return resolveTimeMethod(type) != null;
 		}
 
 		private Long resolveDefaultTimeOut(Class<?> type) {
