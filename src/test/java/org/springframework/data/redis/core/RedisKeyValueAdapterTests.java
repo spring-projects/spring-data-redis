@@ -297,6 +297,24 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand")).doesNotContain("1");
 	}
 
+	@Test // DATAREDIS-1106
+	public void deleteRemovesExpireHelperStructures() {
+
+		WithExpiration source = new WithExpiration();
+		source.id = "1";
+		source.value = "vale";
+
+		adapter.put("1", source, "withexpiration");
+
+		assertThat(template.hasKey("withexpiration:1")).isTrue();
+		assertThat(template.hasKey("withexpiration:1:phantom")).isTrue();
+
+		adapter.delete("1", "withexpiration", WithExpiration.class);
+
+		assertThat(template.hasKey("withexpiration:1")).isFalse();
+		assertThat(template.hasKey("withexpiration:1:phantom")).isFalse();
+	}
+
 	@Test // DATAREDIS-425
 	public void keyExpiredEventShouldRemoveHelperStructures() throws Exception {
 
@@ -763,6 +781,14 @@ public class RedisKeyValueAdapterTests {
 
 		@Id String id;
 		String name;
+	}
+
+	@KeySpace("withexpiration")
+	@RedisHash(timeToLive = 30)
+	static class WithExpiration {
+
+		@Id String id;
+		String value;
 	}
 
 }
