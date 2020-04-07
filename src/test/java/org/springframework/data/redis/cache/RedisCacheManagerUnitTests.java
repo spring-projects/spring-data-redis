@@ -16,6 +16,7 @@
 package org.springframework.data.redis.cache;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 
@@ -23,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.cache.Cache;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
 import org.springframework.data.redis.cache.RedisCacheManager.RedisCacheManagerBuilder;
@@ -149,5 +151,20 @@ public class RedisCacheManagerUnitTests {
 				.initialCacheNames(Collections.singleton("configured")).disableCreateOnMissingCache();
 
 		assertThat(cmb.getCacheConfigurationFor("unknown")).isNotPresent();
+	}
+
+	@Test // DATAREDIS-1118
+	public void shouldConfigureRedisCacheWriter() {
+
+		RedisCacheWriter writerMock = mock(RedisCacheWriter.class);
+
+		RedisCacheManager cm = RedisCacheManager.builder(cacheWriter).cacheWriter(writerMock).build();
+
+		assertThat(cm).extracting("cacheWriter").isEqualTo(writerMock);
+	}
+
+	@Test // DATAREDIS-1118
+	public void builderShouldRequireCacheWriter() {
+		assertThatIllegalArgumentException().isThrownBy(() -> RedisCacheManager.builder().build());
 	}
 }
