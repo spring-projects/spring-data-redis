@@ -20,11 +20,10 @@ import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cache.Cache;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
 import org.springframework.data.redis.cache.RedisCacheManager.RedisCacheManagerBuilder;
@@ -36,13 +35,13 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
-public class RedisCacheManagerUnitTests {
+@ExtendWith(MockitoExtension.class)
+class RedisCacheManagerUnitTests {
 
 	@Mock RedisCacheWriter cacheWriter;
 
 	@Test // DATAREDIS-481
-	public void missingCacheShouldBeCreatedWithDefaultConfiguration() {
+	void missingCacheShouldBeCreatedWithDefaultConfiguration() {
 
 		RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
 
@@ -53,7 +52,7 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-481
-	public void appliesDefaultConfigurationToInitialCache() {
+	void appliesDefaultConfigurationToInitialCache() {
 
 		RedisCacheConfiguration withPrefix = RedisCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
 		RedisCacheConfiguration withoutPrefix = RedisCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
@@ -72,7 +71,7 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-481, DATAREDIS-728
-	public void predefinedCacheShouldBeCreatedWithSpecificConfig() {
+	void predefinedCacheShouldBeCreatedWithSpecificConfig() {
 
 		RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
 
@@ -87,7 +86,7 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-481
-	public void transactionAwareCacheManagerShouldDecoracteCache() {
+	void transactionAwareCacheManagerShouldDecoracteCache() {
 
 		Cache cache = RedisCacheManager.builder(cacheWriter).transactionAware().build().getCache("decoracted-cache");
 
@@ -96,7 +95,7 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-767
-	public void lockedCacheManagerShouldPreventInFlightCacheCreation() {
+	void lockedCacheManagerShouldPreventInFlightCacheCreation() {
 
 		RedisCacheManager cacheManager = RedisCacheManager.builder(cacheWriter).disableCreateOnMissingCache().build();
 		cacheManager.afterPropertiesSet();
@@ -105,7 +104,7 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-767
-	public void lockedCacheManagerShouldStillReturnPreconfiguredCaches() {
+	void lockedCacheManagerShouldStillReturnPreconfiguredCaches() {
 
 		RedisCacheManager cacheManager = RedisCacheManager.builder(cacheWriter)
 				.initialCacheNames(Collections.singleton("configured")).disableCreateOnMissingCache().build();
@@ -115,7 +114,7 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-935
-	public void cacheManagerBuilderReturnsConfiguredCaches() {
+	void cacheManagerBuilderReturnsConfiguredCaches() {
 
 		RedisCacheManagerBuilder cmb = RedisCacheManager.builder(cacheWriter)
 				.initialCacheNames(Collections.singleton("configured")).disableCreateOnMissingCache();
@@ -126,7 +125,7 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-935
-	public void cacheManagerBuilderDoesNotAllowSneakingInConfiguration() {
+	void cacheManagerBuilderDoesNotAllowSneakingInConfiguration() {
 
 		RedisCacheManagerBuilder cmb = RedisCacheManager.builder(cacheWriter)
 				.initialCacheNames(Collections.singleton("configured")).disableCreateOnMissingCache();
@@ -136,7 +135,7 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-935
-	public void cacheManagerBuilderReturnsConfigurationForKnownCache() {
+	void cacheManagerBuilderReturnsConfigurationForKnownCache() {
 
 		RedisCacheManagerBuilder cmb = RedisCacheManager.builder(cacheWriter)
 				.initialCacheNames(Collections.singleton("configured")).disableCreateOnMissingCache();
@@ -145,7 +144,7 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-935
-	public void cacheManagerBuilderReturnsEmptyOptionalForUnknownCache() {
+	void cacheManagerBuilderReturnsEmptyOptionalForUnknownCache() {
 
 		RedisCacheManagerBuilder cmb = RedisCacheManager.builder(cacheWriter)
 				.initialCacheNames(Collections.singleton("configured")).disableCreateOnMissingCache();
@@ -154,7 +153,7 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-1118
-	public void shouldConfigureRedisCacheWriter() {
+	void shouldConfigureRedisCacheWriter() {
 
 		RedisCacheWriter writerMock = mock(RedisCacheWriter.class);
 
@@ -164,7 +163,12 @@ public class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-1118
-	public void builderShouldRequireCacheWriter() {
-		assertThatIllegalArgumentException().isThrownBy(() -> RedisCacheManager.builder().build());
+	void cacheWriterMustNotBeNull() {
+		assertThatIllegalArgumentException().isThrownBy(() -> RedisCacheManager.builder().cacheWriter(null));
+	}
+
+	@Test // DATAREDIS-1118
+	void builderShouldRequireCacheWriter() {
+		assertThatIllegalStateException().isThrownBy(() -> RedisCacheManager.builder().build());
 	}
 }

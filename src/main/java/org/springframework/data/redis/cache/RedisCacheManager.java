@@ -463,7 +463,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 */
 		public RedisCacheManager build() {
 
-			Assert.notNull(cacheWriter, "CacheWriter must not be null!");
+			Assert.state(cacheWriter != null, "CacheWriter must not be null! You can provide one via 'RedisCacheManagerBuilder#cacheWriter(RedisCacheWriter)'.");
 
 			RedisCacheManager cm = new RedisCacheManager(cacheWriter, defaultCacheConfiguration, initialCaches,
 					allowInFlightCacheCreation);
