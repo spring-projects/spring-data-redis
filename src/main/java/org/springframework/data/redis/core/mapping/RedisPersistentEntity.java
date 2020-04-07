@@ -46,7 +46,7 @@ public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T, Re
 	/**
 	 * Get the {@link PersistentProperty} that is annotated with {@link org.springframework.data.redis.core.TimeToLive}.
 	 *
-	 * @return can be {@null}.
+	 * @return can be {@literal null}.
 	 * @since 1.8
 	 */
 	@Nullable
@@ -54,7 +54,7 @@ public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T, Re
 
 	/**
 	 * @return {@literal true} if the entity could potentially expire.
-	 * @since ? (depends on backport)
+	 * @since 2.3
 	 */
 	default boolean isExpiring() {
 		return getTimeToLiveAccessor().isExpiringEntity(getType());
