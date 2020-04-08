@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.lettuce.core.RedisConnectionException;
+import io.lettuce.core.XAddArgs;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
@@ -26,6 +27,8 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -33,9 +36,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.ReactiveStreamCommands.AddStreamRecord;
+import org.springframework.data.redis.connection.stream.ByteBufferRecord;
+import org.springframework.data.redis.connection.stream.MapRecord;
 
 /**
  * Unit tests for {@link LettuceReactiveRedisConnection}.
@@ -213,5 +220,23 @@ public class LettuceReactiveRedisConnectionUnitTests {
 		when(reactiveCommands.bgsave()).thenReturn(Mono.just("OK"));
 
 		StepVerifier.create(connection.serverCommands().bgSave()).expectNextCount(1).verifyComplete();
+	}
+
+	@Test // DATAREDIS-1122
+	public void xaddShouldHonorMaxlen() {
+
+		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
+
+		ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
+		when(reactiveCommands.xadd(any(ByteBuffer.class), args.capture(), anyMap())).thenReturn(Mono.just("1-1"));
+
+
+		MapRecord<ByteBuffer, ByteBuffer, ByteBuffer> record = MapRecord.create(ByteBuffer.wrap("key".getBytes()),
+				Collections.emptyMap());
+
+		connection.streamCommands().xAdd(Mono.just(AddStreamRecord.of(ByteBufferRecord.of(record)).maxlen(100)))
+				.subscribe();
+
+		assertThat(args.getValue()).extracting("maxlen").isEqualTo(100L);
 	}
 }

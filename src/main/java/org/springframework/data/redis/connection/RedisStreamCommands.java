@@ -28,6 +28,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -87,7 +88,88 @@ public interface RedisStreamCommands {
 	 * @param record the {@link MapRecord record} to append.
 	 * @return the {@link RecordId id} after save. {@literal null} when used in pipeline / transaction.
 	 */
-	RecordId xAdd(MapRecord<byte[], byte[], byte[]> record);
+	default RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
+		return xAdd(record, XAddOptions.none());
+	}
+
+	/**
+	 * Append the given {@link MapRecord record} to the stream stored at {@link Record#getStream()}. <br />
+	 * If you prefer manual id assignment over server generated ones make sure to provide an id via
+	 * {@link Record#withId(RecordId)}.
+	 *
+	 * @param record the {@link MapRecord record} to append.
+	 * @param options additional options (eg. {@literal MAXLEN}). Must not be {@literal null}, use
+	 *          {@link XAddOptions#none()} instead.
+	 * @return the {@link RecordId id} after save. {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, XAddOptions options);
+
+	/**
+	 * Additional options applicable for {@literal XADD} command.
+	 *
+	 * @author Christoph Strobl
+	 * @since 2.3
+	 */
+	class XAddOptions {
+
+		private @Nullable Long maxlen;
+
+		private XAddOptions(@Nullable Long maxlen) {
+			this.maxlen = maxlen;
+		}
+
+		/**
+		 * @return
+		 */
+		public static XAddOptions none() {
+			return new XAddOptions(null);
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 * 
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public static XAddOptions maxlen(long maxlen) {
+			return new XAddOptions(maxlen);
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 * 
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public Long getMaxlen() {
+			return maxlen;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal MAXLEN} is set.
+		 */
+		public boolean hasMaxLen() {
+			return maxlen != null && maxlen > 0;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+
+			XAddOptions that = (XAddOptions) o;
+			return ObjectUtils.nullSafeEquals(this.maxlen, that.maxlen);
+		}
+
+		@Override
+		public int hashCode() {
+			return ObjectUtils.nullSafeHashCode(this.maxlen);
+		}
+	}
 
 	/**
 	 * Change the ownership of a pending message to the given new {@literal consumer} without increasing the delivered

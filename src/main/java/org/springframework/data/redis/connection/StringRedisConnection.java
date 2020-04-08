@@ -2010,7 +2010,28 @@ public interface StringRedisConnection extends RedisConnection {
 		return xAdd(StreamRecords.newRecord().in(key).ofStrings(body));
 	}
 
-	RecordId xAdd(StringRecord record);
+	/**
+	 * Append the given {@link StringRecord} to the stream stored at {@link StringRecord#getStream()}.
+	 *
+	 * @param record must not be {@literal null}.
+	 * @return the record Id. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 */
+	@Nullable
+	default RecordId xAdd(StringRecord record) {
+		return xAdd(record, XAddOptions.none());
+	}
+
+	/**
+	 * Append the given {@link StringRecord} to the stream stored at {@link StringRecord#getStream()}.
+	 * 
+	 * @param record must not be {@literal null}.
+	 * @param options must not be {@literal null}, use {@link XAddOptions#none()} instead.
+	 * @return the record Id. {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	RecordId xAdd(StringRecord record, XAddOptions options);
 
 	/**
 	 * Change the ownership of a pending message to the given new {@literal consumer} without increasing the delivered

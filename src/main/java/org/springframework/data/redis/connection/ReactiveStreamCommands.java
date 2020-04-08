@@ -193,11 +193,13 @@ public interface ReactiveStreamCommands {
 	class AddStreamRecord extends KeyCommand {
 
 		private final ByteBufferRecord record;
+		private final @Nullable Long maxlen;
 
-		private AddStreamRecord(ByteBufferRecord record) {
+		private AddStreamRecord(ByteBufferRecord record, @Nullable Long maxlen) {
 
 			super(record.getStream());
 			this.record = record;
+			this.maxlen = maxlen;
 		}
 
 		/**
@@ -210,7 +212,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(record, "Record must not be null!");
 
-			return new AddStreamRecord(record);
+			return new AddStreamRecord(record, null);
 		}
 
 		/**
@@ -223,7 +225,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(body, "Body must not be null!");
 
-			return new AddStreamRecord(StreamRecords.rawBuffer(body));
+			return new AddStreamRecord(StreamRecords.rawBuffer(body), null);
 		}
 
 		/**
@@ -233,7 +235,16 @@ public interface ReactiveStreamCommands {
 		 * @return a new {@link ReactiveGeoCommands.GeoAddCommand} with {@literal key} applied.
 		 */
 		public AddStreamRecord to(ByteBuffer key) {
-			return new AddStreamRecord(record.withStreamKey(key));
+			return new AddStreamRecord(record.withStreamKey(key), maxlen);
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 *
+		 * @return new instance of {@link AddStreamRecord}.
+		 */
+		public AddStreamRecord maxlen(long maxlen) {
+			return new AddStreamRecord(record, maxlen);
 		}
 
 		/**
@@ -245,6 +256,23 @@ public interface ReactiveStreamCommands {
 
 		public ByteBufferRecord getRecord() {
 			return record;
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 *
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public Long getMaxlen() {
+			return maxlen;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal MAXLEN} is set.
+		 */
+		public boolean hasMaxLen() {
+			return maxlen != null && maxlen > 0;
 		}
 	}
 

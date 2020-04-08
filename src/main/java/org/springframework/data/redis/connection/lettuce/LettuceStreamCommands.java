@@ -81,16 +81,19 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAdd(byte[], MapRecord)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAdd(byte[], MapRecord, XAddOptions)
 	 */
 	@Override
-	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
+	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, XAddOptions options) {
 
 		Assert.notNull(record.getStream(), "Stream must not be null!");
 		Assert.notNull(record, "Record must not be null!");
 
 		XAddArgs args = new XAddArgs();
 		args.id(record.getId().getValue());
+		if(options.hasMaxLen()) {
+			args.maxlen(options.getMaxlen());
+		}
 
 		try {
 			if (isPipelined()) {

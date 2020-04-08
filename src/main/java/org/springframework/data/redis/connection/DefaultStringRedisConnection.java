@@ -3644,11 +3644,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#xAdd(StringRecord)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xAdd(StringRecord, XAddOptions)
 	 */
 	@Override
-	public RecordId xAdd(StringRecord record) {
-		return convertAndReturn(delegate.xAdd(record.serialize(serializer)), identityConverter);
+	public RecordId xAdd(StringRecord record, XAddOptions options) {
+		return convertAndReturn(delegate.xAdd(record.serialize(serializer), options), identityConverter);
 	}
 
 	/*
@@ -3814,11 +3814,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAdd(byte[], MapRecord)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAdd(MapRecord, XAddOptions)
 	 */
 	@Override
-	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
-		return delegate.xAdd(record);
+	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, XAddOptions options) {
+		return delegate.xAdd(record, options);
 	}
 
 	/*
