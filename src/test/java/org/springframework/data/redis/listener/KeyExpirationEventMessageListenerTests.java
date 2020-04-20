@@ -20,14 +20,13 @@ import static org.mockito.Mockito.*;
 
 import java.util.UUID;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -38,7 +37,7 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 /**
  * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class KeyExpirationEventMessageListenerTests {
 
 	RedisMessageListenerContainer container;
@@ -47,8 +46,8 @@ public class KeyExpirationEventMessageListenerTests {
 
 	@Mock ApplicationEventPublisher publisherMock;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void beforeEach() {
 
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.afterPropertiesSet();
@@ -64,8 +63,8 @@ public class KeyExpirationEventMessageListenerTests {
 		listener.init();
 	}
 
-	@After
-	public void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 
 		RedisConnection connection = connectionFactory.getConnection();
 		try {
@@ -82,25 +81,12 @@ public class KeyExpirationEventMessageListenerTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void listenerShouldPublishEventCorrectly() throws InterruptedException {
+	void listenerShouldPublishEventCorrectly() throws InterruptedException {
 
 		byte[] key = ("to-expire:" + UUID.randomUUID().toString()).getBytes();
 
-		RedisConnection connection = connectionFactory.getConnection();
-		try {
-			connection.setEx(key, 2, "foo".getBytes());
+		setAndWaitForExpiry(key, connectionFactory.getConnection());
 
-			int iteration = 0;
-			while (connection.get(key) != null || iteration >= 3) {
-
-				Thread.sleep(2000);
-				iteration++;
-			}
-		} finally {
-			connection.close();
-		}
-
-		Thread.sleep(2000);
 		ArgumentCaptor<ApplicationEvent> captor = ArgumentCaptor.forClass(ApplicationEvent.class);
 
 		verify(publisherMock, times(1)).publishEvent(captor.capture());
@@ -108,7 +94,7 @@ public class KeyExpirationEventMessageListenerTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void listenerShouldNotReactToDeleteEvents() throws InterruptedException {
+	void listenerShouldNotReactToDeleteEvents() throws InterruptedException {
 
 		byte[] key = ("to-delete:" + UUID.randomUUID().toString()).getBytes();
 
@@ -125,5 +111,71 @@ public class KeyExpirationEventMessageListenerTests {
 
 		Thread.sleep(2000);
 		verifyZeroInteractions(publisherMock);
+	}
+
+	@Test // DATAREDIS-1075
+	void databaseBoundListenerShouldNotReceiveEventsFromOtherDatabase() throws InterruptedException {
+
+		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+
+		listener = new KeyExpirationEventMessageListener(container, 0);
+		listener.setApplicationEventPublisher(publisher);
+		listener.init();
+
+		byte[] key = ("to-expire:" + UUID.randomUUID().toString()).getBytes();
+
+		RedisConnection connection = connectionFactory.getConnection();
+		setAndWaitForExpiry(key, 1, connection);
+
+		verify(publisherMock).publishEvent(any());
+		verify(publisher, never()).publishEvent(any());
+	}
+
+	@Test // DATAREDIS-1075
+	void databaseBoundListenerShouldReceiveEventsFromSelectedDatabase() throws InterruptedException {
+
+		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+
+		listener = new KeyExpirationEventMessageListener(container, 1);
+		listener.setApplicationEventPublisher(publisher);
+		listener.init();
+
+		byte[] key = ("to-expire:" + UUID.randomUUID().toString()).getBytes();
+
+		RedisConnection connection = connectionFactory.getConnection();
+		setAndWaitForExpiry(key, 1, connection);
+
+		ArgumentCaptor<ApplicationEvent> captor = ArgumentCaptor.forClass(ApplicationEvent.class);
+
+		verify(publisherMock).publishEvent(any());
+		verify(publisherMock).publishEvent(captor.capture());
+		assertThat((byte[]) captor.getValue().getSource()).isEqualTo(key);
+	}
+
+	private void setAndWaitForExpiry(byte[] key, RedisConnection connection) throws InterruptedException {
+		setAndWaitForExpiry(key, null, connection);
+	}
+
+	private void setAndWaitForExpiry(byte[] key, Integer database, RedisConnection connection)
+			throws InterruptedException {
+
+		if (database != null) {
+			connection.select(database);
+		}
+
+		try {
+			connection.setEx(key, 2, "foo".getBytes());
+
+			int iteration = 0;
+			while (connection.get(key) != null || iteration >= 3) {
+
+				Thread.sleep(2000);
+				iteration++;
+			}
+		} finally {
+			connection.close();
+		}
+
+		Thread.sleep(2000);
 	}
 }

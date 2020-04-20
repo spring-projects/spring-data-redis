@@ -115,8 +115,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	private final AtomicReference<KeyExpirationEventMessageListener> expirationListener = new AtomicReference<>(null);
 	private @Nullable ApplicationEventPublisher eventPublisher;
 
-	private EnableKeyspaceEvents enableKeyspaceEvents = EnableKeyspaceEvents.OFF;
-	private @Nullable String keyspaceNotificationsConfigParameter = null;
+	private RedisKeyspaceNotificationsConfig keyspaceNotificationsConfig = new RedisKeyspaceNotificationsConfig(
+			EnableKeyspaceEvents.OFF, null);
 
 	/**
 	 * Creates new {@link RedisKeyValueAdapter} with default {@link RedisMappingContext} and default
@@ -213,8 +213,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			converter.write(item, rdo);
 		}
 
-		if (ObjectUtils.nullSafeEquals(EnableKeyspaceEvents.ON_DEMAND, enableKeyspaceEvents)
-				&& this.expirationListener.get() == null) {
+		if (ObjectUtils.nullSafeEquals(EnableKeyspaceEvents.ON_DEMAND,
+				keyspaceNotificationsConfig.getEnableKeyspaceEvents()) && this.expirationListener.get() == null) {
 
 			if (rdo.getTimeToLive() != null && rdo.getTimeToLive() > 0) {
 				initKeyExpirationListener();
@@ -647,7 +647,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @since 1.8
 	 */
 	public void setEnableKeyspaceEvents(EnableKeyspaceEvents enableKeyspaceEvents) {
-		this.enableKeyspaceEvents = enableKeyspaceEvents;
+		this.keyspaceNotificationsConfig.setEnableKeyspaceEvents(enableKeyspaceEvents);
 	}
 
 	/**
@@ -658,7 +658,17 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @since 1.8
 	 */
 	public void setKeyspaceNotificationsConfigParameter(String keyspaceNotificationsConfigParameter) {
-		this.keyspaceNotificationsConfigParameter = keyspaceNotificationsConfigParameter;
+		this.keyspaceNotificationsConfig.setKeyspaceNotificationsConfigParameter(keyspaceNotificationsConfigParameter);
+	}
+
+	/**
+	 * Configure the database from which to receive keyspace notifications. Use a negative value for all databases.
+	 *
+	 * @param database the database index to listen for keyspace notifications. Negative value for all.
+	 * @since 2.3
+	 */
+	public void setKeyspaceNotificationsDatabase(int database) {
+		this.keyspaceNotificationsConfig.setDatabase(database);
 	}
 
 	/**
@@ -668,7 +678,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	@Override
 	public void afterPropertiesSet() {
 
-		if (ObjectUtils.nullSafeEquals(EnableKeyspaceEvents.ON_STARTUP, this.enableKeyspaceEvents)) {
+		if (ObjectUtils.nullSafeEquals(EnableKeyspaceEvents.ON_STARTUP,
+				this.keyspaceNotificationsConfig.getEnableKeyspaceEvents())) {
 			initKeyExpirationListener();
 		}
 	}
@@ -718,10 +729,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		if (this.expirationListener.get() == null) {
 
-			MappingExpirationListener listener = new MappingExpirationListener(this.messageListenerContainer, this.redisOps,
-					this.converter);
-			listener.setKeyspaceNotificationsConfigParameter(keyspaceNotificationsConfigParameter);
-
+			MappingExpirationListener listener = new MappingExpirationListener(this.keyspaceNotificationsConfig.getDatabase(),
+					this.messageListenerContainer, this.redisOps, this.converter);
+			listener.setKeyspaceNotificationsConfigParameter(
+					keyspaceNotificationsConfig.getKeyspaceNotificationsConfigParameter());
 			if (this.eventPublisher != null) {
 				listener.setApplicationEventPublisher(this.eventPublisher);
 			}
@@ -748,14 +759,15 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		/**
 		 * Creates new {@link MappingExpirationListener}.
 		 *
+		 * @param database The database to listen to for expiration events. Use {@literal null} or a nevative value for all.
 		 * @param listenerContainer
 		 * @param ops
 		 * @param converter
 		 */
-		MappingExpirationListener(RedisMessageListenerContainer listenerContainer, RedisOperations<?, ?> ops,
-				RedisConverter converter) {
+		MappingExpirationListener(Integer database, RedisMessageListenerContainer listenerContainer,
+				RedisOperations<?, ?> ops, RedisConverter converter) {
 
-			super(listenerContainer);
+			super(listenerContainer, database);
 			this.ops = ops;
 			this.converter = converter;
 		}
@@ -773,7 +785,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			byte[] key = message.getBody();
 
-			byte[] phantomKey = ByteUtils.concat(key, converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
+			byte[] phantomKey = ByteUtils.concat(key,
+					converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
 
 			Map<byte[], byte[]> hash = ops.execute((RedisCallback<Map<byte[], byte[]>>) connection -> {
 
@@ -789,7 +802,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			Object value = converter.read(Object.class, new RedisData(hash));
 
 			String channel = !ObjectUtils.isEmpty(message.getChannel())
-					? converter.getConversionService().convert(message.getChannel(), String.class) : null;
+					? converter.getConversionService().convert(message.getChannel(), String.class)
+					: null;
 
 			RedisKeyExpiredEvent event = new RedisKeyExpiredEvent(channel, key, value);
 
@@ -873,6 +887,56 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				this.type = type;
 			}
 
+		}
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 2.3
+	 */
+	private static class RedisKeyspaceNotificationsConfig {
+
+		@Nullable Integer database;
+		@Nullable String keyspaceNotificationsConfigParameter;
+		EnableKeyspaceEvents enableKeyspaceEvents;
+
+		RedisKeyspaceNotificationsConfig(EnableKeyspaceEvents enableKeyspaceEvents,
+				@Nullable String keyspaceNotificationsConfigParameter) {
+			this(enableKeyspaceEvents, keyspaceNotificationsConfigParameter, null);
+		}
+
+		RedisKeyspaceNotificationsConfig(EnableKeyspaceEvents enableKeyspaceEvents,
+				@Nullable String keyspaceNotificationsConfigParameter, @Nullable Integer database) {
+
+			this.database = database;
+			this.keyspaceNotificationsConfigParameter = keyspaceNotificationsConfigParameter;
+			this.enableKeyspaceEvents = enableKeyspaceEvents;
+		}
+
+		@Nullable
+		Integer getDatabase() {
+			return database;
+		}
+
+		void setDatabase(@Nullable Integer database) {
+			this.database = database;
+		}
+
+		@Nullable
+		String getKeyspaceNotificationsConfigParameter() {
+			return keyspaceNotificationsConfigParameter;
+		}
+
+		void setKeyspaceNotificationsConfigParameter(@Nullable String keyspaceNotificationsConfigParameter) {
+			this.keyspaceNotificationsConfigParameter = keyspaceNotificationsConfigParameter;
+		}
+
+		EnableKeyspaceEvents getEnableKeyspaceEvents() {
+			return enableKeyspaceEvents;
+		}
+
+		void setEnableKeyspaceEvents(EnableKeyspaceEvents enableKeyspaceEvents) {
+			this.enableKeyspaceEvents = enableKeyspaceEvents;
 		}
 	}
 }

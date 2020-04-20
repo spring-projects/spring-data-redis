@@ -24,6 +24,8 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
@@ -138,13 +140,32 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 
 	private static AbstractBeanDefinition createRedisKeyValueAdapter(RepositoryConfigurationSource configuration) {
 
-		return BeanDefinitionBuilder.rootBeanDefinition(RedisKeyValueAdapter.class) //
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(RedisKeyValueAdapter.class) //
 				.addConstructorArgReference(configuration.getRequiredAttribute("redisTemplateRef", String.class)) //
-				.addConstructorArgReference(REDIS_CONVERTER_BEAN_NAME) //
+				.addConstructorArgReference(REDIS_CONVERTER_BEAN_NAME);
+
+		if (configuration.getSource() instanceof AnnotatedTypeMetadata) {
+
+			MergedAnnotation<EnableKeyspaceNotifications> enableAnnotation = ((AnnotatedTypeMetadata) configuration
+					.getSource()).getAnnotations().get(EnableKeyspaceNotifications.class);
+
+			if (enableAnnotation.isPresent()) {
+
+				return builder
+						.addPropertyValue("enableKeyspaceEvents",
+								enableAnnotation.getValue("enabled", EnableKeyspaceEvents.class).get()) //
+						.addPropertyValue("keyspaceNotificationsConfigParameter",
+								enableAnnotation.getValue("notifyKeyspaceEvents").orElse(""))
+						.addPropertyValue("keyspaceNotificationsDatabase", enableAnnotation.getValue("database").get())
+						.getBeanDefinition();
+			}
+		}
+
+		return builder
 				.addPropertyValue("enableKeyspaceEvents",
 						configuration.getRequiredAttribute("enableKeyspaceEvents", EnableKeyspaceEvents.class)) //
 				.addPropertyValue("keyspaceNotificationsConfigParameter",
-						configuration.getAttribute("keyspaceNotificationsConfigParameter", String.class).orElse("")) //
+						configuration.getAttribute("keyspaceNotificationsConfigParameter", String.class).orElse(""))
 				.getBeanDefinition();
 	}
 

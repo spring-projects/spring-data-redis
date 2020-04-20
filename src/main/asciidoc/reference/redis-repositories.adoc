@@ -581,7 +581,8 @@ The repository implementation ensures subscription to https://redis.io/topics/no
 
 When the expiration is set to a positive value, the corresponding `EXPIRE` command is executed. In addition to persisting the original, a phantom copy is persisted in Redis and set to expire five minutes after the original one. This is done to enable the Repository support to publish `RedisKeyExpiredEvent`, holding the expired value in Spring's `ApplicationEventPublisher` whenever a key expires, even though the original values have already been removed. Expiry events are received on all connected applications that use Spring Data Redis repositories.
 
-By default, the key expiry listener is disabled when initializing the application. The startup mode can be adjusted in `@EnableRedisRepositories` or `RedisKeyValueAdapter` to start the listener with the application or upon the first insert of an entity with a TTL. See https://docs.spring.io/spring-data/redis/docs/{revnumber}/api/org/springframework/data/redis/core/RedisKeyValueAdapter.EnableKeyspaceEvents.html[`EnableKeyspaceEvents`] for possible values.
+By default, the key expiry listener is disabled when initializing the application.
+The startup mode can be adjusted via `@EnableKeyspaceNotifications` or `RedisKeyValueAdapter` to start the listener with the application or upon the first insert of an entity with a TTL. See https://docs.spring.io/spring-data/redis/docs/{revnumber}/api/org/springframework/data/redis/core/RedisKeyValueAdapter.EnableKeyspaceEvents.html[`EnableKeyspaceEvents`] for possible values.
 
 The `RedisKeyExpiredEvent` holds a copy of the expired domain object as well as the key.
 
