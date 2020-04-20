@@ -31,6 +31,7 @@ import org.springframework.data.redis.test.util.RedisSentinelRule;
  * @author Christoph Strobl
  * @author Fu Jian
  * @author Mark Paluch
+ * @author Ajith Kumar
  */
 public class JedisConnectionFactorySentinelIntegrationTests {
 
@@ -81,5 +82,15 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 		factory.afterPropertiesSet();
 
 		assertThat(factory.getConnection().getClientName(), equalTo("clientName"));
+	}
+
+	@Test
+	public void shouldNotFailOnFirstSentinelDown() {
+
+		final RedisSentinelConfiguration multiSentinelConfig = new RedisSentinelConfiguration()
+				.master("mymaster").sentinel("any.unavailable.host",26379).sentinel("127.0.0.1", 26379);
+
+		factory = new JedisConnectionFactory(multiSentinelConfig);
+		assertThat(factory.getSentinelConnection().isOpen(), is(true));
 	}
 }
