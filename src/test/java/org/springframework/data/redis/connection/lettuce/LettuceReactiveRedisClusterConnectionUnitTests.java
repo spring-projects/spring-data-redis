@@ -75,7 +75,7 @@ public class LettuceReactiveRedisClusterConnectionUnitTests {
 
 		when(reactiveNodeCommands.bgrewriteaof()).thenReturn(Mono.just("OK"));
 
-		StepVerifier.create(connection.serverCommands().bgReWriteAof(NODE1)).expectNextCount(1).verifyComplete();
+		connection.serverCommands().bgReWriteAof(NODE1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659, DATAREDIS-708
@@ -86,6 +86,6 @@ public class LettuceReactiveRedisClusterConnectionUnitTests {
 
 		when(reactiveNodeCommands.bgsave()).thenReturn(Mono.just("OK"));
 
-		StepVerifier.create(connection.serverCommands().bgSave(NODE1)).expectNextCount(1).verifyComplete();
+		connection.serverCommands().bgSave(NODE1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 }

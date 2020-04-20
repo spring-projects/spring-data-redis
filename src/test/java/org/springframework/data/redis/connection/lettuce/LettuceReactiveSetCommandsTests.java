@@ -77,7 +77,7 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		StepVerifier.create(connection.setCommands().sPop(KEY_1_BBUFFER, 2)).expectNextCount(2).verifyComplete();
+		connection.setCommands().sPop(KEY_1_BBUFFER, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -147,11 +147,11 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_2, VALUE_2, VALUE_3);
 		nativeCommands.sadd(KEY_3, VALUE_1, VALUE_3);
 
-		StepVerifier.create(connection.setCommands().sInter(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER))) //
+		connection.setCommands().sInter(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).as(StepVerifier::create) //
 				.expectNext(VALUE_2_BBUFFER) //
 				.verifyComplete();
 
-		StepVerifier.create(connection.setCommands().sInter(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER))) //
+		connection.setCommands().sInter(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER)).as(StepVerifier::create) //
 				.verifyComplete();
 	}
 
@@ -172,7 +172,7 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 		nativeCommands.sadd(KEY_2, VALUE_2, VALUE_3);
 
-		StepVerifier.create(connection.setCommands().sUnion(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER))) //
+		connection.setCommands().sUnion(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).as(StepVerifier::create) //
 				.expectNextCount(3) //
 				.expectComplete();
 	}
@@ -194,11 +194,11 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_2, VALUE_2, VALUE_3);
 		nativeCommands.sadd(KEY_3, VALUE_2, VALUE_1);
 
-		StepVerifier.create(connection.setCommands().sDiff(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER))) //
+		connection.setCommands().sDiff(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER) //
 				.verifyComplete();
 
-		StepVerifier.create(connection.setCommands().sDiff(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER))) //
+		connection.setCommands().sDiff(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER)).as(StepVerifier::create) //
 				.verifyComplete();
 	}
 
@@ -217,7 +217,7 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		StepVerifier.create(connection.setCommands().sMembers(KEY_1_BBUFFER).buffer(3)) //
+		connection.setCommands().sMembers(KEY_1_BBUFFER).buffer(3).as(StepVerifier::create) //
 				.consumeNextWith(list -> assertThat(list).contains(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER)) //
 				.verifyComplete();
 	}
@@ -227,12 +227,12 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		StepVerifier.create(connection.setCommands().sScan(KEY_1_BBUFFER)) //
+		connection.setCommands().sScan(KEY_1_BBUFFER).as(StepVerifier::create) //
 				.expectNextCount(3) //
 				.verifyComplete();
 
-		StepVerifier
-				.create(connection.setCommands().sScan(KEY_1_BBUFFER, ScanOptions.scanOptions().match("value-3").build())) //
+		connection.setCommands().sScan(KEY_1_BBUFFER, ScanOptions.scanOptions().match("value-3").build())
+				.as(StepVerifier::create) //
 				.expectNext(VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -251,7 +251,7 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		StepVerifier.create(connection.setCommands().sRandMember(KEY_1_BBUFFER, 2L)) //
+		connection.setCommands().sRandMember(KEY_1_BBUFFER, 2L).as(StepVerifier::create) //
 				.expectNextCount(2) //
 				.verifyComplete();
 	}

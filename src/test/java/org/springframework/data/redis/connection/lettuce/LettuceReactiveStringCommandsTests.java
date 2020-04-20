@@ -65,7 +65,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		StepVerifier.create(connection.stringCommands().getSet(KEY_1_BBUFFER, VALUE_2_BBUFFER)) //
+		connection.stringCommands().getSet(KEY_1_BBUFFER, VALUE_2_BBUFFER).as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER) //
 				.verifyComplete();
 
@@ -75,7 +75,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-525, DATAREDIS-645
 	public void getSetShouldNotEmitPreviousValueCorrectlyWhenNotExists() {
 
-		StepVerifier.create(connection.stringCommands().getSet(KEY_1_BBUFFER, VALUE_2_BBUFFER)).verifyComplete();
+		connection.stringCommands().getSet(KEY_1_BBUFFER, VALUE_2_BBUFFER).as(StepVerifier::create).verifyComplete();
 
 		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
 	}
@@ -83,7 +83,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-525
 	public void setShouldAddValueCorrectly() {
 
-		StepVerifier.create(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)) //
+		connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER).as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
@@ -96,7 +96,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		List<SetCommand> setCommands = Arrays.asList(SetCommand.set(KEY_1_BBUFFER).value(VALUE_1_BBUFFER),
 				SetCommand.set(KEY_2_BBUFFER).value(VALUE_2_BBUFFER));
 
-		StepVerifier.create(connection.stringCommands().set(Flux.fromIterable(setCommands))) //
+		connection.stringCommands().set(Flux.fromIterable(setCommands)).as(StepVerifier::create) //
 				.expectNextCount(2) //
 				.verifyComplete();
 
@@ -109,12 +109,13 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		StepVerifier.create(connection.stringCommands().get(KEY_1_BBUFFER)).expectNext(VALUE_1_BBUFFER).verifyComplete();
+		connection.stringCommands().get(KEY_1_BBUFFER).as(StepVerifier::create).expectNext(VALUE_1_BBUFFER)
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525, DATAREDIS-645
 	public void getShouldNotEmitValueValueIfAbsent() {
-		StepVerifier.create(connection.stringCommands().get(KEY_1_BBUFFER)).verifyComplete();
+		connection.stringCommands().get(KEY_1_BBUFFER).as(StepVerifier::create).verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -126,7 +127,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		Stream<KeyCommand> stream = Stream.of(new KeyCommand(KEY_1_BBUFFER), new KeyCommand(KEY_2_BBUFFER));
 		Flux<ByteBufferResponse<KeyCommand>> result = connection.stringCommands().get(Flux.fromStream(stream));
 
-		StepVerifier.create(result.map(CommandResponse::getOutput).map(ByteUtils::getBytes).map(String::new)) //
+		result.map(CommandResponse::getOutput).map(ByteUtils::getBytes).map(String::new).as(StepVerifier::create) //
 				.expectNext(new String(ByteUtils.getBytes(VALUE_1_BBUFFER)), new String(ByteUtils.getBytes(VALUE_2_BBUFFER))) //
 				.verifyComplete();
 	}
@@ -141,7 +142,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				new KeyCommand(KEY_3_BBUFFER));
 		Flux<ByteBufferResponse<KeyCommand>> result = connection.stringCommands().get(Flux.fromStream(stream));
 
-		StepVerifier.create(result.map(CommandResponse::isPresent)) //
+		result.map(CommandResponse::isPresent).as(StepVerifier::create) //
 				.expectNext(true, false, true) //
 				.verifyComplete();
 
@@ -153,7 +154,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		nativeCommands.set(KEY_1, VALUE_1);
 		nativeCommands.set(KEY_2, VALUE_2);
 
-		StepVerifier.create(connection.stringCommands().mGet(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER))) //
+		connection.stringCommands().mGet(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).as(StepVerifier::create) //
 				.consumeNextWith(byteBuffers -> assertThat(byteBuffers).containsExactly(VALUE_1_BBUFFER, VALUE_2_BBUFFER))//
 				.verifyComplete();
 
@@ -186,7 +187,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		expected.add(Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER));
 		expected.add(Collections.singletonList(VALUE_2_BBUFFER));
 
-		StepVerifier.create(result.collect(Collectors.toSet())) //
+		result.collect(Collectors.toSet()).as(StepVerifier::create) //
 				.expectNext(expected) //
 				.verifyComplete();
 	}
@@ -194,7 +195,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-525
 	public void setNXshouldOnlySetValueWhenNotPresent() {
 
-		StepVerifier.create(connection.stringCommands().setNX(KEY_1_BBUFFER, VALUE_1_BBUFFER)) //
+		connection.stringCommands().setNX(KEY_1_BBUFFER, VALUE_1_BBUFFER).as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 	}
@@ -204,7 +205,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.setnx(KEY_1, VALUE_1);
 
-		StepVerifier.create(connection.stringCommands().setNX(KEY_1_BBUFFER, VALUE_2_BBUFFER)) //
+		connection.stringCommands().setNX(KEY_1_BBUFFER, VALUE_2_BBUFFER).as(StepVerifier::create) //
 				.expectNext(false) //
 				.verifyComplete();
 	}
@@ -212,7 +213,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-525
 	public void setEXshouldSetKeyAndExpirationTime() {
 
-		StepVerifier.create(connection.stringCommands().setEX(KEY_1_BBUFFER, VALUE_1_BBUFFER, Expiration.seconds(3))) //
+		connection.stringCommands().setEX(KEY_1_BBUFFER, VALUE_1_BBUFFER, Expiration.seconds(3)).as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
@@ -222,8 +223,8 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-525
 	public void pSetEXshouldSetKeyAndExpirationTime() {
 
-		StepVerifier
-				.create(connection.stringCommands().pSetEX(KEY_1_BBUFFER, VALUE_1_BBUFFER, Expiration.milliseconds(600))) //
+		connection.stringCommands().pSetEX(KEY_1_BBUFFER, VALUE_1_BBUFFER, Expiration.milliseconds(600))
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
@@ -237,7 +238,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		map.put(KEY_1_BBUFFER, VALUE_1_BBUFFER);
 		map.put(KEY_2_BBUFFER, VALUE_2_BBUFFER);
 
-		StepVerifier.create(connection.stringCommands().mSet(map)).expectNext(true).verifyComplete();
+		connection.stringCommands().mSet(map).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_1);
 		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_2);
@@ -252,7 +253,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		map.put(KEY_1_BBUFFER, VALUE_1_BBUFFER);
 		map.put(KEY_2_BBUFFER, VALUE_2_BBUFFER);
 
-		StepVerifier.create(connection.stringCommands().mSetNX(map)).expectNext(true).verifyComplete();
+		connection.stringCommands().mSetNX(map).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_1);
 		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_2);
@@ -269,7 +270,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		map.put(KEY_1_BBUFFER, VALUE_1_BBUFFER);
 		map.put(KEY_2_BBUFFER, VALUE_2_BBUFFER);
 
-		StepVerifier.create(connection.stringCommands().mSetNX(map)).expectNext(false).verifyComplete();
+		connection.stringCommands().mSetNX(map).as(StepVerifier::create).expectNext(false).verifyComplete();
 
 		assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
 		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_2);
@@ -278,11 +279,11 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-525
 	public void appendShouldDoItsThing() {
 
-		StepVerifier.create(connection.stringCommands().append(KEY_1_BBUFFER, VALUE_1_BBUFFER)) //
+		connection.stringCommands().append(KEY_1_BBUFFER, VALUE_1_BBUFFER).as(StepVerifier::create) //
 				.expectNext(7L) //
 				.verifyComplete();
 
-		StepVerifier.create(connection.stringCommands().append(KEY_1_BBUFFER, VALUE_2_BBUFFER)) //
+		connection.stringCommands().append(KEY_1_BBUFFER, VALUE_2_BBUFFER).as(StepVerifier::create) //
 				.expectNext(14L) //
 				.verifyComplete();
 	}
@@ -292,7 +293,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		StepVerifier.create(connection.stringCommands().getRange(KEY_1_BBUFFER, 2, 3)) //
+		connection.stringCommands().getRange(KEY_1_BBUFFER, 2, 3).as(StepVerifier::create) //
 				.expectNext(ByteBuffer.wrap("lu".getBytes())) //
 				.verifyComplete();
 	}
@@ -305,7 +306,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER)
 				.within(Range.of(Bound.unbounded(), Bound.inclusive(2L)));
 
-		StepVerifier.create(connection.stringCommands().getRange(Mono.just(rangeCommand))) //
+		connection.stringCommands().getRange(Mono.just(rangeCommand)).as(StepVerifier::create) //
 				.expectNext(new ReactiveRedisConnection.ByteBufferResponse<>(rangeCommand, ByteBuffer.wrap("val".getBytes())))
 				.verifyComplete();
 	}
@@ -318,7 +319,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER)
 				.within(Range.of(Bound.inclusive(0L), Bound.unbounded()));
 
-		StepVerifier.create(connection.stringCommands().getRange(Mono.just(rangeCommand))) //
+		connection.stringCommands().getRange(Mono.just(rangeCommand)).as(StepVerifier::create) //
 				.expectNext(new ReactiveRedisConnection.ByteBufferResponse<>(rangeCommand, ByteBuffer.wrap(VALUE_1.getBytes())))
 				.verifyComplete();
 	}
@@ -328,7 +329,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		StepVerifier.create(connection.stringCommands().setRange(KEY_1_BBUFFER, VALUE_2_BBUFFER, 3)) //
+		connection.stringCommands().setRange(KEY_1_BBUFFER, VALUE_2_BBUFFER, 3).as(StepVerifier::create) //
 				.expectNext(10L) //
 				.verifyComplete();
 	}
@@ -338,11 +339,11 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		StepVerifier.create(connection.stringCommands().getBit(KEY_1_BBUFFER, 1)) //
+		connection.stringCommands().getBit(KEY_1_BBUFFER, 1).as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
-		StepVerifier.create(connection.stringCommands().getBit(KEY_1_BBUFFER, 7)) //
+		connection.stringCommands().getBit(KEY_1_BBUFFER, 7).as(StepVerifier::create) //
 				.expectNext(false) //
 				.verifyComplete();
 	}
@@ -352,7 +353,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		StepVerifier.create(connection.stringCommands().setBit(KEY_1_BBUFFER, 1, false)) //
+		connection.stringCommands().setBit(KEY_1_BBUFFER, 1, false).as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
@@ -364,7 +365,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		StepVerifier.create(connection.stringCommands().bitCount(KEY_1_BBUFFER)) //
+		connection.stringCommands().bitCount(KEY_1_BBUFFER).as(StepVerifier::create) //
 				.expectNext(28L) //
 				.verifyComplete();
 	}
@@ -374,7 +375,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		StepVerifier.create(connection.stringCommands().bitCount(KEY_1_BBUFFER, 2, 4)) //
+		connection.stringCommands().bitCount(KEY_1_BBUFFER, 2, 4).as(StepVerifier::create) //
 				.expectNext(13L) //
 				.verifyComplete();
 	}
@@ -382,57 +383,58 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 	@Test // DATAREDIS-562
 	public void bitFieldSetShouldWorkCorrectly() {
 
-		StepVerifier
-				.create(connection.stringCommands().bitField(KEY_1_BBUFFER, create().set(INT_8).valueAt(offset(0L)).to(10L)))
+		connection.stringCommands().bitField(KEY_1_BBUFFER, create().set(INT_8).valueAt(offset(0L)).to(10L))
+				.as(StepVerifier::create)
 				.expectNext(Collections.singletonList(0L)).verifyComplete();
 
-		StepVerifier
-				.create(connection.stringCommands().bitField(KEY_1_BBUFFER, create().set(INT_8).valueAt(offset(0L)).to(20L)))
+		connection.stringCommands().bitField(KEY_1_BBUFFER, create().set(INT_8).valueAt(offset(0L)).to(20L))
+				.as(StepVerifier::create)
 				.expectNext(Collections.singletonList(10L)).verifyComplete();
 	}
 
 	@Test // DATAREDIS-562
 	public void bitFieldGetShouldWorkCorrectly() {
 
-		StepVerifier.create(connection.stringCommands().bitField(KEY_1_BBUFFER, create().get(INT_8).valueAt(offset(0L))))
+		connection.stringCommands().bitField(KEY_1_BBUFFER, create().get(INT_8).valueAt(offset(0L)))
+				.as(StepVerifier::create)
 				.expectNext(Collections.singletonList(0L)).verifyComplete();
 	}
 
 	@Test // DATAREDIS-562
 	public void bitFieldIncrByShouldWorkCorrectly() {
 
-		StepVerifier
-				.create(connection.stringCommands().bitField(KEY_1_BBUFFER, create().incr(INT_8).valueAt(offset(100L)).by(1L)))
+		connection.stringCommands().bitField(KEY_1_BBUFFER, create().incr(INT_8).valueAt(offset(100L)).by(1L))
+				.as(StepVerifier::create)
 				.expectNext(Collections.singletonList(1L)).verifyComplete();
 	}
 
 	@Test // DATAREDIS-562
 	public void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
 
-		StepVerifier
-				.create(connection.stringCommands().bitField(KEY_1_BBUFFER,
-						create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+		connection.stringCommands()
+				.bitField(KEY_1_BBUFFER, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
+				.as(StepVerifier::create)
 				.expectNext(Collections.singletonList(1L)).verifyComplete();
-		StepVerifier
-				.create(connection.stringCommands().bitField(KEY_1_BBUFFER,
-						create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+		connection.stringCommands()
+				.bitField(KEY_1_BBUFFER, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
+				.as(StepVerifier::create)
 				.expectNext(Collections.singletonList(2L)).verifyComplete();
-		StepVerifier
-				.create(connection.stringCommands().bitField(KEY_1_BBUFFER,
-						create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+		connection.stringCommands()
+				.bitField(KEY_1_BBUFFER, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
+				.as(StepVerifier::create)
 				.expectNext(Collections.singletonList(3L)).verifyComplete();
-		StepVerifier
-				.create(connection.stringCommands().bitField(KEY_1_BBUFFER,
-						create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+		connection.stringCommands()
+				.bitField(KEY_1_BBUFFER, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
+				.as(StepVerifier::create)
 				.expectNext(Collections.singletonList(null)).verifyComplete();
 	}
 
 	@Test // DATAREDIS-562
 	public void bitfieldShouldAllowMultipleSubcommands() {
 
-		StepVerifier
-				.create(connection.stringCommands().bitField(KEY_1_BBUFFER,
-						create().incr(signed(5)).valueAt(offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)))
+		connection.stringCommands()
+				.bitField(KEY_1_BBUFFER, create().incr(signed(5)).valueAt(offset(100L)).by(1L).get(unsigned(4)).valueAt(0L))
+				.as(StepVerifier::create)
 				.expectNext(Arrays.asList(1L, 0L)).verifyComplete();
 	}
 
@@ -444,9 +446,8 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		nativeCommands.set(KEY_1, VALUE_1);
 		nativeCommands.set(KEY_2, VALUE_2);
 
-		StepVerifier
-				.create(connection.stringCommands().bitOp(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), BitOperation.AND,
-						KEY_3_BBUFFER)) //
+		connection.stringCommands().bitOp(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), BitOperation.AND, KEY_3_BBUFFER)
+				.as(StepVerifier::create) //
 				.expectNext(7L) //
 				.verifyComplete();
 
@@ -461,9 +462,8 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		nativeCommands.set(KEY_1, VALUE_1);
 		nativeCommands.set(KEY_2, VALUE_2);
 
-		StepVerifier
-				.create(connection.stringCommands().bitOp(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), BitOperation.OR,
-						KEY_3_BBUFFER)) //
+		connection.stringCommands().bitOp(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), BitOperation.OR, KEY_3_BBUFFER)
+				.as(StepVerifier::create) //
 				.expectNext(7L) //
 				.verifyComplete();
 
@@ -475,9 +475,8 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
 
-		StepVerifier
-				.create(connection.stringCommands().bitOp(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), BitOperation.NOT,
-						KEY_3_BBUFFER)) //
+		connection.stringCommands().bitOp(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), BitOperation.NOT, KEY_3_BBUFFER)
+				.as(StepVerifier::create) //
 				.expectError(IllegalArgumentException.class) //
 				.verify();
 	}
@@ -487,7 +486,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		StepVerifier.create(connection.stringCommands().strLen(KEY_1_BBUFFER)) //
+		connection.stringCommands().strLen(KEY_1_BBUFFER).as(StepVerifier::create) //
 				.expectNext(7L) //
 				.verifyComplete();
 	}
@@ -497,7 +496,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeBinaryCommands.set(KEY_1_BBUFFER, ByteBuffer.wrap(HexStringUtils.hexToBytes("fff000")));
 
-		StepVerifier.create(connection.stringCommands().bitPos(KEY_1_BBUFFER, false)).expectNext(12L).verifyComplete();
+		connection.stringCommands().bitPos(KEY_1_BBUFFER, false).as(StepVerifier::create).expectNext(12L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-697
@@ -505,9 +504,8 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		nativeBinaryCommands.set(KEY_1_BBUFFER, ByteBuffer.wrap(HexStringUtils.hexToBytes("fff0f0")));
 
-		StepVerifier
-				.create(connection.stringCommands().bitPos(KEY_1_BBUFFER, true,
-						org.springframework.data.domain.Range.of(Bound.inclusive(2L), Bound.unbounded())))
+		connection.stringCommands().bitPos(KEY_1_BBUFFER, true, Range.of(Bound.inclusive(2L), Bound.unbounded()))
+				.as(StepVerifier::create)
 				.expectNext(16L).verifyComplete();
 	}
 

@@ -76,7 +76,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 
 		container = createContainer();
 
-		StepVerifier.create(container.receive(PatternTopic.of("foo*"))).thenAwait().thenCancel().verify();
+		container.receive(PatternTopic.of("foo*")).as(StepVerifier::create).thenAwait().thenCancel().verify();
 
 		verify(subscriptionMock).pSubscribe(getByteBuffer("foo*"));
 	}
@@ -87,7 +87,8 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
 		container = createContainer();
 
-		StepVerifier.create(container.receive(PatternTopic.of("foo*"), PatternTopic.of("bar*"))).thenRequest(1).thenAwait()
+		container.receive(PatternTopic.of("foo*"), PatternTopic.of("bar*")).as(StepVerifier::create).thenRequest(1)
+				.thenAwait()
 				.thenCancel().verify();
 
 		verify(subscriptionMock).pSubscribe(getByteBuffer("foo*"), getByteBuffer("bar*"));
@@ -99,7 +100,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
 		container = createContainer();
 
-		StepVerifier.create(container.receive(ChannelTopic.of("foo"))).thenAwait().thenCancel().verify();
+		container.receive(ChannelTopic.of("foo")).as(StepVerifier::create).thenAwait().thenCancel().verify();
 
 		verify(subscriptionMock).subscribe(getByteBuffer("foo"));
 	}
@@ -110,7 +111,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
 		container = createContainer();
 
-		StepVerifier.create(container.receive(ChannelTopic.of("foo"), ChannelTopic.of("bar"))).thenAwait().thenCancel()
+		container.receive(ChannelTopic.of("foo"), ChannelTopic.of("bar")).as(StepVerifier::create).thenAwait().thenCancel()
 				.verify();
 
 		verify(subscriptionMock).subscribe(getByteBuffer("foo"), getByteBuffer("bar"));
@@ -126,7 +127,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 
 		Flux<Message<String, String>> messageStream = container.receive(ChannelTopic.of("foo"));
 
-		StepVerifier.create(messageStream).then(() -> {
+		messageStream.as(StepVerifier::create).then(() -> {
 			processor.onNext(createChannelMessage("foo", "message"));
 		}).assertNext(msg -> {
 
@@ -145,7 +146,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 
 		Flux<PatternMessage<String, String, String>> messageStream = container.receive(PatternTopic.of("foo*"));
 
-		StepVerifier.create(messageStream).then(() -> {
+		messageStream.as(StepVerifier::create).then(() -> {
 			processor.onNext(createPatternMessage("foo*", "foo", "message"));
 		}).assertNext(msg -> {
 
@@ -210,7 +211,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 
 		Flux<PatternMessage<String, String, String>> messageStream = container.receive(PatternTopic.of("foo*"));
 
-		StepVerifier.create(messageStream).then(() -> {
+		messageStream.as(StepVerifier::create).then(() -> {
 
 			// Then required to trigger cancel.
 
@@ -234,7 +235,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 
 		Flux<PatternMessage<String, String, String>> messageStream = container.receive(PatternTopic.of("foo*"));
 
-		StepVerifier.create(messageStream).then(() -> {
+		messageStream.as(StepVerifier::create).then(() -> {
 			container.destroy();
 		}).verifyError(CancellationException.class);
 	}
@@ -249,7 +250,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 
 		Flux<PatternMessage<String, String, String>> messageStream = container.receive(PatternTopic.of("foo*"));
 
-		StepVerifier.create(messageStream).then(() -> {
+		messageStream.as(StepVerifier::create).then(() -> {
 			assertThat(processor.hasDownstreams()).isTrue();
 			processor.onNext(createPatternMessage("foo*", "foo", "message"));
 		}).expectNextCount(1).thenCancel().verify();

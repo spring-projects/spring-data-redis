@@ -90,9 +90,9 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(hyperLogLogOperations.add(key, value1, value2)).expectNext(1L).verifyComplete();
+		hyperLogLogOperations.add(key, value1, value2).as(StepVerifier::create).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(hyperLogLogOperations.size(key)).expectNext(2L).verifyComplete();
+		hyperLogLogOperations.size(key).as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -107,11 +107,11 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		K key2 = keyFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(hyperLogLogOperations.add(key1, value1, sharedValue)).expectNext(1L).verifyComplete();
-		StepVerifier.create(hyperLogLogOperations.add(key2, value2, sharedValue)).expectNext(1L).verifyComplete();
+		hyperLogLogOperations.add(key1, value1, sharedValue).as(StepVerifier::create).expectNext(1L).verifyComplete();
+		hyperLogLogOperations.add(key2, value2, sharedValue).as(StepVerifier::create).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(hyperLogLogOperations.union(mergedKey, key1, key2)).expectNext(true).verifyComplete();
-		StepVerifier.create(hyperLogLogOperations.size(mergedKey)).expectNext(3L).verifyComplete();
+		hyperLogLogOperations.union(mergedKey, key1, key2).as(StepVerifier::create).expectNext(true).verifyComplete();
+		hyperLogLogOperations.size(mergedKey).as(StepVerifier::create).expectNext(3L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -121,9 +121,9 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(hyperLogLogOperations.add(key, value1, value2)).expectNext(1L).verifyComplete();
-		StepVerifier.create(hyperLogLogOperations.delete(key)).expectNext(true).verifyComplete();
+		hyperLogLogOperations.add(key, value1, value2).as(StepVerifier::create).expectNext(1L).verifyComplete();
+		hyperLogLogOperations.delete(key).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(hyperLogLogOperations.size(key)).expectNext(0L).verifyComplete();
+		hyperLogLogOperations.size(key).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 }

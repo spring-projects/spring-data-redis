@@ -114,7 +114,8 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(unbounded(), inclusive(1L)));
 
-		StepVerifier.create(connection.listCommands().lRange(Mono.just(rangeCommand)).flatMap(CommandResponse::getOutput)) //
+		connection.listCommands().lRange(Mono.just(rangeCommand)).flatMap(CommandResponse::getOutput)
+				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER).expectNext(VALUE_2_BBUFFER).verifyComplete();
 	}
 
@@ -125,7 +126,8 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(inclusive(1L), unbounded()));
 
-		StepVerifier.create(connection.listCommands().lRange(Mono.just(rangeCommand)).flatMap(CommandResponse::getOutput)) //
+		connection.listCommands().lRange(Mono.just(rangeCommand)).flatMap(CommandResponse::getOutput)
+				.as(StepVerifier::create) //
 				.expectNext(VALUE_2_BBUFFER).expectNext(VALUE_3_BBUFFER).verifyComplete();
 	}
 
@@ -145,7 +147,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(unbounded(), inclusive(1L)));
 
-		StepVerifier.create(connection.listCommands().lTrim(Mono.just(rangeCommand))) //
+		connection.listCommands().lTrim(Mono.just(rangeCommand)).as(StepVerifier::create) //
 				.expectNext(new ReactiveRedisConnection.BooleanResponse<>(rangeCommand, true)) //
 				.verifyComplete();
 	}
@@ -157,7 +159,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(inclusive(1L), unbounded()));
 
-		StepVerifier.create(connection.listCommands().lTrim(Mono.just(rangeCommand))) //
+		connection.listCommands().lTrim(Mono.just(rangeCommand)).as(StepVerifier::create) //
 				.expectNext(new ReactiveRedisConnection.BooleanResponse<>(rangeCommand, true)) //
 				.verifyComplete();
 	}

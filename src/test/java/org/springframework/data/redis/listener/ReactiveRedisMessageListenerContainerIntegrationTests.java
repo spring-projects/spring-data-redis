@@ -98,7 +98,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 
-		StepVerifier.create(container.receive(ChannelTopic.of(CHANNEL1))) //
+		container.receive(ChannelTopic.of(CHANNEL1)).as(StepVerifier::create) //
 				.then(awaitSubscription(container::getActiveSubscriptions))
 				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
 				.assertNext(c -> {
@@ -116,7 +116,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 
-		StepVerifier.create(container.receive(PatternTopic.of(PATTERN1))) //
+		container.receive(PatternTopic.of(PATTERN1)).as(StepVerifier::create) //
 				.then(awaitSubscription(container::getActiveSubscriptions))
 				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
 				.assertNext(c -> {
@@ -162,7 +162,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		ReactiveRedisTemplate<String, String> template = new ReactiveRedisTemplate<>(connectionFactory,
 				RedisSerializationContext.string());
 
-		StepVerifier.create(template.listenToChannel(CHANNEL1)) //
+		template.listenToChannel(CHANNEL1).as(StepVerifier::create) //
 				.thenAwait(Duration.ofMillis(100)) // just make sure we the subscription completed
 				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
 				.assertNext(message -> {
@@ -181,7 +181,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		ReactiveRedisTemplate<String, String> template = new ReactiveRedisTemplate<>(connectionFactory,
 				RedisSerializationContext.string());
 
-		StepVerifier.create(template.listenToPattern(PATTERN1)) //
+		template.listenToPattern(PATTERN1).as(StepVerifier::create) //
 				.thenAwait(Duration.ofMillis(100)) // just make sure we the subscription completed
 				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
 				.assertNext(message -> {

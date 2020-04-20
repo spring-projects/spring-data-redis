@@ -47,7 +47,7 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 
 		String sha1 = nativeCommands.scriptLoad("return KEYS[1]");
 
-		StepVerifier.create(connection.scriptingCommands().scriptExists(Arrays.asList("foo", sha1))) //
+		connection.scriptingCommands().scriptExists(Arrays.asList("foo", sha1)).as(StepVerifier::create) //
 				.expectNext(false) //
 				.expectNext(true) //
 				.verifyComplete();
@@ -60,15 +60,15 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 
 		String sha1 = nativeCommands.scriptLoad("return KEYS[1]");
 
-		StepVerifier.create(connection.scriptingCommands().scriptExists(sha1)) //
+		connection.scriptingCommands().scriptExists(sha1).as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
-		StepVerifier.create(connection.scriptingCommands().scriptFlush()) //
+		connection.scriptingCommands().scriptFlush().as(StepVerifier::create) //
 				.expectNext("OK") //
 				.verifyComplete();
 
-		StepVerifier.create(connection.scriptingCommands().scriptExists(sha1)) //
+		connection.scriptingCommands().scriptExists(sha1).as(StepVerifier::create) //
 				.expectNext(false) //
 				.verifyComplete();
 	}
@@ -80,9 +80,9 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 
 		String sha1 = nativeCommands.scriptLoad("return KEYS[1]");
 
-		StepVerifier
-				.create(connection.scriptingCommands().evalSha(sha1, ReturnType.VALUE, 2, SAME_SLOT_KEY_1_BBUFFER.duplicate(),
-						SAME_SLOT_KEY_2_BBUFFER.duplicate())) //
+		connection.scriptingCommands()
+				.evalSha(sha1, ReturnType.VALUE, 2, SAME_SLOT_KEY_1_BBUFFER.duplicate(), SAME_SLOT_KEY_2_BBUFFER.duplicate())
+				.as(StepVerifier::create) //
 				.expectNext(SAME_SLOT_KEY_1_BBUFFER) //
 				.verifyComplete();
 	}
@@ -94,9 +94,9 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 
 		String sha1 = nativeCommands.scriptLoad("return {KEYS[1],ARGV[1]}");
 
-		StepVerifier
-				.create(connection.scriptingCommands().evalSha(sha1, ReturnType.MULTI, 1, SAME_SLOT_KEY_1_BBUFFER.duplicate(),
-						SAME_SLOT_KEY_2_BBUFFER.duplicate())) //
+		connection.scriptingCommands()
+				.evalSha(sha1, ReturnType.MULTI, 1, SAME_SLOT_KEY_1_BBUFFER.duplicate(), SAME_SLOT_KEY_2_BBUFFER.duplicate())
+				.as(StepVerifier::create) //
 				.expectNext(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER)) //
 				.verifyComplete();
 	}
@@ -106,8 +106,8 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 
 		assumeFalse(connection instanceof ReactiveRedisClusterConnection);
 
-		StepVerifier
-				.create(connection.scriptingCommands().evalSha("foo", ReturnType.VALUE, 1, SAME_SLOT_KEY_1_BBUFFER.duplicate())) //
+		connection.scriptingCommands().evalSha("foo", ReturnType.VALUE, 1, SAME_SLOT_KEY_1_BBUFFER.duplicate())
+				.as(StepVerifier::create) //
 				.expectError(RedisSystemException.class) //
 				.verify();
 	}
@@ -117,8 +117,8 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 
 		ByteBuffer script = wrap(String.format("return redis.call('set','%s','ghk')", SAME_SLOT_KEY_1));
 
-		StepVerifier
-				.create(connection.scriptingCommands().eval(script, ReturnType.STATUS, 1, SAME_SLOT_KEY_1_BBUFFER.duplicate())) //
+		connection.scriptingCommands().eval(script, ReturnType.STATUS, 1, SAME_SLOT_KEY_1_BBUFFER.duplicate())
+				.as(StepVerifier::create) //
 				.expectNext("OK") //
 				.verifyComplete();
 	}
@@ -128,7 +128,7 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 
 		ByteBuffer script = wrap("return false");
 
-		StepVerifier.create(connection.scriptingCommands().eval(script, ReturnType.BOOLEAN, 0)) //
+		connection.scriptingCommands().eval(script, ReturnType.BOOLEAN, 0).as(StepVerifier::create) //
 				.expectNext(false) //
 				.verifyComplete();
 	}
@@ -138,7 +138,7 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 
 		ByteBuffer script = wrap("return {1,2}");
 
-		StepVerifier.create(connection.scriptingCommands().eval(script, ReturnType.MULTI, 0)) //
+		connection.scriptingCommands().eval(script, ReturnType.MULTI, 0).as(StepVerifier::create) //
 				.expectNext(Arrays.asList(1L, 2L)) //
 				.verifyComplete();
 	}
@@ -148,7 +148,7 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 
 		ByteBuffer script = wrap("return {1,2");
 
-		StepVerifier.create(connection.scriptingCommands().eval(script, ReturnType.MULTI, 0)) //
+		connection.scriptingCommands().eval(script, ReturnType.MULTI, 0).as(StepVerifier::create) //
 				.expectError(RedisSystemException.class) //
 				.verify();
 	}
@@ -172,7 +172,7 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 		sync.await(2, TimeUnit.SECONDS);
 		Thread.sleep(200);
 
-		StepVerifier.create(connection.scriptingCommands().scriptKill()).expectNext("OK").verifyComplete();
+		connection.scriptingCommands().scriptKill().as(StepVerifier::create).expectNext("OK").verifyComplete();
 
 		assertThat(waitFor(scriptDead::get, 3000L)).isTrue();
 	}
