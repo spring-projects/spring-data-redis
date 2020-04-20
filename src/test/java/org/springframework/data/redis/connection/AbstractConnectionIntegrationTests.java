@@ -3339,7 +3339,6 @@ public abstract class AbstractConnectionIntegrationTests {
 		XInfoGroups info = (XInfoGroups) results.get(2);
 
 		assertThat(info.size()).isZero();
-
 	}
 
 	@Test // DATAREDIS-1119

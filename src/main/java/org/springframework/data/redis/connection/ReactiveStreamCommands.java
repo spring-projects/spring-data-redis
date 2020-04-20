@@ -1041,24 +1041,24 @@ public interface ReactiveStreamCommands {
 
 		private final @Nullable String groupName;
 
-		public XInfoCommand(@Nullable ByteBuffer key, @Nullable String groupName) {
+		private XInfoCommand(ByteBuffer key, @Nullable String groupName) {
 
 			super(key);
 			this.groupName = groupName;
 		}
 
-		public static XInfoCommand xInfo() {
-			return new XInfoCommand(null, null);
-		}
+		public static XInfoCommand of(ByteBuffer key) {
 
-		public XInfoCommand of(ByteBuffer key) {
-			return new XInfoCommand(key, groupName);
+			Assert.notNull(key, "Key must not be null");
+
+			return new XInfoCommand(key, null);
 		}
 
 		public XInfoCommand consumersIn(String groupName) {
 			return new XInfoCommand(getKey(), groupName);
 		}
 
+		@Nullable
 		public String getGroupName() {
 			return groupName;
 		}
@@ -1072,7 +1072,7 @@ public interface ReactiveStreamCommands {
 	 * @since 2.3
 	 */
 	default Mono<XInfoStream> xInfo(ByteBuffer key) {
-		return xInfo(Mono.just(XInfoCommand.xInfo().of(key))).next().map(CommandResponse::getOutput);
+		return xInfo(Mono.just(XInfoCommand.of(key))).next().map(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1092,7 +1092,7 @@ public interface ReactiveStreamCommands {
 	 * @since 2.3
 	 */
 	default Flux<XInfoGroup> xInfoGroups(ByteBuffer key) {
-		return xInfoGroups(Mono.just(XInfoCommand.xInfo().of(key))).next().flatMapMany(CommandResponse::getOutput);
+		return xInfoGroups(Mono.just(XInfoCommand.of(key))).next().flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1114,7 +1114,7 @@ public interface ReactiveStreamCommands {
 	 * @since 2.3
 	 */
 	default Flux<XInfoConsumer> xInfoConsumers(ByteBuffer key, String groupName) {
-		return xInfoConsumers(Mono.just(XInfoCommand.xInfo().of(key).consumersIn(groupName))).next()
+		return xInfoConsumers(Mono.just(XInfoCommand.of(key).consumersIn(groupName))).next()
 				.flatMapMany(CommandResponse::getOutput);
 	}
 

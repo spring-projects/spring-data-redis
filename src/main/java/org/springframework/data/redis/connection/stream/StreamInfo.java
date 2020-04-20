@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,12 +23,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.3
  */
 public class StreamInfo {
@@ -56,8 +59,20 @@ public class StreamInfo {
 			this.raw = raw;
 		}
 
-		protected <T> T get(String entry, Class<T> type) {
-			return type.cast(raw.get(entry));
+		@Nullable
+		<T> T get(String entry, Class<T> type) {
+
+			Object value = raw.get(entry);
+
+			return value == null ? null : type.cast(value);
+		}
+
+		@Nullable
+		<I, T> T getAndMap(String entry, Class<I> type, Function<I, T> f) {
+
+			I value = get(entry, type);
+
+			return value == null ? null : f.apply(value);
 		}
 
 		public Map<String, Object> getRaw() {
@@ -156,13 +171,7 @@ public class StreamInfo {
 		 * @return
 		 */
 		public String firstEntryId() {
-
-			Map firstEntryMap = get("first-entry", Map.class);
-			if (firstEntryMap == null) {
-				return null;
-			}
-
-			return firstEntryMap.keySet().iterator().next().toString();
+			return getAndMap("first-entry", Map.class, it -> it.keySet().iterator().next().toString());
 		}
 
 		/**
@@ -171,13 +180,7 @@ public class StreamInfo {
 		 * @return
 		 */
 		public Map<Object, Object> getFirstEntry() {
-
-			Map<Object, Object> lastEntryMap = get("first-entry", Map.class);
-			if (lastEntryMap == null) {
-				return null;
-			}
-
-			return Collections.unmodifiableMap(lastEntryMap);
+			return getAndMap("first-entry", Map.class, Collections::unmodifiableMap);
 		}
 
 		/**
@@ -186,13 +189,7 @@ public class StreamInfo {
 		 * @return
 		 */
 		public String lastEntryId() {
-
-			Map lastEntryMap = get("last-entry", Map.class);
-			if (lastEntryMap == null) {
-				return null;
-			}
-
-			return lastEntryMap.keySet().iterator().next().toString();
+			return getAndMap("last-entry", Map.class, it -> it.keySet().iterator().next().toString());
 		}
 
 		/**
@@ -201,13 +198,7 @@ public class StreamInfo {
 		 * @return
 		 */
 		public Map<Object, Object> getLastEntry() {
-
-			Map<Object, Object> firstEntryMap = get("last-entry", Map.class);
-			if (firstEntryMap == null) {
-				return null;
-			}
-
-			return Collections.unmodifiableMap(firstEntryMap);
+			return getAndMap("last-entry", Map.class, Collections::unmodifiableMap);
 		}
 
 	}
@@ -315,7 +306,7 @@ public class StreamInfo {
 		private XInfoGroup(List<Object> raw) {
 			super(raw, DEFAULT_TYPE_HINTS);
 		}
-		
+
 		public static XInfoGroup fromList(List<Object> raw) {
 			return new XInfoGroup(raw);
 		}
