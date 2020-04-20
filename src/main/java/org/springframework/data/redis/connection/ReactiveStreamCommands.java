@@ -262,6 +262,7 @@ public interface ReactiveStreamCommands {
 		 * Limit the size of the stream to the given maximum number of elements.
 		 *
 		 * @return can be {@literal null}.
+		 * @since 2.3
 		 */
 		@Nullable
 		public Long getMaxlen() {
@@ -270,8 +271,9 @@ public interface ReactiveStreamCommands {
 
 		/**
 		 * @return {@literal true} if {@literal MAXLEN} is set.
+		 * @since 2.3
 		 */
-		public boolean hasMaxLen() {
+		public boolean hasMaxlen() {
 			return maxlen != null && maxlen > 0;
 		}
 	}

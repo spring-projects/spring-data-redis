@@ -91,7 +91,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 		XAddArgs args = new XAddArgs();
 		args.id(record.getId().getValue());
-		if(options.hasMaxLen()) {
+		if (options.hasMaxlen()) {
 			args.maxlen(options.getMaxlen());
 		}
 

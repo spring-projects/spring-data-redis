@@ -113,7 +113,9 @@ public interface RedisStreamCommands {
 	 */
 	class XAddOptions {
 
-		private @Nullable Long maxlen;
+		private static final XAddOptions NONE = new XAddOptions(null);
+
+		private final @Nullable Long maxlen;
 
 		private XAddOptions(@Nullable Long maxlen) {
 			this.maxlen = maxlen;
@@ -123,7 +125,7 @@ public interface RedisStreamCommands {
 		 * @return
 		 */
 		public static XAddOptions none() {
-			return new XAddOptions(null);
+			return NONE;
 		}
 
 		/**
@@ -148,7 +150,7 @@ public interface RedisStreamCommands {
 		/**
 		 * @return {@literal true} if {@literal MAXLEN} is set.
 		 */
-		public boolean hasMaxLen() {
+		public boolean hasMaxlen() {
 			return maxlen != null && maxlen > 0;
 		}
 
