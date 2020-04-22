@@ -84,13 +84,13 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 		assertThat(factory.getConnection().getClientName(), equalTo("clientName"));
 	}
 
-	@Test
+	@Test // DATAREDIS-1127
 	public void shouldNotFailOnFirstSentinelDown() {
 
-		final RedisSentinelConfiguration multiSentinelConfig = new RedisSentinelConfiguration()
-				.master("mymaster").sentinel("any.unavailable.host",26379).sentinel("127.0.0.1", 26379);
+		RedisSentinelConfiguration oneDownSentinelConfig = new RedisSentinelConfiguration().master("mymaster")
+				.sentinel("any.unavailable.host", 26379).sentinel("127.0.0.1", 26379);
 
-		factory = new JedisConnectionFactory(multiSentinelConfig);
+		factory = new JedisConnectionFactory(oneDownSentinelConfig);
 		assertThat(factory.getSentinelConnection().isOpen(), is(true));
 	}
 }
