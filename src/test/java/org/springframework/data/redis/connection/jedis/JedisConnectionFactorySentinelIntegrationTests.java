@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
@@ -84,13 +83,13 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 		assertThat(factory.getConnection().getClientName()).isEqualTo("clientName");
 	}
 
-	@Test
+	@Test // DATAREDIS-1127
 	public void shouldNotFailOnFirstSentinelDown() {
 
-		final RedisSentinelConfiguration multiSentinelConfig = new RedisSentinelConfiguration()
-				.master("mymaster").sentinel("any.unavailable.host",26379).sentinel("127.0.0.1", 26379);
+		RedisSentinelConfiguration oneDownSentinelConfig = new RedisSentinelConfiguration().master("mymaster")
+				.sentinel("any.unavailable.host", 26379).sentinel("127.0.0.1", 26379);
 
-		factory = new JedisConnectionFactory(multiSentinelConfig);
+		factory = new JedisConnectionFactory(oneDownSentinelConfig);
 		assertThat(factory.getSentinelConnection().isOpen()).isTrue();
 	}
 }
