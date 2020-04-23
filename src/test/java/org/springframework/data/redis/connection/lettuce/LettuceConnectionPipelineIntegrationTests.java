@@ -22,6 +22,7 @@ import static org.springframework.data.redis.SpinBarrier.*;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -79,7 +80,8 @@ public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectio
 		Thread.sleep(1000);
 		connection.scriptKill();
 		getResults();
-		assertThat(waitFor(scriptDead::get, 3000l)).isTrue();
+
+		Awaitility.await().untilTrue(scriptDead);
 	}
 
 	@Test

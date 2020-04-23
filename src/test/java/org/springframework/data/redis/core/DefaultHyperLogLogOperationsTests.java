@@ -35,6 +35,7 @@ import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 @IfProfileValue(name = "redisVersion", value = "2.8.9+")
@@ -132,10 +133,11 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 
 		K key2 = keyFactory.instance();
 		V v4 = valueFactory.instance();
+		V v5 = valueFactory.instance();
 
 		hyperLogLogOps.add(key, v1, v2, v3);
-		hyperLogLogOps.add(key2, v4);
-		assertThat(hyperLogLogOps.size(key, key2)).isEqualTo(4L);
+		hyperLogLogOps.add(key2, v4, v5);
+		assertThat(hyperLogLogOps.size(key, key2)).isGreaterThan(3L);
 	}
 
 	@Test // DATAREDIS-308
@@ -149,16 +151,14 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 
 		K sourceKey_2 = keyFactory.instance();
 		V v4 = valueFactory.instance();
+		V v5 = valueFactory.instance();
 
 		K desinationKey = keyFactory.instance();
 
 		hyperLogLogOps.add(sourceKey_1, v1, v2, v3);
-		hyperLogLogOps.add(sourceKey_2, v4);
-
-		Thread.sleep(10); // give redis a little time to catch up
+		hyperLogLogOps.add(sourceKey_2, v4, v5);
 		hyperLogLogOps.union(desinationKey, sourceKey_1, sourceKey_2);
-		Thread.sleep(10); // give redis a little time to catch up
 
-		assertThat(hyperLogLogOps.size(desinationKey)).isEqualTo(4L);
+		assertThat(hyperLogLogOps.size(desinationKey)).isGreaterThan(3L);
 	}
 }

@@ -30,6 +30,7 @@ import org.springframework.data.redis.connection.jedis.JedisConverters;
  * Simple {@link TestRule} implementation that check Redis is running in cluster mode.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisClusterRule extends ExternalResource {
@@ -65,6 +66,13 @@ public class RedisClusterRule extends ExternalResource {
 
 	public RedisClusterConfiguration getConfiguration() {
 		return this.clusterConfig;
+	}
+
+	/**
+	 * @return {@literal true} if Redis Cluster is available.
+	 */
+	public boolean isAvailable() {
+		return "cluster".equals(mode);
 	}
 
 	private void init() {

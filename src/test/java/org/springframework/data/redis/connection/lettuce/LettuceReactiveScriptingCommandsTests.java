@@ -20,6 +20,7 @@ import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 
 import io.lettuce.core.ScriptOutputType;
+import org.awaitility.Awaitility;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -174,7 +175,7 @@ public class LettuceReactiveScriptingCommandsTests extends LettuceReactiveComman
 
 		connection.scriptingCommands().scriptKill().as(StepVerifier::create).expectNext("OK").verifyComplete();
 
-		assertThat(waitFor(scriptDead::get, 3000L)).isTrue();
+		Awaitility.await().untilTrue(scriptDead);
 	}
 
 	private static ByteBuffer wrap(String content) {

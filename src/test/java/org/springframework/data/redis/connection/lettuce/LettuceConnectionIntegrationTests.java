@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.awaitility.Awaitility;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -275,7 +276,8 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		th.start();
 		Thread.sleep(1000);
 		connection.scriptKill();
-		assertThat(waitFor(scriptDead::get, 3000l)).isTrue();
+
+		Awaitility.await().untilTrue(scriptDead);
 	}
 
 	@Test

@@ -20,6 +20,7 @@ import static org.junit.Assume.*;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingDeque;
@@ -39,6 +40,7 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -185,13 +187,15 @@ public class PubSubTests<T> {
 	@Test // DATAREDIS-251
 	public void testStartListenersToNoSpecificChannelTest() throws InterruptedException {
 
-		assumeTrue(isClusterAware(template.getConnectionFactory()));
+		assumeFalse(isClusterAware(template.getConnectionFactory()));
+		assumeTrue(ConnectionUtils.isJedis(template.getConnectionFactory()));
 
-		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
-		container.addMessageListener(adapter, Arrays.asList(new PatternTopic("*")));
-		container.start();
+		PubSubAwaitUtil.runAndAwaitPatternSubscription(template.getRequiredConnectionFactory(), () -> {
 
-		Thread.sleep(1000); // give the container a little time to recover
+			container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
+			container.addMessageListener(adapter, Collections.singletonList(new PatternTopic(CHANNEL + "*")));
+			container.start();
+		});
 
 		T payload = getT();
 

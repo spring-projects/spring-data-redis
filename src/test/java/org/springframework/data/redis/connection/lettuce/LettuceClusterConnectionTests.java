@@ -2365,7 +2365,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.get(KEY_1);
 
-		assertThat(clusterConnection.keyCommands().idletime(KEY_1_BYTES)).isEqualTo(Duration.ofSeconds(0));
+		assertThat(clusterConnection.keyCommands().idletime(KEY_1_BYTES)).isLessThanOrEqualTo(Duration.ofSeconds(2));
 	}
 
 	@Test // DATAREDIS-716

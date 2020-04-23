@@ -315,25 +315,6 @@ public class LettuceConnectionFactoryTests {
 		pool.destroy();
 	}
 
-	@Ignore("Uncomment this test to manually check connection reuse in a pool scenario")
-	@Test
-	public void testLotsOfConnections() throws InterruptedException {
-		// Running a netstat here should show only the 8 conns from the pool (plus 2 from setUp and 1 from factory2
-		// afterPropertiesSet for shared conn)
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.afterPropertiesSet();
-		final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
-		factory2.afterPropertiesSet();
-
-		ConnectionFactoryTracker.add(factory2);
-
-		for (int i = 1; i < 1000; i++) {
-			Thread th = new Thread(() -> factory2.getConnection().bRPop(50000, "foo".getBytes()));
-			th.start();
-		}
-		Thread.sleep(234234234);
-	}
-
 	@Ignore("Redis must have requirepass set to run this test")
 	@Test
 	public void testConnectWithPassword() {
