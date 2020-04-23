@@ -183,24 +183,18 @@ public class StreamReceiverIntegrationTests {
 
 		messages.as(publisher -> StepVerifier.create(publisher, 0)) //
 				.thenRequest(1) //
+				.thenAwait(Duration.ofMillis(500)) //
 				.then(() -> {
-					try {
-						Thread.sleep(500);
-						reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"))
-								.subscribe();
-					} catch (InterruptedException e) {}
+					reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1")).subscribe();
 				}) //
 				.expectNextCount(1) //
 				.then(() -> {
 					reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value2")).subscribe();
 				}) //
 				.thenRequest(1) //
+				.thenAwait(Duration.ofMillis(500)) //
 				.then(() -> {
-					try {
-						Thread.sleep(500);
-						reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value3"))
-								.subscribe();
-					} catch (InterruptedException e) {}
+					reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value3")).subscribe();
 				}).consumeNextWith(it -> {
 
 					assertThat(it.getStream()).isEqualTo("my-stream");

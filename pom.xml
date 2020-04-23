@@ -17,6 +17,7 @@
 
 	<properties>
 		<springdata.keyvalue>2.3.0.BUILD-SNAPSHOT</springdata.keyvalue>
+		<awaitility>4.0.2</awaitility>
 		<jta>1.1</jta>
 		<beanutils>1.9.2</beanutils>
 		<xstream>1.4.8</xstream>
@@ -221,6 +222,13 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jdbc</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.awaitility</groupId>
+			<artifactId>awaitility</artifactId>
+			<version>${awaitility}</version>
 			<scope>test</scope>
 		</dependency>
 

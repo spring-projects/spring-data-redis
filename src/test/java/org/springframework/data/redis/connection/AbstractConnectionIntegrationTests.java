@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.assertj.core.data.Offset;
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.AssumptionViolatedException;
@@ -396,7 +397,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		Thread.sleep(200);
 		connection.scriptKill();
 		getResults();
-		assertThat(waitFor(() -> scriptDead.get(), 3000l)).isTrue();
+
+		Awaitility.await().untilTrue(scriptDead);
 	}
 
 	@Test
@@ -833,7 +835,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		connection.watch("testitnow".getBytes());
 		// Give some time for watch to be asynch executed in extending tests
-		Thread.sleep(500);
+		Thread.sleep(200);
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
 		conn2.close();
@@ -852,11 +854,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		connection.watch("testitnow".getBytes());
 		connection.unwatch();
-
 		connection.multi();
 
 		// Give some time for unwatch to be asynch executed
-		Thread.sleep(100);
+		Thread.sleep(200);
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
 

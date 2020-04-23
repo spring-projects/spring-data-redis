@@ -27,6 +27,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
@@ -198,16 +200,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 	private static Runnable awaitSubscription(Supplier<Collection<ReactiveSubscription>> activeSubscriptions) {
 
 		return () -> {
-
-			try {
-
-				while (activeSubscriptions.get().isEmpty()) {
-					Thread.sleep(10);
-				}
-
-			} catch (InterruptedException e) {
-				return;
-			}
+			Awaitility.await().until(() -> !activeSubscriptions.get().isEmpty());
 		};
 	}
 }
