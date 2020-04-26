@@ -361,7 +361,15 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Long time() {
+		return microseconds() / 1000;
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+	 */
+	@Override
+	public Long microseconds() {
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(getAsyncConnection().time(), LettuceConverters.toTimeConverter()));

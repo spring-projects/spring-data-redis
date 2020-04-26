@@ -312,7 +312,15 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	 */
 	@Override
 	public Long time() {
+		return microseconds() / 1000;
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#time()
+	 */
+	@Override
+	public Long microseconds() {
 		return convertListOfStringToTime(connection.getClusterCommandExecutor()
 				.executeCommandOnArbitraryNode((LettuceClusterCommandCallback<List<byte[]>>) RedisServerCommands::time)
 				.getValue());
@@ -384,12 +392,15 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	private static Long convertListOfStringToTime(List<byte[]> serverTimeInformation) {
+		return convertListOfStringToMicros(serverTimeInformation) / 1000;
+	}
 
+	private static Long convertListOfStringToMicros(List<byte[]> serverTimeInformation) {
 		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
 		Assert.isTrue(serverTimeInformation.size() == 2,
 				"Received invalid number of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
 
-		return Converters.toTimeMillis(LettuceConverters.toString(serverTimeInformation.get(0)),
+		return Converters.toTimeMicros(LettuceConverters.toString(serverTimeInformation.get(0)),
 				LettuceConverters.toString(serverTimeInformation.get(1)));
 	}
 }

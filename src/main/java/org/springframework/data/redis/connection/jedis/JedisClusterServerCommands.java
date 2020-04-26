@@ -401,6 +401,17 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+	 */
+	@Override
+	public Long microseconds() {
+
+		return convertListOfStringToMicros(connection.getClusterCommandExecutor()
+				.executeCommandOnArbitraryNode((JedisClusterCommandCallback<List<String>>) BinaryJedis::time).getValue());
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#time(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
@@ -518,11 +529,15 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	private Long convertListOfStringToTime(List<String> serverTimeInformation) {
 
+		return convertListOfStringToMicros(serverTimeInformation) / 1000;
+	}
+
+	private Long convertListOfStringToMicros(List<String> serverTimeInformation) {
 		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
 		Assert.isTrue(serverTimeInformation.size() == 2,
 				"Received invalid number of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
 
-		return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1));
+		return Converters.toTimeMicros(serverTimeInformation.get(0), serverTimeInformation.get(1));
 	}
 
 	private <T> NodeResult<T> executeCommandOnSingleNode(JedisClusterCommandCallback<T> cmd, RedisClusterNode node) {

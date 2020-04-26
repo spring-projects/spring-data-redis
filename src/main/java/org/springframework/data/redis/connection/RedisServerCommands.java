@@ -184,6 +184,16 @@ public interface RedisServerCommands {
 	Long time();
 
 	/**
+	 * Request server timestamp using {@code TIME} command.
+	 *
+	 * @return current server time in microseconds or {@literal null} when used in pipeline / transaction.
+	 * @since 1.1
+	 * @see <a href="https://redis.io/commands/time">Redis Documentation: TIME</a>
+	 */
+	@Nullable
+	Long microseconds();
+
+	/**
 	 * Closes a given client connection identified by {@literal host:port}.
 	 *
 	 * @param host of connection to close.

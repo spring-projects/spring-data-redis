@@ -193,7 +193,7 @@ abstract public class JedisConverters extends Converters {
 			Assert.isTrue(source.size() == 2,
 					"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
 
-			return toTimeMillis(source.get(0), source.get(1));
+			return toTimeMicros(source.get(0), source.get(1));
 		};
 
 		GEO_COORDINATE_TO_POINT_CONVERTER = geoCoordinate -> geoCoordinate != null

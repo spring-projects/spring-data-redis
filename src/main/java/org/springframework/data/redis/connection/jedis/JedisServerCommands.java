@@ -353,7 +353,15 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Long time() {
+		return microseconds() / 1000;
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+	 */
+	@Override
+	public Long microseconds() {
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newJedisResult(connection.getRequiredPipeline().time(), JedisConverters.toTimeConverter()));

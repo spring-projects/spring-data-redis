@@ -1397,6 +1397,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
+	default Long microseconds() {
+		return serverCommands().microseconds();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
 	default void killClient(String host, int port) {
 		serverCommands().killClient(host, port);
 	}
