@@ -361,7 +361,8 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Long time() {
-		return microseconds() / 1000;
+		Long time = microseconds();
+		return  time == null ? null : time / 1000;
 	}
 
 	/*
