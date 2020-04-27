@@ -2077,6 +2077,17 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Long) results.get(0) > 0).isTrue();
 	}
 
+	@Test
+	public void testGetMicrosecondsShouldRequestServerTime() {
+
+		actual.add(connection.microseconds());
+
+		List<Object> results = getResults();
+		assertThat(results).isNotEmpty();
+		assertThat(results.get(0)).isNotNull();
+		assertThat((Long) results.get(0) > 0).isTrue();
+	}
+
 	@Test // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
 		connection.setClientName("foo".getBytes());
