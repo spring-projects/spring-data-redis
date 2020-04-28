@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.17.RELEASE (2020-04-28)
+----------------------------------------------
+* DATAREDIS-1127 - JedisConnectionFactory getSentinelConnection method fails if first sentinel host in the list of sentinel hosts is down/unreachable.
+* DATAREDIS-1121 - Add missing anchors.
+* DATAREDIS-1107 - Release 2.1.17 (Lovelace SR17).
+
+
 Changes in version 2.3.0.RC1 (2020-03-31)
 -----------------------------------------
 * DATAREDIS-1121 - Add missing anchors.
@@ -1937,6 +1944,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
