@@ -12,11 +12,11 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.3.0.RC2</version>
+		<version>2.3.0.BUILD-SNAPSHOT</version>
 	</parent>
 
 	<properties>
-		<springdata.keyvalue>2.3.0.RC2</springdata.keyvalue>
+		<springdata.keyvalue>2.3.0.BUILD-SNAPSHOT</springdata.keyvalue>
 		<awaitility>4.0.2</awaitility>
 		<jta>1.1</jta>
 		<beanutils>1.9.2</beanutils>
@@ -305,8 +305,8 @@
 
 	<repositories>
 		<repository>
-			<id>spring-libs-milestone</id>
-			<url>https://repo.spring.io/libs-milestone</url>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
 		</repository>
 	</repositories>
 
