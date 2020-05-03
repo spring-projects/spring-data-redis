@@ -119,8 +119,26 @@ suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.cr
  * @author Mark Paluch
  * @since 2.2
  */
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.createGroupAndAwait(key: K, group: String, mkStream: Boolean): String =
+		createGroup(key, group, mkStream).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.createGroup].
+ *
+ * @author Mark Paluch
+ * @since 2.2
+ */
 suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.createGroupAndAwait(key: K, readOffset: ReadOffset, group: String): String =
 		createGroup(key, readOffset, group).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.createGroup].
+ *
+ * @author Tugdual Grall
+ * @since
+ */
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.createGroupAndAwait(key: K, readOffset: ReadOffset, group: String, mkStream: Boolean): String =
+		createGroup(key, readOffset, group, mkStream).awaitSingle()
 
 /**
  * Coroutines variant of [ReactiveStreamOperations.deleteConsumer].

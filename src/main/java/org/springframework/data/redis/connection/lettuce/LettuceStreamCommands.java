@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.XAddArgs;
 import io.lettuce.core.XClaimArgs;
+import io.lettuce.core.XGroupCreateArgs;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
@@ -216,6 +217,15 @@ class LettuceStreamCommands implements RedisStreamCommands {
 	 */
 	@Override
 	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset) {
+		return xGroupCreate(key, groupName, readOffset, false);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupCreate(byte[], org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String, boolean)
+	 */
+	@Override
+	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkSteam) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.hasText(groupName, "Group name must not be null or empty!");
@@ -226,15 +236,17 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 			if (isPipelined()) {
 				pipeline(connection
-						.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName))));
+						.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName),
+								XGroupCreateArgs.Builder.mkstream(mkSteam))));
 				return null;
 			}
 			if (isQueueing()) {
 				transaction(connection
-						.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName))));
+						.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName),
+								XGroupCreateArgs.Builder.mkstream(mkSteam))));
 				return null;
 			}
-			return getConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName));
+			return getConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName), XGroupCreateArgs.Builder.mkstream(mkSteam));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

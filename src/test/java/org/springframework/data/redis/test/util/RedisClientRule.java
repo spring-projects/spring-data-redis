@@ -50,7 +50,7 @@ public abstract class RedisClientRule implements TestRule {
 							return;
 						}
 					}
-					throw new AssumptionViolatedException("not a vaild redis connection for driver: " + redisConnectionFactory);
+					throw new AssumptionViolatedException("not a valid redis connection for driver: " + redisConnectionFactory);
 				}
 
 				base.evaluate();

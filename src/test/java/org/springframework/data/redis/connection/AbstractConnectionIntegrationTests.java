@@ -3061,6 +3061,29 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // DATAREDIS-864
 	@IfProfileValue(name = "redisVersion", value = "5.0")
 	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xGroupCreateShouldWorkWithAndWithoutExistingStream() {
+
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group",true));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+
+		List<Object> results = getResults();
+
+		List<MapRecord<String, String, String>> messages = (List) results.get(2);
+
+		assertThat(messages.get(0).getStream()).isEqualTo(KEY_1);
+		assertThat(messages.get(0).getValue()).isEqualTo(Collections.singletonMap(KEY_2, VALUE_2));
+
+		assertThat((List<MapRecord>) results.get(3)).isEmpty();
+	}
+
+	@Test // DATAREDIS-864
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
 	public void xRangeShouldReportMessages() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
@@ -3252,6 +3275,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@WithRedisDriver({ RedisDriver.LETTUCE })
 	public void xinfo() {
 
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group-without-stream",true));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
 		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
@@ -3261,15 +3285,15 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.xInfo(KEY_1));
 
 		List<Object> results = getResults();
-		assertThat(results).hasSize(5);
-		RecordId firstRecord = (RecordId) results.get(0);
-		RecordId lastRecord = (RecordId) results.get(1);
-		XInfoStream info = (XInfoStream) results.get(4);
+		assertThat(results).hasSize(6);
+		RecordId firstRecord = (RecordId) results.get(1);
+		RecordId lastRecord = (RecordId) results.get(2);
+		XInfoStream info = (XInfoStream) results.get(5);
 
 		assertThat(info.streamLength()).isEqualTo(2L);
 		assertThat(info.radixTreeKeySize()).isOne();
 		assertThat(info.radixTreeNodesSize()).isEqualTo(2L);
-		assertThat(info.groupCount()).isOne();
+		assertThat(info.groupCount()).isEqualTo(2L);
 		assertThat(info.lastGeneratedId()).isEqualTo(lastRecord.getValue());
 		assertThat(info.firstEntryId()).isEqualTo(firstRecord.getValue());
 		assertThat(info.lastEntryId()).isEqualTo(lastRecord.getValue());

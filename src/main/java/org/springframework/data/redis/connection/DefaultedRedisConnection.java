@@ -487,6 +487,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
+	default String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkStream) {
+		return streamCommands().xGroupCreate(key, groupName, readOffset, mkStream);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
 	default Boolean xGroupDelConsumer(byte[] key, Consumer consumer) {
 		return streamCommands().xGroupDelConsumer(key, consumer);
 	}

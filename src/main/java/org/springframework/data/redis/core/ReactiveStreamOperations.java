@@ -170,6 +170,19 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	}
 
 	/**
+	 * Create a consumer group at the {@link ReadOffset#latest() latest offset}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group name of the consumer group.
+	 * @param mkStream if true the group will create the stream if not already present (MKSTREAM)
+	 * @return the {@link Mono} emitting {@literal OK} if successful.. {@literal null} when used in pipeline /
+	 *         transaction.
+	 */
+	default Mono<String> createGroup(K key, String group, boolean mkStream) {
+		return createGroup(key, ReadOffset.latest(), group, mkStream);
+	}
+
+	/**
 	 * Create a consumer group.
 	 *
 	 * @param key the {@literal key} the stream is stored at.
@@ -179,6 +192,16 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 */
 	Mono<String> createGroup(K key, ReadOffset readOffset, String group);
 
+	/**
+	 * Create a consumer group.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param readOffset the {@link ReadOffset} to apply.
+	 * @param group name of the consumer group.
+	 * @param mkStream if true the group will create the stream if needed (MKSTREAM)
+	 * @return the {@link Mono} emitting {@literal OK} if successful.
+	 */
+	Mono<String> createGroup(K key, ReadOffset readOffset, String group, boolean mkStream);
 	/**
 	 * Delete a consumer from a consumer group.
 	 *

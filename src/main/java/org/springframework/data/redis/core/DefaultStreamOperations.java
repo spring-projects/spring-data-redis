@@ -164,6 +164,20 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.StreamOperations#createGroup(java.lang.Object, org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String, boolean)
+	 */
+	@Override
+	public String createGroup(K key, ReadOffset readOffset, String group, boolean mkStream) {
+		byte[] rawKey = rawKey(key);
+		if (!mkStream) {
+			return createGroup(key, readOffset, group);
+		} else {
+			return execute(connection -> connection.xGroupCreate(rawKey, group, readOffset, true), true);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.StreamOperations#deleteConsumer(java.lang.Object, org.springframework.data.redis.connection.RedisStreamCommands.Consumer)
 	 */
 	@Override
