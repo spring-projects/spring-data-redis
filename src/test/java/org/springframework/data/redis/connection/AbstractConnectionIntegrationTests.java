@@ -98,6 +98,7 @@ import org.springframework.test.annotation.ProfileValueSourceConfiguration;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Tugdual Grall
  */
 @ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
 public abstract class AbstractConnectionIntegrationTests {

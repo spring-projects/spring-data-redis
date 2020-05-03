@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tugdual Grall
  * @see <a href="https://redis.io/topics/streams-intro">Redis Documentation - Streams</a>
  * @since 2.2
  */

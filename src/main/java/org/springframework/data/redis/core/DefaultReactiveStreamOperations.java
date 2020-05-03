@@ -55,6 +55,7 @@ import org.springframework.util.ClassUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tugdual Grall
  * @since 2.2
  */
 class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperations<K, HK, HV> {

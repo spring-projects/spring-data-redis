@@ -43,6 +43,7 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tugdual Grall
  */
 public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsTestsBase {
 

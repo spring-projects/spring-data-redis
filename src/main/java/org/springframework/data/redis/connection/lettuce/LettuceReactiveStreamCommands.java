@@ -52,6 +52,7 @@ import org.springframework.util.Assert;
  * {@link ReactiveStreamCommands} implementation for {@literal Lettuce}.
  *
  * @author Mark Paluch
+ * @author Tugdual Grall
  * @since 2.2
  */
 class LettuceReactiveStreamCommands implements ReactiveStreamCommands {

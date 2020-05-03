@@ -27,6 +27,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
  *
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Tugdual Grall
  */
 public abstract class RedisClientRule implements TestRule {
 

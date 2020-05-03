@@ -56,6 +56,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tugdual Grall
  * @since 2.2
  */
 public interface ReactiveStreamCommands {

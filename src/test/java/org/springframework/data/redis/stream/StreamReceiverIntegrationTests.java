@@ -55,6 +55,7 @@ import org.springframework.data.redis.stream.StreamReceiver.StreamReceiverOption
  * Integration tests for {@link StreamReceiver}.
  *
  * @author Mark Paluch
+ * @author Tugdual Grall
  */
 public class StreamReceiverIntegrationTests {
 

@@ -60,6 +60,7 @@ import org.springframework.lang.Nullable;
  * @author David Liu
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Tugdual Grall
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate

@@ -54,6 +54,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Tugdual Grall
  * @since 2.0
  */
 public interface DefaultedRedisConnection extends RedisConnection {

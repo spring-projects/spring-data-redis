@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tugdual Grall
  * @since 2.2
  */
 public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {

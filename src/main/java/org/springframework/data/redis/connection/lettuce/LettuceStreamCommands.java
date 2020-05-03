@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Paluch
+ * @author Tugdual Grall
  * @since 2.2
  */
 @RequiredArgsConstructor

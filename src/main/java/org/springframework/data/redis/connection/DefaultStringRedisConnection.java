@@ -67,6 +67,7 @@ import org.springframework.util.ObjectUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Tugdual Grall
  */
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
