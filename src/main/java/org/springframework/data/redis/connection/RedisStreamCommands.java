@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tugdual Grall
  * @see <a href="https://redis.io/topics/streams-intro">Redis Documentation - Streams</a>
  * @since 2.2
  */
@@ -463,6 +464,18 @@ public interface RedisStreamCommands {
 	 */
 	@Nullable
 	String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset);
+
+	/**
+	 * Create a consumer group.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param groupName name of the consumer group to create.
+	 * @param readOffset the offset to start at.
+	 * @param mkStream if true the group will create the stream if not already present (MKSTREAM)
+	 * @return {@literal ok} if successful. {@literal null} when used in pipeline / transaction.
+	 */
+	@Nullable
+	String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkStream);
 
 	/**
 	 * Delete a consumer from a consumer group.

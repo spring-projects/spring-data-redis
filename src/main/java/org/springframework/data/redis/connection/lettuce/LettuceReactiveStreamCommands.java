@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.XAddArgs;
 import io.lettuce.core.XClaimArgs;
+import io.lettuce.core.XGroupCreateArgs;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.XReadArgs.StreamOffset;
 import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
@@ -51,6 +52,7 @@ import org.springframework.util.Assert;
  * {@link ReactiveStreamCommands} implementation for {@literal Lettuce}.
  *
  * @author Mark Paluch
+ * @author Tugdual Grall
  * @since 2.2
  */
 class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
@@ -188,8 +190,12 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 				StreamOffset offset = StreamOffset.from(command.getKey(), command.getReadOffset().getOffset());
 
-				return cmd.xgroupCreate(offset, ByteUtils.getByteBuffer(command.getGroupName()))
-						.map(it -> new CommandResponse<>(command, it));
+				return cmd.xgroupCreate(offset,
+							ByteUtils.getByteBuffer(command.getGroupName()),
+							XGroupCreateArgs.Builder.mkstream( command.getMkStream()))
+						.map(it ->
+								new CommandResponse<>(command, it)
+						);
 			}
 
 			if (command.getAction().equals(GroupCommandAction.DELETE_CONSUMER)) {

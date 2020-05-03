@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
 import io.lettuce.core.XReadArgs;
+import org.springframework.data.redis.RedisSystemException;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -42,6 +43,7 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tugdual Grall
  */
 public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -183,6 +185,19 @@ public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsT
 		nativeCommands.xadd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2));
 
 		connection.streamCommands().xGroupCreate(KEY_1_BBUFFER, "group-1", ReadOffset.latest()) //
+				.as(StepVerifier::create) //
+				.expectNext("OK") //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-864
+	public void xGroupCreateShouldCreateGroupBeforeStream() {
+		connection.streamCommands().xGroupCreate(KEY_1_BBUFFER, "group-1", ReadOffset.latest(), false)
+				.as(StepVerifier::create) //
+				.expectError(RedisSystemException.class) //
+				.verify();
+
+		connection.streamCommands().xGroupCreate(KEY_1_BBUFFER, "group-1", ReadOffset.latest(), true) //
 				.as(StepVerifier::create) //
 				.expectNext("OK") //
 				.verifyComplete();

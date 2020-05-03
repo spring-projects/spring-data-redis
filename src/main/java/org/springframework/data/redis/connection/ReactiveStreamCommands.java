@@ -56,6 +56,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tugdual Grall
  * @since 2.2
  */
 public interface ReactiveStreamCommands {
@@ -1134,15 +1135,22 @@ public interface ReactiveStreamCommands {
 		private final @Nullable String groupName;
 		private final @Nullable String consumerName;
 		private final @Nullable ReadOffset offset;
+		private final boolean mkStream;
 
 		public GroupCommand(@Nullable ByteBuffer key, GroupCommandAction action, @Nullable String groupName,
-				@Nullable String consumerName, @Nullable ReadOffset offset) {
+				@Nullable String consumerName, @Nullable ReadOffset offset, boolean mkStream) {
 
 			super(key);
 			this.action = action;
 			this.groupName = groupName;
 			this.consumerName = consumerName;
 			this.offset = offset;
+			this.mkStream = mkStream;
+		}
+
+		public GroupCommand(@Nullable ByteBuffer key, GroupCommandAction action, @Nullable String groupName,
+				@Nullable String consumerName, @Nullable ReadOffset offset) {
+			this(key, action, groupName, consumerName, offset, false);
 		}
 
 		public static GroupCommand createGroup(String group) {
@@ -1161,6 +1169,10 @@ public interface ReactiveStreamCommands {
 			return new GroupCommand(null, GroupCommandAction.DELETE_CONSUMER, consumer.getGroup(), consumer.getName(), null);
 		}
 
+		public GroupCommand makeStream(boolean mkStream) {
+			return new GroupCommand(getKey(), action, groupName, consumerName, offset,mkStream);
+		}
+
 		public GroupCommand at(ReadOffset offset) {
 			return new GroupCommand(getKey(), action, groupName, consumerName, offset);
 		}
@@ -1171,6 +1183,10 @@ public interface ReactiveStreamCommands {
 
 		public GroupCommand fromGroup(String groupName) {
 			return new GroupCommand(getKey(), action, groupName, consumerName, offset);
+		}
+
+		public boolean getMkStream() {
+			return this.mkStream;
 		}
 
 		@Nullable
@@ -1208,6 +1224,20 @@ public interface ReactiveStreamCommands {
 	default Mono<String> xGroupCreate(ByteBuffer key, String groupName, ReadOffset readOffset) {
 
 		return xGroup(Mono.just(GroupCommand.createGroup(groupName).forStream(key).at(readOffset))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Create a consumer group.
+	 *
+	 * @param key key the {@literal key} the stream is stored at.
+	 * @param groupName name of the consumer group to create.
+	 * @param readOffset the offset to start at.
+	 * @param mkStream if true the group will create the stream if needed (MKSTREAM)
+	 * @return the {@link Mono} emitting {@literal ok} if successful.
+	 */
+	default Mono<String> xGroupCreate(ByteBuffer key, String groupName, ReadOffset readOffset, boolean mkStream) {
+		return xGroup(Mono.just(GroupCommand.createGroup(groupName).forStream(key).at(readOffset).makeStream(mkStream))).next()
 				.map(CommandResponse::getOutput);
 	}
 

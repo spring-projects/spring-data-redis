@@ -67,6 +67,7 @@ import org.springframework.util.ObjectUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Tugdual Grall
  */
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
@@ -3693,6 +3694,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xGroupCreate(java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String, boolean)
+	 */
+	@Override
+	public String xGroupCreate(String key, ReadOffset readOffset, String group, boolean mkStream) {
+		return convertAndReturn(delegate.xGroupCreate(serialize(key), group, readOffset, mkStream), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#xGroupDelConsumer(java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.Consumer)
 	 */
 	@Override
@@ -3886,6 +3896,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset) {
 		return delegate.xGroupCreate(key, groupName, readOffset);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupCreate(byte[], org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String, boolean)
+	 */
+	@Override
+	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkStream) {
+		return delegate.xGroupCreate(key, groupName, readOffset, mkStream);
 	}
 
 	/*

@@ -54,6 +54,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Tugdual Grall
  * @since 2.0
  */
 public interface DefaultedRedisConnection extends RedisConnection {
@@ -482,6 +483,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Deprecated
 	default String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset) {
 		return streamCommands().xGroupCreate(key, groupName, readOffset);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkStream) {
+		return streamCommands().xGroupCreate(key, groupName, readOffset, mkStream);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
