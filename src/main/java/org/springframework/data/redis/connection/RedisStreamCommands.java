@@ -91,6 +91,7 @@ public interface RedisStreamCommands {
 	 * @param record the {@link MapRecord record} to append.
 	 * @return the {@link RecordId id} after save. {@literal null} when used in pipeline / transaction.
 	 */
+	@Nullable
 	default RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
 		return xAdd(record, XAddOptions.none());
 	}
@@ -106,6 +107,7 @@ public interface RedisStreamCommands {
 	 * @return the {@link RecordId id} after save. {@literal null} when used in pipeline / transaction.
 	 * @since 2.3
 	 */
+	@Nullable
 	RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, XAddOptions options);
 
 	/**
@@ -188,6 +190,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
+	@Nullable
 	List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options);
 
 	/**
@@ -202,6 +205,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
+	@Nullable
 	default List<ByteRecord> xClaim(byte[] key, String group, String newOwner, Duration minIdleTime,
 			RecordId... recordIds) {
 		return xClaim(key, group, newOwner, XClaimOptions.minIdle(minIdleTime).ids(recordIds));
@@ -218,6 +222,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
+	@Nullable
 	List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options);
 
 	/**
@@ -445,6 +450,7 @@ public interface RedisStreamCommands {
 	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
+	@Nullable
 	Long xDel(byte[] key, RecordId... recordIds);
 
 	/**
