@@ -472,7 +472,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 	}
 
 	private static boolean isBlocking(StreamReadOptions readOptions) {
-		return readOptions.getBlock() != null && readOptions.getBlock() > 0;
+		return readOptions.getBlock() != null && readOptions.getBlock() >= 0;
 	}
 
 	@SuppressWarnings("unchecked")

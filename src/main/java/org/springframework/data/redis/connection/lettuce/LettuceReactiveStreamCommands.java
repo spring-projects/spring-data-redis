@@ -207,7 +207,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 			StreamReadOptions readOptions = command.getReadOptions();
 
-			if (readOptions.getBlock() != null && readOptions.getBlock() > 0) {
+			if (readOptions.getBlock() != null && readOptions.getBlock() >= 0) {
 				return new CommandResponse<>(command, connection.executeDedicated(cmd -> doRead(command, readOptions, cmd)));
 			}
 
