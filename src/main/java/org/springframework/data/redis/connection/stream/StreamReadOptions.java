@@ -105,4 +105,12 @@ public class StreamReadOptions {
 
 		return new StreamReadOptions(block, count, noack);
 	}
+
+	/**
+	 * @return {@literal true} if the arguments indicate a blocking read.
+	 * @since 2.3
+	 */
+	public boolean isBlocking() {
+		return getBlock() != null && getBlock() >= 0;
+	}
 }

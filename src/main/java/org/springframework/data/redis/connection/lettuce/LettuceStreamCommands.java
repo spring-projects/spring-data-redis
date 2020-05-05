@@ -516,7 +516,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		XReadArgs.StreamOffset<byte[]>[] streamOffsets = toStreamOffsets(streams);
 		XReadArgs args = StreamConverters.toReadArgs(readOptions);
 
-		if (isBlocking(readOptions)) {
+		if (readOptions.isBlocking()) {
 
 			try {
 				if (isPipelined()) {
@@ -568,7 +568,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		XReadArgs args = StreamConverters.toReadArgs(readOptions);
 		io.lettuce.core.Consumer<byte[]> lettuceConsumer = toConsumer(consumer);
 
-		if (isBlocking(readOptions)) {
+		if (readOptions.isBlocking()) {
 
 			try {
 				if (isPipelined()) {
@@ -699,9 +699,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		return connection.convertLettuceAccessException(ex);
 	}
 
-	private static boolean isBlocking(StreamReadOptions readOptions) {
-		return readOptions.getBlock() != null && readOptions.getBlock() > 0;
-	}
 
 	@SuppressWarnings("unchecked")
 	private static XReadArgs.StreamOffset<byte[]>[] toStreamOffsets(StreamOffset<byte[]>[] streams) {
