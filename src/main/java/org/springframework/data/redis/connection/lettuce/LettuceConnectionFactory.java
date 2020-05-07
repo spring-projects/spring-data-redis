@@ -90,6 +90,7 @@ import org.springframework.util.ClassUtils;
  * @author Balázs Németh
  * @author Ruben Cervilla
  * @author Luis De Bello
+ * @author Andrea Como
  */
 public class LettuceConnectionFactory
 		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
@@ -431,6 +432,10 @@ public class LettuceConnectionFactory
 	 */
 	@Override
 	public LettuceReactiveRedisConnection getReactiveConnection() {
+
+		if (isClusterAware()) {
+			return getReactiveClusterConnection();
+		}
 
 		return getShareNativeConnection()
 				? new LettuceReactiveRedisConnection(getSharedReactiveConnection(), reactiveConnectionProvider)
