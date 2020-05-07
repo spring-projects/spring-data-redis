@@ -67,6 +67,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Balázs Németh
  * @author Ruben Cervilla
  * @author Luis De Bello
+ * @author Andrea Como
  */
 public class LettuceConnectionFactoryUnitTests {
 
@@ -940,6 +941,25 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(options.getMaxRedirects()).isEqualTo(42);
 		assertThat(options.isValidateClusterNodeMembership()).isFalse();
 		assertThat(options.getTimeoutOptions().isApplyConnectionTimeout()).isFalse();
+	}
+
+	@Test // DATAREDIS-1142
+	public void shouldFallbackToReactiveRedisClusterConnectionWhenGetReactiveConnectionWithClusterConfig() {
+		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class);
+		StatefulConnection<?, ?> statefulConnection = mock(StatefulConnection.class);
+		when(connectionProviderMock.getConnection(any())).thenReturn(statefulConnection);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig) {
+			@Override
+			protected LettuceConnectionProvider doCreateConnectionProvider(AbstractRedisClient client,
+																		   RedisCodec<?, ?> codec) {
+				return connectionProviderMock;
+			}
+		};
+		connectionFactory.afterPropertiesSet();
+
+		LettuceReactiveRedisConnection reactiveConnection = connectionFactory.getReactiveConnection();
+
+		assertThat(reactiveConnection).isInstanceOf(LettuceReactiveRedisClusterConnection.class);
 	}
 
 	@Data
