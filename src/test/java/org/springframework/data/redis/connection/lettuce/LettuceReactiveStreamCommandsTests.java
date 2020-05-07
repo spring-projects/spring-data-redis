@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
 import io.lettuce.core.XReadArgs;
-import org.springframework.data.redis.RedisSystemException;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -29,7 +28,9 @@ import org.assertj.core.data.Offset;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;

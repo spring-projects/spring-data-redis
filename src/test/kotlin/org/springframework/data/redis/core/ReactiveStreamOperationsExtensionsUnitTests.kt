@@ -35,7 +35,6 @@ import reactor.core.publisher.Mono
  *
  * @author Mark Paluch
  * @author Sebastien Deleuze
- * @author Tugdual Grall
  */
 class ReactiveStreamOperationsExtensionsUnitTests {
 

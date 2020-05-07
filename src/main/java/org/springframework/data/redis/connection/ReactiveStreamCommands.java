@@ -1185,7 +1185,7 @@ public interface ReactiveStreamCommands {
 			return new GroupCommand(getKey(), action, groupName, consumerName, offset);
 		}
 
-		public boolean getMkStream() {
+		public boolean isMkStream() {
 			return this.mkStream;
 		}
 
@@ -1235,6 +1235,7 @@ public interface ReactiveStreamCommands {
 	 * @param readOffset the offset to start at.
 	 * @param mkStream if true the group will create the stream if needed (MKSTREAM)
 	 * @return the {@link Mono} emitting {@literal ok} if successful.
+	 * @since 2.3
 	 */
 	default Mono<String> xGroupCreate(ByteBuffer key, String groupName, ReadOffset readOffset, boolean mkStream) {
 		return xGroup(Mono.just(GroupCommand.createGroup(groupName).forStream(key).at(readOffset).makeStream(mkStream))).next()

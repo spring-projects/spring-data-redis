@@ -3064,7 +3064,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@WithRedisDriver({ RedisDriver.LETTUCE })
 	public void xGroupCreateShouldWorkWithAndWithoutExistingStream() {
 
-		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group",true));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group", true));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 
 		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
@@ -3276,7 +3276,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@WithRedisDriver({ RedisDriver.LETTUCE })
 	public void xinfo() {
 
-		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group-without-stream",true));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group-without-stream", true));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
 		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));

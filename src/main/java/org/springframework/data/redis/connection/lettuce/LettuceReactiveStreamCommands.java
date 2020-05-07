@@ -192,7 +192,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 				return cmd.xgroupCreate(offset,
 							ByteUtils.getByteBuffer(command.getGroupName()),
-							XGroupCreateArgs.Builder.mkstream( command.getMkStream()))
+						XGroupCreateArgs.Builder.mkstream(command.isMkStream()))
 						.map(it ->
 								new CommandResponse<>(command, it)
 						);

@@ -55,7 +55,6 @@ import org.springframework.data.redis.stream.StreamReceiver.StreamReceiverOption
  * Integration tests for {@link StreamReceiver}.
  *
  * @author Mark Paluch
- * @author Tugdual Grall
  */
 public class StreamReceiverIntegrationTests {
 
@@ -213,9 +212,8 @@ public class StreamReceiverIntegrationTests {
 		Flux<MapRecord<String, String, String>> messages = receiver.receive(Consumer.from("my-group", "my-consumer-id"),
 				StreamOffset.create("my-stream", ReadOffset.lastConsumed()));
 
-		// required to initialize stream
-		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
 		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from("0-0"), "my-group");
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
 		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key2", "value2"));
 
 		messages.as(StepVerifier::create) //
@@ -246,39 +244,13 @@ public class StreamReceiverIntegrationTests {
 		Flux<MapRecord<String, String, String>> messages = receiver.receive(Consumer.from("my-group", "my-consumer-id"),
 				StreamOffset.create("my-stream", ReadOffset.lastConsumed()));
 
-		// required to initialize stream
-		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
 		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from("0-0"), "my-group");
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
 
 		messages.as(StepVerifier::create) //
 				.expectNextCount(1) //
 				.then(() -> reactiveRedisTemplate.delete("my-stream").subscribe()) //
 				.expectError(RedisSystemException.class) //
-				.verify(Duration.ofSeconds(5));
-	}
-
-	@Test // DATAREDIS-864
-	public void shouldCreateGroupWithOrWithoutExistingStream() {
-		StreamReceiver<String, MapRecord<String, String, String>> receiver = StreamReceiver.create(connectionFactory);
-
-		Flux<MapRecord<String, String, String>> messages = receiver.receive(Consumer.from("my-group", "my-consumer-id"),
-				StreamOffset.create("my-stream", ReadOffset.lastConsumed()));
-
-		// required to initialize stream
-		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from("0-0"), "my-group", true);
-		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
-		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key2", "value2"));
-
-		messages.as(StepVerifier::create) //
-				.consumeNextWith(it -> {
-					assertThat(it.getStream()).isEqualTo("my-stream");
-					assertThat(it.getValue()).containsValue("value");
-				}).consumeNextWith(it -> {
-
-			assertThat(it.getStream()).isEqualTo("my-stream");
-			assertThat(it.getValue()).containsValue("value2");
-		}) //
-				.thenCancel() //
 				.verify(Duration.ofSeconds(5));
 	}
 

@@ -55,7 +55,6 @@ import org.springframework.util.ClassUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
- * @author Tugdual Grall
  * @since 2.2
  */
 class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperations<K, HK, HV> {
@@ -163,17 +162,12 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 	@Override
 	public Mono<String> createGroup(K key, ReadOffset readOffset, String group) {
-		return createMono(connection -> connection.xGroupCreate(rawKey(key), group, readOffset, false));
-	}
-
-	@Override
-	public Mono<String> createGroup(K key, ReadOffset readOffset, String group, boolean mkStream) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(readOffset, "ReadOffset must not be null!");
 		Assert.notNull(group, "Group must not be null!");
 
-		return createMono(connection -> connection.xGroupCreate(rawKey(key), group, readOffset, mkStream));
+		return createMono(connection -> connection.xGroupCreate(rawKey(key), group, readOffset, true));
 	}
 
 	@Override

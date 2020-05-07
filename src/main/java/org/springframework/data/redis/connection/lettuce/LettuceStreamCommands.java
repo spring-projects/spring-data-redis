@@ -236,18 +236,17 @@ class LettuceStreamCommands implements RedisStreamCommands {
 			XReadArgs.StreamOffset<byte[]> streamOffset = XReadArgs.StreamOffset.from(key, readOffset.getOffset());
 
 			if (isPipelined()) {
-				pipeline(connection
-						.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName),
-								XGroupCreateArgs.Builder.mkstream(mkSteam))));
+				pipeline(connection.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset,
+						LettuceConverters.toBytes(groupName), XGroupCreateArgs.Builder.mkstream(mkSteam))));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection
-						.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName),
-								XGroupCreateArgs.Builder.mkstream(mkSteam))));
+				transaction(connection.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset,
+						LettuceConverters.toBytes(groupName), XGroupCreateArgs.Builder.mkstream(mkSteam))));
 				return null;
 			}
-			return getConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName), XGroupCreateArgs.Builder.mkstream(mkSteam));
+			return getConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName),
+					XGroupCreateArgs.Builder.mkstream(mkSteam));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -711,7 +710,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 	private DataAccessException convertLettuceAccessException(Exception ex) {
 		return connection.convertLettuceAccessException(ex);
 	}
-
 
 	@SuppressWarnings("unchecked")
 	private static XReadArgs.StreamOffset<byte[]>[] toStreamOffsets(StreamOffset<byte[]>[] streams) {

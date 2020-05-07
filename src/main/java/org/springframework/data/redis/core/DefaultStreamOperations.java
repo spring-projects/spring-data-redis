@@ -50,7 +50,6 @@ import org.springframework.util.ClassUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
- * @autor Tugdual Grall
  * @since 2.2
  */
 class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> implements StreamOperations<K, HK, HV> {
@@ -160,21 +159,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public String createGroup(K key, ReadOffset readOffset, String group) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xGroupCreate(rawKey, group, readOffset), true);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#createGroup(java.lang.Object, org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String, boolean)
-	 */
-	@Override
-	public String createGroup(K key, ReadOffset readOffset, String group, boolean mkStream) {
-		byte[] rawKey = rawKey(key);
-		if (!mkStream) {
-			return createGroup(key, readOffset, group);
-		} else {
-			return execute(connection -> connection.xGroupCreate(rawKey, group, readOffset, true), true);
-		}
+		return execute(connection -> connection.xGroupCreate(rawKey, group, readOffset, true), true);
 	}
 
 	/*

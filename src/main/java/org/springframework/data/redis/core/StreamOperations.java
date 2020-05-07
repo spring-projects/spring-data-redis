@@ -36,7 +36,6 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
- * @author Tugdual Grall
  * @since 2.2
  */
 public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {
@@ -156,7 +155,8 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	Long delete(K key, RecordId... recordIds);
 
 	/**
-	 * Create a consumer group at the {@link ReadOffset#latest() latest offset}.
+	 * Create a consumer group at the {@link ReadOffset#latest() latest offset}. This command creates the stream if it
+	 * does not already exist.
 	 *
 	 * @param key the {@literal key} the stream is stored at.
 	 * @param group name of the consumer group.
@@ -167,7 +167,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	}
 
 	/**
-	 * Create a consumer group.
+	 * Create a consumer group. This command creates the stream if it does not already exist.
 	 *
 	 * @param key the {@literal key} the stream is stored at.
 	 * @param readOffset the {@link ReadOffset} to apply.
@@ -176,18 +176,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 */
 	@Nullable
 	String createGroup(K key, ReadOffset readOffset, String group);
-
-	/**
-	 * Create a consumer group.
-	 *
-	 * @param key the {@literal key} the stream is stored at.
-	 * @param readOffset the {@link ReadOffset} to apply.
-	 * @param group name of the consumer group.
-	 * @param mkStream if true the group will create the stream if needed (MKSTREAM)
-	 * @return {@literal OK} if successful. {@literal null} when used in pipeline / transaction.
-	 */
-	@Nullable
-	String createGroup(K key, ReadOffset readOffset, String group, boolean mkStream);
 
 	/**
 	 * Delete a consumer from a consumer group.

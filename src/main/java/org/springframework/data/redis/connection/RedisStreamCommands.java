@@ -473,6 +473,7 @@ public interface RedisStreamCommands {
 	 * @param readOffset the offset to start at.
 	 * @param mkStream if true the group will create the stream if not already present (MKSTREAM)
 	 * @return {@literal ok} if successful. {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
 	 */
 	@Nullable
 	String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkStream);

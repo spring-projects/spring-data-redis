@@ -2101,7 +2101,7 @@ public interface StringRedisConnection extends RedisConnection {
 	/**
 	 * Create a consumer group.
 	 *
-	 * @param key
+	 * @param key the stream key.
 	 * @param readOffset
 	 * @param group name of the consumer group.
 	 * @since 2.2
@@ -2113,12 +2113,13 @@ public interface StringRedisConnection extends RedisConnection {
 	/**
 	 * Create a consumer group.
 	 *
-	 * @param key
+	 * @param key the stream key.
 	 * @param readOffset
 	 * @param group name of the consumer group.
 	 * @param mkStream if true the group will create the stream if needed (MKSTREAM)
 	 * @since
 	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
 	 */
 	@Nullable
 	String xGroupCreate(String key, ReadOffset readOffset, String group, boolean mkStream);
