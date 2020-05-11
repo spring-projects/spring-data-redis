@@ -15,11 +15,10 @@
  */
 package org.springframework.data.redis.core.index;
 
-import lombok.Value;
-
 import java.util.Collection;
 
 import org.springframework.data.util.TypeInformation;
+import org.springframework.util.ObjectUtils;
 
 /**
  * {@link IndexDefinition} allow to set up a blueprint for creating secondary index structures in Redis. Setting up
@@ -68,11 +67,60 @@ public interface IndexDefinition {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	@Value
-	public class IndexingContext {
+	final class IndexingContext {
 
 		private final String keyspace;
 		private final String path;
 		private final TypeInformation<?> typeInformation;
+
+		public IndexingContext(String keyspace, String path, TypeInformation<?> typeInformation) {
+
+			this.keyspace = keyspace;
+			this.path = path;
+			this.typeInformation = typeInformation;
+		}
+
+		public String getKeyspace() {
+			return this.keyspace;
+		}
+
+		public String getPath() {
+			return this.path;
+		}
+
+		public TypeInformation<?> getTypeInformation() {
+			return this.typeInformation;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+
+			IndexingContext that = (IndexingContext) o;
+
+			if (!ObjectUtils.nullSafeEquals(keyspace, that.keyspace)) {
+				return false;
+			}
+			if (!ObjectUtils.nullSafeEquals(path, that.path)) {
+				return false;
+			}
+			return ObjectUtils.nullSafeEquals(typeInformation, that.typeInformation);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = ObjectUtils.nullSafeHashCode(keyspace);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(path);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(typeInformation);
+			return result;
+		}
+
+		public String toString() {
+			return "IndexDefinition.IndexingContext(keyspace=" + this.getKeyspace() + ", path=" + this.getPath()
+					+ ", typeInformation=" + this.getTypeInformation() + ")";
+		}
 	}
 }

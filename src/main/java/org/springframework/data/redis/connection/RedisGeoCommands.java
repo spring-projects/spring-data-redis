@@ -15,9 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -355,12 +352,60 @@ public interface RedisGeoCommands {
 	 * @param <T>
 	 * @since 1.8
 	 */
-	@Data
-	@RequiredArgsConstructor
 	class GeoLocation<T> {
 
 		private final T name;
 		private final Point point;
+
+		public GeoLocation(T name, Point point) {
+			this.name = name;
+			this.point = point;
+		}
+
+		public T getName() {
+			return this.name;
+		}
+
+		public Point getPoint() {
+			return this.point;
+		}
+
+		public boolean equals(final Object o) {
+			if (o == this)
+				return true;
+			if (!(o instanceof GeoLocation))
+				return false;
+			final GeoLocation<?> other = (GeoLocation<?>) o;
+			if (!other.canEqual((Object) this))
+				return false;
+			final Object this$name = this.getName();
+			final Object other$name = other.getName();
+			if (this$name == null ? other$name != null : !this$name.equals(other$name))
+				return false;
+			final Object this$point = this.getPoint();
+			final Object other$point = other.getPoint();
+			if (this$point == null ? other$point != null : !this$point.equals(other$point))
+				return false;
+			return true;
+		}
+
+		protected boolean canEqual(final Object other) {
+			return other instanceof GeoLocation;
+		}
+
+		public int hashCode() {
+			final int PRIME = 59;
+			int result = 1;
+			final Object $name = this.getName();
+			result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+			final Object $point = this.getPoint();
+			result = result * PRIME + ($point == null ? 43 : $point.hashCode());
+			return result;
+		}
+
+		public String toString() {
+			return "RedisGeoCommands.GeoLocation(name=" + this.getName() + ", point=" + this.getPoint() + ")";
+		}
 	}
 
 	/**

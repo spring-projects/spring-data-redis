@@ -15,9 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
 import java.util.Properties;
 
@@ -33,12 +30,15 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-@RequiredArgsConstructor
 class JedisServerCommands implements RedisServerCommands {
 
 	private static final String SHUTDOWN_SCRIPT = "return redis.call('SHUTDOWN','%s')";
 
-	private final @NonNull JedisConnection connection;
+	private final JedisConnection connection;
+
+	JedisServerCommands(JedisConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)

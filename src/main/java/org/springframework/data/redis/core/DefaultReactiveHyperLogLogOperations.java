@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -35,11 +33,17 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.0
  */
-@RequiredArgsConstructor
 class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogOperations<K, V> {
 
-	private final @NonNull ReactiveRedisTemplate<?, ?> template;
-	private final @NonNull RedisSerializationContext<K, V> serializationContext;
+	private final ReactiveRedisTemplate<?, ?> template;
+	private final RedisSerializationContext<K, V> serializationContext;
+
+	DefaultReactiveHyperLogLogOperations(ReactiveRedisTemplate<?, ?> template,
+			RedisSerializationContext<K, V> serializationContext) {
+
+		this.template = template;
+		this.serializationContext = serializationContext;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHyperLogLogOperations#add(java.lang.Object, java.lang.Object[])

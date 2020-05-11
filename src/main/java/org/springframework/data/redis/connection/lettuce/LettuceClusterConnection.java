@@ -22,7 +22,6 @@ import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.SlotHash;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
-import lombok.RequiredArgsConstructor;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -34,7 +33,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -666,11 +664,14 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	@RequiredArgsConstructor
 	static class LettuceClusterNodeResourceProvider implements ClusterNodeResourceProvider, DisposableBean {
 
 		private final LettuceConnectionProvider connectionProvider;
 		private volatile @Nullable StatefulRedisClusterConnection<byte[], byte[]> connection;
+
+		LettuceClusterNodeResourceProvider(LettuceConnectionProvider connectionProvider) {
+			this.connectionProvider = connectionProvider;
+		}
 
 		@Override
 		@SuppressWarnings("unchecked")

@@ -15,11 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
@@ -657,13 +652,15 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @author Christoph Strobl
 	 * @since 2.0.3
 	 */
-	@Getter
-	@EqualsAndHashCode
-	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 	private static class PositionalKey {
 
 		private final ByteArrayWrapper key;
 		private final int position;
+
+		private PositionalKey(ByteArrayWrapper key, int position) {
+			this.key = key;
+			this.position = position;
+		}
 
 		static PositionalKey of(byte[] key, int index) {
 			return new PositionalKey(new ByteArrayWrapper(key), index);
@@ -675,6 +672,35 @@ public class ClusterCommandExecutor implements DisposableBean {
 		byte[] getBytes() {
 			return key.getArray();
 		}
+
+		public ByteArrayWrapper getKey() {
+			return this.key;
+		}
+
+		public int getPosition() {
+			return this.position;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+
+			PositionalKey that = (PositionalKey) o;
+
+			if (position != that.position)
+				return false;
+			return ObjectUtils.nullSafeEquals(key, that.key);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = ObjectUtils.nullSafeHashCode(key);
+			result = 31 * result + position;
+			return result;
+		}
 	}
 
 	/**
@@ -684,10 +710,13 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @author Christoph Strobl
 	 * @since 2.0.3
 	 */
-	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 	private static class PositionalKeys implements Iterable<PositionalKey> {
 
 		private final List<PositionalKey> keys;
+
+		private PositionalKeys(List<PositionalKey> keys) {
+			this.keys = keys;
+		}
 
 		/**
 		 * Create an empty {@link PositionalKeys}.

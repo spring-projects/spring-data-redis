@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import lombok.Data;
 import reactor.core.publisher.Mono;
 
 import java.io.Closeable;
@@ -27,6 +26,7 @@ import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Redis connection using reactive infrastructure declaring entry points for reactive command execution.
@@ -346,11 +346,15 @@ public interface ReactiveRedisConnection extends Closeable {
 	 * @param <I> command input type.
 	 * @param <O> command output type.
 	 */
-	@Data
 	class CommandResponse<I, O> {
 
 		private final I input;
 		private final @Nullable O output;
+
+		public CommandResponse(I input, O output) {
+			this.input = input;
+			this.output = output;
+		}
 
 		/**
 		 * @return {@literal true} if the response is present. An absent {@link CommandResponse} maps to Redis
@@ -358,6 +362,41 @@ public interface ReactiveRedisConnection extends Closeable {
 		 */
 		public boolean isPresent() {
 			return true;
+		}
+
+		public I getInput() {
+			return this.input;
+		}
+
+		@Nullable
+		public O getOutput() {
+			return this.output;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+
+			CommandResponse<?, ?> that = (CommandResponse<?, ?>) o;
+
+			if (!ObjectUtils.nullSafeEquals(input, that.input)) {
+				return false;
+			}
+			return ObjectUtils.nullSafeEquals(output, that.output);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = ObjectUtils.nullSafeHashCode(input);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(output);
+			return result;
+		}
+
+		public String toString() {
+			return "ReactiveRedisConnection.CommandResponse(input=" + this.getInput() + ", output=" + this.getOutput() + ")";
 		}
 	}
 

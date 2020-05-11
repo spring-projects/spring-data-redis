@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -40,11 +38,17 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.0
  */
-@RequiredArgsConstructor
 class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations<H, HK, HV> {
 
-	private final @NonNull ReactiveRedisTemplate<?, ?> template;
-	private final @NonNull RedisSerializationContext<H, ?> serializationContext;
+	private final ReactiveRedisTemplate<?, ?> template;
+	private final RedisSerializationContext<H, ?> serializationContext;
+
+	DefaultReactiveHashOperations(ReactiveRedisTemplate<?, ?> template,
+			RedisSerializationContext<H, ?> serializationContext) {
+
+		this.template = template;
+		this.serializationContext = serializationContext;
+	}
 
 	/*
 	 * (non-Javadoc)

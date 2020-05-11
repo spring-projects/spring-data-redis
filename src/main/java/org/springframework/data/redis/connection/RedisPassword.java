@@ -15,10 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -40,13 +36,15 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @since 2.0
  */
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@EqualsAndHashCode
 public class RedisPassword {
 
 	private static final RedisPassword NONE = new RedisPassword(new char[] {});
 
 	private final char[] thePassword;
+
+	private RedisPassword(char[] thePassword) {
+		this.thePassword = thePassword;
+	}
 
 	/**
 	 * Create a {@link RedisPassword} from a {@link String}.
@@ -147,5 +145,23 @@ public class RedisPassword {
 	@Override
 	public String toString() {
 		return String.format("%s[%s]", getClass().getSimpleName(), isPresent() ? "*****" : "<none>");
+	}
+
+	@Override
+	public boolean equals(Object o) {
+
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		RedisPassword password = (RedisPassword) o;
+
+		return ObjectUtils.nullSafeEquals(thePassword, password.thePassword);
+	}
+
+	@Override
+	public int hashCode() {
+		return ObjectUtils.nullSafeHashCode(thePassword);
 	}
 }

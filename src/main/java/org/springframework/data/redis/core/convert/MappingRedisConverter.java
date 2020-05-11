@@ -15,14 +15,18 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1031,12 +1035,18 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @author Christoph Strobl
 	 * @author Mark Paluch
 	 */
-	@RequiredArgsConstructor
 	private class ConverterAwareParameterValueProvider implements PropertyValueProvider<RedisPersistentProperty> {
 
 		private final String path;
 		private final RedisData source;
 		private final ConversionService conversionService;
+
+		ConverterAwareParameterValueProvider(String path, RedisData source, ConversionService conversionService) {
+
+			this.path = path;
+			this.source = source;
+			this.conversionService = conversionService;
+		}
 
 		@Override
 		@SuppressWarnings("unchecked")
@@ -1145,8 +1155,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @author Mark Paluch
 	 * @since 1.8.10
 	 */
-	@AllArgsConstructor(access = AccessLevel.PRIVATE)
-	@Getter
 	public static class KeyspaceIdentifier {
 
 		public static final String PHANTOM = "phantom";
@@ -1156,6 +1164,13 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		private String keyspace;
 		private String id;
 		private boolean phantomKey;
+
+		private KeyspaceIdentifier(String keyspace, String id, boolean phantomKey) {
+
+			this.keyspace = keyspace;
+			this.id = id;
+			this.phantomKey = phantomKey;
+		}
 
 		/**
 		 * Parse a {@code key} into {@link KeyspaceIdentifier}.
@@ -1198,6 +1213,18 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			return keyspaceEndIndex > 0 && key.length() > keyspaceEndIndex;
 		}
+
+		public String getKeyspace() {
+			return this.keyspace;
+		}
+
+		public String getId() {
+			return this.id;
+		}
+
+		public boolean isPhantomKey() {
+			return this.phantomKey;
+		}
 	}
 
 	/**
@@ -1207,8 +1234,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @author Mark Paluch
 	 * @since 1.8.10
 	 */
-	@AllArgsConstructor(access = AccessLevel.PRIVATE)
-	@Getter
 	public static class BinaryKeyspaceIdentifier {
 
 		public static final byte[] PHANTOM = KeyspaceIdentifier.PHANTOM.getBytes();
@@ -1218,6 +1243,13 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		private byte[] keyspace;
 		private byte[] id;
 		private boolean phantomKey;
+
+		private BinaryKeyspaceIdentifier(byte[] keyspace, byte[] id, boolean phantomKey) {
+
+			this.keyspace = keyspace;
+			this.id = id;
+			this.phantomKey = phantomKey;
+		}
 
 		/**
 		 * Parse a binary {@code key} into {@link BinaryKeyspaceIdentifier}.
@@ -1279,6 +1311,18 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			System.arraycopy(key, 0, keyspace, 0, keyspaceEndIndex);
 
 			return keyspace;
+		}
+
+		public byte[] getKeyspace() {
+			return this.keyspace;
+		}
+
+		public byte[] getId() {
+			return this.id;
+		}
+
+		public boolean isPhantomKey() {
+			return this.phantomKey;
 		}
 	}
 }
