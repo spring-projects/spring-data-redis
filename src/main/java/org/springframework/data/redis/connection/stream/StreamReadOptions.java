@@ -15,14 +15,11 @@
  */
 package org.springframework.data.redis.connection.stream;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
-
 import java.time.Duration;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Options for reading messages from a Redis Stream.
@@ -31,9 +28,6 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @see 2.2
  */
-@EqualsAndHashCode
-@ToString
-@Getter
 public class StreamReadOptions {
 
 	private static final StreamReadOptions EMPTY = new StreamReadOptions(null, null, false);
@@ -112,5 +106,50 @@ public class StreamReadOptions {
 	 */
 	public boolean isBlocking() {
 		return getBlock() != null && getBlock() >= 0;
+	}
+
+	@Nullable
+	public Long getBlock() {
+		return block;
+	}
+
+	@Nullable
+	public Long getCount() {
+		return count;
+	}
+
+	public boolean isNoack() {
+		return noack;
+	}
+
+	@Override
+	public String toString() {
+		return "StreamReadOptions{" + "block=" + block + ", count=" + count + ", noack=" + noack + ", autoAcknowledge="
+				+ autoAcknowledge() + ", blocking=" + isBlocking() + '}';
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		StreamReadOptions that = (StreamReadOptions) o;
+
+		if (noack != that.noack)
+			return false;
+		if (!ObjectUtils.nullSafeEquals(block, that.block)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(count, that.count);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = ObjectUtils.nullSafeHashCode(block);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(count);
+		result = 31 * result + (noack ? 1 : 0);
+		return result;
 	}
 }

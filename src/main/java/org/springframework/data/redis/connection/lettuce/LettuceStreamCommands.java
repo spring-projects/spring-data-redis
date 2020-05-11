@@ -21,8 +21,6 @@ import io.lettuce.core.XGroupCreateArgs;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -51,10 +49,13 @@ import org.springframework.util.Assert;
  * @author Tugdual Grall
  * @since 2.2
  */
-@RequiredArgsConstructor
 class LettuceStreamCommands implements RedisStreamCommands {
 
-	private final @NonNull LettuceConnection connection;
+	private final LettuceConnection connection;
+
+	LettuceStreamCommands(LettuceConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)

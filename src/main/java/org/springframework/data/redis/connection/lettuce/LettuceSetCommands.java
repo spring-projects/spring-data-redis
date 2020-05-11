@@ -19,8 +19,6 @@ import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ValueScanCursor;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,10 +38,13 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-@RequiredArgsConstructor
 class LettuceSetCommands implements RedisSetCommands {
 
-	private final @NonNull LettuceConnection connection;
+	private final LettuceConnection connection;
+
+	LettuceSetCommands(LettuceConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)

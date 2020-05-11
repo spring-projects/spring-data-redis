@@ -15,9 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
 import org.springframework.util.Assert;
 
@@ -26,10 +23,13 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-@RequiredArgsConstructor
 class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 
-	private final @NonNull JedisConnection connection;
+	private final JedisConnection connection;
+
+	JedisHyperLogLogCommands(JedisConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)

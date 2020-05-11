@@ -39,7 +39,6 @@ import io.lettuce.core.protocol.CommandArgs;
 import io.lettuce.core.protocol.CommandType;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
-import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -1308,10 +1307,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	@RequiredArgsConstructor
 	static class LettucePoolConnectionProvider implements LettuceConnectionProvider {
 
 		private final LettucePool pool;
+
+		LettucePoolConnectionProvider(LettucePool pool) {
+			this.pool = pool;
+		}
 
 		/*
 		 * (non-Javadoc)
@@ -1437,8 +1439,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Implementation to flush on each command.
-	 *  @author Mark Paluch
-	 * 	@since 2.3
+	 * 
+	 * @author Mark Paluch
+	 * @since 2.3
 	 */
 	private enum FlushEachCommand implements PipeliningFlushPolicy, PipeliningFlushState {
 
@@ -1461,8 +1464,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Implementation to flush on closing the pipeline.
-	 *  @author Mark Paluch
-	 * 	@since 2.3
+	 * 
+	 * @author Mark Paluch
+	 * @since 2.3
 	 */
 	private enum FlushOnClose implements PipeliningFlushPolicy, PipeliningFlushState {
 
@@ -1492,8 +1496,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Pipeline state for buffered flushing.
-	 *  @author Mark Paluch
-	 * 	@since 2.3
+	 * 
+	 * @author Mark Paluch
+	 * @since 2.3
 	 */
 	private static class BufferedFlushing implements PipeliningFlushState {
 

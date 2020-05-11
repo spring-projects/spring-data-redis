@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection.stream;
 
-import lombok.EqualsAndHashCode;
-
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map;
@@ -386,7 +384,6 @@ public class StreamRecords {
 	 * @param <S>
 	 * @param <V>
 	 */
-	@EqualsAndHashCode
 	static class ObjectBackedRecord<S, V> implements ObjectRecord<S, V> {
 
 		private @Nullable S stream;
@@ -430,6 +427,32 @@ public class StreamRecords {
 		@Override
 		public String toString() {
 			return "ObjectBackedRecord{" + "recordId=" + recordId + ", value=" + value + '}';
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+
+			ObjectBackedRecord<?, ?> that = (ObjectBackedRecord<?, ?>) o;
+
+			if (!ObjectUtils.nullSafeEquals(stream, that.stream)) {
+				return false;
+			}
+			if (!ObjectUtils.nullSafeEquals(recordId, that.recordId)) {
+				return false;
+			}
+			return ObjectUtils.nullSafeEquals(value, that.value);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = ObjectUtils.nullSafeHashCode(stream);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(recordId);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(value);
+			return result;
 		}
 	}
 }

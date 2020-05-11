@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import lombok.RequiredArgsConstructor;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -24,7 +22,6 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.cglib.proxy.MethodProxy;
 import org.springframework.dao.DataAccessException;
@@ -306,12 +303,19 @@ public abstract class RedisConnectionUtils {
 	 * @author Christoph Strobl
 	 * @author Thomas Darimont
 	 */
-	@RequiredArgsConstructor
 	private static class RedisTransactionSynchronizer extends TransactionSynchronizationAdapter {
 
 		private final RedisConnectionHolder connHolder;
 		private final RedisConnection connection;
 		private final RedisConnectionFactory factory;
+
+		RedisTransactionSynchronizer(RedisConnectionHolder connHolder, RedisConnection connection,
+				RedisConnectionFactory factory) {
+
+			this.connHolder = connHolder;
+			this.connection = connection;
+			this.factory = factory;
+		}
 
 		@Override
 		public void afterCompletion(int status) {

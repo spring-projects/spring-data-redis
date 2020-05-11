@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection.convert;
 
-import lombok.RequiredArgsConstructor;
-
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -588,11 +586,14 @@ abstract public class Converters {
 	 * @param <V>
 	 * @since 1.8
 	 */
-	@RequiredArgsConstructor
 	static class DeserializingGeoResultsConverter<V>
 			implements Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<V>>> {
 
 		final RedisSerializer<V> serializer;
+
+		public DeserializingGeoResultsConverter(RedisSerializer<V> serializer) {
+			this.serializer = serializer;
+		}
 
 		/*
 		 * (non-Javadoc)

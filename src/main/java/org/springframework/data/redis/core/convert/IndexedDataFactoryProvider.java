@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.core.index.GeoIndexDefinition;
 import org.springframework.data.redis.core.index.IndexDefinition;
@@ -52,10 +50,13 @@ class IndexedDataFactoryProvider {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	@RequiredArgsConstructor
 	static class SimpleIndexedPropertyValueFactory implements IndexedDataFactory {
 
 		final SimpleIndexDefinition indexDefinition;
+
+		SimpleIndexedPropertyValueFactory(SimpleIndexDefinition indexDefinition) {
+			this.indexDefinition = indexDefinition;
+		}
 
 		public SimpleIndexedPropertyValue createIndexedDataFor(Object value) {
 
@@ -68,10 +69,13 @@ class IndexedDataFactoryProvider {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	@RequiredArgsConstructor
 	static class GeoIndexedPropertyValueFactory implements IndexedDataFactory {
 
 		final GeoIndexDefinition indexDefinition;
+
+		public GeoIndexedPropertyValueFactory(GeoIndexDefinition indexDefinition) {
+			this.indexDefinition = indexDefinition;
+		}
 
 		public GeoIndexedPropertyValue createIndexedDataFor(Object value) {
 

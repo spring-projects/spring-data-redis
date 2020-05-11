@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.stream;
 
-import lombok.RequiredArgsConstructor;
 import reactor.core.CoreSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -182,7 +181,6 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 	/**
 	 * A stateful Redis Stream subscription.
 	 */
-	@RequiredArgsConstructor
 	class StreamSubscription {
 
 		private final Queue<V> overflow = Queues.<V> small().get();
@@ -191,6 +189,15 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		private final K key;
 		private final PollState pollState;
 		private final BiFunction<K, ReadOffset, Flux<V>> readFunction;
+
+		protected StreamSubscription(FluxSink<V> sink, K key, PollState pollState,
+				BiFunction<K, ReadOffset, Flux<V>> readFunction) {
+
+			this.sink = sink;
+			this.key = key;
+			this.pollState = pollState;
+			this.readFunction = readFunction;
+		}
 
 		/**
 		 * Arm the subscription so {@link Subscription#request(long) demand} activates polling.

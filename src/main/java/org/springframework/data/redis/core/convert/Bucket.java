@@ -15,11 +15,6 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
@@ -302,12 +297,18 @@ public class Bucket {
 	 * @author Mark Paluch
 	 * @since 2.1
 	 */
-	@AllArgsConstructor(access = AccessLevel.PRIVATE)
-	@Getter
 	public static class BucketPropertyPath {
 
-		private final @NonNull Bucket bucket;
+		private final Bucket bucket;
 		private final @Nullable String prefix;
+
+		private BucketPropertyPath(Bucket bucket, String prefix) {
+
+			Assert.notNull(bucket, "Bucket must not be null!");
+
+			this.bucket = bucket;
+			this.prefix = prefix;
+		}
 
 		/**
 		 * Creates a top-level {@link BucketPropertyPath} given {@link Bucket}.
@@ -354,6 +355,15 @@ public class Bucket {
 
 		private String getPath(String key) {
 			return StringUtils.hasText(prefix) ? prefix + "." + key : key;
+		}
+
+		public Bucket getBucket() {
+			return this.bucket;
+		}
+
+		@Nullable
+		public String getPrefix() {
+			return this.prefix;
 		}
 	}
 }

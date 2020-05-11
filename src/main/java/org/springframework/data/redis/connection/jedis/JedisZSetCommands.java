@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.ZParams;
@@ -38,10 +36,13 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-@RequiredArgsConstructor
 class JedisZSetCommands implements RedisZSetCommands {
 
-	private final @NonNull JedisConnection connection;
+	private final JedisConnection connection;
+
+	public JedisZSetCommands(JedisConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)

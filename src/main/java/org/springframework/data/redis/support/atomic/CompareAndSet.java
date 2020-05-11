@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.support.atomic;
 
-import lombok.RequiredArgsConstructor;
-
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -39,7 +37,6 @@ import org.springframework.util.CollectionUtils;
  * @see RedisAtomicInteger
  * @see RedisAtomicLong
  */
-@RequiredArgsConstructor
 class CompareAndSet<T> implements SessionCallback<Boolean> {
 
 	private final Supplier<T> getter;
@@ -47,6 +44,15 @@ class CompareAndSet<T> implements SessionCallback<Boolean> {
 	private final Object key;
 	private final T expect;
 	private final T update;
+
+	CompareAndSet(Supplier<T> getter, Consumer<T> setter, Object key, T expect, T update) {
+
+		this.getter = getter;
+		this.setter = setter;
+		this.key = key;
+		this.expect = expect;
+		this.update = update;
+	}
 
 	/*
 	 * (non-Javadoc)

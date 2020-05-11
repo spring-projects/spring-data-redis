@@ -15,9 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
 
 import org.springframework.data.redis.connection.RedisScriptingCommands;
@@ -28,10 +25,13 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-@RequiredArgsConstructor
 class JedisScriptingCommands implements RedisScriptingCommands {
 
-	private final @NonNull JedisConnection connection;
+	private final JedisConnection connection;
+
+	JedisScriptingCommands(JedisConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)

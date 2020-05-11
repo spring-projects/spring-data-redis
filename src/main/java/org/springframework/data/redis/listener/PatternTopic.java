@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.listener;
 
-import lombok.EqualsAndHashCode;
-
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Pattern topic (matching multiple channels).
@@ -26,7 +25,6 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-@EqualsAndHashCode
 public class PatternTopic implements Topic {
 
 	private final String channelPattern;
@@ -69,5 +67,23 @@ public class PatternTopic implements Topic {
 	@Override
 	public String toString() {
 		return channelPattern;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		PatternTopic that = (PatternTopic) o;
+
+		return ObjectUtils.nullSafeEquals(channelPattern, that.channelPattern);
+	}
+
+	@Override
+	public int hashCode() {
+		return ObjectUtils.nullSafeHashCode(channelPattern);
 	}
 }
