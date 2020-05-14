@@ -351,7 +351,7 @@ public interface ReactiveRedisConnection extends Closeable {
 		private final I input;
 		private final @Nullable O output;
 
-		public CommandResponse(I input, O output) {
+		public CommandResponse(I input, @Nullable O output) {
 			this.input = input;
 			this.output = output;
 		}

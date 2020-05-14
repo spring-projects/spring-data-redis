@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core.convert;
 
 import org.springframework.data.geo.Point;
+import org.springframework.util.ObjectUtils;
 
 /**
  * {@link IndexedData} implementation indicating storage of data within a Redis GEO structure.
@@ -73,43 +74,39 @@ public class GeoIndexedPropertyValue implements IndexedData {
 		return this.value;
 	}
 
-	public boolean equals(final Object o) {
-		if (o == this)
+	@Override
+	public boolean equals(Object o) {
+
+		if (this == o) {
 			return true;
-		if (!(o instanceof GeoIndexedPropertyValue))
+		}
+
+		if (!(o instanceof GeoIndexedPropertyValue)) {
 			return false;
-		final GeoIndexedPropertyValue other = (GeoIndexedPropertyValue) o;
-		if (!other.canEqual((Object) this))
+		}
+
+		GeoIndexedPropertyValue that = (GeoIndexedPropertyValue) o;
+		if (!ObjectUtils.nullSafeEquals(keyspace, that.keyspace)) {
 			return false;
-		final Object this$keyspace = this.getKeyspace();
-		final Object other$keyspace = other.getKeyspace();
-		if (this$keyspace == null ? other$keyspace != null : !this$keyspace.equals(other$keyspace))
+		}
+
+		if (!ObjectUtils.nullSafeEquals(indexName, that.indexName)) {
 			return false;
-		final Object this$indexName = this.getIndexName();
-		final Object other$indexName = other.getIndexName();
-		if (this$indexName == null ? other$indexName != null : !this$indexName.equals(other$indexName))
-			return false;
-		final Object this$value = this.getValue();
-		final Object other$value = other.getValue();
-		if (this$value == null ? other$value != null : !this$value.equals(other$value))
-			return false;
-		return true;
+		}
+
+		return ObjectUtils.nullSafeEquals(value, that.value);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof GeoIndexedPropertyValue;
-	}
-
+	@Override
 	public int hashCode() {
-		final int PRIME = 59;
-		int result = 1;
-		final Object $keyspace = this.getKeyspace();
-		result = result * PRIME + ($keyspace == null ? 43 : $keyspace.hashCode());
-		final Object $indexName = this.getIndexName();
-		result = result * PRIME + ($indexName == null ? 43 : $indexName.hashCode());
-		final Object $value = this.getValue();
-		result = result * PRIME + ($value == null ? 43 : $value.hashCode());
+		int result = ObjectUtils.nullSafeHashCode(keyspace);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(indexName);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(value);
 		return result;
+	}
+
+	protected boolean canEqual(Object other) {
+		return other instanceof GeoIndexedPropertyValue;
 	}
 
 	public String toString() {

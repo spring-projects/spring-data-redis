@@ -28,6 +28,7 @@ import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Geo-specific Redis commands.
@@ -370,37 +371,35 @@ public interface RedisGeoCommands {
 			return this.point;
 		}
 
-		public boolean equals(final Object o) {
-			if (o == this)
+		@Override
+		public boolean equals(Object o) {
+
+			if (this == o) {
 				return true;
-			if (!(o instanceof GeoLocation))
+			}
+
+			if (!(o instanceof GeoLocation)) {
 				return false;
-			final GeoLocation<?> other = (GeoLocation<?>) o;
-			if (!other.canEqual((Object) this))
+			}
+
+			GeoLocation<?> that = (GeoLocation<?>) o;
+
+			if (!ObjectUtils.nullSafeEquals(name, that.name)) {
 				return false;
-			final Object this$name = this.getName();
-			final Object other$name = other.getName();
-			if (this$name == null ? other$name != null : !this$name.equals(other$name))
-				return false;
-			final Object this$point = this.getPoint();
-			final Object other$point = other.getPoint();
-			if (this$point == null ? other$point != null : !this$point.equals(other$point))
-				return false;
-			return true;
+			}
+
+			return ObjectUtils.nullSafeEquals(point, that.point);
 		}
 
-		protected boolean canEqual(final Object other) {
-			return other instanceof GeoLocation;
-		}
-
+		@Override
 		public int hashCode() {
-			final int PRIME = 59;
-			int result = 1;
-			final Object $name = this.getName();
-			result = result * PRIME + ($name == null ? 43 : $name.hashCode());
-			final Object $point = this.getPoint();
-			result = result * PRIME + ($point == null ? 43 : $point.hashCode());
+			int result = ObjectUtils.nullSafeHashCode(name);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(point);
 			return result;
+		}
+
+		protected boolean canEqual(Object other) {
+			return other instanceof GeoLocation;
 		}
 
 		public String toString() {
