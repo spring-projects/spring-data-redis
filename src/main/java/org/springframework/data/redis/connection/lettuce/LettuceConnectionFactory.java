@@ -889,7 +889,7 @@ public class LettuceConnectionFactory
 	}
 
 	/**
-	 * @return the {@link RedisStandaloneConfiguration}, may be {@literal null}.
+	 * @return the {@link RedisSentinelConfiguration}, may be {@literal null}.
 	 * @since 2.0
 	 */
 	@Nullable
