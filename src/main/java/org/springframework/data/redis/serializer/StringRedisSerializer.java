@@ -17,7 +17,6 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -32,10 +31,13 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Luram Archanjo
  */
 public class StringRedisSerializer implements RedisSerializer<String> {
 
 	private final Charset charset;
+
+	private final String prefix;
 
 	/**
 	 * {@link StringRedisSerializer} to use 7 bit ASCII, a.k.a. ISO646-US, a.k.a. the Basic Latin block of the Unicode
@@ -70,14 +72,28 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 	}
 
 	/**
-	 * Creates a new {@link StringRedisSerializer} using the given {@link Charset} to encode and decode strings.
+	 * Creates a new {@link StringRedisSerializer} using the given {@link Charset} to encode and decode strings
 	 *
 	 * @param charset must not be {@literal null}.
 	 */
 	public StringRedisSerializer(Charset charset) {
-
 		Assert.notNull(charset, "Charset must not be null!");
 		this.charset = charset;
+		this.prefix = "";
+	}
+
+	/**
+	 * Creates a new {@link StringRedisSerializer} using the given {@link Charset} to encode and decode strings and
+	 * {@link #prefix} to complement it e.g: Keys application-name:some-key.
+	 *
+	 * @param charset must not be {@literal null}.
+	 */
+	public StringRedisSerializer(Charset charset, String prefix) {
+		Assert.notNull(charset, "Charset must not be null!");
+		this.charset = charset;
+
+		Assert.notNull(prefix, "Prefix must not be null!");
+		this.prefix = prefix;
 	}
 
 	/*
@@ -95,11 +111,18 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 	 */
 	@Override
 	public byte[] serialize(@Nullable String string) {
-		return (string == null ? null : string.getBytes(charset));
+		if (string == null) {
+			return null;
+		} else if (prefix.isEmpty() || string.startsWith(prefix)) {
+			return string.getBytes(charset);
+		} else {
+			return prefix.concat(string).getBytes(charset);
+		}
 	}
 
 	@Override
 	public Class<?> getTargetType() {
 		return String.class;
 	}
+
 }
