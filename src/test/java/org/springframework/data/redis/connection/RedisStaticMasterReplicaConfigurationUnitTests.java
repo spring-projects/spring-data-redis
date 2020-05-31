@@ -23,8 +23,9 @@ import org.junit.Test;
  * Unit tests for {@link RedisStaticMasterReplicaConfiguration}.
  *
  * @author Mark Paluch
+ * @author Tamer Soliman
  */
-public class RedisElastiCacheConfigurationUnitTests {
+public class RedisStaticMasterReplicaConfigurationUnitTests {
 
 	@Test // DATAREDIS-762
 	public void shouldCreateSingleHostConfiguration() {
