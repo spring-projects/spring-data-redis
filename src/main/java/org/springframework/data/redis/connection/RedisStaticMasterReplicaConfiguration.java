@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tamer Soliman
  * @since 2.1
  */
 public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration, StaticMasterReplicaConfiguration {
@@ -90,7 +91,7 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 	 * @param hostName must not be {@literal null} or empty.
 	 * @return {@code this} {@link StaticMasterReplicaConfiguration}.
 	 */
-	public StaticMasterReplicaConfiguration node(String hostName) {
+	public RedisStaticMasterReplicaConfiguration node(String hostName) {
 		return node(hostName, DEFAULT_PORT);
 	}
 
