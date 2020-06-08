@@ -107,6 +107,7 @@ import org.springframework.util.comparator.NullSafeComparator;
  * @author Christoph Strobl
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Golam Mazid Sajib
  * @since 1.7
  */
 public class MappingRedisConverter implements RedisConverter, InitializingBean {
@@ -564,7 +565,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		if (customConversions.hasCustomWriteTarget(value.getClass())) {
 
-			if (!StringUtils.hasText(path) && customConversions.getCustomWriteTarget(value.getClass()).equals(byte[].class)) {
+			Optional<Class<?>> targetType = customConversions.getCustomWriteTarget(value.getClass());
+
+			if (!StringUtils.hasText(path) && targetType.isPresent()
+					&& (targetType.get().equals(byte[].class) || ClassUtils.isAssignable(byte[].class, targetType.get()))) {
 				sink.getBucket().put(StringUtils.hasText(path) ? path : "_raw", conversionService.convert(value, byte[].class));
 			} else {
 
