@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -282,7 +283,7 @@ public interface ReactiveHashCommands {
 	 * @see <a href="https://redis.io/commands/hget">Redis Documentation: HGET</a>
 	 */
 	default Mono<ByteBuffer> hGet(ByteBuffer key, ByteBuffer field) {
-		return hMGet(key, Collections.singletonList(field)).map(val -> val.isEmpty() ? null : val.iterator().next());
+		return hMGet(key, Collections.singletonList(field)).flatMapIterable(Function.identity()).next();
 	}
 
 	/**
