@@ -1,6 +1,16 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.8.RELEASE (2020-06-10)
+---------------------------------------------
+* DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
+* DATAREDIS-1142 - "CROSSSLOT Keys in request don't hash to the same slot" error using Spring Data along with Spring Session while OAuth2 login process.
+* DATAREDIS-1139 - org.springframework.data.redis.core.RedisCommand Constant.
+* DATAREDIS-1138 - ReactiveStreamCommands hangs with indefinite block.
+* DATAREDIS-1137 - Remove Travis CI.
+* DATAREDIS-1134 - Release 2.2.8 (Moore SR8).
+
+
 Changes in version 2.1.18.RELEASE (2020-06-10)
 ----------------------------------------------
 * DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
@@ -1983,6 +1993,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
