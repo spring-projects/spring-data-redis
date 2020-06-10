@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.core.convert.ConversionTestEntities.*;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -1943,6 +1944,74 @@ public class MappingRedisConverterUnitTests {
 		@Override
 		public Address convert(byte[] value) {
 			return serializer.deserialize(value);
+		}
+	}
+
+	@Test // DATAREDIS-911
+	public void writeEntityWithCustomConverter() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter.setCustomConversions(
+				new RedisCustomConversions(Collections.singletonList(new AccountInfoToBytesConverter()))
+		);
+		this.converter.afterPropertiesSet();
+
+		AccountInfo accountInfo = new AccountInfo();
+		accountInfo.setId("ai-id-1");
+		accountInfo.setAccount("123456");
+		accountInfo.setAccountName("Inamur Rahman Sadid");
+
+		assertThat(write(accountInfo).getRedisData().getId()).isEqualTo(accountInfo.getId());
+	}
+
+	@Test // DATAREDIS-911
+	public void readEntityWithCustomConverter() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter.setCustomConversions(
+				new RedisCustomConversions(Collections.singletonList(new BytesToAccountInfoConverter()))
+		);
+		this.converter.afterPropertiesSet();
+
+		Bucket bucket = new Bucket();
+		bucket.put("_raw", "ai-id-1|123456|Golam Mazid Sajib".getBytes(StandardCharsets.UTF_8));
+
+		RedisData redisData = new RedisData(bucket);
+		redisData.setKeyspace(KEYSPACE_ACCOUNT);
+		redisData.setId("ai-id-1");
+
+		AccountInfo target = converter.read(AccountInfo.class, redisData);
+
+		assertThat(target.getAccount()).isEqualTo("123456");
+		assertThat(target.getAccountName()).isEqualTo("Golam Mazid Sajib");
+	}
+
+	@WritingConverter
+	static class AccountInfoToBytesConverter implements Converter<AccountInfo, byte[]> {
+
+		@Override
+		public byte[] convert(AccountInfo accountInfo) {
+			StringBuilder resp = new StringBuilder();
+			resp.append(accountInfo.getId())
+					.append("|")
+					.append(accountInfo.getAccount())
+					.append("|")
+					.append(accountInfo.getAccountName());
+			return resp.toString().getBytes(StandardCharsets.UTF_8);
+		}
+	}
+
+	@ReadingConverter
+	static class BytesToAccountInfoConverter implements Converter<byte[], AccountInfo> {
+
+		@Override
+		public AccountInfo convert(byte[] bytes) {
+			String[] values = new String(bytes, StandardCharsets.UTF_8).split("\\|");
+			AccountInfo accountInfo = new AccountInfo();
+			accountInfo.setId(values[0]);
+			accountInfo.setAccount(values[1]);
+			accountInfo.setAccountName(values[2]);
+			return accountInfo;
 		}
 	}
 

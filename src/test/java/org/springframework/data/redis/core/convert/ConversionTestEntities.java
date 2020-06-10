@@ -18,6 +18,8 @@ package org.springframework.data.redis.core.convert;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -52,6 +54,7 @@ public class ConversionTestEntities {
 	static final String KEYSPACE_PERSON = "persons";
 	static final String KEYSPACE_TWOT = "twot";
 	static final String KEYSPACE_LOCATION = "locations";
+	static final String KEYSPACE_ACCOUNT = "accounts";
 
 	@RedisHash(KEYSPACE_PERSON)
 	public static class Person {
@@ -239,5 +242,16 @@ public class ConversionTestEntities {
 	static class Inner {
 		
 		List<String> values;
+	}
+
+	@RedisHash(KEYSPACE_ACCOUNT)
+	@Getter
+	@Setter
+	public static class AccountInfo {
+
+		@Id
+		private String id;
+		private String account;
+		private String accountName;
 	}
 }
