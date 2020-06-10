@@ -1,6 +1,14 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.3.1.RELEASE (2020-06-10)
+---------------------------------------------
+* DATAREDIS-1164 - Upgrade to Lettuce 5.3.1.RELEASE.
+* DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
+* DATAREDIS-1159 - RedisStaticMasterReplicaConfiguration.node(String hostName) should return RedisStaticMasterReplicaConfiguration.
+* DATAREDIS-1146 - Release 2.3.1 (Neumann SR1).
+
+
 Changes in version 2.2.8.RELEASE (2020-06-10)
 ---------------------------------------------
 * DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
@@ -1993,6 +2001,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
