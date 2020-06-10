@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.18.RELEASE (2020-06-10)
+----------------------------------------------
+* DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
+* DATAREDIS-1137 - Remove Travis CI.
+* DATAREDIS-1133 - Release 2.1.18 (Lovelace SR18).
+
+
 Changes in version 2.3.0.RELEASE (2020-05-12)
 ---------------------------------------------
 * DATAREDIS-1144 - Upgrade to Jedis 3.3.0.
