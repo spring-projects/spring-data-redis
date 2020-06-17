@@ -22,7 +22,6 @@ import reactor.test.StepVerifier;
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
-
 import org.springframework.data.redis.connection.ReactiveClusterCommands;
 import org.springframework.data.redis.connection.RedisClusterNode;
 
@@ -33,8 +32,20 @@ import org.springframework.data.redis.connection.RedisClusterNode;
  * the master node.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class LettuceReactiveClusterCommandsTests extends LettuceReactiveClusterCommandsTestsBase {
+
+	@Test // DATAREDIS-1150
+	public void pingShouldReturnPong() {
+		connection.ping().as(StepVerifier::create).expectNext("PONG").verifyComplete();
+	}
+
+	@Test // DATAREDIS-1150
+	public void pingShouldReturnPongForServers() {
+		connection.clusterGetNodes().flatMap(connection::ping).as(StepVerifier::create)
+				.expectNext("PONG", "PONG", "PONG", "PONG").verifyComplete();
+	}
 
 	@Test // DATAREDIS-1150
 	public void clusterGetNodesShouldReturnNodes() {
