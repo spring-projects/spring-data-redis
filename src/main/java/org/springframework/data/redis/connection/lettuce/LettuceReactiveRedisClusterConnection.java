@@ -224,7 +224,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	 */
 	@Override
 	public Flux<RedisClusterNode> clusterGetNodes() {
-		return Flux.fromIterable(doGetActiveNodes());
+		return Flux.fromStream(() -> doGetActiveNodes().stream());
 	}
 
 	/*
@@ -236,10 +236,9 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 
 		Assert.notNull(master, "Master must not be null!");
 
-		RedisClusterNode nodeToUse = lookup(master);
-
-		return execute(nodeToUse, cmd -> cmd.clusterSlaves(nodeToUse.getId()) //
-				.flatMapIterable(LettuceConverters::toSetOfRedisClusterNodes));
+		return Mono.fromSupplier(() -> lookup(master))
+				.flatMapMany(nodeToUse -> execute(nodeToUse, cmd -> cmd.clusterSlaves(nodeToUse.getId()) //
+						.flatMapIterable(LettuceConverters::toSetOfRedisClusterNodes)));
 	}
 
 	/*
@@ -249,7 +248,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	@Override
 	public Mono<Map<RedisClusterNode, Collection<RedisClusterNode>>> clusterGetMasterSlaveMap() {
 
-		return Flux.fromIterable(topologyProvider.getTopology().getActiveMasterNodes()) //
+		return Flux.fromStream(() -> topologyProvider.getTopology().getActiveMasterNodes().stream()) //
 				.flatMap(node -> {
 					return Mono.just(node).zipWith(execute(node, cmd -> cmd.clusterSlaves(node.getId())) //
 							.collectList() //
@@ -295,6 +294,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	 */
 	@Override
 	public Mono<ClusterInfo> clusterGetClusterInfo() {
+
 		return executeCommandOnArbitraryNode(RedisClusterReactiveCommands::clusterInfo) //
 				.map(LettuceConverters::toProperties) //
 				.map(ClusterInfo::new) //
@@ -359,12 +359,14 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	@Override
 	public Mono<Void> clusterForget(RedisClusterNode node) {
 
-		List<RedisClusterNode> nodes = new ArrayList<>(doGetActiveNodes());
 		RedisClusterNode nodeToRemove = lookup(node);
-		nodes.remove(nodeToRemove);
 
-		return Flux.fromIterable(nodes).flatMap(actualNode -> execute(node, cmd -> cmd.clusterForget(nodeToRemove.getId())))
-				.then();
+		return Flux.fromStream(() -> {
+
+			List<RedisClusterNode> nodes = new ArrayList<>(doGetActiveNodes());
+			nodes.remove(nodeToRemove);
+			return nodes.stream();
+		}).flatMap(actualNode -> execute(node, cmd -> cmd.clusterForget(nodeToRemove.getId()))).then();
 	}
 
 	/*
@@ -392,10 +394,10 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		Assert.notNull(node, "Node must not be null.");
 		Assert.notNull(mode, "AddSlots mode must not be null.");
 
-		RedisClusterNode nodeToUse = lookup(node);
-		String nodeId = nodeToUse.getId();
-
 		return execute(node, cmd -> {
+
+			RedisClusterNode nodeToUse = lookup(node);
+			String nodeId = nodeToUse.getId();
 
 			switch (mode) {
 				case MIGRATING:
@@ -428,10 +430,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	 */
 	@Override
 	public Mono<Void> clusterReplicate(RedisClusterNode master, RedisClusterNode replica) {
-
-		RedisClusterNode masterToUse = lookup(master);
-
-		return execute(replica, cmd -> cmd.clusterReplicate(masterToUse.getId())).then();
+		return execute(replica, cmd -> cmd.clusterReplicate(lookup(master).getId())).then();
 	}
 
 	/**
@@ -445,10 +444,13 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 
 		Assert.notNull(callback, "ReactiveCallback must not be null!");
 
-		List<RedisClusterNode> nodes = new ArrayList<>(doGetActiveNodes());
-		int random = new Random().nextInt(nodes.size());
+		return Mono.fromSupplier(() -> {
 
-		return execute(nodes.get(random), callback);
+			List<RedisClusterNode> nodes = new ArrayList<>(doGetActiveNodes());
+			int random = new Random().nextInt(nodes.size());
+
+			return nodes.get(random);
+		}).flatMapMany(it -> execute(it, callback));
 	}
 
 	/**
