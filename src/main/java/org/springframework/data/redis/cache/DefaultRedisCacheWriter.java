@@ -24,12 +24,14 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import com.sun.istack.internal.Nullable;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.util.Assert;
 
 /**
  * {@link RedisCacheWriter} implementation capable of reading/writing binary data from/to Redis in {@literal standalone}
@@ -45,6 +47,7 @@ import org.springframework.data.redis.core.types.Expiration;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author zhaolong
  * @since 2.0
  */
 class DefaultRedisCacheWriter implements RedisCacheWriter {
@@ -179,14 +182,9 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 					wasLocked = true;
 				}
 
-				List<byte[]> keys = new ArrayList<byte[]>();
 				Cursor<byte[]> cursor = connection.scan(new ScanOptions.ScanOptionsBuilder().match(new String(pattern)).build());
 				while (cursor.hasNext()) {
-					byte[] bytes = cursor.next();
-					keys.add(bytes);
-				}
-				if (!keys.isEmpty()) {
-					connection.del(keys.toArray(new byte[][]{}));
+					connection.del(cursor.next());
 				}
 			} finally {
 
