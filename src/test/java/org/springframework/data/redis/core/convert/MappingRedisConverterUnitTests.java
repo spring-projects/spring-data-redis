@@ -1847,6 +1847,43 @@ public class MappingRedisConverterUnitTests {
 		assertThat(outer.inners.get(0).values).isEqualTo(Arrays.asList("i-1", "i-2"));
 	}
 
+	@Test // DATAREDIS-911
+	public void writeEntityWithCustomConverter() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new AccountInfoToBytesConverter())));
+		this.converter.afterPropertiesSet();
+
+		AccountInfo accountInfo = new AccountInfo();
+		accountInfo.setId("ai-id-1");
+		accountInfo.setAccount("123456");
+		accountInfo.setAccountName("Inamur Rahman Sadid");
+
+		assertThat(write(accountInfo).getRedisData().getId()).isEqualTo(accountInfo.getId());
+	}
+
+	@Test // DATAREDIS-911
+	public void readEntityWithCustomConverter() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new BytesToAccountInfoConverter())));
+		this.converter.afterPropertiesSet();
+
+		Bucket bucket = new Bucket();
+		bucket.put("_raw", "ai-id-1|123456|Golam Mazid Sajib".getBytes(StandardCharsets.UTF_8));
+
+		RedisData redisData = new RedisData(bucket);
+		redisData.setKeyspace(KEYSPACE_ACCOUNT);
+		redisData.setId("ai-id-1");
+
+		AccountInfo target = converter.read(AccountInfo.class, redisData);
+
+		assertThat(target.getAccount()).isEqualTo("123456");
+		assertThat(target.getAccountName()).isEqualTo("Golam Mazid Sajib");
+	}
+
 	private RedisTestData write(Object source) {
 
 		RedisData rdo = new RedisData();
@@ -1945,43 +1982,6 @@ public class MappingRedisConverterUnitTests {
 		public Address convert(byte[] value) {
 			return serializer.deserialize(value);
 		}
-	}
-
-	@Test // DATAREDIS-911
-	public void writeEntityWithCustomConverter() {
-
-		this.converter = new MappingRedisConverter(null, null, resolverMock);
-		this.converter
-				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new AccountInfoToBytesConverter())));
-		this.converter.afterPropertiesSet();
-
-		AccountInfo accountInfo = new AccountInfo();
-		accountInfo.setId("ai-id-1");
-		accountInfo.setAccount("123456");
-		accountInfo.setAccountName("Inamur Rahman Sadid");
-
-		assertThat(write(accountInfo).getRedisData().getId()).isEqualTo(accountInfo.getId());
-	}
-
-	@Test // DATAREDIS-911
-	public void readEntityWithCustomConverter() {
-
-		this.converter = new MappingRedisConverter(null, null, resolverMock);
-		this.converter
-				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new BytesToAccountInfoConverter())));
-		this.converter.afterPropertiesSet();
-
-		Bucket bucket = new Bucket();
-		bucket.put("_raw", "ai-id-1|123456|Golam Mazid Sajib".getBytes(StandardCharsets.UTF_8));
-
-		RedisData redisData = new RedisData(bucket);
-		redisData.setKeyspace(KEYSPACE_ACCOUNT);
-		redisData.setId("ai-id-1");
-
-		AccountInfo target = converter.read(AccountInfo.class, redisData);
-
-		assertThat(target.getAccount()).isEqualTo("123456");
-		assertThat(target.getAccountName()).isEqualTo("Golam Mazid Sajib");
 	}
 
 	@WritingConverter

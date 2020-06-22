@@ -37,14 +37,14 @@ import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.CustomConversions;
-import org.springframework.data.convert.EntityInstantiator;
-import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PropertyHandler;
+import org.springframework.data.mapping.model.EntityInstantiator;
+import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.PersistentEntityParameterValueProvider;
 import org.springframework.data.mapping.model.PropertyValueProvider;
 import org.springframework.data.redis.core.PartialUpdate;
@@ -567,9 +567,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			Optional<Class<?>> targetType = customConversions.getCustomWriteTarget(value.getClass());
 
-			if (!StringUtils.hasText(path) && targetType.isPresent()
-					&& (targetType.get().equals(byte[].class) || ClassUtils.isAssignable(byte[].class, targetType.get()))) {
-				sink.getBucket().put(StringUtils.hasText(path) ? path : "_raw", conversionService.convert(value, byte[].class));
+			if (!StringUtils.hasText(path) && targetType.isPresent() && ClassUtils.isAssignable(byte[].class, targetType.get())) {
+					sink.getBucket().put(StringUtils.hasText(path) ? path : "_raw", conversionService.convert(value, byte[].class));
 			} else {
 
 				if (!ClassUtils.isAssignable(typeHint.getType(), value.getClass())) {

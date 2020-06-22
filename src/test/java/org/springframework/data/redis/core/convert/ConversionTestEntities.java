@@ -18,8 +18,6 @@ package org.springframework.data.redis.core.convert;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -241,13 +239,12 @@ public class ConversionTestEntities {
 	}
 
 	static class Inner {
-		
+
 		List<String> values;
 	}
 
 	@RedisHash(KEYSPACE_ACCOUNT)
-	@Getter
-	@Setter
+	@Data
 	public static class AccountInfo {
 
 		@Id private String id;
