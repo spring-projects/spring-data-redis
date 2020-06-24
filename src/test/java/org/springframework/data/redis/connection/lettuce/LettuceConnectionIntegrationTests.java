@@ -24,6 +24,8 @@ import io.lettuce.core.api.async.RedisAsyncCommands;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -38,6 +40,8 @@ import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
+import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.ReturnType;
@@ -57,6 +61,9 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Christoph Strobl
  * @author David Liu
  * @author Mark Paluch
+ * @author Sarah Abbey
+ * @author Murtuza Boxwala
+ * @author Jens Deppe
  */
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -350,5 +357,44 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		((LettuceConnection) byteConnection).setSentinelConfiguration(
 				new RedisSentinelConfiguration().master("mymaster").sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
 		assertThat(connection.getSentinelConnection()).isNotNull();
+	}
+
+	@Test // DATAREDIS-1173
+	public void unsubscribeFromAllChannelsIncorrectly() {
+		final BlockingDeque<Message> messages = new LinkedBlockingDeque<>();
+		MessageListener listener = (message, pattern) -> {
+			messages.add(message);
+		};
+
+		connection.subscribe(listener, "aohetunhao".getBytes());
+		LettuceSubscription subscription = (LettuceSubscription) connection.getSubscription();
+
+		connectionFactory.getConnection().publish("aohetunhao".getBytes(), "alfjs".getBytes());
+		assertThat(waitFor(() -> messages.size() == 1, 1000)).isTrue();
+
+		subscription.doUnsubscribe(true, new byte[0]);
+
+		connectionFactory.getConnection().publish("aohetunhao".getBytes(), "newMessage".getBytes());
+		// this fails because we are still subscribed to the channel (so we now have 2 messages)
+		assertThat(waitFor(() -> messages.size() == 1, 1000)).isTrue();
+	}
+
+	@Test // DATAREDIS-1173
+	public void unsubscribeFromAllChannelsCorrectly() {
+		final BlockingDeque<Message> messages = new LinkedBlockingDeque<>();
+		MessageListener listener = (message, pattern) -> {
+			messages.add(message);
+		};
+
+		connection.subscribe(listener, "aohetunhao".getBytes());
+		LettuceSubscription subscription = (LettuceSubscription) connection.getSubscription();
+
+		connectionFactory.getConnection().publish("aohetunhao".getBytes(), "alfjs".getBytes());
+		assertThat(waitFor(() -> messages.size() == 1, 1000)).isTrue();
+
+		subscription.doUnsubscribe(true);
+
+		connectionFactory.getConnection().publish("aohetunhao".getBytes(), "newMessage".getBytes());
+		assertThat(waitFor(() -> messages.size() == 1, 1000)).isTrue();
 	}
 }
