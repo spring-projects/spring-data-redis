@@ -27,6 +27,9 @@ import org.springframework.data.redis.connection.util.AbstractSubscription;
  * @author Costin Leau
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Sarah Abbey
+ * @author Murtuza Boxwala
+ * @author Jens Deppe
  */
 class LettuceSubscription extends AbstractSubscription {
 
@@ -52,25 +55,25 @@ class LettuceSubscription extends AbstractSubscription {
 		return connection;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doClose()
 	 */
 	protected void doClose() {
 
 		if (!getChannels().isEmpty()) {
-			pubsub.unsubscribe(new byte[0]);
+			doUnsubscribe(true);
 		}
 
 		if (!getPatterns().isEmpty()) {
-			pubsub.punsubscribe(new byte[0]);
+			doPUnsubscribe(true);
 		}
 
 		connection.removeListener(this.listener);
 		connectionProvider.release(connection);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPsubscribe(byte[][])
 	 */
@@ -78,7 +81,7 @@ class LettuceSubscription extends AbstractSubscription {
 		pubsub.psubscribe(patterns);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPUnsubscribe(boolean, byte[][])
 	 */
@@ -88,7 +91,7 @@ class LettuceSubscription extends AbstractSubscription {
 		pubsub.punsubscribe(patterns);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doSubscribe(byte[][])
 	 */
@@ -96,7 +99,7 @@ class LettuceSubscription extends AbstractSubscription {
 		pubsub.subscribe(channels);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doUnsubscribe(boolean, byte[][])
 	 */
