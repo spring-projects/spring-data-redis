@@ -27,6 +27,9 @@ import org.springframework.data.redis.connection.util.AbstractSubscription;
  * @author Costin Leau
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Sarah Abbey
+ * @author Murtuza Boxwala
+ * @author Jens Deppe
  */
 public class LettuceSubscription extends AbstractSubscription {
 
@@ -67,11 +70,11 @@ public class LettuceSubscription extends AbstractSubscription {
 	protected void doClose() {
 
 		if (!getChannels().isEmpty()) {
-			doUnsubscribe(true, new byte[0]);
+			doUnsubscribe(true);
 		}
 
 		if (!getPatterns().isEmpty()) {
-			doPUnsubscribe(true, new byte[0]);
+			doPUnsubscribe(true);
 		}
 
 		connection.removeListener(this.listener);
