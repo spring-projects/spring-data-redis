@@ -1,7 +1,7 @@
 [[tx]]
 = Redis Transactions
 
-Redis provides support for https://redis.io/topics/transactions[transactions] through the `multi`, `exec`, and `discard` commands. These operations are available on `RedisTemplate`. However, `RedisTemplate` is not guaranteed to execute all operations in the transaction with the same connection.
+Redis provides support for https://redis.io/topics/transactions[transactions] through the `multi`, `exec`, and `discard` commands. These operations are available on `RedisTemplate`. However, `RedisTemplate` is not guaranteed to run all the operations in the transaction with the same connection.
 
 Spring Data Redis provides the `SessionCallback` interface for use when multiple operations need to be performed with the same `connection`, such as when using Redis transactions. The following example uses the `multi` method:
 
@@ -77,7 +77,7 @@ The following examples each demonstrate a usage constraint:
 // must be performed on thread-bound connection
 template.opsForValue().set("thing1", "thing2");
 
-// read operation must be executed on a free (not transaction-aware) connection
+// read operation must be run on a free (not transaction-aware) connection
 template.keys("*");
 
 // returns null as values set within a transaction are not visible

@@ -1,5 +1,5 @@
-[[query-by-example.execution]]
-== Executing an Example
+[[query-by-example.running]]
+== Running an Example
 
 The following example uses Query by Example against a repository:
 
@@ -26,7 +26,7 @@ In particular, only exact, case-sensitive, and non-null values are used to const
 
 Secondary indexes use set-based operations (Set intersection, Set union) to determine matching keys. Adding a property to the query that is not indexed returns no result, because no index exists. Query by Example support inspects indexing configuration to include only properties in the query that are covered by an index. This is to prevent accidental inclusion of non-indexed properties.
 
-Case-insensitive queries and unsupported ``StringMatcher`` instances are rejected at runtime.
+Case-insensitive queries and unsupported `StringMatcher` instances are rejected at runtime.
 
 The following list shows the supported Query by Example options:
 

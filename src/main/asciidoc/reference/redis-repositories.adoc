@@ -579,7 +579,7 @@ NOTE: Annotating a property explicitly with `@TimeToLive` reads back the actual 
 
 The repository implementation ensures subscription to https://redis.io/topics/notifications[Redis keyspace notifications] via `RedisMessageListenerContainer`.
 
-When the expiration is set to a positive value, the corresponding `EXPIRE` command is executed. In addition to persisting the original, a phantom copy is persisted in Redis and set to expire five minutes after the original one. This is done to enable the Repository support to publish `RedisKeyExpiredEvent`, holding the expired value in Spring's `ApplicationEventPublisher` whenever a key expires, even though the original values have already been removed. Expiry events are received on all connected applications that use Spring Data Redis repositories.
+When the expiration is set to a positive value, the corresponding `EXPIRE` command is run. In addition to persisting the original, a phantom copy is persisted in Redis and set to expire five minutes after the original one. This is done to enable the Repository support to publish `RedisKeyExpiredEvent`, holding the expired value in Spring's `ApplicationEventPublisher` whenever a key expires, even though the original values have already been removed. Expiry events are received on all connected applications that use Spring Data Redis repositories.
 
 By default, the key expiry listener is disabled when initializing the application. The startup mode can be adjusted in `@EnableRedisRepositories` or `RedisKeyValueAdapter` to start the listener with the application or upon the first insert of an entity with a TTL. See https://docs.spring.io/spring-data/redis/docs/{revnumber}/api/org/springframework/data/redis/core/RedisKeyValueAdapter.EnableKeyspaceEvents.html[`EnableKeyspaceEvents`] for possible values.
 
@@ -671,7 +671,7 @@ NOTE: Please make sure properties used in finder methods are set up for indexing
 
 NOTE: Query methods for Redis repositories support only queries for entities and collections of entities with paging.
 
-Using derived query methods might not always be sufficient to model the queries to execute. `RedisCallback` offers more control over the actual matching of index structures or even custom indexes. To do so, provide a `RedisCallback` that returns a single or `Iterable` set of `id` values, as shown in the following example:
+Using derived query methods might not always be sufficient to model the queries to run. `RedisCallback` offers more control over the actual matching of index structures or even custom indexes. To do so, provide a `RedisCallback` that returns a single or `Iterable` set of `id` values, as shown in the following example:
 
 .Sample finder using RedisCallback
 ====
