@@ -1,6 +1,18 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.4.0-M1 (2020-06-25)
+----------------------------------------
+* DATAREDIS-1165 - Use standard Spring code of conduct.
+* DATAREDIS-1164 - Upgrade to Lettuce 5.3.1.RELEASE.
+* DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
+* DATAREDIS-1159 - RedisStaticMasterReplicaConfiguration.node(String hostName) should return RedisStaticMasterReplicaConfiguration.
+* DATAREDIS-1150 - Add reactive variant of RedisClusterCommands.
+* DATAREDIS-1147 - Release 2.4 M1 (2020.0.0).
+* DATAREDIS-1143 - Delombok source files.
+* DATAREDIS-911 - Spring data redis is not working for custom converter.
+
+
 Changes in version 2.3.1.RELEASE (2020-06-10)
 ---------------------------------------------
 * DATAREDIS-1164 - Upgrade to Lettuce 5.3.1.RELEASE.
@@ -2001,6 +2013,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
