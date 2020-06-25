@@ -32,7 +32,7 @@ On the receiving side, one can subscribe to one or multiple channels either by n
 
 At the low-level, `ReactiveRedisConnection` offers `subscribe` and `pSubscribe` methods that map the Redis commands for subscribing by channel respectively by pattern. Note that multiple channels or patterns can be used as arguments. To change a subscription, simply query the channels and patterns of `ReactiveSubscription`.
 
-NOTE: Reactive subscription commands in Spring Data Redis are non-blocking and may terminate without emitting an element.
+NOTE: Reactive subscription commands in Spring Data Redis are non-blocking and may end without emitting an element.
 
 As mentioned above, once subscribed a connection starts waiting for messages. No other commands can be invoked on it except for adding new subscriptions or modifying/canceling the existing ones. Commands other than `subscribe`, `pSubscribe`, `unsubscribe`, or `pUnsubscribe` are illegal and will cause an exception.
 

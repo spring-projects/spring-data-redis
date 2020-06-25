@@ -24,7 +24,7 @@ This section briefly covers items that are new and noteworthy in the latest rele
 * <<redis:write-to-master-read-from-replica, Write to Master, read from Replica>> support using Lettuce.
 * <<query-by-example,Query by Example>> integration.
 * `@TypeAlias` Support for Redis repositories.
-* Cluster-wide `SCAN` using Lettuce and `SCAN` execution on a selected node supported by both drivers.
+* Cluster-wide `SCAN` using Lettuce and `SCAN` on a selected node supported by both drivers.
 * <<redis:reactive:pubsub,Reactive Pub/Sub>> to send and receive a message stream.
 * `BITFIELD`, `BITPOS`, and `OBJECT` command support.
 * Align return types of `BoundZSetOperations` with `ZSetOperations`.
