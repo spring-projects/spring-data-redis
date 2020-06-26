@@ -17,12 +17,14 @@ package org.springframework.data.redis.stream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
+import static org.mockito.ArgumentMatchers.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collections;
 
@@ -30,6 +32,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisVersionUtils;
@@ -55,6 +58,7 @@ import org.springframework.data.redis.stream.StreamReceiver.StreamReceiverOption
  * Integration tests for {@link StreamReceiver}.
  *
  * @author Mark Paluch
+ * @author Eddie McDaniel
  */
 public class StreamReceiverIntegrationTests {
 
@@ -165,6 +169,31 @@ public class StreamReceiverIntegrationTests {
 					assertThat(it.getValue()).isEqualTo(new LoginEvent("Walter", "White"));
 				}) //
 				.thenCancel() //
+				.verify(Duration.ofSeconds(5));
+	}
+
+	@Test // DATAREDIS-1172
+	public void shouldReceiveCustomHashValueRecords() {
+
+		SerializationPair<Integer> serializationPair = Mockito.mock(SerializationPair.class);
+		Mockito.when(serializationPair.read(any(ByteBuffer.class))).thenReturn(345920);
+
+		StreamReceiverOptions<String, MapRecord<String, String, Integer>> receiverOptions = StreamReceiverOptions.builder()
+				.<String, Integer>hashValueSerializer(serializationPair).build();
+
+		StreamReceiver<String, MapRecord<String, String, Integer>> receiver = StreamReceiver.create(connectionFactory,
+				receiverOptions);
+
+		Flux<MapRecord<String, String, Integer>> messages = receiver.receive(StreamOffset.fromStart("my-stream"));
+
+		messages.as(StepVerifier::create)
+				.then(() -> reactiveRedisTemplate.opsForStream()
+					.add("my-stream", Collections.singletonMap("Jesse", "Pinkman")).subscribe())
+				.consumeNextWith(it -> {
+					assertThat(it.getStream()).isEqualTo("my-stream");
+					assertThat(it.getValue()).contains(entry("Jesse", 345920));
+				})
+				.thenCancel()
 				.verify(Duration.ofSeconds(5));
 	}
 
