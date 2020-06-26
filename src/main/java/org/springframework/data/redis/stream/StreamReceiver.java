@@ -89,6 +89,7 @@ import org.springframework.util.Assert;
  * </pre>
  *
  * @author Mark Paluch
+ * @author Eddie McDaniel
  * @param <K> Stream key and Stream field type.
  * @param <V> Stream value type.
  * @since 2.2
@@ -397,7 +398,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 */
 		@SuppressWarnings("unchecked")
 		public <HK, HV> StreamReceiverOptionsBuilder<K, MapRecord<K, HK, HV>> hashValueSerializer(
-				SerializationPair<HK> pair) {
+				SerializationPair<HV> pair) {
 
 			Assert.notNull(pair, "SerializationPair must not be null");
 
