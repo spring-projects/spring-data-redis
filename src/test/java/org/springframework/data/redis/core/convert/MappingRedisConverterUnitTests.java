@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -1882,6 +1883,38 @@ public class MappingRedisConverterUnitTests {
 
 		assertThat(target.getAccount()).isEqualTo("123456");
 		assertThat(target.getAccountName()).isEqualTo("Golam Mazid Sajib");
+	}
+
+	@Test // DATAREDIS-1175
+	public void writePlainList() {
+
+		List<Object> source =  Arrays.asList("Hello", "stream", "message", 100L);
+		RedisTestData target = write(source);
+
+		System.out.println(target.getBucket().toString());
+
+		assertThat(target).containsEntry("[0]", "Hello") //
+				.containsEntry("[1]", "stream") //
+				.containsEntry("[2]", "message") //
+				.containsEntry("[3]", "100");
+	}
+
+	@Test // DATAREDIS-1175
+	public void readPlainList() {
+
+		Map<String, String> source = new LinkedHashMap<>();
+		source.put("[0]._class", "java.lang.String");
+		source.put("[0]", "Hello");
+		source.put("[1]._class", "java.lang.String");
+		source.put("[1]", "stream");
+		source.put("[2]._class", "java.lang.String");
+		source.put("[2]", "message");
+		source.put("[3]._class", "java.lang.Long");
+		source.put("[3]", "100");
+
+		List target = read(List.class, source);
+
+		assertThat(target).containsExactly("Hello", "stream", "message", 100L);
 	}
 
 	private RedisTestData write(Object source) {

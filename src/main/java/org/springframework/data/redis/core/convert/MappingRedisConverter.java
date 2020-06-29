@@ -176,6 +176,11 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 */
 	@Override
 	public <R> R read(Class<R> type, RedisData source) {
+
+		TypeInformation<?> readType = typeMapper.readType(source.getBucket().getPath(), ClassTypeInformation.from(type));
+		if(readType.isCollectionLike()) {
+			return (R) readCollectionOrArray("", ArrayList.class, Object.class, source.getBucket());
+		}
 		return readInternal("", type, source);
 	}
 
@@ -395,7 +400,11 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		sink.setKeyspace(entity.getKeySpace());
 
-		writeInternal(entity.getKeySpace(), "", source, entity.getTypeInformation(), sink);
+		if(entity.getTypeInformation().isCollectionLike()) {
+			writeCollection(entity.getKeySpace(), "", (List) source, entity.getTypeInformation().getComponentType(), sink);
+		} else {
+			writeInternal(entity.getKeySpace(), "", source, entity.getTypeInformation(), sink);
+		}
 
 		Object identifier = entity.getIdentifierAccessor(source).getIdentifier();
 
@@ -713,7 +722,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				break;
 			}
 
-			String currentPath = path + ".[" + i + "]";
+			String currentPath = path + (path.equals("") ? "" : ".") + "[" + i + "]";
 
 			if (!ClassUtils.isAssignable(typeHint.getType(), value.getClass())) {
 				throw new MappingException(
