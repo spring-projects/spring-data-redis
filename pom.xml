@@ -19,7 +19,7 @@
 		<springdata.keyvalue>2.2.9.BUILD-SNAPSHOT</springdata.keyvalue>
 		<jta>1.1</jta>
 		<beanutils>1.9.2</beanutils>
-		<xstream>1.4.8</xstream>
+		<xstream>1.4.12</xstream>
 		<pool>2.7.0</pool>
 		<lettuce>5.2.2.RELEASE</lettuce>
 		<jedis>3.1.0</jedis>
