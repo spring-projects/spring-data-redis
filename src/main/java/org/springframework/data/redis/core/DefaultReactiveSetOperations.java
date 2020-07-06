@@ -426,7 +426,7 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(options, "ScanOptions must not be null!");
 
-		return createFlux(connection -> connection.sScan(rawKey(key)).map(this::readValue));
+		return createFlux(connection -> connection.sScan(rawKey(key), options).map(this::readValue));
 	}
 
 	/*
