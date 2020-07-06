@@ -15,17 +15,6 @@
  */
 package org.springframework.data.redis.listener;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanNameAware;
@@ -35,12 +24,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.ConnectionUtils;
-import org.springframework.data.redis.connection.Message;
-import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -50,6 +34,12 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Container providing asynchronous behaviour for Redis message listeners. Handles the low level details of listening,
@@ -907,6 +897,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 						Subscription sub = connection.getSubscription();
 						if (sub != null) {
 							sub.subscribe(channels);
+						} else {
+							// See https://jira.spring.io/browse/DATAREDIS-389
+							logger.error("Race condition detected. Please rework your registration of listeners.");
 						}
 					}
 				}
@@ -920,6 +913,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 						Subscription sub = connection.getSubscription();
 						if (sub != null) {
 							sub.pSubscribe(patterns);
+						} else {
+							// See https://jira.spring.io/browse/DATAREDIS-389
+							logger.error("Race condition detected. Please rework your registration of listeners.");
 						}
 					}
 				}
@@ -933,6 +929,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 						Subscription sub = connection.getSubscription();
 						if (sub != null) {
 							sub.unsubscribe(channels);
+						} else {
+							// See https://jira.spring.io/browse/DATAREDIS-389
+							logger.error("Race condition detected. Please rework your registration of listeners.");
 						}
 					}
 				}
@@ -946,6 +945,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 						Subscription sub = connection.getSubscription();
 						if (sub != null) {
 							sub.pUnsubscribe(patterns);
+						} else {
+							// See https://jira.spring.io/browse/DATAREDIS-389
+							logger.error("Race condition detected. Please rework your registration of listeners.");
 						}
 					}
 				}
