@@ -59,6 +59,7 @@ import java.util.concurrent.TimeUnit;
  * @author Way Joke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Markus Heiden
  */
 public class RedisMessageListenerContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
 
