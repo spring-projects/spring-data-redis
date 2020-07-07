@@ -3,7 +3,13 @@
 
 This section briefly covers items that are new and noteworthy in the latest releases.
 
+[[new-in-2.4.0]]
+== New in Spring Data Redis 2.4
+
+* `RedisCache` now exposes `CacheStatistics`.
+
 [[new-in-2.3.0]]
+
 == New in Spring Data Redis 2.3
 
 * Template API Method Refinements for `Duration` and `Instant`.

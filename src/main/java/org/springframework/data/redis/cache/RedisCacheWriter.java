@@ -106,4 +106,13 @@ public interface RedisCacheWriter {
 	 * @param pattern The pattern for the keys to remove. Must not be {@literal null}.
 	 */
 	void clean(String name, byte[] pattern);
+
+	/**
+	 * Return the {@link CacheStatistics} for this cache instance. Statistics are accumulated per cache instance and not
+	 * from the backing Redis data store. Cache statistics are accumulated starting from the time a cache is created.
+	 *
+	 * @return statistics object for this {@link RedisCache}.
+	 * @since 2.4
+	 */
+	CacheStatistics getStatistics();
 }
