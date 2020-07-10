@@ -15,28 +15,37 @@
  */
 package org.springframework.data.redis.cache;
 
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Cache statistics for a Redis Cache.
+ * Cache statistics for a {@link RedisCache}. <br />
+ * <strong>NOTE:</strong> {@link CacheStatistics} only serve local (in memory) data and do not collect any server
+ * statistics.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.4
  */
 public interface CacheStatistics {
 
 	/**
+	 * @return the name of the {@link RedisCache}.
+	 */
+	String getCacheName();
+
+	/**
 	 * @return number of put operations on the cache.
 	 */
-	long getStores();
+	long getPuts();
 
 	/**
-	 * @return number of get operations.
+	 * @return the total number of get operations including both {@link #getHits() hits} and {@link #getMisses() misses}.
 	 */
-	long getRetrievals();
+	long getGets();
 
 	/**
-	 * @return number of cache get hits.
+	 * @return the number of cache get hits.
 	 */
 	long getHits();
 
@@ -46,13 +55,38 @@ public interface CacheStatistics {
 	long getMisses();
 
 	/**
+	 * @return the number of {@link #getGets() gets} that have not yet been answered (neither {@link #getHits() hit} nor
+	 *         {@link #getMisses() miss}).
+	 */
+	default long getPending() {
+		return getGets() - (getHits() + getMisses());
+	}
+
+	/**
 	 * @return number of cache removals.
 	 */
-	long getRemovals();
+	long getDeletes();
 
 	/**
 	 * @param unit the time unit to report the lock wait duration.
 	 * @return lock duration using the given {@link TimeUnit} if the cache is configured to use locking.
 	 */
 	long getLockWaitDuration(TimeUnit unit);
+
+	/**
+	 * @return initial point in time when started statistics capturing.
+	 */
+	Instant getSince();
+
+	/**
+	 * @return instantaneous point in time of last statistics counter reset. Equals {@link #getSince()} if never resetted.
+	 */
+	Instant getLastReset();
+
+	/**
+	 * @return the statistics time.
+	 */
+	default Instant getTime() {
+		return Instant.now();
+	}
 }

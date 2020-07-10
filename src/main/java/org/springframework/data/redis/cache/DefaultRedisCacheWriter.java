@@ -51,7 +51,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	private final RedisConnectionFactory connectionFactory;
 	private final Duration sleepTime;
-	private final DefaultCacheStatistics statistics;
+	private final CacheStatisticsCollector statistics;
 
 	/**
 	 * @param connectionFactory must not be {@literal null}.
@@ -66,13 +66,25 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 *          to disable locking.
 	 */
 	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime) {
+		this(connectionFactory, sleepTime, CacheStatisticsCollector.none());
+	}
+
+	/**
+	 * @param connectionFactory must not be {@literal null}.
+	 * @param sleepTime sleep time between lock request attempts. Must not be {@literal null}. Use {@link Duration#ZERO}
+	 *          to disable locking.
+	 * @param cacheStatisticsCollector must not be {@literal null}.
+	 */
+	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime,
+			CacheStatisticsCollector cacheStatisticsCollector) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
 		Assert.notNull(sleepTime, "SleepTime must not be null!");
+		Assert.notNull(cacheStatisticsCollector, "CacheStatisticsCollector must not be null!");
 
 		this.connectionFactory = connectionFactory;
 		this.sleepTime = sleepTime;
-		this.statistics = new DefaultCacheStatistics();
+		this.statistics = cacheStatisticsCollector;
 	}
 
 	/*
@@ -97,7 +109,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			return "OK";
 		});
 
-		statistics.incrementStores();
+		statistics.incPuts(name);
 	}
 
 	/*
@@ -112,12 +124,12 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 		byte[] result = execute(name, connection -> connection.get(key));
 
-		statistics.incrementRetrievals();
+		statistics.incGets(name);
 
 		if (result != null) {
-			statistics.incrementHits();
+			statistics.incHits(name);
 		} else {
-			statistics.incrementMisses();
+			statistics.incMisses(name);
 		}
 
 		return result;
@@ -147,7 +159,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 						connection.pExpire(key, ttl.toMillis());
 					}
 
-					statistics.incrementStores();
+					statistics.incPuts(name);
 					return null;
 				}
 
@@ -172,7 +184,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(key, "Key must not be null!");
 
 		execute(name, connection -> connection.del(key));
-		statistics.incrementRemovals();
+		statistics.incDeletes(name);
 	}
 
 	/*
@@ -200,7 +212,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 						.toArray(new byte[0][]);
 
 				if (keys.length > 0) {
-					statistics.incrementRemovals(keys.length);
+					statistics.incDeletesBy(name, keys.length);
 					connection.del(keys);
 				}
 			} finally {
@@ -216,11 +228,25 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.cache.RedisCacheWriter#getStatistics()
+	 * @see org.springframework.data.redis.cache.CacheStatisticsProvider#getCacheStatistics(java.lang.String)
 	 */
 	@Override
-	public DefaultCacheStatistics getStatistics() {
-		return statistics;
+	public CacheStatistics getCacheStatistics(String cacheName) {
+		return statistics.getCacheStatistics(cacheName);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter#clearStatistics(java.lang.String)
+	 */
+	@Override
+	public void clearStatistics(String name) {
+		statistics.reset(name);
+	}
+
+	@Override
+	public RedisCacheWriter with(CacheStatisticsCollector cacheStatisticsCollector) {
+		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, cacheStatisticsCollector);
 	}
 
 	/**
@@ -303,7 +329,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			throw new PessimisticLockingFailureException(String.format("Interrupted while waiting to unlock cache %s", name),
 					ex);
 		} finally {
-			statistics.incrementLockWaitTime(System.nanoTime() - lockWaitTimeNs);
+			statistics.incLockTime(name, System.nanoTime() - lockWaitTimeNs);
 		}
 	}
 
