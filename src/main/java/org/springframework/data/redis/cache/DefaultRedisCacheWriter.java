@@ -244,8 +244,12 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		statistics.reset(name);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter#with(CacheStatisticsCollector)
+	 */
 	@Override
-	public RedisCacheWriter with(CacheStatisticsCollector cacheStatisticsCollector) {
+	public RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector) {
 		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, cacheStatisticsCollector);
 	}
 

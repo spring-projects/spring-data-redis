@@ -462,17 +462,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 * @since 2.4
 		 */
 		public RedisCacheManagerBuilder enableStatistics() {
-			return statisticsCollector(CacheStatisticsCollector.instance());
-		}
 
-		/**
-		 * @return
-		 * @since 2.4
-		 */
-		private RedisCacheManagerBuilder statisticsCollector(CacheStatisticsCollector statisticsCollector) {
-
-			Assert.notNull(statisticsCollector, "StatisticsCollector must not be null!");
-			this.statisticsCollector = statisticsCollector;
+			this.statisticsCollector = CacheStatisticsCollector.create();
 			return this;
 		}
 
@@ -489,7 +480,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 			RedisCacheWriter theCacheWriter = cacheWriter;
 
 			if (!statisticsCollector.equals(CacheStatisticsCollector.none())) {
-				theCacheWriter = cacheWriter.with(statisticsCollector);
+				theCacheWriter = cacheWriter.withStatisticsCollector(statisticsCollector);
 			}
 
 			RedisCacheManager cm = new RedisCacheManager(theCacheWriter, defaultCacheConfiguration, initialCaches,

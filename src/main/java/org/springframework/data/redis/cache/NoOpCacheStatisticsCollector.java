@@ -23,8 +23,9 @@ import org.springframework.util.ObjectUtils;
 /**
  * {@link CacheStatisticsCollector} implementation that does not capture anything but throws an
  * {@link IllegalStateException} when {@link #getCacheStatistics(String) obtaining} {@link CacheStatistics} for a cache.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.4
  */
 enum NoOpCacheStatisticsCollector implements CacheStatisticsCollector {
@@ -86,62 +87,102 @@ enum NoOpCacheStatisticsCollector implements CacheStatisticsCollector {
 	 */
 	@Override
 	public CacheStatistics getCacheStatistics(String cacheName) {
-		return new EmptyStats(cacheName);
+		return new EmptyStatistics(cacheName);
 	}
 
-	private static class EmptyStats implements CacheStatistics {
+	private static class EmptyStatistics implements CacheStatistics {
 
 		private final String cacheName;
 
-		EmptyStats(String cacheName) {
+		EmptyStatistics(String cacheName) {
 			this.cacheName = cacheName;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.cache.CacheStatistics#getCacheName()
+		 */
 		@Override
 		public String getCacheName() {
 			return cacheName;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.cache.CacheStatistics#getPuts()
+		 */
 		@Override
 		public long getPuts() {
-			return -1;
+			return 0;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.cache.CacheStatistics#getGets()
+		 */
 		@Override
 		public long getGets() {
-			return -1;
+			return 0;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.cache.CacheStatistics#getHits()
+		 */
 		@Override
 		public long getHits() {
-			return -1;
+			return 0;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.cache.CacheStatistics#getMisses()
+		 */
 		@Override
 		public long getMisses() {
-			return -1;
+			return 0;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.cache.CacheStatistics#getDeletes()
+		 */
 		@Override
 		public long getDeletes() {
-			return -1;
+			return 0;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.cache.CacheStatistics#getLockWaitDuration(java.util.concurrent.TimeUnit)
+		 */
 		@Override
 		public long getLockWaitDuration(TimeUnit unit) {
-			return -1;
+			return 0;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.cache.CacheStatistics#getSince()
+		 */
 		@Override
 		public Instant getSince() {
 			return Instant.EPOCH;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.cache.CacheStatistics#getLastReset()
+		 */
 		@Override
 		public Instant getLastReset() {
 			return getSince();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
 		@Override
 		public boolean equals(Object o) {
 
@@ -152,10 +193,14 @@ enum NoOpCacheStatisticsCollector implements CacheStatisticsCollector {
 				return false;
 			}
 
-			EmptyStats that = (EmptyStats) o;
+			EmptyStatistics that = (EmptyStatistics) o;
 			return ObjectUtils.nullSafeEquals(cacheName, that.cacheName);
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
 		@Override
 		public int hashCode() {
 			return ObjectUtils.nullSafeHashCode(cacheName);

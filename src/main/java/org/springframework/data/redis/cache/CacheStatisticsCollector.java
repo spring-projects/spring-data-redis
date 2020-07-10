@@ -26,35 +26,35 @@ public interface CacheStatisticsCollector extends CacheStatisticsProvider {
 
 	/**
 	 * Increase the counter for {@literal put operations} of the given cache.
-	 * 
+	 *
 	 * @param cacheName must not be {@literal null}.
 	 */
 	void incPuts(String cacheName);
 
 	/**
 	 * Increase the counter for {@literal get operations} of the given cache.
-	 * 
+	 *
 	 * @param cacheName must not be {@literal null}.
 	 */
 	void incGets(String cacheName);
 
 	/**
 	 * Increase the counter for {@literal get operations with result} of the given cache.
-	 * 
+	 *
 	 * @param cacheName must not be {@literal null}.
 	 */
 	void incHits(String cacheName);
 
 	/**
 	 * Increase the counter for {@literal get operations without result} of the given cache.
-	 * 
+	 *
 	 * @param cacheName must not be {@literal null}.
 	 */
 	void incMisses(String cacheName);
 
 	/**
 	 * Increase the counter for {@literal delete operations} of the given cache.
-	 * 
+	 *
 	 * @param cacheName must not be {@literal null}.
 	 */
 	default void incDeletes(String cacheName) {
@@ -63,21 +63,21 @@ public interface CacheStatisticsCollector extends CacheStatisticsProvider {
 
 	/**
 	 * Increase the counter for {@literal delete operations} of the given cache by the given value.
-	 * 
+	 *
 	 * @param cacheName must not be {@literal null}.
 	 */
 	void incDeletesBy(String cacheName, int value);
 
 	/**
 	 * Increase the gauge for {@literal sync lock duration} of the cache by the given nanoseconds.
-	 * 
+	 *
 	 * @param cacheName must not be {@literal null}.
 	 */
 	void incLockTime(String cacheName, long durationNS);
 
 	/**
 	 * Reset the all counters and gauges of for the given cache.
-	 * 
+	 *
 	 * @param cacheName must not be {@literal null}.
 	 */
 	void reset(String cacheName);
@@ -92,7 +92,7 @@ public interface CacheStatisticsCollector extends CacheStatisticsProvider {
 	/**
 	 * @return a default {@link CacheStatisticsCollector} implementation.
 	 */
-	static CacheStatisticsCollector instance/*clearlyNeedsBetterNaming*/() {
+	static CacheStatisticsCollector create() {
 		return new DefaultCacheStatisticsCollector();
 	}
 }

@@ -120,6 +120,6 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @param cacheStatisticsCollector must not be {@literal null}.
 	 * @return new instance of {@link RedisCacheWriter}.
 	 */
-	RedisCacheWriter with(CacheStatisticsCollector cacheStatisticsCollector);
+	RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector);
 
 }

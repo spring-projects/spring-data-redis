@@ -115,10 +115,6 @@ class MutableCacheStatistics implements CacheStatistics {
 		return deletes.sum();
 	}
 
-	void incDeletes() {
-		incDeletes(1);
-	}
-
 	/**
 	 * @param x number of removals to add.
 	 */
@@ -138,11 +134,19 @@ class MutableCacheStatistics implements CacheStatistics {
 		return unit.convert(lockWaitTimeNs.sum(), TimeUnit.NANOSECONDS);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.cache.CacheStatistics#getSince()
+	 */
 	@Override
 	public Instant getSince() {
 		return this.aliveSince;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.cache.CacheStatistics#getLastReset()
+	 */
 	@Override
 	public Instant getLastReset() {
 		return lastReset;
@@ -271,6 +275,9 @@ class MutableCacheStatistics implements CacheStatistics {
 		 */
 		@Override
 		public long getLockWaitDuration(TimeUnit unit) {
+
+			Assert.notNull(unit, "TimeUnit must not be null");
+
 			return unit.convert(lockWaitTimeNS, TimeUnit.NANOSECONDS);
 		}
 
