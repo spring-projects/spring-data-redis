@@ -73,7 +73,7 @@ class MutableCacheStatisticsUnitTests {
 
 		assertThat(statistics.getDeletes()).isZero();
 
-		statistics.incDeletes();
+		statistics.incDeletes(1);
 
 		assertThat(statistics.getDeletes()).isOne();
 	}

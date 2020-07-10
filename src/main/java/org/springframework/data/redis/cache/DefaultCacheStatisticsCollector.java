@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Default {@link CacheStatisticsCollector} implementation holding synchronized per cache
  * {@link MutableCacheStatistics}.
- * 
+ *
  * @author Christoph Strobl
  * @since 2.4
  */

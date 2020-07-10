@@ -79,7 +79,7 @@ public interface CacheStatistics {
 	Instant getSince();
 
 	/**
-	 * @return instantaneous point in time of last statistics counter reset. Equals {@link #getSince()} if never resetted.
+	 * @return instantaneous point in time of last statistics counter reset. Equals {@link #getSince()} if never reset.
 	 */
 	Instant getLastReset();
 

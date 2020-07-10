@@ -175,10 +175,10 @@ class RedisCacheManagerUnitTests {
 	@Test // DATAREDIS-1082
 	void builderSetsStatisticsCollectorWhenEnabled() {
 
-		when(cacheWriter.with(any())).thenReturn(cacheWriter);
+		when(cacheWriter.withStatisticsCollector(any())).thenReturn(cacheWriter);
 		RedisCacheManager.builder(cacheWriter).enableStatistics().build();
 
-		verify(cacheWriter).with(any(DefaultCacheStatisticsCollector.class));
+		verify(cacheWriter).withStatisticsCollector(any(DefaultCacheStatisticsCollector.class));
 	}
 
 	@Test // DATAREDIS-1082
@@ -186,6 +186,6 @@ class RedisCacheManagerUnitTests {
 
 		RedisCacheManager.builder(cacheWriter).build();
 
-		verify(cacheWriter, never()).with(any());
+		verify(cacheWriter, never()).withStatisticsCollector(any());
 	}
 }
