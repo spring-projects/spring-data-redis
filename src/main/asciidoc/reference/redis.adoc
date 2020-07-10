@@ -809,3 +809,8 @@ The following table lists the default settings for `RedisCacheConfiguration`:
 |Conversion Service
 |`DefaultFormattingConversionService` with default cache key converters
 |====
+
+[NOTE]
+====
+By default `RedisCache` does not expose statistics. Use `RedisCacheManagerBuilder.enableStatistics()` to collect local  _hits_ and _misses_ exposed via `RedisCache#getStatistics()`, that returns a snapshot of the collected data.
+====

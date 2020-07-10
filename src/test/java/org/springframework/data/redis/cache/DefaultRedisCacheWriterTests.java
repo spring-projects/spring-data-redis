@@ -90,7 +90,7 @@ public class DefaultRedisCacheWriterTests {
 	@Test // DATAREDIS-481, DATAREDIS-1082
 	public void putShouldAddEternalEntry() {
 
-		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory);
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory).with(CacheStatisticsCollector.instance());
 		writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
 
 		doWithConnection(connection -> {
@@ -98,8 +98,8 @@ public class DefaultRedisCacheWriterTests {
 			assertThat(connection.ttl(binaryCacheKey)).isEqualTo(-1);
 		});
 
-		assertThat(writer.getStatistics().getStores()).isOne();
-		assertThat(writer.getStatistics().getLockWaitDuration(TimeUnit.NANOSECONDS)).isZero();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getPuts()).isOne();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getLockWaitDuration(TimeUnit.NANOSECONDS)).isZero();
 	}
 
 	@Test // DATAREDIS-481
@@ -147,13 +147,13 @@ public class DefaultRedisCacheWriterTests {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
 
-		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory);
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory).with(CacheStatisticsCollector.instance());
 		assertThat(writer.get(CACHE_NAME, binaryCacheKey))
 				.isEqualTo(binaryCacheValue);
 
-		assertThat(writer.getStatistics().getRetrievals()).isOne();
-		assertThat(writer.getStatistics().getHits()).isOne();
-		assertThat(writer.getStatistics().getMisses()).isZero();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getGets()).isOne();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getHits()).isOne();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getMisses()).isZero();
 	}
 
 	@Test // DATAREDIS-481
@@ -164,7 +164,7 @@ public class DefaultRedisCacheWriterTests {
 	@Test // DATAREDIS-481, DATAREDIS-1082
 	public void putIfAbsentShouldAddEternalEntryWhenKeyDoesNotExist() {
 
-		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory);
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory).with(CacheStatisticsCollector.instance());
 		assertThat(writer.putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue,
 				Duration.ZERO)).isNull();
 
@@ -172,7 +172,7 @@ public class DefaultRedisCacheWriterTests {
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
 		});
 
-		assertThat(writer.getStatistics().getStores()).isOne();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getPuts()).isOne();
 	}
 
 	@Test // DATAREDIS-481, DATAREDIS-1082
@@ -180,7 +180,7 @@ public class DefaultRedisCacheWriterTests {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
 
-		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory);
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory).with(CacheStatisticsCollector.instance());
 		assertThat(writer.putIfAbsent(CACHE_NAME, binaryCacheKey, "foo".getBytes(), Duration.ZERO))
 				.isEqualTo(binaryCacheValue);
 
@@ -188,19 +188,19 @@ public class DefaultRedisCacheWriterTests {
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
 		});
 
-		assertThat(writer.getStatistics().getStores()).isZero();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getPuts()).isZero();
 	}
 
 	@Test // DATAREDIS-481, DATAREDIS-1082
 	public void putIfAbsentShouldAddExpiringEntryWhenKeyDoesNotExist() {
 
-		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory);
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory).with(CacheStatisticsCollector.instance());
 		assertThat(writer.putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ofSeconds(5))).isNull();
 
 		doWithConnection(connection -> {
 			assertThat(connection.ttl(binaryCacheKey)).isGreaterThan(3).isLessThan(6);
 		});
-		assertThat(writer.getStatistics().getStores()).isOne();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getPuts()).isOne();
 	}
 
 	@Test // DATAREDIS-481, DATAREDIS-1082
@@ -208,11 +208,11 @@ public class DefaultRedisCacheWriterTests {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
 
-		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory);
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory).with(CacheStatisticsCollector.instance());
 		writer.remove(CACHE_NAME, binaryCacheKey);
 
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isFalse());
-		assertThat(writer.getStatistics().getRemovals()).isOne();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getDeletes()).isOne();
 	}
 
 	@Test // DATAREDIS-418, DATAREDIS-1082
@@ -223,14 +223,14 @@ public class DefaultRedisCacheWriterTests {
 			connection.set("foo".getBytes(), "bar".getBytes());
 		});
 
-		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory);
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory).with(CacheStatisticsCollector.instance());
 		writer.clean(CACHE_NAME, (CACHE_NAME + "::*").getBytes(Charset.forName("UTF-8")));
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
 			assertThat(connection.exists("foo".getBytes())).isTrue();
 		});
-		assertThat(writer.getStatistics().getRemovals()).isOne();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getDeletes()).isOne();
 	}
 
 	@Test // DATAREDIS-481
@@ -261,7 +261,7 @@ public class DefaultRedisCacheWriterTests {
 	@Test // DATAREDIS-481, DATAREDIS-1082
 	public void lockingCacheWriterShouldWaitForLockRelease() throws InterruptedException {
 
-		DefaultRedisCacheWriter writer = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory);
+		DefaultRedisCacheWriter writer = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory).with(CacheStatisticsCollector.instance());
 		writer.lock(CACHE_NAME);
 
 		CountDownLatch beforeWrite = new CountDownLatch(1);
@@ -291,7 +291,7 @@ public class DefaultRedisCacheWriterTests {
 			doWithConnection(connection -> {
 				assertThat(connection.exists(binaryCacheKey)).isTrue();
 			});
-			assertThat(writer.getStatistics().getLockWaitDuration(TimeUnit.NANOSECONDS)).isGreaterThan(0);
+			assertThat(writer.getCacheStatistics(CACHE_NAME).getLockWaitDuration(TimeUnit.NANOSECONDS)).isGreaterThan(0);
 		} finally {
 			th.interrupt();
 		}

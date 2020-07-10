@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-public interface RedisCacheWriter {
+public interface RedisCacheWriter extends CacheStatisticsProvider {
 
 	/**
 	 * Create new {@link RedisCacheWriter} without locking behavior.
@@ -108,11 +108,18 @@ public interface RedisCacheWriter {
 	void clean(String name, byte[] pattern);
 
 	/**
-	 * Return the {@link CacheStatistics} for this cache instance. Statistics are accumulated per cache instance and not
-	 * from the backing Redis data store. Cache statistics are accumulated starting from the time a cache is created.
+	 * Reset all statistics counters and gauges for this cache.
 	 *
-	 * @return statistics object for this {@link RedisCache}.
 	 * @since 2.4
 	 */
-	CacheStatistics getStatistics();
+	void clearStatistics(String name);
+
+	/**
+	 * Obtain a {@link RedisCacheWriter} using the given {@link CacheStatisticsCollector} to collect metrics.
+	 *
+	 * @param cacheStatisticsCollector must not be {@literal null}.
+	 * @return new instance of {@link RedisCacheWriter}.
+	 */
+	RedisCacheWriter with(CacheStatisticsCollector cacheStatisticsCollector);
+
 }

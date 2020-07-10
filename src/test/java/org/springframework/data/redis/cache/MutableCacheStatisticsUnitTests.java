@@ -20,22 +20,22 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for {@link DefaultCacheStatistics}.
+ * Unit tests for {@link MutableCacheStatistics}.
  *
  * @author Mark Paluch
  */
-class DefaultCacheStatisticsUnitTests {
+class MutableCacheStatisticsUnitTests {
 
-	DefaultCacheStatistics statistics = new DefaultCacheStatistics();
+	MutableCacheStatistics statistics = new MutableCacheStatistics("cache-name");
 
 	@Test // DATAREDIS-1082
 	void shouldReportRetrievals() {
 
-		assertThat(statistics.getRetrievals()).isZero();
+		assertThat(statistics.getGets()).isZero();
 
-		statistics.incrementRetrievals();
+		statistics.incGets();
 
-		assertThat(statistics.getRetrievals()).isOne();
+		assertThat(statistics.getGets()).isOne();
 	}
 
 	@Test // DATAREDIS-1082
@@ -43,7 +43,7 @@ class DefaultCacheStatisticsUnitTests {
 
 		assertThat(statistics.getHits()).isZero();
 
-		statistics.incrementHits();
+		statistics.incHits();
 
 		assertThat(statistics.getHits()).isOne();
 	}
@@ -53,7 +53,7 @@ class DefaultCacheStatisticsUnitTests {
 
 		assertThat(statistics.getMisses()).isZero();
 
-		statistics.incrementMisses();
+		statistics.incMisses();
 
 		assertThat(statistics.getMisses()).isOne();
 	}
@@ -61,20 +61,20 @@ class DefaultCacheStatisticsUnitTests {
 	@Test // DATAREDIS-1082
 	void shouldReportPuts() {
 
-		assertThat(statistics.getStores()).isZero();
+		assertThat(statistics.getPuts()).isZero();
 
-		statistics.incrementStores();
+		statistics.incPuts();
 
-		assertThat(statistics.getStores()).isOne();
+		assertThat(statistics.getPuts()).isOne();
 	}
 
 	@Test // DATAREDIS-1082
 	void shouldReportRemovals() {
 
-		assertThat(statistics.getRemovals()).isZero();
+		assertThat(statistics.getDeletes()).isZero();
 
-		statistics.incrementRemovals();
+		statistics.incDeletes();
 
-		assertThat(statistics.getRemovals()).isOne();
+		assertThat(statistics.getDeletes()).isOne();
 	}
 }
