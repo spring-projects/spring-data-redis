@@ -15,6 +15,11 @@
  */
 package org.springframework.data.redis.cache;
 
+import java.time.Instant;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.util.ObjectUtils;
+
 /**
  * {@link CacheStatisticsCollector} implementation that does not capture anything but throws an
  * {@link IllegalStateException} when {@link #getCacheStatistics(String) obtaining} {@link CacheStatistics} for a cache.
@@ -81,6 +86,79 @@ enum NoOpCacheStatisticsCollector implements CacheStatisticsCollector {
 	 */
 	@Override
 	public CacheStatistics getCacheStatistics(String cacheName) {
-		throw new IllegalStateException("NoOpCacheStatisticsCollector does not expose statistics.");
+		return new EmptyStats(cacheName);
+	}
+
+	private static class EmptyStats implements CacheStatistics {
+
+		private final String cacheName;
+
+		EmptyStats(String cacheName) {
+			this.cacheName = cacheName;
+		}
+
+		@Override
+		public String getCacheName() {
+			return cacheName;
+		}
+
+		@Override
+		public long getPuts() {
+			return -1;
+		}
+
+		@Override
+		public long getGets() {
+			return -1;
+		}
+
+		@Override
+		public long getHits() {
+			return -1;
+		}
+
+		@Override
+		public long getMisses() {
+			return -1;
+		}
+
+		@Override
+		public long getDeletes() {
+			return -1;
+		}
+
+		@Override
+		public long getLockWaitDuration(TimeUnit unit) {
+			return -1;
+		}
+
+		@Override
+		public Instant getSince() {
+			return Instant.EPOCH;
+		}
+
+		@Override
+		public Instant getLastReset() {
+			return getSince();
+		}
+
+		@Override
+		public boolean equals(Object o) {
+
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+
+			EmptyStats that = (EmptyStats) o;
+			return ObjectUtils.nullSafeEquals(cacheName, that.cacheName);
+		}
+
+		@Override
+		public int hashCode() {
+			return ObjectUtils.nullSafeHashCode(cacheName);
+		}
 	}
 }

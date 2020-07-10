@@ -338,6 +338,18 @@ public class DefaultRedisCacheWriterTests {
 				.hasCauseInstanceOf(InterruptedException.class);
 	}
 
+	@Test // DATAREDIS-1082
+	public void noOpSatisticsCollectorReturnsEmptyStatsInstance() {
+
+		DefaultRedisCacheWriter cw = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory);
+		CacheStatistics stats = cw.getCacheStatistics(CACHE_NAME);
+
+		cw.putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ofSeconds(5));
+
+		assertThat(stats).isNotNull();
+		assertThat(stats.getPuts()).isNegative();
+	}
+
 	private void doWithConnection(Consumer<RedisConnection> callback) {
 
 		RedisConnection connection = connectionFactory.getConnection();
