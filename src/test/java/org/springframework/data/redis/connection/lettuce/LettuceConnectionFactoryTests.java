@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -315,25 +315,6 @@ public class LettuceConnectionFactoryTests {
 		pool.destroy();
 	}
 
-	@Ignore("Uncomment this test to manually check connection reuse in a pool scenario")
-	@Test
-	public void testLotsOfConnections() throws InterruptedException {
-		// Running a netstat here should show only the 8 conns from the pool (plus 2 from setUp and 1 from factory2
-		// afterPropertiesSet for shared conn)
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.afterPropertiesSet();
-		final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
-		factory2.afterPropertiesSet();
-
-		ConnectionFactoryTracker.add(factory2);
-
-		for (int i = 1; i < 1000; i++) {
-			Thread th = new Thread(() -> factory2.getConnection().bRPop(50000, "foo".getBytes()));
-			th.start();
-		}
-		Thread.sleep(234234234);
-	}
-
 	@Ignore("Redis must have requirepass set to run this test")
 	@Test
 	public void testConnectWithPassword() {
@@ -435,7 +416,8 @@ public class LettuceConnectionFactoryTests {
 		assumeTrue(EpollProvider.isAvailable() || KqueueProvider.isAvailable());
 		assumeTrue(new File(SettingsUtils.getSocket()).exists());
 
-		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.create();
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder()
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SettingsUtils.socketConfiguration(), configuration);
 		factory.setShareNativeConnection(false);
@@ -455,7 +437,7 @@ public class LettuceConnectionFactoryTests {
 				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0);
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
-				.build();
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
 		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(
 				SettingsUtils.getHost()).node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
@@ -472,6 +454,28 @@ public class LettuceConnectionFactoryTests {
 			connection.close();
 		}
 
+		factory.destroy();
+	}
+
+	@Test // DATAREDIS-1093
+	public void pubSubDoesNotSupportMasterReplicaConnections() {
+
+		assumeTrue(String.format("No replicas connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
+				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0);
+
+		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(
+				SettingsUtils.getHost()).node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache);
+		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		factory.afterPropertiesSet();
+
+		RedisConnection connection = factory.getConnection();
+
+		assertThatThrownBy(() -> connection.pSubscribe((message, pattern) -> {
+		}, "foo".getBytes())).isInstanceOf(RedisSystemException.class).hasCauseInstanceOf(UnsupportedOperationException.class);
+
+		connection.close();
 		factory.destroy();
 	}
 

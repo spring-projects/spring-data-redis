@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,6 +112,12 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 	@Override
 	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {
 		super.scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection();
+	}
+
+	@Test
+	@Ignore
+	public void xClaim() throws InterruptedException {
+		super.xClaim();
 	}
 
 	protected void initConnection() {

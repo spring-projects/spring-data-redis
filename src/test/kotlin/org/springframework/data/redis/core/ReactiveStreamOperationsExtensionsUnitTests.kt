@@ -18,16 +18,23 @@ package org.springframework.data.redis.core
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import org.reactivestreams.Publisher
+import org.springframework.data.domain.Range
+import org.springframework.data.redis.connection.RedisZSetCommands.Limit
 import org.springframework.data.redis.connection.stream.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
- * Unit tests for [ReactiveStreamOperationsExtensions].
+ * Unit tests for `ReactiveStreamOperationsExtensions`.
  *
  * @author Mark Paluch
+ * @author Sebastien Deleuze
  */
 class ReactiveStreamOperationsExtensionsUnitTests {
 
@@ -82,15 +89,33 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
 		val record = MapRecord.create("foo", mapOf("a" to "b"))
-		val redordId = RecordId.of("0-0")
-		every { operations.add(record) } returns Mono.just(redordId)
+		val recordId = RecordId.of("0-0")
+		every { operations.add(record) } returns Mono.just(recordId)
 
 		runBlocking {
-			assertThat(operations.addAndAwait(record)).isEqualTo(redordId)
+			assertThat(operations.addAndAwait(record)).isEqualTo(recordId)
 		}
 
 		verify {
 			operations.add(record)
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun `add as Flow`() {
+
+		val map = mapOf("a" to "b")
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		val recordId = RecordId.of("0-0")
+		every { operations.add(any(), any<Publisher<Map<String, String>>>()) } returns Flux.just(recordId)
+
+		runBlocking {
+			val bodyFlow = flow { emit(map) }
+			assertThat(operations.add("foo", bodyFlow).toList()).contains(recordId)
+		}
+
+		verify {
+			operations.add("foo", any<Publisher<Map<String, String>>>())
 		}
 	}
 
@@ -230,6 +255,226 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 
 		verify {
 			operations.size("foo")
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun range() {
+
+		val record = MapRecord.create("foo", mapOf("a" to "b"))
+		val range = Range.just("bar")
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.range(any(), any(), any()) } returns Flux.just(record)
+
+		runBlocking {
+			assertThat(operations.rangeAsFlow("foo", range).toList()).contains(record)
+		}
+
+		verify {
+			operations.range("foo", range, Limit.unlimited())
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun rangeWithType() {
+
+		val record = ObjectRecord.create("a", "b")
+		val range = Range.just("bar")
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.range(any<Class<*>>(), any(), any(), any()) } returns Flux.just(record)
+
+		runBlocking {
+			assertThat(operations.rangeWithTypeAsFlow<String, String>("foo", range).toList()).contains(record)
+		}
+
+		verify {
+			operations.range(String::class.java, "foo", range, Limit.unlimited())
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun `read with StreamOffset vararg`() {
+
+		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
+		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
+		val record = MapRecord.create("foo", mapOf("a" to "b"))
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.read(offset1, offset2) } returns Flux.just(record)
+
+		runBlocking {
+			assertThat(operations.readAsFlow(offset1, offset2).toList()).contains(record)
+		}
+
+		verify {
+			operations.read(offset1, offset2)
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun `read with options and StreamOffset vararg` () {
+
+		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
+		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
+		val options = StreamReadOptions.empty()
+		val record = MapRecord.create("foo", mapOf("a" to "b"))
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.read(options, offset1, offset2) } returns Flux.just(record)
+
+		runBlocking {
+			assertThat(operations.readAsFlow(options, offset1, offset2).toList()).contains(record)
+		}
+
+		verify {
+			operations.read(options, offset1, offset2)
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun `read with type and StreamOffset vararg`() {
+
+		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
+		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
+		val record = ObjectRecord.create("a", "b")
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.read(String::class.java, offset1, offset2) } returns Flux.just(record)
+
+		runBlocking {
+			assertThat(operations.readWithTypeAsFlow<String, String>(offset1, offset2).toList()).contains(record)
+		}
+
+		verify {
+			operations.read(String::class.java, offset1, offset2)
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun `read with type, options and StreamOffset vararg` () {
+
+		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
+		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
+		val options = StreamReadOptions.empty()
+		val record = ObjectRecord.create("a", "b")
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.read(String::class.java, options, offset1, offset2) } returns Flux.just(record)
+
+		runBlocking {
+			assertThat(operations.readWithTypeAsFlow<String, String>(options, offset1, offset2).toList()).contains(record)
+		}
+
+		verify {
+			operations.read(String::class.java, options, offset1, offset2)
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun `read with consumer and StreamOffset vararg`() {
+
+		val consumer = Consumer.from("a", "b")
+		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
+		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
+		val record = MapRecord.create("foo", mapOf("a" to "b"))
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.read(consumer, offset1, offset2) } returns Flux.just(record)
+
+		runBlocking {
+			assertThat(operations.readAsFlow(consumer, offset1, offset2).toList()).contains(record)
+		}
+
+		verify {
+			operations.read(consumer, offset1, offset2)
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun `read with consumer, options and StreamOffset vararg`() {
+
+		val consumer = Consumer.from("a", "b")
+		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
+		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
+		val options = StreamReadOptions.empty()
+		val record = MapRecord.create("foo", mapOf("a" to "b"))
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.read(consumer, options, offset1, offset2) } returns Flux.just(record)
+
+		runBlocking {
+			assertThat(operations.readAsFlow(consumer, options, offset1, offset2).toList()).contains(record)
+		}
+
+		verify {
+			operations.read(consumer, options, offset1, offset2)
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun `read with type, consumer and StreamOffset vararg`() {
+
+		val consumer = Consumer.from("a", "b")
+		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
+		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
+		val record = ObjectRecord.create("a", "b")
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.read(String::class.java, consumer, offset1, offset2) } returns Flux.just(record)
+
+		runBlocking {
+			assertThat(operations.readWithTypeAsFlow<String, String>(consumer, offset1, offset2).toList()).contains(record)
+		}
+
+		verify {
+			operations.read(String::class.java, consumer, offset1, offset2)
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun `read with type, consumer, options and StreamOffset vararg`() {
+
+		val consumer = Consumer.from("a", "b")
+		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
+		val offset2 = StreamOffset.create("bar", ReadOffset.lastConsumed())
+		val options = StreamReadOptions.empty()
+		val record = ObjectRecord.create("a", "b")
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.read(String::class.java, consumer, options, offset1, offset2) } returns Flux.just(record)
+
+		runBlocking {
+			assertThat(operations.readWithTypeAsFlow<String, String>(consumer, options, offset1, offset2).toList()).contains(record)
+		}
+
+		verify {
+			operations.read(String::class.java, consumer, options, offset1, offset2)
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun reverseRange() {
+
+		val record = MapRecord.create("foo", mapOf("a" to "b"))
+		val range = Range.just("bar")
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.reverseRange(any(), any(), any()) } returns Flux.just(record)
+
+		runBlocking {
+			assertThat(operations.reverseRangeAsFlow("foo", range).toList()).contains(record)
+		}
+
+		verify {
+			operations.reverseRange("foo", range, Limit.unlimited())
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun reverseRangeWithType() {
+
+		val record = ObjectRecord.create("a", "b")
+		val range = Range.just("bar")
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.reverseRange(any<Class<*>>(), any(), any(), any()) } returns Flux.just(record)
+
+		runBlocking {
+			assertThat(operations.reverseRangeWithTypeAsFlow<String, String>("foo", range).toList()).contains(record)
+		}
+
+		verify {
+			operations.reverseRange(String::class.java, "foo", range, Limit.unlimited())
 		}
 	}
 

@@ -15,12 +15,18 @@
  */
 package org.springframework.data.redis.core
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.asFlux
+import org.springframework.data.geo.Circle
 import org.springframework.data.geo.Distance
+import org.springframework.data.geo.GeoResult
 import org.springframework.data.geo.Metric
 import org.springframework.data.geo.Point
-import org.springframework.data.redis.connection.RedisGeoCommands
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs
 
 /**
  * Coroutines variant of [ReactiveGeoOperations.add].
@@ -28,7 +34,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.addAndAwait(key: K, point: Point, member: M): Long =
+suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.addAndAwait(key: K, point: Point, member: M): Long =
 		add(key, point, member).awaitSingle()
 
 /**
@@ -37,7 +43,7 @@ suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.addAndAwait(key: K, location: RedisGeoCommands.GeoLocation<M>): Long =
+suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.addAndAwait(key: K, location: GeoLocation<M>): Long =
 		add(key, location).awaitSingle()
 
 /**
@@ -46,7 +52,7 @@ suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.addAndAwait(key: K, memberCoordinateMap: Map<M, Point>): Long =
+suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.addAndAwait(key: K, memberCoordinateMap: Map<M, Point>): Long =
 		add(key, memberCoordinateMap).awaitSingle()
 
 /**
@@ -55,8 +61,17 @@ suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.addAndAwait(key: K, locations: Iterable<RedisGeoCommands.GeoLocation<M>>): Long =
+suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.addAndAwait(key: K, locations: Iterable<GeoLocation<M>>): Long =
 		add(key, locations).awaitSingle()
+
+/**
+ * Coroutines [Flow] variant of [ReactiveGeoOperations.add].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.add(key: K, locations: Flow<Collection<GeoLocation<M>>>): Flow<Long> =
+		add(key, locations.asFlux()).asFlow()
 
 /**
  * Coroutines variant of [ReactiveGeoOperations.distance].
@@ -65,7 +80,7 @@ suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M
  * @author Christoph Strobl
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.distanceAndAwait(key: K, member1: M, member2: M): Distance? =
+suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.distanceAndAwait(key: K, member1: M, member2: M): Distance? =
 		distance(key, member1, member2).awaitFirstOrNull()
 
 /**
@@ -75,7 +90,7 @@ suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M
  * @author Christoph Strobl
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.distanceAndAwait(key: K, member1: M, member2: M, metric: Metric): Distance? =
+suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.distanceAndAwait(key: K, member1: M, member2: M, metric: Metric): Distance? =
 		distance(key, member1, member2, metric).awaitFirstOrNull()
 
 /**
@@ -85,7 +100,7 @@ suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M
  * @author Christoph Strobl
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.hashAndAwait(key: K, member: M): String? =
+suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.hashAndAwait(key: K, member: M): String? =
 		hash(key, member).awaitFirstOrNull()
 
 /**
@@ -94,7 +109,7 @@ suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.hashAndAwait(key: K, vararg member: M): List<String> =
+suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.hashAndAwait(key: K, vararg member: M): List<String> =
 		hash(key, *member).awaitSingle()
 
 /**
@@ -103,7 +118,7 @@ suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.positionAndAwait(key: K, member: M): Point? =
+suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.positionAndAwait(key: K, member: M): Point? =
 		position(key, member).awaitFirstOrNull()
 
 /**
@@ -112,8 +127,36 @@ suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.positionAndAwait(key: K, vararg members: M): List<Point> =
+suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.positionAndAwait(key: K, vararg members: M): List<Point> =
 		position(key, *members).awaitSingle()
+
+/**
+ * Coroutines [Flow] variant of [ReactiveGeoOperations.radius].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.radiusAsFlow(key: K, within: Circle, args: GeoRadiusCommandArgs? = null): Flow<GeoResult<GeoLocation<M>>> =
+		(if (args != null) radius(key, within, args) else radius(key, within)).asFlow()
+
+
+/**
+ * Coroutines [Flow] variant of [ReactiveGeoOperations.radius].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.radiusAsFlow(key: K, member: M, radius: Double): Flow<GeoResult<GeoLocation<M>>> =
+		radius(key, member, radius).asFlow()
+
+/**
+ * Coroutines [Flow] variant of [ReactiveGeoOperations.radius].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.radiusAsFlow(key: K, member: M, distance: Distance, args: GeoRadiusCommandArgs? = null): Flow<GeoResult<GeoLocation<M>>> =
+		(if (args != null) radius(key, member, distance, args) else radius(key, member, distance)).asFlow()
 
 /**
  * Coroutines variant of [ReactiveGeoOperations.remove].
@@ -121,7 +164,7 @@ suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.removeAndAwait(key: K, vararg member: M): Long =
+suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.removeAndAwait(key: K, vararg member: M): Long =
 		remove(key, *member).awaitSingle()
 
 /**
@@ -130,5 +173,5 @@ suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified M : Any> ReactiveGeoOperations<K, M>.deleteAndAwait(key: K): Boolean =
+suspend fun <K : Any, M : Any> ReactiveGeoOperations<K, M>.deleteAndAwait(key: K): Boolean =
 		delete(key).awaitSingle()

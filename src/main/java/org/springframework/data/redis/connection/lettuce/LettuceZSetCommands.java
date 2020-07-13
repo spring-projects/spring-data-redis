@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,6 @@ import io.lettuce.core.ScoredValueScanCursor;
 import io.lettuce.core.ZStoreArgs;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Set;
@@ -41,10 +39,13 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-@RequiredArgsConstructor
 class LettuceZSetCommands implements RedisZSetCommands {
 
-	private final @NonNull LettuceConnection connection;
+	private final LettuceConnection connection;
+
+	LettuceZSetCommands(LettuceConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -843,12 +844,11 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				if (limit.isUnlimited()) {
 					pipeline(
 							connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true)),
-							LettuceConverters.bytesListToBytesSet()));
+									LettuceConverters.bytesListToBytesSet()));
 				} else {
-					pipeline(connection.newLettuceResult(
-							getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true),
-									LettuceConverters.toLimit(limit)),
-							LettuceConverters.bytesListToBytesSet()));
+					pipeline(
+							connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true),
+									LettuceConverters.toLimit(limit)), LettuceConverters.bytesListToBytesSet()));
 				}
 				return null;
 			}
@@ -858,10 +858,9 @@ class LettuceZSetCommands implements RedisZSetCommands {
 							connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true)),
 									LettuceConverters.bytesListToBytesSet()));
 				} else {
-					transaction(connection.newLettuceResult(
-							getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true),
-									LettuceConverters.toLimit(limit)),
-							LettuceConverters.bytesListToBytesSet()));
+					transaction(
+							connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true),
+									LettuceConverters.toLimit(limit)), LettuceConverters.bytesListToBytesSet()));
 				}
 				return null;
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Oliver Gierke
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentEntity<?>, RedisPersistentProperty> {
@@ -205,13 +206,9 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			this.mappingContext = mappingContext;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.core.TimeToLiveResolver#resolveTimeToLive(java.lang.Object)
-		 */
 		@Override
 		@SuppressWarnings({ "rawtypes" })
-		public Long getTimeToLive(final Object source) {
+		public Long getTimeToLive(Object source) {
 
 			Assert.notNull(source, "Source must not be null!");
 			Class<?> type = source instanceof Class<?> ? (Class<?>) source
@@ -223,8 +220,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			PersistentProperty<?> ttlProperty = resolveTtlProperty(type);
 
 			if (ttlProperty != null && ttlProperty.isAnnotationPresent(TimeToLive.class)) {
-
-				unit = ttlProperty.findAnnotation(TimeToLive.class).unit();
+				unit = ttlProperty.getRequiredAnnotation(TimeToLive.class).unit();
 			}
 
 			if (source instanceof PartialUpdate) {
@@ -254,12 +250,17 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			} else {
 
 				Method timeoutMethod = resolveTimeMethod(type);
+
 				if (timeoutMethod != null) {
+
+					if (!timeoutMethod.isAccessible()) {
+						ReflectionUtils.makeAccessible(timeoutMethod);
+					}
 
 					TimeToLive ttl = AnnotationUtils.findAnnotation(timeoutMethod, TimeToLive.class);
 					try {
 						Number timeout = (Number) timeoutMethod.invoke(source);
-						if (timeout != null) {
+						if (timeout != null && ttl != null) {
 							return TimeUnit.SECONDS.convert(timeout.longValue(), ttl.unit());
 						}
 					} catch (IllegalAccessException e) {
@@ -278,6 +279,27 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			return defaultTimeout;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.core.TimeToLiveResolver#isExpiringEntity(java.lang.Class)
+		 */
+		@Override
+		public boolean isExpiringEntity(Class<?> type) {
+
+			Long defaultTimeOut = resolveDefaultTimeOut(type);
+
+			if (defaultTimeOut != null && defaultTimeOut > 0) {
+				return true;
+			}
+
+			if (resolveTtlProperty(type) != null) {
+				return true;
+			}
+
+			return resolveTimeMethod(type) != null;
+		}
+
+		@Nullable
 		private Long resolveDefaultTimeOut(Class<?> type) {
 
 			if (this.defaultTimeouts.containsKey(type)) {
@@ -299,7 +321,8 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			return defaultTimeout;
 		}
 
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings({ "rawtypes" })
+		@Nullable
 		private PersistentProperty<?> resolveTtlProperty(Class<?> type) {
 
 			if (timeoutProperties.containsKey(type)) {
@@ -332,7 +355,8 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			return null;
 		}
 
-		private Method resolveTimeMethod(final Class<?> type) {
+		@Nullable
+		private Method resolveTimeMethod(Class<?> type) {
 
 			if (timeoutMethods.containsKey(type)) {
 				return timeoutMethods.get(type);

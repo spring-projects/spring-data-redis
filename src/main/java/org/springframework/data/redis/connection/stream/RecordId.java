@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
  */
 package org.springframework.data.redis.connection.stream;
 
-import lombok.EqualsAndHashCode;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -30,7 +29,6 @@ import org.springframework.util.StringUtils;
  * @since 2.2
  * @see <a href="https://redis.io/topics/streams-intro#entry-ids">Redis Documentation - Entriy ID</a>
  */
-@EqualsAndHashCode
 public class RecordId {
 
 	private static final String GENERATE_ID = "*";
@@ -153,5 +151,22 @@ public class RecordId {
 
 	private Long value(int index) {
 		return NumberUtils.parseNumber(StringUtils.split(raw, DELIMITER)[index], Long.class);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		RecordId recordId = (RecordId) o;
+
+		return ObjectUtils.nullSafeEquals(raw, recordId.raw);
+	}
+
+	@Override
+	public int hashCode() {
+		return ObjectUtils.nullSafeHashCode(raw);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,11 @@ import org.springframework.util.Assert;
  * Master / Replica configuration to nodes know to not change address. Eg. when connecting to
  * <a href="https://aws.amazon.com/documentation/elasticache/">AWS ElastiCache with Read Replicas</a>. <br/>
  * Note: Redis is undergoing a nomenclature change where the term replica is used synonymously to slave.
+ * Please also note that a Master/Replica connection cannot be used for Pub/Sub operations.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tamer Soliman
  * @since 2.1
  */
 public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration, StaticMasterReplicaConfiguration {
@@ -89,7 +91,7 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 	 * @param hostName must not be {@literal null} or empty.
 	 * @return {@code this} {@link StaticMasterReplicaConfiguration}.
 	 */
-	public StaticMasterReplicaConfiguration node(String hostName) {
+	public RedisStaticMasterReplicaConfiguration node(String hostName) {
 		return node(hostName, DEFAULT_PORT);
 	}
 

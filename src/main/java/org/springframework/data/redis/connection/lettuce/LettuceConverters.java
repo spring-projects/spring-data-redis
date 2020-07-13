@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,16 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.*;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
-import io.lettuce.core.protocol.LettuceCharsets;
+import io.lettuce.core.models.stream.PendingMessage;
+import io.lettuce.core.models.stream.PendingMessages;
+import io.lettuce.core.models.stream.PendingParser;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
@@ -50,6 +55,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
+import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
@@ -63,6 +69,9 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
+import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -70,6 +79,7 @@ import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -198,7 +208,8 @@ abstract public class LettuceConverters extends Converters {
 		};
 
 		SCORED_VALUE_TO_TUPLE = source -> source != null
-				? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore())) : null;
+				? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore()))
+				: null;
 
 		BYTES_LIST_TO_TUPLE_LIST_CONVERTER = source -> {
 
@@ -297,7 +308,8 @@ abstract public class LettuceConverters extends Converters {
 		};
 
 		GEO_COORDINATE_TO_POINT_CONVERTER = geoCoordinate -> geoCoordinate != null
-				? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue()) : null;
+				? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue())
+				: null;
 		GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER = new ListConverter<>(GEO_COORDINATE_TO_POINT_CONVERTER);
 
 		KEY_VALUE_UNWRAPPER = source -> source.getValueOrElse(null);
@@ -305,6 +317,8 @@ abstract public class LettuceConverters extends Converters {
 		KEY_VALUE_LIST_UNWRAPPER = new ListConverter<>(KEY_VALUE_UNWRAPPER);
 
 		TRANSACTION_RESULT_UNWRAPPER = transactionResult -> transactionResult.stream().collect(Collectors.toList());
+
+
 	}
 
 	public static List<Tuple> toTuple(List<byte[]> list) {
@@ -449,7 +463,7 @@ abstract public class LettuceConverters extends Converters {
 			return args;
 		}
 		if (params.getByPattern() != null) {
-			args.by(new String(params.getByPattern(), LettuceCharsets.ASCII));
+			args.by(new String(params.getByPattern(), StandardCharsets.US_ASCII));
 		}
 		if (params.getLimit() != null) {
 			args.limit(params.getLimit().getStart(), params.getLimit().getCount());
@@ -457,7 +471,7 @@ abstract public class LettuceConverters extends Converters {
 		if (params.getGetPattern() != null) {
 			byte[][] pattern = params.getGetPattern();
 			for (byte[] bs : pattern) {
-				args.get(new String(bs, LettuceCharsets.ASCII));
+				args.get(new String(bs, StandardCharsets.US_ASCII));
 			}
 		}
 		if (params.getOrder() != null) {
@@ -599,8 +613,8 @@ abstract public class LettuceConverters extends Converters {
 						|| ObjectUtils.nullSafeEquals(value, "-")) {
 					return Range.Boundary.unbounded();
 				}
-				return inclusive ? Range.Boundary.including(value.toString().getBytes(LettuceCharsets.UTF8))
-						: Range.Boundary.excluding(value.toString().getBytes(LettuceCharsets.UTF8));
+				return inclusive ? Range.Boundary.including(value.toString().getBytes(StandardCharsets.UTF_8))
+						: Range.Boundary.excluding(value.toString().getBytes(StandardCharsets.UTF_8));
 			}
 
 			return inclusive ? Range.Boundary.including((byte[]) value) : Range.Boundary.excluding((byte[]) value);
@@ -637,16 +651,24 @@ abstract public class LettuceConverters extends Converters {
 		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration is required");
 
 		Set<RedisNode> sentinels = sentinelConfiguration.getSentinels();
-		RedisURI.Builder builder = null;
+		RedisPassword sentinelPassword = sentinelConfiguration.getSentinelPassword();
+		RedisURI.Builder builder = RedisURI.builder();
 		for (RedisNode sentinel : sentinels) {
 
-			if (builder == null) {
-				builder = RedisURI.Builder.sentinel(sentinel.getHost(), sentinel.getPort(),
-						sentinelConfiguration.getMaster().getName());
-			} else {
-				builder.withSentinel(sentinel.getHost(), sentinel.getPort());
+			RedisURI.Builder sentinelBuilder = RedisURI.Builder.redis(sentinel.getHost(), sentinel.getPort());
+
+			if (sentinelPassword.isPresent()) {
+				sentinelBuilder.withPassword(sentinelPassword.get());
 			}
+			builder.withSentinel(sentinelBuilder.build());
 		}
+
+		RedisPassword password = sentinelConfiguration.getPassword();
+		if (password.isPresent()) {
+			builder.withPassword(password.get());
+		}
+
+		builder.withSentinelMasterId(sentinelConfiguration.getMaster().getName());
 
 		return builder.build();
 	}

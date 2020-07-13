@@ -15,10 +15,14 @@
  */
 package org.springframework.data.redis.core
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.domain.Range
 import org.springframework.data.redis.connection.RedisZSetCommands
+import org.springframework.data.redis.connection.RedisZSetCommands.Limit
+import org.springframework.data.redis.core.ZSetOperations.*
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.add].
@@ -26,7 +30,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.addAndAwait(key: K, value: V, score: Double): Boolean =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.addAndAwait(key: K, value: V, score: Double): Boolean =
 		add(key, value, score).awaitSingle()
 
 /**
@@ -35,7 +39,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.addAllAndAwait(key: K, values: Collection<ZSetOperations.TypedTuple<V>>): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.addAllAndAwait(key: K, values: Collection<TypedTuple<V>>): Long =
 		addAll(key, values).awaitSingle()
 
 /**
@@ -44,7 +48,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.removeAndAwait(key: K, vararg values: Any): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.removeAndAwait(key: K, vararg values: Any): Long =
 		remove(key, *values).awaitSingle()
 
 /**
@@ -53,7 +57,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.incrementScoreAndAwait(key: K, value: V, score: Double): Double =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.incrementScoreAndAwait(key: K, value: V, score: Double): Double =
 		incrementScore(key, value, score).awaitSingle()
 
 /**
@@ -62,7 +66,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.rankAndAwait(key: K, value: V): Long? =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rankAndAwait(key: K, value: V): Long? =
 		rank(key, value).awaitFirstOrNull()
 
 /**
@@ -71,8 +75,80 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.reverseRankAndAwait(key: K, value: V): Long? =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRankAndAwait(key: K, value: V): Long? =
 		reverseRank(key, value).awaitFirstOrNull()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.range].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeAsFlow(key: K, range: Range<Long>): Flow<V> =
+		range(key, range).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.rangeWithScores].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeWithScoresAsFlow(key: K, range: Range<Long>): Flow<TypedTuple<V>> =
+		rangeWithScores(key, range).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.rangeByScore].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByScoreAsFlow(key: K, range: Range<Double>, limit: Limit = Limit.unlimited()): Flow<V> =
+		rangeByScore(key, range, limit).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.rangeByScoreWithScores].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByScoreWithScoresAsFlow(key: K, range: Range<Double>, limit: Limit = Limit.unlimited()): Flow<TypedTuple<V>> =
+		rangeByScoreWithScores(key, range, limit).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.reverseRange].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeAsFlow(key: K, range: Range<Long>): Flow<V> =
+		reverseRange(key, range).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.reverseRangeWithScores].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeWithScoresAsFlow(key: K, range: Range<Long>): Flow<TypedTuple<V>> =
+		reverseRangeWithScores(key, range).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.reverseRangeByScore].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByScoreAsFlow(key: K, range: Range<Double>, limit: Limit = Limit.unlimited()): Flow<V> =
+		reverseRangeByScore(key, range, limit).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.reverseRangeByScoreWithScores].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByScoreWithScoresAsFlow(key: K, range: Range<Double>, limit: Limit = Limit.unlimited()): Flow<TypedTuple<V>> =
+		reverseRangeByScoreWithScores(key, range, limit).asFlow()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.count].
@@ -80,8 +156,17 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.countAndAwait(key: K, range: Range<Double>): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.countAndAwait(key: K, range: Range<Double>): Long =
 		count(key, range).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.size].
+ *
+ * @author Wonwoo Lee
+ * @since 2.3
+ */
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.sizeAndAwait(key: K): Long =
+	size(key).awaitSingle()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.score].
@@ -89,7 +174,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.scoreAndAwait(key: K, value: V): Double? =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.scoreAndAwait(key: K, value: V): Double? =
 		score(key, value).awaitFirstOrNull()
 
 /**
@@ -98,7 +183,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.removeRangeAndAwait(key: K, range: Range<Long>): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.removeRangeAndAwait(key: K, range: Range<Long>): Long =
 		removeRange(key, range).awaitSingle()
 
 /**
@@ -107,7 +192,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.removeRangeByScoreAndAwait(key: K, range: Range<Double>): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.removeRangeByScoreAndAwait(key: K, range: Range<Double>): Long =
 		removeRangeByScore(key, range).awaitSingle()
 
 /**
@@ -116,7 +201,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
 		unionAndStore(key, otherKey, destKey).awaitSingle()
 
 /**
@@ -125,7 +210,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K): Long =
 		unionAndStore(key, otherKeys, destKey).awaitSingle()
 
 /**
@@ -134,7 +219,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate): Long =
 		unionAndStore(key, otherKeys, destKey, aggregate).awaitSingle()
 
 /**
@@ -143,7 +228,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate, weights: RedisZSetCommands.Weights): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate, weights: RedisZSetCommands.Weights): Long =
 		unionAndStore(key, otherKeys, destKey, aggregate, weights).awaitSingle()
 
 /**
@@ -152,7 +237,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
 		intersectAndStore(key, otherKey, destKey).awaitSingle()
 
 /**
@@ -161,7 +246,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K): Long =
 		intersectAndStore(key, otherKeys, destKey).awaitSingle()
 
 /**
@@ -170,7 +255,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate): Long =
 		intersectAndStore(key, otherKeys, destKey, aggregate).awaitSingle()
 
 /**
@@ -179,8 +264,26 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate, weights: RedisZSetCommands.Weights): Long =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate, weights: RedisZSetCommands.Weights): Long =
 		intersectAndStore(key, otherKeys, destKey, aggregate, weights).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.rangeByLex].
+ *
+ * @author Wonwoo Lee
+ * @since 2.3
+ */
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rangeByLexAndAwait(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<V> =
+	rangeByLex(key, range, limit).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.reverseRangeByLex].
+ *
+ * @author Wonwoo Lee
+ * @since 2.3
+ */
+fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRangeByLexAndAwait(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<V> =
+	reverseRangeByLex(key, range, limit).asFlow()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.delete].
@@ -188,5 +291,5 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, 
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveZSetOperations<K, V>.deleteAndAwait(key: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.deleteAndAwait(key: K): Boolean =
 		delete(key).awaitSingle()

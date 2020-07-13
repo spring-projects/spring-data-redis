@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 
 /**
@@ -56,7 +57,7 @@ public class JedisConnectionFactoryIntegrationTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldInitiaizeWithStandaloneConfiguration() {
+	public void shouldInitializeWithStandaloneConfiguration() {
 
 		factory = new JedisConnectionFactory(
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
@@ -64,5 +65,18 @@ public class JedisConnectionFactoryIntegrationTests {
 		factory.afterPropertiesSet();
 
 		assertThat(factory.getConnection().ping()).isEqualTo("PONG");
+	}
+
+	@Test // DATAREDIS-575
+	public void connectionAppliesClientName() {
+
+		factory = new JedisConnectionFactory(
+				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
+				JedisClientConfiguration.builder().clientName("clientName").build());
+		factory.afterPropertiesSet();
+
+		RedisConnection connection = factory.getConnection();
+
+		assertThat(connection.getClientName()).isEqualTo("clientName");
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,24 +183,18 @@ public class StreamReceiverIntegrationTests {
 
 		messages.as(publisher -> StepVerifier.create(publisher, 0)) //
 				.thenRequest(1) //
+				.thenAwait(Duration.ofMillis(500)) //
 				.then(() -> {
-					try {
-						Thread.sleep(500);
-						reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"))
-								.subscribe();
-					} catch (InterruptedException e) {}
+					reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1")).subscribe();
 				}) //
 				.expectNextCount(1) //
 				.then(() -> {
 					reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value2")).subscribe();
 				}) //
 				.thenRequest(1) //
+				.thenAwait(Duration.ofMillis(500)) //
 				.then(() -> {
-					try {
-						Thread.sleep(500);
-						reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value3"))
-								.subscribe();
-					} catch (InterruptedException e) {}
+					reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value3")).subscribe();
 				}).consumeNextWith(it -> {
 
 					assertThat(it.getStream()).isEqualTo("my-stream");
@@ -218,9 +212,8 @@ public class StreamReceiverIntegrationTests {
 		Flux<MapRecord<String, String, String>> messages = receiver.receive(Consumer.from("my-group", "my-consumer-id"),
 				StreamOffset.create("my-stream", ReadOffset.lastConsumed()));
 
-		// required to initialize stream
-		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
 		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from("0-0"), "my-group");
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
 		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key2", "value2"));
 
 		messages.as(StepVerifier::create) //
@@ -251,9 +244,8 @@ public class StreamReceiverIntegrationTests {
 		Flux<MapRecord<String, String, String>> messages = receiver.receive(Consumer.from("my-group", "my-consumer-id"),
 				StreamOffset.create("my-stream", ReadOffset.lastConsumed()));
 
-		// required to initialize stream
-		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
 		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from("0-0"), "my-group");
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
 
 		messages.as(StepVerifier::create) //
 				.expectNextCount(1) //

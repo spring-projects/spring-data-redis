@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono
 import java.time.Duration
 
 /**
- * Unit tests for [ReactiveValueOperationsExtensions].
+ * Unit tests for `ReactiveValueOperationsExtensions`.
  *
  * @author Mark Paluch
  * @author Christoph Strobl

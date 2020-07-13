@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.listener;
 
-import lombok.EqualsAndHashCode;
-
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Channel topic implementation (maps to a Redis channel).
@@ -25,7 +24,6 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  * @author Mark Paluch
  */
-@EqualsAndHashCode
 public class ChannelTopic implements Topic {
 
 	private final String channelName;
@@ -68,5 +66,23 @@ public class ChannelTopic implements Topic {
 	@Override
 	public String toString() {
 		return channelName;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		ChannelTopic that = (ChannelTopic) o;
+
+		return ObjectUtils.nullSafeEquals(channelName, that.channelName);
+	}
+
+	@Override
+	public int hashCode() {
+		return ObjectUtils.nullSafeHashCode(channelName);
 	}
 }

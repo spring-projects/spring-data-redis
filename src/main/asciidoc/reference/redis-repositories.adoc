@@ -362,8 +362,7 @@ public class ApplicationConfig {
   @Bean
   public RedisMappingContext keyValueMappingContext() {
     return new RedisMappingContext(
-      new MappingConfiguration(
-        new MyKeyspaceConfiguration(), new IndexConfiguration()));
+      new MappingConfiguration(new IndexConfiguration(), new MyKeyspaceConfiguration()));
   }
 
   public static class MyKeyspaceConfiguration extends KeyspaceConfiguration {
@@ -797,6 +796,7 @@ class RepositoryClient {
 
 A Redis Repository requires `RedisKeyValueAdapter` and `RedisKeyValueTemplate` instances. These beans are created and managed by the Spring Data CDI extension if no provided beans are found. You can, however, supply your own beans to configure the specific properties of `RedisKeyValueAdapter` and `RedisKeyValueTemplate`.
 
+[[redis.repositories.anatomy]]
 == Redis Repositories Anatomy
 
 Redis as a store itself offers a very narrow low-level API leaving higher level functions, such as secondary indexes and
@@ -827,6 +827,7 @@ public class Address {
 ----
 ====
 
+[[redis.repositories.anatomy.insert]]
 === Insert new
 
 ====
@@ -848,6 +849,7 @@ SADD  "people:19315449-cda2-4f5c-b696-9cb8018fa1f9:idx" "people:firstname:rand" 
 <4> Add the index of <3> to the set of helper structures for entry to keep track of indexes to clean on delete/update.
 ====
 
+[[redis.repositories.anatomy.replace]]
 === Replace existing
 
 ====
@@ -879,6 +881,7 @@ SADD      "people:e82908cf-e7d3-47c2-9eec-b4e0967ad0c9:idx" "people:firstname:Dr
 <9> Add the index of <6> to the set of helper structures for entry to keep track of indexes to clean on delete/update.
 ====
 
+[[redis.repositories.anatomy.geo]]
 === Save Geo Data
 
 Geo indexes follow the same rules as normal text based ones but use geo structure to store values. Saving an entity that
@@ -894,6 +897,7 @@ SADD   "people:76900e94-b057-44bc-abcf-8126d51a621b:idx" "people:hometown:locati
 <2> Keep track of the index structure.
 ====
 
+[[redis.repositories.anatomy.index]]
 === Find using simple index
 
 ====
@@ -912,6 +916,7 @@ HGETALL ...
 <2> Fetch each key returned by <1> individually.
 ====
 
+[[redis.repositories.anatomy.geo-index]]
 === Find using Geo Index
 
 ====

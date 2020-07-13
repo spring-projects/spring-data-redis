@@ -18,19 +18,24 @@ package org.springframework.data.redis.core
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.springframework.data.domain.Range
+import org.springframework.data.redis.connection.RedisZSetCommands
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate
 import org.springframework.data.redis.connection.RedisZSetCommands.Weights
+import org.springframework.data.redis.core.ZSetOperations.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
- * Unit tests for [ReactiveZSetOperationsExtensions].
+ * Unit tests for `ReactiveZSetOperationsExtensions`.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Wonwoo Lee
  */
 class ReactiveZSetOperationsExtensionsUnitTests {
 
@@ -154,6 +159,138 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test
+	fun range() {
+
+		val range = Range.unbounded<Long>()
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.range(any(), any()) } returns Flux.just("bar")
+
+		runBlocking {
+			assertThat(operations.rangeAsFlow("foo", range).toList()).contains("bar")
+		}
+
+		verify {
+			operations.range("foo", range)
+		}
+	}
+
+	@Test
+	fun rangeWithScores() {
+
+		val tuple = mockk<TypedTuple<String>>(relaxed = true)
+		val range = Range.unbounded<Long>()
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.rangeWithScores(any(), any()) } returns Flux.just(tuple)
+
+		runBlocking {
+			assertThat(operations.rangeWithScoresAsFlow("foo", range).toList()).contains(tuple)
+		}
+
+		verify {
+			operations.rangeWithScores("foo", range)
+		}
+	}
+
+	@Test
+	fun rangeByScore() {
+
+		val range = Range.unbounded<Double>()
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.rangeByScore(any(), any(), any()) } returns Flux.just("bar")
+
+		runBlocking {
+			assertThat(operations.rangeByScoreAsFlow("foo", range).toList()).contains("bar")
+		}
+
+		verify {
+			operations.rangeByScore("foo", range, RedisZSetCommands.Limit.unlimited())
+		}
+	}
+
+	@Test
+	fun rangeByScoreWithScores() {
+
+		val tuple = mockk<TypedTuple<String>>(relaxed = true)
+		val range = Range.unbounded<Double>()
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.rangeByScoreWithScores(any(), any(), any()) } returns Flux.just(tuple)
+
+		runBlocking {
+			assertThat(operations.rangeByScoreWithScoresAsFlow("foo", range).toList()).contains(tuple)
+		}
+
+		verify {
+			operations.rangeByScoreWithScores("foo", range, RedisZSetCommands.Limit.unlimited())
+		}
+	}
+
+	@Test
+	fun reverseRange() {
+
+		val range = Range.unbounded<Long>()
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.reverseRange(any(), any()) } returns Flux.just("bar")
+
+		runBlocking {
+			assertThat(operations.reverseRangeAsFlow("foo", range).toList()).contains("bar")
+		}
+
+		verify {
+			operations.reverseRange("foo", range)
+		}
+	}
+
+	@Test
+	fun reverseRangeWithScores() {
+
+		val tuple = mockk<TypedTuple<String>>(relaxed = true)
+		val range = Range.unbounded<Long>()
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.reverseRangeWithScores(any(), any()) } returns Flux.just(tuple)
+
+		runBlocking {
+			assertThat(operations.reverseRangeWithScoresAsFlow("foo", range).toList()).contains(tuple)
+		}
+
+		verify {
+			operations.reverseRangeWithScores("foo", range)
+		}
+	}
+
+	@Test
+	fun reverseRangeByScore() {
+
+		val range = Range.unbounded<Double>()
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.reverseRangeByScore(any(), any(), any()) } returns Flux.just("bar")
+
+		runBlocking {
+			assertThat(operations.reverseRangeByScoreAsFlow("foo", range).toList()).contains("bar")
+		}
+
+		verify {
+			operations.reverseRangeByScore("foo", range, RedisZSetCommands.Limit.unlimited())
+		}
+	}
+
+	@Test
+	fun reverseRangeByScoreWithScores() {
+
+		val tuple = mockk<TypedTuple<String>>(relaxed = true)
+		val range = Range.unbounded<Double>()
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.reverseRangeByScoreWithScores(any(), any(), any()) } returns Flux.just(tuple)
+
+		runBlocking {
+			assertThat(operations.reverseRangeByScoreWithScoresAsFlow("foo", range).toList()).contains(tuple)
+		}
+
+		verify {
+			operations.reverseRangeByScoreWithScores("foo", range, RedisZSetCommands.Limit.unlimited())
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun count() {
 
@@ -166,6 +303,21 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 
 		verify {
 			operations.count("foo", Range.unbounded())
+		}
+	}
+
+	@Test // DATAREDIS-1111
+	fun size() {
+
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.size(any()) } returns Mono.just(1)
+
+		runBlocking {
+			assertThat(operations.sizeAndAwait("foo")).isEqualTo(1)
+		}
+
+		verify {
+			operations.size("foo")
 		}
 	}
 
@@ -346,6 +498,51 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 
 		verify {
 			operations.intersectAndStore("foo", listOf("bar"), "baz", Aggregate.MAX, Weights.fromSetCount(1))
+		}
+	}
+
+	@Test // DATAREDIS-1111
+	fun rangeByLex() {
+
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.rangeByLex(any(), any(), any()) } returns Flux.just("bar")
+
+		runBlocking {
+			assertThat(operations.rangeByLexAndAwait("foo", Range.just("bar")).toList()).contains("bar")
+		}
+
+		verify {
+			operations.rangeByLex("foo", Range.just("bar"), RedisZSetCommands.Limit.unlimited())
+		}
+	}
+
+	@Test // DATAREDIS-1111
+	fun reverseRangeByLexAndAwait() {
+
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.reverseRangeByLex(any(), any(), any()) } returns Flux.just("bar")
+
+		runBlocking {
+			assertThat(operations.reverseRangeByLexAndAwait("foo", Range.just("bar")).toList()).contains("bar")
+		}
+
+		verify {
+			operations.reverseRangeByLex("foo", Range.just("bar"), RedisZSetCommands.Limit.unlimited())
+		}
+	}
+
+	@Test // DATAREDIS-1111
+	fun delete() {
+
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.delete(any()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.deleteAndAwait("foo")).isTrue()
+		}
+
+		verify {
+			operations.delete("foo")
 		}
 	}
 }

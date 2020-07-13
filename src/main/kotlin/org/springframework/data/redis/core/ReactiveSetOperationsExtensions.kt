@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 
@@ -24,7 +26,7 @@ import kotlinx.coroutines.reactive.awaitSingle
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.addAndAwait(key: K, vararg values: V): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.addAndAwait(key: K, vararg values: V): Long =
 		add(key, *values).awaitSingle()
 
 /**
@@ -33,7 +35,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.removeAndAwait(key: K, vararg values: V): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.removeAndAwait(key: K, vararg values: V): Long =
 		remove(key, *values).awaitSingle()
 
 /**
@@ -42,8 +44,17 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.popAndAwait(key: K): V? =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.popAndAwait(key: K): V? =
 		pop(key).awaitFirstOrNull()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.pop].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.popAsFlow(key: K, count: Long): Flow<V> =
+		pop(key, count).asFlow()
 
 /**
  * Coroutines variant of [ReactiveSetOperations.move].
@@ -51,7 +62,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.moveAndAwait(sourceKey: K, value: V, destKey: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.moveAndAwait(sourceKey: K, value: V, destKey: K): Boolean =
 		move(sourceKey, value, destKey).awaitSingle()
 
 /**
@@ -60,7 +71,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.sizeAndAwait(key: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.sizeAndAwait(key: K): Long =
 		size(key).awaitSingle()
 
 /**
@@ -69,8 +80,35 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.isMemberAndAwait(key: K, value: V): Boolean =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.isMemberAndAwait(key: K, value: V): Boolean =
 		isMember(key, value).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.intersect].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.intersectAsFlow(key: K, otherKey: K): Flow<V> =
+		intersect(key, otherKey).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.intersect].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.intersectAsFlow(key: K, otherKeys: Collection<K>): Flow<V> =
+		intersect(key, otherKeys).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.intersect].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.intersectAsFlow(otherKeys: Collection<K>): Flow<V> =
+		intersect(otherKeys).asFlow()
 
 /**
  * Coroutines variant of [ReactiveSetOperations.intersectAndStore].
@@ -78,7 +116,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
 		intersectAndStore(key, otherKey, destKey).awaitSingle()
 
 /**
@@ -87,8 +125,35 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.intersectAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.intersectAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
 		intersectAndStore(keys, destKey).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.union].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.unionAsFlow(key: K, otherKey: K): Flow<V> =
+		union(key, otherKey).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.union].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.unionAsFlow(key: K, otherKeys: Collection<K>): Flow<V> =
+		union(key, otherKeys).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.union].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.unionAsFlow(otherKeys: Collection<K>): Flow<V> =
+		union(otherKeys).asFlow()
 
 /**
  * Coroutines variant of [ReactiveSetOperations.unionAndStore].
@@ -96,7 +161,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
 		unionAndStore(key, otherKey, destKey).awaitSingle()
 
 /**
@@ -105,8 +170,35 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.unionAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.unionAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
 		unionAndStore(keys, destKey).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.difference].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.differenceAsFlow(key: K, otherKey: K): Flow<V> =
+		difference(key, otherKey).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.difference].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.differenceAsFlow(key: K, otherKeys: Collection<K>): Flow<V> =
+		difference(key, otherKeys).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.difference].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.differenceAsFlow(otherKeys: Collection<K>): Flow<V> =
+		difference(otherKeys).asFlow()
 
 /**
  * Coroutines variant of [ReactiveSetOperations.differenceAndStore].
@@ -114,7 +206,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.differenceAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.differenceAndStoreAndAwait(key: K, otherKey: K, destKey: K): Long =
 		differenceAndStore(key, otherKey, destKey).awaitSingle()
 
 /**
@@ -123,17 +215,52 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.differenceAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.differenceAndStoreAndAwait(keys: Collection<K>, destKey: K): Long =
 		differenceAndStore(keys, destKey).awaitSingle()
 
+/**
+ * Coroutines variant of [ReactiveSetOperations.members].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.membersAsFlow(key: K): Flow<V> =
+		members(key).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveHashOperations.scan].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.scanAsFlow(key: K, options: ScanOptions = ScanOptions.NONE): Flow<V> =
+		scan(key, options).asFlow()
 /**
  * Coroutines variant of [ReactiveSetOperations.randomMember].
  *
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.randomMemberAndAwait(key: K): V? =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.randomMemberAndAwait(key: K): V? =
 		randomMember(key).awaitFirstOrNull()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.distinctRandomMembers].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.distinctRandomMembersAsFlow(key: K, count: Long): Flow<V> =
+		distinctRandomMembers(key, count).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveSetOperations.randomMembers].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, V : Any> ReactiveSetOperations<K, V>.randomMembersAsFlow(key: K, count: Long): Flow<V> =
+		randomMembers(key, count).asFlow()
 
 /**
  * Coroutines variant of [ReactiveSetOperations.delete].
@@ -141,7 +268,7 @@ suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified V : Any> ReactiveSetOperations<K, V>.deleteAndAwait(key: K): Boolean =
+suspend fun <K : Any, V : Any> ReactiveSetOperations<K, V>.deleteAndAwait(key: K): Boolean =
 		delete(key).awaitSingle()
 
 

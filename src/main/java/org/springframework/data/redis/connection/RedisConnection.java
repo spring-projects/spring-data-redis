@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,9 @@ import org.springframework.dao.DataAccessException;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author James Howe
  */
-public interface RedisConnection extends RedisCommands {
+public interface RedisConnection extends RedisCommands, AutoCloseable {
 
 	/**
 	 * Get {@link RedisGeoCommands}.
@@ -145,6 +146,7 @@ public interface RedisConnection extends RedisCommands {
 	 *
 	 * @throws DataAccessException
 	 */
+	@Override
 	void close() throws DataAccessException;
 
 	/**

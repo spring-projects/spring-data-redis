@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,7 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	/**
 	 * Creates a new {@link DefaultRedisScript}
 	 */
-	public DefaultRedisScript() {
-	}
+	public DefaultRedisScript() {}
 
 	/**
 	 * Creates a new {@link DefaultRedisScript}
@@ -75,7 +74,7 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		Assert.state(this.scriptSource != null, "Either script, script location," + " or script source is required");
 	}
 
@@ -117,9 +116,9 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 
 	/**
 	 * @param resultType The script result type. Should be one of Long, Boolean, List, or deserialized value type. Can be
-	 *          null if the script returns a throw-away status (i.e "OK")
+	 *          {@literal null} if the script returns a throw-away status (i.e "OK")
 	 */
-	public void setResultType(Class<T> resultType) {
+	public void setResultType(@Nullable Class<T> resultType) {
 		this.resultType = resultType;
 	}
 

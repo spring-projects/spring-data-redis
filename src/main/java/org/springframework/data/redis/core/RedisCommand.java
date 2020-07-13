@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,7 +140,10 @@ public enum RedisCommand {
 	QUIT("rw", 0, 0), //
 	// -- R
 	RANDOMKEY("r", 0, 0), //
+
+	@Deprecated
 	RANAME("w", 2, 2), //
+	RENAME("w", 2, 2), //
 	RENAMENX("w", 2, 2), //
 	RESTORE("w", 3, 3), //
 	RPOP("rw", 1, 1), //
@@ -200,7 +203,7 @@ public enum RedisCommand {
 	ZRANK("r", 2, 2), //
 	ZREM("rw", 2), //
 	ZREMRANGEBYRANK("rw", 3, 3), //
-	ZREMRANGEBYSCORE("rm", 3, 3), //
+	ZREMRANGEBYSCORE("rw", 3, 3), //
 	ZREVRANGE("r", 3), //
 	ZREVRANGEBYSCORE("r", 3), //
 	ZREVRANK("r", 2, 2), //

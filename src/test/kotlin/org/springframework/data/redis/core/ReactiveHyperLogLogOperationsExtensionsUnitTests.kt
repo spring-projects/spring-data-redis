@@ -24,7 +24,7 @@ import org.junit.Test
 import reactor.core.publisher.Mono
 
 /**
- * Unit tests for [ReactiveHyperLogLogOperationsExtensions]
+ * Unit tests for `ReactiveHyperLogLogOperationsExtensions`
  *
  * @author Mark Paluch
  */

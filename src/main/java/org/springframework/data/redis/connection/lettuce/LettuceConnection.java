@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ import io.lettuce.core.protocol.CommandArgs;
 import io.lettuce.core.protocol.CommandType;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
-import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -53,6 +52,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 import org.springframework.beans.BeanUtils;
@@ -84,6 +84,7 @@ import org.springframework.util.ObjectUtils;
  * @author David Liu
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Tamil Selvan
  */
 public class LettuceConnection extends AbstractRedisConnection {
 
@@ -107,10 +108,12 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private boolean isMulti = false;
 	private boolean isPipelined = false;
 	private @Nullable List<LettuceResult> ppline;
+	private @Nullable PipeliningFlushState flushState;
 	private final Queue<FutureResult<?>> txResults = new LinkedList<>();
 	private volatile @Nullable LettuceSubscription subscription;
 	/** flag indicating whether the connection needs to be dropped or not */
 	private boolean convertPipelineAndTxResults = true;
+	private PipeliningFlushPolicy pipeliningFlushPolicy = PipeliningFlushPolicy.flushEachCommand();
 
 	LettuceResult newLettuceResult(Future<?> resultHolder) {
 		return newLettuceResult(resultHolder, (val) -> val);
@@ -451,6 +454,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		if (asyncDedicatedConn != null) {
 			try {
+				if (customizedDatabaseIndex()) {
+					potentiallySelectDatabase(defaultDbIndex);
+				}
 				connectionProvider.release(asyncDedicatedConn);
 			} catch (RuntimeException ex) {
 				throw convertLettuceAccessException(ex);
@@ -511,9 +517,12 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public void openPipeline() {
+
 		if (!isPipelined) {
 			isPipelined = true;
 			ppline = new ArrayList<>();
+			flushState = this.pipeliningFlushPolicy.newPipeline();
+			flushState.onOpen(this.getOrCreateDedicatedConnection());
 		}
 	}
 
@@ -525,9 +534,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public List<Object> closePipeline() {
 
 		if (!isPipelined) {
-
 			return Collections.emptyList();
 		}
+
+		flushState.onClose(this.getOrCreateDedicatedConnection());
+		flushState = null;
 		isPipelined = false;
 		List<io.lettuce.core.protocol.RedisCommand<?, ?, ?>> futures = new ArrayList<>(ppline.size());
 		for (LettuceResult<?, ?> result : ppline) {
@@ -859,6 +870,22 @@ public class LettuceConnection extends AbstractRedisConnection {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 
+	/**
+	 * Configures the flushing policy when using pipelining.
+	 *
+	 * @param pipeliningFlushPolicy the flushing policy to control when commands get written to the Redis connection.
+	 * @see PipeliningFlushPolicy#flushEachCommand()
+	 * @see #openPipeline()
+	 * @see StatefulRedisConnection#flushCommands()
+	 * @since 2.3
+	 */
+	public void setPipeliningFlushPolicy(PipeliningFlushPolicy pipeliningFlushPolicy) {
+
+		Assert.notNull(pipeliningFlushPolicy, "PipeliningFlushingPolicy must not be null!");
+
+		this.pipeliningFlushPolicy = pipeliningFlushPolicy;
+	}
+
 	private void checkSubscription() {
 		if (isSubscribed()) {
 			throw new RedisSubscribedConnectionException(
@@ -897,6 +924,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	void pipeline(LettuceResult result) {
+
+		if (flushState != null) {
+			flushState.onCommand(getOrCreateDedicatedConnection());
+		}
+
 		if (isQueueing()) {
 			transaction(result);
 		} else {
@@ -943,26 +975,43 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return (RedisAsyncCommands) getAsyncDedicatedConnection();
 	}
 
-	protected RedisClusterAsyncCommands<byte[], byte[]> getAsyncDedicatedConnection() {
+	RedisClusterCommands<byte[], byte[]> getDedicatedConnection() {
 
-		if (asyncDedicatedConn == null) {
+		StatefulConnection<byte[], byte[]> connection = getOrCreateDedicatedConnection();
 
-			asyncDedicatedConn = doGetAsyncDedicatedConnection();
-
-			if (asyncDedicatedConn instanceof StatefulRedisConnection) {
-				((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync().select(dbIndex);
-			}
+		if (connection instanceof StatefulRedisConnection) {
+			return ((StatefulRedisConnection<byte[], byte[]>) connection).sync();
 		}
-
-		if (asyncDedicatedConn instanceof StatefulRedisConnection) {
-			return ((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).async();
-		}
-		if (asyncDedicatedConn instanceof StatefulRedisClusterConnection) {
-			return ((StatefulRedisClusterConnection<byte[], byte[]>) asyncDedicatedConn).async();
+		if (connection instanceof StatefulRedisClusterConnection) {
+			return ((StatefulRedisClusterConnection<byte[], byte[]>) connection).sync();
 		}
 
 		throw new IllegalStateException(
-				String.format("%s is not a supported connection type.", asyncDedicatedConn.getClass().getName()));
+				String.format("%s is not a supported connection type.", connection.getClass().getName()));
+	}
+
+	protected RedisClusterAsyncCommands<byte[], byte[]> getAsyncDedicatedConnection() {
+
+		StatefulConnection<byte[], byte[]> connection = getOrCreateDedicatedConnection();
+
+		if (connection instanceof StatefulRedisConnection) {
+			return ((StatefulRedisConnection<byte[], byte[]>) connection).async();
+		}
+		if (asyncDedicatedConn instanceof StatefulRedisClusterConnection) {
+			return ((StatefulRedisClusterConnection<byte[], byte[]>) connection).async();
+		}
+
+		throw new IllegalStateException(
+				String.format("%s is not a supported connection type.", connection.getClass().getName()));
+	}
+
+	private StatefulConnection<byte[], byte[]> getOrCreateDedicatedConnection() {
+
+		if (asyncDedicatedConn == null) {
+			asyncDedicatedConn = doGetAsyncDedicatedConnection();
+		}
+
+		return asyncDedicatedConn;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -970,31 +1019,26 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return (RedisCommands) getDedicatedConnection();
 	}
 
-	RedisClusterCommands<byte[], byte[]> getDedicatedConnection() {
-
-		if (asyncDedicatedConn == null) {
-
-			asyncDedicatedConn = doGetAsyncDedicatedConnection();
-
-			if (asyncDedicatedConn instanceof StatefulRedisConnection) {
-				((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync().select(dbIndex);
-			}
-		}
-
-		if (asyncDedicatedConn instanceof StatefulRedisConnection) {
-			return ((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync();
-		}
-		if (asyncDedicatedConn instanceof StatefulRedisClusterConnection) {
-			return ((StatefulRedisClusterConnection<byte[], byte[]>) asyncDedicatedConn).sync();
-		}
-
-		throw new IllegalStateException(
-				String.format("%s is not a supported connection type.", asyncDedicatedConn.getClass().getName()));
-	}
-
 	@SuppressWarnings("unchecked")
 	protected StatefulConnection<byte[], byte[]> doGetAsyncDedicatedConnection() {
-		return connectionProvider.getConnection(StatefulConnection.class);
+
+		StatefulConnection connection = connectionProvider.getConnection(StatefulConnection.class);
+
+		if (customizedDatabaseIndex()) {
+			potentiallySelectDatabase(dbIndex);
+		}
+
+		return connection;
+	}
+
+	private boolean customizedDatabaseIndex() {
+		return defaultDbIndex != dbIndex;
+	}
+
+	private void potentiallySelectDatabase(int dbIndex) {
+		if (asyncDedicatedConn instanceof StatefulRedisConnection) {
+			((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync().select(dbIndex);
+		}
 	}
 
 	io.lettuce.core.ScanCursor getScanCursor(long cursorId) {
@@ -1263,10 +1307,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	@RequiredArgsConstructor
 	static class LettucePoolConnectionProvider implements LettuceConnectionProvider {
 
 		private final LettucePool pool;
+
+		LettucePoolConnectionProvider(LettucePool pool) {
+			this.pool = pool;
+		}
 
 		/*
 		 * (non-Javadoc)
@@ -1306,6 +1353,179 @@ public class LettuceConnection extends AbstractRedisConnection {
 			} else {
 				pool.returnBrokenResource((StatefulConnection<byte[], byte[]>) connection);
 			}
+		}
+	}
+
+	/**
+	 * Strategy interface to control pipelining flush behavior. Lettuce writes (flushes) each command individually to the
+	 * Redis connection. Flushing behavior can be customized to optimize for performance. Flushing can be either stateless
+	 * or stateful. An example for stateful flushing is size-based (buffer) flushing to flush after a configured number of
+	 * commands.
+	 *
+	 * @see StatefulRedisConnection#setAutoFlushCommands(boolean)
+	 * @see StatefulRedisConnection#flushCommands()
+	 * @author Mark Paluch
+	 * @since 2.3
+	 */
+	public interface PipeliningFlushPolicy {
+
+		/**
+		 * Return a policy to flush after each command (default behavior).
+		 *
+		 * @return a policy to flush after each command.
+		 */
+		static PipeliningFlushPolicy flushEachCommand() {
+			return FlushEachCommand.INSTANCE;
+		}
+
+		/**
+		 * Return a policy to flush only if {@link #closePipeline()} is called.
+		 *
+		 * @return a policy to flush after each command.
+		 */
+		static PipeliningFlushPolicy flushOnClose() {
+			return FlushOnClose.INSTANCE;
+		}
+
+		/**
+		 * Return a policy to buffer commands and to flush once reaching the configured {@code bufferSize}. The buffer is
+		 * recurring so a buffer size of e.g. {@code 2} will flush after 2, 4, 6, … commands.
+		 *
+		 * @param bufferSize the number of commands to buffer before flushing. Must be greater than zero.
+		 * @return a policy to flush buffered commands to the Redis connection once the configured number of commands was
+		 *         issued.
+		 */
+		static PipeliningFlushPolicy buffered(int bufferSize) {
+
+			Assert.isTrue(bufferSize > 0, "Buffer size must be greater than 0");
+			return () -> new BufferedFlushing(bufferSize);
+		}
+
+		PipeliningFlushState newPipeline();
+	}
+
+	/**
+	 * State object associated with flushing of the currently ongoing pipeline.
+	 * 
+	 * @author Mark Paluch
+	 * @since 2.3
+	 */
+	public interface PipeliningFlushState {
+
+		/**
+		 * Callback if the pipeline gets opened.
+		 *
+		 * @param connection
+		 * @see #openPipeline()
+		 */
+		void onOpen(StatefulConnection<?, ?> connection);
+
+		/**
+		 * Callback for each issued Redis command.
+		 *
+		 * @param connection
+		 * @see #pipeline(LettuceResult)
+		 */
+		void onCommand(StatefulConnection<?, ?> connection);
+
+		/**
+		 * Callback if the pipeline gets closed.
+		 *
+		 * @param connection
+		 * @see #closePipeline()
+		 */
+		void onClose(StatefulConnection<?, ?> connection);
+	}
+
+	/**
+	 * Implementation to flush on each command.
+	 * 
+	 * @author Mark Paluch
+	 * @since 2.3
+	 */
+	private enum FlushEachCommand implements PipeliningFlushPolicy, PipeliningFlushState {
+
+		INSTANCE;
+
+		@Override
+		public PipeliningFlushState newPipeline() {
+			return INSTANCE;
+		}
+
+		@Override
+		public void onOpen(StatefulConnection<?, ?> connection) {}
+
+		@Override
+		public void onCommand(StatefulConnection<?, ?> connection) {}
+
+		@Override
+		public void onClose(StatefulConnection<?, ?> connection) {}
+	}
+
+	/**
+	 * Implementation to flush on closing the pipeline.
+	 * 
+	 * @author Mark Paluch
+	 * @since 2.3
+	 */
+	private enum FlushOnClose implements PipeliningFlushPolicy, PipeliningFlushState {
+
+		INSTANCE;
+
+		@Override
+		public PipeliningFlushState newPipeline() {
+			return INSTANCE;
+		}
+
+		@Override
+		public void onOpen(StatefulConnection<?, ?> connection) {
+			connection.setAutoFlushCommands(false);
+		}
+
+		@Override
+		public void onCommand(StatefulConnection<?, ?> connection) {
+
+		}
+
+		@Override
+		public void onClose(StatefulConnection<?, ?> connection) {
+			connection.flushCommands();
+			connection.setAutoFlushCommands(true);
+		}
+	}
+
+	/**
+	 * Pipeline state for buffered flushing.
+	 * 
+	 * @author Mark Paluch
+	 * @since 2.3
+	 */
+	private static class BufferedFlushing implements PipeliningFlushState {
+
+		private final AtomicLong commands = new AtomicLong();
+
+		private final int flushAfter;
+
+		public BufferedFlushing(int flushAfter) {
+			this.flushAfter = flushAfter;
+		}
+
+		@Override
+		public void onOpen(StatefulConnection<?, ?> connection) {
+			connection.setAutoFlushCommands(false);
+		}
+
+		@Override
+		public void onCommand(StatefulConnection<?, ?> connection) {
+			if (commands.incrementAndGet() % flushAfter == 0) {
+				connection.flushCommands();
+			}
+		}
+
+		@Override
+		public void onClose(StatefulConnection<?, ?> connection) {
+			connection.flushCommands();
+			connection.setAutoFlushCommands(true);
 		}
 	}
 }

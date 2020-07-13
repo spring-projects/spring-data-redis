@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,12 +46,14 @@ import org.springframework.data.redis.core.index.Indexed;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Golam Mazid Sajib
  */
 public class ConversionTestEntities {
 
 	static final String KEYSPACE_PERSON = "persons";
 	static final String KEYSPACE_TWOT = "twot";
 	static final String KEYSPACE_LOCATION = "locations";
+	static final String KEYSPACE_ACCOUNT = "accounts";
 
 	@RedisHash(KEYSPACE_PERSON)
 	public static class Person {
@@ -237,7 +239,16 @@ public class ConversionTestEntities {
 	}
 
 	static class Inner {
-		
+
 		List<String> values;
+	}
+
+	@RedisHash(KEYSPACE_ACCOUNT)
+	@Data
+	public static class AccountInfo {
+
+		@Id private String id;
+		private String account;
+		private String accountName;
 	}
 }

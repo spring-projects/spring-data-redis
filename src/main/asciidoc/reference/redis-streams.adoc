@@ -163,6 +163,31 @@ Please refer to the Javadoc of the various message listener containers for a ful
 
 NOTE: Demand-driven consumption uses backpressure signals to activate and deactivate polling. `StreamReceiver` subscriptions pause polling if the demand is satisfied until subscribers signal further demand. Depending on the `ReadOffset` strategy, this can cause messages to be skipped.
 
+[[redis.streams.acknowledge]]
+=== `Acknowledge` strategies
+
+When you read with messages via a `Consumer Group`, the server will remember that a given message was delivered and add it to the Pending Entries List (PEL). A list of messages delivered but not yet acknowledged. +
+Messages have to be acknowledged via `StreamOperations.acknowledge` in order to be removed from the Pending Entries List as shown in the snippet below.
+
+====
+[source,java]
+----
+StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = ...
+
+container.receive(Consumer.from("my-group", "my-consumer"), <1>
+	StreamOffset.create("my-stream", ReadOffset.lastConsumed()),
+    msg -> {
+
+	    // ...
+	    redisTemplate.opsForStream().acknowledge("my-group", msg); <2>
+    });
+----
+<1> Read as _my-consumer_ from group _my-group_. Received messages are not acknowledged.
+<2> Acknowledged the message after processing.
+====
+
+TIP: To auto acknowledge messages on receive use `receiveAutoAck` instead of `receive`.
+
 [[redis.streams.receive.readoffset]]
 === `ReadOffset` strategies
 

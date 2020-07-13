@@ -119,7 +119,7 @@ The preceding example uses the Redis namespace to declare the message listener c
     <map>
       <entry key-ref="messageListener">
         <bean class="org.springframework.data.redis.listener.ChannelTopic">
-          <constructor-arg value="chatroom">
+          <constructor-arg value="chatroom"/>
         </bean>
       </entry>
     </map>

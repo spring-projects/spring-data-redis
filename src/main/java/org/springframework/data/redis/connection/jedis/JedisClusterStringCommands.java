@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.Connection;
 import redis.clients.jedis.params.SetParams;
@@ -45,10 +43,13 @@ import org.springframework.util.Assert;
  * @author Xiaohu Zhang
  * @since 2.0
  */
-@RequiredArgsConstructor
 class JedisClusterStringCommands implements RedisStringCommands {
 
-	private final @NonNull JedisClusterConnection connection;
+	private final JedisClusterConnection connection;
+
+	JedisClusterStringCommands(JedisClusterConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -131,7 +132,8 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		Assert.notNull(expiration, "Expiration must not be null!");
 		Assert.notNull(option, "Option must not be null!");
 
-		SetParams setParams = JedisConverters.toSetCommandExPxArgument(expiration, JedisConverters.toSetCommandNxXxArgument(option));
+		SetParams setParams = JedisConverters.toSetCommandExPxArgument(expiration,
+				JedisConverters.toSetCommandNxXxArgument(option));
 
 		try {
 			return Converters.stringToBoolean(connection.getCluster().set(key, value, setParams));

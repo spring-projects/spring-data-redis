@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.stream;
 
-import lombok.RequiredArgsConstructor;
 import reactor.core.CoreSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -47,6 +46,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
  * Default implementation of {@link StreamReceiver}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
 class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver<K, V> {
@@ -134,7 +134,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		}
 
 		BiFunction<K, ReadOffset, Flux<? extends Record<?, ?>>> readFunction = getConsumeReadFunction(consumer,
-				this.readOptions);
+				this.readOptions.autoAcknowledge());
 
 		return Flux.defer(() -> {
 
@@ -157,7 +157,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		}
 
 		BiFunction<K, ReadOffset, Flux<? extends Record<?, ?>>> readFunction = getConsumeReadFunction(consumer,
-				this.readOptions.noack());
+				this.readOptions);
 
 		return Flux.defer(() -> {
 			PollState pollState = PollState.consumer(consumer, streamOffset.getOffset());
@@ -181,7 +181,6 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 	/**
 	 * A stateful Redis Stream subscription.
 	 */
-	@RequiredArgsConstructor
 	class StreamSubscription {
 
 		private final Queue<V> overflow = Queues.<V> small().get();
@@ -190,6 +189,15 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		private final K key;
 		private final PollState pollState;
 		private final BiFunction<K, ReadOffset, Flux<V>> readFunction;
+
+		protected StreamSubscription(FluxSink<V> sink, K key, PollState pollState,
+				BiFunction<K, ReadOffset, Flux<V>> readFunction) {
+
+			this.sink = sink;
+			this.key = key;
+			this.pollState = pollState;
+			this.readFunction = readFunction;
+		}
 
 		/**
 		 * Arm the subscription so {@link Subscription#request(long) demand} activates polling.

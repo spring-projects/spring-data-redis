@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +35,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
+import org.springframework.data.redis.StringObjectFactory;
 
 /**
  * Integration test of {@link DefaultListOperations}
@@ -129,10 +131,43 @@ public class DefaultListOperationsTests<K, V> {
 		assertThat(listOps.range(key, 0, -1)).contains(v3, v2, v1);
 	}
 
+	@Test // DATAREDIS-611
+	public void testLeftPopDuration() {
+
+		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		assumeTrue(valueFactory instanceof StringObjectFactory);
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+
+		assertThat(listOps.leftPop(key, Duration.ofSeconds(1))).isNull();
+		listOps.rightPushAll(key, v1, v2);
+		assertThat(listOps.leftPop(key, Duration.ofSeconds(1))).isEqualTo(v1);
+	}
+
+	@Test // DATAREDIS-611
+	public void testRightPopDuration() {
+
+		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		assumeTrue(valueFactory instanceof StringObjectFactory);
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+
+		assertThat(listOps.rightPop(key, Duration.ofSeconds(1))).isNull();
+		listOps.rightPushAll(key, v1, v2);
+		assertThat(listOps.rightPop(key, Duration.ofSeconds(1))).isEqualTo(v2);
+	}
+
 	@Test
 	public void testRightPopAndLeftPushTimeout() {
 		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		assumeTrue(valueFactory instanceof StringObjectFactory);
 
 		K key = keyFactory.instance();
 		K key2 = keyFactory.instance();
@@ -141,6 +176,21 @@ public class DefaultListOperationsTests<K, V> {
 		assertThat(listOps.rightPopAndLeftPush(key, key2, 1, TimeUnit.MILLISECONDS)).isNull();
 		listOps.leftPush(key, v1);
 		assertThat(listOps.rightPopAndLeftPush(key, key2, 1, TimeUnit.MILLISECONDS)).isEqualTo(v1);
+	}
+
+	@Test // DATAREDIS-611
+	public void testRightPopAndLeftPushDuration() {
+		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		assumeTrue(valueFactory instanceof StringObjectFactory);
+
+		K key = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		V v1 = valueFactory.instance();
+
+		assertThat(listOps.rightPopAndLeftPush(key, key2, Duration.ofMillis(1))).isNull();
+		listOps.leftPush(key, v1);
+		assertThat(listOps.rightPopAndLeftPush(key, key2, Duration.ofMillis(1))).isEqualTo(v1);
 	}
 
 	@Test

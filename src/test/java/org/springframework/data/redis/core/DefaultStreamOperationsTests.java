@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
@@ -72,7 +74,7 @@ public class DefaultStreamOperationsTests<K, HK, HV> {
 		// See https://github.com/xetorthio/jedis/issues/1820
 		assumeTrue(redisTemplate.getConnectionFactory() instanceof LettuceConnectionFactory);
 
-		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "5.0"));
+		assumeTrue(RedisTestProfileValueSource.atLeast("redisVersion", "5.0"));
 
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
@@ -321,5 +323,45 @@ public class DefaultStreamOperationsTests<K, HK, HV> {
 
 		streamOps.add(key, Collections.singletonMap(hashKey, value));
 		assertThat(streamOps.size(key)).isEqualTo(2);
+	}
+
+	@Test // DATAREDIS-1084
+	public void pendingShouldReadMessageSummary() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
+
+		streamOps.read(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(key, ReadOffset.lastConsumed()));
+
+		PendingMessagesSummary pending = streamOps.pending(key, "my-group");
+
+		assertThat(pending.getTotalPendingMessages()).isOne();
+		assertThat(pending.getGroupName()).isEqualTo("my-group");
+	}
+
+	@Test // DATAREDIS-1084
+	public void pendingShouldReadMessageDetails() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
+
+		streamOps.read(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(key, ReadOffset.lastConsumed()));
+
+		PendingMessages pending = streamOps.pending(key, "my-group", Range.unbounded(), 10L);
+
+		assertThat(pending).hasSize(1);
+		assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
+		assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
+		assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package org.springframework.data.redis.repository.query;
-
-import lombok.EqualsAndHashCode;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -88,7 +86,6 @@ public class RedisOperationChain {
 		return near;
 	}
 
-	@EqualsAndHashCode
 	public static class PathAndValue {
 
 		private final String path;
@@ -129,32 +126,25 @@ public class RedisOperationChain {
 		}
 
 		@Override
-		public int hashCode() {
+		public boolean equals(Object o) {
 
-			int result = ObjectUtils.nullSafeHashCode(path);
-			result += ObjectUtils.nullSafeHashCode(values);
-			return result;
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			PathAndValue that = (PathAndValue) o;
+
+			if (!ObjectUtils.nullSafeEquals(path, that.path)) {
+				return false;
+			}
+			return ObjectUtils.nullSafeEquals(values, that.values);
 		}
 
 		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (!(obj instanceof PathAndValue)) {
-				return false;
-			}
-			PathAndValue that = (PathAndValue) obj;
-			if (!ObjectUtils.nullSafeEquals(this.path, that.path)) {
-				return false;
-			}
-
-			return ObjectUtils.nullSafeEquals(this.values, that.values);
+		public int hashCode() {
+			int result = ObjectUtils.nullSafeHashCode(path);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(values);
+			return result;
 		}
-
 	}
 
 	/**

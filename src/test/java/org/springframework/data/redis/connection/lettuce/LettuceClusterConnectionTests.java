@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	public void setUp() {
 
 		client = RedisClusterClient.create(LettuceTestClientResources.getSharedClientResources(),
-				Builder.redis(CLUSTER_HOST, MASTER_NODE_1_PORT).withTimeout(500, TimeUnit.MILLISECONDS).build());
+				Builder.redis(CLUSTER_HOST, MASTER_NODE_1_PORT).withTimeout(Duration.ofMillis(500)).build());
 		nativeConnection = client.connect().sync();
 		binaryConnection = client.connect(ByteArrayCodec.INSTANCE).sync();
 		clusterConnection = new LettuceClusterConnection(client);
@@ -2365,7 +2365,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.get(KEY_1);
 
-		assertThat(clusterConnection.keyCommands().idletime(KEY_1_BYTES)).isEqualTo(Duration.ofSeconds(0));
+		assertThat(clusterConnection.keyCommands().idletime(KEY_1_BYTES)).isLessThanOrEqualTo(Duration.ofSeconds(2));
 	}
 
 	@Test // DATAREDIS-716

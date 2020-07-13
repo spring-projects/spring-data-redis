@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 package org.springframework.data.redis.core.query;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
 
 import org.springframework.data.redis.connection.SortParameters.Order;
@@ -30,8 +27,6 @@ import org.springframework.lang.Nullable;
  * @author Costin Leau
  * @author Mark Paluch
  */
-@Getter
-@RequiredArgsConstructor
 class DefaultSortQuery<K> implements SortQuery<K> {
 
 	private final K key;
@@ -41,10 +36,54 @@ class DefaultSortQuery<K> implements SortQuery<K> {
 	private final @Nullable String by;
 	private final List<String> getPattern;
 
+	DefaultSortQuery(K key, Order order, Boolean alpha, Range limit, String by, List<String> getPattern) {
+		this.key = key;
+		this.order = order;
+		this.alpha = alpha;
+		this.limit = limit;
+		this.by = by;
+		this.getPattern = getPattern;
+	}
+
+	@Override
 	public Boolean isAlphabetic() {
 		return alpha;
 	}
 
+	@Override
+	public K getKey() {
+		return this.key;
+	}
+
+	@Nullable
+	@Override
+	public Order getOrder() {
+		return this.order;
+	}
+
+	@Nullable
+	public Boolean getAlpha() {
+		return this.alpha;
+	}
+
+	@Nullable
+	@Override
+	public Range getLimit() {
+		return this.limit;
+	}
+
+	@Nullable
+	@Override
+	public String getBy() {
+		return this.by;
+	}
+
+	@Override
+	public List<String> getGetPattern() {
+		return this.getPattern;
+	}
+
+	@Override
 	public String toString() {
 		return "DefaultSortQuery [alpha=" + alpha + ", by=" + by + ", gets=" + getPattern + ", key=" + key + ", limit="
 				+ limit + ", order=" + order + "]";

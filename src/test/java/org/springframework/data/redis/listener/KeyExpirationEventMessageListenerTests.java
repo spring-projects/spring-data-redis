@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +39,7 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class KeyExpirationEventMessageListenerTests {
@@ -62,17 +65,14 @@ public class KeyExpirationEventMessageListenerTests {
 		listener = new KeyExpirationEventMessageListener(container);
 		listener.setApplicationEventPublisher(publisherMock);
 		listener.init();
+
+		try (RedisConnection connection = connectionFactory.getConnection()) {
+			connection.flushAll();
+		}
 	}
 
 	@After
 	public void tearDown() throws Exception {
-
-		RedisConnection connection = connectionFactory.getConnection();
-		try {
-			connection.flushAll();
-		} finally {
-			connection.close();
-		}
 
 		listener.destroy();
 		container.destroy();
@@ -82,25 +82,23 @@ public class KeyExpirationEventMessageListenerTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void listenerShouldPublishEventCorrectly() throws InterruptedException {
+	public void listenerShouldPublishEventCorrectly() {
 
 		byte[] key = ("to-expire:" + UUID.randomUUID().toString()).getBytes();
+		AtomicBoolean called = new AtomicBoolean();
+		doAnswer(invocation -> {
+			called.set(true);
+			return null;
+		}).when(publisherMock).publishEvent(any(ApplicationEvent.class));
 
-		RedisConnection connection = connectionFactory.getConnection();
-		try {
-			connection.setEx(key, 2, "foo".getBytes());
+		try (RedisConnection connection = connectionFactory.getConnection()) {
 
-			int iteration = 0;
-			while (connection.get(key) != null || iteration >= 3) {
-
-				Thread.sleep(2000);
-				iteration++;
-			}
-		} finally {
-			connection.close();
+			connection.pSetEx(key, 1, key);
+			Awaitility.await().until(() -> !connection.exists(key));
 		}
 
-		Thread.sleep(2000);
+		Awaitility.await().untilTrue(called);
+
 		ArgumentCaptor<ApplicationEvent> captor = ArgumentCaptor.forClass(ApplicationEvent.class);
 
 		verify(publisherMock, times(1)).publishEvent(captor.capture());
@@ -112,18 +110,13 @@ public class KeyExpirationEventMessageListenerTests {
 
 		byte[] key = ("to-delete:" + UUID.randomUUID().toString()).getBytes();
 
-		RedisConnection connection = connectionFactory.getConnection();
-		try {
+		try (RedisConnection connection = connectionFactory.getConnection()) {
 
 			connection.setEx(key, 10, "foo".getBytes());
-			Thread.sleep(2000);
 			connection.del(key);
-			Thread.sleep(2000);
-		} finally {
-			connection.close();
 		}
 
-		Thread.sleep(2000);
-		verifyZeroInteractions(publisherMock);
+		Thread.sleep(500);
+		verifyNoInteractions(publisherMock);
 	}
 }

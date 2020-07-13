@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.pubsub.api.reactive.RedisPubSubReactiveCommands;
-import lombok.RequiredArgsConstructor;
 import reactor.core.Disposable;
 import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
@@ -186,7 +185,6 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 	 * 
 	 * @author Mark Paluch
 	 */
-	@RequiredArgsConstructor
 	static class State {
 
 		private final Set<ByteBuffer> targets = new ConcurrentSkipListSet<>();
@@ -195,6 +193,10 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		private final Function<Throwable, Throwable> exceptionTranslator;
 
 		private volatile @Nullable Disposable disposable;
+
+		State(Function<Throwable, Throwable> exceptionTranslator) {
+			this.exceptionTranslator = exceptionTranslator;
+		}
 
 		/**
 		 * Subscribe to {@code targets} using subscribe {@link Function} and register {@code targets} after subscription.

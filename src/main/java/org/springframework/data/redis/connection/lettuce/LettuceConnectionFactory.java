@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
-import lombok.RequiredArgsConstructor;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -38,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -89,6 +89,7 @@ import org.springframework.util.ClassUtils;
  * @author Balázs Németh
  * @author Ruben Cervilla
  * @author Luis De Bello
+ * @author Andrea Como
  */
 public class LettuceConnectionFactory
 		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
@@ -113,6 +114,7 @@ public class LettuceConnectionFactory
 	private boolean convertPipelineAndTxResults = true;
 
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost", 6379);
+	private PipeliningFlushPolicy pipeliningFlushPolicy = PipeliningFlushPolicy.flushEachCommand();
 
 	private @Nullable RedisConfiguration configuration;
 
@@ -299,16 +301,8 @@ public class LettuceConnectionFactory
 
 		resetConnection();
 
-		if (connectionProvider instanceof DisposableBean) {
-			try {
-				((DisposableBean) connectionProvider).destroy();
-			} catch (Exception e) {
-
-				if (log.isWarnEnabled()) {
-					log.warn(connectionProvider + " did not shut down gracefully.", e);
-				}
-			}
-		}
+		dispose(connectionProvider);
+		dispose(reactiveConnectionProvider);
 
 		try {
 			Duration quietPeriod = clientConfiguration.getShutdownQuietPeriod();
@@ -328,6 +322,20 @@ public class LettuceConnectionFactory
 				clusterCommandExecutor.destroy();
 			} catch (Exception ex) {
 				log.warn("Cannot properly close cluster command executor", ex);
+			}
+		}
+	}
+
+	private void dispose(LettuceConnectionProvider connectionProvider) {
+
+		if (connectionProvider instanceof DisposableBean) {
+			try {
+				((DisposableBean) connectionProvider).destroy();
+			} catch (Exception e) {
+
+				if (log.isWarnEnabled()) {
+					log.warn(connectionProvider + " did not shut down gracefully.", e);
+				}
 			}
 		}
 	}
@@ -386,7 +394,10 @@ public class LettuceConnectionFactory
 			@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, LettuceConnectionProvider connectionProvider,
 			long timeout, int database) {
 
-		return new LettuceConnection(sharedConnection, connectionProvider, timeout, database);
+		LettuceConnection connection = new LettuceConnection(sharedConnection, connectionProvider, timeout, database);
+		connection.setPipeliningFlushPolicy(this.pipeliningFlushPolicy);
+
+		return connection;
 	}
 
 	/**
@@ -407,8 +418,11 @@ public class LettuceConnectionFactory
 			LettuceConnectionProvider connectionProvider, ClusterTopologyProvider topologyProvider,
 			ClusterCommandExecutor clusterCommandExecutor, Duration commandTimeout) {
 
-		return new LettuceClusterConnection(sharedConnection, connectionProvider, topologyProvider, clusterCommandExecutor,
-				commandTimeout);
+		LettuceClusterConnection connection = new LettuceClusterConnection(sharedConnection, connectionProvider,
+				topologyProvider, clusterCommandExecutor, commandTimeout);
+		connection.setPipeliningFlushPolicy(this.pipeliningFlushPolicy);
+
+		return connection;
 	}
 
 	/*
@@ -417,6 +431,10 @@ public class LettuceConnectionFactory
 	 */
 	@Override
 	public LettuceReactiveRedisConnection getReactiveConnection() {
+
+		if (isClusterAware()) {
+			return getReactiveClusterConnection();
+		}
 
 		return getShareNativeConnection()
 				? new LettuceReactiveRedisConnection(getSharedReactiveConnection(), reactiveConnectionProvider)
@@ -543,6 +561,22 @@ public class LettuceConnectionFactory
 	@Deprecated
 	public void setPort(int port) {
 		standaloneConfig.setPort(port);
+	}
+
+	/**
+	 * Configures the flushing policy when using pipelining. If not set, defaults to
+	 * {@link PipeliningFlushPolicy#flushEachCommand() flush on each command}.
+	 *
+	 * @param pipeliningFlushPolicy the flushing policy to control when commands get written to the Redis connection.
+	 * @see LettuceConnection#openPipeline()
+	 * @see StatefulRedisConnection#flushCommands()
+	 * @since 2.3
+	 */
+	public void setPipeliningFlushPolicy(PipeliningFlushPolicy pipeliningFlushPolicy) {
+
+		Assert.notNull(pipeliningFlushPolicy, "PipeliningFlushingPolicy must not be null!");
+
+		this.pipeliningFlushPolicy = pipeliningFlushPolicy;
 	}
 
 	/**
@@ -1071,16 +1105,25 @@ public class LettuceConnectionFactory
 		RedisURI redisUri = LettuceConverters.sentinelConfigurationToRedisURI(
 				(org.springframework.data.redis.connection.RedisSentinelConfiguration) configuration);
 
-		getRedisPassword().toOptional().ifPresent(redisUri::setPassword);
-		clientConfiguration.getClientName().ifPresent(redisUri::setClientName);
+		applyToAll(redisUri, it -> {
 
-		redisUri.setSsl(clientConfiguration.isUseSsl());
-		redisUri.setVerifyPeer(clientConfiguration.isVerifyPeer());
-		redisUri.setStartTls(clientConfiguration.isStartTls());
-		redisUri.setTimeout(clientConfiguration.getCommandTimeout());
+			clientConfiguration.getClientName().ifPresent(it::setClientName);
+
+			it.setSsl(clientConfiguration.isUseSsl());
+			it.setVerifyPeer(clientConfiguration.isVerifyPeer());
+			it.setStartTls(clientConfiguration.isStartTls());
+			it.setTimeout(clientConfiguration.getCommandTimeout());
+		});
+
 		redisUri.setDatabase(getDatabase());
 
 		return redisUri;
+	}
+
+	private static void applyToAll(RedisURI source, Consumer<RedisURI> action) {
+
+		action.accept(source);
+		source.getSentinels().forEach(action);
 	}
 
 	private RedisURI createRedisURIAndApplySettings(String host, int port) {
@@ -1137,7 +1180,6 @@ public class LettuceConnectionFactory
 	 * @author Christoph Strobl
 	 * @since 2.1
 	 */
-	@RequiredArgsConstructor
 	class SharedConnection<E> {
 
 		private final LettuceConnectionProvider connectionProvider;
@@ -1146,6 +1188,10 @@ public class LettuceConnectionFactory
 		private final Object connectionMonitor = new Object();
 
 		private @Nullable StatefulConnection<E, E> connection;
+
+		SharedConnection(LettuceConnectionProvider connectionProvider) {
+			this.connectionProvider = connectionProvider;
+		}
 
 		/**
 		 * Returns a valid Lettuce connection. Initializes and validates the connection if
@@ -1211,7 +1257,7 @@ public class LettuceConnectionFactory
 
 				if (!valid) {
 
-					log.warn("Validation of shared connection failed. Creating a new connection.");
+					log.info("Validation of shared connection failed. Creating a new connection.");
 					resetConnection();
 					this.connection = getNativeConnection();
 				}

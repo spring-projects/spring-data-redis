@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.springframework.util.Assert.*;
-import static org.springframework.util.Assert.hasText;
 import static org.springframework.util.StringUtils.*;
 
 import java.util.Collections;
@@ -46,11 +44,14 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 
 	private static final String REDIS_SENTINEL_MASTER_CONFIG_PROPERTY = "spring.redis.sentinel.master";
 	private static final String REDIS_SENTINEL_NODES_CONFIG_PROPERTY = "spring.redis.sentinel.nodes";
+	private static final String REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY = "spring.redis.sentinel.password";
 
 	private @Nullable NamedNode master;
 	private Set<RedisNode> sentinels;
 	private int database;
-	private RedisPassword password = RedisPassword.none();
+
+	private RedisPassword dataNodePassword = RedisPassword.none();
+	private RedisPassword sentinelPassword = RedisPassword.none();
 
 	/**
 	 * Creates new {@link RedisSentinelConfiguration}.
@@ -89,7 +90,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 */
 	public RedisSentinelConfiguration(PropertySource<?> propertySource) {
 
-		notNull(propertySource, "PropertySource must not be null!");
+		Assert.notNull(propertySource, "PropertySource must not be null!");
 
 		this.sentinels = new LinkedHashSet<>();
 
@@ -101,6 +102,10 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 			appendSentinels(
 					commaDelimitedListToSet(propertySource.getProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY).toString()));
 		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY)) {
+			this.setSentinelPassword(propertySource.getProperty(REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY).toString());
+		}
 	}
 
 	/**
@@ -110,7 +115,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 */
 	public void setSentinels(Iterable<RedisNode> sentinels) {
 
-		notNull(sentinels, "Cannot set sentinels to 'null'.");
+		Assert.notNull(sentinels, "Cannot set sentinels to 'null'.");
 
 		this.sentinels.clear();
 
@@ -134,7 +139,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 */
 	public void addSentinel(RedisNode sentinel) {
 
-		notNull(sentinel, "Sentinel must not be 'null'.");
+		Assert.notNull(sentinel, "Sentinel must not be 'null'.");
 		this.sentinels.add(sentinel);
 	}
 
@@ -144,7 +149,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 */
 	public void setMaster(NamedNode master) {
 
-		notNull(master, "Sentinel master node must not be 'null'.");
+		Assert.notNull(master, "Sentinel master node must not be 'null'.");
 		this.master = master;
 	}
 
@@ -230,7 +235,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 */
 	@Override
 	public RedisPassword getPassword() {
-		return password;
+		return dataNodePassword;
 	}
 
 	/*
@@ -242,15 +247,34 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 
 		Assert.notNull(password, "RedisPassword must not be null!");
 
-		this.password = password;
+		this.dataNodePassword = password;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#setSentinelPassword(org.springframework.data.redis.connection.RedisPassword)
+	 */
+	public void setSentinelPassword(RedisPassword sentinelPassword) {
+
+		Assert.notNull(sentinelPassword, "SentinelPassword must not be null!");
+		this.sentinelPassword = sentinelPassword;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#setSentinelPassword()
+	 */
+	@Override
+	public RedisPassword getSentinelPassword() {
+		return sentinelPassword;
 	}
 
 	private RedisNode readHostAndPortFromString(String hostAndPort) {
 
 		String[] args = split(hostAndPort, ":");
 
-		notNull(args, "HostAndPort need to be seperated by  ':'.");
-		isTrue(args.length == 2, "Host and Port String needs to specified as host:port");
+		Assert.notNull(args, "HostAndPort need to be seperated by  ':'.");
+		Assert.isTrue(args.length == 2, "Host and Port String needs to specified as host:port");
 		return new RedisNode(args[0], Integer.valueOf(args[1]).intValue());
 	}
 
@@ -261,8 +285,8 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 */
 	private static Map<String, Object> asMap(String master, Set<String> sentinelHostAndPorts) {
 
-		hasText(master, "Master address must not be null or empty!");
-		notNull(sentinelHostAndPorts, "SentinelHostAndPorts must not be null!");
+		Assert.hasText(master, "Master address must not be null or empty!");
+		Assert.notNull(sentinelHostAndPorts, "SentinelHostAndPorts must not be null!");
 
 		Map<String, Object> map = new HashMap<>();
 		map.put(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY, master);

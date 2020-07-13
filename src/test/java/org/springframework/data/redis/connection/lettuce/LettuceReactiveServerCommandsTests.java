@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,12 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 
 	@Test // DATAREDIS-659
 	public void pingShouldRespondCorrectly() {
-		StepVerifier.create(connection.ping()).expectNext("PONG").verifyComplete();
+		connection.ping().as(StepVerifier::create).expectNext("PONG").verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void lastSaveShouldRespondCorrectly() {
-		StepVerifier.create(connection.serverCommands().lastSave()).expectNextCount(1).verifyComplete();
+		connection.serverCommands().lastSave().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659, DATAREDIS-667
@@ -43,42 +43,42 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 
 		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
 
-		StepVerifier.create(connection.serverCommands().save()).expectNext("OK").verifyComplete();
+		connection.serverCommands().save().as(StepVerifier::create).expectNext("OK").verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void dbSizeShouldRespondCorrectly() {
-		StepVerifier.create(connection.serverCommands().dbSize()).expectNextCount(1).verifyComplete();
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void flushDbShouldRespondCorrectly() {
 
-		StepVerifier.create(connection.serverCommands().flushDb() //
-				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER))) //
+		connection.serverCommands().flushDb() //
+				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)).as(StepVerifier::create) //
 				.expectNextCount(1) //
 				.verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().dbSize()).expectNext(1L).verifyComplete();
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().flushDb()).expectNext("OK").verifyComplete();
+		connection.serverCommands().flushDb().as(StepVerifier::create).expectNext("OK").verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().dbSize()).expectNext(0L).verifyComplete();
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void flushAllShouldRespondCorrectly() {
 
-		StepVerifier.create(connection.serverCommands().flushAll() //
-				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER))) //
+		connection.serverCommands().flushAll() //
+				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)).as(StepVerifier::create) //
 				.expectNextCount(1) //
 				.verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().dbSize()).expectNext(1L).verifyComplete();
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().flushAll()).expectNext("OK").verifyComplete();
+		connection.serverCommands().flushAll().as(StepVerifier::create).expectNext("OK").verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().dbSize()).expectNext(0L).verifyComplete();
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
@@ -86,7 +86,7 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 
 		if (connection instanceof LettuceReactiveRedisClusterConnection) {
 
-			StepVerifier.create(connection.serverCommands().info()) //
+			connection.serverCommands().info().as(StepVerifier::create) //
 					.consumeNextWith(properties -> {
 
 						assertThat(properties) //
@@ -96,7 +96,7 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 					.verifyComplete();
 		} else {
 
-			StepVerifier.create(connection.serverCommands().info()) //
+			connection.serverCommands().info().as(StepVerifier::create) //
 					.consumeNextWith(properties -> assertThat(properties).containsKey("tcp_port")) //
 					.verifyComplete();
 		}
@@ -107,7 +107,7 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 
 		if (connection instanceof LettuceReactiveRedisClusterConnection) {
 
-			StepVerifier.create(connection.serverCommands().info("server")) //
+			connection.serverCommands().info("server").as(StepVerifier::create) //
 					.consumeNextWith(properties -> {
 						assertThat(properties).isNotEmpty() //
 								.containsKey("127.0.0.1:7379.tcp_port") //
@@ -116,7 +116,7 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 					.verifyComplete();
 		} else {
 
-			StepVerifier.create(connection.serverCommands().info("server")) //
+			connection.serverCommands().info("server").as(StepVerifier::create) //
 					.consumeNextWith(properties -> {
 						assertThat(properties).containsKey("tcp_port").doesNotContainKey("role");
 					}) //
@@ -129,7 +129,7 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 
 		if (connection instanceof LettuceReactiveRedisClusterConnection) {
 
-			StepVerifier.create(connection.serverCommands().getConfig("*")) //
+			connection.serverCommands().getConfig("*").as(StepVerifier::create) //
 					.consumeNextWith(properties -> {
 						assertThat(properties).containsEntry("127.0.0.1:7379.databases", "16");
 
@@ -137,7 +137,7 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 					.verifyComplete();
 		} else {
 
-			StepVerifier.create(connection.serverCommands().getConfig("*")) //
+			connection.serverCommands().getConfig("*").as(StepVerifier::create) //
 					.consumeNextWith(properties -> {
 						assertThat(properties).containsEntry("databases", "16");
 					}) //
@@ -158,18 +158,18 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 		}).block().toString();
 
 		try {
-			StepVerifier.create(connection.serverCommands().setConfig(slowLogKey, "127")) //
+			connection.serverCommands().setConfig(slowLogKey, "127").as(StepVerifier::create) //
 					.expectNext("OK") //
 					.verifyComplete();
 
 			if (connection instanceof LettuceReactiveRedisClusterConnection) {
-				StepVerifier.create(connection.serverCommands().getConfig(slowLogKey)) //
+				connection.serverCommands().getConfig(slowLogKey).as(StepVerifier::create) //
 						.consumeNextWith(properties -> {
 							assertThat(properties).containsEntry("127.0.0.1:7379." + slowLogKey, "127");
 						}) //
 						.verifyComplete();
 			} else {
-				StepVerifier.create(connection.serverCommands().getConfig(slowLogKey)) //
+				connection.serverCommands().getConfig(slowLogKey).as(StepVerifier::create) //
 						.consumeNextWith(properties -> {
 							assertThat(properties).containsEntry(slowLogKey, "127");
 						}) //
@@ -182,12 +182,12 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 
 	@Test // DATAREDIS-659
 	public void configResetstatShouldRespondCorrectly() {
-		StepVerifier.create(connection.serverCommands().resetConfigStats()).expectNext("OK").verifyComplete();
+		connection.serverCommands().resetConfigStats().as(StepVerifier::create).expectNext("OK").verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void timeShouldRespondCorrectly() {
-		StepVerifier.create(connection.serverCommands().time()).expectNextCount(1).verifyComplete();
+		connection.serverCommands().time().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
@@ -196,12 +196,12 @@ public class LettuceReactiveServerCommandsTests extends LettuceReactiveCommandsT
 		// see lettuce-io/lettuce-core#563
 		assumeFalse(connection instanceof LettuceReactiveRedisClusterConnection);
 
-		StepVerifier.create(connection.serverCommands().setClientName("foo")).expectNextCount(1).verifyComplete();
-		StepVerifier.create(connection.serverCommands().getClientName()).expectNext("foo").verifyComplete();
+		connection.serverCommands().setClientName("foo").as(StepVerifier::create).expectNextCount(1).verifyComplete();
+		connection.serverCommands().getClientName().as(StepVerifier::create).expectNext("foo").verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void getClientListShouldReportClient() {
-		StepVerifier.create(connection.serverCommands().getClientList()).expectNextCount(1).thenCancel().verify();
+		connection.serverCommands().getClientList().as(StepVerifier::create).expectNextCount(1).thenCancel().verify();
 	}
 }

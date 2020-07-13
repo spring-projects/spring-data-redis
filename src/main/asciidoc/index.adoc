@@ -16,20 +16,13 @@ include::preface.adoc[]
 
 include::new-features.adoc[leveloffset=+1]
 
-[[introduction]]
-= Introduction
-
-
-include::introduction/introduction.adoc[leveloffset=+1]
-include::introduction/why-sdr.adoc[leveloffset=+1]
-include::introduction/requirements.adoc[leveloffset=+1]
-include::introduction/getting-started.adoc[leveloffset=+1]
+include::{spring-data-commons-docs}/dependencies.adoc[leveloffset=+1]
 
 [[reference]]
 = Reference Documentation
 
-
 include::reference/introduction.adoc[leveloffset=+1]
+include::reference/why-sdr.adoc[leveloffset=+1]
 include::reference/redis.adoc[leveloffset=+1]
 include::reference/reactive-redis.adoc[leveloffset=+1]
 include::reference/redis-cluster.adoc[leveloffset=+1]

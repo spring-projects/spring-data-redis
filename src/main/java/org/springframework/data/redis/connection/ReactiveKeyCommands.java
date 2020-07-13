@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ public interface ReactiveKeyCommands {
 	 * Find all keys matching the given {@literal pattern}.<br />
 	 * It is recommended to use {@link #scan(ScanOptions)} to iterate over the keyspace as {@link #keys(Publisher)} is a
 	 * non-interruptible and expensive Redis operation.
-	 * 
+	 *
 	 * @param patterns must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/keys">Redis Documentation: KEYS</a>
@@ -462,7 +462,7 @@ public interface ReactiveKeyCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(timeout, "Timeout must not be null!");
 
-		return expire(Mono.just(new ExpireCommand(key, timeout))).next().map(BooleanResponse::getOutput);
+		return pExpire(Mono.just(new ExpireCommand(key, timeout))).next().map(BooleanResponse::getOutput);
 	}
 
 	/**

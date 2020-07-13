@@ -18,16 +18,19 @@ package org.springframework.data.redis.core
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
- * Unit tests for [ReactiveHashOperationsExtensions].
+ * Unit tests for `ReactiveHashOperationsExtensions`.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Sebastien Deleuze
  */
 class ReactiveHashOperationsExtensionsUnitTests {
 
@@ -106,6 +109,20 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test // DATAREDIS-1033
+	fun keys() {
+		val operations = mockk<ReactiveHashOperations<String, String, String>>()
+		every { operations.keys(any()) } returns Flux.just("bar", "baz")
+
+		runBlocking {
+			assertThat(operations.keysAsFlow("foo").toList()).contains("bar", "baz")
+		}
+
+		verify {
+			operations.keys("foo")
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun incrementDouble() {
 
@@ -178,6 +195,53 @@ class ReactiveHashOperationsExtensionsUnitTests {
 
 		verify {
 			operations.putIfAbsent("foo", "bar", "baz")
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun values() {
+
+		val operations = mockk<ReactiveHashOperations<String, String, String>>()
+		every { operations.values(any()) } returns Flux.just("bar", "baz")
+
+		runBlocking {
+			assertThat(operations.valuesAsFlow("foo").toList()).contains("bar","baz")
+		}
+
+		verify {
+			operations.values("foo")
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun entries() {
+
+		val entry = java.util.AbstractMap.SimpleEntry("bar", "baz")
+		val operations = mockk<ReactiveHashOperations<String, String, String>>()
+		every { operations.entries(any()) } returns Flux.just(entry)
+
+		runBlocking {
+			assertThat(operations.entriesAsFlow("foo").toList()).contains(entry)
+		}
+
+		verify {
+			operations.entries("foo")
+		}
+	}
+
+	@Test // DATAREDIS-1033
+	fun scan() {
+
+		val entry = java.util.AbstractMap.SimpleEntry("bar", "baz")
+		val operations = mockk<ReactiveHashOperations<String, String, String>>()
+		every { operations.scan(any(), any()) } returns Flux.just(entry)
+
+		runBlocking {
+			assertThat(operations.scanAsFlow("foo").toList()).contains(entry)
+		}
+
+		verify {
+			operations.scan("foo", ScanOptions.NONE)
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 package org.springframework.data.redis.stream;
-
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -37,6 +34,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Simple {@link Executor} based {@link StreamMessageListenerContainer} implementation for running {@link Task tasks} to
@@ -45,6 +43,7 @@ import org.springframework.util.ErrorHandler;
  * This message container creates long-running tasks that are executed on {@link Executor}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.2
  */
 class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implements StreamMessageListenerContainer<K, V> {
@@ -223,7 +222,8 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 
 			ConsumerStreamReadRequest<K> consumerStreamRequest = (ConsumerStreamReadRequest<K>) streamRequest;
 
-			StreamReadOptions readOptions = consumerStreamRequest.isAutoAck() ? this.readOptions : this.readOptions.noack();
+			StreamReadOptions readOptions = consumerStreamRequest.isAutoAcknowledge() ? this.readOptions.autoAcknowledge()
+					: this.readOptions;
 			Consumer consumer = consumerStreamRequest.getConsumer();
 
 			if (this.containerOptions.getHashMapper() != null) {
@@ -284,11 +284,13 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 	 * @author Mark Paluch
 	 * @since 2.2
 	 */
-	@EqualsAndHashCode
-	@RequiredArgsConstructor
 	static class TaskSubscription implements Subscription {
 
 		private final Task task;
+
+		protected TaskSubscription(Task task) {
+			this.task = task;
+		}
 
 		Task getTask() {
 			return task;
@@ -319,6 +321,23 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		@Override
 		public void cancel() throws DataAccessResourceFailureException {
 			task.cancel();
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+
+			TaskSubscription that = (TaskSubscription) o;
+
+			return ObjectUtils.nullSafeEquals(task, that.task);
+		}
+
+		@Override
+		public int hashCode() {
+			return ObjectUtils.nullSafeHashCode(task);
 		}
 	}
 

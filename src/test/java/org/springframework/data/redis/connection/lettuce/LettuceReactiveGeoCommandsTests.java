@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,15 +147,13 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
 
-		StepVerifier
-				.create(connection.geoCommands().geoRadius(KEY_1_BBUFFER,
-						new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)))) //
+		connection.geoCommands().geoRadius(KEY_1_BBUFFER, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)))
+				.as(StepVerifier::create) //
 				.expectNextCount(3) //
 				.expectComplete();
 
-		StepVerifier
-				.create(connection.geoCommands().geoRadius(KEY_1_BBUFFER,
-						new Circle(new Point(15D, 37D), new Distance(150D, KILOMETERS)))) //
+		connection.geoCommands().geoRadius(KEY_1_BBUFFER, new Circle(new Point(15D, 37D), new Distance(150D, KILOMETERS)))
+				.as(StepVerifier::create) //
 				.expectNextCount(2) //
 				.expectComplete();
 	}
@@ -167,9 +165,10 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
 
-		StepVerifier
-				.create(connection.geoCommands().geoRadius(KEY_1_BBUFFER,
-						new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)), newGeoRadiusArgs().includeDistance())) //
+		connection.geoCommands()
+				.geoRadius(KEY_1_BBUFFER, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)),
+						newGeoRadiusArgs().includeDistance())
+				.as(StepVerifier::create) //
 				.consumeNextWith(actual -> {
 
 					assertThat(actual.getDistance().getValue()).isCloseTo(130.423D, offset(0.005));
@@ -185,9 +184,10 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
 
-		StepVerifier
-				.create(connection.geoCommands().geoRadius(KEY_1_BBUFFER,
-						new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)), newGeoRadiusArgs().limit(2))) //
+		connection.geoCommands()
+				.geoRadius(KEY_1_BBUFFER, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)),
+						newGeoRadiusArgs().limit(2))
+				.as(StepVerifier::create) //
 				.expectNextCount(2) //
 				.expectComplete();
 	}
@@ -199,9 +199,8 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
 
-		StepVerifier
-				.create(connection.geoCommands().geoRadiusByMember(KEY_1_BBUFFER, ARIGENTO.getName(),
-						new Distance(100, KILOMETERS))) //
+		connection.geoCommands().geoRadiusByMember(KEY_1_BBUFFER, ARIGENTO.getName(), new Distance(100, KILOMETERS))
+				.as(StepVerifier::create) //
 				.consumeNextWith(actual -> {
 					assertThat(actual.getContent().getName()).isEqualTo(ARIGENTO.getName());
 				}) //
@@ -218,9 +217,10 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
 
-		StepVerifier
-				.create(connection.geoCommands().geoRadiusByMember(KEY_1_BBUFFER, PALERMO.getName(),
-						new Distance(100, KILOMETERS), newGeoRadiusArgs().includeDistance())) //
+		connection.geoCommands()
+				.geoRadiusByMember(KEY_1_BBUFFER, PALERMO.getName(), new Distance(100, KILOMETERS),
+						newGeoRadiusArgs().includeDistance())
+				.as(StepVerifier::create) //
 				.consumeNextWith(actual -> {
 
 					assertThat(actual.getDistance().getValue()).isCloseTo(90.978D, offset(0.005));
@@ -238,9 +238,9 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
 
-		StepVerifier
-				.create(connection.geoCommands().geoRadiusByMember(KEY_1_BBUFFER, PALERMO.getName(),
-						new Distance(200, KILOMETERS), newGeoRadiusArgs().limit(2))) //
+		connection.geoCommands()
+				.geoRadiusByMember(KEY_1_BBUFFER, PALERMO.getName(), new Distance(200, KILOMETERS), newGeoRadiusArgs().limit(2))
+				.as(StepVerifier::create) //
 				.expectNextCount(2) //
 				.verifyComplete();
 	}

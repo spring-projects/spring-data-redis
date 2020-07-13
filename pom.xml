@@ -5,26 +5,27 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-redis</artifactId>
-	<version>2.2.0.BUILD-SNAPSHOT</version>
+	<version>2.4.0-SNAPSHOT</version>
 
 	<name>Spring Data Redis</name>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.2.0.BUILD-SNAPSHOT</version>
+		<version>2.4.0-SNAPSHOT</version>
 	</parent>
 
 	<properties>
-		<springdata.keyvalue>2.2.0.BUILD-SNAPSHOT</springdata.keyvalue>
+		<springdata.keyvalue>2.4.0-SNAPSHOT</springdata.keyvalue>
+		<awaitility>4.0.2</awaitility>
 		<jta>1.1</jta>
 		<beanutils>1.9.2</beanutils>
-		<xstream>1.4.8</xstream>
+		<xstream>1.4.12</xstream>
 		<pool>2.7.0</pool>
-		<lettuce>5.1.8.RELEASE</lettuce>
-		<jedis>3.1.0</jedis>
+		<lettuce>5.3.1.RELEASE</lettuce>
+		<jedis>3.3.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
-		<netty>4.1.22.Final</netty>
+		<netty>4.1.49.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
 	</properties>
 
@@ -225,6 +226,13 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.awaitility</groupId>
+			<artifactId>awaitility</artifactId>
+			<version>${awaitility}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>javax.transaction</groupId>
 			<artifactId>jta</artifactId>
 			<version>${jta}</version>
@@ -284,6 +292,12 @@
 			<plugin>
 				<groupId>org.asciidoctor</groupId>
 				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<configuration>
+					<attributes>
+						<lettuce>${lettuce}</lettuce>
+						<jedis>${jedis}</jedis>
+					</attributes>
+				</configuration>
 			</plugin>
 
 		</plugins>

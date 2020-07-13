@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -40,11 +38,17 @@ import org.springframework.util.Assert;
  * @author Roman Bezpalko
  * @since 2.0
  */
-@RequiredArgsConstructor
 class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> {
 
-	private final @NonNull ReactiveRedisTemplate<?, ?> template;
-	private final @NonNull RedisSerializationContext<K, V> serializationContext;
+	private final ReactiveRedisTemplate<?, ?> template;
+	private final RedisSerializationContext<K, V> serializationContext;
+
+	DefaultReactiveSetOperations(ReactiveRedisTemplate<?, ?> template,
+			RedisSerializationContext<K, V> serializationContext) {
+
+		this.template = template;
+		this.serializationContext = serializationContext;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -426,7 +430,7 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(options, "ScanOptions must not be null!");
 
-		return createFlux(connection -> connection.sScan(rawKey(key)).map(this::readValue));
+		return createFlux(connection -> connection.sScan(rawKey(key), options).map(this::readValue));
 	}
 
 	/*

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,66 +36,64 @@ public class LettuceReactiveClusterServerCommandsTests extends LettuceReactiveCl
 
 	@Test // DATAREDIS-659
 	public void pingShouldRespondCorrectly() {
-		StepVerifier.create(connection.ping(NODE1)).expectNext("PONG").verifyComplete();
+		connection.ping(NODE1).as(StepVerifier::create).expectNext("PONG").verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void lastSaveShouldRespondCorrectly() {
-		StepVerifier.create(connection.serverCommands().lastSave(NODE1)).expectNextCount(1).verifyComplete();
+		connection.serverCommands().lastSave(NODE1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void saveShouldRespondCorrectly() {
-		StepVerifier.create(connection.serverCommands().save(NODE1)).expectNext("OK").verifyComplete();
+		connection.serverCommands().save(NODE1).as(StepVerifier::create).expectNext("OK").verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void dbSizeShouldRespondCorrectly() {
-		StepVerifier.create(connection.serverCommands().dbSize(NODE1)).expectNextCount(1).verifyComplete();
+		connection.serverCommands().dbSize(NODE1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void flushDbShouldRespondCorrectly() {
 
-		StepVerifier
-				.create(connection.serverCommands().flushDb() //
-						.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)) //
-						.then(connection.stringCommands().set(KEY_2_BBUFFER, VALUE_2_BBUFFER))) //
+		connection.serverCommands().flushDb() //
+				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)) //
+				.then(connection.stringCommands().set(KEY_2_BBUFFER, VALUE_2_BBUFFER)).as(StepVerifier::create) //
 				.expectNextCount(1) //
 				.verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().dbSize(NODE1)).expectNext(1L).verifyComplete();
-		StepVerifier.create(connection.serverCommands().dbSize(NODE3)).expectNext(1L).verifyComplete();
+		connection.serverCommands().dbSize(NODE1).as(StepVerifier::create).expectNext(1L).verifyComplete();
+		connection.serverCommands().dbSize(NODE3).as(StepVerifier::create).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().flushDb(NODE1)).expectNext("OK").verifyComplete();
+		connection.serverCommands().flushDb(NODE1).as(StepVerifier::create).expectNext("OK").verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().dbSize(NODE1)).expectNext(0L).verifyComplete();
-		StepVerifier.create(connection.serverCommands().dbSize(NODE3)).expectNext(1L).verifyComplete();
+		connection.serverCommands().dbSize(NODE1).as(StepVerifier::create).expectNext(0L).verifyComplete();
+		connection.serverCommands().dbSize(NODE3).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void flushAllShouldRespondCorrectly() {
 
-		StepVerifier
-				.create(connection.serverCommands().flushAll() //
-						.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)) //
-						.then(connection.stringCommands().set(KEY_2_BBUFFER, VALUE_2_BBUFFER))) //
+		connection.serverCommands().flushAll() //
+				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)) //
+				.then(connection.stringCommands().set(KEY_2_BBUFFER, VALUE_2_BBUFFER)).as(StepVerifier::create) //
 				.expectNextCount(1) //
 				.verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().dbSize(NODE1)).expectNext(1L).verifyComplete();
-		StepVerifier.create(connection.serverCommands().dbSize(NODE3)).expectNext(1L).verifyComplete();
+		connection.serverCommands().dbSize(NODE1).as(StepVerifier::create).expectNext(1L).verifyComplete();
+		connection.serverCommands().dbSize(NODE3).as(StepVerifier::create).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().flushAll(NODE1)).expectNext("OK").verifyComplete();
+		connection.serverCommands().flushAll(NODE1).as(StepVerifier::create).expectNext("OK").verifyComplete();
 
-		StepVerifier.create(connection.serverCommands().dbSize(NODE1)).expectNext(0L).verifyComplete();
-		StepVerifier.create(connection.serverCommands().dbSize(NODE3)).expectNext(1L).verifyComplete();
+		connection.serverCommands().dbSize(NODE1).as(StepVerifier::create).expectNext(0L).verifyComplete();
+		connection.serverCommands().dbSize(NODE3).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void infoShouldRespondCorrectly() {
 
-		StepVerifier.create(connection.serverCommands().info(NODE1)) //
+		connection.serverCommands().info(NODE1).as(StepVerifier::create) //
 				.consumeNextWith(properties -> assertThat(properties).containsKey("tcp_port")) //
 				.verifyComplete();
 	}
@@ -103,7 +101,7 @@ public class LettuceReactiveClusterServerCommandsTests extends LettuceReactiveCl
 	@Test // DATAREDIS-659
 	public void standaloneInfoWithSectionShouldRespondCorrectly() {
 
-		StepVerifier.create(connection.serverCommands().info(NODE1, "server")) //
+		connection.serverCommands().info(NODE1, "server").as(StepVerifier::create) //
 				.consumeNextWith(properties -> {
 					assertThat(properties).containsKey("tcp_port").doesNotContainKey("role");
 				}) //
@@ -113,7 +111,7 @@ public class LettuceReactiveClusterServerCommandsTests extends LettuceReactiveCl
 	@Test // DATAREDIS-659
 	public void getConfigShouldRespondCorrectly() {
 
-		StepVerifier.create(connection.serverCommands().getConfig(NODE1, "*")) //
+		connection.serverCommands().getConfig(NODE1, "*").as(StepVerifier::create) //
 				.consumeNextWith(properties -> {
 					assertThat(properties).containsEntry("databases", "16");
 				}) //
@@ -133,21 +131,21 @@ public class LettuceReactiveClusterServerCommandsTests extends LettuceReactiveCl
 		}).block().toString();
 
 		try {
-			StepVerifier.create(connection.serverCommands().setConfig(slowLogKey, resetValue)) //
+			connection.serverCommands().setConfig(slowLogKey, resetValue).as(StepVerifier::create) //
 					.expectNext("OK") //
 					.verifyComplete();
 
-			StepVerifier.create(connection.serverCommands().setConfig(NODE1, slowLogKey, "127")) //
+			connection.serverCommands().setConfig(NODE1, slowLogKey, "127").as(StepVerifier::create) //
 					.expectNext("OK") //
 					.verifyComplete();
 
-			StepVerifier.create(connection.serverCommands().getConfig(NODE1, slowLogKey)) //
+			connection.serverCommands().getConfig(NODE1, slowLogKey).as(StepVerifier::create) //
 					.consumeNextWith(properties -> {
 						assertThat(properties).containsEntry(slowLogKey, "127");
 					}) //
 					.verifyComplete();
 
-			StepVerifier.create(connection.serverCommands().getConfig(NODE2, slowLogKey)) //
+			connection.serverCommands().getConfig(NODE2, slowLogKey).as(StepVerifier::create) //
 					.consumeNextWith(properties -> {
 						assertThat(properties).containsEntry(slowLogKey, resetValue);
 					}) //
@@ -159,16 +157,16 @@ public class LettuceReactiveClusterServerCommandsTests extends LettuceReactiveCl
 
 	@Test // DATAREDIS-659
 	public void configResetstatShouldRespondCorrectly() {
-		StepVerifier.create(connection.serverCommands().resetConfigStats(NODE1)).expectNext("OK").verifyComplete();
+		connection.serverCommands().resetConfigStats(NODE1).as(StepVerifier::create).expectNext("OK").verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void timeShouldRespondCorrectly() {
-		StepVerifier.create(connection.serverCommands().time(NODE1)).expectNextCount(1).verifyComplete();
+		connection.serverCommands().time(NODE1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659
 	public void getClientListShouldReportClient() {
-		StepVerifier.create(connection.serverCommands().getClientList(NODE1)).expectNextCount(1).thenCancel().verify();
+		connection.serverCommands().getClientList(NODE1).as(StepVerifier::create).expectNextCount(1).thenCancel().verify();
 	}
 }

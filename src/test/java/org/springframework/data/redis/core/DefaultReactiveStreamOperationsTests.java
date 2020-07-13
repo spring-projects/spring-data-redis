@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
@@ -321,5 +322,54 @@ public class DefaultReactiveStreamOperationsTests<K, HK, HV> {
 				.as(StepVerifier::create) //
 				.expectNext(2L) //
 				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-1084
+	public void pendingShouldReadMessageSummary() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		streamOperations.add(key, Collections.singletonMap(hashKey, value)).then().as(StepVerifier::create)
+				.verifyComplete();
+
+		streamOperations.createGroup(key, ReadOffset.from("0-0"), "my-group").then().as(StepVerifier::create)
+				.verifyComplete();
+
+		streamOperations.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		streamOperations.pending(key, "my-group").as(StepVerifier::create).assertNext(pending -> {
+
+			assertThat(pending.getTotalPendingMessages()).isOne();
+			assertThat(pending.getGroupName()).isEqualTo("my-group");
+		}).verifyComplete();
+	}
+
+	@Test // DATAREDIS-1084
+	public void pendingShouldReadMessageDetails() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		streamOperations.add(key, Collections.singletonMap(hashKey, value)).then().as(StepVerifier::create)
+				.verifyComplete();
+
+		streamOperations.createGroup(key, ReadOffset.from("0-0"), "my-group").then().as(StepVerifier::create)
+				.verifyComplete();
+
+		streamOperations.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		streamOperations.pending(key, "my-group", Range.unbounded(), 10L).as(StepVerifier::create).assertNext(pending -> {
+
+			assertThat(pending).hasSize(1);
+			assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
+			assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
+			assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
+		}).verifyComplete();
+
 	}
 }

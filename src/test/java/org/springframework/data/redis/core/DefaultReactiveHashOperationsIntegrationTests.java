@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,7 +125,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.remove(key, hashkey1, hashkey2)) //
+		hashOperations.remove(key, hashkey1, hashkey2) //
+				.as(StepVerifier::create) //
 				.expectNext(2L) //
 				.verifyComplete();
 	}
@@ -137,15 +138,18 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 		HV hashvalue = hashValueFactory.instance();
 
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)) //
+		hashOperations.put(key, hashkey, hashvalue) //
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
-		StepVerifier.create(hashOperations.hasKey(key, hashkey)) //
+		hashOperations.hasKey(key, hashkey) //
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
-		StepVerifier.create(hashOperations.hasKey(key, hashKeyFactory.instance())) //
+		hashOperations.hasKey(key, hashKeyFactory.instance()) //
+				.as(StepVerifier::create) //
 				.expectNext(false) //
 				.verifyComplete();
 	}
@@ -157,11 +161,13 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 		HV hashvalue = hashValueFactory.instance();
 
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)) //
+		hashOperations.put(key, hashkey, hashvalue) //
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
-		StepVerifier.create(hashOperations.get(key, hashkey)) //
+		hashOperations.get(key, hashkey) //
+				.as(StepVerifier::create) //
 				.expectNextCount(1) //
 				.verifyComplete();
 	}
@@ -216,15 +222,18 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 		HV hashvalue = (HV) "1";
 
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)) //
+		hashOperations.put(key, hashkey, hashvalue) //
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
-		StepVerifier.create(hashOperations.increment(key, hashkey, 1L)) //
+		hashOperations.increment(key, hashkey, 1L) //
+				.as(StepVerifier::create) //
 				.expectNext(2L) //
 				.verifyComplete();
 
-		StepVerifier.create(hashOperations.get(key, hashkey)) //
+		hashOperations.get(key, hashkey) //
+				.as(StepVerifier::create) //
 				.expectNext((HV) "2") //
 				.verifyComplete();
 	}
@@ -239,15 +248,18 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 		HV hashvalue = (HV) "1";
 
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)) //
+		hashOperations.put(key, hashkey, hashvalue) //
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
-		StepVerifier.create(hashOperations.increment(key, hashkey, 1.1d)) //
+		hashOperations.increment(key, hashkey, 1.1d) //
+				.as(StepVerifier::create) //
 				.expectNext(2.1d) //
 				.verifyComplete();
 
-		StepVerifier.create(hashOperations.get(key, hashkey)) //
+		hashOperations.get(key, hashkey) //
+				.as(StepVerifier::create) //
 				.expectNext((HV) "2.1") //
 				.verifyComplete();
 	}
@@ -266,7 +278,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.keys(key).buffer(2)) //
+		hashOperations.keys(key).buffer(2) //
+				.as(StepVerifier::create) //
 				.consumeNextWith(list -> assertThat(list).containsExactlyInAnyOrder(hashkey1, hashkey2)) //
 				.verifyComplete();
 	}
@@ -283,7 +296,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.size(key)) //
+		hashOperations.size(key) //
+				.as(StepVerifier::create) //
 				.expectNext(2L) //
 				.verifyComplete();
 	}
@@ -300,11 +314,13 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.hasKey(key, hashkey1)) //
+		hashOperations.hasKey(key, hashkey1) //
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
-		StepVerifier.create(hashOperations.hasKey(key, hashkey2)) //
+		hashOperations.hasKey(key, hashkey2) //
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 	}
@@ -316,7 +332,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 		HV hashvalue = hashValueFactory.instance();
 
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)) //
+		hashOperations.put(key, hashkey, hashvalue) //
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 	}
@@ -329,11 +346,13 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HV hashvalue = hashValueFactory.instance();
 		HV hashvalue2 = hashValueFactory.instance();
 
-		StepVerifier.create(hashOperations.putIfAbsent(key, hashkey, hashvalue)) //
+		hashOperations.putIfAbsent(key, hashkey, hashvalue) //
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
-		StepVerifier.create(hashOperations.putIfAbsent(key, hashkey, hashvalue2)) //
+		hashOperations.putIfAbsent(key, hashkey, hashvalue2) //
+				.as(StepVerifier::create) //
 				.expectNext(false) //
 				.verifyComplete();
 	}
@@ -352,7 +371,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.values(key)) //
+		hashOperations.values(key) //
+				.as(StepVerifier::create) //
 				.expectNextCount(2) //
 				.verifyComplete();
 	}
@@ -371,7 +391,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.entries(key).buffer(2)) //
+		hashOperations.entries(key).buffer(2) //
+				.as(StepVerifier::create) //
 				.consumeNextWith(list -> {
 
 					Entry<HK, HV> entry1 = Collections.singletonMap(hashkey1, hashvalue1).entrySet().iterator().next();
@@ -396,7 +417,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.scan(key).buffer(2)) //
+		hashOperations.scan(key).buffer(2) //
+				.as(StepVerifier::create) //
 				.consumeNextWith(list -> {
 
 					Entry<HK, HV> entry1 = Collections.singletonMap(hashkey1, hashvalue1).entrySet().iterator().next();
@@ -414,15 +436,18 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 		HV hashvalue = hashValueFactory.instance();
 
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)) //
+		hashOperations.put(key, hashkey, hashvalue) //
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
-		StepVerifier.create(hashOperations.delete(key)) //
+		hashOperations.delete(key) //
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 
-		StepVerifier.create(hashOperations.size(key)) //
+		hashOperations.size(key) //
+				.as(StepVerifier::create) //
 				.expectNext(0L) //
 				.verifyComplete();
 	}
@@ -433,7 +458,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		map.put(hashkey1, hashvalue1);
 		map.put(hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.putAll(key, map)) //
+		hashOperations.putAll(key, map) //
+				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.data.redis.core.script;
 import static org.mockito.Mockito.*;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -37,6 +38,8 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 /**
+ * Unit tests for {@link DefaultReactiveScriptExecutor}.
+ *
  * @author Mark Paluch
  * @author Christoph Strobl
  */
@@ -56,6 +59,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 
 		when(connectionFactoryMock.getReactiveConnection()).thenReturn(connectionMock);
 		when(connectionMock.scriptingCommands()).thenReturn(scriptingCommandsMock);
+		when(connectionMock.closeLater()).thenReturn(Mono.empty());
 
 		executor = new DefaultReactiveScriptExecutor<>(connectionFactoryMock, RedisSerializationContext.string());
 	}
@@ -66,7 +70,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.just(ByteBuffer.wrap("FOO".getBytes())));
 
-		StepVerifier.create(executor.execute(SCRIPT)).expectNext("FOO").verifyComplete();
+		executor.execute(SCRIPT).as(StepVerifier::create).expectNext("FOO").verifyComplete();
 
 		verify(scriptingCommandsMock).evalSha(anyString(), any(ReturnType.class), anyInt());
 		verify(scriptingCommandsMock, never()).eval(any(), any(ReturnType.class), anyInt());
@@ -81,7 +85,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 		when(scriptingCommandsMock.eval(any(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.just(ByteBuffer.wrap("FOO".getBytes())));
 
-		StepVerifier.create(executor.execute(SCRIPT)).expectNext("FOO").verifyComplete();
+		executor.execute(SCRIPT).as(StepVerifier::create).expectNext("FOO").verifyComplete();
 
 		verify(scriptingCommandsMock).evalSha(anyString(), any(ReturnType.class), anyInt());
 		verify(scriptingCommandsMock).eval(any(), any(ReturnType.class), anyInt());
@@ -93,7 +97,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn(Flux
 				.error(new UnsupportedOperationException("NOSCRIPT No matching script. Please use EVAL.", new Exception())));
 
-		StepVerifier.create(executor.execute(SCRIPT)).expectError(UnsupportedOperationException.class).verify();
+		executor.execute(SCRIPT).as(StepVerifier::create).verifyError(UnsupportedOperationException.class);
 	}
 
 	@Test // DATAREDIS-683
@@ -106,9 +110,10 @@ public class DefaultReactiveScriptExecutorUnitTests {
 
 		verify(connectionMock, never()).close();
 
-		StepVerifier.create(execute).expectNext("FOO").verifyComplete();
+		execute.as(StepVerifier::create).expectNext("FOO").verifyComplete();
 
-		verify(connectionMock).close();
+		verify(connectionMock).closeLater();
+		verify(connectionMock, never()).close();
 	}
 
 	@Test // DATAREDIS-683
@@ -117,9 +122,10 @@ public class DefaultReactiveScriptExecutorUnitTests {
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.error(new RuntimeException()));
 
-		StepVerifier.create(executor.execute(SCRIPT)).expectError().verify();
+		executor.execute(SCRIPT).as(StepVerifier::create).verifyError();
 
-		verify(connectionMock).close();
+		verify(connectionMock).closeLater();
+		verify(connectionMock, never()).close();
 	}
 
 	@Test // DATAREDIS-683
@@ -130,6 +136,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.just(returnValue));
 
-		StepVerifier.create(executor.execute(RedisScript.of("return KEYS[0]"))).expectNext(returnValue).verifyComplete();
+		executor.execute(RedisScript.of("return KEYS[0]")).as(StepVerifier::create).expectNext(returnValue)
+				.verifyComplete();
 	}
 }

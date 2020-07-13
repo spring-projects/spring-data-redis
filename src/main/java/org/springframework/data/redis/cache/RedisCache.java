@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,17 @@ package org.springframework.data.redis.cache;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.cache.support.NullValue;
 import org.springframework.cache.support.SimpleValueWrapper;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -33,14 +39,14 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * {@link org.springframework.cache.Cache} implementation using for Redis as underlying store.
- * <p />
+ * <p/>
  * Use {@link RedisCacheManager} to create {@link RedisCache} instances.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
- * @since 2.0
  * @see RedisCacheConfiguration
  * @see RedisCacheWriter
+ * @since 2.0
  */
 public class RedisCache extends AbstractValueAdaptingCache {
 
@@ -280,9 +286,24 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	protected String convertKey(Object key) {
 
+		if (key instanceof String) {
+			return (String) key;
+		}
+
 		TypeDescriptor source = TypeDescriptor.forObject(key);
+
 		if (conversionService.canConvert(source, TypeDescriptor.valueOf(String.class))) {
-			return conversionService.convert(key, String.class);
+			try {
+				return conversionService.convert(key, String.class);
+			} catch (ConversionFailedException e) {
+
+				// may fail if the given key is a collection
+				if (isCollectionLikeOrMap(source)) {
+					return convertCollectionLikeOrMapKey(key, source);
+				}
+
+				throw e;
+			}
 		}
 
 		Method toString = ReflectionUtils.findMethod(key.getClass(), "toString");
@@ -291,8 +312,41 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return key.toString();
 		}
 
-		throw new IllegalStateException(
-				String.format("Cannot convert %s to String. Register a Converter or override toString().", source));
+		throw new IllegalStateException(String.format(
+				"Cannot convert cache key %s to String. Please register a suitable Converter via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'.",
+				source, key.getClass().getSimpleName()));
+	}
+
+	private String convertCollectionLikeOrMapKey(Object key, TypeDescriptor source) {
+
+		if (source.isMap()) {
+
+			StringBuilder target = new StringBuilder("{");
+
+			for (Entry<?, ?> entry : ((Map<?, ?>) key).entrySet()) {
+				target.append(convertKey(entry.getKey())).append("=").append(convertKey(entry.getValue()));
+			}
+			target.append("}");
+
+			return target.toString();
+		} else if (source.isCollection() || source.isArray()) {
+
+			StringJoiner sj = new StringJoiner(",");
+
+			Collection<?> collection = source.isCollection() ? (Collection<?>) key
+					: Arrays.asList(ObjectUtils.toObjectArray(key));
+
+			for (Object val : collection) {
+				sj.add(convertKey(val));
+			}
+			return "[" + sj.toString() + "]";
+		}
+
+		throw new IllegalArgumentException(String.format("Cannot convert cache key %s to String.", key));
+	}
+
+	private boolean isCollectionLikeOrMap(TypeDescriptor source) {
+		return source.isArray() || source.isCollection() || source.isMap();
 	}
 
 	private byte[] createAndConvertCacheKey(Object key) {

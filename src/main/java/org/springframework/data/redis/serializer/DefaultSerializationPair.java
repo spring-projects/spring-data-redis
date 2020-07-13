@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.serializer;
 
-import lombok.Getter;
-
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 
 /**
@@ -26,7 +24,6 @@ import org.springframework.data.redis.serializer.RedisSerializationContext.Seria
  * @author Christoph Strobl
  * @since 2.0
  */
-@Getter
 class DefaultSerializationPair<T> implements SerializationPair<T> {
 
 	private final RedisElementReader<T> reader;
@@ -37,5 +34,15 @@ class DefaultSerializationPair<T> implements SerializationPair<T> {
 
 		this.reader = (RedisElementReader) reader;
 		this.writer = (RedisElementWriter) writer;
+	}
+
+	@Override
+	public RedisElementReader<T> getReader() {
+		return this.reader;
+	}
+
+	@Override
+	public RedisElementWriter<T> getWriter() {
+		return this.writer;
 	}
 }

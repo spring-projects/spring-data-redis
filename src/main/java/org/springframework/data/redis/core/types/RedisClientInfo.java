@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,13 @@
  */
 package org.springframework.data.redis.core.types;
 
-import lombok.EqualsAndHashCode;
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Properties;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * {@link RedisClientInfo} provides general and statistical information about client connections.
@@ -30,7 +29,6 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 1.3
  */
-@EqualsAndHashCode
 public class RedisClientInfo {
 
 	public enum INFO {
@@ -251,6 +249,24 @@ public class RedisClientInfo {
 	@Override
 	public String toString() {
 		return this.clientProperties.toString();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		RedisClientInfo that = (RedisClientInfo) o;
+
+		return ObjectUtils.nullSafeEquals(clientProperties, that.clientProperties);
+	}
+
+	@Override
+	public int hashCode() {
+		return ObjectUtils.nullSafeHashCode(clientProperties);
 	}
 
 	public static class RedisClientInfoBuilder {

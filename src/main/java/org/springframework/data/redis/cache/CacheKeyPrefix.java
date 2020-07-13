@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.cache;
 
+import org.springframework.util.Assert;
+
 /**
  * {@link CacheKeyPrefix} provides a hook for creating custom prefixes prepended to the actual {@literal key} stored in
  * Redis.
@@ -25,6 +27,13 @@ package org.springframework.data.redis.cache;
  */
 @FunctionalInterface
 public interface CacheKeyPrefix {
+
+	/**
+	 * Default separator.
+	 *
+	 * @since 2.3
+	 */
+	String SEPARATOR = "::";
 
 	/**
 	 * Compute the prefix for the actual {@literal key} stored in Redis.
@@ -41,6 +50,21 @@ public interface CacheKeyPrefix {
 	 * @return the default {@link CacheKeyPrefix} scheme.
 	 */
 	static CacheKeyPrefix simple() {
-		return name -> name + "::";
+		return name -> name + SEPARATOR;
+	}
+
+	/**
+	 * Creates a {@link CacheKeyPrefix} scheme that prefixes cache keys with the given {@code prefix}. The prefix is
+	 * prepended to the {@code cacheName} followed by double colons. A prefix {@code redis-} with a cache named
+	 * {@code myCache} results in {@code redis-myCache::}.
+	 *
+	 * @param prefix must not be {@literal null}.
+	 * @return the default {@link CacheKeyPrefix} scheme.
+	 * @since 2.3
+	 */
+	static CacheKeyPrefix prefixed(String prefix) {
+
+		Assert.notNull(prefix, "Prefix must not be null!");
+		return name -> prefix + name + SEPARATOR;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,12 +111,12 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(redisTemplate.hasKey(key)).expectNext(false).verifyComplete();
+		redisTemplate.hasKey(key).as(StepVerifier::create).expectNext(false).verifyComplete();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(key, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(key, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
 
-		StepVerifier.create(redisTemplate.hasKey(key)).expectNext(true).verifyComplete();
+		redisTemplate.hasKey(key).as(StepVerifier::create).expectNext(true).verifyComplete();
 	}
 
 	@Test // DATAREDIS-743
@@ -129,9 +129,9 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		tuples.put(keyFactory.instance(), valueFactory.instance());
 		tuples.put(keyFactory.instance(), valueFactory.instance());
 
-		StepVerifier.create(redisTemplate.opsForValue().multiSet(tuples)).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().multiSet(tuples).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(redisTemplate.scan().collectList()) //
+		redisTemplate.scan().collectList().as(StepVerifier::create) //
 				.consumeNextWith(actual -> assertThat(actual).containsAll(tuples.keySet())) //
 				.verifyComplete();
 	}
@@ -141,12 +141,12 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(redisTemplate.type(key)).expectNext(DataType.NONE).verifyComplete();
+		redisTemplate.type(key).as(StepVerifier::create).expectNext(DataType.NONE).verifyComplete();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(key, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(key, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
 
-		StepVerifier.create(redisTemplate.type(key)).expectNext(DataType.STRING).verifyComplete();
+		redisTemplate.type(key).as(StepVerifier::create).expectNext(DataType.STRING).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -155,10 +155,10 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		K oldName = keyFactory.instance();
 		K newName = keyFactory.instance();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(oldName, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(oldName, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
 
-		StepVerifier.create(redisTemplate.rename(oldName, newName)) //
+		redisTemplate.rename(oldName, newName).as(StepVerifier::create) //
 				.expectNext(true) //
 				.expectComplete() //
 				.verify();
@@ -171,20 +171,20 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		K existing = keyFactory.instance();
 		K newName = keyFactory.instance();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(oldName, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(oldName, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
-		StepVerifier.create(redisTemplate.opsForValue().set(existing, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(existing, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
 
-		StepVerifier.create(redisTemplate.renameIfAbsent(oldName, newName)) //
+		redisTemplate.renameIfAbsent(oldName, newName).as(StepVerifier::create) //
 				.expectNext(true) //
 				.expectComplete() //
 				.verify();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(existing, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(existing, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
 
-		StepVerifier.create(redisTemplate.renameIfAbsent(newName, existing)).expectNext(false) //
+		redisTemplate.renameIfAbsent(newName, existing).as(StepVerifier::create).expectNext(false) //
 				.expectComplete() //
 				.verify();
 	}
@@ -194,12 +194,12 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		K single = keyFactory.instance();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(single, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(single, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
 
-		StepVerifier.create(redisTemplate.unlink(single)).expectNext(1L).verifyComplete();
+		redisTemplate.unlink(single).as(StepVerifier::create).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(redisTemplate.hasKey(single)).expectNext(false).verifyComplete();
+		redisTemplate.hasKey(single).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
 	@Test // DATAREDIS-693
@@ -208,15 +208,15 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(key1, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(key1, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
-		StepVerifier.create(redisTemplate.opsForValue().set(key2, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(key2, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
 
-		StepVerifier.create(redisTemplate.unlink(key1, key2)).expectNext(2L).verifyComplete();
+		redisTemplate.unlink(key1, key2).as(StepVerifier::create).expectNext(2L).verifyComplete();
 
-		StepVerifier.create(redisTemplate.hasKey(key1)).expectNext(false).verifyComplete();
-		StepVerifier.create(redisTemplate.hasKey(key2)).expectNext(false).verifyComplete();
+		redisTemplate.hasKey(key1).as(StepVerifier::create).expectNext(false).verifyComplete();
+		redisTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 	
 	@Test // DATAREDIS-913
@@ -227,15 +227,15 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		
 		assumeTrue(key1 instanceof String && valueFactory instanceof StringObjectFactory);
 
-		StepVerifier.create(redisTemplate.opsForValue().set(key1, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(key1, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
-		StepVerifier.create(redisTemplate.opsForValue().set(key2, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(key2, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
 
-		StepVerifier.create(redisTemplate.unlink(redisTemplate.keys((K) "*"))).expectNext(2L).verifyComplete();
+		redisTemplate.unlink(redisTemplate.keys((K) "*")).as(StepVerifier::create).expectNext(2L).verifyComplete();
 
-		StepVerifier.create(redisTemplate.hasKey(key1)).expectNext(false).verifyComplete();
-		StepVerifier.create(redisTemplate.hasKey(key2)).expectNext(false).verifyComplete();
+		redisTemplate.hasKey(key1).as(StepVerifier::create).expectNext(false).verifyComplete();
+		redisTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 	
 	@Test // DATAREDIS-913
@@ -246,15 +246,15 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		
 		assumeTrue(key1 instanceof String && valueFactory instanceof StringObjectFactory);
 
-		StepVerifier.create(redisTemplate.opsForValue().set(key1, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(key1, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
-		StepVerifier.create(redisTemplate.opsForValue().set(key2, valueFactory.instance())).expectNext(true)
+		redisTemplate.opsForValue().set(key2, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
 
-		StepVerifier.create(redisTemplate.delete(redisTemplate.keys((K) "*"))).expectNext(2L).verifyComplete();
+		redisTemplate.delete(redisTemplate.keys((K) "*")).as(StepVerifier::create).expectNext(2L).verifyComplete();
 
-		StepVerifier.create(redisTemplate.hasKey(key1)).expectNext(false).verifyComplete();
-		StepVerifier.create(redisTemplate.hasKey(key2)).expectNext(false).verifyComplete();
+		redisTemplate.hasKey(key1).as(StepVerifier::create).expectNext(false).verifyComplete();
+		redisTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
 	@Test // DATAREDIS-683
@@ -266,13 +266,13 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		assumeFalse(value instanceof Long);
 
-		StepVerifier.create(redisTemplate.opsForValue().set(key, value)).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		Flux<V> execute = redisTemplate.execute(
 				new DefaultRedisScript<>("return redis.call('get', KEYS[1])", (Class<V>) value.getClass()),
 				Collections.singletonList(key));
 
-		StepVerifier.create(execute).expectNext(value).verifyComplete();
+		execute.as(StepVerifier::create).expectNext(value).verifyComplete();
 	}
 
 	@Test // DATAREDIS-683
@@ -287,17 +287,17 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		assumeFalse(value instanceof Long);
 
 		Person person = new Person("Walter", "White", 51);
-		StepVerifier
-				.create(
-						redisTemplate.execute(new DefaultRedisScript<>("return redis.call('set', KEYS[1], ARGV[1])", String.class),
-								Collections.singletonList(key), Collections.singletonList(person), json.getWriter(), resultReader))
+		redisTemplate
+				.execute(new DefaultRedisScript<>("return redis.call('set', KEYS[1], ARGV[1])", String.class),
+						Collections.singletonList(key), Collections.singletonList(person), json.getWriter(), resultReader)
+				.as(StepVerifier::create)
 				.expectNext("OK").verifyComplete();
 
 		Flux<Person> execute = redisTemplate.execute(
 				new DefaultRedisScript<>("return redis.call('get', KEYS[1])", Person.class), Collections.singletonList(key),
 				Collections.emptyList(), json.getWriter(), json.getReader());
 
-		StepVerifier.create(execute).expectNext(person).verifyComplete();
+		execute.as(StepVerifier::create).expectNext(person).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -306,11 +306,11 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(key, value)).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(redisTemplate.expire(key, Duration.ofSeconds(10))).expectNext(true).verifyComplete();
+		redisTemplate.expire(key, Duration.ofSeconds(10)).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(redisTemplate.getExpire(key)) //
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))).verifyComplete();
 	}
 
@@ -320,11 +320,11 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(key, value)).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(redisTemplate.expire(key, Duration.ofMillis(10_001))).expectNext(true).verifyComplete();
+		redisTemplate.expire(key, Duration.ofMillis(10_001)).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(redisTemplate.getExpire(key)) //
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))).verifyComplete();
 	}
 
@@ -334,13 +334,13 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(key, value)).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		Instant expireAt = Instant.ofEpochSecond(Instant.now().plus(Duration.ofSeconds(10)).getEpochSecond());
 
-		StepVerifier.create(redisTemplate.expireAt(key, expireAt)).expectNext(true).verifyComplete();
+		redisTemplate.expireAt(key, expireAt).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(redisTemplate.getExpire(key)) //
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))) //
 				.verifyComplete();
 	}
@@ -351,13 +351,13 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(key, value)).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		Instant expireAt = Instant.ofEpochSecond(Instant.now().plus(Duration.ofSeconds(10)).getEpochSecond(), 5);
 
-		StepVerifier.create(redisTemplate.expireAt(key, expireAt)).expectNext(true).verifyComplete();
+		redisTemplate.expireAt(key, expireAt).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(redisTemplate.getExpire(key)) //
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))) //
 				.verifyComplete();
 	}
@@ -367,7 +367,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(redisTemplate.getExpire(key)).verifyComplete();
+		redisTemplate.getExpire(key).as(StepVerifier::create).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -376,9 +376,9 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(key, value)).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(redisTemplate.getExpire(key)).expectNext(Duration.ZERO).verifyComplete();
+		redisTemplate.getExpire(key).as(StepVerifier::create).expectNext(Duration.ZERO).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -397,11 +397,11 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(redisTemplate.opsForValue().set(key, value)).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(redisTemplate.move(key, 5)).expectNext(true).verifyComplete();
+		redisTemplate.move(key, 5).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(redisTemplate.hasKey(key)).expectNext(false).verifyComplete();
+		redisTemplate.hasKey(key).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -420,9 +420,9 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		ReactiveValueOperations<Object, Object> valueOperations = redisTemplate.opsForValue(objectSerializers);
 
-		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.get(key)).expectNext(value).verifyComplete();
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -443,9 +443,9 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		ReactiveHashOperations<K, String, Object> hashOperations = redisTemplate.opsForHash(objectSerializers);
 
-		StepVerifier.create(hashOperations.put(key, hashField, hashValue)).expectNext(true).verifyComplete();
+		hashOperations.put(key, hashField, hashValue).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(hashOperations.get(key, hashField)).expectNext(hashValue).verifyComplete();
+		hashOperations.get(key, hashField).as(StepVerifier::create).expectNext(hashValue).verifyComplete();
 	}
 
 	@Test // DATAREDIS-612
@@ -455,7 +455,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		V message = valueFactory.instance();
 
-		StepVerifier.create(redisTemplate.listenToChannel(channel)) //
+		redisTemplate.listenToChannel(channel).as(StepVerifier::create) //
 				.thenAwait(Duration.ofMillis(500)) // just make sure we the subscription completed
 				.then(() -> redisTemplate.convertAndSend(channel, message).block()) //
 				.assertNext(received -> {
@@ -479,7 +479,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		Flux<? extends Message<String, V>> stream = redisTemplate.listenToPattern(pattern);
 
-		StepVerifier.create(stream) //
+		stream.as(StepVerifier::create) //
 				.thenAwait(Duration.ofMillis(500)) // just make sure we the subscription completed
 				.then(() -> redisTemplate.convertAndSend(channel, message).block()) //
 				.assertNext(received -> {

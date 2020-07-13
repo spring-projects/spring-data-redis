@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,8 @@
  */
 package org.springframework.data.redis.connection.stream;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Value object representing a Stream consumer within a consumer group. Group name and consumer name are encoded as
@@ -27,8 +25,6 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @see 2.2
  */
-@EqualsAndHashCode
-@Getter
 public class Consumer {
 
 	private final String group;
@@ -57,5 +53,35 @@ public class Consumer {
 	@Override
 	public String toString() {
 		return String.format("%s:%s", group, name);
+	}
+
+	public String getGroup() {
+		return this.group;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		Consumer consumer = (Consumer) o;
+
+		if (!ObjectUtils.nullSafeEquals(group, consumer.group)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(name, consumer.name);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = ObjectUtils.nullSafeHashCode(group);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(name);
+		return result;
 	}
 }

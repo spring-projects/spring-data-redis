@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.util.CollectionUtils;
  * @author Christoph Strobl
  * @author David Liu
  * @author Mark Paluch
+ * @author Denis Zavedeev
  */
 abstract class AbstractOperations<K, V> {
 
@@ -64,7 +65,7 @@ abstract class AbstractOperations<K, V> {
 		protected abstract byte[] inRedis(byte[] rawKey, RedisConnection connection);
 	}
 
-	RedisTemplate<K, V> template;
+	final RedisTemplate<K, V> template;
 
 	AbstractOperations(RedisTemplate<K, V> template) {
 		this.template = template;

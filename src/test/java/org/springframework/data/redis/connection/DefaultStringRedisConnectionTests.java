@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
@@ -2054,10 +2055,10 @@ public class DefaultStringRedisConnectionTests {
 		Assertions.assertThat(getResults()).containsExactly(1L);
 	}
 
-	@Test // DATAREDIS-864
+	@Test // DATAREDIS-864, DATAREDIS-1122
 	public void xAddShouldAppendRecordCorrectly() {
 
-		doReturn(RecordId.of("1-1")).when(nativeConnection).xAdd(any());
+		doReturn(RecordId.of("1-1")).when(nativeConnection).xAdd(any(), eq(XAddOptions.none()));
 		actual.add(connection
 				.xAdd(StreamRecords.newRecord().in("stream-1").ofStrings(Collections.singletonMap("field", "value"))));
 

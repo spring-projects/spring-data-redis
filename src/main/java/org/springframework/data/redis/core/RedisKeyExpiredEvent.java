@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import org.springframework.data.redis.core.convert.MappingRedisConverter.BinaryK
 import org.springframework.lang.Nullable;
 
 /**
- * {@link RedisKeyExpiredEvent} is Redis specific {@link ApplicationEvent} published when a specific key in Redis
- * expires. It might but must not hold the expired value itself next to the key.
+ * {@link RedisKeyExpiredEvent} is a Redis specific {@link ApplicationEvent} published when a particular key in Redis
+ * expires. It can hold the value of the expired key next to the key, but is not required to do so.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -35,7 +35,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	/**
 	 * Use {@literal UTF-8} as default charset.
 	 */
-	static final Charset CHARSET = StandardCharsets.UTF_8;
+	private static final Charset CHARSET = StandardCharsets.UTF_8;
 
 	private final BinaryKeyspaceIdentifier objectId;
 	private final @Nullable Object value;
@@ -43,7 +43,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	/**
 	 * Creates new {@link RedisKeyExpiredEvent}.
 	 *
-	 * @param key
+	 * @param key the expired key.
 	 */
 	public RedisKeyExpiredEvent(byte[] key) {
 		this(key, null);
@@ -52,8 +52,8 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	/**
 	 * Creates new {@link RedisKeyExpiredEvent}
 	 *
-	 * @param key
-	 * @param value
+	 * @param key the expired key.
+	 * @param value the value of the expired key. Can be {@literal null}.
 	 */
 	public RedisKeyExpiredEvent(byte[] key, @Nullable Object value) {
 		this(null, key, value);
@@ -62,9 +62,9 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	/**
 	 * Creates new {@link RedisKeyExpiredEvent}
 	 *
-	 * @pamam channel
-	 * @param key
-	 * @param value
+	 * @param channel the Pub/Sub channel through which this event was received.
+	 * @param key the expired key.
+	 * @param value the value of the expired key. Can be {@literal null}.
 	 * @since 1.8
 	 */
 	public RedisKeyExpiredEvent(@Nullable String channel, byte[] key, @Nullable Object value) {
@@ -89,9 +89,9 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	}
 
 	/**
-	 * Get the expired objects id;
+	 * Get the expired objects id.
 	 *
-	 * @return
+	 * @return the expired objects id.
 	 */
 	public byte[] getId() {
 		return objectId != null ? objectId.getId() : getSource();

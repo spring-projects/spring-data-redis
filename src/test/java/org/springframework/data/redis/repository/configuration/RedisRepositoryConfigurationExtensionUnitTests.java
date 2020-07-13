@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,6 +114,15 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 		assertThat(getKeyspaceNotificationsConfigParameter(beanDefintionRegistry)).isEqualTo((Object) "KEA");
 	}
 
+	@Test // DATAREDIS-1049
+	public void explicitlyEmptyKeyspaceNotificationsConfigParameterShouldBeCapturedCorrectly() {
+
+		metadata = new StandardAnnotationMetadata(ConfigWithEmptyConfigParameter.class, true);
+		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
+
+		assertThat(getKeyspaceNotificationsConfigParameter(beanDefintionRegistry)).isEqualTo("");
+	}
+
 	private static void assertDoesNotHaveRepo(Class<?> repositoryInterface,
 			Collection<RepositoryConfiguration<RepositoryConfigurationSource>> configs) {
 
@@ -176,6 +185,12 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP,
 			keyspaceNotificationsConfigParameter = "KEA")
 	static class ConfigWithKeyspaceEventsEnabledAndCustomEventConfig {
+
+	}
+
+	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP,
+			keyspaceNotificationsConfigParameter = "")
+	static class ConfigWithEmptyConfigParameter {
 
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,14 +53,14 @@ public class ReactiveStringRedisTemplateIntegrationTests {
 
 		template = new ReactiveStringRedisTemplate(connectionFactory);
 
-		StepVerifier.create(template.execute(connection -> connection.serverCommands().flushDb())).expectNext("OK")
+		template.execute(connection -> connection.serverCommands().flushDb()).as(StepVerifier::create).expectNext("OK")
 				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-643
 	public void shouldSetAndGetKeys() {
 
-		StepVerifier.create(template.opsForValue().set("key", "value")).expectNext(true).verifyComplete();
-		StepVerifier.create(template.opsForValue().get("key")).expectNext("value").verifyComplete();
+		template.opsForValue().set("key", "value").as(StepVerifier::create).expectNext(true).verifyComplete();
+		template.opsForValue().get("key").as(StepVerifier::create).expectNext("value").verifyComplete();
 	}
 }

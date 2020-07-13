@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import lombok.RequiredArgsConstructor;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -26,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.cglib.proxy.MethodProxy;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.lang.Nullable;
@@ -60,14 +59,14 @@ public abstract class RedisConnectionUtils {
 
 	/**
 	 * Binds a new Redis connection (from the given factory) to the current thread, if none is already bound and enables
-	 * transaction support if {@code enableTranactionSupport} is set to {@literal true}.
+	 * transaction support if {@code transactionSupport} is set to {@literal true}.
 	 *
-	 * @param factory connection factory
-	 * @param enableTranactionSupport
+	 * @param factory connection factory.
+	 * @param transactionSupport whether transaction support is enabled.
 	 * @return a new Redis connection with transaction support if requested.
 	 */
-	public static RedisConnection bindConnection(RedisConnectionFactory factory, boolean enableTranactionSupport) {
-		return doGetConnection(factory, true, true, enableTranactionSupport);
+	public static RedisConnection bindConnection(RedisConnectionFactory factory, boolean transactionSupport) {
+		return doGetConnection(factory, true, true, transactionSupport);
 	}
 
 	/**
@@ -75,7 +74,7 @@ public abstract class RedisConnectionUtils {
 	 * bound to the current thread, for example when using a transaction manager. Will always create a new connection
 	 * otherwise.
 	 *
-	 * @param factory connection factory for creating the connection
+	 * @param factory connection factory for creating the connection.
 	 * @return an active Redis connection without transaction management.
 	 */
 	public static RedisConnection getConnection(RedisConnectionFactory factory) {
@@ -87,12 +86,12 @@ public abstract class RedisConnectionUtils {
 	 * bound to the current thread, for example when using a transaction manager. Will always create a new connection
 	 * otherwise.
 	 *
-	 * @param factory connection factory for creating the connection
-	 * @param enableTranactionSupport
+	 * @param factory connection factory for creating the connection.
+	 * @param transactionSupport whether transaction support is enabled.
 	 * @return an active Redis connection with transaction management if requested.
 	 */
-	public static RedisConnection getConnection(RedisConnectionFactory factory, boolean enableTranactionSupport) {
-		return doGetConnection(factory, true, false, enableTranactionSupport);
+	public static RedisConnection getConnection(RedisConnectionFactory factory, boolean transactionSupport) {
+		return doGetConnection(factory, true, false, transactionSupport);
 	}
 
 	/**
@@ -100,22 +99,22 @@ public abstract class RedisConnectionUtils {
 	 * thread, for example when using a transaction manager. Will create a new Connection otherwise, if
 	 * {@code allowCreate} is <tt>true</tt>.
 	 *
-	 * @param factory connection factory for creating the connection
+	 * @param factory connection factory for creating the connection.
 	 * @param allowCreate whether a new (unbound) connection should be created when no connection can be found for the
-	 *          current thread
-	 * @param bind binds the connection to the thread, in case one was created
-	 * @param enableTransactionSupport
-	 * @return an active Redis connection
+	 *          current thread.
+	 * @param bind binds the connection to the thread, in case one was created-
+	 * @param transactionSupport whether transaction support is enabled.
+	 * @return an active Redis connection.
 	 */
 	public static RedisConnection doGetConnection(RedisConnectionFactory factory, boolean allowCreate, boolean bind,
-			boolean enableTransactionSupport) {
+			boolean transactionSupport) {
 
 		Assert.notNull(factory, "No RedisConnectionFactory specified");
 
 		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
 
 		if (connHolder != null) {
-			if (enableTransactionSupport) {
+			if (transactionSupport) {
 				potentiallyRegisterTransactionSynchronisation(connHolder, factory);
 			}
 			return connHolder.getConnection();
@@ -134,14 +133,14 @@ public abstract class RedisConnectionUtils {
 		if (bind) {
 
 			RedisConnection connectionToBind = conn;
-			if (enableTransactionSupport && isActualNonReadonlyTransactionActive()) {
+			if (transactionSupport && isActualNonReadonlyTransactionActive()) {
 				connectionToBind = createConnectionProxy(conn, factory);
 			}
 
 			connHolder = new RedisConnectionHolder(connectionToBind);
 
 			TransactionSynchronizationManager.bindResource(factory, connHolder);
-			if (enableTransactionSupport) {
+			if (transactionSupport) {
 				potentiallyRegisterTransactionSynchronisation(connHolder, factory);
 			}
 
@@ -236,12 +235,8 @@ public abstract class RedisConnectionUtils {
 					log.debug("Leaving bound Redis Connection attached.");
 				}
 			}
-
 		} else {
-			if (log.isDebugEnabled()) {
-				log.debug("Closing Redis Connection.");
-			}
-			conn.close();
+			doCloseConnection(conn);
 		}
 	}
 
@@ -264,11 +259,7 @@ public abstract class RedisConnectionUtils {
 				log.debug("Redis Connection will be closed when outer transaction finished.");
 			}
 		} else {
-			if (log.isDebugEnabled()) {
-				log.debug("Closing bound connection.");
-			}
-			RedisConnection connection = connHolder.getConnection();
-			connection.close();
+			doCloseConnection(connHolder.getConnection());
 		}
 	}
 
@@ -290,6 +281,21 @@ public abstract class RedisConnectionUtils {
 		return (connHolder != null && conn == connHolder.getConnection());
 	}
 
+	private static void doCloseConnection(RedisConnection connection) {
+
+		if (log.isDebugEnabled()) {
+			log.debug("Closing Redis Connection.");
+		}
+
+		try {
+			connection.close();
+		} catch (DataAccessException ex) {
+			log.debug("Could not close Redis Connection", ex);
+		} catch (Throwable ex) {
+			log.debug("Unexpected exception on closing Redis Connection", ex);
+		}
+	}
+
 	/**
 	 * A {@link TransactionSynchronizationAdapter} that makes sure that the associated RedisConnection is released after
 	 * the transaction completes.
@@ -297,12 +303,19 @@ public abstract class RedisConnectionUtils {
 	 * @author Christoph Strobl
 	 * @author Thomas Darimont
 	 */
-	@RequiredArgsConstructor
 	private static class RedisTransactionSynchronizer extends TransactionSynchronizationAdapter {
 
 		private final RedisConnectionHolder connHolder;
 		private final RedisConnection connection;
 		private final RedisConnectionFactory factory;
+
+		RedisTransactionSynchronizer(RedisConnectionHolder connHolder, RedisConnection connection,
+				RedisConnectionFactory factory) {
+
+			this.connHolder = connHolder;
+			this.connection = connection;
+			this.factory = factory;
+		}
 
 		@Override
 		public void afterCompletion(int status) {
@@ -326,7 +339,7 @@ public abstract class RedisConnectionUtils {
 				}
 
 				connHolder.setTransactionSyncronisationActive(false);
-				connection.close();
+				doCloseConnection(connection);
 				TransactionSynchronizationManager.unbindResource(factory);
 			}
 		}
@@ -353,14 +366,14 @@ public abstract class RedisConnectionUtils {
 			if (isPotentiallyThreadBoundCommand(commandToExecute)) {
 
 				if (log.isDebugEnabled()) {
-					log.debug(String.format("Invoke '%s' on bound conneciton", method.getName()));
+					log.debug(String.format("Invoke '%s' on bound connection", method.getName()));
 				}
 
 				return invoke(method, obj, args);
 			}
 
 			if (log.isDebugEnabled()) {
-				log.debug(String.format("Invoke '%s' on unbound conneciton", method.getName()));
+				log.debug(String.format("Invoke '%s' on unbound connection", method.getName()));
 			}
 
 			RedisConnection connection = factory.getConnection();
@@ -370,7 +383,7 @@ public abstract class RedisConnectionUtils {
 			} finally {
 				// properly close the unbound connection after executing command
 				if (!connection.isClosed()) {
-					connection.close();
+					doCloseConnection(connection);
 				}
 			}
 		}

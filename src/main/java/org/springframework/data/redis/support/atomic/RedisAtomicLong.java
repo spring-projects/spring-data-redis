@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	private final RedisOperations<String, Long> generalOps;
 
 	/**
-	 * Constructs a new {@link RedisAtomicLong} instance. Uses the value existing in Redis or 0 if none is found.
+	 * Constructs a new {@link RedisAtomicLong} instance. Uses the value existing in Redis or {@code 0} if none is found.
 	 *
 	 * @param redisCounter Redis key of this counter.
 	 * @param factory connection factory.
@@ -66,11 +66,12 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Constructs a new {@link RedisAtomicLong} instance.
+	 * Constructs a new {@link RedisAtomicLong} instance with a {@code initialValue} that overwrites the existing value at
+	 * {@code redisCounter}.
 	 *
 	 * @param redisCounter Redis key of this counter.
 	 * @param factory connection factory.
-	 * @param initialValue initial value to set if the Redis key is absent.
+	 * @param initialValue initial value to set.
 	 */
 	public RedisAtomicLong(String redisCounter, RedisConnectionFactory factory, long initialValue) {
 		this(redisCounter, factory, Long.valueOf(initialValue));
@@ -99,7 +100,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Constructs a new {@link RedisAtomicLong} instance. Uses the value existing in Redis or 0 if none is found.
+	 * Constructs a new {@link RedisAtomicLong} instance. Uses the value existing in Redis or {@code 0} if none is found.
 	 *
 	 * @param redisCounter Redis key of this counter.
 	 * @param template the template.
@@ -110,7 +111,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Constructs a new {@link RedisAtomicLong} instance.
+	 * Constructs a new {@link RedisAtomicLong} instance with a {@code initialValue} that overwrites the existing value.
 	 * <p>
 	 * Note: You need to configure the given {@code template} with appropriate {@link RedisSerializer} for the key and
 	 * value. The key serializer must be able to deserialize to a {@link String} and the value serializer must be able to

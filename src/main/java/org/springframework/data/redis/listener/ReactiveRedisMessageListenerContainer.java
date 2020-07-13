@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.data.redis.listener;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
-import reactor.core.scheduler.Schedulers;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -97,34 +96,35 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 * @return the {@link Mono} signalling container termination.
 	 */
 	public Mono<Void> destroyLater() {
+		return Mono.defer(this::doDestroy);
+	}
 
-		if (connection != null) {
+	private Mono<Void> doDestroy() {
 
-			Flux<Void> terminationSignals = null;
-			while (!subscriptions.isEmpty()) {
-
-				Map<ReactiveSubscription, Subscribers> local = new HashMap<>(subscriptions);
-				List<Mono<Void>> monos = local.keySet().stream() //
-						.peek(subscriptions::remove) //
-						.map(ReactiveSubscription::cancel) //
-						.collect(Collectors.toList());
-
-				if (terminationSignals == null) {
-					terminationSignals = Flux.concat(monos);
-				} else {
-					terminationSignals = terminationSignals.mergeWith(Flux.concat(monos));
-				}
-			}
-
-			if (terminationSignals != null) {
-				return terminationSignals.collectList()
-						.doFinally(signalType -> connection.closeLater().subscribeOn(Schedulers.immediate()))
-						.flatMap(all -> Mono.empty());
-			}
-			this.connection = null;
+		if (this.connection == null) {
+			return Mono.empty();
 		}
 
-		return Mono.empty();
+		ReactiveRedisConnection connection = this.connection;
+
+		Flux<Void> terminationSignals = null;
+		while (!subscriptions.isEmpty()) {
+
+			Map<ReactiveSubscription, Subscribers> local = new HashMap<>(subscriptions);
+			List<Mono<Void>> monos = local.keySet().stream() //
+					.peek(subscriptions::remove) //
+					.map(ReactiveSubscription::cancel) //
+					.collect(Collectors.toList());
+
+			if (terminationSignals == null) {
+				terminationSignals = Flux.concat(monos);
+			} else {
+				terminationSignals = terminationSignals.mergeWith(Flux.concat(monos));
+			}
+		}
+
+		this.connection = null;
+		return terminationSignals != null ? terminationSignals.then(connection.closeLater()) : connection.closeLater();
 	}
 
 	/**
@@ -344,7 +344,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 		/**
 		 * Unregister a subscriber and decrement subscriber count.
-		 * 
+		 *
 		 * @return {@literal true} if this was the last unregistered subscriber.
 		 */
 		boolean unregister() {

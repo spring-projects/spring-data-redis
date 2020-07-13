@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.scripting.support.StaticScriptSource;
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class DefaultRedisScriptTests {
 
@@ -53,6 +54,14 @@ public class DefaultRedisScriptTests {
 		redisScript.setScriptText("return ARGS[1]");
 		redisScript.setResultType(String.class);
 		assertThat(redisScript.getScriptAsString()).isEqualTo("return ARGS[1]");
+	}
+
+	@Test // DATAREDIS-1030
+	public void testGetScriptAsStringFromResource() {
+
+		RedisScript<String> redisScript = RedisScript
+				.of(new ClassPathResource("org/springframework/data/redis/core/script/cas.lua"));
+		assertThat(redisScript.getScriptAsString()).startsWith("local current = redis.call('GET', KEYS[1])");
 	}
 
 	@Test(expected = ScriptingException.class)

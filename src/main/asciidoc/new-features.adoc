@@ -1,7 +1,13 @@
 [[new-features]]
-= New Features
+= New & Noteworthy
 
 This section briefly covers items that are new and noteworthy in the latest releases.
+
+[[new-in-2.3.0]]
+== New in Spring Data Redis 2.3
+
+* Template API Method Refinements for `Duration` and `Instant`.
+* Extension of Stream Commands.
 
 [[new-in-2.2.0]]
 == New in Spring Data Redis 2.2

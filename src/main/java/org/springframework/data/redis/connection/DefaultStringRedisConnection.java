@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,13 @@ import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StringRecord;
@@ -62,6 +67,7 @@ import org.springframework.util.ObjectUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Tugdual Grall
  */
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
@@ -3642,11 +3648,30 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#xAdd(StringRecord)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xAdd(StringRecord, XAddOptions)
 	 */
 	@Override
-	public RecordId xAdd(StringRecord record) {
-		return convertAndReturn(delegate.xAdd(record.serialize(serializer)), identityConverter);
+	public RecordId xAdd(StringRecord record, XAddOptions options) {
+		return convertAndReturn(delegate.xAdd(record.serialize(serializer), options), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xClaimJustId(java.lang.String, java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
+	 */
+	@Override
+	public List<RecordId> xClaimJustId(String key, String group, String consumer, XClaimOptions options) {
+		return convertAndReturn(delegate.xClaimJustId(serialize(key), group, consumer, options), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xClaim(java.lang.String, java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
+	 */
+	@Override
+	public List<StringRecord> xClaim(String key, String group, String consumer, XClaimOptions options) {
+		return convertAndReturn(delegate.xClaim(serialize(key), group, consumer, options),
+				listByteMapRecordToStringMapRecordConverter);
 	}
 
 	/*
@@ -3669,6 +3694,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xGroupCreate(java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String, boolean)
+	 */
+	@Override
+	public String xGroupCreate(String key, ReadOffset readOffset, String group, boolean mkStream) {
+		return convertAndReturn(delegate.xGroupCreate(serialize(key), group, readOffset, mkStream), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#xGroupDelConsumer(java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.Consumer)
 	 */
 	@Override
@@ -3687,11 +3721,76 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xInfo(java.lang.String)
+	 */
+	@Override
+	public XInfoStream xInfo(String key) {
+		return convertAndReturn(delegate.xInfo(serialize(key)), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xInfoGroups(java.lang.String)
+	 */
+	@Override
+	public XInfoGroups xInfoGroups(String key) {
+		return convertAndReturn(delegate.xInfoGroups(serialize(key)), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xInfoConsumers(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public XInfoConsumers xInfoConsumers(String key, String groupName) {
+		return convertAndReturn(delegate.xInfoConsumers(serialize(key), groupName), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#xLen(java.lang.String)
 	 */
 	@Override
 	public Long xLen(String key) {
 		return convertAndReturn(delegate.xLen(serialize(key)), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xPending(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public PendingMessagesSummary xPending(String key, String groupName) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xPending(java.lang.String, java.lang.String, java.lang.String, org.springframework.data.domain.Range, java.lang.Long)
+	 */
+	@Override
+	public PendingMessages xPending(String key, String groupName, String consumer,
+			org.springframework.data.domain.Range<String> range, Long count) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, consumer, range, count), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xPending(java.lang.String, java.lang.String, org.springframework.data.domain.Range, java.lang.Long)
+	 */
+	@Override
+	public PendingMessages xPending(String key, String groupName, org.springframework.data.domain.Range<String> range,
+			Long count) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, range, count), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xPending(java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions)
+	 */
+	@Override
+	public PendingMessages xPending(String key, String groupName, XPendingOptions options) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, options), identityConverter);
 	}
 
 	/*
@@ -3719,7 +3818,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<StringRecord> xReadGroupAsString(Consumer consumer, StreamReadOptions readOptions,
-												 StreamOffset<String>... streams) {
+			StreamOffset<String>... streams) {
 
 		return convertAndReturn(delegate.xReadGroup(consumer, readOptions, serialize(streams)),
 				listByteMapRecordToStringMapRecordConverter);
@@ -3756,11 +3855,29 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAdd(byte[], MapRecord)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAdd(MapRecord, XAddOptions)
 	 */
 	@Override
-	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
-		return delegate.xAdd(record);
+	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, XAddOptions options) {
+		return delegate.xAdd(record, options);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xClaimJustId(byte[], java.lang.String, java.lag.String, org.springframework.data.redis.connection.RedisStreamCommands.XCLaimOptions)
+	 */
+	@Override
+	public List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options) {
+		return delegate.xClaimJustId(key, group, newOwner, options);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xClaim(byte[], java.lang.String, java.lag.String, org.springframework.data.redis.connection.RedisStreamCommands.XCLaimOptions)
+	 */
+	@Override
+	public List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options) {
+		return delegate.xClaim(key, group, newOwner, options);
 	}
 
 	/*
@@ -3783,6 +3900,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupCreate(byte[], org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String, boolean)
+	 */
+	@Override
+	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkStream) {
+		return delegate.xGroupCreate(key, groupName, readOffset, mkStream);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupDelConsumer(byte[], org.springframework.data.redis.connection.RedisStreamCommands.Consumer)
 	 */
 	@Override
@@ -3801,11 +3927,56 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfo(byte[])
+	 */
+	@Override
+	public XInfoStream xInfo(byte[] key) {
+		return delegate.xInfo(key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfoGroups(byte[])
+	 */
+	@Override
+	public XInfoGroups xInfoGroups(byte[] key) {
+		return delegate.xInfoGroups(key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfoConsumers(byte[], java.lang.String)
+	 */
+	@Override
+	public XInfoConsumers xInfoConsumers(byte[] key, String groupName) {
+		return delegate.xInfoConsumers(key, groupName);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xLen(byte[])
 	 */
 	@Override
 	public Long xLen(byte[] key) {
 		return delegate.xLen(key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xPending(byte[], java.lang.String)
+	 */
+	@Override
+	public PendingMessagesSummary xPending(byte[] key, String groupName) {
+		return delegate.xPending(key, groupName);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xPending(byte[], java.lang.String)
+	 */
+	@Override
+	public PendingMessages xPending(byte[] key, String groupName, XPendingOptions options) {
+		return delegate.xPending(key, groupName, options);
 	}
 
 	/*
@@ -3832,7 +4003,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<ByteRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
-									   StreamOffset<byte[]>... streams) {
+			StreamOffset<byte[]>... streams) {
 		return delegate.xReadGroup(consumer, readOptions, streams);
 	}
 

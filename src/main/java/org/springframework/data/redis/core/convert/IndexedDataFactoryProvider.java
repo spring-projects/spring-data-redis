@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package org.springframework.data.redis.core.convert;
-
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.core.index.CompositeSortingIndexDefinition;
@@ -77,10 +75,13 @@ class IndexedDataFactoryProvider {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	@RequiredArgsConstructor
 	static class SimpleIndexedPropertyValueFactory implements IndexedDataFactory {
 
 		final SimpleIndexDefinition indexDefinition;
+
+		SimpleIndexedPropertyValueFactory(SimpleIndexDefinition indexDefinition) {
+			this.indexDefinition = indexDefinition;
+		}
 
 		public SimpleIndexedPropertyValue createIndexedDataFor(Object value) {
 
@@ -93,10 +94,13 @@ class IndexedDataFactoryProvider {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	@RequiredArgsConstructor
 	static class GeoIndexedPropertyValueFactory implements IndexedDataFactory {
 
 		final GeoIndexDefinition indexDefinition;
+
+		public GeoIndexedPropertyValueFactory(GeoIndexDefinition indexDefinition) {
+			this.indexDefinition = indexDefinition;
+		}
 
 		public GeoIndexedPropertyValue createIndexedDataFor(Object value) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,8 @@
  */
 package org.springframework.data.redis.connection.stream;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
-
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Value object representing a Stream Id with its offset.
@@ -27,9 +24,6 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @see 2.2
  */
-@EqualsAndHashCode
-@ToString
-@Getter
 public final class StreamOffset<K> {
 
 	private final K key;
@@ -91,5 +85,41 @@ public final class StreamOffset<K> {
 		Assert.notNull(reference, "Reference record must not be null");
 
 		return create(reference.getStream(), ReadOffset.from(reference.getId()));
+	}
+
+	public K getKey() {
+		return this.key;
+	}
+
+	public ReadOffset getOffset() {
+		return this.offset;
+	}
+
+	@Override
+	public String toString() {
+		return "StreamOffset{" + "key=" + key + ", offset=" + offset + '}';
+	}
+
+	@Override
+	public boolean equals(Object o) {
+
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		StreamOffset<?> that = (StreamOffset<?>) o;
+
+		if (!ObjectUtils.nullSafeEquals(key, that.key)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(offset, that.offset);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = ObjectUtils.nullSafeHashCode(key);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(offset);
+		return result;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,6 +104,11 @@ import org.springframework.util.ObjectUtils;
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		implements InitializingBean, ApplicationContextAware, ApplicationListener<RedisKeyspaceEvent> {
 
+	/**
+	 * Time To Live in seconds that phantom keys should live longer than the actual key.
+	 */
+	private static final int PHANTOM_KEY_TTL = 300;
+
 	private RedisOperations<?, ?> redisOps;
 	private RedisConverter converter;
 	private @Nullable RedisMessageListenerContainer messageListenerContainer;
@@ -201,7 +206,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#put(java.lang.Object, java.lang.Object, java.lang.String)
 	 */
 	@Override
-	public Object put(final Object id, Object item, String keyspace) {
+	public Object put(Object id, Object item, String keyspace) {
 
 		RedisData rdo = item instanceof RedisData ? (RedisData) item : new RedisData();
 		if (!(item instanceof RedisData)) {
@@ -237,7 +242,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				byte[] phantomKey = ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 				connection.del(phantomKey);
 				connection.hMSet(phantomKey, rdo.getBucket().rawMap());
-				connection.expire(phantomKey, rdo.getTimeToLive() + 300);
+				connection.expire(phantomKey, rdo.getTimeToLive() + PHANTOM_KEY_TTL);
 			}
 
 			connection.sAdd(toBytes(rdo.getKeyspace()), key);
@@ -329,8 +334,14 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 				connection.del(keyToDelete);
 				connection.sRem(binKeyspace, binId);
-
 				new IndexWriter(connection, converter).removeKeyFromIndexes(asString(keyspace), binId);
+
+				RedisPersistentEntity<?> persistentEntity = converter.getMappingContext().getPersistentEntity(type);
+				if (persistentEntity != null && persistentEntity.isExpiring()) {
+
+					byte[] phantomKey = ByteUtils.concat(keyToDelete, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
+					connection.del(phantomKey);
+				}
 				return null;
 			});
 		}
@@ -467,7 +478,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 					// add phantom key so values can be restored
 					byte[] phantomKey = ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
-					connection.expire(phantomKey, rdo.getTimeToLive() + 300);
+					connection.expire(phantomKey, rdo.getTimeToLive() + PHANTOM_KEY_TTL);
 
 				} else {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import lombok.EqualsAndHashCode;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -23,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.Set;
 
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Subscription for Redis channels using reactive infrastructure. A {@link ReactiveSubscription} allows subscribing to
@@ -155,7 +155,6 @@ public interface ReactiveSubscription {
 	 * @author Christoph Strobl
 	 * @since 2.1
 	 */
-	@EqualsAndHashCode
 	class ChannelMessage<C, M> implements Message<C, M> {
 
 		private final C channel;
@@ -195,6 +194,28 @@ public interface ReactiveSubscription {
 		}
 
 		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+
+			ChannelMessage<?, ?> that = (ChannelMessage<?, ?>) o;
+
+			if (!ObjectUtils.nullSafeEquals(channel, that.channel)) {
+				return false;
+			}
+			return ObjectUtils.nullSafeEquals(message, that.message);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = ObjectUtils.nullSafeHashCode(channel);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(message);
+			return result;
+		}
+
+		@Override
 		public String toString() {
 			return "ChannelMessage {" + "channel=" + channel + ", message=" + message + '}';
 		}
@@ -210,7 +231,6 @@ public interface ReactiveSubscription {
 	 * @author Christoph Strobl
 	 * @since 2.1
 	 */
-	@EqualsAndHashCode(callSuper = true)
 	class PatternMessage<P, C, M> extends ChannelMessage<C, M> {
 
 		private final P pattern;
@@ -237,6 +257,27 @@ public interface ReactiveSubscription {
 		 */
 		public P getPattern() {
 			return pattern;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+			if (!super.equals(o))
+				return false;
+
+			PatternMessage<?, ?, ?> that = (PatternMessage<?, ?, ?>) o;
+
+			return ObjectUtils.nullSafeEquals(pattern, that.pattern);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = super.hashCode();
+			result = 31 * result + ObjectUtils.nullSafeHashCode(pattern);
+			return result;
 		}
 
 		@Override

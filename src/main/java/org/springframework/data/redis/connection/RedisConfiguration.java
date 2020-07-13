@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -337,6 +337,56 @@ public interface RedisConfiguration {
 		 * @return {@link Set} of sentinels. Never {@literal null}.
 		 */
 		Set<RedisNode> getSentinels();
+
+		/**
+		 * Get the {@link RedisPassword} used when authenticating with a Redis Server..
+		 *
+		 * @return never {@literal null}.
+		 * @since 2.2.2
+		 */
+		default RedisPassword getDataNodePassword() {
+			return getPassword();
+		}
+
+		/**
+		 * Create and set a {@link RedisPassword} to be used when authenticating with Redis Sentinel from the given
+		 * {@link String}.
+		 *
+		 * @param password can be {@literal null}.
+		 * @since 2.2.2
+		 */
+		default void setSentinelPassword(@Nullable String password) {
+			setSentinelPassword(RedisPassword.of(password));
+		}
+
+		/**
+		 * Create and set a {@link RedisPassword} to be used when authenticating with Redis Sentinel from the given
+		 * {@link Character} sequence.
+		 *
+		 * @param password can be {@literal null}.
+		 * @since 2.2.2
+		 */
+		default void setSentinelPassword(@Nullable char[] password) {
+			setSentinelPassword(RedisPassword.of(password));
+		}
+
+		/**
+		 * Set a {@link RedisPassword} to be used when authenticating with Redis Sentinel.
+		 *
+		 * @param password must not be {@literal null} use {@link RedisPassword#none()} instead.
+		 * @since 2.2.2
+		 */
+		void setSentinelPassword(RedisPassword password);
+
+		/**
+		 * Returns the {@link RedisPassword} to use when connecting to a Redis Sentinel. <br />
+		 * Can be set via {@link #setSentinelPassword(RedisPassword)} or {@link RedisPassword#none()} if no password has
+		 * been set.
+		 *
+		 * @return the {@link RedisPassword} for authenticating with Redis Sentinel.
+		 * @since 2.2.2
+		 */
+		RedisPassword getSentinelPassword();
 	}
 
 	/**

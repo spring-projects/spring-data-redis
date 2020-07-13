@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class LettuceReactiveRedisClusterConnectionUnitTests {
 
 		when(reactiveNodeCommands.bgrewriteaof()).thenReturn(Mono.just("OK"));
 
-		StepVerifier.create(connection.serverCommands().bgReWriteAof(NODE1)).expectNextCount(1).verifyComplete();
+		connection.serverCommands().bgReWriteAof(NODE1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659, DATAREDIS-708
@@ -86,6 +86,6 @@ public class LettuceReactiveRedisClusterConnectionUnitTests {
 
 		when(reactiveNodeCommands.bgsave()).thenReturn(Mono.just("OK"));
 
-		StepVerifier.create(connection.serverCommands().bgSave(NODE1)).expectNextCount(1).verifyComplete();
+		connection.serverCommands().bgSave(NODE1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 }

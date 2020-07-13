@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -262,7 +262,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getTimeout(), "Timeout must not be null!");
 
-			return cmd.pexpire(command.getKey(), command.getTimeout().getSeconds())
+			return cmd.pexpire(command.getKey(), command.getTimeout().toMillis())
 					.map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
@@ -294,7 +294,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getExpireAt(), "Expire at must not be null!");
 
-			return cmd.expireat(command.getKey(), command.getExpireAt().toEpochMilli())
+			return cmd.pexpireat(command.getKey(), command.getExpireAt().toEpochMilli())
 					.map(value -> new BooleanResponse<>(command, value));
 		}));
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,12 +46,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
-
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConfiguration;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSocketConfiguration;
@@ -66,6 +67,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Balázs Németh
  * @author Ruben Cervilla
  * @author Luis De Bello
+ * @author Andrea Como
  */
 public class LettuceConnectionFactoryUnitTests {
 
@@ -178,8 +180,8 @@ public class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	@Test // DATAREDIS-524
-	public void passwordShouldBeSetCorrectlyOnSentinelClient() {
+	@Test // DATAREDIS-524, DATAREDIS-1045, DATAREDIS-1060
+	public void passwordShouldNotBeSetOnSentinelClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
 				new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234")));
@@ -194,6 +196,57 @@ public class LettuceConnectionFactoryUnitTests {
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
 		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
+
+		for (RedisURI sentinel : redisUri.getSentinels()) {
+			assertThat(sentinel.getPassword()).isNull();
+		}
+	}
+
+	@Test // DATAREDIS-1060
+	public void sentinelPasswordShouldBeSetOnSentinelClient() {
+
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
+		config.setSentinelPassword("sentinel-pwd");
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config);
+		connectionFactory.setClientResources(getSharedClientResources());
+		connectionFactory.setPassword("o_O");
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isInstanceOf(RedisClient.class);
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
+
+		for (RedisURI sentinel : redisUri.getSentinels()) {
+			assertThat(sentinel.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
+		}
+	}
+
+	@Test // DATAREDIS-1060
+	public void sentinelPasswordShouldNotLeakIntoDataNodeClient() {
+
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
+		config.setSentinelPassword("sentinel-pwd");
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config);
+		connectionFactory.setClientResources(getSharedClientResources());
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isInstanceOf(RedisClient.class);
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.getPassword()).isNull();
+
+		for (RedisURI sentinel : redisUri.getSentinels()) {
+			assertThat(sentinel.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
+		}
 	}
 
 	@Test // DATAREDIS-462
@@ -749,7 +802,9 @@ public class LettuceConnectionFactoryUnitTests {
 		connectionFactory.setValidateConnection(true);
 		connectionFactory.afterPropertiesSet();
 
-		connectionFactory.getConnection().close();
+		try (RedisConnection connection = connectionFactory.getConnection()) {
+			connection.ping();
+		}
 
 		verify(syncMock).ping();
 	}
@@ -798,11 +853,31 @@ public class LettuceConnectionFactoryUnitTests {
 				return connectionProviderMock;
 			}
 		};
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.setEagerInitialization(true);
 
 		connectionFactory.afterPropertiesSet();
 
 		verify(connectionProviderMock, times(2)).getConnection(StatefulConnection.class);
+	}
+
+	@Test // DATAREDIS-1027
+	public void shouldDisposeConnectionProviders() throws Exception {
+
+		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class,
+				withSettings().extraInterfaces(DisposableBean.class));
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory() {
+			@Override
+			protected LettuceConnectionProvider doCreateConnectionProvider(AbstractRedisClient client,
+					RedisCodec<?, ?> codec) {
+				return connectionProviderMock;
+			}
+		};
+
+		connectionFactory.afterPropertiesSet();
+		connectionFactory.destroy();
+
+		verify((DisposableBean) connectionProviderMock, times(2)).destroy();
 	}
 
 	@Test // DATAREDIS-842
@@ -866,6 +941,27 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(options.getMaxRedirects()).isEqualTo(42);
 		assertThat(options.isValidateClusterNodeMembership()).isFalse();
 		assertThat(options.getTimeoutOptions().isApplyConnectionTimeout()).isFalse();
+	}
+
+	@Test // DATAREDIS-1142
+	public void shouldFallbackToReactiveRedisClusterConnectionWhenGetReactiveConnectionWithClusterConfig() {
+
+		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class);
+		StatefulConnection<?, ?> statefulConnection = mock(StatefulConnection.class);
+		when(connectionProviderMock.getConnection(any())).thenReturn(statefulConnection);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig) {
+
+			@Override
+			protected LettuceConnectionProvider doCreateConnectionProvider(AbstractRedisClient client,
+					RedisCodec<?, ?> codec) {
+				return connectionProviderMock;
+			}
+		};
+		connectionFactory.afterPropertiesSet();
+
+		LettuceReactiveRedisConnection reactiveConnection = connectionFactory.getReactiveConnection();
+
+		assertThat(reactiveConnection).isInstanceOf(LettuceReactiveRedisClusterConnection.class);
 	}
 
 	@Data

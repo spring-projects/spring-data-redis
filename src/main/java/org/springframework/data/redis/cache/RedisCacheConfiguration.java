@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@ package org.springframework.data.redis.cache;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -142,11 +144,17 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * Use the given prefix instead of the default one.
+	 * Use the given prefix instead of using the cache name. <br />
+	 * This option replaces the cache name with {@code prefix} therefore we recommend rather using
+	 * {@link #prefixCacheNameWith(String)} or {@link #computePrefixWith(CacheKeyPrefix)} for more control. <br />
+	 * The generated cache key will be: {@code prefix + cache entry key}.
 	 *
 	 * @param prefix must not be {@literal null}.
 	 * @return new {@link RedisCacheConfiguration}.
+	 * @deprecated since 2.3. Use {@link #prefixCacheNameWith(String)} or {@link #computePrefixWith(CacheKeyPrefix)}
+	 *             instead.
 	 */
+	@Deprecated
 	public RedisCacheConfiguration prefixKeysWith(String prefix) {
 
 		Assert.notNull(prefix, "Prefix must not be null!");
@@ -155,12 +163,27 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * Use the given {@link CacheKeyPrefix} to compute the prefix for the actual Redis {@literal key} on the
-	 * {@literal cache name}.
+	 * Prefix the {@link RedisCache#getName() cache name} with the given value. <br />
+	 * The generated cache key will be: {@code prefix + cache name + "::" + cache entry key}.
+	 *
+	 * @param prefix the prefix to prepend to the cache name.
+	 * @return this.
+	 * @see #computePrefixWith(CacheKeyPrefix)
+	 * @see CacheKeyPrefix#prefixed(String)
+	 * @since 2.3
+	 */
+	public RedisCacheConfiguration prefixCacheNameWith(String prefix) {
+		return computePrefixWith(CacheKeyPrefix.prefixed(prefix));
+	}
+
+	/**
+	 * Use the given {@link CacheKeyPrefix} to compute the prefix for the actual Redis {@literal key} given the
+	 * {@literal cache name} as function input.
 	 *
 	 * @param cacheKeyPrefix must not be {@literal null}.
 	 * @return new {@link RedisCacheConfiguration}.
 	 * @since 2.0.4
+	 * @see CacheKeyPrefix
 	 */
 	public RedisCacheConfiguration computePrefixWith(CacheKeyPrefix cacheKeyPrefix) {
 
@@ -301,6 +324,37 @@ public class RedisCacheConfiguration {
 	 */
 	public ConversionService getConversionService() {
 		return conversionService;
+	}
+
+	/**
+	 * Add a {@link Converter} for extracting the {@link String} representation of a cache key if no suitable
+	 * {@link Object#toString()} method is present.
+	 *
+	 * @param cacheKeyConverter
+	 * @throws IllegalStateException if {@link #getConversionService()} does not allow converter registration.
+	 * @since 2.2
+	 */
+	public void addCacheKeyConverter(Converter<?, String> cacheKeyConverter) {
+		configureKeyConverters(it -> it.addConverter(cacheKeyConverter));
+	}
+
+	/**
+	 * Configure the underlying conversion system used to extract the cache key.
+	 *
+	 * @param registryConsumer never {@literal null}.
+	 * @throws IllegalStateException if {@link #getConversionService()} does not allow converter registration.
+	 * @since 2.2
+	 */
+	public void configureKeyConverters(Consumer<ConverterRegistry> registryConsumer) {
+
+		if (!(getConversionService() instanceof ConverterRegistry)) {
+			throw new IllegalStateException(String.format(
+					"'%s' returned by getConversionService() does not allow converter registration." //
+							+ " Please make sure to provide a ConversionService that implements ConverterRegistry.",
+					getConversionService().getClass().getSimpleName()));
+		}
+
+		registryConsumer.accept((ConverterRegistry) getConversionService());
 	}
 
 	/**

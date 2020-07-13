@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -193,6 +193,16 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	/**
 	 * Entry point for builder style {@link RedisCacheManager} configuration.
 	 *
+	 * @return new {@link RedisCacheManagerBuilder}.
+	 * @since 2.3
+	 */
+	public static RedisCacheManagerBuilder builder() {
+		return new RedisCacheManagerBuilder();
+	}
+
+	/**
+	 * Entry point for builder style {@link RedisCacheManager} configuration.
+	 *
 	 * @param connectionFactory must not be {@literal null}.
 	 * @return new {@link RedisCacheManagerBuilder}.
 	 */
@@ -272,17 +282,19 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * Configurator for creating {@link RedisCacheManager}.
 	 *
 	 * @author Christoph Strobl
-	 * @author Mark Strobl
+	 * @author Mark Paluch
 	 * @author Kezhu Wang
 	 * @since 2.0
 	 */
 	public static class RedisCacheManagerBuilder {
 
-		private final RedisCacheWriter cacheWriter;
+		private @Nullable RedisCacheWriter cacheWriter;
 		private RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
 		private final Map<String, RedisCacheConfiguration> initialCaches = new LinkedHashMap<>();
 		private boolean enableTransactions;
 		boolean allowInFlightCacheCreation = true;
+
+		private RedisCacheManagerBuilder() {}
 
 		private RedisCacheManagerBuilder(RedisCacheWriter cacheWriter) {
 			this.cacheWriter = cacheWriter;
@@ -298,7 +310,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 			Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
 
-			return builder(new DefaultRedisCacheWriter(connectionFactory));
+			return new RedisCacheManagerBuilder(new DefaultRedisCacheWriter(connectionFactory));
 		}
 
 		/**
@@ -325,6 +337,22 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 			Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null!");
 
 			this.defaultCacheConfiguration = defaultCacheConfiguration;
+
+			return this;
+		}
+
+		/**
+		 * Configure a {@link RedisCacheWriter}.
+		 *
+		 * @param cacheWriter must not be {@literal null}.
+		 * @return this {@link RedisCacheManagerBuilder}.
+		 * @since 2.3
+		 */
+		public RedisCacheManagerBuilder cacheWriter(RedisCacheWriter cacheWriter) {
+
+			Assert.notNull(cacheWriter, "CacheWriter must not be null!");
+
+			this.cacheWriter = cacheWriter;
 
 			return this;
 		}
@@ -434,6 +462,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 * @return new instance of {@link RedisCacheManager}.
 		 */
 		public RedisCacheManager build() {
+
+			Assert.state(cacheWriter != null, "CacheWriter must not be null! You can provide one via 'RedisCacheManagerBuilder#cacheWriter(RedisCacheWriter)'.");
 
 			RedisCacheManager cm = new RedisCacheManager(cacheWriter, defaultCacheConfiguration, initialCaches,
 					allowInFlightCacheCreation);

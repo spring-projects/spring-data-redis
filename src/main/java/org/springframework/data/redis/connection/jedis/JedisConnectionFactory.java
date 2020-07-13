@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Connection factory creating <a href="https://github.com/xetorthio/jedis">Jedis</a> based connections.
@@ -76,6 +75,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Fu Jian
+ * @author Ajith Kumar
  * @see JedisClientConfiguration
  * @see Jedis
  */
@@ -425,12 +425,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects() : 5;
 
-		int connectTimeout = getConnectTimeout();
-		int readTimeout = getReadTimeout();
-
-		return StringUtils.hasText(getPassword())
-				? new JedisCluster(hostAndPort, connectTimeout, readTimeout, redirects, getPassword(), poolConfig)
-				: new JedisCluster(hostAndPort, connectTimeout, readTimeout, redirects, poolConfig);
+		return new JedisCluster(hostAndPort, getConnectTimeout(), getReadTimeout(), redirects, getPassword(),
+				getClientName(), poolConfig, isUseSsl(), clientConfiguration.getSslSocketFactory().orElse(null),
+				clientConfiguration.getSslParameters().orElse(null), clientConfiguration.getHostnameVerifier().orElse(null),
+				null);
 	}
 
 	/*
@@ -476,9 +474,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		Jedis jedis = fetchJedisConnector();
-		String clientName = clientConfiguration.getClientName().orElse(null);
-		JedisConnection connection = (getUsePool() ? new JedisConnection(jedis, pool, getDatabase(), clientName)
-				: new JedisConnection(jedis, null, getDatabase(), clientName));
+		JedisConnection connection = (getUsePool() ? new JedisConnection(jedis, pool, getDatabase(), getClientName())
+				: new JedisConnection(jedis, null, getDatabase(), getClientName()));
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return postProcessConnection(connection);
 	}
@@ -552,6 +549,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 *
 	 * @return password for authentication.
 	 */
+	@Nullable
 	public String getPassword() {
 		return getRedisPassword().map(String::new).orElse(null);
 	}
@@ -652,6 +650,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Indicates the use of a connection pool.
+	 * <p />
+	 * Applies only to single node Redis. Sentinel and Cluster modes use always connection-pooling regardless of the
+	 * pooling setting.
 	 *
 	 * @return the use of connection pooling.
 	 */
@@ -855,10 +856,14 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 			Jedis jedis = new Jedis(node.getHost(), node.getPort(), getConnectTimeout(), getReadTimeout());
 
-			if (jedis.ping().equalsIgnoreCase("pong")) {
+			try {
+				if (jedis.ping().equalsIgnoreCase("pong")) {
 
-				potentiallySetClientName(jedis);
-				return jedis;
+					potentiallySetClientName(jedis);
+					return jedis;
+				}
+			} catch (Exception ex) {
+				log.warn(String.format("Ping failed for sentinel host:%s", node.getHost()), ex);
 			}
 		}
 

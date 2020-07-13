@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,11 +99,11 @@ public class DefaultReactiveScriptExecutorTests {
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/increment.lua"));
 		script.setResultType(Long.class);
 
-		StepVerifier.create(stringScriptExecutor.execute(script, Collections.singletonList("mykey"))).verifyComplete();
+		stringScriptExecutor.execute(script, Collections.singletonList("mykey")).as(StepVerifier::create).verifyComplete();
 
 		stringTemplate.opsForValue().set("mykey", "2");
 
-		StepVerifier.create(stringScriptExecutor.execute(script, Collections.singletonList("mykey"))).expectNext(3L)
+		stringScriptExecutor.execute(script, Collections.singletonList("mykey")).as(StepVerifier::create).expectNext(3L)
 				.verifyComplete();
 	}
 
@@ -123,10 +123,10 @@ public class DefaultReactiveScriptExecutorTests {
 
 		stringTemplate.opsForValue().set("counter", "0");
 
-		StepVerifier.create(scriptExecutor.execute(script, Collections.singletonList("counter"), Arrays.asList(0, 3)))
+		scriptExecutor.execute(script, Collections.singletonList("counter"), Arrays.asList(0, 3)).as(StepVerifier::create)
 				.expectNext(true).verifyComplete();
 
-		StepVerifier.create(scriptExecutor.execute(script, Collections.singletonList("counter"), Arrays.asList(0, 3)))
+		scriptExecutor.execute(script, Collections.singletonList("counter"), Arrays.asList(0, 3)).as(StepVerifier::create)
 				.expectNext(false).verifyComplete();
 	}
 
@@ -144,7 +144,7 @@ public class DefaultReactiveScriptExecutorTests {
 				Collections.singletonList(1L), RedisElementWriter.from(new GenericToStringSerializer<>(Long.class)),
 				(RedisElementReader) RedisElementReader.from(StringRedisSerializer.UTF_8));
 
-		StepVerifier.create(mylist).expectNext(Collections.singletonList("a")).verifyComplete();
+		mylist.as(StepVerifier::create).expectNext(Collections.singletonList("a")).verifyComplete();
 	}
 
 	@Test // DATAREDIS-711
@@ -154,12 +154,12 @@ public class DefaultReactiveScriptExecutorTests {
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/popandlength.lua"));
 		script.setResultType(List.class);
 
-		StepVerifier.create(stringScriptExecutor.execute(script, Collections.singletonList("mylist")))
+		stringScriptExecutor.execute(script, Collections.singletonList("mylist")).as(StepVerifier::create)
 				.expectNext(Arrays.asList(null, 0L)).verifyComplete();
 
 		stringTemplate.boundListOps("mylist").leftPushAll("a", "b");
 
-		StepVerifier.create(stringScriptExecutor.execute(script, Collections.singletonList("mylist")))
+		stringScriptExecutor.execute(script, Collections.singletonList("mylist")).as(StepVerifier::create)
 				.expectNext(Arrays.asList("a", 1L)).verifyComplete();
 	}
 
@@ -174,7 +174,7 @@ public class DefaultReactiveScriptExecutorTests {
 
 		Flux<String> foo = stringScriptExecutor.execute(script, Collections.singletonList("foo"));
 
-		StepVerifier.create(foo).expectNext("bar").expectNext();
+		foo.as(StepVerifier::create).expectNext("bar").expectNext();
 	}
 
 	@Test // DATAREDIS-711
@@ -217,7 +217,7 @@ public class DefaultReactiveScriptExecutorTests {
 				Collections.singletonList(joe), RedisElementWriter.from(personSerializer),
 				RedisElementReader.from(StringRedisSerializer.UTF_8));
 
-		StepVerifier.create(result).expectNext("FOO").verifyComplete();
+		result.as(StepVerifier::create).expectNext("FOO").verifyComplete();
 
 		assertThat(template.opsForValue().get("bar")).isEqualTo(joe);
 	}
@@ -235,14 +235,14 @@ public class DefaultReactiveScriptExecutorTests {
 				(RedisCallback<List<Boolean>>) connection -> connection.scriptingCommands().scriptExists(script.getSha1())))
 						.containsExactly(false);
 
-		StepVerifier.create(stringScriptExecutor.execute(script, Collections.emptyList())).expectNext("HELLO")
+		stringScriptExecutor.execute(script, Collections.emptyList()).as(StepVerifier::create).expectNext("HELLO")
 				.verifyComplete();
 
 		assertThat(stringTemplate.execute(
 				(RedisCallback<List<Boolean>>) connection -> connection.scriptingCommands().scriptExists(script.getSha1())))
 						.containsExactly(true);
 
-		StepVerifier.create(stringScriptExecutor.execute(script, Collections.emptyList())).expectNext("HELLO")
+		stringScriptExecutor.execute(script, Collections.emptyList()).as(StepVerifier::create).expectNext("HELLO")
 				.verifyComplete();
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +28,7 @@ import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Geo-specific Redis commands.
@@ -355,12 +353,58 @@ public interface RedisGeoCommands {
 	 * @param <T>
 	 * @since 1.8
 	 */
-	@Data
-	@RequiredArgsConstructor
 	class GeoLocation<T> {
 
 		private final T name;
 		private final Point point;
+
+		public GeoLocation(T name, Point point) {
+			this.name = name;
+			this.point = point;
+		}
+
+		public T getName() {
+			return this.name;
+		}
+
+		public Point getPoint() {
+			return this.point;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+
+			if (this == o) {
+				return true;
+			}
+
+			if (!(o instanceof GeoLocation)) {
+				return false;
+			}
+
+			GeoLocation<?> that = (GeoLocation<?>) o;
+
+			if (!ObjectUtils.nullSafeEquals(name, that.name)) {
+				return false;
+			}
+
+			return ObjectUtils.nullSafeEquals(point, that.point);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = ObjectUtils.nullSafeHashCode(name);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(point);
+			return result;
+		}
+
+		protected boolean canEqual(Object other) {
+			return other instanceof GeoLocation;
+		}
+
+		public String toString() {
+			return "RedisGeoCommands.GeoLocation(name=" + this.getName() + ", point=" + this.getPoint() + ")";
+		}
 	}
 
 	/**

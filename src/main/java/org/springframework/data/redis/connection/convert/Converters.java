@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,22 @@
  */
 package org.springframework.data.redis.connection.convert;
 
-import lombok.RequiredArgsConstructor;
-
+import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -38,8 +48,10 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
@@ -54,6 +66,9 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  */
 abstract public class Converters {
+
+	// private static final Log LOGGER = LogFactory.getLog(Converters.class);
+	private static final Log LOGGER = LogFactory.getLog(Converters.class);
 
 	private static final byte[] ONE = new byte[] { '1' };
 	private static final byte[] ZERO = new byte[] { '0' };
@@ -426,7 +441,103 @@ abstract public class Converters {
 	@Nullable
 	public static Duration secondsToDuration(@Nullable Long seconds) {
 		return seconds != null ? Duration.ofSeconds(seconds) : null;
+	}
 
+	/**
+	 * Parse a rather generic Redis response, such as a list of something into a meaningful structure applying best effort
+	 * conversion of {@code byte[]} and {@link ByteBuffer}.
+	 * 
+	 * @param source the source to parse
+	 * @param targetType eg. {@link Map}, {@link String},...
+	 * @param <T>
+	 * @return
+	 * @since 2.3
+	 */
+	public static <T> T parse(Object source, Class<T> targetType) {
+		return targetType.cast(parse(source, "root", Collections.singletonMap("root", targetType)));
+	}
+
+	/**
+	 * Parse a rather generic Redis response, such as a list of something into a meaningful structure applying best effort
+	 * conversion of {@code byte[]} and {@link ByteBuffer} based on the {@literal sourcePath} and a {@literal typeHintMap}
+	 *
+	 * @param source the source to parse
+	 * @param sourcePath the current path (use "root", for level 0).
+	 * @param typeHintMap source path to target type hints allowing wildcards ({@literal *}).
+	 * @return
+	 * @since 2.3
+	 */
+	public static Object parse(Object source, String sourcePath, Map<String, Class<?>> typeHintMap) {
+
+		String path = sourcePath;
+		Class<?> targetType = typeHintMap.get(path);
+
+		if (targetType == null) {
+
+			String alternatePath = sourcePath.contains(".") ? sourcePath.substring(0, sourcePath.lastIndexOf(".")) + ".*"
+					: sourcePath;
+			targetType = typeHintMap.get(alternatePath);
+			if (targetType == null) {
+
+				if (sourcePath.endsWith("[]")) {
+					targetType = String.class;
+				} else {
+					targetType = source.getClass();
+				}
+
+			} else {
+				if (targetType == Map.class && sourcePath.endsWith("[]")) {
+					targetType = String.class;
+				} else {
+					path = alternatePath;
+				}
+			}
+		}
+
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug(String.format("parsing %s (%s) as %s.", sourcePath, path, targetType));
+		}
+
+		if (targetType == Object.class) {
+			return source;
+		}
+
+		if (ClassUtils.isAssignable(String.class, targetType)) {
+
+			if (source instanceof String) {
+				return source.toString();
+			}
+			if (source instanceof byte[]) {
+				return new String((byte[]) source);
+			}
+			if (source instanceof ByteBuffer) {
+				return new String(ByteUtils.getBytes((ByteBuffer) source));
+			}
+		}
+
+		if (ClassUtils.isAssignable(List.class, targetType) && source instanceof List) {
+
+			List<Object> sourceCollection = (List<Object>) source;
+			List<Object> targetList = new ArrayList<>();
+			for (int i = 0; i < sourceCollection.size(); i++) {
+				targetList.add(parse(sourceCollection.get(i), sourcePath + ".[" + i + "]", typeHintMap));
+			}
+			return targetList;
+		}
+
+		if (ClassUtils.isAssignable(Map.class, targetType) && source instanceof List) {
+
+			List<Object> sourceCollection = ((List<Object>) source);
+			Map<String, Object> targetMap = new LinkedHashMap<>();
+			for (int i = 0; i < sourceCollection.size(); i = i + 2) {
+
+				String key = parse(sourceCollection.get(i), path + ".[]", typeHintMap).toString();
+				targetMap.put(key, parse(sourceCollection.get(i + 1), path + "." + key, typeHintMap));
+			}
+			return targetMap;
+		}
+
+		return source;
 	}
 
 	/**
@@ -475,11 +586,14 @@ abstract public class Converters {
 	 * @param <V>
 	 * @since 1.8
 	 */
-	@RequiredArgsConstructor
 	static class DeserializingGeoResultsConverter<V>
 			implements Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<V>>> {
 
 		final RedisSerializer<V> serializer;
+
+		public DeserializingGeoResultsConverter(RedisSerializer<V> serializer) {
+			this.serializer = serializer;
+		}
 
 		/*
 		 * (non-Javadoc)

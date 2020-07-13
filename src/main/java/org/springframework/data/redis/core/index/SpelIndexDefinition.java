@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,9 @@
  */
 package org.springframework.data.redis.core.index;
 
-import lombok.EqualsAndHashCode;
-
 import org.springframework.data.redis.core.convert.SpelIndexResolver;
 import org.springframework.expression.spel.standard.SpelExpression;
+import org.springframework.util.ObjectUtils;
 
 /**
  * {@link SpelIndexDefinition} defines index that is evaluated based on a {@link SpelExpression} requires the
@@ -27,7 +26,6 @@ import org.springframework.expression.spel.standard.SpelExpression;
  * @author Christoph Strobl
  * @since 1.7
  */
-@EqualsAndHashCode(callSuper = true)
 public class SpelIndexDefinition extends RedisIndexDefinition {
 
 	private final String expression;
@@ -55,4 +53,24 @@ public class SpelIndexDefinition extends RedisIndexDefinition {
 		return expression;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		if (!super.equals(o))
+			return false;
+
+		SpelIndexDefinition that = (SpelIndexDefinition) o;
+
+		return ObjectUtils.nullSafeEquals(expression, that.expression);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + ObjectUtils.nullSafeHashCode(expression);
+		return result;
+	}
 }

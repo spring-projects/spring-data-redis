@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,5 +128,19 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 			INSTANCE = new RedisTestProfileValueSource();
 		}
 		return INSTANCE.get(key) != null ? INSTANCE.get(key).equals(value) : value == null;
+	}
+
+	public static boolean atLeast(String key, String value) {
+
+		if (INSTANCE == null) {
+			INSTANCE = new RedisTestProfileValueSource();
+		}
+
+		String current = INSTANCE.get(key);
+		if(current == null) {
+			return value == null;
+		}
+
+		return org.springframework.data.util.Version.parse(current).isGreaterThanOrEqualTo(org.springframework.data.util.Version.parse(value));
 	}
 }

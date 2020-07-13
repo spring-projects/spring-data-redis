@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.lettuce.core.RedisConnectionException;
+import io.lettuce.core.XAddArgs;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
@@ -26,6 +27,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -33,9 +35,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.ReactiveStreamCommands.AddStreamRecord;
+import org.springframework.data.redis.connection.stream.ByteBufferRecord;
+import org.springframework.data.redis.connection.stream.MapRecord;
 
 /**
  * Unit tests for {@link LettuceReactiveRedisConnection}.
@@ -70,7 +77,7 @@ public class LettuceReactiveRedisConnectionUnitTests {
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 
-		StepVerifier.create(connection.execute(cmd -> Mono.just("foo"))).expectNext("foo").verifyComplete();
+		connection.execute(cmd -> Mono.just("foo")).as(StepVerifier::create).expectNext("foo").verifyComplete();
 
 		verify(connectionProvider).getConnectionAsync(StatefulConnection.class);
 	}
@@ -80,7 +87,7 @@ public class LettuceReactiveRedisConnectionUnitTests {
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 
-		StepVerifier.create(connection.executeDedicated(cmd -> Mono.just("foo"))).expectNext("foo").verifyComplete();
+		connection.executeDedicated(cmd -> Mono.just("foo")).as(StepVerifier::create).expectNext("foo").verifyComplete();
 
 		verify(connectionProvider).getConnectionAsync(StatefulConnection.class);
 	}
@@ -91,7 +98,7 @@ public class LettuceReactiveRedisConnectionUnitTests {
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(sharedConnection,
 				connectionProvider);
 
-		StepVerifier.create(connection.execute(cmd -> Mono.just("foo"))).expectNext("foo").verifyComplete();
+		connection.execute(cmd -> Mono.just("foo")).as(StepVerifier::create).expectNext("foo").verifyComplete();
 
 		verifyZeroInteractions(connectionProvider);
 	}
@@ -102,7 +109,7 @@ public class LettuceReactiveRedisConnectionUnitTests {
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(sharedConnection,
 				connectionProvider);
 
-		StepVerifier.create(connection.executeDedicated(cmd -> Mono.just("foo"))).expectNext("foo").verifyComplete();
+		connection.executeDedicated(cmd -> Mono.just("foo")).as(StepVerifier::create).expectNext("foo").verifyComplete();
 
 		verify(connectionProvider).getConnectionAsync(StatefulConnection.class);
 	}
@@ -112,7 +119,7 @@ public class LettuceReactiveRedisConnectionUnitTests {
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 
-		StepVerifier.create(connection.getConnection()).expectNextCount(1).verifyComplete();
+		connection.getConnection().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 
 		verify(connectionProvider).getConnectionAsync(StatefulConnection.class);
 	}
@@ -123,8 +130,8 @@ public class LettuceReactiveRedisConnectionUnitTests {
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(sharedConnection,
 				connectionProvider);
 
-		StepVerifier.create(connection.getConnection()).expectNextCount(1).verifyComplete();
-		StepVerifier.create(connection.getDedicatedConnection()).expectNextCount(1).verifyComplete();
+		connection.getConnection().as(StepVerifier::create).expectNextCount(1).verifyComplete();
+		connection.getDedicatedConnection().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 
 		connection.close();
 
@@ -137,7 +144,7 @@ public class LettuceReactiveRedisConnectionUnitTests {
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 
-		StepVerifier.create(connection.getConnection()).expectNextCount(1).verifyComplete();
+		connection.getConnection().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 
 		connection.close();
 		connection.close();
@@ -183,7 +190,7 @@ public class LettuceReactiveRedisConnectionUnitTests {
 
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 
-		StepVerifier.create(connection.getConnection()).expectError(RedisConnectionFailureException.class).verify();
+		connection.getConnection().as(StepVerifier::create).expectError(RedisConnectionFailureException.class).verify();
 	}
 
 	@Test // DATAREDIS-720, DATAREDIS-721
@@ -192,7 +199,7 @@ public class LettuceReactiveRedisConnectionUnitTests {
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 		connection.close();
 
-		StepVerifier.create(connection.getConnection()).expectError(IllegalStateException.class).verify();
+		connection.getConnection().as(StepVerifier::create).expectError(IllegalStateException.class).verify();
 	}
 
 	@Test // DATAREDIS-659, DATAREDIS-708
@@ -202,7 +209,7 @@ public class LettuceReactiveRedisConnectionUnitTests {
 
 		when(reactiveCommands.bgrewriteaof()).thenReturn(Mono.just("OK"));
 
-		StepVerifier.create(connection.serverCommands().bgReWriteAof()).expectNextCount(1).verifyComplete();
+		connection.serverCommands().bgReWriteAof().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-659, DATAREDIS-667, DATAREDIS-708
@@ -212,6 +219,23 @@ public class LettuceReactiveRedisConnectionUnitTests {
 
 		when(reactiveCommands.bgsave()).thenReturn(Mono.just("OK"));
 
-		StepVerifier.create(connection.serverCommands().bgSave()).expectNextCount(1).verifyComplete();
+		connection.serverCommands().bgSave().as(StepVerifier::create).expectNextCount(1).verifyComplete();
+	}
+
+	@Test // DATAREDIS-1122
+	public void xaddShouldHonorMaxlen() {
+
+		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
+
+		ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
+		when(reactiveCommands.xadd(any(ByteBuffer.class), args.capture(), anyMap())).thenReturn(Mono.just("1-1"));
+
+		MapRecord<ByteBuffer, ByteBuffer, ByteBuffer> record = MapRecord.create(ByteBuffer.wrap("key".getBytes()),
+				Collections.emptyMap());
+
+		connection.streamCommands().xAdd(Mono.just(AddStreamRecord.of(ByteBufferRecord.of(record)).maxlen(100)))
+				.subscribe();
+
+		assertThat(args.getValue()).extracting("maxlen").isEqualTo(100L);
 	}
 }

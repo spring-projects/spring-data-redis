@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.serializer;
 
-import lombok.RequiredArgsConstructor;
-
 import java.nio.ByteBuffer;
 
 import org.springframework.data.redis.util.ByteUtils;
@@ -29,10 +27,13 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @since 2.0
  */
-@RequiredArgsConstructor
 class DefaultRedisElementReader<T> implements RedisElementReader<T> {
 
 	private final @Nullable RedisSerializer<T> serializer;
+
+	DefaultRedisElementReader(RedisSerializer<T> serializer) {
+		this.serializer = serializer;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.serializer.RedisElementReader#read(java.nio.ByteBuffer)

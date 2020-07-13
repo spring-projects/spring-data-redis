@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 
@@ -24,7 +26,7 @@ import kotlinx.coroutines.reactive.awaitSingle
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.hasKeyAndAwait(key: H, hashKey: HK): Boolean =
+suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.hasKeyAndAwait(key: H, hashKey: HK): Boolean =
 		hasKey(key, hashKey).awaitSingle()
 
 /**
@@ -34,7 +36,7 @@ suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Christoph Strobl
  * @since 2.2
  */
-suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.getAndAwait(key: H, hashKey: HK): HV? =
+suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.getAndAwait(key: H, hashKey: HK): HV? =
 		get(key, hashKey).awaitFirstOrNull()
 
 /**
@@ -43,7 +45,7 @@ suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.multiGetAndAwait(key: H, vararg hashKeys: HK): List<HV?> =
+suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.multiGetAndAwait(key: H, vararg hashKeys: HK): List<HV?> =
 		multiGet(key, hashKeys.toCollection(ArrayList())).awaitSingle()
 
 /**
@@ -52,8 +54,17 @@ suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.incrementAndAwait(key: H, hashKey: HK, delta: Long): Long =
+suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.incrementAndAwait(key: H, hashKey: HK, delta: Long): Long =
 		increment(key, hashKey, delta).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveHashOperations.keys].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.keysAsFlow(key: H): Flow<HK> =
+		keys(key).asFlow()
 
 /**
  * Coroutines variant of [ReactiveHashOperations.increment].
@@ -61,7 +72,7 @@ suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.incrementAndAwait(key: H, hashKey: HK, delta: Double): Double =
+suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.incrementAndAwait(key: H, hashKey: HK, delta: Double): Double =
 		increment(key, hashKey, delta).awaitSingle()
 
 /**
@@ -70,7 +81,7 @@ suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.sizeAndAwait(key: H): Long =
+suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.sizeAndAwait(key: H): Long =
 		size(key).awaitSingle()
 
 /**
@@ -79,7 +90,7 @@ suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.putAllAndAwait(key: H, map: Map<HK, HV>): Boolean =
+suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.putAllAndAwait(key: H, map: Map<HK, HV>): Boolean =
 		putAll(key, map).awaitSingle()
 
 /**
@@ -88,7 +99,7 @@ suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.putAndAwait(key: H, hashKey: HK, hashValue: HV): Boolean =
+suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.putAndAwait(key: H, hashKey: HK, hashValue: HV): Boolean =
 		put(key, hashKey, hashValue).awaitSingle()
 
 /**
@@ -97,8 +108,35 @@ suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.putIfAbsentAndAwait(key: H, hashKey: HK, hashValue: HV): Boolean =
+suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.putIfAbsentAndAwait(key: H, hashKey: HK, hashValue: HV): Boolean =
 		putIfAbsent(key, hashKey, hashValue).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveHashOperations.values].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.valuesAsFlow(key: H): Flow<HV> =
+		values(key).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveHashOperations.entries].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.entriesAsFlow(key: H): Flow<Map.Entry<HK, HV>> =
+		entries(key).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveHashOperations.scan].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.scanAsFlow(key: H, options: ScanOptions = ScanOptions.NONE): Flow<Map.Entry<HK, HV>> =
+		scan(key, options).asFlow()
 
 /**
  * Coroutines variant of [ReactiveHashOperations.remove].
@@ -106,7 +144,7 @@ suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.removeAndAwait(key: H, vararg hashKeys: Any): Long =
+suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.removeAndAwait(key: H, vararg hashKeys: Any): Long =
 		remove(key, *hashKeys).awaitSingle()
 
 /**
@@ -115,5 +153,5 @@ suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Christoph Strobl
  * @since 2.2
  */
-suspend inline fun <reified H : Any, reified HK : Any, reified HV : Any> ReactiveHashOperations<H, HK, HV>.deleteAndAwait(key: H): Boolean =
+suspend fun <H : Any, HK : Any, HV : Any> ReactiveHashOperations<H, HK, HV>.deleteAndAwait(key: H): Boolean =
 		delete(key).awaitSingle()

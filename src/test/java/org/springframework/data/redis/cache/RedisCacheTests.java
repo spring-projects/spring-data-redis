@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,9 @@ import lombok.RequiredArgsConstructor;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.function.Consumer;
 
@@ -36,11 +38,11 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.interceptor.SimpleKey;
+import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.cache.support.NullValue;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
@@ -56,7 +58,7 @@ public class RedisCacheTests {
 
 	String key = "key-1";
 	String cacheKey = "cache::" + key;
-	byte[] binaryCacheKey = cacheKey.getBytes(Charset.forName("UTF-8"));
+	byte[] binaryCacheKey = cacheKey.getBytes(StandardCharsets.UTF_8);
 
 	Person sample = new Person("calmity", new Date());
 	byte[] binarySample;
@@ -280,7 +282,23 @@ public class RedisCacheTests {
 
 		doWithConnection(connection -> {
 
-			assertThat(connection.stringCommands().get("_cache_key-1".getBytes(Charset.forName("UTF-8"))))
+			assertThat(connection.stringCommands().get("_cache_key-1".getBytes(StandardCharsets.UTF_8)))
+					.isEqualTo(binarySample);
+		});
+	}
+
+	@Test // DATAREDIS-1041
+	public void prefixCacheNameCreatesCacheKeyCorrectly() {
+
+		RedisCache cacheWithCustomPrefix = new RedisCache("cache", new DefaultRedisCacheWriter(connectionFactory),
+				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
+						.prefixCacheNameWith("redis::"));
+
+		cacheWithCustomPrefix.put("key-1", sample);
+
+		doWithConnection(connection -> {
+
+			assertThat(connection.stringCommands().get("redis::cache::key-1".getBytes(StandardCharsets.UTF_8)))
 					.isEqualTo(binarySample);
 		});
 	}
@@ -288,7 +306,7 @@ public class RedisCacheTests {
 	@Test // DATAREDIS-715
 	public void fetchKeyWithComputedPrefixReturnsExpectedResult() {
 
-		doWithConnection(connection -> connection.set("_cache_key-1".getBytes(Charset.forName("UTF-8")), binarySample));
+		doWithConnection(connection -> connection.set("_cache_key-1".getBytes(StandardCharsets.UTF_8), binarySample));
 
 		RedisCache cacheWithCustomPrefix = new RedisCache("cache", new DefaultRedisCacheWriter(connectionFactory),
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
@@ -298,6 +316,59 @@ public class RedisCacheTests {
 
 		assertThat(result).isNotNull();
 		assertThat(result.get()).isEqualTo(sample);
+	}
+
+	@Test // DATAREDIS-1032
+	public void cacheShouldAllowListKeyCacheKeysOfSimpleTypes() {
+
+		Object key = SimpleKeyGenerator.generateKey(Collections.singletonList("my-cache-key-in-a-list"));
+		cache.put(key, sample);
+
+		ValueWrapper target = cache
+				.get(SimpleKeyGenerator.generateKey(Collections.singletonList("my-cache-key-in-a-list")));
+		assertThat(target.get()).isEqualTo(sample);
+	}
+
+	@Test // DATAREDIS-1032
+	public void cacheShouldAllowArrayKeyCacheKeysOfSimpleTypes() {
+
+		Object key = SimpleKeyGenerator.generateKey("my-cache-key-in-an-array");
+		cache.put(key, sample);
+
+		ValueWrapper target = cache.get(SimpleKeyGenerator.generateKey("my-cache-key-in-an-array"));
+		assertThat(target.get()).isEqualTo(sample);
+	}
+
+	@Test // DATAREDIS-1032
+	public void cacheShouldAllowListCacheKeysOfComplexTypes() {
+
+		Object key = SimpleKeyGenerator
+				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstame(), sample.getBirthdate())));
+		cache.put(key, sample);
+
+		ValueWrapper target = cache.get(SimpleKeyGenerator
+				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstame(), sample.getBirthdate()))));
+		assertThat(target.get()).isEqualTo(sample);
+	}
+
+	@Test // DATAREDIS-1032
+	public void cacheShouldAllowMapCacheKeys() {
+
+		Object key = SimpleKeyGenerator
+				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstame(), sample.getBirthdate())));
+		cache.put(key, sample);
+
+		ValueWrapper target = cache.get(SimpleKeyGenerator
+				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstame(), sample.getBirthdate()))));
+		assertThat(target.get()).isEqualTo(sample);
+	}
+
+	@Test // DATAREDIS-1032
+	public void cacheShouldFailOnNonConvertibleCacheKey() {
+
+		Object key = SimpleKeyGenerator
+				.generateKey(Collections.singletonList(new InvalidKey(sample.getFirstame(), sample.getBirthdate())));
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> cache.put(key, sample));
 	}
 
 	void doWithConnection(Consumer<RedisConnection> callback) {

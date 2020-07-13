@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,13 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.core.Cursor;
@@ -49,6 +54,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Tugdual Grall
  * @since 2.0
  */
 public interface DefaultedRedisConnection extends RedisConnection {
@@ -447,8 +453,22 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
-		return streamCommands().xAdd(record);
+	default RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, XAddOptions options) {
+		return streamCommands().xAdd(record, options);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options) {
+		return streamCommands().xClaimJustId(key, group, newOwner, options);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options) {
+		return streamCommands().xClaim(key, group, newOwner, options);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
@@ -468,6 +488,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
+	default String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkStream) {
+		return streamCommands().xGroupCreate(key, groupName, readOffset, mkStream);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
 	default Boolean xGroupDelConsumer(byte[] key, Consumer consumer) {
 		return streamCommands().xGroupDelConsumer(key, consumer);
 	}
@@ -482,8 +509,43 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
+	default XInfoStream xInfo(byte[] key) {
+		return streamCommands().xInfo(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default XInfoGroups xInfoGroups(byte[] key) {
+		return streamCommands().xInfoGroups(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default XInfoConsumers xInfoConsumers(byte[] key, String groupName) {
+		return streamCommands().xInfoConsumers(key, groupName);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
 	default Long xLen(byte[] key) {
 		return streamCommands().xLen(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default PendingMessagesSummary xPending(byte[] key, String groupName) {
+		return streamCommands().xPending(key, groupName);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default PendingMessages xPending(byte[] key, String groupName, XPendingOptions options) {
+		return streamCommands().xPending(key, groupName, options);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
@@ -525,7 +587,7 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Override
 	@Deprecated
 	default List<ByteRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
-										StreamOffset<byte[]>... streams) {
+			StreamOffset<byte[]>... streams) {
 		return streamCommands().xReadGroup(consumer, readOptions, streams);
 	}
 

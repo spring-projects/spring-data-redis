@@ -15,7 +15,12 @@
  */
 package org.springframework.data.redis.core
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.asPublisher
 import kotlinx.coroutines.reactive.awaitSingle
+import org.springframework.data.domain.Range
+import org.springframework.data.redis.connection.RedisZSetCommands.*
 import org.springframework.data.redis.connection.stream.*
 
 /**
@@ -24,7 +29,7 @@ import org.springframework.data.redis.connection.stream.*
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.acknowledgeAndAwait(key: K, group: String, vararg recordIds: String): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.acknowledgeAndAwait(key: K, group: String, vararg recordIds: String): Long =
 		acknowledge(key, group, *recordIds).awaitSingle()
 
 /**
@@ -33,7 +38,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.acknowledgeAndAwait(key: K, group: String, vararg recordIds: RecordId): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.acknowledgeAndAwait(key: K, group: String, vararg recordIds: RecordId): Long =
 		acknowledge(key, group, *recordIds).awaitSingle()
 
 /**
@@ -42,8 +47,17 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.acknowledgeAndAwait(group: String, record: Record<K, *>): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.acknowledgeAndAwait(group: String, record: Record<K, *>): Long =
 		acknowledge(group, record).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.add].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.add(key: K, bodyFlow: Flow<Map<HK, HV>>): Flow<RecordId> =
+		add(key, bodyFlow.asPublisher()).asFlow()
 
 /**
  * Coroutines variant of [ReactiveStreamOperations.add].
@@ -51,7 +65,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.addAndAwait(record: MapRecord<K, HK, HV>): RecordId =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.addAndAwait(record: MapRecord<K, HK, HV>): RecordId =
 		add(record).awaitSingle()
 
 /**
@@ -60,7 +74,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.addAndAwait(record: Record<K, *>): RecordId =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.addAndAwait(record: Record<K, *>): RecordId =
 		add(record).awaitSingle()
 
 /**
@@ -69,7 +83,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteAndAwait(key: K, vararg recordIds: String): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteAndAwait(key: K, vararg recordIds: String): Long =
 		delete(key, *recordIds).awaitSingle()
 
 /**
@@ -78,7 +92,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteAndAwait(record: Record<K, *>): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteAndAwait(record: Record<K, *>): Long =
 		delete(record).awaitSingle()
 
 /**
@@ -87,7 +101,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteAndAwait(key: K, vararg recordIds: RecordId): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteAndAwait(key: K, vararg recordIds: RecordId): Long =
 		delete(key, *recordIds).awaitSingle()
 
 /**
@@ -96,7 +110,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.createGroupAndAwait(key: K, group: String): String =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.createGroupAndAwait(key: K, group: String): String =
 		createGroup(key, group).awaitSingle()
 
 /**
@@ -105,7 +119,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.createGroupAndAwait(key: K, readOffset: ReadOffset, group: String): String =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.createGroupAndAwait(key: K, readOffset: ReadOffset, group: String): String =
 		createGroup(key, readOffset, group).awaitSingle()
 
 /**
@@ -114,7 +128,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteConsumerAndAwait(key: K, consumer: Consumer): String =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.deleteConsumerAndAwait(key: K, consumer: Consumer): String =
 		deleteConsumer(key, consumer).awaitSingle()
 
 /**
@@ -123,7 +137,7 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.destroyGroupAndAwait(key: K, group: String): String =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.destroyGroupAndAwait(key: K, group: String): String =
 		destroyGroup(key, group).awaitSingle()
 
 /**
@@ -132,8 +146,118 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.sizeAndAwait(key: K): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.sizeAndAwait(key: K): Long =
 		size(key).awaitSingle()
+
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.range].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.rangeAsFlow(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<MapRecord<K, HK, HV>>
+		= range(key, range, limit).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.range].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.rangeWithTypeAsFlow(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<ObjectRecord<K, V>>
+		= range(V::class.java, key, range, limit).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.read].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.readAsFlow(vararg stream: StreamOffset<K>): Flow<MapRecord<K, HK, HV>> =
+		read(*stream).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.read].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.readAsFlow(readOptions: StreamReadOptions, vararg stream: StreamOffset<K>): Flow<MapRecord<K, HK, HV>> =
+		read(readOptions, *stream).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.read].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.readWithTypeAsFlow(vararg stream: StreamOffset<K>): Flow<ObjectRecord<K, V>> =
+		read(V::class.java, *stream).asFlow()
+
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.read].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.readWithTypeAsFlow(readOptions: StreamReadOptions, vararg stream: StreamOffset<K>): Flow<ObjectRecord<K, V>> =
+		read(V::class.java, readOptions, *stream).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.read].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.readAsFlow(consumer: Consumer, vararg stream: StreamOffset<K>): Flow<MapRecord<K, HK, HV>> =
+		read(consumer, *stream).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.read].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.readAsFlow(consumer: Consumer, readOptions: StreamReadOptions, vararg stream: StreamOffset<K>): Flow<MapRecord<K, HK, HV>> =
+		read(consumer, readOptions, *stream).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.read].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.readWithTypeAsFlow(consumer: Consumer, vararg stream: StreamOffset<K>): Flow<ObjectRecord<K, V>> =
+		read(V::class.java, consumer, *stream).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.read].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.readWithTypeAsFlow(consumer: Consumer, readOptions: StreamReadOptions, vararg stream: StreamOffset<K>): Flow<ObjectRecord<K, V>> =
+		read(V::class.java, consumer, readOptions, *stream).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.reverseRange].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.reverseRangeAsFlow(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<MapRecord<K, HK, HV>>
+		= reverseRange(key, range, limit).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.reverseRange].
+ *
+ * @author Sebastien Deleuze
+ * @since 2.2
+ */
+inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.reverseRangeWithTypeAsFlow(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<ObjectRecord<K, V>> =
+		reverseRange(V::class.java, key, range, limit).asFlow()
 
 /**
  * Coroutines variant of [ReactiveStreamOperations.trim].
@@ -141,5 +265,5 @@ suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> Reactiv
  * @author Mark Paluch
  * @since 2.2
  */
-suspend inline fun <reified K : Any, reified HK : Any, reified HV : Any> ReactiveStreamOperations<K, HK, HV>.trimAndAwait(key: K, count: Long): Long =
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.trimAndAwait(key: K, count: Long): Long =
 		trim(key, count).awaitSingle()

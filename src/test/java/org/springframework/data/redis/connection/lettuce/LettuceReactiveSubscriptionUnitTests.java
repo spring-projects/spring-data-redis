@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 
 		assertThat(subscription.getChannels()).isEmpty();
 
-		StepVerifier.create(subscribe).verifyComplete();
+		subscribe.as(StepVerifier::create).verifyComplete();
 
 		assertThat(subscription.getChannels()).containsOnly(getByteBuffer("foo"), getByteBuffer("bar"));
 		assertThat(subscription.getPatterns()).isEmpty();
@@ -80,7 +80,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 
 		Mono<Void> subscribe = subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar"));
 
-		StepVerifier.create(subscribe).expectError(RedisSystemException.class).verify();
+		subscribe.as(StepVerifier::create).expectError(RedisSystemException.class).verify();
 	}
 
 	@Test // DATAREDIS-612
@@ -92,7 +92,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 
 		assertThat(subscription.getPatterns()).isEmpty();
 
-		StepVerifier.create(subscribe).verifyComplete();
+		subscribe.as(StepVerifier::create).verifyComplete();
 
 		assertThat(subscription.getPatterns()).containsOnly(getByteBuffer("foo"), getByteBuffer("bar"));
 		assertThat(subscription.getChannels()).isEmpty();
@@ -103,9 +103,9 @@ public class LettuceReactiveSubscriptionUnitTests {
 
 		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
 		when(commandsMock.unsubscribe(any())).thenReturn(Mono.empty());
-		StepVerifier.create(subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar"))).verifyComplete();
+		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
-		StepVerifier.create(subscription.unsubscribe()).verifyComplete();
+		subscription.unsubscribe().as(StepVerifier::create).verifyComplete();
 
 		assertThat(subscription.getChannels()).isEmpty();
 		verify(commandsMock).unsubscribe(any());
@@ -116,9 +116,9 @@ public class LettuceReactiveSubscriptionUnitTests {
 
 		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
 		when(commandsMock.punsubscribe(any())).thenReturn(Mono.empty());
-		StepVerifier.create(subscription.pSubscribe(getByteBuffer("foo"), getByteBuffer("bar"))).verifyComplete();
+		subscription.pSubscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
-		StepVerifier.create(subscription.pUnsubscribe()).verifyComplete();
+		subscription.pUnsubscribe().as(StepVerifier::create).verifyComplete();
 
 		assertThat(subscription.getPatterns()).isEmpty();
 		verify(commandsMock).punsubscribe(any());
@@ -128,14 +128,14 @@ public class LettuceReactiveSubscriptionUnitTests {
 	public void shouldEmitChannelMessage() {
 
 		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
-		StepVerifier.create(subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar"))).verifyComplete();
+		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
 		DirectProcessor<io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer>> emitter = DirectProcessor
 				.create();
 		when(commandsMock.observeChannels()).thenReturn(emitter);
 		when(commandsMock.observePatterns()).thenReturn(Flux.empty());
 
-		StepVerifier.create(subscription.receive()).then(() -> {
+		subscription.receive().as(StepVerifier::create).then(() -> {
 
 			emitter.onNext(createChannelMessage("other", "body"));
 			emitter.onNext(createChannelMessage("foo", "body"));
@@ -148,14 +148,14 @@ public class LettuceReactiveSubscriptionUnitTests {
 	public void shouldEmitPatternMessage() {
 
 		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
-		StepVerifier.create(subscription.pSubscribe(getByteBuffer("foo*"), getByteBuffer("bar*"))).verifyComplete();
+		subscription.pSubscribe(getByteBuffer("foo*"), getByteBuffer("bar*")).as(StepVerifier::create).verifyComplete();
 
 		DirectProcessor<io.lettuce.core.pubsub.api.reactive.PatternMessage<ByteBuffer, ByteBuffer>> emitter = DirectProcessor
 				.create();
 		when(commandsMock.observeChannels()).thenReturn(Flux.empty());
 		when(commandsMock.observePatterns()).thenReturn(emitter);
 
-		StepVerifier.create(subscription.receive()).then(() -> {
+		subscription.receive().as(StepVerifier::create).then(() -> {
 
 			emitter.onNext(createPatternMessage("other*", "channel", "body"));
 			emitter.onNext(createPatternMessage("foo*", "foo", "body"));
@@ -170,14 +170,14 @@ public class LettuceReactiveSubscriptionUnitTests {
 	public void shouldEmitError() {
 
 		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
-		StepVerifier.create(subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar"))).verifyComplete();
+		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
 		DirectProcessor<io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer>> emitter = DirectProcessor
 				.create();
 		when(commandsMock.observeChannels()).thenReturn(emitter);
 		when(commandsMock.observePatterns()).thenReturn(Flux.empty());
 
-		StepVerifier.create(subscription.receive()).then(() -> {
+		subscription.receive().as(StepVerifier::create).then(() -> {
 
 			emitter.onError(new RedisConnectionException("foo"));
 		}).expectError(RedisSystemException.class).verify();
@@ -188,12 +188,12 @@ public class LettuceReactiveSubscriptionUnitTests {
 
 		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
 		when(commandsMock.punsubscribe(any())).thenReturn(Mono.empty());
-		StepVerifier.create(subscription.pSubscribe(getByteBuffer("foo*"))).verifyComplete();
+		subscription.pSubscribe(getByteBuffer("foo*")).as(StepVerifier::create).verifyComplete();
 
 		when(commandsMock.observeChannels()).thenReturn(Flux.never());
 		when(commandsMock.observePatterns()).thenReturn(Flux.never());
 
-		StepVerifier.create(subscription.receive()).then(() -> {
+		subscription.receive().as(StepVerifier::create).then(() -> {
 			subscription.cancel().subscribe();
 		}).expectError(CancellationException.class).verify();
 
@@ -207,7 +207,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 				.create();
 
 		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
-		StepVerifier.create(subscription.pSubscribe(getByteBuffer("foo*"))).verifyComplete();
+		subscription.pSubscribe(getByteBuffer("foo*")).as(StepVerifier::create).verifyComplete();
 
 		when(commandsMock.observeChannels()).thenReturn(Flux.never());
 		when(commandsMock.observePatterns()).thenReturn(emitter);

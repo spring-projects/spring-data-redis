@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,14 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Operations over a Redis key. Useful for executing common key-'bound' operations to all implementations.
@@ -60,6 +63,23 @@ public interface BoundKeyOperations<K> {
 	/**
 	 * Sets the key time-to-live/expiration.
 	 *
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal true} if expiration was set, {@literal false} otherwise. {@literal null} when used in pipeline /
+	 *         transaction.
+	 * @throws IllegalArgumentException if the timeout is {@literal null}.
+	 * @since 2.3
+	 */
+	@Nullable
+	default Boolean expire(Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+
+		return expire(timeout.toMillis(), TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * Sets the key time-to-live/expiration.
+	 *
 	 * @param timeout expiration value
 	 * @param unit expiration unit
 	 * @return true if expiration was set, false otherwise. {@literal null} when used in pipeline / transaction.
@@ -75,6 +95,23 @@ public interface BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Boolean expireAt(Date date);
+
+	/**
+	 * Sets the key time-to-live/expiration.
+	 *
+	 * @param expireAt expiration time.
+	 * @return {@literal true} if expiration was set, {@literal false} otherwise. {@literal null} when used in pipeline /
+	 *         transaction.
+	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
+	 * @since 2.3
+	 */
+	@Nullable
+	default Boolean expireAt(Instant expireAt) {
+
+		Assert.notNull(expireAt, "ExpireAt must not be null");
+
+		return expireAt(Date.from(expireAt));
+	}
 
 	/**
 	 * Removes the expiration (if any) of the key.

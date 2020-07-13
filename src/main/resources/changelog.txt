@@ -1,6 +1,272 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.4.0-M1 (2020-06-25)
+----------------------------------------
+* DATAREDIS-1165 - Use standard Spring code of conduct.
+* DATAREDIS-1164 - Upgrade to Lettuce 5.3.1.RELEASE.
+* DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
+* DATAREDIS-1159 - RedisStaticMasterReplicaConfiguration.node(String hostName) should return RedisStaticMasterReplicaConfiguration.
+* DATAREDIS-1150 - Add reactive variant of RedisClusterCommands.
+* DATAREDIS-1147 - Release 2.4 M1 (2020.0.0).
+* DATAREDIS-1143 - Delombok source files.
+* DATAREDIS-911 - Spring data redis is not working for custom converter.
+
+
+Changes in version 2.3.1.RELEASE (2020-06-10)
+---------------------------------------------
+* DATAREDIS-1164 - Upgrade to Lettuce 5.3.1.RELEASE.
+* DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
+* DATAREDIS-1159 - RedisStaticMasterReplicaConfiguration.node(String hostName) should return RedisStaticMasterReplicaConfiguration.
+* DATAREDIS-1146 - Release 2.3.1 (Neumann SR1).
+
+
+Changes in version 2.2.8.RELEASE (2020-06-10)
+---------------------------------------------
+* DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
+* DATAREDIS-1142 - "CROSSSLOT Keys in request don't hash to the same slot" error using Spring Data along with Spring Session while OAuth2 login process.
+* DATAREDIS-1139 - org.springframework.data.redis.core.RedisCommand Constant.
+* DATAREDIS-1138 - ReactiveStreamCommands hangs with indefinite block.
+* DATAREDIS-1137 - Remove Travis CI.
+* DATAREDIS-1134 - Release 2.2.8 (Moore SR8).
+
+
+Changes in version 2.1.18.RELEASE (2020-06-10)
+----------------------------------------------
+* DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
+* DATAREDIS-1137 - Remove Travis CI.
+* DATAREDIS-1133 - Release 2.1.18 (Lovelace SR18).
+
+
+Changes in version 2.3.0.RELEASE (2020-05-12)
+---------------------------------------------
+* DATAREDIS-1144 - Upgrade to Jedis 3.3.0.
+* DATAREDIS-1142 - "CROSSSLOT Keys in request don't hash to the same slot" error using Spring Data along with Spring Session while OAuth2 login process.
+* DATAREDIS-1139 - org.springframework.data.redis.core.RedisCommand Constant.
+* DATAREDIS-1138 - ReactiveStreamCommands hangs with indefinite block.
+* DATAREDIS-1137 - Remove Travis CI.
+* DATAREDIS-1135 - Release 2.3 GA (Neumann).
+* DATAREDIS-1042 - Add MKSTREAM support.
+
+
+Changes in version 2.3.0.RC2 (2020-04-28)
+-----------------------------------------
+* DATAREDIS-1132 - Upgrade to Netty 4.1.49.Final.
+* DATAREDIS-1128 - Improve test stability.
+* DATAREDIS-1127 - JedisConnectionFactory getSentinelConnection method fails if first sentinel host in the list of sentinel hosts is down/unreachable.
+* DATAREDIS-1124 - Release 2.3 RC2 (Neumann).
+* DATAREDIS-1122 - Add support for MAXLEN attribute of XADD.
+* DATAREDIS-1119 - Complete the Redis Stream Operations.
+* DATAREDIS-1118 - Provide support to change the RedisCacheWriter on the RedisCacheManager.RedisCacheManagerBuilder.
+* DATAREDIS-1112 - Upgrade to Lettuce 5.3.
+* DATAREDIS-1106 - Phantom key not removed when deleting an item.
+
+
+Changes in version 2.2.7.RELEASE (2020-04-28)
+---------------------------------------------
+* DATAREDIS-1132 - Upgrade to Netty 4.1.49.Final.
+* DATAREDIS-1127 - JedisConnectionFactory getSentinelConnection method fails if first sentinel host in the list of sentinel hosts is down/unreachable.
+* DATAREDIS-1121 - Add missing anchors.
+* DATAREDIS-1120 - Release 2.2.7 (Moore SR7).
+
+
+Changes in version 2.1.17.RELEASE (2020-04-28)
+----------------------------------------------
+* DATAREDIS-1127 - JedisConnectionFactory getSentinelConnection method fails if first sentinel host in the list of sentinel hosts is down/unreachable.
+* DATAREDIS-1121 - Add missing anchors.
+* DATAREDIS-1107 - Release 2.1.17 (Lovelace SR17).
+
+
+Changes in version 2.3.0.RC1 (2020-03-31)
+-----------------------------------------
+* DATAREDIS-1121 - Add missing anchors.
+* DATAREDIS-1115 - Reduce log level for shared connection renewal.
+* DATAREDIS-1114 - Release 2.3 RC1 (Neumann).
+
+
+Changes in version 2.2.6.RELEASE (2020-03-25)
+---------------------------------------------
+* DATAREDIS-1115 - Reduce log level for shared connection renewal.
+* DATAREDIS-1110 - Wrong type parameter in StreamMessageListenerContainerOptionsBuilder.hashValueSerializer().
+* DATAREDIS-1108 - Release 2.2.6 (Moore SR6).
+
+
+Changes in version 2.3.0.M4 (2020-03-11)
+----------------------------------------
+* DATAREDIS-1111 - Add missing list and zset coroutine extensions.
+* DATAREDIS-1110 - Wrong type parameter in StreamMessageListenerContainerOptionsBuilder.hashValueSerializer().
+* DATAREDIS-1105 - Fix typo on RedisTemplate javadoc.
+* DATAREDIS-1104 - RedisTemplate executing exception is swallowed when release connection errors.
+* DATAREDIS-1101 - Improve reference documentation.
+* DATAREDIS-1099 - Release 2.3 M4 (Neumann).
+* DATAREDIS-1093 - ClassCastException when doing pub/sub from RedisStaticMasterReplicaConfiguration.
+* DATAREDIS-1084 - Consider adding support for XPENDING and XCLAIM.
+* DATAREDIS-1080 - RedisAtomicInteger remove existing key when a value for initialValue is provided.
+* DATAREDIS-1011 - Lettuce pipelining behaviour is different than Jedis pipelining.
+* DATAREDIS-450 - PoolConfig is deprecated and descriptions says it will be removed in 1.4.
+
+
+Changes in version 2.2.5.RELEASE (2020-02-26)
+---------------------------------------------
+* DATAREDIS-1105 - Fix typo on RedisTemplate javadoc.
+* DATAREDIS-1104 - RedisTemplate executing exception is swallowed when release connection errors.
+* DATAREDIS-1098 - Upgrade to Lettuce 5.2.2.
+* DATAREDIS-1097 - Improve synchronization on failure in StreamMessageListenerContainer.
+* DATAREDIS-1095 - ReactiveRedisConnection close is blocking.
+* DATAREDIS-1093 - ClassCastException when doing pub/sub from RedisStaticMasterReplicaConfiguration.
+* DATAREDIS-1089 - Release 2.2.5 (Moore SR5).
+* DATAREDIS-1080 - RedisAtomicInteger remove existing key when a value for initialValue is provided.
+* DATAREDIS-1079 - StreamMessageListenerContainer autoAck does not work.
+* DATAREDIS-450 - PoolConfig is deprecated and descriptions says it will be removed in 1.4.
+
+
+Changes in version 2.1.16.RELEASE (2020-02-26)
+----------------------------------------------
+* DATAREDIS-1105 - Fix typo on RedisTemplate javadoc.
+* DATAREDIS-1104 - RedisTemplate executing exception is swallowed when release connection errors.
+* DATAREDIS-1095 - ReactiveRedisConnection close is blocking.
+* DATAREDIS-1093 - ClassCastException when doing pub/sub from RedisStaticMasterReplicaConfiguration.
+* DATAREDIS-1088 - Release 2.1.16 (Lovelace SR16).
+* DATAREDIS-1080 - RedisAtomicInteger remove existing key when a value for initialValue is provided.
+
+
+Changes in version 2.3.0.M3 (2020-02-12)
+----------------------------------------
+* DATAREDIS-1098 - Upgrade to Lettuce 5.2.2.
+* DATAREDIS-1097 - Improve synchronization on failure in StreamMessageListenerContainer.
+* DATAREDIS-1096 - Move off deprecated Lettuce API.
+* DATAREDIS-1095 - ReactiveRedisConnection close is block.
+* DATAREDIS-1092 - Release 2.3 M3 (Neumann).
+* DATAREDIS-1079 - StreamMessageListenerContainer autoAck does not work.
+* DATAREDIS-611 - Improve Template API by using Java 8 types.
+* DATAREDIS-538 - Non-public inner classes causes IllegalAccessException when accessing @TimeToLive methods.
+
+
+Changes in version 2.3.0.M2 (2020-01-17)
+----------------------------------------
+* DATAREDIS-1090 - Release 2.3 M2 (Neumann).
+
+
+Changes in version 2.3.0.M1 (2020-01-16)
+----------------------------------------
+* DATAREDIS-1086 - Upgrade to Jedis 3.2.0.
+* DATAREDIS-1083 - Update copyright years to 2020.
+* DATAREDIS-1070 - Fix comment on ZSetOperations.reverseRangeByScore.
+* DATAREDIS-1067 - Documentation for MappingConfiguration uses wrong arguments.
+* DATAREDIS-1066 - Improve documentation for Jedis pooling configuration.
+* DATAREDIS-1064 - ListOperations.rPush/lPush with pivot comments wrong.
+* DATAREDIS-1063 - Enable building with JDK11+.
+* DATAREDIS-1062 - Disable select database command before executing each command.
+* DATAREDIS-1060 - Redis password should not automatically be applied to sentinel.
+* DATAREDIS-1058 - Typo in assert message.
+* DATAREDIS-1055 - Upgrade to Lettuce 5.2.1.
+* DATAREDIS-1053 - ListenToChannel doesn't close connection / channels on doFinally.
+* DATAREDIS-1049 - Exception raised when use empty string with keyspaceNotificationsConfigParameter with @EnableRedisRepositories annotation.
+* DATAREDIS-1048 - typo: xml tag incomplete.
+* DATAREDIS-1045 - Redis Sentinel Authentication not supported.
+* DATAREDIS-1041 - RedisCacheConfiguration.prefixKeysWith(…)  does not consider cache name.
+* DATAREDIS-1040 - Release 2.3 M1 (Neumann).
+* DATAREDIS-367 - RedisConnection extend AutoCloseable for try-with-resources.
+
+
+Changes in version 2.2.4.RELEASE (2020-01-15)
+---------------------------------------------
+* DATAREDIS-1083 - Update copyright years to 2020.
+* DATAREDIS-1074 - Release 2.2.4 (Moore SR4).
+
+
+Changes in version 2.1.15.RELEASE (2020-01-15)
+----------------------------------------------
+* DATAREDIS-1083 - Update copyright years to 2020.
+* DATAREDIS-1073 - Release 2.1.15 (Lovelace SR15).
+
+
+Changes in version 2.2.3.RELEASE (2019-12-04)
+---------------------------------------------
+* DATAREDIS-1070 - Fix comment on ZSetOperations.reverseRangeByScore.
+* DATAREDIS-1069 - Release 2.2.3 (Moore SR3).
+* DATAREDIS-1062 - Disable select database command before executing each command.
+* DATAREDIS-1055 - Upgrade to Lettuce 5.2.1.
+
+
+Changes in version 2.1.14.RELEASE (2019-12-04)
+----------------------------------------------
+* DATAREDIS-1070 - Fix comment on ZSetOperations.reverseRangeByScore.
+* DATAREDIS-1068 - Release 2.1.14 (Lovelace SR14).
+
+
+Changes in version 2.2.2.RELEASE (2019-11-18)
+---------------------------------------------
+* DATAREDIS-1067 - Documentation for MappingConfiguration uses wrong arguments.
+* DATAREDIS-1066 - Improve documentation for Jedis pooling configuration.
+* DATAREDIS-1064 - ListOperations.rPush/lPush with pivot comments wrong.
+* DATAREDIS-1060 - Redis password should not automatically be applied to sentinel.
+* DATAREDIS-1059 - Release 2.2.2 (Moore SR2).
+* DATAREDIS-1058 - Typo in assert message.
+
+
+Changes in version 2.1.13.RELEASE (2019-11-18)
+----------------------------------------------
+* DATAREDIS-1067 - Documentation for MappingConfiguration uses wrong arguments.
+* DATAREDIS-1066 - Improve documentation for Jedis pooling configuration.
+* DATAREDIS-1064 - ListOperations.rPush/lPush with pivot comments wrong.
+* DATAREDIS-1058 - Typo in assert message.
+* DATAREDIS-1057 - Release 2.1.13 (Lovelace SR13).
+
+
+Changes in version 2.2.1.RELEASE (2019-11-04)
+---------------------------------------------
+* DATAREDIS-1055 - Upgrade to Lettuce 5.2.1.
+* DATAREDIS-1053 - ListenToChannel doesn't close connection / channels on doFinally.
+* DATAREDIS-1049 - Exception raised when use empty string with keyspaceNotificationsConfigParameter with @EnableRedisRepositories annotation.
+* DATAREDIS-1048 - typo: xml tag incomplete.
+* DATAREDIS-1045 - Redis Sentinel Authentication not supported.
+* DATAREDIS-1039 - Release 2.2.1 (Moore SR1).
+
+
+Changes in version 2.1.12.RELEASE (2019-11-04)
+----------------------------------------------
+* DATAREDIS-1053 - ListenToChannel doesn't close connection / channels on doFinally.
+* DATAREDIS-1048 - typo: xml tag incomplete.
+* DATAREDIS-1038 - Release 2.1.12 (Lovelace SR12).
+
+
+Changes in version 2.2.0.RELEASE (2019-09-30)
+---------------------------------------------
+* DATAREDIS-1037 - Remove @ExperimentalCoroutinesApi annotations.
+* DATAREDIS-1036 - Upgrade to Netty 4.1.42.Final.
+* DATAREDIS-1035 - Improve documentation.
+* DATAREDIS-1034 - RedisTemplate.opsFor* methods not thread-safe.
+* DATAREDIS-1033 - Add Kotlin Flow based extensions.
+* DATAREDIS-1023 - Release 2.2 GA (Moore).
+* DATAREDIS-998 - Upgrade to Lettuce 5.2.0.
+* DATAREDIS-974 - Add SSL support for Redis Cluster using jedis.
+* DATAREDIS-575 - Support client name for JedisCluster.
+
+
+Changes in version 2.1.11.RELEASE (2019-09-30)
+----------------------------------------------
+* DATAREDIS-1035 - Improve documentation.
+* DATAREDIS-1034 - RedisTemplate.opsFor* methods not thread-safe.
+* DATAREDIS-1032 - RedisCache fails to serialize non SimpleKey cache keys.
+* DATAREDIS-1031 - LettuceReactiveKeyCommands.pExpireAt calls EXPIREAT command instead of PEXPIREAT.
+* DATAREDIS-1027 - LettuceConnectionFactory.destroy() should release reactiveConnectionProvider resources.
+* DATAREDIS-1025 - Add HTTPS entries into spring.schemas.
+* DATAREDIS-1022 - Release 2.1.11 (Lovelace SR11).
+* DATAREDIS-1021 - JedisKeyCommands.del asset error.
+
+
+Changes in version 2.2.0.RC3 (2019-09-06)
+-----------------------------------------
+* DATAREDIS-1032 - RedisCache fails to serialize non SimpleKey cache keys.
+* DATAREDIS-1031 - LettuceReactiveKeyCommands.pExpireAt calls EXPIREAT command instead of PEXPIREAT.
+* DATAREDIS-1030 - RedisScript of method improvement.
+* DATAREDIS-1027 - LettuceConnectionFactory.destroy() should release reactiveConnectionProvider resources.
+* DATAREDIS-1025 - Add HTTPS entries into spring.schemas.
+* DATAREDIS-1024 - Release 2.2 RC3 (Moore).
+* DATAREDIS-1021 - JedisKeyCommands.del asset error.
+
+
 Changes in version 2.2.0.RC2 (2019-08-05)
 -----------------------------------------
 * DATAREDIS-1020 - Upgrade to Lettuce 5.1.8.RELEASE.
@@ -1747,3 +2013,22 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

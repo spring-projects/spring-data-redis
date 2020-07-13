@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
 /**
  * Redis client configuration for jedis. This configuration provides optional configuration elements such as
  * {@link SSLSocketFactory} and {@link JedisPoolConfig} specific to jedis client features.
- * <p>
+ * <p/>
  * Providing optional elements allows a more specific configuration of the client:
  * <ul>
  * <li>Whether to use SSL</li>
@@ -46,9 +46,11 @@ import org.springframework.util.Assert;
  * <li>Connect {@link Duration timeout}</li>
  * <li>Read {@link Duration timeout}</li>
  * </ul>
+ * <p />
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Chao Chang
  * @since 2.0
  * @see redis.clients.jedis.Jedis
  * @see org.springframework.data.redis.connection.RedisStandaloneConfiguration
@@ -78,7 +80,8 @@ public interface JedisClientConfiguration {
 	Optional<HostnameVerifier> getHostnameVerifier();
 
 	/**
-	 * @return {@literal true} to use connection-pooling.
+	 * @return {@literal true} to use connection-pooling. Applies only to single node Redis. Sentinel and Cluster modes
+	 *         use always connection-pooling regardless of the pooling setting.
 	 */
 	boolean isUsePooling();
 
@@ -149,6 +152,9 @@ public interface JedisClientConfiguration {
 
 		/**
 		 * Enable connection-pooling.
+		 * <p />
+		 * Applies only to single node Redis. Sentinel and Cluster modes use always connection-pooling regardless of the
+		 * pooling setting.
 		 *
 		 * @return {@link JedisPoolingClientConfigurationBuilder}.
 		 */

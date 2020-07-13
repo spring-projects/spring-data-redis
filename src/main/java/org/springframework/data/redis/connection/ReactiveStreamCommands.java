@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,22 +31,32 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.PendingMessage;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumer;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroup;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Stream-specific Redis commands executed using reactive infrastructure.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tugdual Grall
  * @since 2.2
  */
 public interface ReactiveStreamCommands {
@@ -186,11 +197,13 @@ public interface ReactiveStreamCommands {
 	class AddStreamRecord extends KeyCommand {
 
 		private final ByteBufferRecord record;
+		private final @Nullable Long maxlen;
 
-		private AddStreamRecord(ByteBufferRecord record) {
+		private AddStreamRecord(ByteBufferRecord record, @Nullable Long maxlen) {
 
 			super(record.getStream());
 			this.record = record;
+			this.maxlen = maxlen;
 		}
 
 		/**
@@ -203,7 +216,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(record, "Record must not be null!");
 
-			return new AddStreamRecord(record);
+			return new AddStreamRecord(record, null);
 		}
 
 		/**
@@ -216,7 +229,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(body, "Body must not be null!");
 
-			return new AddStreamRecord(StreamRecords.rawBuffer(body));
+			return new AddStreamRecord(StreamRecords.rawBuffer(body), null);
 		}
 
 		/**
@@ -226,7 +239,16 @@ public interface ReactiveStreamCommands {
 		 * @return a new {@link ReactiveGeoCommands.GeoAddCommand} with {@literal key} applied.
 		 */
 		public AddStreamRecord to(ByteBuffer key) {
-			return new AddStreamRecord(record.withStreamKey(key));
+			return new AddStreamRecord(record.withStreamKey(key), maxlen);
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 *
+		 * @return new instance of {@link AddStreamRecord}.
+		 */
+		public AddStreamRecord maxlen(long maxlen) {
+			return new AddStreamRecord(record, maxlen);
 		}
 
 		/**
@@ -238,6 +260,25 @@ public interface ReactiveStreamCommands {
 
 		public ByteBufferRecord getRecord() {
 			return record;
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 *
+		 * @return can be {@literal null}.
+		 * @since 2.3
+		 */
+		@Nullable
+		public Long getMaxlen() {
+			return maxlen;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal MAXLEN} is set.
+		 * @since 2.3
+		 */
+		public boolean hasMaxlen() {
+			return maxlen != null && maxlen > 0;
 		}
 	}
 
@@ -279,6 +320,113 @@ public interface ReactiveStreamCommands {
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
 	Flux<CommandResponse<AddStreamRecord, RecordId>> xAdd(Publisher<AddStreamRecord> commands);
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer} without increasing the delivered
+	 * count.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return a {@link Flux} emitting {@link RecordId is} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	default Flux<RecordId> xClaimJustId(ByteBuffer key, String group, String newOwner, XClaimOptions options) {
+
+		return xClaimJustId(Mono.just(new XClaimCommand(key, group, newOwner, options))).next()
+				.flatMapMany(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer} without increasing the delivered
+	 * count.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting {@link RecordId is} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	Flux<CommandResponse<XClaimCommand, Flux<RecordId>>> xClaimJustId(Publisher<XClaimCommand> commands);
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param minIdleTime must not be {@literal null}.
+	 * @param recordIds must not be {@literal null}.
+	 * @return a {@link Flux} emitting {@link ByteBufferRecord} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	default Flux<ByteBufferRecord> xClaim(ByteBuffer key, String group, String newOwner, Duration minIdleTime,
+			RecordId... recordIds) {
+
+		return xClaim(key, group, newOwner, XClaimOptions.minIdle(minIdleTime).ids(recordIds));
+	}
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return a {@link Flux} emitting {@link ByteBufferRecord} that changed user.
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	default Flux<ByteBufferRecord> xClaim(ByteBuffer key, String group, String newOwner, XClaimOptions options) {
+
+		return xClaim(Mono.just(new XClaimCommand(key, group, newOwner, options))).next()
+				.flatMapMany(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Change the ownership of a pending message to the given new {@literal consumer}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	Flux<CommandResponse<XClaimCommand, Flux<ByteBufferRecord>>> xClaim(Publisher<XClaimCommand> commands);
+
+	/**
+	 * {@code XCLAIM} command parameters.
+	 *
+	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
+	 * @since 2.3
+	 */
+	class XClaimCommand extends KeyCommand {
+
+		private final String groupName;
+		private final String newOwner;
+		private final XClaimOptions options;
+
+		private XClaimCommand(@Nullable ByteBuffer key, String groupName, String newOwner, XClaimOptions options) {
+
+			super(key);
+			this.groupName = groupName;
+			this.newOwner = newOwner;
+			this.options = options;
+		}
+
+		public XClaimOptions getOptions() {
+			return options;
+		}
+
+		public String getNewOwner() {
+			return newOwner;
+		}
+
+		public String getGroupName() {
+			return groupName;
+		}
+	}
 
 	/**
 	 * {@code XDEL} command parameters.
@@ -409,6 +557,225 @@ public interface ReactiveStreamCommands {
 	 * @see <a href="https://redis.io/commands/xlen">Redis Documentation: XLEN</a>
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> xLen(Publisher<KeyCommand> commands);
+
+	/**
+	 * Obtain the {@link PendingMessagesSummary} for a given {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @return {@link Mono} emitting a summary of pending messages within the given {@literal consumer group}.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	default Mono<PendingMessagesSummary> xPending(ByteBuffer key, String groupName) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(groupName, "GroupName must not be null!");
+
+		return xPendingSummary(Mono.just(new PendingRecordsCommand(key, groupName, null, Range.unbounded(), null))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Obtain the {@link PendingMessagesSummary} for a given {@literal consumer group}.
+	 *
+	 * @param commands must not be {@literal null}..
+	 * @return {@link Flux} emitting a summary of pending messages within the given {@literal consumer group} one by one.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	Flux<CommandResponse<PendingRecordsCommand, PendingMessagesSummary>> xPendingSummary(
+			Publisher<PendingRecordsCommand> commands);
+
+	/**
+	 * Obtained detailed information about all pending messages for a given {@link Consumer}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param consumer the consumer to fetch {@link PendingMessages} for. Must not be {@literal null}.
+	 * @return {@link Mono} emitting pending messages for the given {@link Consumer}.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	default Mono<PendingMessages> xPending(ByteBuffer key, Consumer consumer) {
+		return xPending(key, consumer.getGroup(), consumer.getName());
+	}
+
+	/**
+	 * Obtained detailed information about all pending messages for a given {@literal consumer}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param consumerName the consumer to fetch {@link PendingMessages} for. Must not be {@literal null}.
+	 * @return {@link Mono} emitting pending messages for the given {@link Consumer}.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName) {
+		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, consumerName, Range.unbounded(), null))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} within a
+	 * {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @return {@link Mono} emitting pending messages for the given {@literal consumer group}. transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, Range<?> range, Long count) {
+		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, null, range, count))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
+	 * {@link Consumer} within a {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param consumer the name of the {@link Consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @return {@link Mono} emitting pending messages for the given {@link Consumer}.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	default Mono<PendingMessages> xPending(ByteBuffer key, Consumer consumer, Range<?> range, Long count) {
+		return xPending(key, consumer.getGroup(), consumer.getName(), range, count);
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
+	 * {@literal consumer} within a {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param consumerName the name of the {@literal consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @return {@link Mono} emitting pending messages for the given {@literal consumer} in given
+	 *         {@literal consumer group}.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName, Range<?> range,
+			Long count) {
+		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, consumerName, range, count))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} applying given {@link XPendingOptions
+	 * options}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} emitting pending messages matching given criteria.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	Flux<CommandResponse<PendingRecordsCommand, PendingMessages>> xPending(Publisher<PendingRecordsCommand> commands);
+
+	/**
+	 * Value Object holding parameters for obtaining pending messages.
+	 *
+	 * @author Christoph Strobl
+	 * @since 2.3
+	 */
+	class PendingRecordsCommand extends KeyCommand {
+
+		private final String groupName;
+		private final @Nullable String consumerName;
+		private final Range<?> range;
+		private final @Nullable Long count;
+
+		private PendingRecordsCommand(ByteBuffer key, String groupName, @Nullable String consumerName, Range<?> range,
+				@Nullable Long count) {
+
+			super(key);
+
+			this.groupName = groupName;
+			this.consumerName = consumerName;
+			this.range = range;
+			this.count = count;
+		}
+
+		/**
+		 * Create new unbounded {@link PendingRecordsCommand}.
+		 *
+		 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+		 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+		 * @return new instance of {@link PendingRecordsCommand}.
+		 */
+		static PendingRecordsCommand pending(ByteBuffer key, String groupName) {
+			return new PendingRecordsCommand(key, groupName, null, Range.unbounded(), null);
+		}
+
+		/**
+		 * Create new {@link PendingRecordsCommand} with given {@link Range} and limit.
+		 *
+		 * @return new instance of {@link XPendingOptions}.
+		 */
+		public PendingRecordsCommand range(Range<String> range, Long count) {
+			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count);
+		}
+
+		/**
+		 * Append given consumer.
+		 *
+		 * @param consumerName must not be {@literal null}.
+		 * @return new instance of {@link PendingRecordsCommand}.
+		 */
+		public PendingRecordsCommand consumer(String consumerName) {
+			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count);
+		}
+
+		public String getGroupName() {
+			return groupName;
+		}
+
+		/**
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public String getConsumerName() {
+			return consumerName;
+		}
+
+		/**
+		 * @return never {@literal null}.
+		 */
+		public Range<?> getRange() {
+			return range;
+		}
+
+		/**
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public Long getCount() {
+			return count;
+		}
+
+		/**
+		 * @return {@literal true} if a consumer name is present.
+		 */
+		public boolean hasConsumer() {
+			return StringUtils.hasText(consumerName);
+		}
+
+		/**
+		 * @return {@literal true} count is set.
+		 */
+		public boolean isLimited() {
+			return count != null && count > -1;
+		}
+	}
 
 	/**
 	 * {@code XRANGE}/{@code XREVRANGE} command parameters.
@@ -667,21 +1034,123 @@ public interface ReactiveStreamCommands {
 	 */
 	Flux<CommandResponse<ReadCommand, Flux<ByteBufferRecord>>> read(Publisher<ReadCommand> commands);
 
+	/**
+	 * @author Christoph Strobl
+	 * @since 2.3
+	 */
+	class XInfoCommand extends KeyCommand {
+
+		private final @Nullable String groupName;
+
+		private XInfoCommand(ByteBuffer key, @Nullable String groupName) {
+
+			super(key);
+			this.groupName = groupName;
+		}
+
+		public static XInfoCommand of(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null");
+
+			return new XInfoCommand(key, null);
+		}
+
+		public XInfoCommand consumersIn(String groupName) {
+			return new XInfoCommand(getKey(), groupName);
+		}
+
+		@Nullable
+		public String getGroupName() {
+			return groupName;
+		}
+	}
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return a {@link Mono} emitting {@link XInfoStream} when ready.
+	 * @since 2.3
+	 */
+	default Mono<XInfoStream> xInfo(ByteBuffer key) {
+		return xInfo(Mono.just(XInfoCommand.of(key))).next().map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.3
+	 */
+	Flux<CommandResponse<XInfoCommand, XInfoStream>> xInfo(Publisher<XInfoCommand> commands);
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return a {@link Flux} emitting consumer group info one by one.
+	 * @since 2.3
+	 */
+	default Flux<XInfoGroup> xInfoGroups(ByteBuffer key) {
+		return xInfoGroups(Mono.just(XInfoCommand.of(key))).next().flatMapMany(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.3
+	 */
+	Flux<CommandResponse<XInfoCommand, Flux<XInfoGroup>>> xInfoGroups(Publisher<XInfoCommand> commands);
+
+	/**
+	 * Obtain information about every consumer in a specific {@literal consumer group} for the stream stored at the
+	 * specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param groupName name of the {@literal consumer group}.
+	 * @return a {@link Flux} emitting consumer info one by one.
+	 * @since 2.3
+	 */
+	default Flux<XInfoConsumer> xInfoConsumers(ByteBuffer key, String groupName) {
+		return xInfoConsumers(Mono.just(XInfoCommand.of(key).consumersIn(groupName))).next()
+				.flatMapMany(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Obtain information about every consumer in a specific {@literal consumer group} for the stream stored at the
+	 * specified {@literal key}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.3
+	 */
+	Flux<CommandResponse<XInfoCommand, Flux<XInfoConsumer>>> xInfoConsumers(Publisher<XInfoCommand> commands);
+
 	class GroupCommand extends KeyCommand {
 
 		private final GroupCommandAction action;
 		private final @Nullable String groupName;
 		private final @Nullable String consumerName;
 		private final @Nullable ReadOffset offset;
+		private final boolean mkStream;
 
 		public GroupCommand(@Nullable ByteBuffer key, GroupCommandAction action, @Nullable String groupName,
-				@Nullable String consumerName, @Nullable ReadOffset offset) {
+				@Nullable String consumerName, @Nullable ReadOffset offset, boolean mkStream) {
 
 			super(key);
 			this.action = action;
 			this.groupName = groupName;
 			this.consumerName = consumerName;
 			this.offset = offset;
+			this.mkStream = mkStream;
+		}
+
+		public GroupCommand(@Nullable ByteBuffer key, GroupCommandAction action, @Nullable String groupName,
+				@Nullable String consumerName, @Nullable ReadOffset offset) {
+			this(key, action, groupName, consumerName, offset, false);
 		}
 
 		public static GroupCommand createGroup(String group) {
@@ -700,6 +1169,10 @@ public interface ReactiveStreamCommands {
 			return new GroupCommand(null, GroupCommandAction.DELETE_CONSUMER, consumer.getGroup(), consumer.getName(), null);
 		}
 
+		public GroupCommand makeStream(boolean mkStream) {
+			return new GroupCommand(getKey(), action, groupName, consumerName, offset,mkStream);
+		}
+
 		public GroupCommand at(ReadOffset offset) {
 			return new GroupCommand(getKey(), action, groupName, consumerName, offset);
 		}
@@ -710,6 +1183,10 @@ public interface ReactiveStreamCommands {
 
 		public GroupCommand fromGroup(String groupName) {
 			return new GroupCommand(getKey(), action, groupName, consumerName, offset);
+		}
+
+		public boolean isMkStream() {
+			return this.mkStream;
 		}
 
 		@Nullable
@@ -747,6 +1224,21 @@ public interface ReactiveStreamCommands {
 	default Mono<String> xGroupCreate(ByteBuffer key, String groupName, ReadOffset readOffset) {
 
 		return xGroup(Mono.just(GroupCommand.createGroup(groupName).forStream(key).at(readOffset))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Create a consumer group.
+	 *
+	 * @param key key the {@literal key} the stream is stored at.
+	 * @param groupName name of the consumer group to create.
+	 * @param readOffset the offset to start at.
+	 * @param mkStream if true the group will create the stream if needed (MKSTREAM)
+	 * @return the {@link Mono} emitting {@literal ok} if successful.
+	 * @since 2.3
+	 */
+	default Mono<String> xGroupCreate(ByteBuffer key, String groupName, ReadOffset readOffset, boolean mkStream) {
+		return xGroup(Mono.just(GroupCommand.createGroup(groupName).forStream(key).at(readOffset).makeStream(mkStream))).next()
 				.map(CommandResponse::getOutput);
 	}
 
