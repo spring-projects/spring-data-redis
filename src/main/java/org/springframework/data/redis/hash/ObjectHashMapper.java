@@ -16,24 +16,21 @@
 package org.springframework.data.redis.hash;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.core.convert.ConverterNotFoundException;
-import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.data.redis.core.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.IndexResolver;
 import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
+import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolver;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
-import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * {@link HashMapper} based on {@link MappingRedisConverter}. Supports nested properties and simple types like
@@ -74,7 +71,7 @@ import org.springframework.lang.Nullable;
  */
 public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 
-	private final MappingRedisConverter converter;
+	private final RedisConverter converter;
 
 	/**
 	 * Creates new {@link ObjectHashMapper}.
@@ -108,6 +105,19 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 		mappingConverter.afterPropertiesSet();
 
 		converter = mappingConverter;
+	}
+
+	/**
+	 * Creates a new {@link ObjectHashMapper} using the given {@link RedisConverter} for conversion.
+	 *
+	 * @param converter must not be {@literal null}.
+	 * @throws IllegalArgumentException if the given {@literal converter} is {@literal null}.
+	 * @since 2.4
+	 */
+	public ObjectHashMapper(RedisConverter converter) {
+
+		Assert.notNull(converter, "Converter must not be null!");
+		this.converter = converter;
 	}
 
 	/*

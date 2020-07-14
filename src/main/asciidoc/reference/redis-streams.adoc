@@ -293,3 +293,37 @@ redisTemplate()
     .add(record); <1>
 ----
 <1> XADD user-logon * "firstname" "night" "@class" "com.example.User" "lastname" "angel"
+
+[NOTE]
+====
+A `StreamMessageListenerContainer` may not be aware of any `@TypeAlias` used on domain types as those need to be resolved via a `MappingContext`. So please make sure to pre initialize the `RedisMappingContext` with the `initialEntitySet`.
+
+[source,java]
+----
+@Bean
+RedisMappingContext redisMappingContext() {
+	RedisMappingContext ctx = new RedisMappingContext();
+	ctx.setInitialEntitySet(Collections.singleton(Person.class));
+	return ctx;
+}
+
+@Bean
+RedisConverter redisConverter(RedisMappingContext mappingContext) {
+	return new MappingRedisConverter(mappingContext, null, null);
+}
+
+@Bean
+ObjectHashMapper hashMapper(RedisConverter converter) {
+	return new ObjectHashMapper(converter);
+}
+
+@Bean
+StreamMessageListenerContainer streamMessageListenerContainer(RedisConnectionFactory connectionFactory, ObjectHashMapper hashMapper) {
+	StreamMessageListenerContainerOptions<String, ObjectRecord<String, Object>> options = StreamMessageListenerContainerOptions.builder()
+			.objectMapper(hashMapper)
+			.build();
+
+	return StreamMessageListenerContainer.create(connectionFactory, options);
+}
+----
+====
