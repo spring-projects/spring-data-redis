@@ -249,7 +249,7 @@ List<ObjectRecord<String, String>> records = redisTemplate()
     .opsForStream()
     .read(String.class, StreamOffset.fromStart("my-stream"));
 ----
-<1> XADD my-stream * "_class" "com.example.User" "firstname" "night" "lastname" "angel"
+<1> XADD my-stream * "_class" "java.lang.String" "_raw" "my-value"
 
 ``ObjectRecord``s pass through the very same serialization process as the all other records, thus the Record can also obtained using the untyped read operation returning a `MapRecord`.
 
