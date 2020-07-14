@@ -22,7 +22,7 @@ import lombok.Data;
 import java.util.Collections;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
@@ -32,19 +32,19 @@ import org.springframework.data.redis.hash.ObjectHashMapper;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public class ObjectHashMapperTests extends AbstractHashMapperTest {
+class ObjectHashMapperTests extends AbstractHashMapperTest {
 
 	protected ObjectHashMapper mapperFor(Class t) {
 		return new ObjectHashMapper();
 	}
 
 	@Test // DATAREDIS-503
-	public void testSimpleType() {
+	void testSimpleType() {
 		assertBackAndForwardMapping(new Integer(100));
 	}
 
 	@Test // DATAREDIS-503
-	public void fromHashShouldCastToType() {
+	void fromHashShouldCastToType() {
 
 		ObjectHashMapper objectHashMapper = new ObjectHashMapper();
 		Map<byte[], byte[]> hash = objectHashMapper.toHash(new Integer(100));
@@ -54,17 +54,17 @@ public class ObjectHashMapperTests extends AbstractHashMapperTest {
 		assertThat(result).isEqualTo(new Integer(100));
 	}
 
-	@Test(expected = ClassCastException.class) // DATAREDIS-503
-	public void fromHashShouldFailIfTypeDoesNotMatch() {
+	@Test // DATAREDIS-503
+	void fromHashShouldFailIfTypeDoesNotMatch() {
 
 		ObjectHashMapper objectHashMapper = new ObjectHashMapper();
 		Map<byte[], byte[]> hash = objectHashMapper.toHash(new Integer(100));
 
-		String result = objectHashMapper.fromHash(hash, String.class);
+		assertThatExceptionOfType(ClassCastException.class).isThrownBy(() -> objectHashMapper.fromHash(hash, String.class));
 	}
 
 	@Test // DATAREDIS-1179
-	public void hashMapperAllowsReuseOfRedisConverter/*and thus the MappingContext holding eg. TypeAlias information*/() {
+	void hashMapperAllowsReuseOfRedisConverter/*and thus the MappingContext holding eg. TypeAlias information*/() {
 
 		WithTypeAlias source = new WithTypeAlias();
 		source.value = "val";
