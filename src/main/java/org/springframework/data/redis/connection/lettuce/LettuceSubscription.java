@@ -64,6 +64,7 @@ public class LettuceSubscription extends AbstractSubscription {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doClose()
 	 */
+	@Override
 	protected void doClose() {
 
 		if (!getChannels().isEmpty()) {
@@ -82,6 +83,7 @@ public class LettuceSubscription extends AbstractSubscription {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPsubscribe(byte[][])
 	 */
+	@Override
 	protected void doPsubscribe(byte[]... patterns) {
 		pubsub.psubscribe(patterns);
 	}
@@ -90,6 +92,7 @@ public class LettuceSubscription extends AbstractSubscription {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPUnsubscribe(boolean, byte[][])
 	 */
+	@Override
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
 
 		if (all) {
@@ -103,6 +106,7 @@ public class LettuceSubscription extends AbstractSubscription {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doSubscribe(byte[][])
 	 */
+	@Override
 	protected void doSubscribe(byte[]... channels) {
 		pubsub.subscribe(channels);
 	}
@@ -111,6 +115,7 @@ public class LettuceSubscription extends AbstractSubscription {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doUnsubscribe(boolean, byte[][])
 	 */
+	@Override
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
 
 		if (all) {
@@ -119,5 +124,4 @@ public class LettuceSubscription extends AbstractSubscription {
 			pubsub.unsubscribe(channels);
 		}
 	}
-
 }
