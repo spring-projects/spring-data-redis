@@ -29,6 +29,8 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.hash.ObjectHashMapper;
 
 /**
+ * Unit tests for {@link ObjectHashMapper}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
