@@ -81,6 +81,19 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 	}
 
 	/**
+	 * Creates a new {@link ObjectHashMapper} using the given {@link RedisConverter} for conversion.
+	 *
+	 * @param converter must not be {@literal null}.
+	 * @throws IllegalArgumentException if the given {@literal converter} is {@literal null}.
+	 * @since 2.4
+	 */
+	public ObjectHashMapper(RedisConverter converter) {
+
+		Assert.notNull(converter, "Converter must not be null!");
+		this.converter = converter;
+	}
+
+	/**
 	 * Creates new {@link ObjectHashMapper}.
 	 *
 	 * @param customConversions can be {@literal null}.
@@ -105,19 +118,6 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 		mappingConverter.afterPropertiesSet();
 
 		converter = mappingConverter;
-	}
-
-	/**
-	 * Creates a new {@link ObjectHashMapper} using the given {@link RedisConverter} for conversion.
-	 *
-	 * @param converter must not be {@literal null}.
-	 * @throws IllegalArgumentException if the given {@literal converter} is {@literal null}.
-	 * @since 2.4
-	 */
-	public ObjectHashMapper(RedisConverter converter) {
-
-		Assert.notNull(converter, "Converter must not be null!");
-		this.converter = converter;
 	}
 
 	/*

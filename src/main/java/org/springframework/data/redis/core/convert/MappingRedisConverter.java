@@ -129,8 +129,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * Creates new {@link MappingRedisConverter}.
 	 *
 	 * @param context can be {@literal null}.
+	 * @since 2.4
 	 */
-	MappingRedisConverter(RedisMappingContext context) {
+	public MappingRedisConverter(RedisMappingContext context) {
 		this(context, null, null, null);
 	}
 

@@ -25,7 +25,7 @@ To send a record, you can use, as with the other operations, either the low-leve
 
 [source,java]
 ----
-// append message through connection 
+// append message through connection
 RedisConnection con = …
 byte[] stream = …
 ByteRecord record = StreamRecords.rawBytes(…).withStreamKey(stream);
@@ -114,18 +114,18 @@ message -> {
 ----
 
 Once you’ve implemented your `StreamListener`, it’s time to create a message listener container and register a subscription:
- 
+
 [source,java]
 ----
 RedisConnectionFactory connectionFactory = …
 StreamListener<String, MapRecord<String, String, String>> streamListener = …
- 
+
 StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> containerOptions = StreamMessageListenerContainerOptions
 			.builder().pollTimeout(Duration.ofMillis(100)).build();
-			
+
 StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer.create(connectionFactory,
 				containerOptions);
-				
+
 Subscription subscription = container.receive(StreamOffset.fromStart("my-stream"), streamListener);
 ----
 
@@ -133,7 +133,7 @@ Please refer to the Javadoc of the various message listener containers for a ful
 
 ==== Reactive `StreamReceiver`
 
-Reactive consumption of streaming data sources typically happens through a `Flux` of events or messages. The reactive receiver implementation is provided with `StreamReceiver` and its overloaded `receive(…)` messages. The reactive approach requires fewer infrastructure resources such as threads in comparison to `StreamMessageListenerContainer` as it is leveraging threading resources provided by the driver. The receiving stream is a demand-driven publisher of ``StreamMessage``:  
+Reactive consumption of streaming data sources typically happens through a `Flux` of events or messages. The reactive receiver implementation is provided with `StreamReceiver` and its overloaded `receive(…)` messages. The reactive approach requires fewer infrastructure resources such as threads in comparison to `StreamMessageListenerContainer` as it is leveraging threading resources provided by the driver. The receiving stream is a demand-driven publisher of ``StreamMessage``:
 
 [source,java]
 ----
@@ -155,7 +155,7 @@ ReactiveRedisConnectionFactory connectionFactory = …
 StreamReceiverOptions<String, MapRecord<String, String, String>> options = StreamReceiverOptions.builder().pollTimeout(Duration.ofMillis(100))
 				.build();
 StreamReceiver<String, MapRecord<String, String, String>> receiver = StreamReceiver.create(connectionFactory, options);
-				
+
 Flux<MapRecord<String, String, String>> messages = receiver.receive(StreamOffset.fromStart("my-stream"));
 ----
 
@@ -296,34 +296,35 @@ redisTemplate()
 
 [NOTE]
 ====
-A `StreamMessageListenerContainer` may not be aware of any `@TypeAlias` used on domain types as those need to be resolved via a `MappingContext`. So please make sure to pre initialize the `RedisMappingContext` with the `initialEntitySet`.
+A `StreamMessageListenerContainer` may not be aware of any `@TypeAlias` used on domain types as those need to be resolved through a `MappingContext`.
+Make sure to initialize `RedisMappingContext` with a `initialEntitySet`.
 
 [source,java]
 ----
 @Bean
 RedisMappingContext redisMappingContext() {
-	RedisMappingContext ctx = new RedisMappingContext();
-	ctx.setInitialEntitySet(Collections.singleton(Person.class));
-	return ctx;
+    RedisMappingContext ctx = new RedisMappingContext();
+    ctx.setInitialEntitySet(Collections.singleton(Person.class));
+    return ctx;
 }
 
 @Bean
 RedisConverter redisConverter(RedisMappingContext mappingContext) {
-	return new MappingRedisConverter(mappingContext, null, null);
+    return new MappingRedisConverter(mappingContext);
 }
 
 @Bean
 ObjectHashMapper hashMapper(RedisConverter converter) {
-	return new ObjectHashMapper(converter);
+    return new ObjectHashMapper(converter);
 }
 
 @Bean
 StreamMessageListenerContainer streamMessageListenerContainer(RedisConnectionFactory connectionFactory, ObjectHashMapper hashMapper) {
-	StreamMessageListenerContainerOptions<String, ObjectRecord<String, Object>> options = StreamMessageListenerContainerOptions.builder()
-			.objectMapper(hashMapper)
-			.build();
+    StreamMessageListenerContainerOptions<String, ObjectRecord<String, Object>> options = StreamMessageListenerContainerOptions.builder()
+            .objectMapper(hashMapper)
+            .build();
 
-	return StreamMessageListenerContainer.create(connectionFactory, options);
+    return StreamMessageListenerContainer.create(connectionFactory, options);
 }
 ----
 ====
