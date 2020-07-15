@@ -76,7 +76,7 @@ public class RedisData {
 	 *
 	 * @param id
 	 */
-	public void setId(String id) {
+	public void setId(@Nullable String id) {
 		this.id = id;
 	}
 
@@ -134,7 +134,7 @@ public class RedisData {
 	/**
 	 * @param keyspace
 	 */
-	public void setKeyspace(String keyspace) {
+	public void setKeyspace(@Nullable String keyspace) {
 		this.keyspace = keyspace;
 	}
 
