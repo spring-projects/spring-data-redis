@@ -56,7 +56,7 @@ public class Bucket {
 
 	Bucket(Map<String, byte[]> data) {
 
-		Assert.notNull(data, "Inital data must not be null!");
+		Assert.notNull(data, "Initial data must not be null!");
 		this.data = new LinkedHashMap<>(data.size());
 		this.data.putAll(data);
 	}
@@ -67,7 +67,7 @@ public class Bucket {
 	 * @param path must not be {@literal null} or {@link String#isEmpty()}.
 	 * @param value can be {@literal null}.
 	 */
-	public void put(String path, byte[] value) {
+	public void put(String path, @Nullable byte[] value) {
 
 		Assert.hasText(path, "Path to property must not be null or empty.");
 		data.put(path, value);
