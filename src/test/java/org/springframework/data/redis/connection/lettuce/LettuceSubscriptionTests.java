@@ -66,9 +66,8 @@ public class LettuceSubscriptionTests {
 	public void testUnsubscribeAllAndClose() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		verify(asyncCommands, times(1)).unsubscribe(new byte[][] { "a".getBytes() });
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
 		assertThat(subscription.isAlive()).isFalse();
@@ -81,9 +80,8 @@ public class LettuceSubscriptionTests {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 		subscription.unsubscribe();
-		verify(asyncCommands, times(1)).unsubscribe(new byte[][] { "a".getBytes() });
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 		assertThat(subscription.isAlive()).isTrue();
 		assertThat(subscription.getChannels().isEmpty()).isTrue();
 		Collection<byte[]> patterns = subscription.getPatterns();
@@ -96,9 +94,9 @@ public class LettuceSubscriptionTests {
 		byte[][] channel = new byte[][] { "a".getBytes() };
 		subscription.subscribe(channel);
 		subscription.unsubscribe(channel);
-		verify(asyncCommands, times(1)).unsubscribe(channel);
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands).unsubscribe(channel);
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
 		assertThat(subscription.isAlive()).isFalse();
@@ -111,9 +109,9 @@ public class LettuceSubscriptionTests {
 		byte[][] channels = new byte[][] { "a".getBytes(), "b".getBytes() };
 		subscription.subscribe(channels);
 		subscription.unsubscribe(new byte[][] { "a".getBytes() });
-		verify(asyncCommands, times(1)).unsubscribe(new byte[][] { "a".getBytes() });
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands).unsubscribe(new byte[][] { "a".getBytes() });
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> subChannels = subscription.getChannels();
 		assertThat(subChannels.size()).isEqualTo(1);
@@ -127,9 +125,9 @@ public class LettuceSubscriptionTests {
 		subscription.subscribe(channel);
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 		subscription.unsubscribe(channel);
-		verify(asyncCommands, times(1)).unsubscribe(channel);
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands).unsubscribe(channel);
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 		assertThat(subscription.isAlive()).isTrue();
 		assertThat(subscription.getChannels().isEmpty()).isTrue();
 		Collection<byte[]> patterns = subscription.getPatterns();
@@ -143,9 +141,9 @@ public class LettuceSubscriptionTests {
 		subscription.subscribe(new byte[][] { "a".getBytes(), "b".getBytes() });
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 		subscription.unsubscribe(channel);
-		verify(asyncCommands, times(1)).unsubscribe(channel);
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands).unsubscribe(channel);
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
 		assertThat(channels.size()).isEqualTo(1);
@@ -159,8 +157,8 @@ public class LettuceSubscriptionTests {
 	public void testUnsubscribeAllNoChannels() {
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 		subscription.unsubscribe();
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 		assertThat(subscription.isAlive()).isTrue();
 		assertThat(subscription.getChannels().isEmpty()).isTrue();
 		Collection<byte[]> patterns = subscription.getPatterns();
@@ -172,13 +170,12 @@ public class LettuceSubscriptionTests {
 	public void testUnsubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		verify(connectionProvider, times(1)).release(pubsub);
-		verify(pubsub, times(1)).removeListener(any(LettuceMessageListener.class));
+		verify(connectionProvider).release(pubsub);
+		verify(pubsub).removeListener(any(LettuceMessageListener.class));
 		assertThat(subscription.isAlive()).isFalse();
 		subscription.unsubscribe();
-		verify(asyncCommands, times(1)).unsubscribe(new byte[][] { "a".getBytes() });
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 	}
 
 	@Test(expected = RedisInvalidSubscriptionException.class)
@@ -193,9 +190,8 @@ public class LettuceSubscriptionTests {
 	public void testPUnsubscribeAllAndClose() {
 		subscription.pSubscribe(new byte[][] { "a*".getBytes() });
 		subscription.pUnsubscribe();
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
-		verify(asyncCommands, times(1)).punsubscribe(new byte[][] { "a*".getBytes() });
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands).punsubscribe();
 		assertThat(subscription.isAlive()).isFalse();
 		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
@@ -208,9 +204,8 @@ public class LettuceSubscriptionTests {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 		subscription.pUnsubscribe();
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
-		verify(asyncCommands, times(1)).punsubscribe(new byte[][] { "s*".getBytes() });
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands).punsubscribe();
 		assertThat(subscription.isAlive()).isTrue();
 		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
@@ -223,9 +218,9 @@ public class LettuceSubscriptionTests {
 		byte[][] pattern = new byte[][] { "a*".getBytes() };
 		subscription.pSubscribe(pattern);
 		subscription.pUnsubscribe(pattern);
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
-		verify(asyncCommands, times(1)).punsubscribe(pattern);
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
+		verify(asyncCommands).punsubscribe(pattern);
 		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
 		assertThat(subscription.isAlive()).isFalse();
@@ -238,9 +233,9 @@ public class LettuceSubscriptionTests {
 		byte[][] patterns = new byte[][] { "a*".getBytes(), "b*".getBytes() };
 		subscription.pSubscribe(patterns);
 		subscription.pUnsubscribe(new byte[][] { "a*".getBytes() });
-		verify(asyncCommands, times(1)).punsubscribe(new byte[][] { "a*".getBytes() });
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands).punsubscribe(new byte[][] { "a*".getBytes() });
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> subPatterns = subscription.getPatterns();
 		assertThat(subPatterns.size()).isEqualTo(1);
@@ -254,9 +249,9 @@ public class LettuceSubscriptionTests {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.pSubscribe(pattern);
 		subscription.pUnsubscribe(pattern);
-		verify(asyncCommands, times(1)).punsubscribe(pattern);
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands).punsubscribe(pattern);
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 		assertThat(subscription.isAlive()).isTrue();
 		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
@@ -270,9 +265,9 @@ public class LettuceSubscriptionTests {
 		subscription.pSubscribe(new byte[][] { "a*".getBytes(), "b*".getBytes() });
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.pUnsubscribe(pattern);
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
-		verify(asyncCommands, times(1)).punsubscribe(pattern);
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
+		verify(asyncCommands).punsubscribe(pattern);
 		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
 		assertThat(channels.size()).isEqualTo(1);
@@ -286,8 +281,8 @@ public class LettuceSubscriptionTests {
 	public void testPUnsubscribeAllNoPatterns() {
 		subscription.subscribe(new byte[][] { "s".getBytes() });
 		subscription.pUnsubscribe();
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 		assertThat(subscription.isAlive()).isTrue();
 		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
@@ -301,11 +296,10 @@ public class LettuceSubscriptionTests {
 		subscription.unsubscribe();
 		assertThat(subscription.isAlive()).isFalse();
 		subscription.pUnsubscribe();
-		verify(connectionProvider, times(1)).release(pubsub);
-		verify(pubsub, times(1)).removeListener(any(LettuceMessageListener.class));
-		verify(asyncCommands, times(1)).unsubscribe(new byte[][] { "a".getBytes() });
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(connectionProvider).release(pubsub);
+		verify(pubsub).removeListener(any(LettuceMessageListener.class));
+		verify(asyncCommands).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 	}
 
 	@Test(expected = RedisInvalidSubscriptionException.class)
@@ -319,23 +313,23 @@ public class LettuceSubscriptionTests {
 	@Test
 	public void testDoCloseNotSubscribed() {
 		subscription.doClose();
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 	}
 
 	@Test
 	public void testDoCloseSubscribedChannels() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.doClose();
-		verify(asyncCommands, times(1)).unsubscribe(new byte[0]);
-		verify(asyncCommands, never()).punsubscribe(new byte[0]);
+		verify(asyncCommands).unsubscribe();
+		verify(asyncCommands, never()).punsubscribe();
 	}
 
 	@Test
 	public void testDoCloseSubscribedPatterns() {
 		subscription.pSubscribe(new byte[][] { "a*".getBytes() });
 		subscription.doClose();
-		verify(asyncCommands, never()).unsubscribe(new byte[0]);
-		verify(asyncCommands, times(1)).punsubscribe(new byte[0]);
+		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands).punsubscribe();
 	}
 }
