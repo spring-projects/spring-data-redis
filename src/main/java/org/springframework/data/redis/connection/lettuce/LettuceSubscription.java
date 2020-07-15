@@ -95,8 +95,11 @@ public class LettuceSubscription extends AbstractSubscription {
 	 */
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
 
-		// ignore `all` flag as Lettuce unsubscribes from all patterns if none provided.
-		pubsub.punsubscribe(patterns);
+		if (all) {
+			pubsub.punsubscribe();
+		} else {
+			pubsub.punsubscribe(patterns);
+		}
 	}
 
 	/*
@@ -113,8 +116,11 @@ public class LettuceSubscription extends AbstractSubscription {
 	 */
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
 
-		// ignore `all` flag as Lettuce unsubscribes from all channels if none provided.
-		pubsub.unsubscribe(channels);
+		if (all) {
+			pubsub.unsubscribe();
+		} else {
+			pubsub.unsubscribe(channels);
+		}
 	}
 
 }
