@@ -869,7 +869,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * publishing {@link RedisKeyspaceEvent}.
 	 *
 	 * @author Christoph Strobl
-	 * @since 2.3
+	 * @since 2.4
 	 */
 	public enum ShadowCopy {
 
@@ -900,8 +900,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		private final Object targetId;
 		private final byte[] targetKey;
 
-		private Set<byte[]> fieldsToRemove = new LinkedHashSet<>();
-		private Set<Index> indexesToUpdate = new LinkedHashSet<>();
+		private final Set<byte[]> fieldsToRemove = new LinkedHashSet<>();
+		private final Set<Index> indexesToUpdate = new LinkedHashSet<>();
 
 		RedisUpdateObject(byte[] targetKey, String keyspace, Object targetId) {
 

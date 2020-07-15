@@ -170,9 +170,9 @@ public @interface EnableRedisRepositories {
 	/**
 	 * Configuration flag controlling storage of phantom keys (shadow copies) of expiring entities to read them later when
 	 * publishing {@link org.springframework.data.redis.core.RedisKeyspaceEvent keyspace events}.
-	 * 
+	 *
 	 * @return
-	 * @since 2.3
+	 * @since 2.4
 	 */
 	ShadowCopy shadowCopy() default ShadowCopy.DEFAULT;
 

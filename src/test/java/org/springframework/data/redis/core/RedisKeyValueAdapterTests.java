@@ -58,6 +58,8 @@ import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 
 /**
+ * Integration tests for {@link RedisKeyValueAdapter}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
