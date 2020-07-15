@@ -18,6 +18,7 @@ package org.springframework.data.redis.stream;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,7 +33,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mockito;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisVersionUtils;
@@ -175,8 +176,8 @@ public class StreamReceiverIntegrationTests {
 	@Test // DATAREDIS-1172
 	public void shouldReceiveCustomHashValueRecords() {
 
-		SerializationPair<Integer> serializationPair = Mockito.mock(SerializationPair.class);
-		Mockito.when(serializationPair.read(any(ByteBuffer.class))).thenReturn(345920);
+		SerializationPair<Integer> serializationPair = mock(SerializationPair.class);
+		when(serializationPair.read(any(ByteBuffer.class))).thenReturn(345920);
 
 		StreamReceiverOptions<String, MapRecord<String, String, Integer>> receiverOptions = StreamReceiverOptions.builder()
 				.<String, Integer>hashValueSerializer(serializationPair).build();
@@ -227,7 +228,6 @@ public class StreamReceiverIntegrationTests {
 				}).consumeNextWith(it -> {
 
 					assertThat(it.getStream()).isEqualTo("my-stream");
-					// assertThat(it.getValue()).containsEntry("key", "value3");
 				}) //
 				.thenCancel() //
 				.verify(Duration.ofSeconds(5));

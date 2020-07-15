@@ -328,7 +328,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <T> StreamReceiverOptionsBuilder<T, MapRecord<T, T, T>> serializer(SerializationPair<T> pair) {
 
 			Assert.notNull(pair, "SerializationPair must not be null");
@@ -345,7 +345,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 * @param serializationContext must not be {@literal null}.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <T> StreamReceiverOptionsBuilder<T, MapRecord<T, T, T>> serializer(
 				RedisSerializationContext<T, ?> serializationContext) {
 
@@ -364,7 +364,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <NK, NV extends Record<NK, ?>> StreamReceiverOptionsBuilder<NK, NV> keySerializer(
 				SerializationPair<NK> pair) {
 
@@ -380,7 +380,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <HK, HV> StreamReceiverOptionsBuilder<K, MapRecord<K, HK, HV>> hashKeySerializer(
 				SerializationPair<HK> pair) {
 
@@ -396,7 +396,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <HK, HV> StreamReceiverOptionsBuilder<K, MapRecord<K, HK, HV>> hashValueSerializer(
 				SerializationPair<HV> pair) {
 
@@ -412,7 +412,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 * @param targetType must not be {@literal null}.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <NV> StreamReceiverOptionsBuilder<K, ObjectRecord<K, NV>> targetType(Class<NV> targetType) {
 
 			Assert.notNull(targetType, "Target type must not be null");
@@ -435,7 +435,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 * @param hashMapper must not be {@literal null}.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <NV> StreamReceiverOptionsBuilder<K, ObjectRecord<K, NV>> objectMapper(HashMapper<NV, ?, ?> hashMapper) {
 
 			Assert.notNull(hashMapper, "HashMapper must not be null");
