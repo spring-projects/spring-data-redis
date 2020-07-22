@@ -1,6 +1,19 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.3.2.RELEASE (2020-07-22)
+---------------------------------------------
+* DATAREDIS-1181 - Upgrade to Lettuce 5.3.2.
+* DATAREDIS-1179 - ObjectHashMapper not able to resolve type alias.
+* DATAREDIS-1178 - Scan method on ReactiveSetOperations ignores ScanOptions parameter.
+* DATAREDIS-1177 - Upgrade to xstream 1.4.12.
+* DATAREDIS-1175 - Unable to read a List from a Redis Stream.
+* DATAREDIS-1173 - Close connection unsubscribes from all channels incorrectly using Lettuce.
+* DATAREDIS-1172 - StreamReceiverOptionsBuilder.hashValueSerializer mis-typed.
+* DATAREDIS-1168 - Release 2.3.2 (Neumann SR2).
+* DATAREDIS-1150 - Add reactive variant of RedisClusterCommands.
+
+
 Changes in version 2.2.9.RELEASE (2020-07-22)
 ---------------------------------------------
 * DATAREDIS-1178 - Scan method on ReactiveSetOperations ignores ScanOptions parameter.
@@ -2029,6 +2042,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
