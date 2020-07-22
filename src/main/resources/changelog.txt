@@ -1,6 +1,15 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.9.RELEASE (2020-07-22)
+---------------------------------------------
+* DATAREDIS-1178 - Scan method on ReactiveSetOperations ignores ScanOptions parameter.
+* DATAREDIS-1177 - Upgrade to xstream 1.4.12.
+* DATAREDIS-1175 - Unable to read a List from a Redis Stream.
+* DATAREDIS-1173 - Close connection unsubscribes from all channels incorrectly using Lettuce.
+* DATAREDIS-1167 - Release 2.2.9 (Moore SR9).
+
+
 Changes in version 2.1.19.RELEASE (2020-07-22)
 ----------------------------------------------
 * DATAREDIS-1178 - Scan method on ReactiveSetOperations ignores ScanOptions parameter.
@@ -2009,6 +2018,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
