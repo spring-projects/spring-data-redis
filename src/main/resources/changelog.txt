@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.19.RELEASE (2020-07-22)
+----------------------------------------------
+* DATAREDIS-1178 - Scan method on ReactiveSetOperations ignores ScanOptions parameter.
+* DATAREDIS-1173 - Close connection unsubscribes from all channels incorrectly using Lettuce.
+* DATAREDIS-1166 - Release 2.1.19 (Lovelace SR19).
+
+
 Changes in version 2.4.0-M1 (2020-06-25)
 ----------------------------------------
 * DATAREDIS-1165 - Use standard Spring code of conduct.
@@ -2002,6 +2009,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
