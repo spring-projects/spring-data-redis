@@ -269,7 +269,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		byte[] value = dump(sourceKey);
 
 		if (value != null && value.length > 0) {
-
+			del(targetKey);
 			restore(targetKey, 0, value);
 			del(sourceKey);
 		}
