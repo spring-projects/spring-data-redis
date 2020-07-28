@@ -473,7 +473,8 @@ public class LettuceConnectionFactoryTests {
 		RedisConnection connection = factory.getConnection();
 
 		assertThatThrownBy(() -> connection.pSubscribe((message, pattern) -> {
-		}, "foo".getBytes())).isInstanceOf(RedisSystemException.class).hasCauseInstanceOf(UnsupportedOperationException.class);
+		}, "foo".getBytes())).isInstanceOf(RedisConnectionFailureException.class)
+				.hasCauseInstanceOf(UnsupportedOperationException.class);
 
 		connection.close();
 		factory.destroy();

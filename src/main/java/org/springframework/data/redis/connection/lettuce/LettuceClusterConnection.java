@@ -688,11 +688,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 				}
 			}
 
-			try {
-				return connection.getConnection(node.getHost(), node.getPort()).sync();
-			} catch (RedisException e) {
-				throw new DataAccessResourceFailureException(e.getMessage(), e);
-			}
+			return connection.getConnection(node.getHost(), node.getPort()).sync();
 		}
 
 		@Override

@@ -49,6 +49,8 @@ import org.mockito.ArgumentMatchers;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.PoolException;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConfiguration;
@@ -859,6 +861,27 @@ public class LettuceConnectionFactoryUnitTests {
 		connectionFactory.afterPropertiesSet();
 
 		verify(connectionProviderMock, times(2)).getConnection(StatefulConnection.class);
+	}
+
+	@Test // DATAREDIS-1189
+	public void shouldTranslateConnectionException() {
+
+		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class);
+
+		when(connectionProviderMock.getConnection(any())).thenThrow(new PoolException("error!"));
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory() {
+			@Override
+			protected LettuceConnectionProvider doCreateConnectionProvider(AbstractRedisClient client,
+					RedisCodec<?, ?> codec) {
+				return connectionProviderMock;
+			}
+		};
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.afterPropertiesSet();
+
+		assertThatExceptionOfType(RedisConnectionFailureException.class)
+				.isThrownBy(() -> connectionFactory.getConnection().ping()).withCauseInstanceOf(PoolException.class);
 	}
 
 	@Test // DATAREDIS-1027
