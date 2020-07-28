@@ -293,6 +293,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		Map<byte[], byte[]> raw = redisOps
 				.execute((RedisCallback<Map<byte[], byte[]>>) connection -> connection.hGetAll(binId));
 
+		if (CollectionUtils.isEmpty(raw)) {
+			return null;
+		}
+
 		RedisData data = new RedisData(raw);
 		data.setId(stringId);
 		data.setKeyspace(stringKeyspace);
@@ -775,7 +779,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				return hash1;
 			});
 
-			Object value = converter.read(Object.class, new RedisData(hash));
+			Object value = CollectionUtils.isEmpty(hash) ? null : converter.read(Object.class, new RedisData(hash));
 
 			String channel = !ObjectUtils.isEmpty(message.getChannel())
 					? converter.getConversionService().convert(message.getChannel(), String.class) : null;
