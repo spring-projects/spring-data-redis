@@ -69,6 +69,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Greg Turnquist
  * @author Mark Paluch
  * @author Golam Mazid Sajib
+ * @author Peter Phillips
  */
 @RunWith(MockitoJUnitRunner.class)
 public class MappingRedisConverterUnitTests {
@@ -258,6 +259,12 @@ public class MappingRedisConverterUnitTests {
 		assertThat(target.father.firstname).isEqualTo("Homer");
 		assertThat(target.father.lastname).isEqualTo("Simpson");
 		assertThat(target.father.father).isNull();
+	}
+
+	@Test // DATAREDIS-1191
+	public void readEmptyBucket() {
+		Person target = converter.read(Person.class, new RedisData(new Bucket()));
+		assertThat(target).isNull();
 	}
 
 	@Test // DATAREDIS-425

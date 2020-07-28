@@ -108,6 +108,7 @@ import org.springframework.util.comparator.NullSafeComparator;
  * @author Greg Turnquist
  * @author Mark Paluch
  * @author Golam Mazid Sajib
+ * @author Peter Phillips
  * @since 1.7
  */
 public class MappingRedisConverter implements RedisConverter, InitializingBean {
@@ -183,7 +184,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		return readType.isCollectionLike()
 				? (R) readCollectionOrArray("", ArrayList.class, Object.class, source.getBucket())
-				: doReadInternal("", type, source);
+				: readInternal("", type, source);
 
 	}
 
