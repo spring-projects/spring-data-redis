@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author André Prata
  * @since 2.0
  */
 class DefaultRedisCacheWriter implements RedisCacheWriter {
@@ -153,12 +154,15 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			}
 
 			try {
-				if (connection.setNX(key, value)) {
 
-					if (shouldExpireWithin(ttl)) {
-						connection.pExpire(key, ttl.toMillis());
-					}
+				boolean put;
+				if (shouldExpireWithin(ttl)) {
+					put = connection.set(key, value, Expiration.milliseconds(ttl.toMillis()), SetOption.ifAbsent());
+				} else {
+					put = connection.setNX(key, value);
+				}
 
+				if (put) {
 					statistics.incPuts(name);
 					return null;
 				}
