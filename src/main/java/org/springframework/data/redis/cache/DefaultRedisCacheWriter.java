@@ -130,8 +130,9 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			try {
 
 				boolean put;
+
 				if (shouldExpireWithin(ttl)) {
-					put = connection.set(key, value, Expiration.milliseconds(ttl.toMillis()), SetOption.ifAbsent());
+					put = connection.set(key, value, Expiration.from(ttl), SetOption.ifAbsent());
 				} else {
 					put = connection.setNX(key, value);
 				}
