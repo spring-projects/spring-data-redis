@@ -297,13 +297,13 @@ public abstract class RedisConnectionUtils {
 	}
 
 	/**
-	 * A {@link TransactionSynchronizationAdapter} that makes sure that the associated RedisConnection is released after
-	 * the transaction completes.
+	 * A {@link TransactionSynchronization} that makes sure that the associated RedisConnection is released after the
+	 * transaction completes.
 	 *
 	 * @author Christoph Strobl
 	 * @author Thomas Darimont
 	 */
-	private static class RedisTransactionSynchronizer extends TransactionSynchronizationAdapter {
+	private static class RedisTransactionSynchronizer implements TransactionSynchronization {
 
 		private final RedisConnectionHolder connHolder;
 		private final RedisConnection connection;
