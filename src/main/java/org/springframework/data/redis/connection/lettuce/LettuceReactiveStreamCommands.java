@@ -21,15 +21,16 @@ import io.lettuce.core.XGroupCreateArgs;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.XReadArgs.StreamOffset;
 import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
+import io.lettuce.core.models.stream.PendingMessage;
 import reactor.core.publisher.Flux;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
@@ -204,7 +205,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 						.xgroupDelconsumer(command.getKey(),
 								io.lettuce.core.Consumer.from(ByteUtils.getByteBuffer(command.getGroupName()),
 										ByteUtils.getByteBuffer(command.getConsumerName())))
-						.map(it -> new CommandResponse<>(command, Boolean.TRUE.equals(it) ? "OK" : "Error"));
+						.map(it -> new CommandResponse<>(command, "OK"));
 			}
 
 			if (command.getAction().equals(GroupCommandAction.DESTROY)) {
@@ -243,25 +244,8 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
-			return cmd.xpending(command.getKey(), ByteUtils.getByteBuffer(command.getGroupName())).collectList().map(it -> {
-
-				// begin
-				// {* hacking *}
-				// while (https://github.com/lettuce-io/lettuce-core/issues/1229 != resolved) begin
-
-				ArrayList<Object> target = new ArrayList<>(it);
-				if (target.size() == 2 && target.get(1) instanceof List) {
-					target.add(1, null);
-					target.add(1, null);
-				}
-				while (target.size() < 4) {
-					target.add(null);
-				}
-
-				// end.
-				// end.
-
-				return StreamConverters.toPendingMessagesInfo(command.getGroupName(), target);
+			return cmd.xpending(command.getKey(), ByteUtils.getByteBuffer(command.getGroupName())).map(it -> {
+				return StreamConverters.toPendingMessagesInfo(command.getGroupName(), it);
 			}).map(value -> new CommandResponse<>(command, value));
 		}));
 	}
@@ -282,7 +266,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 			io.lettuce.core.Limit limit = command.isLimited() ? io.lettuce.core.Limit.from(command.getCount())
 					: io.lettuce.core.Limit.unlimited();
 
-			Flux<Object> publisher = command.hasConsumer() ? cmd.xpending(command.getKey(),
+			Flux<PendingMessage> publisher = command.hasConsumer() ? cmd.xpending(command.getKey(),
 					io.lettuce.core.Consumer.from(groupName, ByteUtils.getByteBuffer(command.getConsumerName())), range, limit)
 					: cmd.xpending(command.getKey(), groupName, range, limit);
 
@@ -353,7 +337,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 				.map(it -> StreamRecords.newRecord().in(it.getStream()).withId(it.getId()).ofBuffer(it.getBody()));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xInfo(org.reactivestreams.Publisher)
 	 */
@@ -370,7 +354,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xInfoGroups(org.reactivestreams.Publisher)
 	 */
@@ -386,7 +370,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xInfoConsumers(org.reactivestreams.Publisher)
 	 */

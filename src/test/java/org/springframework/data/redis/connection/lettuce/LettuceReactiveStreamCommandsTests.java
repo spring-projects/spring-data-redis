@@ -50,9 +50,7 @@ public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsT
 
 	@Before
 	public void before() {
-
-		// TODO: Upgrade to 5.0
-		assumeTrue(RedisTestProfileValueSource.atLeast("redisVersion", "4.9"));
+		assumeTrue(RedisTestProfileValueSource.atLeast("redisVersion", "5.0"));
 	}
 
 	@Test // DATAREDIS-864

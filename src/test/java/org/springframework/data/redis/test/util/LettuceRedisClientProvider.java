@@ -15,10 +15,13 @@
  */
 package org.springframework.data.redis.test.util;
 
+import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.protocol.ProtocolVersion;
 
 import org.junit.rules.ExternalResource;
+
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 
@@ -44,6 +47,8 @@ public class LettuceRedisClientProvider extends ExternalResource {
 
 		client = RedisClient.create(LettuceTestClientResources.getSharedClientResources(),
 				RedisURI.builder().withHost(host).withPort(port).build());
+		client.setOptions(
+				ClientOptions.builder().protocolVersion(ProtocolVersion.RESP2).pingBeforeActivateConnection(false).build());
 	}
 
 	@Override
