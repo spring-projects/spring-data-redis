@@ -15,12 +15,15 @@
  */
 package org.springframework.data.redis.test.util;
 
-import org.junit.rules.ExternalResource;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
-
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.protocol.ProtocolVersion;
+
+import org.junit.rules.ExternalResource;
+
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 
 /**
  * @author Christoph Strobl
@@ -44,6 +47,8 @@ public class LettuceRedisClusterClientProvider extends ExternalResource {
 
 		client = RedisClusterClient.create(LettuceTestClientResources.getSharedClientResources(),
 				RedisURI.builder().withHost(host).withPort(port).build());
+		client.setOptions(ClusterClientOptions.builder().protocolVersion(ProtocolVersion.RESP2)
+				.pingBeforeActivateConnection(false).build());
 	}
 
 	@Override
