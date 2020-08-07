@@ -24,6 +24,7 @@ import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import org.springframework.dao.DataAccessException;
@@ -267,14 +268,16 @@ class LettuceStreamCommands implements RedisStreamCommands {
 			io.lettuce.core.Consumer<byte[]> lettuceConsumer = toConsumer(consumer);
 
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xgroupDelconsumer(key, lettuceConsumer)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().xgroupDelconsumer(key, lettuceConsumer),
+						Objects::nonNull));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xgroupDelconsumer(key, lettuceConsumer)));
+				transaction(connection.newLettuceResult(getAsyncConnection().xgroupDelconsumer(key, lettuceConsumer),
+						Objects::nonNull));
 				return null;
 			}
-			return getConnection().xgroupDelconsumer(key, lettuceConsumer);
+			return Objects.nonNull(getConnection().xgroupDelconsumer(key, lettuceConsumer));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

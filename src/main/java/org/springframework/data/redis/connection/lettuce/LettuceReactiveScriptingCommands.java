@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.springframework.data.redis.connection.ReactiveScriptingCommands;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -80,7 +81,7 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 
 		Assert.notNull(script, "Script must not be null!");
 
-		return connection.execute(cmd -> cmd.scriptLoad(script)).next();
+		return connection.execute(cmd -> cmd.scriptLoad(ByteUtils.getBytes(script))).next();
 	}
 
 	/*

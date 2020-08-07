@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
-import static org.springframework.data.redis.SpinBarrier.*;
 
 import io.lettuce.core.api.async.RedisAsyncCommands;
 
