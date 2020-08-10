@@ -413,6 +413,9 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void rename();
 
+	// DATAREDIS-1190
+	void renameShouldOverwriteTargetKey();
+
 	// DATAREDIS-315
 	void renameNXWhenOnSameSlot();
 

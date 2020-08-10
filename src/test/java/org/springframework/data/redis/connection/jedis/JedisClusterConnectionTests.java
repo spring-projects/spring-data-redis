@@ -1421,6 +1421,18 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
+	@Test // DATAREDIS-1190
+	public void renameShouldOverwriteTargetKey() {
+
+		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
+		nativeConnection.set(KEY_2_BYTES, VALUE_2_BYTES);
+
+		clusterConnection.rename(KEY_1_BYTES, KEY_2_BYTES);
+
+		assertThat(nativeConnection.exists(KEY_1_BYTES)).isFalse();
+		assertThat(nativeConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
+	}
+
 	@Test // DATAREDIS-315
 	public void renameNXWhenOnSameSlot() {
 
