@@ -1437,6 +1437,18 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2)).isEqualTo(VALUE_1);
 	}
 
+	@Test // DATAREDIS-1190
+	public void renameShouldOverwriteTargetKey() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.rename(KEY_1_BYTES, KEY_2_BYTES);
+
+		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(0L);
+		assertThat(nativeConnection.get(KEY_2)).isEqualTo(VALUE_1);
+	}
+
 	@Test // DATAREDIS-315
 	public void renameNXWhenOnSameSlot() {
 

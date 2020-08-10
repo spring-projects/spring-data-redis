@@ -270,7 +270,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		if (value != null && value.length > 0) {
 
-			restore(targetKey, 0, value);
+			restore(targetKey, 0, value, true);
 			del(sourceKey);
 		}
 	}
