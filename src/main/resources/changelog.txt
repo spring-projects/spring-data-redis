@@ -1,6 +1,16 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.3.3.RELEASE (2020-08-12)
+---------------------------------------------
+* DATAREDIS-1199 - Upgrade to Lettuce 5.3.3.
+* DATAREDIS-1195 - DefaultRedisCacheWriter.putIfAbsent may not set the TTL if the connection drops.
+* DATAREDIS-1191 - Redis repository returns empty object instead of Optional.Empty().
+* DATAREDIS-1190 - Cluster rename fails when targetKey already exists on target node.
+* DATAREDIS-1189 - No subscription retry when using a connection pool.
+* DATAREDIS-1188 - Release 2.3.3 (Neumann SR3).
+
+
 Changes in version 2.4.0-M2 (2020-08-12)
 ----------------------------------------
 * DATAREDIS-1199 - Upgrade to Lettuce 5.3.3.
@@ -2051,6 +2061,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
