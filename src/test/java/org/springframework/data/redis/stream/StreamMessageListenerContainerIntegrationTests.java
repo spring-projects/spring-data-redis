@@ -278,6 +278,8 @@ public class StreamMessageListenerContainerIntegrationTests {
 		redisTemplate.delete("my-stream");
 
 		assertThat(failures.poll(3, TimeUnit.SECONDS)).isNotNull();
+
+		Awaitility.await().until(() -> !subscription.isActive());
 		assertThat(subscription.isActive()).isFalse();
 
 		cancelAwait(subscription);

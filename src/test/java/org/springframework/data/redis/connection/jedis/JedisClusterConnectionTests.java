@@ -2346,7 +2346,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 		nativeConnection.get(KEY_1_BYTES);
 
-		assertThat(clusterConnection.keyCommands().idletime(KEY_1_BYTES)).isEqualTo(Duration.ofSeconds(0));
+		assertThat(clusterConnection.keyCommands().idletime(KEY_1_BYTES)).isLessThan(Duration.ofSeconds(5));
 	}
 
 	@Test // DATAREDIS-716
