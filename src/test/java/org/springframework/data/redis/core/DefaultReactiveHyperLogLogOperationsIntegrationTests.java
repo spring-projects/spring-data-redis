@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.assertj.core.api.Assertions.*;
+
 import reactor.test.StepVerifier;
 
 import java.util.Collection;
@@ -25,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -111,7 +114,10 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		hyperLogLogOperations.add(key2, value2, sharedValue).as(StepVerifier::create).expectNext(1L).verifyComplete();
 
 		hyperLogLogOperations.union(mergedKey, key1, key2).as(StepVerifier::create).expectNext(true).verifyComplete();
-		hyperLogLogOperations.size(mergedKey).as(StepVerifier::create).expectNext(3L).verifyComplete();
+		hyperLogLogOperations.size(mergedKey).as(StepVerifier::create).assertNext(actual -> {
+
+			assertThat(actual).isBetween(2L, 3L);
+		}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
