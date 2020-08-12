@@ -1,6 +1,26 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.4.0-M2 (2020-08-12)
+----------------------------------------
+* DATAREDIS-1199 - Upgrade to Lettuce 5.3.3.
+* DATAREDIS-1198 - Move off deprecated Spring Framework API.
+* DATAREDIS-1195 - DefaultRedisCacheWriter.putIfAbsent may not set the TTL if the connection drops.
+* DATAREDIS-1191 - Redis repository returns empty object instead of Optional.Empty().
+* DATAREDIS-1190 - Cluster rename fails when targetKey already exists on target node.
+* DATAREDIS-1189 - No subscription retry when using a connection pool.
+* DATAREDIS-1181 - Upgrade to Lettuce 5.3.2.
+* DATAREDIS-1179 - ObjectHashMapper not able to resolve type alias.
+* DATAREDIS-1178 - Scan method on ReactiveSetOperations ignores ScanOptions parameter.
+* DATAREDIS-1177 - Upgrade to xstream 1.4.12.
+* DATAREDIS-1175 - Unable to read a List from a Redis Stream.
+* DATAREDIS-1174 - Release 2.4 M2 (2020.0.0).
+* DATAREDIS-1173 - Close connection unsubscribes from all channels incorrectly using Lettuce.
+* DATAREDIS-1172 - StreamReceiverOptionsBuilder.hashValueSerializer mis-typed.
+* DATAREDIS-1091 - Use of TTL doubles data footprint with phantom records.
+* DATAREDIS-1082 - Expose cache metrics for RedisCache.
+
+
 Changes in version 2.3.2.RELEASE (2020-07-22)
 ---------------------------------------------
 * DATAREDIS-1181 - Upgrade to Lettuce 5.3.2.
@@ -2042,6 +2062,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
