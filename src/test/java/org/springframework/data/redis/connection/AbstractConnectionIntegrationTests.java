@@ -99,6 +99,7 @@ import org.springframework.test.annotation.ProfileValueSourceConfiguration;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Tugdual Grall
+ * @author Dejan Jankov
  */
 @ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
 public abstract class AbstractConnectionIntegrationTests {
@@ -3117,6 +3118,28 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((RecordId) results.get(0)).getValue()).contains("-");
 
 		List<MapRecord<String, String, String>> messages = (List) results.get(2);
+
+		assertThat(messages.get(0).getStream()).isEqualTo(KEY_1);
+		assertThat(messages.get(0).getValue()).isEqualTo(Collections.singletonMap(KEY_3, VALUE_3));
+
+		assertThat(messages.get(1).getStream()).isEqualTo(KEY_1);
+		assertThat(messages.get(1).getValue()).isEqualTo(Collections.singletonMap(KEY_2, VALUE_2));
+	}
+
+	@Test // DATAREDIS-1207
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xRevRangeShouldWorkWithBoundedRange() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
+		actual.add(connection.xRevRange(KEY_1, org.springframework.data.domain.Range.closed("0-0", "+")));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(3);
+
+		List<MapRecord<String, String, String>> messages = (List) results.get(2);
+		assertThat(messages).hasSize(2);
 
 		assertThat(messages.get(0).getStream()).isEqualTo(KEY_1);
 		assertThat(messages.get(0).getValue()).isEqualTo(Collections.singletonMap(KEY_3, VALUE_3));
