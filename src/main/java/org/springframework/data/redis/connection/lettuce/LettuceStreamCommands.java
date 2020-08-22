@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Paluch
+ * @author Dejan Jankov
  * @since 2.2
  */
 @RequiredArgsConstructor
@@ -391,7 +392,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		Assert.notNull(range, "Range must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		io.lettuce.core.Range<String> lettuceRange = RangeConverter.toRange(range);
+		io.lettuce.core.Range<String> lettuceRange = RangeConverter.toRange(range, Function.identity());
 		io.lettuce.core.Limit lettuceLimit = LettuceConverters.toLimit(limit);
 		try {
 			if (isPipelined()) {
