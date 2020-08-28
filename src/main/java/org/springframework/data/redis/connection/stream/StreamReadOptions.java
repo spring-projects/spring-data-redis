@@ -26,6 +26,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Kaizhou Zhang
  * @see 2.2
  */
 public class StreamReadOptions {
@@ -124,8 +125,9 @@ public class StreamReadOptions {
 
 	@Override
 	public String toString() {
-		return "StreamReadOptions{" + "block=" + block + ", count=" + count + ", noack=" + noack + ", autoAcknowledge="
-				+ autoAcknowledge() + ", blocking=" + isBlocking() + '}';
+
+		return "StreamReadOptions{" + "block=" + block + ", count=" + count + ", noack=" + noack + ", blocking="
+				+ isBlocking() + '}';
 	}
 
 	@Override
