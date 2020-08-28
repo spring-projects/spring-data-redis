@@ -35,4 +35,10 @@ public class StreamReadOptionsUnitTests {
 		assertThat(StreamReadOptions.empty().block(Duration.ofSeconds(1)).isBlocking()).isTrue();
 		assertThat(StreamReadOptions.empty().block(Duration.ZERO).isBlocking()).isTrue();
 	}
+
+	@Test // DATAREDIS-1210
+	public void testToString() {
+
+		assertThat(StreamReadOptions.empty().toString()).isEqualTo("StreamReadOptions{block=null, count=null, noack=false, blocking=false}");
+	}
 }

@@ -124,8 +124,7 @@ public class StreamReadOptions {
 
 	@Override
 	public String toString() {
-		return "StreamReadOptions{" + "block=" + block + ", count=" + count + ", noack=" + noack + ", autoAcknowledge="
-				+ autoAcknowledge() + ", blocking=" + isBlocking() + '}';
+		return "StreamReadOptions{" + "block=" + block + ", count=" + count + ", noack=" + noack  + ", blocking=" + isBlocking() + '}';
 	}
 
 	@Override
