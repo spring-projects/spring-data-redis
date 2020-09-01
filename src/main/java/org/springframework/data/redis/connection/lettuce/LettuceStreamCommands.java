@@ -441,7 +441,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 	public PendingMessages xPending(byte[] key, String groupName, XPendingOptions options) {
 
 		byte[] group = LettuceConverters.toBytes(groupName);
-		io.lettuce.core.Range<String> range = RangeConverter.toRangeWithDefault(options.getRange(), "-", "+");
+		io.lettuce.core.Range<String> range = RangeConverter.toRangeWithDefault(options.getRange(), "-", "+", Function.identity());
 		io.lettuce.core.Limit limit = options.isLimited() ? io.lettuce.core.Limit.from(options.getCount())
 				: io.lettuce.core.Limit.unlimited();
 
