@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REDIS_VERSION:=5.0.5
+REDIS_VERSION:=6.0.7
 SPRING_PROFILE?=ci
 SHELL=/bin/bash -euo pipefail
 
@@ -36,6 +36,24 @@ work/redis-%.conf:
 	echo save \"\" >> $@
 	echo slaveof 127.0.0.1 6379 >> $@
 
+# Handled separately because it's a node with authentication. User: spring, password: data. Default password: foobared
+work/redis-6382.conf:
+	@mkdir -p $(@D)
+
+	echo port 6382 >> $@
+	echo daemonize yes >> $@
+	echo protected-mode no >> $@
+	echo bind 0.0.0.0 >> $@
+	echo notify-keyspace-events Ex >> $@
+	echo pidfile $(shell pwd)/work/redis-6382.pid >> $@
+	echo logfile $(shell pwd)/work/redis-6382.log >> $@
+	echo unixsocket $(shell pwd)/work/redis-6382.sock >> $@
+	echo unixsocketperm 755 >> $@
+	echo "requirepass foobared" >> $@
+	echo "user default on #1b58ee375b42e41f0e48ef2ff27d10a5b1f6924a9acdcdba7cae868e7adce6bf ~* +@all" >> $@
+	echo "user spring on #3a6eb0790f39ac87c94f3856b2dd2c5d110e6811602261a9a923d3bb23adc8b7 +@all" >> $@
+	echo save \"\" >> $@
+
 # Handled separately because it's the master and all others are slaves
 work/redis-6379.conf:
 	@mkdir -p $(@D)
@@ -54,9 +72,9 @@ work/redis-6379.conf:
 work/redis-%.pid: work/redis-%.conf work/redis/bin/redis-server
 	work/redis/bin/redis-server $<
 
-redis-start: work/redis-6379.pid work/redis-6380.pid work/redis-6381.pid
+redis-start: work/redis-6379.pid work/redis-6380.pid work/redis-6381.pid work/redis-6382.pid
 
-redis-stop: stop-6379 stop-6380 stop-6381
+redis-stop: stop-6379 stop-6380 stop-6381 stop-6382
 
 ##########
 # Sentinel
@@ -149,6 +167,9 @@ start: redis-start sentinel-start cluster-init
 
 stop-%: work/redis/bin/redis-cli
 	-work/redis/bin/redis-cli -p $* shutdown
+
+stop-6382: work/redis/bin/redis-cli
+	-work/redis/bin/redis-cli -a foobared -p 6382 shutdown
 
 stop: redis-stop sentinel-stop cluster-stop
 

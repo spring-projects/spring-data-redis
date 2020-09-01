@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
@@ -51,11 +52,11 @@ public interface RedisConfiguration {
 
 	/**
 	 * Get the configured {@link RedisPassword} if the current {@link RedisConfiguration} is
-	 * {@link #isPasswordAware(RedisConfiguration) password aware} or evaluate and return the value of the given
+	 * {@link #isAuthenticationAware(RedisConfiguration) password aware} or evaluate and return the value of the given
 	 * {@link Supplier}.
 	 *
 	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
-	 *          {@link #isPasswordAware(RedisConfiguration) password aware}.
+	 *          {@link #isAuthenticationAware(RedisConfiguration) password aware}.
 	 * @return never {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
 	 */
@@ -67,8 +68,8 @@ public interface RedisConfiguration {
 	 * @param configuration can be {@literal null}.
 	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link WithPassword}.
 	 */
-	static boolean isPasswordAware(@Nullable RedisConfiguration configuration) {
-		return configuration instanceof WithPassword;
+	static boolean isAuthenticationAware(@Nullable RedisConfiguration configuration) {
+		return configuration instanceof WithAuthentication;
 	}
 
 	/**
@@ -136,14 +137,28 @@ public interface RedisConfiguration {
 	/**
 	 * @param configuration can be {@literal null}.
 	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
-	 *          {@link #isPasswordAware(RedisConfiguration) password aware}.
+	 *          {@link #isAuthenticationAware(RedisConfiguration) password aware}.
+	 * @return never {@literal null}.
+	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
+	 */
+	static Optional<String> getUsernameOrElse(@Nullable RedisConfiguration configuration,
+			Supplier<Optional<String>> other) {
+
+		Assert.notNull(other, "Other must not be null!");
+		return isAuthenticationAware(configuration) ? ((WithAuthentication) configuration).getUsername() : other.get();
+	}
+
+	/**
+	 * @param configuration can be {@literal null}.
+	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
+	 *          {@link #isAuthenticationAware(RedisConfiguration) password aware}.
 	 * @return never {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
 	 */
 	static RedisPassword getPasswordOrElse(@Nullable RedisConfiguration configuration, Supplier<RedisPassword> other) {
 
 		Assert.notNull(other, "Other must not be null!");
-		return isPasswordAware(configuration) ? ((WithPassword) configuration).getPassword() : other.get();
+		return isAuthenticationAware(configuration) ? ((WithAuthentication) configuration).getPassword() : other.get();
 	}
 
 	/**
@@ -178,9 +193,17 @@ public interface RedisConfiguration {
 	 * {@link RedisConfiguration} part suitable for configurations that may use authentication when connecting.
 	 *
 	 * @author Christoph Strobl
-	 * @since 2.1
+	 * @author Mark Paluch
+	 * @since 2.4
 	 */
-	interface WithPassword {
+	interface WithAuthentication {
+
+		/**
+		 * Create and set a username with the given {@link String}. Requires Redis 6 or newer.
+		 *
+		 * @param username the username.
+		 */
+		void setUsername(String username);
 
 		/**
 		 * Create and set a {@link RedisPassword} for given {@link String}.
@@ -208,11 +231,28 @@ public interface RedisConfiguration {
 		void setPassword(RedisPassword password);
 
 		/**
+		 * Get the username to use when connecting.
+		 *
+		 * @return {@link Optional#empty()} if none set.
+		 */
+		Optional<String> getUsername();
+
+		/**
 		 * Get the RedisPassword to use when connecting.
 		 *
 		 * @return {@link RedisPassword#none()} if none set.
 		 */
 		RedisPassword getPassword();
+	}
+
+	/**
+	 * {@link RedisConfiguration} part suitable for configurations that may use authentication when connecting.
+	 *
+	 * @author Christoph Strobl
+	 * @since 2.1
+	 */
+	interface WithPassword extends WithAuthentication {
+
 	}
 
 	/**
@@ -339,7 +379,17 @@ public interface RedisConfiguration {
 		Set<RedisNode> getSentinels();
 
 		/**
-		 * Get the {@link RedisPassword} used when authenticating with a Redis Server..
+		 * Get the username used when authenticating with a Redis Server.
+		 *
+		 * @return never {@literal null}.
+		 * @since 2.4
+		 */
+		default Optional<String> getDataNodeUsername() {
+			return getUsername();
+		}
+
+		/**
+		 * Get the {@link RedisPassword} used when authenticating with a Redis Server.
 		 *
 		 * @return never {@literal null}.
 		 * @since 2.2.2

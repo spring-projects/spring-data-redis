@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.util.Optional;
+
 import org.springframework.data.redis.connection.RedisConfiguration.DomainSocketConfiguration;
 import org.springframework.util.Assert;
 
@@ -32,6 +34,7 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 
 	private String socket = DEFAULT_SOCKET;
 	private int database;
+	private Optional<String> username = Optional.empty();
 	private RedisPassword password = RedisPassword.none();
 
 	/**
@@ -90,6 +93,24 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
 
 		this.database = index;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#setUsername(String)
+	 */
+	@Override
+	public void setUsername(String username) {
+		this.username = Optional.of(username);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#getUsername()
+	 */
+	@Override
+	public Optional<String> getUsername() {
+		return this.username;
 	}
 
 	/*

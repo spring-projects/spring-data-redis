@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.util.Optional;
+
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
@@ -37,6 +39,7 @@ public class RedisStandaloneConfiguration
 	private String hostName = DEFAULT_HOST;
 	private int port = DEFAULT_PORT;
 	private int database;
+	private Optional<String> username = Optional.empty();
 	private RedisPassword password = RedisPassword.none();
 
 	/**
@@ -123,6 +126,24 @@ public class RedisStandaloneConfiguration
 		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
 
 		this.database = index;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#setUsername(String)
+	 */
+	@Override
+	public void setUsername(String username) {
+		this.username = Optional.of(username);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#getUsername()
+	 */
+	@Override
+	public Optional<String> getUsername() {
+		return this.username;
 	}
 
 	/*
