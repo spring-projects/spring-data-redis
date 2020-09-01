@@ -18,12 +18,20 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.protocol.ProtocolVersion;
+
+import java.io.IOException;
+import java.util.Collections;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 
@@ -71,6 +79,30 @@ public class LettuceAclIntegrationTests {
 		RedisConnection connection = connectionFactory.getConnection();
 
 		assertThat(connection.ping()).isEqualTo("PONG");
+		connection.close();
+
+		connectionFactory.destroy();
+	}
+
+	@Test // DATAREDIS-1145
+	public void shouldConnectSentinelWithAuthentication() throws IOException {
+
+		// Note: As per https://github.com/redis/redis/issues/7708, Sentinel does not support ACL authentication yet.
+
+		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
+				.clientResources(LettuceTestClientResources.getSharedClientResources())
+				.clientOptions(ClientOptions.builder().protocolVersion(ProtocolVersion.RESP2).build()).build();
+
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration("mymaster",
+				Collections.singleton("localhost:26382"));
+		sentinelConfiguration.setSentinelPassword("foobared");
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration, configuration);
+		connectionFactory.afterPropertiesSet();
+
+		RedisSentinelConnection connection = connectionFactory.getSentinelConnection();
+
+		assertThat(connection.masters()).isNotEmpty();
 		connection.close();
 
 		connectionFactory.destroy();
