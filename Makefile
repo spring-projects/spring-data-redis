@@ -93,12 +93,29 @@ work/sentinel-%.conf:
 	echo save \"\" >> $@
 	echo sentinel monitor mymaster 127.0.0.1 6379 2 >> $@
 
+# Password-protected Sentinel
+work/sentinel-26382.conf:
+	@mkdir -p $(@D)
+
+	echo port 26382 >> $@
+	echo daemonize yes >> $@
+	echo protected-mode no >> $@
+	echo bind 0.0.0.0 >> $@
+	echo pidfile $(shell pwd)/work/sentinel-26382.pid >> $@
+	echo logfile $(shell pwd)/work/sentinel-26382.log >> $@
+	echo save \"\" >> $@
+	echo "requirepass foobared" >> $@
+	echo "user default on #1b58ee375b42e41f0e48ef2ff27d10a5b1f6924a9acdcdba7cae868e7adce6bf ~* +@all" >> $@
+	echo "user spring on #3a6eb0790f39ac87c94f3856b2dd2c5d110e6811602261a9a923d3bb23adc8b7 +@all" >> $@
+	echo sentinel monitor mymaster 127.0.0.1 6382 2 >> $@
+	echo sentinel auth-pass mymaster foobared >> $@
+
 work/sentinel-%.pid: work/sentinel-%.conf work/redis-6379.pid work/redis/bin/redis-server
 	work/redis/bin/redis-server $< --sentinel
 
-sentinel-start: work/sentinel-26379.pid work/sentinel-26380.pid work/sentinel-26381.pid
+sentinel-start: work/sentinel-26379.pid work/sentinel-26380.pid work/sentinel-26381.pid work/sentinel-26382.pid
 
-sentinel-stop: stop-26379 stop-26380 stop-26381
+sentinel-stop: stop-26379 stop-26380 stop-26381 stop-26382
 
 
 #########
@@ -170,6 +187,9 @@ stop-%: work/redis/bin/redis-cli
 
 stop-6382: work/redis/bin/redis-cli
 	-work/redis/bin/redis-cli -a foobared -p 6382 shutdown
+
+stop-26382: work/redis/bin/redis-cli
+	-work/redis/bin/redis-cli -a foobared -p 26382 shutdown
 
 stop: redis-stop sentinel-stop cluster-stop
 

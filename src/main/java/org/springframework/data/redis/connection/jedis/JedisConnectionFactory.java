@@ -371,10 +371,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	protected Pool<Jedis> createRedisSentinelPool(RedisSentinelConfiguration config) {
 
 		GenericObjectPoolConfig<?> poolConfig = getPoolConfig() != null ? getPoolConfig() : new JedisPoolConfig();
+		String sentinelUser = null;
+		String sentinelPassword = config.getSentinelPassword().toOptional().map(String::new).orElse(null);
 
 		return new JedisSentinelPool(config.getMaster().getName(), convertToJedisSentinelSet(config.getSentinels()),
 				poolConfig, getConnectTimeout(), getReadTimeout(), getUsername(), getPassword(), getDatabase(),
-				getClientName());
+				getClientName(), getConnectTimeout(), getReadTimeout(), sentinelUser, sentinelPassword, getClientName());
 	}
 
 	/**
@@ -868,10 +870,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private Jedis getActiveSentinel() {
 
 		Assert.isTrue(RedisConfiguration.isSentinelConfiguration(configuration), "SentinelConfig must not be null!");
+		SentinelConfiguration sentinelConfiguration = (SentinelConfiguration) configuration;
 
-		for (RedisNode node : ((SentinelConfiguration) configuration).getSentinels()) {
+		for (RedisNode node : sentinelConfiguration.getSentinels()) {
 
 			Jedis jedis = new Jedis(node.getHost(), node.getPort(), getConnectTimeout(), getReadTimeout());
+			sentinelConfiguration.getSentinelPassword().toOptional().map(String::new).ifPresent(jedis::auth);
 
 			try {
 				if (jedis.ping().equalsIgnoreCase("pong")) {
