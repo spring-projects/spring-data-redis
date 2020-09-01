@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.core.env.MapPropertySource;
@@ -49,6 +50,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 
 	private Set<RedisNode> clusterNodes;
 	private @Nullable Integer maxRedirects;
+	private Optional<String> username = Optional.empty();
 	private RedisPassword password = RedisPassword.none();
 
 	/**
@@ -180,6 +182,24 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		for (String hostAndPort : hostAndPorts) {
 			addClusterNode(readHostAndPortFromString(hostAndPort));
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#setUsername(String)
+	 */
+	@Override
+	public void setUsername(String username) {
+		this.username = Optional.of(username);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#getUsername()
+	 */
+	@Override
+	public Optional<String> getUsername() {
+		return this.username;
 	}
 
 	/*

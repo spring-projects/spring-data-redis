@@ -171,16 +171,6 @@ public class DefaultLettucePoolTests {
 		pool.getResource();
 	}
 
-	@Test(expected = PoolException.class)
-	public void testCreateWithPasswordNoPassword() {
-
-		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		pool.setPassword("notthepassword");
-		pool.afterPropertiesSet();
-		pool.getResource();
-	}
-
 	@Ignore("Redis must have requirepass set to run this test")
 	@Test
 	public void testCreatePassword() {

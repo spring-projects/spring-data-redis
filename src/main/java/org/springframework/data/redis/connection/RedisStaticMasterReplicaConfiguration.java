@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.redis.connection.RedisConfiguration.StaticMasterReplicaConfiguration;
 import org.springframework.util.Assert;
@@ -40,6 +41,7 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 
 	private List<RedisStandaloneConfiguration> nodes = new ArrayList<>();
 	private int database;
+	private Optional<String> username = Optional.empty();
 	private RedisPassword password = RedisPassword.none();
 
 	/**
@@ -128,6 +130,24 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 
 		this.database = index;
 		this.nodes.forEach(it -> it.setDatabase(database));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#setUsername(String)
+	 */
+	@Override
+	public void setUsername(String username) {
+		this.username = Optional.of(username);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#getUsername()
+	 */
+	@Override
+	public Optional<String> getUsername() {
+		return this.username;
 	}
 
 	/*

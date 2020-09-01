@@ -788,6 +788,9 @@ public class LettuceConnectionFactory
 		this.getMutableConfiguration().setClientName(clientName);
 	}
 
+	private Optional<String> getRedisUsername() {
+		return RedisConfiguration.getUsernameOrElse(configuration, standaloneConfig::getUsername);
+	}
 	/**
 	 * Returns the password used for authenticating with the Redis server.
 	 *
@@ -812,7 +815,7 @@ public class LettuceConnectionFactory
 	@Deprecated
 	public void setPassword(String password) {
 
-		if (RedisConfiguration.isPasswordAware(configuration)) {
+		if (RedisConfiguration.isAuthenticationAware(configuration)) {
 
 			((WithPassword) configuration).setPassword(password);
 			return;
@@ -1135,7 +1138,8 @@ public class LettuceConnectionFactory
 
 		RedisURI.Builder builder = RedisURI.Builder.redis(host, port);
 
-		getRedisPassword().toOptional().ifPresent(builder::withPassword);
+		applyAuthentication(builder);
+
 		clientConfiguration.getClientName().ifPresent(builder::withClientName);
 
 		builder.withDatabase(getDatabase());
@@ -1151,11 +1155,23 @@ public class LettuceConnectionFactory
 
 		RedisURI.Builder builder = RedisURI.Builder.socket(socketPath);
 
-		getRedisPassword().toOptional().ifPresent(builder::withPassword);
+		applyAuthentication(builder);
 		builder.withDatabase(getDatabase());
 		builder.withTimeout(clientConfiguration.getCommandTimeout());
 
 		return builder.build();
+	}
+
+	private void applyAuthentication(RedisURI.Builder builder) {
+
+		Optional<String> username = getRedisUsername();
+		if (username.isPresent()) {
+			// See https://github.com/lettuce-io/lettuce-core/issues/1404
+			username.ifPresent(
+					it -> builder.withAuthentication(it, new String(getRedisPassword().toOptional().orElse(new char[0]))));
+		} else {
+			getRedisPassword().toOptional().ifPresent(builder::withPassword);
+		}
 	}
 
 	@Override
