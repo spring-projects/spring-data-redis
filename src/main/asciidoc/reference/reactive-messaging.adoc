@@ -54,14 +54,14 @@ The message listener container itself does not require external threading resour
 ReactiveRedisConnectionFactory factory = …
 ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(factory);
 
-Flux<ChannelMessage<String, String>> stream = container.receive(ChannelTopic.of("my-chanel"));
+Flux<ChannelMessage<String, String>> stream = container.receive(ChannelTopic.of("my-channel"));
 ----
 
 [[redis:reactive:pubsub:subscribe:template]]
 === Subscribing via template API
 
 As mentioned above you can directly use `ReactiveRedisTemplate` to subscribe to channels / patterns. This approach
-offers a straight forward, though limited solution as you loose the option to add subscriptions after the initial
+offers a straight forward, though limited solution as you lose the option to add subscriptions after the initial
 ones. Nevertheless you still can control the message stream via the returned `Flux` using eg. `take(Duration)`. When
 done reading, on error or cancellation all bound resources are freed again.
 
