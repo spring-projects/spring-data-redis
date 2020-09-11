@@ -3841,7 +3841,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long xTrim(String key, long count) {
-		return convertAndReturn(delegate.xTrim(serialize(key), count), identityConverter);
+		return xTrim(key, count, false);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xTrim(java.lang.String, long, boolean)
+	 */
+	@Override
+	public Long xTrim(String key, long count, boolean approximateTrimming) {
+		return convertAndReturn(delegate.xTrim(serialize(key), count, approximateTrimming), identityConverter);
 	}
 
 	/*
@@ -4022,7 +4031,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long xTrim(byte[] key, long count) {
-		return delegate.xTrim(key, count);
+		return xTrim(key, count, false);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xTrim(byte[], long, boolean)
+	 */
+	@Override
+	public Long xTrim(byte[] key, long count, boolean approximateTrimming) {
+		return delegate.xTrim(key, count, approximateTrimming);
 	}
 
 	/**

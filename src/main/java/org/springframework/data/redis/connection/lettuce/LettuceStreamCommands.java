@@ -662,19 +662,27 @@ class LettuceStreamCommands implements RedisStreamCommands {
 	 */
 	@Override
 	public Long xTrim(byte[] key, long count) {
+		return xTrim(key, count, false);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xTrim(byte[], long, boolean)
+	 */
+	@Override
+	public Long xTrim(byte[] key, long count, boolean approximateTrimming) {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xtrim(key, count)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().xtrim(key, approximateTrimming, count)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xtrim(key, count)));
+				transaction(connection.newLettuceResult(getAsyncConnection().xtrim(key, approximateTrimming, count)));
 				return null;
 			}
-			return getConnection().xtrim(key, count);
+			return getConnection().xtrim(key, approximateTrimming, count);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

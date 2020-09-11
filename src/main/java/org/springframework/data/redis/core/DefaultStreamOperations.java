@@ -337,6 +337,12 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	}
 
 	@Override
+	public Long trim(K key, long count, boolean approximateTrimming) {
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.xTrim(rawKey, count, approximateTrimming), true);
+	}
+
+	@Override
 	public <V> HashMapper<V, HK, HV> getHashMapper(Class<V> targetType) {
 		return objectMapper.getHashMapper(targetType);
 	}

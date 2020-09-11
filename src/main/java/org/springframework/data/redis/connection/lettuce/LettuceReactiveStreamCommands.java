@@ -420,7 +420,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getCount(), "Count must not be null!");
 
-			return cmd.xtrim(command.getKey(), command.getCount()).map(value -> new NumericResponse<>(command, value));
+			return cmd.xtrim(command.getKey(), command.isApproximateTrimming(), command.getCount()).map(value -> new NumericResponse<>(command, value));
 		}));
 	}
 

@@ -1733,6 +1733,13 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 		super.xTrimShouldDelegateAndConvertCorrectly();
 	}
 
+	@Test
+	public void xTrimApproximateShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList(1L)).when(nativeConnection).exec();
+		super.xTrimApproximateShouldDelegateAndConvertCorrectly();
+	}
+
 	protected List<Object> getResults() {
 		return connection.exec();
 	}
