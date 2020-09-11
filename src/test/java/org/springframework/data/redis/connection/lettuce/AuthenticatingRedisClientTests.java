@@ -22,7 +22,9 @@ import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.springframework.data.redis.test.util.ServerAvailable;
 
 /**
  * Integration test of {@link AuthenticatingRedisClient}.
@@ -34,6 +36,8 @@ import org.junit.Test;
 public class AuthenticatingRedisClientTests {
 
 	private RedisClient client;
+
+	@ClassRule public static ServerAvailable serverAvailable = ServerAvailable.runningAtLocalhost(6382);
 
 	@Before
 	public void setUp() {

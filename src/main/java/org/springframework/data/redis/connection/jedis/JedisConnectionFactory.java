@@ -58,6 +58,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Connection factory creating <a href="https://github.com/xetorthio/jedis">Jedis</a> based connections.
@@ -328,7 +329,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 					clientConfiguration.getHostnameVerifier().orElse(null));
 
 			getRedisPassword().map(String::new).ifPresent(shardInfo::setPassword);
-			getRedisUsername().ifPresent(shardInfo::setUser);
+			String username = getRedisUsername();
+			if (StringUtils.hasText(username)) {
+				shardInfo.setUser(username);
+			}
 
 			int readTimeout = getReadTimeout();
 
@@ -375,8 +379,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		String sentinelPassword = config.getSentinelPassword().toOptional().map(String::new).orElse(null);
 
 		return new JedisSentinelPool(config.getMaster().getName(), convertToJedisSentinelSet(config.getSentinels()),
-				poolConfig, getConnectTimeout(), getReadTimeout(), getUsername(), getPassword(), getDatabase(),
-				getClientName(), getConnectTimeout(), getReadTimeout(), sentinelUser, sentinelPassword, getClientName());
+				poolConfig, getConnectTimeout(), getReadTimeout(), getUsername(), getPassword(), getDatabase(), getClientName(),
+				getConnectTimeout(), getReadTimeout(), sentinelUser, sentinelPassword, getClientName());
 	}
 
 	/**
@@ -556,7 +560,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	@Nullable
 	private String getUsername() {
-		return getRedisUsername().orElse(null);
+		return getRedisUsername();
 	}
 
 	/**
@@ -569,7 +573,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return getRedisPassword().map(String::new).orElse(null);
 	}
 
-	private Optional<String> getRedisUsername() {
+	@Nullable
+	private String getRedisUsername() {
 		return RedisConfiguration.getUsernameOrElse(this.configuration, standaloneConfig::getUsername);
 	}
 

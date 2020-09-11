@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assume.*;
 
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.protocol.ProtocolVersion;
@@ -24,28 +23,29 @@ import io.lettuce.core.protocol.ProtocolVersion;
 import java.io.IOException;
 import java.util.Collections;
 
-import org.junit.Before;
+import org.junit.Assume;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import org.springframework.data.redis.RedisTestProfileValueSource;
+import org.junit.rules.RuleChain;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.data.redis.test.util.ServerAvailable;
 
 /**
  * Integration tests for Redis 6 ACL.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class LettuceAclIntegrationTests {
 
-	@Before
-	public void before() {
-		assumeTrue(RedisTestProfileValueSource.atLeast("redisVersion", "6.0"));
-	}
+	@ClassRule public static RuleChain requirements = RuleChain.outerRule(ServerAvailable.runningAtLocalhost(6382))
+			.around(new MinimumRedisVersionRule());
 
 	@Test // DATAREDIS-1046
 	public void shouldConnectWithDefaultAuthentication() {
@@ -86,6 +86,9 @@ public class LettuceAclIntegrationTests {
 
 	@Test // DATAREDIS-1145
 	public void shouldConnectSentinelWithAuthentication() throws IOException {
+
+		Assume.assumeTrue("Redis Sentinel at localhost:26382 did not answer.",
+				ServerAvailable.runningAtLocalhost(26382).isAvailable());
 
 		// Note: As per https://github.com/redis/redis/issues/7708, Sentinel does not support ACL authentication yet.
 

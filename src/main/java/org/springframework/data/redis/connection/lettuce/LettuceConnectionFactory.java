@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
@@ -62,6 +61,7 @@ import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Connection factory creating <a href="https://github.com/mp911de/lettuce">Lettuce</a>-based connections.
@@ -788,9 +788,11 @@ public class LettuceConnectionFactory
 		this.getMutableConfiguration().setClientName(clientName);
 	}
 
-	private Optional<String> getRedisUsername() {
+	@Nullable
+	private String getRedisUsername() {
 		return RedisConfiguration.getUsernameOrElse(configuration, standaloneConfig::getUsername);
 	}
+
 	/**
 	 * Returns the password used for authenticating with the Redis server.
 	 *
@@ -1164,11 +1166,10 @@ public class LettuceConnectionFactory
 
 	private void applyAuthentication(RedisURI.Builder builder) {
 
-		Optional<String> username = getRedisUsername();
-		if (username.isPresent()) {
+		String username = getRedisUsername();
+		if (StringUtils.hasText(username)) {
 			// See https://github.com/lettuce-io/lettuce-core/issues/1404
-			username.ifPresent(
-					it -> builder.withAuthentication(it, new String(getRedisPassword().toOptional().orElse(new char[0]))));
+			builder.withAuthentication(username, new String(getRedisPassword().toOptional().orElse(new char[0])));
 		} else {
 			getRedisPassword().toOptional().ifPresent(builder::withPassword);
 		}

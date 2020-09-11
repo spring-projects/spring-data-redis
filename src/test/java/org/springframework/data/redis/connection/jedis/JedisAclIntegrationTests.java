@@ -16,31 +16,32 @@
 package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assume.*;
 
 import java.io.IOException;
 import java.util.Collections;
 
-import org.junit.Before;
+import org.junit.Assume;
+import org.junit.ClassRule;
 import org.junit.Test;
-
-import org.springframework.data.redis.RedisTestProfileValueSource;
+import org.junit.rules.RuleChain;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.data.redis.test.util.ServerAvailable;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration tests for Redis 6 ACL.
  *
  * @author Mark Paluch
  */
+@IfProfileValue(name = "redisVersion", value = "6.0+")
 public class JedisAclIntegrationTests {
 
-	@Before
-	public void before() {
-		assumeTrue(RedisTestProfileValueSource.atLeast("redisVersion", "6.0"));
-	}
+	@ClassRule public static RuleChain requirements = RuleChain.outerRule(ServerAvailable.runningAtLocalhost(6382))
+			.around(new MinimumRedisVersionRule());
 
 	@Test
 	public void shouldConnectWithDefaultAuthentication() {
@@ -79,6 +80,9 @@ public class JedisAclIntegrationTests {
 
 	@Test // DATAREDIS-1145
 	public void shouldConnectSentinelWithAclAuthentication() throws IOException {
+
+		Assume.assumeTrue("Redis Sentinel at localhost:26382 did not answer.",
+				ServerAvailable.runningAtLocalhost(26382).isAvailable());
 
 		// Note: As per https://github.com/redis/redis/issues/7708, Sentinel does not support ACL authentication yet.
 

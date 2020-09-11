@@ -309,7 +309,6 @@ abstract public class LettuceConverters extends Converters {
 
 		TRANSACTION_RESULT_UNWRAPPER = transactionResult -> transactionResult.stream().collect(Collectors.toList());
 
-
 	}
 
 	public static List<Tuple> toTuple(List<byte[]> list) {
@@ -653,12 +652,12 @@ abstract public class LettuceConverters extends Converters {
 			builder.withSentinel(sentinelBuilder.build());
 		}
 
-		Optional<String> username = sentinelConfiguration.getUsername();
+		String username = sentinelConfiguration.getUsername();
 		RedisPassword password = sentinelConfiguration.getPassword();
 
-		if (username.isPresent()) {
+		if (StringUtils.hasText(username)) {
 			// See https://github.com/lettuce-io/lettuce-core/issues/1404
-			builder.withAuthentication(username.get(), new String(password.toOptional().orElse(new char[0])));
+			builder.withAuthentication(username, new String(password.toOptional().orElse(new char[0])));
 		} else {
 			password.toOptional().ifPresent(builder::withPassword);
 		}

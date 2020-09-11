@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.Optional;
-
 import org.springframework.data.redis.connection.RedisConfiguration.DomainSocketConfiguration;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -34,7 +33,7 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 
 	private String socket = DEFAULT_SOCKET;
 	private int database;
-	private Optional<String> username = Optional.empty();
+	private @Nullable String username = null;
 	private RedisPassword password = RedisPassword.none();
 
 	/**
@@ -100,16 +99,17 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#setUsername(String)
 	 */
 	@Override
-	public void setUsername(String username) {
-		this.username = Optional.of(username);
+	public void setUsername(@Nullable String username) {
+		this.username = username;
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#getUsername()
 	 */
+	@Nullable
 	@Override
-	public Optional<String> getUsername() {
+	public String getUsername() {
 		return this.username;
 	}
 

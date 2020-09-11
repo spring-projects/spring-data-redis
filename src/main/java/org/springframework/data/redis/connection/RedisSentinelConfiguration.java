@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.core.env.MapPropertySource;
@@ -51,7 +50,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	private Set<RedisNode> sentinels;
 	private int database;
 
-	private Optional<String> dataNodeUsername = Optional.empty();
+	private @Nullable String dataNodeUsername = null;
 	private RedisPassword dataNodePassword = RedisPassword.none();
 	private RedisPassword sentinelPassword = RedisPassword.none();
 
@@ -236,16 +235,17 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#setUsername(String)
 	 */
 	@Override
-	public void setUsername(String username) {
-		this.dataNodeUsername = Optional.of(username);
+	public void setUsername(@Nullable String username) {
+		this.dataNodeUsername = username;
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#getUsername()
 	 */
+	@Nullable
 	@Override
-	public Optional<String> getUsername() {
+	public String getUsername() {
 		return this.dataNodeUsername;
 	}
 
