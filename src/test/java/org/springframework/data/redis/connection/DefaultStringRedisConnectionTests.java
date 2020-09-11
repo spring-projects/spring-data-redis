@@ -2169,6 +2169,15 @@ public class DefaultStringRedisConnectionTests {
 		Assertions.assertThat(getResults()).containsExactly(1L);
 	}
 
+	@Test
+	public void xTrimApproximateShouldDelegateAndConvertCorrectly() {
+
+		doReturn(1L).when(nativeConnection).xTrim(any(), anyLong(), anyBoolean());
+
+		actual.add(connection.xTrim("key", 2L, true));
+		Assertions.assertThat(getResults()).containsExactly(1L);
+	}
+
 	protected List<Object> getResults() {
 		return actual;
 	}

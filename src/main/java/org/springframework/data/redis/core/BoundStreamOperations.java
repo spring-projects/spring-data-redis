@@ -208,4 +208,15 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 */
 	@Nullable
 	Long trim(long count);
+
+	/**
+	 * Trims the stream to {@code count} elements.
+	 *
+	 * @param count length of the stream.
+	 * @param approximateTrimming the trimming must be performed in a approximated way in order to maximize performances.
+	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
+	@Nullable
+	Long trim(long count, boolean approximateTrimming);
 }

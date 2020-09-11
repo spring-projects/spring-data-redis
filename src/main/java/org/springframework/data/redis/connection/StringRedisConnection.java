@@ -2459,4 +2459,17 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	Long xTrim(String key, long count);
+
+	/**
+	 * Trims the stream to {@code count} elements.
+	 *
+	 * @param key the stream key.
+	 * @param count length of the stream.
+	 * @param approximateTrimming the trimming must be performed in a approximated way in order to maximize performances.
+	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
+	@Nullable
+	Long xTrim(String key, long count, boolean approximateTrimming);
 }

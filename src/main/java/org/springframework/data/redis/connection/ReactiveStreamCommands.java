@@ -1376,11 +1376,12 @@ public interface ReactiveStreamCommands {
 	class TrimCommand extends KeyCommand {
 
 		private @Nullable Long count;
+		private boolean approximateTrimming;
 
-		private TrimCommand(ByteBuffer key, @Nullable Long count) {
-
+		private TrimCommand(ByteBuffer key, @Nullable Long count, boolean approximateTrimming) {
 			super(key);
 			this.count = count;
+			this.approximateTrimming = approximateTrimming;
 		}
 
 		/**
@@ -1393,7 +1394,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(key, "Key must not be null!");
 
-			return new TrimCommand(key, null);
+			return new TrimCommand(key, null, false);
 		}
 
 		/**
@@ -1401,10 +1402,11 @@ public interface ReactiveStreamCommands {
 		 * properties.
 		 *
 		 * @param count
+		 * @param approximateTrimming
 		 * @return a new {@link TrimCommand} with {@literal count} applied.
 		 */
-		public TrimCommand to(long count) {
-			return new TrimCommand(getKey(), count);
+		public TrimCommand to(long count, boolean approximateTrimming) {
+			return new TrimCommand(getKey(), count, approximateTrimming);
 		}
 
 		/**
@@ -1413,6 +1415,10 @@ public interface ReactiveStreamCommands {
 		@Nullable
 		public Long getCount() {
 			return count;
+		}
+
+		public boolean isApproximateTrimming() {
+			return approximateTrimming;
 		}
 	}
 
@@ -1425,10 +1431,23 @@ public interface ReactiveStreamCommands {
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
 	default Mono<Long> xTrim(ByteBuffer key, long count) {
+		return xTrim(key, count, false);
+	}
+
+	/**
+	 * Trims the stream to {@code count} elements.
+	 *
+	 * @param key the stream key.
+	 * @param count length of the stream.
+	 * @param approximateTrimming the trimming must be performed in a approximated way in order to maximize performances.
+	 * @return {@link Mono} emitting the number of removed entries.
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
+	default Mono<Long> xTrim(ByteBuffer key, long count, boolean approximateTrimming) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return xTrim(Mono.just(TrimCommand.stream(key).to(count))).next().map(NumericResponse::getOutput);
+		return xTrim(Mono.just(TrimCommand.stream(key).to(count, approximateTrimming))).next().map(NumericResponse::getOutput);
 	}
 
 	/**

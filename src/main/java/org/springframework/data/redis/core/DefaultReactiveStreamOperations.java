@@ -341,10 +341,18 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	 */
 	@Override
 	public Mono<Long> trim(K key, long count) {
+		return trim(key, count, false);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#trim(java.lang.Object, long, boolean)
+	 */
+	@Override
+	public Mono<Long> trim(K key, long count, boolean approximateTrimming) {
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.xTrim(rawKey(key), count));
+		return createMono(connection -> connection.xTrim(rawKey(key), count, approximateTrimming));
 	}
 
 	@Override
