@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author dengliming
  * @since 2.0
  */
 class LettuceStringCommands implements RedisStringCommands {
@@ -156,7 +157,15 @@ class LettuceStringCommands implements RedisStringCommands {
 	 */
 	@Override
 	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+		return set(key, value, expiration, option, false);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[], org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOption, boolean)
+	 */
+	@Override
+	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option, boolean keepTtl) {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 		Assert.notNull(expiration, "Expiration must not be null!");
@@ -165,18 +174,18 @@ class LettuceStringCommands implements RedisStringCommands {
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newLettuceResult(
-						getAsyncConnection().set(key, value, LettuceConverters.toSetArgs(expiration, option)),
+						getAsyncConnection().set(key, value, LettuceConverters.toSetArgs(expiration, option, keepTtl)),
 						Converters.stringToBooleanConverter(), () -> false));
 				return null;
 			}
 			if (isQueueing()) {
 				transaction(connection.newLettuceResult(
-						getAsyncConnection().set(key, value, LettuceConverters.toSetArgs(expiration, option)),
+						getAsyncConnection().set(key, value, LettuceConverters.toSetArgs(expiration, option, keepTtl)),
 						Converters.stringToBooleanConverter(), () -> false));
 				return null;
 			}
 			return Converters
-					.stringToBoolean(getConnection().set(key, value, LettuceConverters.toSetArgs(expiration, option)));
+					.stringToBoolean(getConnection().set(key, value, LettuceConverters.toSetArgs(expiration, option, keepTtl)));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

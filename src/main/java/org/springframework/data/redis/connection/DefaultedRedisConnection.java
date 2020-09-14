@@ -297,6 +297,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
+	default Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option, boolean keepTtl) {
+		return stringCommands().set(key, value, expiration, option, keepTtl);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
+	@Override
+	@Deprecated
 	default Boolean setNX(byte[] key, byte[] value) {
 		return stringCommands().setNX(key, value);
 	}

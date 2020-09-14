@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
@@ -2465,5 +2466,20 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 								create().get(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).get(INT_8)
 										.valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()))).containsExactly(100L,
 												-56L);
+	}
+
+	@Test // DATAREDIS-1103
+	public void setKeepTTL() {
+
+		long expireSeconds = 10;
+		assertThat(clusterConnection.setEx(KEY_1_BYTES, expireSeconds, VALUE_2_BYTES));
+
+		assertThat(clusterConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
+
+		assertThat(clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.upsert(), true));
+
+		long ttl = clusterConnection.ttl(KEY_1_BYTES);
+
+		assertThat(0 < ttl && ttl <= expireSeconds);
 	}
 }

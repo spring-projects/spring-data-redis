@@ -93,6 +93,22 @@ public interface RedisStringCommands {
 	Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option);
 
 	/**
+	 * Set {@code value} for {@code key} applying timeouts from {@code expiration} if set and inserting/updating values
+	 * depending on {@code option}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl.
+	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non existing.
+	 * @param keepTtl set the value and retain the existing TTL.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	@Nullable
+	Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option, boolean keepTtl);
+
+	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
 	 *
 	 * @param key must not be {@literal null}.
