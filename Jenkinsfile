@@ -14,10 +14,10 @@ pipeline {
 	stages {
 		stage("Docker images") {
 			parallel {
-				stage('Publish OpenJDK 8 + Redis 5.0 docker image') {
+				stage('Publish OpenJDK 8 + Redis 6.0 docker image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk8-redis-5.0/**"
+							changeset "ci/openjdk8-redis-6.0/**"
 							changeset "Makefile"
 						}
 					}
@@ -26,17 +26,17 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-openjdk8-with-redis-5.0", "-f ci/openjdk8-redis-5.0/Dockerfile .")
+							def image = docker.build("springci/spring-data-openjdk8-with-redis-6.0", "-f ci/openjdk8-redis-6.0/Dockerfile .")
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 								image.push()
 							}
 						}
 					}
 				}
-				stage('Publish OpenJDK 11 + Redis 5.0 docker image') {
+				stage('Publish OpenJDK 11 + Redis 6.0 docker image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk11-redis-5.0/**"
+							changeset "ci/openjdk11-redis-6.0/**"
 							changeset "Makefile"
 						}
 					}
@@ -45,7 +45,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-openjdk11-with-redis-5.0", "-f ci/openjdk11-redis-5.0/Dockerfile .")
+							def image = docker.build("springci/spring-data-openjdk11-with-redis-6.0", "-f ci/openjdk11-redis-6.0/Dockerfile .")
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 								image.push()
 							}
@@ -64,7 +64,7 @@ pipeline {
 			}
 			agent {
 				docker {
-					image 'springci/spring-data-openjdk8-with-redis-5.0:latest'
+					image 'springci/spring-data-openjdk8-with-redis-6.0:latest'
 					label 'data'
 					args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
 				}
@@ -103,7 +103,7 @@ pipeline {
 				stage("test: baseline (jdk11)") {
 					agent {
 						docker {
-							image 'springci/spring-data-openjdk11-with-redis-5.0:latest'
+							image 'springci/spring-data-openjdk11-with-redis-6.0:latest'
 							label 'data'
 							args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
 						}
