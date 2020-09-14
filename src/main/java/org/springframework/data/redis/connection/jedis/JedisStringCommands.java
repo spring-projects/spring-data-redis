@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import redis.clients.jedis.BitPosParams;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.params.SetParams;
@@ -34,6 +35,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author dengliming
  * @since 2.0
  */
 class JedisStringCommands implements RedisStringCommands {
@@ -239,6 +241,15 @@ class JedisStringCommands implements RedisStringCommands {
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#setKeepTTL(byte[], byte[], org.springframework.data.redis.connection.RedisStringCommands.SetOption)
+	 */
+	@Override
+	public Boolean setKeepTTL(byte[] key, byte[] value, SetOption option) {
+		throw new InvalidDataAccessApiUsageException("KEEPTTL is currently not supported in jedis.");
 	}
 
 	/*

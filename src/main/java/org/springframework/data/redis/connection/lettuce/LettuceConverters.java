@@ -762,13 +762,17 @@ abstract public class LettuceConverters extends Converters {
 	/**
 	 * Converts a given {@link Expiration} and {@link SetOption} to the according {@link SetArgs}.<br />
 	 *
+	 * @param keepttl
 	 * @param expiration can be {@literal null}.
 	 * @param option can be {@literal null}.
-	 * @since 1.7
+	 * @since 2.4
 	 */
-	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
+	public static SetArgs toSetArgs(boolean keepttl, @Nullable Expiration expiration, @Nullable SetOption option) {
 
 		SetArgs args = new SetArgs();
+		if (keepttl) {
+			args.keepttl();
+		}
 		if (expiration != null && !expiration.isPersistent()) {
 
 			switch (expiration.getTimeUnit()) {
@@ -795,6 +799,17 @@ abstract public class LettuceConverters extends Converters {
 			}
 		}
 		return args;
+	}
+
+	/**
+	 * Converts a given {@link Expiration} and {@link SetOption} to the according {@link SetArgs}.<br />
+	 *
+	 * @param expiration can be {@literal null}.
+	 * @param option can be {@literal null}.
+	 * @since 1.7
+	 */
+	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
+		return toSetArgs(false, expiration, option);
 	}
 
 	static Converter<List<byte[]>, Long> toTimeConverter() {

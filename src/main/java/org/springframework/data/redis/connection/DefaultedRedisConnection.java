@@ -388,6 +388,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
+	default Boolean setKeepTTL(byte[] key, byte[] value, SetOption option) {
+		return stringCommands().setKeepTTL(key, value, option);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
+	@Override
+	@Deprecated
 	default Boolean getBit(byte[] key, long offset) {
 		return stringCommands().getBit(key, offset);
 	}

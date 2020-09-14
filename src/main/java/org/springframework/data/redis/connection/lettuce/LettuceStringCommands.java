@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author dengliming
  * @since 2.0
  */
 class LettuceStringCommands implements RedisStringCommands {
@@ -229,6 +230,36 @@ class LettuceStringCommands implements RedisStringCommands {
 				return null;
 			}
 			return Converters.stringToBoolean(getConnection().setex(key, seconds, value));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#setKeepTTL(byte[], byte[], org.springframework.data.redis.connection.RedisStringCommands.SetOption)
+	 */
+	@Override
+	public Boolean setKeepTTL(byte[] key, byte[] value, SetOption option) {
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(option, "Option must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(
+						getAsyncConnection().set(key, value, LettuceConverters.toSetArgs(true, null, option)),
+						Converters.stringToBooleanConverter(), () -> false));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(
+						getAsyncConnection().set(key, value, LettuceConverters.toSetArgs(true, null, option)),
+						Converters.stringToBooleanConverter(), () -> false));
+				return null;
+			}
+			return Converters
+					.stringToBoolean(getConnection().set(key, value, LettuceConverters.toSetArgs(true, null, option)));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

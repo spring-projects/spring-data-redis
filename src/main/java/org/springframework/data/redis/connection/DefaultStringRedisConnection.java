@@ -1011,6 +1011,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#setKeepTTL(byte[], byte[], org.springframework.data.redis.connection.RedisStringCommands.SetOption)
+	 */
+	@Override
+	public Boolean setKeepTTL(byte[] key, byte[] value, SetOption option) {
+		return convertAndReturn(delegate.setKeepTTL(key, value, option), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
 	 */
 	@Override

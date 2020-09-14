@@ -28,6 +28,7 @@ import org.springframework.lang.Nullable;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author dengliming
  */
 public interface RedisStringCommands {
 
@@ -114,6 +115,20 @@ public interface RedisStringCommands {
 	 */
 	@Nullable
 	Boolean setEx(byte[] key, long seconds, byte[] value);
+
+	/**
+	 * Set {@code value} for {@code key} if set and inserting/updating values
+	 * depending on {@code option}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non existing.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	@Nullable
+	Boolean setKeepTTL(byte[] key, byte[] value, SetOption option);
 
 	/**
 	 * Set the {@code value} and expiration in {@code milliseconds} for {@code key}.
