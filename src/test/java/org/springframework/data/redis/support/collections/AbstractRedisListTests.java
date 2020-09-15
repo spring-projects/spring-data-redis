@@ -24,10 +24,12 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
+import org.assertj.core.api.Assumptions;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
@@ -54,6 +56,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception {
+
 		super.setUp();
 		list = (RedisList<T>) collection;
 	}
@@ -157,8 +160,11 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		assertThat(list.addAll(1, asList)).isTrue();
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test // DATAREDIS-1196
 	public void testIndexOfObject() {
+
+		Assumptions.assumeThat(template.getConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+
 		T t1 = getT();
 		T t2 = getT();
 
@@ -168,7 +174,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 		assertThat(list.indexOf(t2)).isEqualTo(-1);
 		list.add(t2);
-		assertThat(list.indexOf(t1)).isEqualTo(1);
+		assertThat(list.indexOf(t2)).isEqualTo(1);
 	}
 
 	@Test
@@ -518,5 +524,22 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 	@Test
 	public void testTakeLast() {
 		testPollLast();
+	}
+
+	@Test // DATAREDIS-1196
+	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1410")
+	public void lastIndexOf() {
+
+		Assumptions.assumeThat(template.getConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		list.add(t1);
+		list.add(t2);
+		list.add(t3);
+
+		assertThat(list.indexOf(t1)).isEqualTo(2);
 	}
 }

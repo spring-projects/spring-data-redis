@@ -250,7 +250,9 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	 */
 	@Override
 	public int indexOf(Object o) {
-		throw new UnsupportedOperationException();
+
+		Long index = listOps.indexOf((E) o);
+		return index != null ? index.intValue() : -1;
 	}
 
 	/*
@@ -259,7 +261,9 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	 */
 	@Override
 	public int lastIndexOf(Object o) {
-		throw new UnsupportedOperationException();
+
+		Long index = listOps.lastIndexOf((E) o);
+		return index != null ? index.intValue() : -1;
 	}
 
 	/*
