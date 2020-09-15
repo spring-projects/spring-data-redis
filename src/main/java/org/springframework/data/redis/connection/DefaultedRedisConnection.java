@@ -624,6 +624,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
 	@Override
 	@Deprecated
+	default List<Long> lPos(byte[] key, byte[] element, @Nullable Integer rank, @Nullable Integer count) {
+		return listCommands().lPos(key, element, rank, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
+	@Override
+	@Deprecated
 	default Long lPush(byte[] key, byte[]... values) {
 		return listCommands().lPush(key, values);
 	}

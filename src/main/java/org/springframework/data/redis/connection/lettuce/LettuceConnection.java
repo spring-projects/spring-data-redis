@@ -1136,6 +1136,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			COMMAND_OUTPUT_TYPE_MAPPING.put(LINSERT, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(LLEN, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(LPUSH, IntegerOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(LPOS, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(LPUSHX, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(LREM, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(PTTL, IntegerOutput.class);
