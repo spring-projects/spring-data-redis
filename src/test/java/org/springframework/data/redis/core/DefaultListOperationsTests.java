@@ -28,6 +28,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -37,6 +38,8 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link DefaultListOperations}
@@ -49,6 +52,8 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
  */
 @RunWith(Parameterized.class)
 public class DefaultListOperationsTests<K, V> {
+
+	@Rule public MinimumRedisVersionRule redisVersion = new MinimumRedisVersionRule();
 
 	private RedisTemplate<K, V> redisTemplate;
 
@@ -316,6 +321,7 @@ public class DefaultListOperationsTests<K, V> {
 	}
 
 	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
 	public void indexOf() {
 
 		K key = keyFactory.instance();
@@ -330,6 +336,7 @@ public class DefaultListOperationsTests<K, V> {
 	}
 
 	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
 	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1410")
 	public void lastIndexOf() {
 

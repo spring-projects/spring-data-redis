@@ -27,10 +27,13 @@ import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.Assumptions;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test for RedisList
@@ -40,6 +43,8 @@ import org.springframework.data.redis.core.RedisTemplate;
  */
 public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionTests<T> {
 
+	@Rule public MinimumRedisVersionRule redisVersion = new MinimumRedisVersionRule();
+	
 	protected RedisList<T> list;
 
 	/**
@@ -161,6 +166,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 	}
 
 	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
 	public void testIndexOfObject() {
 
 		Assumptions.assumeThat(template.getConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
@@ -527,6 +533,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 	}
 
 	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
 	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1410")
 	public void lastIndexOf() {
 
