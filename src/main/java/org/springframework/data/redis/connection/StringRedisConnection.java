@@ -49,6 +49,7 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Convenience extension of {@link RedisConnection} that accepts and returns {@link String}s instead of byte arrays.
@@ -684,6 +685,36 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisListCommands#rPush(byte[], byte[]...)
 	 */
 	Long rPush(String key, String... values);
+
+	/**
+	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
+	 * Requires Redis 6.0.6.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param element must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 * @since 2.4
+	 */
+	@Nullable
+	default Long lPos(String key, String element) {
+		return CollectionUtils.firstElement(lPos(key, element, null, null));
+	}
+
+	/**
+	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
+	 * Requires Redis 6.0.6.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param element must not be {@literal null}.
+	 * @param rank specifies the "rank" of the first element to return, in case there are multiple matches. A rank of 1
+	 *          means to return the first match, 2 to return the second match, and so forth.
+	 * @param count number of matches to return.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 * @since 2.4
+	 */
+	List<Long> lPos(String key, String element, @Nullable Integer rank, @Nullable Integer count);
 
 	/**
 	 * Prepend {@code values} to {@code key}.

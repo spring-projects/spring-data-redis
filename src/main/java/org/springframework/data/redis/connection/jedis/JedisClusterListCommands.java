@@ -20,9 +20,11 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -53,6 +55,19 @@ class JedisClusterListCommands implements RedisListCommands {
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#l{lPos(byte[], byte[], java.lang.Integer, java.lang.Integer)
+	 */
+	@Override
+	public List<Long> lPos(byte[] key, byte[] element, @Nullable Integer rank, @Nullable Integer count) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(element, "Element must not be null!");
+
+		throw new InvalidDataAccessApiUsageException("LPOS is not supported by jedis.");
 	}
 
 	/*

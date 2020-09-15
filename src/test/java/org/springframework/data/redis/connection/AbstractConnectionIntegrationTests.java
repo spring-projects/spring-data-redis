@@ -1479,6 +1479,72 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 2l, Arrays.asList(new String[] { "baz", "bar" }) }));
 	}
 
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPos() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c"));
+
+		assertThat((Long) getResults().get(1)).isEqualTo(2);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosRank() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", 2, null));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(6L);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosNegativeRank() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", -1, null));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(7L);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosCount() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", null, 2));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(2L, 6L);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosRankCount() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", -1, 2));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(7L, 6L);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosCountZero() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", null, 0));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(2L, 6L, 7L);
+	}
+
 	// Set operations
 
 	@Test

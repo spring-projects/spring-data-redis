@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import java.util.List;
 
 import org.springframework.lang.Nullable;
+import org.springframework.util.CollectionUtils;
 
 /**
  * List-specific commands supported by Redis.
@@ -45,6 +46,36 @@ public interface RedisListCommands {
 	 */
 	@Nullable
 	Long rPush(byte[] key, byte[]... values);
+
+	/**
+	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
+	 * Requires Redis 6.0.6.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param element must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 * @since 2.4
+	 */
+	@Nullable
+	default Long lPos(byte[] key, byte[] element) {
+		return CollectionUtils.firstElement(lPos(key, element, null, null));
+	}
+
+	/**
+	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
+	 * Requires Redis 6.0.6.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param element must not be {@literal null}.
+	 * @param rank specifies the "rank" of the first element to return, in case there are multiple matches. A rank of 1
+	 *          means to return the first match, 2 to return the second match, and so forth.
+	 * @param count number of matches to return.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 * @since 2.4
+	 */
+	List<Long> lPos(byte[] key, byte[] element, @Nullable Integer rank, @Nullable Integer count);
 
 	/**
 	 * Prepend {@code values} to {@code key}.

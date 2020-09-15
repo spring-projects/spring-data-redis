@@ -57,6 +57,24 @@ class DefaultBoundListOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundListOperations#indexOf(java.lang.Object)
+	 */
+	@Override
+	public Long indexOf(V value) {
+		return ops.indexOf(getKey(), value);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundListOperations#lastIndexOf(java.lang.Object)
+	 */
+	@Override
+	public Long lastIndexOf(V value) {
+		return ops.lastIndexOf(getKey(), value);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundListOperations#leftPop()
 	 */
 	@Override
