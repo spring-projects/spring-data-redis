@@ -24,6 +24,8 @@ import java.util.Collection;
 
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -34,6 +36,8 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration tests for {@link DefaultReactiveListOperations}.
@@ -44,6 +48,8 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 @RunWith(Parameterized.class)
 @SuppressWarnings("unchecked")
 public class DefaultReactiveListOperationsIntegrationTests<K, V> {
+
+	@Rule public MinimumRedisVersionRule redisVersion = new MinimumRedisVersionRule();
 
 	private final ReactiveRedisTemplate<K, V> redisTemplate;
 	private final ReactiveListOperations<K, V> listOperations;
@@ -364,6 +370,35 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.rightPushAll(key, value1, value2).as(StepVerifier::create).expectNext(2L).verifyComplete();
 
 		listOperations.index(key, 1).as(StepVerifier::create).expectNext(value2).verifyComplete();
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	public void indexOf() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		listOperations.rightPushAll(key, v1, v2, v1, v3).as(StepVerifier::create).expectNext(4L).verifyComplete();
+
+		listOperations.indexOf(key, v1).as(StepVerifier::create).expectNext(0L).verifyComplete();
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1410")
+	public void lastIndexOf() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		listOperations.rightPushAll(key, v1, v2, v1, v3).as(StepVerifier::create).expectNext(4L).verifyComplete();
+
+		listOperations.lastIndexOf(key, v1).as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
