@@ -40,6 +40,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Tugdual Grall
+ * @author Dengliming
  * @see <a href="https://redis.io/topics/streams-intro">Redis Documentation - Streams</a>
  * @since 2.2
  */
@@ -136,7 +137,7 @@ public interface RedisStreamCommands {
 
 		/**
 		 * Limit the size of the stream to the given maximum number of elements.
-		 * 
+		 *
 		 * @return new instance of {@link XAddOptions}.
 		 */
 		public static XAddOptions maxlen(long maxlen) {
@@ -145,7 +146,7 @@ public interface RedisStreamCommands {
 
 		/**
 		 * Limit the size of the stream to the given maximum number of elements.
-		 * 
+		 *
 		 * @return can be {@literal null}.
 		 */
 		@Nullable
@@ -513,7 +514,7 @@ public interface RedisStreamCommands {
 
 	/**
 	 * Obtain general information about the stream stored at the specified {@literal key}.
-	 * 
+	 *
 	 * @param key the {@literal key} the stream is stored at.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.3
@@ -881,6 +882,7 @@ public interface RedisStreamCommands {
 	 * @param count length of the stream.
 	 * @param approximateTrimming the trimming must be performed in a approximated way in order to maximize performances.
 	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
 	@Nullable

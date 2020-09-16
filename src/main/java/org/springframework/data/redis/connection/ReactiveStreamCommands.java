@@ -57,6 +57,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Tugdual Grall
+ * @author Dengliming
  * @since 2.2
  */
 public interface ReactiveStreamCommands {
@@ -1402,10 +1403,30 @@ public interface ReactiveStreamCommands {
 		 * properties.
 		 *
 		 * @param count
-		 * @param approximateTrimming
 		 * @return a new {@link TrimCommand} with {@literal count} applied.
 		 */
-		public TrimCommand to(long count, boolean approximateTrimming) {
+		public TrimCommand to(long count) {
+			return new TrimCommand(getKey(), count, approximateTrimming);
+		}
+
+		/**
+		 * Applies approximate trimming. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @return a new {@link TrimCommand} with {@literal approximateTrimming} applied.
+		 * @since 2.4
+		 */
+		public TrimCommand approximate() {
+			return approximate(true);
+		}
+
+		/**
+		 * Applies {@code approximateTrimming}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param approximateTrimming
+		 * @return a new {@link TrimCommand} with {@literal approximateTrimming} applied.
+		 * @since 2.4
+		 */
+		public TrimCommand approximate(boolean approximateTrimming) {
 			return new TrimCommand(getKey(), count, approximateTrimming);
 		}
 
@@ -1441,13 +1462,15 @@ public interface ReactiveStreamCommands {
 	 * @param count length of the stream.
 	 * @param approximateTrimming the trimming must be performed in a approximated way in order to maximize performances.
 	 * @return {@link Mono} emitting the number of removed entries.
+	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
 	default Mono<Long> xTrim(ByteBuffer key, long count, boolean approximateTrimming) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return xTrim(Mono.just(TrimCommand.stream(key).to(count, approximateTrimming))).next().map(NumericResponse::getOutput);
+		return xTrim(Mono.just(TrimCommand.stream(key).to(count).approximate(approximateTrimming))).next()
+				.map(NumericResponse::getOutput);
 	}
 
 	/**

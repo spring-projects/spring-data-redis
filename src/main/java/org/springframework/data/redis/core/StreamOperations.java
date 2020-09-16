@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Dengliming
  * @since 2.2
  */
 public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {
@@ -532,6 +533,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param count length of the stream.
 	 * @param approximateTrimming the trimming must be performed in a approximated way in order to maximize performances.
 	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
 	@Nullable

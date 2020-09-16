@@ -62,6 +62,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @author Ninad Divadkar
  * @author Tugdual Grall
+ * @author Dengliming
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -2467,7 +2468,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param count length of the stream.
 	 * @param approximateTrimming the trimming must be performed in a approximated way in order to maximize performances.
 	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
-	 * @since 2.2
+	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
 	@Nullable
