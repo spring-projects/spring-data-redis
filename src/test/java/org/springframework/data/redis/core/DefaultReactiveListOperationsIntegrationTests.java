@@ -24,7 +24,6 @@ import java.util.Collection;
 
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -388,7 +387,6 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 
 	@Test // DATAREDIS-1196
 	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
-	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1410")
 	public void lastIndexOf() {
 
 		K key = keyFactory.instance();

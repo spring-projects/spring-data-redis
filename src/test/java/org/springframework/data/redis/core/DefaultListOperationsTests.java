@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -337,7 +336,6 @@ public class DefaultListOperationsTests<K, V> {
 
 	@Test // DATAREDIS-1196
 	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
-	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1410")
 	public void lastIndexOf() {
 
 		K key = keyFactory.instance();
@@ -347,7 +345,8 @@ public class DefaultListOperationsTests<K, V> {
 
 		assertThat(listOps.rightPush(key, v1)).isEqualTo(Long.valueOf(1));
 		assertThat(listOps.rightPush(key, v2)).isEqualTo(Long.valueOf(2));
-		assertThat(listOps.rightPush(key, v1, v3)).isEqualTo(Long.valueOf(3));
+		assertThat(listOps.rightPush(key, v1)).isEqualTo(Long.valueOf(3));
+		assertThat(listOps.rightPush(key, v3)).isEqualTo(Long.valueOf(4));
 		assertThat(listOps.lastIndexOf(key, v1)).isEqualTo(2);
 	}
 }

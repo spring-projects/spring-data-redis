@@ -162,7 +162,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 
 			LPosArgs args = new LPosArgs();
 			if (command.getRank() != null) {
-				args.first(command.getRank());
+				args.rank(command.getRank());
 			}
 
 			Flux<Long> values;

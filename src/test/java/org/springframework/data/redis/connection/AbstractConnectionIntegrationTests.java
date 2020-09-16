@@ -1493,7 +1493,6 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // DATAREDIS-1196
 	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
 	@WithRedisDriver({ RedisDriver.LETTUCE })
-	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1410")
 	public void lPosRank() {
 
 		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
@@ -1505,7 +1504,6 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // DATAREDIS-1196
 	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
 	@WithRedisDriver({ RedisDriver.LETTUCE })
-	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1410")
 	public void lPosNegativeRank() {
 
 		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
@@ -1528,7 +1526,6 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // DATAREDIS-1196
 	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
 	@WithRedisDriver({ RedisDriver.LETTUCE })
-	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1410")
 	public void lPosRankCount() {
 
 		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));

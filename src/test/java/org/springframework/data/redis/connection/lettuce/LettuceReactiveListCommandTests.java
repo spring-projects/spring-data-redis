@@ -27,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -327,7 +326,6 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 	@Test // DATAREDIS-1196
 	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
-	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1410")
 	public void lPosRank() {
 
 		nativeCommands.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
@@ -341,7 +339,6 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 	@Test // DATAREDIS-1196
 	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
-	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1410")
 	public void lPosNegativeRank() {
 
 		nativeCommands.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
@@ -369,7 +366,6 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 	@Test // DATAREDIS-1196
 	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
-	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1410")
 	public void lPosRankCount() {
 
 		nativeCommands.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");

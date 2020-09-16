@@ -76,7 +76,7 @@ class LettuceListCommands implements RedisListCommands {
 
 		LPosArgs args = new LPosArgs();
 		if (rank != null) {
-			args.first(rank);
+			args.rank(rank);
 		}
 		try {
 			if (isPipelined()) {
