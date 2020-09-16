@@ -688,7 +688,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
-	 * Requires Redis 6.0.6.
+	 * Requires Redis 6.0.6 or newer.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param element must not be {@literal null}.
@@ -703,7 +703,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
-	 * Requires Redis 6.0.6.
+	 * Requires Redis 6.0.6 or newer.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param element must not be {@literal null}.
@@ -2059,7 +2059,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * Append the given {@link StringRecord} to the stream stored at {@link StringRecord#getStream()}.
-	 * 
+	 *
 	 * @param record must not be {@literal null}.
 	 * @param options must not be {@literal null}, use {@link XAddOptions#none()} instead.
 	 * @return the record Id. {@literal null} when used in pipeline / transaction.

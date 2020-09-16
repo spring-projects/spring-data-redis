@@ -49,7 +49,7 @@ public interface RedisListCommands {
 
 	/**
 	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
-	 * Requires Redis 6.0.6.
+	 * Requires Redis 6.0.6 or newer.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param element must not be {@literal null}.
@@ -64,7 +64,7 @@ public interface RedisListCommands {
 
 	/**
 	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
-	 * Requires Redis 6.0.6.
+	 * Requires Redis 6.0.6 or newer.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param element must not be {@literal null}.

@@ -198,7 +198,7 @@ public interface ReactiveListOperations<K, V> {
 
 	/**
 	 * Returns the index of the first occurrence of the specified value in the list at at {@code key}. <br />
-	 * Requires Redis 6.0.6
+	 * Requires Redis 6.0.6 or newer.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -210,7 +210,7 @@ public interface ReactiveListOperations<K, V> {
 
 	/**
 	 * Returns the index of the last occurrence of the specified value in the list at at {@code key}. <br />
-	 * Requires Redis 6.0.6
+	 * Requires Redis 6.0.6 or newer.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
