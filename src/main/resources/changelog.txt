@@ -1,6 +1,12 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.20.RELEASE (2020-09-16)
+----------------------------------------------
+* DATAREDIS-1190 - Cluster rename fails when targetKey already exists on target node.
+* DATAREDIS-1186 - Release 2.1.20 (Lovelace SR20).
+
+
 Changes in version 2.3.3.RELEASE (2020-08-12)
 ---------------------------------------------
 * DATAREDIS-1199 - Upgrade to Lettuce 5.3.3.
@@ -2061,6 +2067,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
