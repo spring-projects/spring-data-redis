@@ -1,6 +1,16 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.10.RELEASE (2020-09-16)
+----------------------------------------------
+* DATAREDIS-1207 - LettuceStreamCommands.xRevRange incorrectly converts Ranges.
+* DATAREDIS-1195 - DefaultRedisCacheWriter.putIfAbsent may not set the TTL if the connection drops.
+* DATAREDIS-1191 - Redis repository returns empty object instead of Optional.Empty().
+* DATAREDIS-1190 - Cluster rename fails when targetKey already exists on target node.
+* DATAREDIS-1189 - No subscription retry when using a connection pool.
+* DATAREDIS-1187 - Release 2.2.10 (Moore SR10).
+
+
 Changes in version 2.1.20.RELEASE (2020-09-16)
 ----------------------------------------------
 * DATAREDIS-1190 - Cluster rename fails when targetKey already exists on target node.
@@ -2067,6 +2077,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
