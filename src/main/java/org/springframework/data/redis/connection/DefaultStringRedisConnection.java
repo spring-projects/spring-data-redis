@@ -3625,7 +3625,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<String> zRangeByLex(String key, Range range) {
-		return zRangeByLex(key, range, null);
+		return zRangeByLex(key, range, Limit.unlimited());
 	}
 
 	/*
@@ -3634,7 +3634,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<String> zRangeByLex(String key, Range range, Limit limit) {
-		return convertAndReturn(delegate.zRangeByLex(serialize(key), range), byteSetToStringSet);
+		return convertAndReturn(delegate.zRangeByLex(serialize(key), range, limit), byteSetToStringSet);
 	}
 
 	/*
