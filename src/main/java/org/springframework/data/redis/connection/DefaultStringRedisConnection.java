@@ -62,6 +62,7 @@ import org.springframework.util.ObjectUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Andrey Shlykov
  */
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
@@ -3601,7 +3602,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<String> zRangeByLex(String key, Range range) {
-		return zRangeByLex(key, range, null);
+		return zRangeByLex(key, range, Limit.unlimited());
 	}
 
 	/*
@@ -3610,7 +3611,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<String> zRangeByLex(String key, Range range, Limit limit) {
-		return convertAndReturn(delegate.zRangeByLex(serialize(key), range), byteSetToStringSet);
+		return convertAndReturn(delegate.zRangeByLex(serialize(key), range, limit), byteSetToStringSet);
 	}
 
 	/*
