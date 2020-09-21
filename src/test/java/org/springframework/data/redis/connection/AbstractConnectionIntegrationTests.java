@@ -62,6 +62,7 @@ import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptio
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
+import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
@@ -100,6 +101,7 @@ import org.springframework.test.annotation.ProfileValueSourceConfiguration;
  * @author Mark Paluch
  * @author Tugdual Grall
  * @author Dejan Jankov
+ * @author Andrey Shlykov
  */
 @ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
 public abstract class AbstractConnectionIntegrationTests {
@@ -2371,7 +2373,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // DATAREDIS-378
+	@Test // DATAREDIS-378, DATAREDIS-1222
 	@IfProfileValue(name = "redisVersion", value = "2.9.0+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void zRangeByLexTest() {
@@ -2388,6 +2390,10 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zRangeByLex("myzset", Range.range().lt("c")));
 		actual.add(connection.zRangeByLex("myzset", Range.range().gte("aaa").lt("g")));
 		actual.add(connection.zRangeByLex("myzset", Range.range().gte("e")));
+
+		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c"), Limit.unlimited()));
+		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c"), Limit.limit().count(1)));
+		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c"), Limit.limit().count(1).offset(1)));
 
 		List<Object> results = getResults();
 
@@ -2407,6 +2413,18 @@ public abstract class AbstractConnectionIntegrationTests {
 		values = (Set<String>) results.get(10);
 		assertThat(values).contains("e", "f", "g");
 		assertThat(values).doesNotContain("a", "b", "c", "d");
+
+		values = (Set<String>) results.get(11);
+		assertThat(values).contains("a", "b", "c");
+		assertThat(values).doesNotContain("d", "e", "f", "g");
+
+		values = (Set<String>) results.get(12);
+		assertThat(values).contains("a");
+		assertThat(values).doesNotContain("b", "c", "d", "e", "f", "g");
+
+		values = (Set<String>) results.get(13);
+		assertThat(values).contains("b");
+		assertThat(values).doesNotContain("a", "c", "d", "e", "f", "g");
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-316, DATAREDIS-692

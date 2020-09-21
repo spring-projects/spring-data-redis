@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Clement Ong
  * @author Mark Paluch
+ * @author Andrey Shlykov
  * @since 2.0
  */
 class JedisZSetCommands implements RedisZSetCommands {
@@ -863,7 +864,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		try {
 			if (isPipelined()) {
-				if (limit != null) {
+				if (limit != null && !limit.isUnlimited()) {
 					pipeline(connection.newJedisResult(
 							connection.getRequiredPipeline().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount())));
 				} else {
@@ -873,7 +874,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 			}
 
 			if (isQueueing()) {
-				if (limit != null) {
+				if (limit != null && !limit.isUnlimited()) {
 					transaction(connection.newJedisResult(
 							connection.getRequiredTransaction().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount())));
 				} else {
