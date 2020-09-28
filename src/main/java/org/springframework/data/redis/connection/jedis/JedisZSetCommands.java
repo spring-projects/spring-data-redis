@@ -41,7 +41,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 	private final JedisConnection connection;
 
-	public JedisZSetCommands(JedisConnection connection) {
+	JedisZSetCommands(JedisConnection connection) {
 		this.connection = connection;
 	}
 
@@ -254,17 +254,18 @@ class JedisZSetCommands implements RedisZSetCommands {
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, @Nullable Limit limit) {
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range for ZRANGEBYSCOREWITHSCORES must not be null!");
+		Assert.notNull(limit, "Limit must not be null! Use Limit.unlimited() instead.");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getMin(), JedisConverters.NEGATIVE_INFINITY_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
 		try {
 			if (isPipelined()) {
-				if (limit != null) {
+				if (!limit.isUnlimited()) {
 					pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrangeByScoreWithScores(key, min, max,
 							limit.getOffset(), limit.getCount()), JedisConverters.tupleSetToTupleSet()));
 				} else {
@@ -275,7 +276,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 			}
 
 			if (isQueueing()) {
-				if (limit != null) {
+				if (!limit.isUnlimited()) {
 					transaction(connection.newJedisResult(connection.getRequiredTransaction().zrangeByScoreWithScores(key, min,
 							max, limit.getOffset(), limit.getCount()), JedisConverters.tupleSetToTupleSet()));
 				} else {
@@ -286,7 +287,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 
-			if (limit != null) {
+			if (!limit.isUnlimited()) {
 				return JedisConverters.toTupleSet(
 						connection.getJedis().zrangeByScoreWithScores(key, min, max, limit.getOffset(), limit.getCount()));
 			}
@@ -351,17 +352,18 @@ class JedisZSetCommands implements RedisZSetCommands {
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, @Nullable Limit limit) {
+	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range for ZREVRANGEBYSCORE must not be null!");
+		Assert.notNull(limit, "Limit must not be null! Use Limit.unlimited() instead.");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getMin(), JedisConverters.NEGATIVE_INFINITY_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
 		try {
 			if (isPipelined()) {
-				if (limit != null) {
+				if (!limit.isUnlimited()) {
 					pipeline(connection.newJedisResult(
 							connection.getRequiredPipeline().zrevrangeByScore(key, max, min, limit.getOffset(), limit.getCount())));
 				} else {
@@ -371,7 +373,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 			}
 
 			if (isQueueing()) {
-				if (limit != null) {
+				if (!limit.isUnlimited()) {
 					transaction(connection.newJedisResult(connection.getRequiredTransaction().zrevrangeByScore(key, max, min,
 							limit.getOffset(), limit.getCount())));
 				} else {
@@ -380,7 +382,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 
-			if (limit != null) {
+			if (!limit.isUnlimited()) {
 				return connection.getJedis().zrevrangeByScore(key, max, min, limit.getOffset(), limit.getCount());
 			}
 			return connection.getJedis().zrevrangeByScore(key, max, min);
@@ -394,17 +396,18 @@ class JedisZSetCommands implements RedisZSetCommands {
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, @Nullable Limit limit) {
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range for ZREVRANGEBYSCOREWITHSCORES must not be null!");
+		Assert.notNull(limit, "Limit must not be null! Use Limit.unlimited() instead.");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getMin(), JedisConverters.NEGATIVE_INFINITY_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
 		try {
 			if (isPipelined()) {
-				if (limit != null) {
+				if (!limit.isUnlimited()) {
 					pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrevrangeByScoreWithScores(key, max, min,
 							limit.getOffset(), limit.getCount()), JedisConverters.tupleSetToTupleSet()));
 				} else {
@@ -415,7 +418,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 			}
 
 			if (isQueueing()) {
-				if (limit != null) {
+				if (!limit.isUnlimited()) {
 					transaction(connection.newJedisResult(connection.getRequiredTransaction().zrevrangeByScoreWithScores(key, max,
 							min, limit.getOffset(), limit.getCount()), JedisConverters.tupleSetToTupleSet()));
 				} else {
@@ -426,7 +429,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 
-			if (limit != null) {
+			if (!limit.isUnlimited()) {
 				return JedisConverters.toTupleSet(
 						connection.getJedis().zrevrangeByScoreWithScores(key, max, min, limit.getOffset(), limit.getCount()));
 			}
@@ -811,17 +814,18 @@ class JedisZSetCommands implements RedisZSetCommands {
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public Set<byte[]> zRangeByScore(byte[] key, Range range, @Nullable Limit limit) {
+	public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range for ZRANGEBYSCORE must not be null!");
+		Assert.notNull(limit, "Limit must not be null! Use Limit.unlimited() instead.");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getMin(), JedisConverters.NEGATIVE_INFINITY_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
 		try {
 			if (isPipelined()) {
-				if (limit != null) {
+				if (!limit.isUnlimited()) {
 					pipeline(connection.newJedisResult(
 							connection.getRequiredPipeline().zrangeByScore(key, min, max, limit.getOffset(), limit.getCount())));
 				} else {
@@ -831,7 +835,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 			}
 
 			if (isQueueing()) {
-				if (limit != null) {
+				if (!limit.isUnlimited()) {
 					transaction(connection.newJedisResult(
 							connection.getRequiredTransaction().zrangeByScore(key, min, max, limit.getOffset(), limit.getCount())));
 				} else {
@@ -840,7 +844,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 
-			if (limit != null) {
+			if (!limit.isUnlimited()) {
 				return connection.getJedis().zrangeByScore(key, min, max, limit.getOffset(), limit.getCount());
 			}
 			return connection.getJedis().zrangeByScore(key, min, max);
@@ -854,17 +858,18 @@ class JedisZSetCommands implements RedisZSetCommands {
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public Set<byte[]> zRangeByLex(byte[] key, Range range, @Nullable Limit limit) {
+	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range for ZRANGEBYLEX must not be null!");
+		Assert.notNull(limit, "Limit must not be null! Use Limit.unlimited() instead.");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
 
 		try {
 			if (isPipelined()) {
-				if (limit != null && !limit.isUnlimited()) {
+				if (!limit.isUnlimited()) {
 					pipeline(connection.newJedisResult(
 							connection.getRequiredPipeline().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount())));
 				} else {
@@ -874,7 +879,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 			}
 
 			if (isQueueing()) {
-				if (limit != null && !limit.isUnlimited()) {
+				if (!limit.isUnlimited()) {
 					transaction(connection.newJedisResult(
 							connection.getRequiredTransaction().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount())));
 				} else {
@@ -883,7 +888,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 				return null;
 			}
 
-			if (limit != null) {
+			if (!limit.isUnlimited()) {
 				return connection.getJedis().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount());
 			}
 			return connection.getJedis().zrangeByLex(key, min, max);
