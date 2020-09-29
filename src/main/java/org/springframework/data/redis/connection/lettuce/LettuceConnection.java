@@ -53,6 +53,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.springframework.beans.BeanUtils;
@@ -934,6 +935,79 @@ public class LettuceConnection extends AbstractRedisConnection {
 		} else {
 			ppline.add(result);
 		}
+	}
+
+	<S, T> void executeInPipeline(Function<RedisClusterAsyncCommands, RedisFuture<S>> command,
+			Converter<S, T> converter) {
+
+		try {
+			pipeline(newLettuceResult(command.apply(getAsyncConnection()), converter));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	<S, T> void executeInTx(Function<RedisClusterAsyncCommands, RedisFuture<S>> command, Converter<S, T> converter) {
+
+		try {
+			transaction(newLettuceResult(command.apply(getAsyncConnection()), converter));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	<T> NullableResult<T> execute(Function<RedisClusterCommands, T> command) {
+
+		try {
+
+			T result = command.apply(getConnection());
+			return NullableResult.of(result);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	<T> RedisFuture<T> executeAsync(Function<RedisClusterAsyncCommands, RedisFuture<T>> command) {
+
+		try {
+			return command.apply(getAsyncConnection());
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	<S, T> T invoke(RedisFuture<S> future, Converter<S, T> converter) {
+
+		if (isPipelined()) {
+			pipeline(newLettuceResult(future, converter));
+			return null;
+		}
+		if (isQueueing()) {
+			transaction(newLettuceResult(future, converter));
+			return null;
+		}
+		return NullableResult.of((S) await(future)).convert(converter).get();
+	}
+
+	<T> T execute(Function<RedisClusterCommands, T> sync, Function<RedisClusterAsyncCommands, RedisFuture<T>> async) {
+		return execute(sync, async, val -> val);
+	}
+
+	// use a future here and only async.
+	<S, T> T execute(Function<RedisClusterCommands, S> sync, Function<RedisClusterAsyncCommands, RedisFuture<S>> async,
+			Converter<S, T> converter) {
+
+		if (isPipelined()) {
+			executeInPipeline(async, converter);
+			return null;
+		}
+		if (isQueueing()) {
+			executeInTx(async, converter);
+			return null;
+		}
+
+		// return execute(sync).convert(converter).get();
+		return NullableResult.of((S) await(executeAsync(async))).convert(converter).get();
 	}
 
 	void transaction(FutureResult<?> result) {
