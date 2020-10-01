@@ -2704,6 +2704,19 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Distance) result.get(1)).getUnit()).isEqualTo("m");
 	}
 
+	@Test // DATAREDIS-1214
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void geoDistNotExisting() {
+
+		String key = "geo-" + UUID.randomUUID();
+		actual.add(connection.geoAdd(key, Arrays.asList(PALERMO, CATANIA)));
+		actual.add(connection.geoDist(key, "Spring", "Data"));
+
+		List<Object> result = getResults();
+		assertThat(result.get(1)).isNull();
+	}
+
 	@Test // DATAREDIS-438
 	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
