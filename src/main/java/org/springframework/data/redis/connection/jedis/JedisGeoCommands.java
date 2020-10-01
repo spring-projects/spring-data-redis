@@ -162,7 +162,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 
-			return distanceConverter.convert(connection.getJedis().geodist(key, member1, member2));
+			Double distance = connection.getJedis().geodist(key, member1, member2);
+			return distance != null ? distanceConverter.convert(distance) : null;
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -195,7 +196,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 				return null;
 			}
 
-			return distanceConverter.convert(connection.getJedis().geodist(key, member1, member2, geoUnit));
+			Double distance = connection.getJedis().geodist(key, member1, member2, geoUnit);
+			return distance != null ? distanceConverter.convert(distance) : null;
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
