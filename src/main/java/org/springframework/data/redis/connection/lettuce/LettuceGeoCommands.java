@@ -176,7 +176,9 @@ class LettuceGeoCommands implements RedisGeoCommands {
 						distanceConverter));
 				return null;
 			}
-			return distanceConverter.convert(getConnection().geodist(key, member1, member2, geoUnit));
+
+			Double distance = getConnection().geodist(key, member1, member2, geoUnit);
+			return distance != null ? distanceConverter.convert(distance) : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
