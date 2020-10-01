@@ -186,6 +186,22 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(dist.getUnit()).isEqualTo("ft");
 	}
 
+	@Test // DATAREDIS-1214
+	public void geoDistShouldReturnNullIfNoDistanceCalculable() {
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+		M member3 = valueFactory.instance();
+		M member4 = valueFactory.instance();
+
+		geoOperations.add(key, POINT_PALERMO, member1);
+		geoOperations.add(key, POINT_CATANIA, member2);
+
+		Distance dist = geoOperations.distance(key, member3, member4, DistanceUnit.FEET);
+		assertThat(dist).isNull();
+	}
+
 	@Test // DATAREDIS-438, DATAREDIS-614
 	public void testGeoHash() {
 
