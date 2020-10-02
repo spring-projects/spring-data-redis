@@ -39,6 +39,7 @@ import org.springframework.util.ObjectUtils;
  * @author Thomas Darimont
  * @author David Liu
  * @author Mark Paluch
+ * @author Andrey Shlykov
  */
 public interface RedisZSetCommands {
 
@@ -1016,5 +1017,46 @@ public interface RedisZSetCommands {
 	 */
 	@Nullable
 	Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit);
+
+	/**
+	 * Get all the elements in the sorted set at {@literal key} in reversed lexicographical ordering.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 */
+	@Nullable
+	default Set<byte[]> zRevRangeByLex(byte[] key) {
+		return zRevRangeByLex(key, Range.unbounded());
+	}
+
+	/**
+	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 */
+	@Nullable
+	default Set<byte[]> zRevRangeByLex(byte[] key, Range range) {
+		return zRevRangeByLex(key, range, Limit.unlimited());
+	}
+
+	/**
+	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering. Result is
+	 * limited via {@link Limit}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 */
+	@Nullable
+	Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit);
 
 }

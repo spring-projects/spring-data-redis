@@ -20,6 +20,7 @@ import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.ZParams;
 
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisZSetCommands;
@@ -27,7 +28,6 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -892,6 +892,50 @@ class JedisZSetCommands implements RedisZSetCommands {
 				return connection.getJedis().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount());
 			}
 			return connection.getJedis().zrangeByLex(key, min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range for ZREVRANGEBYLEX must not be null!");
+		Assert.notNull(limit, "Limit must not be null! Use Limit.unlimited() instead.");
+
+		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);
+		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
+
+		try {
+			if (isPipelined()) {
+				if (!limit.isUnlimited()) {
+					pipeline(connection.newJedisResult(
+							connection.getRequiredPipeline().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount())));
+				} else {
+					pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrevrangeByLex(key, max, min)));
+				}
+				return null;
+			}
+
+			if (isQueueing()) {
+				if (!limit.isUnlimited()) {
+					transaction(connection.newJedisResult(
+							connection.getRequiredTransaction().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount())));
+				} else {
+					transaction(connection.newJedisResult(connection.getRequiredTransaction().zrevrangeByLex(key, max, min)));
+				}
+				return null;
+			}
+
+			if (!limit.isUnlimited()) {
+				return new LinkedHashSet<>(connection.getJedis().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount()));
+			}
+			return new LinkedHashSet<>(connection.getJedis().zrevrangeByLex(key, max, min));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
