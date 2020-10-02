@@ -2413,23 +2413,23 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		Set<String> values = (Set<String>) results.get(7);
 
-		assertThat(values).contains("a", "b", "c");
+		assertThat(values).containsExactly("a", "b", "c");
 		assertThat(values).doesNotContain("d", "e", "f", "g");
 
 		values = (Set<String>) results.get(8);
-		assertThat(values).contains("a", "b");
+		assertThat(values).containsExactly("a", "b");
 		assertThat(values).doesNotContain("c");
 
 		values = (Set<String>) results.get(9);
-		assertThat(values).contains("b", "c", "d", "e", "f");
+		assertThat(values).containsExactly("b", "c", "d", "e", "f");
 		assertThat(values).doesNotContain("a", "g");
 
 		values = (Set<String>) results.get(10);
-		assertThat(values).contains("e", "f", "g");
+		assertThat(values).containsExactly("e", "f", "g");
 		assertThat(values).doesNotContain("a", "b", "c", "d");
 
 		values = (Set<String>) results.get(11);
-		assertThat(values).contains("a", "b", "c");
+		assertThat(values).containsExactly("a", "b", "c");
 		assertThat(values).doesNotContain("d", "e", "f", "g");
 
 		values = (Set<String>) results.get(12);
@@ -2439,6 +2439,61 @@ public abstract class AbstractConnectionIntegrationTests {
 		values = (Set<String>) results.get(13);
 		assertThat(values).contains("b");
 		assertThat(values).doesNotContain("a", "c", "d", "e", "f", "g");
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test // DATAREDIS-729
+	@IfProfileValue(name = "redisVersion", value = "2.9.0+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void zRevRangeByLexTest() {
+
+		actual.add(connection.zAdd("myzset", 0, "a"));
+		actual.add(connection.zAdd("myzset", 0, "b"));
+		actual.add(connection.zAdd("myzset", 0, "c"));
+		actual.add(connection.zAdd("myzset", 0, "d"));
+		actual.add(connection.zAdd("myzset", 0, "e"));
+		actual.add(connection.zAdd("myzset", 0, "f"));
+		actual.add(connection.zAdd("myzset", 0, "g"));
+
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("c")));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lt("c")));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().gte("aaa").lt("g")));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().gte("e")));
+
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("c"), Limit.unlimited()));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("d"), Limit.limit().count(2)));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("d"), Limit.limit().count(2).offset(1)));
+
+		List<Object> results = getResults();
+
+		Set<String> values = (Set<String>) results.get(7);
+
+		assertThat(values).containsExactly("c", "b", "a");
+		assertThat(values).doesNotContain("d", "e", "f", "g");
+
+		values = (Set<String>) results.get(8);
+		assertThat(values).containsExactly("b", "a");
+		assertThat(values).doesNotContain("c");
+
+		values = (Set<String>) results.get(9);
+		assertThat(values).containsExactly("f", "e", "d", "c", "b");
+		assertThat(values).doesNotContain("a", "g");
+
+		values = (Set<String>) results.get(10);
+		assertThat(values).containsExactly("g", "f", "e");
+		assertThat(values).doesNotContain("a", "b", "c", "d");
+
+		values = (Set<String>) results.get(11);
+		assertThat(values).containsExactly("c", "b", "a");
+		assertThat(values).doesNotContain("d", "e", "f", "g");
+
+		values = (Set<String>) results.get(12);
+		assertThat(values).contains("d", "c");
+		assertThat(values).doesNotContain("a", "b", "e", "f", "g");
+
+		values = (Set<String>) results.get(13);
+		assertThat(values).contains("c", "b");
+		assertThat(values).doesNotContain("a", "d", "e", "f", "g");
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-316, DATAREDIS-692

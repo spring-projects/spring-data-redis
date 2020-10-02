@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Clement Ong
+ * @author Andrey Shlykov
  * @since 2.0
  */
 class JedisClusterZSetCommands implements RedisZSetCommands {
@@ -319,6 +320,30 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 				return connection.getCluster().zrangeByLex(key, min, max);
 			}
 			return connection.getCluster().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount());
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range cannot be null for ZREVRANGEBYLEX.");
+		Assert.notNull(limit, "Limit must not be null!");
+
+		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);
+		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
+
+		try {
+			if (limit.isUnlimited()) {
+				return connection.getCluster().zrevrangeByLex(key, min, max);
+			}
+			return connection.getCluster().zrevrangeByLex(key, min, max, limit.getOffset(), limit.getCount());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
