@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.redis.connection.ReactiveHashCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -209,9 +210,9 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
-			Mono<Map<ByteBuffer, ByteBuffer>> result = cmd.hgetall(command.getKey());
+			Flux<KeyValue<ByteBuffer, ByteBuffer>> result = cmd.hgetall(command.getKey());
 
-			return Mono.just(new CommandResponse<>(command, result.flatMapMany(v -> Flux.fromStream(v.entrySet().stream()))));
+			return Mono.just(new CommandResponse<>(command, result.map(LettuceReactiveHashCommands::toEntry)));
 		}));
 	}
 
@@ -267,5 +268,26 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 			return cmd.hstrlen(command.getKey(), command.getField()).map(value -> new NumericResponse<>(command, value));
 		}));
+	}
+
+	private static Map.Entry<ByteBuffer, ByteBuffer> toEntry(KeyValue<ByteBuffer, ByteBuffer> kv) {
+
+		return new Entry<ByteBuffer, ByteBuffer>() {
+
+			@Override
+			public ByteBuffer getKey() {
+				return kv.getKey();
+			}
+
+			@Override
+			public ByteBuffer getValue() {
+				return kv.getValue();
+			}
+
+			@Override
+			public ByteBuffer setValue(ByteBuffer value) {
+				throw new UnsupportedOperationException("Cannot set value for entry");
+			}
+		};
 	}
 }
