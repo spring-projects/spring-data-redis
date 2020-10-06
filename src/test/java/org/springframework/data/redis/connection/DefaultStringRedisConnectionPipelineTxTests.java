@@ -1846,6 +1846,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 		super.xTrimShouldDelegateAndConvertCorrectly();
 	}
 
+	@Test
+	public void xTrimApproximateShouldDelegateAndConvertCorrectly() {
+
+		doReturn(Arrays.asList(Arrays.asList(1L))).when(nativeConnection).closePipeline();
+		super.xTrimApproximateShouldDelegateAndConvertCorrectly();
+	}
+
 	@SuppressWarnings("unchecked")
 	protected List<Object> getResults() {
 		connection.exec();

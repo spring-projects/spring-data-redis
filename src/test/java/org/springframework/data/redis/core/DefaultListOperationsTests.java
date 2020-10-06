@@ -27,15 +27,18 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.StringObjectFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link DefaultListOperations}
@@ -48,6 +51,8 @@ import org.springframework.data.redis.StringObjectFactory;
  */
 @RunWith(Parameterized.class)
 public class DefaultListOperationsTests<K, V> {
+
+	@Rule public MinimumRedisVersionRule redisVersion = new MinimumRedisVersionRule();
 
 	private RedisTemplate<K, V> redisTemplate;
 
@@ -284,6 +289,8 @@ public class DefaultListOperationsTests<K, V> {
 	@SuppressWarnings("unchecked")
 	public void testLeftPushAllCollection() {
 
+		assumeTrue(redisTemplate.getConnectionFactory() instanceof LettuceConnectionFactory);
+
 		K key = keyFactory.instance();
 
 		V v1 = valueFactory.instance();
@@ -310,5 +317,36 @@ public class DefaultListOperationsTests<K, V> {
 	public void leftPushAllShouldThrowExceptionWhenCalledWithNull() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> listOps.leftPushAll(keyFactory.instance(), (Collection<V>) null));
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	public void indexOf() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		assertThat(listOps.rightPush(key, v1)).isEqualTo(Long.valueOf(1));
+		assertThat(listOps.rightPush(key, v2)).isEqualTo(Long.valueOf(2));
+		assertThat(listOps.rightPush(key, v1, v3)).isEqualTo(Long.valueOf(3));
+		assertThat(listOps.indexOf(key, v1)).isEqualTo(0);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	public void lastIndexOf() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		assertThat(listOps.rightPush(key, v1)).isEqualTo(Long.valueOf(1));
+		assertThat(listOps.rightPush(key, v2)).isEqualTo(Long.valueOf(2));
+		assertThat(listOps.rightPush(key, v1)).isEqualTo(Long.valueOf(3));
+		assertThat(listOps.rightPush(key, v3)).isEqualTo(Long.valueOf(4));
+		assertThat(listOps.lastIndexOf(key, v1)).isEqualTo(2);
 	}
 }

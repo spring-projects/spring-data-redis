@@ -20,7 +20,9 @@ import redis.clients.jedis.Protocol;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisListCommands;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -58,6 +60,19 @@ class JedisListCommands implements RedisListCommands {
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#l{lPos(byte[], byte[], java.lang.Integer, java.lang.Integer)
+	 */
+	@Override
+	public List<Long> lPos(byte[] key, byte[] element, @Nullable Integer rank, @Nullable Integer count) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(element, "Element must not be null!");
+
+		throw new InvalidDataAccessApiUsageException("LPOS is not supported by jedis.");
 	}
 
 	/*

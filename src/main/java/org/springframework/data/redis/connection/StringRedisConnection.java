@@ -49,6 +49,7 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Convenience extension of {@link RedisConnection} that accepts and returns {@link String}s instead of byte arrays.
@@ -61,6 +62,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Ninad Divadkar
  * @author Tugdual Grall
+ * @author Dengliming
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -684,6 +686,36 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisListCommands#rPush(byte[], byte[]...)
 	 */
 	Long rPush(String key, String... values);
+
+	/**
+	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
+	 * Requires Redis 6.0.6 or newer.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param element must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 * @since 2.4
+	 */
+	@Nullable
+	default Long lPos(String key, String element) {
+		return CollectionUtils.firstElement(lPos(key, element, null, null));
+	}
+
+	/**
+	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
+	 * Requires Redis 6.0.6 or newer.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param element must not be {@literal null}.
+	 * @param rank specifies the "rank" of the first element to return, in case there are multiple matches. A rank of 1
+	 *          means to return the first match, 2 to return the second match, and so forth.
+	 * @param count number of matches to return.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 * @since 2.4
+	 */
+	List<Long> lPos(String key, String element, @Nullable Integer rank, @Nullable Integer count);
 
 	/**
 	 * Prepend {@code values} to {@code key}.
@@ -2028,7 +2060,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * Append the given {@link StringRecord} to the stream stored at {@link StringRecord#getStream()}.
-	 * 
+	 *
 	 * @param record must not be {@literal null}.
 	 * @param options must not be {@literal null}, use {@link XAddOptions#none()} instead.
 	 * @return the record Id. {@literal null} when used in pipeline / transaction.
@@ -2428,4 +2460,17 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	Long xTrim(String key, long count);
+
+	/**
+	 * Trims the stream to {@code count} elements.
+	 *
+	 * @param key the stream key.
+	 * @param count length of the stream.
+	 * @param approximateTrimming the trimming must be performed in a approximated way in order to maximize performances.
+	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
+	@Nullable
+	Long xTrim(String key, long count, boolean approximateTrimming);
 }

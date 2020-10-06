@@ -19,12 +19,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
-import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.lang.Nullable;
 
 /**
@@ -32,6 +32,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Dengliming
  * @since 2.2
  */
 public interface BoundStreamOperations<K, HK, HV> {
@@ -208,4 +209,16 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 */
 	@Nullable
 	Long trim(long count);
+
+	/**
+	 * Trims the stream to {@code count} elements.
+	 *
+	 * @param count length of the stream.
+	 * @param approximateTrimming the trimming must be performed in a approximated way in order to maximize performances.
+	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
+	@Nullable
+	Long trim(long count, boolean approximateTrimming);
 }

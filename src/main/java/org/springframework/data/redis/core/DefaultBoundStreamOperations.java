@@ -170,7 +170,17 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 	@Nullable
 	@Override
 	public Long trim(long count) {
-		return ops.trim(getKey(), count);
+		return trim(count, false);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundStreamOperations#trim(long,boolean)
+	 */
+	@Nullable
+	@Override
+	public Long trim(long count, boolean approximateTrimming) {
+		return ops.trim(getKey(), count, approximateTrimming);
 	}
 
 	/* 

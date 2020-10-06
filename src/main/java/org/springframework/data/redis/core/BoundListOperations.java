@@ -170,6 +170,28 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	V index(long index);
 
 	/**
+	 * Returns the index of the first occurrence of the specified value in the list at at {@code key}. <br />
+	 * Requires Redis 6.0.6 or newer.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction or when not contained in list.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 */
+	Long indexOf(V value);
+
+	/**
+	 * Returns the index of the last occurrence of the specified value in the list at at {@code key}. <br />
+	 * Requires Redis 6.0.6 or newer.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction or when not contained in list.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 */
+	Long lastIndexOf(V value);
+
+	/**
 	 * Removes and returns first element in list stored at the bound key.
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.

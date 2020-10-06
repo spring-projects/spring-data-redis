@@ -30,7 +30,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -122,7 +121,6 @@ public class DefaultStringRedisConnectionTests {
 
 
 		MockitoAnnotations.initMocks(this);
-//		this.nativeConnection = mock(RedisConnection.class, withSettings().verboseLogging());
 		this.nativeConnection = mock(RedisConnection.class);
 		this.connection = new DefaultStringRedisConnection(nativeConnection);
 		bytesMap.put(fooBytes, barBytes);
@@ -2052,7 +2050,7 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(1L).when(nativeConnection).xAck(any(byte[].class), any(String.class), eq(RecordId.of("1-1")));
 
 		actual.add(connection.xAck("key", "group", RecordId.of("1-1")));
-		Assertions.assertThat(getResults()).containsExactly(1L);
+		assertThat(getResults()).containsExactly(1L);
 	}
 
 	@Test // DATAREDIS-864, DATAREDIS-1122
@@ -2062,7 +2060,7 @@ public class DefaultStringRedisConnectionTests {
 		actual.add(connection
 				.xAdd(StreamRecords.newRecord().in("stream-1").ofStrings(Collections.singletonMap("field", "value"))));
 
-		Assertions.assertThat(getResults()).containsExactly(RecordId.of("1-1"));
+		assertThat(getResults()).containsExactly(RecordId.of("1-1"));
 	}
 
 	@Test // DATAREDIS-864
@@ -2071,7 +2069,7 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(1L).when(nativeConnection).xDel(any(byte[].class), eq(RecordId.of("1-1")));
 
 		actual.add(connection.xDel("key", RecordId.of("1-1")));
-		Assertions.assertThat(getResults()).containsExactly(1L);
+		assertThat(getResults()).containsExactly(1L);
 	}
 
 	@Test // DATAREDIS-864
@@ -2080,7 +2078,7 @@ public class DefaultStringRedisConnectionTests {
 		doReturn("OK").when(nativeConnection).xGroupCreate(any(), any(), any());
 
 		actual.add(connection.xGroupCreate("key", ReadOffset.latest(), "consumer-group"));
-		Assertions.assertThat(getResults()).containsExactly("OK");
+		assertThat(getResults()).containsExactly("OK");
 	}
 
 	@Test // DATAREDIS-864
@@ -2092,7 +2090,7 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(Boolean.TRUE).when(nativeConnection).xGroupDelConsumer(eq(fooBytes), eq(consumer));
 
 		actual.add(connection.xGroupDelConsumer(foo, consumer));
-		Assertions.assertThat(getResults()).containsExactly(Boolean.TRUE);
+		assertThat(getResults()).containsExactly(Boolean.TRUE);
 	}
 
 	@Test // DATAREDIS-864
@@ -2101,7 +2099,7 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(Boolean.TRUE).when(nativeConnection).xGroupDestroy(any(), any());
 
 		actual.add(connection.xGroupDestroy("key", "comsumer-group"));
-		Assertions.assertThat(getResults()).containsExactly(Boolean.TRUE);
+		assertThat(getResults()).containsExactly(Boolean.TRUE);
 	}
 
 	@Test // DATAREDIS-864
@@ -2110,7 +2108,7 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(1L).when(nativeConnection).xLen(any());
 
 		actual.add(connection.xLen("key"));
-		Assertions.assertThat(getResults()).containsExactly(1L);
+		assertThat(getResults()).containsExactly(1L);
 	}
 
 	@Test // DATAREDIS-864
@@ -2121,7 +2119,7 @@ public class DefaultStringRedisConnectionTests {
 
 		actual.add(connection.xRange("stream-1", org.springframework.data.domain.Range.unbounded(), Limit.unlimited()));
 
-		Assertions.assertThat(getResults()).containsExactly(
+		assertThat(getResults()).containsExactly(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2).withId("stream-1").ofStrings(stringMap)));
 	}
 
@@ -2133,7 +2131,7 @@ public class DefaultStringRedisConnectionTests {
 				.when(nativeConnection).xRead(any(), any());
 		actual.add(connection.xReadAsString(StreamReadOptions.empty(), StreamOffset.create("stream-1", ReadOffset.latest())));
 
-		Assertions.assertThat(getResults()).containsExactly(
+		assertThat(getResults()).containsExactly(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2).withId("stream-1").ofStrings(stringMap)));
 	}
 
@@ -2144,7 +2142,7 @@ public class DefaultStringRedisConnectionTests {
 				.when(nativeConnection).xReadGroup(any(), any(), any());
 		actual.add(connection.xReadGroupAsString(Consumer.from("groupe", "one"), StreamReadOptions.empty(), StreamOffset.create("stream-1", ReadOffset.latest())));
 
-		Assertions.assertThat(getResults()).containsExactly(
+		assertThat(getResults()).containsExactly(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2).withId("stream-1").ofStrings(stringMap)));
 	}
 
@@ -2156,17 +2154,26 @@ public class DefaultStringRedisConnectionTests {
 
 		actual.add(connection.xRevRange("stream-1", org.springframework.data.domain.Range.unbounded(), Limit.unlimited()));
 
-		Assertions.assertThat(getResults()).containsExactly(
+		assertThat(getResults()).containsExactly(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2).withId("stream-1").ofStrings(stringMap)));
 	}
 
 	@Test // DATAREDIS-864
 	public void xTrimShouldDelegateAndConvertCorrectly() {
 
-		doReturn(1L).when(nativeConnection).xTrim(any(), anyLong());
+		doReturn(1L).when(nativeConnection).xTrim(any(), anyLong(), eq(false));
 
 		actual.add(connection.xTrim("key", 2L));
-		Assertions.assertThat(getResults()).containsExactly(1L);
+		assertThat(getResults()).containsExactly(1L);
+	}
+
+	@Test // DATAREDIS-1085
+	public void xTrimApproximateShouldDelegateAndConvertCorrectly() {
+
+		doReturn(1L).when(nativeConnection).xTrim(any(), anyLong(), anyBoolean());
+
+		actual.add(connection.xTrim("key", 2L, true));
+		assertThat(getResults()).containsExactly(1L);
 	}
 
 	protected List<Object> getResults() {

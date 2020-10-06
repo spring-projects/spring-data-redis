@@ -62,6 +62,7 @@ import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptio
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
+import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
@@ -100,6 +101,7 @@ import org.springframework.test.annotation.ProfileValueSourceConfiguration;
  * @author Mark Paluch
  * @author Tugdual Grall
  * @author Dejan Jankov
+ * @author Andrey Shlykov
  */
 @ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
 public abstract class AbstractConnectionIntegrationTests {
@@ -1479,6 +1481,72 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 2l, Arrays.asList(new String[] { "baz", "bar" }) }));
 	}
 
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPos() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c"));
+
+		assertThat((Long) getResults().get(1)).isEqualTo(2);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosRank() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", 2, null));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(6L);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosNegativeRank() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", -1, null));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(7L);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosCount() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", null, 2));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(2L, 6L);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosRankCount() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", -1, 2));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(7L, 6L);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosCountZero() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", null, 0));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(2L, 6L, 7L);
+	}
+
 	// Set operations
 
 	@Test
@@ -2305,7 +2373,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // DATAREDIS-378
+	@Test // DATAREDIS-378, DATAREDIS-1222
 	@IfProfileValue(name = "redisVersion", value = "2.9.0+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void zRangeByLexTest() {
@@ -2322,6 +2390,10 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zRangeByLex("myzset", Range.range().lt("c")));
 		actual.add(connection.zRangeByLex("myzset", Range.range().gte("aaa").lt("g")));
 		actual.add(connection.zRangeByLex("myzset", Range.range().gte("e")));
+
+		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c"), Limit.unlimited()));
+		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c"), Limit.limit().count(1)));
+		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c"), Limit.limit().count(1).offset(1)));
 
 		List<Object> results = getResults();
 
@@ -2341,6 +2413,18 @@ public abstract class AbstractConnectionIntegrationTests {
 		values = (Set<String>) results.get(10);
 		assertThat(values).contains("e", "f", "g");
 		assertThat(values).doesNotContain("a", "b", "c", "d");
+
+		values = (Set<String>) results.get(11);
+		assertThat(values).contains("a", "b", "c");
+		assertThat(values).doesNotContain("d", "e", "f", "g");
+
+		values = (Set<String>) results.get(12);
+		assertThat(values).contains("a");
+		assertThat(values).doesNotContain("b", "c", "d", "e", "f", "g");
+
+		values = (Set<String>) results.get(13);
+		assertThat(values).contains("b");
+		assertThat(values).doesNotContain("a", "c", "d", "e", "f", "g");
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-316, DATAREDIS-692
@@ -2618,6 +2702,19 @@ public abstract class AbstractConnectionIntegrationTests {
 		List<Object> result = getResults();
 		assertThat(((Distance) result.get(1)).getValue()).isCloseTo(166274.15156960033D, Offset.offset(0.005));
 		assertThat(((Distance) result.get(1)).getUnit()).isEqualTo("m");
+	}
+
+	@Test // DATAREDIS-1214
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void geoDistNotExisting() {
+
+		String key = "geo-" + UUID.randomUUID();
+		actual.add(connection.geoAdd(key, Arrays.asList(PALERMO, CATANIA)));
+		actual.add(connection.geoDist(key, "Spring", "Data"));
+
+		List<Object> result = getResults();
+		assertThat(result.get(1)).isNull();
 	}
 
 	@Test // DATAREDIS-438

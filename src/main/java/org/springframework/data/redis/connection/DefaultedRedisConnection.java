@@ -616,7 +616,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Override
 	@Deprecated
 	default Long xTrim(byte[] key, long count) {
-		return streamCommands().xTrim(key, count);
+		return xTrim(key, count, false);
+	}
+
+	@Override
+	@Deprecated
+	default Long xTrim(byte[] key, long count, boolean approximateTrimming) {
+		return streamCommands().xTrim(key, count, approximateTrimming);
 	}
 
 	// LIST COMMANDS
@@ -626,6 +632,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Deprecated
 	default Long rPush(byte[] key, byte[]... values) {
 		return listCommands().rPush(key, values);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> lPos(byte[] key, byte[] element, @Nullable Integer rank, @Nullable Integer count) {
+		return listCommands().lPos(key, element, rank, count);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */

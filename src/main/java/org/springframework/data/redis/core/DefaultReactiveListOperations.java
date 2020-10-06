@@ -28,6 +28,7 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveListCommands;
+import org.springframework.data.redis.connection.ReactiveListCommands.LPosCommand;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.util.Assert;
@@ -230,6 +231,30 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(key, "Key must not be null!");
 
 		return createMono(connection -> connection.lIndex(rawKey(key), index).map(this::readValue));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveListOperations#indexOf(java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Mono<Long> indexOf(K key, V value) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> connection.lPos(rawKey(key), rawValue(value)));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveListOperations#lastIndexOf(java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Mono<Long> lastIndexOf(K key, V value) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> connection.lPos(LPosCommand.lPosOf(rawValue(value)).from(rawKey(key)).rank(-1)));
 	}
 
 	/* (non-Javadoc)

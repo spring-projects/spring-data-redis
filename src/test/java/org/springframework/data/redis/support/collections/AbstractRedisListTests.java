@@ -16,6 +16,7 @@
 package org.springframework.data.redis.support.collections;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,10 +26,14 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test for RedisList
@@ -37,6 +42,8 @@ import org.springframework.data.redis.core.RedisTemplate;
  * @author Jennifer Hickey
  */
 public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionTests<T> {
+
+	@Rule public MinimumRedisVersionRule redisVersion = new MinimumRedisVersionRule();
 
 	protected RedisList<T> list;
 
@@ -54,6 +61,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception {
+
 		super.setUp();
 		list = (RedisList<T>) collection;
 	}
@@ -157,8 +165,12 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		assertThat(list.addAll(1, asList)).isTrue();
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
 	public void testIndexOfObject() {
+
+		assumeThat(template.getConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+
 		T t1 = getT();
 		T t2 = getT();
 
@@ -168,7 +180,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 		assertThat(list.indexOf(t2)).isEqualTo(-1);
 		list.add(t2);
-		assertThat(list.indexOf(t1)).isEqualTo(1);
+		assertThat(list.indexOf(t2)).isEqualTo(1);
 	}
 
 	@Test
@@ -238,10 +250,10 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		T t1 = getT();
 		T t2 = getT();
 
-		assertThat(list.range(0, -1).isEmpty()).isTrue();
+		assertThat(list.range(0, -1)).isEmpty();
 		list.add(t1);
 		list.add(t2);
-		assertThat(list.range(0, -1).size()).isEqualTo(2);
+		assertThat(list.range(0, -1)).hasSize(2);
 		assertThat(list.range(0, 0).get(0)).isEqualTo(t1);
 		assertThat(list.range(1, 1).get(0)).isEqualTo(t2);
 	}
@@ -274,12 +286,12 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		T t1 = getT();
 		T t2 = getT();
 
-		assertThat(list.trim(0, 0).isEmpty()).isTrue();
+		assertThat(list.trim(0, 0)).isEmpty();
 		list.add(t1);
 		list.add(t2);
-		assertThat(list.size()).isEqualTo(2);
-		assertThat(list.trim(0, 0).size()).isEqualTo(1);
-		assertThat(list.size()).isEqualTo(1);
+		assertThat(list).hasSize(2);
+		assertThat(list.trim(0, 0)).hasSize(1);
+		assertThat(list).hasSize(1);
 		assertThat(list.get(0)).isEqualTo(t1);
 	}
 
@@ -289,12 +301,12 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		RedisList<T> cappedList = new DefaultRedisList<T>(template.boundListOps(collection.getKey() + ":capped"), 1);
 		T first = getT();
 		cappedList.offer(first);
-		assertThat(cappedList.size()).isEqualTo(1);
+		assertThat(cappedList).hasSize(1);
 		cappedList.add(getT());
-		assertThat(cappedList.size()).isEqualTo(1);
+		assertThat(cappedList).hasSize(1);
 		T last = getT();
 		cappedList.add(last);
-		assertThat(cappedList.size()).isEqualTo(1);
+		assertThat(cappedList).hasSize(1);
 		assertThat(cappedList.get(0)).isEqualTo(first);
 	}
 
@@ -350,10 +362,8 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		List<T> c = new ArrayList<>();
 
 		list.drainTo(c, 2);
-		assertThat(list.size()).isEqualTo(1);
-		assertThat(list).contains(t3);
-		assertThat(c.size()).isEqualTo(2);
-		assertThat(c).contains(t1, t2);
+		assertThat(list).hasSize(1).contains(t3);
+		assertThat(c).hasSize(2).contains(t1, t2);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -370,9 +380,8 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		List<T> c = new ArrayList<>();
 
 		list.drainTo(c);
-		assertThat(list.isEmpty()).isTrue();
-		assertThat(c.size()).isEqualTo(3);
-		assertThat(c).contains(t1, t2, t3);
+		assertThat(list).isEmpty();
+		assertThat(c).hasSize(3).contains(t1, t2, t3);
 	}
 
 	@Test
@@ -415,7 +424,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(t2);
 
 		assertThat(list.peekLast()).isEqualTo(t2);
-		assertThat(list.size()).isEqualTo(2);
+		assertThat(list).hasSize(2);
 	}
 
 	@Test
@@ -433,8 +442,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 		T last = list.pollLast();
 		assertThat(last).isEqualTo(t2);
-		assertThat(list.size()).isEqualTo(1);
-		assertThat(list).contains(t1);
+		assertThat(list).hasSize(1).contains(t1);
 	}
 
 	@Test
@@ -448,8 +456,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 		T last = list.pollLast(1, TimeUnit.MILLISECONDS);
 		assertThat(last).isEqualTo(t2);
-		assertThat(list.size()).isEqualTo(1);
-		assertThat(list).contains(t1);
+		assertThat(list).hasSize(1).contains(t1);
 	}
 
 	@Test
@@ -489,6 +496,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 	@Test
 	public void testRmoveLastOccurrence() {
+
 		T t1 = getT();
 		T t2 = getT();
 
@@ -498,11 +506,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(t2);
 
 		list.removeLastOccurrence(t2);
-		assertThat(list.size()).isEqualTo(3);
-		Iterator<T> iterator = list.iterator();
-		assertThat(iterator.next()).isEqualTo(t1);
-		assertThat(iterator.next()).isEqualTo(t2);
-		assertThat(iterator.next()).isEqualTo(t1);
+		assertThat(list).hasSize(3).containsExactly(t1, t2, t1);
 	}
 
 	@Test
@@ -518,5 +522,23 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 	@Test
 	public void testTakeLast() {
 		testPollLast();
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	public void lastIndexOf() {
+
+		assumeThat(template.getConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		list.add(t1);
+		list.add(t2);
+		list.add(t1);
+		list.add(t3);
+
+		assertThat(list.lastIndexOf(t1)).isEqualTo(2);
 	}
 }
