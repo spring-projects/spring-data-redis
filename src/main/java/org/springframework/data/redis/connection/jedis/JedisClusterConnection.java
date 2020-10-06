@@ -860,11 +860,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		throw new UnsupportedOperationException("Sentinel is currently not supported for JedisClusterConnection.");
 	}
 
-	@Override
-	public Boolean setKeepTTL(byte[] key, byte[] value, SetOption option) {
-		throw new UnsupportedOperationException("KEEPTTL is currently not supported for JedisClusterConnection.");
-	}
-
 	/**
 	 * {@link Jedis} specific {@link ClusterCommandCallback}.
 	 *

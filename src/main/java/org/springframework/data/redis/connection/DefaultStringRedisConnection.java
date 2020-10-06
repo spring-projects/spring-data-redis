@@ -68,6 +68,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Ninad Divadkar
  * @author Tugdual Grall
+ * @author dengliming
  */
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
@@ -984,6 +985,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[], org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOptions, boolean)
+	 */
+	@Override
+	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option, boolean keepTtl) {
+		return convertAndReturn(delegate.set(key, value, expiration, option, keepTtl), identityConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#setBit(byte[], long, boolean)
 	 */
 	@Override
@@ -1007,15 +1017,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Boolean setEx(byte[] key, long seconds, byte[] value) {
 		return convertAndReturn(delegate.setEx(key, seconds, value), identityConverter);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#setKeepTTL(byte[], byte[], org.springframework.data.redis.connection.RedisStringCommands.SetOption)
-	 */
-	@Override
-	public Boolean setKeepTTL(byte[] key, byte[] value, SetOption option) {
-		return convertAndReturn(delegate.setKeepTTL(key, value, option), identityConverter);
 	}
 
 	/*

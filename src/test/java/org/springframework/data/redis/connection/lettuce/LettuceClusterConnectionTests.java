@@ -2476,7 +2476,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
 
-		assertThat(clusterConnection.setKeepTTL(KEY_1_BYTES, VALUE_2_BYTES, SetOption.upsert()));
+		assertThat(clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.upsert(), true));
 
 		long ttl = clusterConnection.ttl(KEY_1_BYTES);
 

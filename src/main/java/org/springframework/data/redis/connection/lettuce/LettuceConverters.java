@@ -82,6 +82,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author dengliming
  */
 abstract public class LettuceConverters extends Converters {
 
@@ -762,17 +763,25 @@ abstract public class LettuceConverters extends Converters {
 	/**
 	 * Converts a given {@link Expiration} and {@link SetOption} to the according {@link SetArgs}.<br />
 	 *
-	 * @param keepttl
 	 * @param expiration can be {@literal null}.
 	 * @param option can be {@literal null}.
+	 * @since 1.7
+	 */
+	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
+		return toSetArgs(expiration, option, false);
+	}
+
+	/**
+	 * Converts a given {@link Expiration} and {@link SetOption} to the according {@link SetArgs}.<br />
+	 *
+	 * @param expiration can be {@literal null}.
+	 * @param option can be {@literal null}.
+	 * @param keepTtl set the value and retain the existing TTL.
 	 * @since 2.4
 	 */
-	public static SetArgs toSetArgs(boolean keepttl, @Nullable Expiration expiration, @Nullable SetOption option) {
+	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option, boolean keepTtl) {
 
 		SetArgs args = new SetArgs();
-		if (keepttl) {
-			args.keepttl();
-		}
 		if (expiration != null && !expiration.isPersistent()) {
 
 			switch (expiration.getTimeUnit()) {
@@ -783,6 +792,10 @@ abstract public class LettuceConverters extends Converters {
 					args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
 					break;
 			}
+		}
+
+		if (keepTtl) {
+			args.keepttl();
 		}
 
 		if (option != null) {
@@ -799,17 +812,6 @@ abstract public class LettuceConverters extends Converters {
 			}
 		}
 		return args;
-	}
-
-	/**
-	 * Converts a given {@link Expiration} and {@link SetOption} to the according {@link SetArgs}.<br />
-	 *
-	 * @param expiration can be {@literal null}.
-	 * @param option can be {@literal null}.
-	 * @since 1.7
-	 */
-	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
-		return toSetArgs(false, expiration, option);
 	}
 
 	static Converter<List<byte[]>, Long> toTimeConverter() {

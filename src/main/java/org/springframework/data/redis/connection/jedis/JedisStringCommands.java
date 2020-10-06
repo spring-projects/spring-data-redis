@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import redis.clients.jedis.BitPosParams;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.params.SetParams;
@@ -154,11 +153,20 @@ class JedisStringCommands implements RedisStringCommands {
 	 */
 	@Override
 	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+		return set(key, value, expiration, option, false);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[], org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOption, boolean)
+	 */
+	@Override
+	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option, boolean keepTtl) {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 		Assert.notNull(expiration, "Expiration must not be null!");
 		Assert.notNull(option, "Option must not be null!");
+		Assert.isTrue(keepTtl, "KEEPTTL is currently not supported in jedis!");
 
 		SetParams params = JedisConverters.toSetCommandExPxArgument(expiration,
 				JedisConverters.toSetCommandNxXxArgument(option));
@@ -241,15 +249,6 @@ class JedisStringCommands implements RedisStringCommands {
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#setKeepTTL(byte[], byte[], org.springframework.data.redis.connection.RedisStringCommands.SetOption)
-	 */
-	@Override
-	public Boolean setKeepTTL(byte[] key, byte[] value, SetOption option) {
-		throw new InvalidDataAccessApiUsageException("KEEPTTL is currently not supported in jedis.");
 	}
 
 	/*
