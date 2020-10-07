@@ -128,8 +128,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 			String[] ids = command.getOptions().getIdsAsStringArray();
 			io.lettuce.core.Consumer<ByteBuffer> from = io.lettuce.core.Consumer
 					.from(ByteUtils.getByteBuffer(command.getGroupName()), ByteUtils.getByteBuffer(command.getNewOwner()));
-			XClaimArgs args = StreamConverters.toXClaimArgs(command.getOptions());
-
+			XClaimArgs args = StreamConverters.toXClaimArgs(command.getOptions()).justid();
 			Flux<RecordId> result = cmd.xclaim(command.getKey(), from, args, ids).map(it -> RecordId.of(it.getId()));
 			return new CommandResponse<>(command, result);
 		}));

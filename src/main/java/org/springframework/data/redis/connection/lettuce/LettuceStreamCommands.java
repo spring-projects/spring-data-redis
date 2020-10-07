@@ -135,7 +135,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		String[] ids = options.getIdsAsStringArray();
 		io.lettuce.core.Consumer<byte[]> from = io.lettuce.core.Consumer.from(LettuceConverters.toBytes(group),
 				LettuceConverters.toBytes(newOwner));
-		XClaimArgs args = StreamConverters.toXClaimArgs(options);
+		XClaimArgs args = StreamConverters.toXClaimArgs(options).justid();
 
 		try {
 			if (isPipelined()) {

@@ -502,7 +502,7 @@ public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsT
 						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed())) //
 				.delayElements(Duration.ofMillis(5)).next() //
 				.flatMapMany(record -> connection.streamCommands().xClaimJustId(KEY_1_BBUFFER, "my-group", "my-consumer",
-						XClaimOptions.minIdle(Duration.ofMillis(1)).ids(record.getId()).justId())
+						XClaimOptions.minIdle(Duration.ofMillis(1)).ids(record.getId()))
 				).as(StepVerifier::create) //
 				.assertNext(it -> assertThat(it.getValue()).isEqualTo(expected)) //
 				.verifyComplete();
