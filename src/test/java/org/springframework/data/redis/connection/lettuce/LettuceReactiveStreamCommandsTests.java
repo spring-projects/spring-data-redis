@@ -45,6 +45,7 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Tugdual Grall
+ * @author Dengliming
  */
 public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -488,4 +489,22 @@ public class LettuceReactiveStreamCommandsTests extends LettuceReactiveCommandsT
 		connection.streamCommands().xInfoConsumers(KEY_1_BBUFFER, "my-group").as(StepVerifier::create).verifyComplete();
 	}
 
+	@Test // DATAREDIS-1226
+	public void xClaimJustId() {
+
+		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, initialMessage), "my-group");
+
+		String expected = nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed())) //
+				.delayElements(Duration.ofMillis(5)).next() //
+				.flatMapMany(record -> connection.streamCommands().xClaimJustId(KEY_1_BBUFFER, "my-group", "my-consumer",
+						XClaimOptions.minIdle(Duration.ofMillis(1)).ids(record.getId()).justId())
+				).as(StepVerifier::create) //
+				.assertNext(it -> assertThat(it.getValue()).isEqualTo(expected)) //
+				.verifyComplete();
+	}
 }
