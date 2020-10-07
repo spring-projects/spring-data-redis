@@ -229,6 +229,7 @@ public interface RedisStreamCommands {
 
 	/**
 	 * @author Christoph Strobl
+	 * @author Dengliming
 	 * @since 2.3
 	 */
 	class XClaimOptions {
@@ -239,9 +240,10 @@ public interface RedisStreamCommands {
 		private final @Nullable Instant unixTime;
 		private final @Nullable Long retryCount;
 		private final boolean force;
+		private final boolean justId;
 
 		private XClaimOptions(List<RecordId> ids, Duration minIdleTime, @Nullable Duration idleTime,
-				@Nullable Instant unixTime, @Nullable Long retryCount, boolean force) {
+				@Nullable Instant unixTime, @Nullable Long retryCount, boolean force, boolean justId) {
 
 			this.ids = new ArrayList<>(ids);
 			this.minIdleTime = minIdleTime;
@@ -249,6 +251,7 @@ public interface RedisStreamCommands {
 			this.unixTime = unixTime;
 			this.retryCount = retryCount;
 			this.force = force;
+			this.justId = justId;
 		}
 
 		/**
@@ -281,7 +284,7 @@ public interface RedisStreamCommands {
 		 * @return {@code this}.
 		 */
 		public XClaimOptions idle(Duration idleTime) {
-			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, force);
+			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, force, justId);
 		}
 
 		/**
@@ -292,7 +295,7 @@ public interface RedisStreamCommands {
 		 * @return {@code this}.
 		 */
 		public XClaimOptions time(Instant unixTime) {
-			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, force);
+			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, force, justId);
 		}
 
 		/**
@@ -302,7 +305,7 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XClaimOptions}.
 		 */
 		public XClaimOptions retryCount(long retryCount) {
-			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, force);
+			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, force, justId);
 		}
 
 		/**
@@ -312,7 +315,16 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XClaimOptions}.
 		 */
 		public XClaimOptions force() {
-			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, true);
+			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, true, justId);
+		}
+
+		/**
+		 * Set the JUSTID flag.
+		 *
+		 * @return new instance of {@link XClaimOptions}.
+		 */
+		public XClaimOptions justId() {
+			return new XClaimOptions(ids, minIdleTime, idleTime, unixTime, retryCount, force, true);
 		}
 
 		/**
@@ -381,6 +393,15 @@ public interface RedisStreamCommands {
 			return force;
 		}
 
+		/**
+		 * Get the JUSTID flag.
+		 *
+		 * @return
+		 */
+		public boolean isJustId() {
+			return justId;
+		}
+
 		public static class XClaimOptionsBuilder {
 
 			private final Duration minIdleTime;
@@ -404,7 +425,7 @@ public interface RedisStreamCommands {
 						.map(it -> it instanceof RecordId ? (RecordId) it : RecordId.of(it.toString()))
 						.collect(Collectors.toList());
 
-				return new XClaimOptions(idList, minIdleTime, null, null, null, false);
+				return new XClaimOptions(idList, minIdleTime, null, null, null, false, false);
 			}
 
 			/**
