@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
@@ -37,12 +36,12 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import org.assertj.core.data.Offset;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.geo.Circle;
@@ -2472,14 +2471,13 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	public void setKeepTTL() {
 
 		long expireSeconds = 10;
-		assertThat(clusterConnection.setEx(KEY_1_BYTES, expireSeconds, VALUE_2_BYTES));
+		nativeConnection.setex(KEY_1, expireSeconds, VALUE_1);
 
-		assertThat(clusterConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
+		assertThat(
+				clusterConnection.stringCommands().set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.keepTtl(), SetOption.upsert()))
+						.isTrue();
 
-		assertThat(clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.upsert(), true));
-
-		long ttl = clusterConnection.ttl(KEY_1_BYTES);
-
-		assertThat(0 < ttl && ttl <= expireSeconds);
+		assertThat(nativeConnection.ttl(KEY_1)).isCloseTo(expireSeconds, Offset.offset(5L));
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
 	}
 }

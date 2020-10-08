@@ -37,8 +37,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.assertj.core.data.Offset;
 import org.junit.Test;
-
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
@@ -49,6 +49,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.ReactiveStringCommands.SetCommand;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
+import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.util.HexStringUtils;
 import org.springframework.data.redis.util.ByteUtils;
@@ -509,4 +510,18 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.expectNext(16L).verifyComplete();
 	}
 
+	@Test // DATAREDIS-1103
+	public void setKeepTTL() {
+
+		long expireSeconds = 10;
+		nativeCommands.setex(KEY_1, expireSeconds, VALUE_1);
+
+		connection.stringCommands().set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.keepTtl(), SetOption.upsert())
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		assertThat(nativeBinaryCommands.ttl(KEY_1_BBUFFER)).isCloseTo(expireSeconds, Offset.offset(5L));
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
 }

@@ -420,7 +420,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}.
+	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}. Use
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
 	 * @param option can be {@literal null}. Defaulted to {@link SetOption#UPSERT}.
 	 * @since 1.7
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>

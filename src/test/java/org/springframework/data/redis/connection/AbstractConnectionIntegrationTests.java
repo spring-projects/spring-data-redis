@@ -179,6 +179,20 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(waitFor(new KeyExpired("exp"), 3000l)).isTrue();
 	}
 
+	@Test // DATAREDIS-1103
+	public void testSetWithKeepTTL() {
+
+		actual.add(connection.set("exp", "true"));
+		actual.add(connection.expire("exp", 10));
+		actual.add(connection.set("exp", "changed", Expiration.keepTtl(), SetOption.upsert()));
+		actual.add(connection.ttl("exp"));
+
+		List<Object> results = getResults();
+
+		assertThat(results.get(2)).isEqualTo(true);
+		assertThat((Long) results.get(3)).isCloseTo(10L, Offset.offset(5L));
+	}
+
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testExpireAt() throws Exception {

@@ -768,34 +768,24 @@ abstract public class LettuceConverters extends Converters {
 	 * @since 1.7
 	 */
 	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
-		return toSetArgs(expiration, option, false);
-	}
-
-	/**
-	 * Converts a given {@link Expiration} and {@link SetOption} to the according {@link SetArgs}.<br />
-	 *
-	 * @param expiration can be {@literal null}.
-	 * @param option can be {@literal null}.
-	 * @param keepTtl set the value and retain the existing TTL.
-	 * @since 2.4
-	 */
-	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option, boolean keepTtl) {
 
 		SetArgs args = new SetArgs();
-		if (expiration != null && !expiration.isPersistent()) {
 
-			switch (expiration.getTimeUnit()) {
-				case SECONDS:
-					args.ex(expiration.getExpirationTime());
-					break;
-				default:
-					args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
-					break;
+		if (expiration != null) {
+
+			if (expiration.isKeepTtl()) {
+				args.keepttl();
+			} else if (!expiration.isPersistent()) {
+
+				switch (expiration.getTimeUnit()) {
+					case SECONDS:
+						args.ex(expiration.getExpirationTime());
+						break;
+					default:
+						args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
+						break;
+				}
 			}
-		}
-
-		if (keepTtl) {
-			args.keepttl();
 		}
 
 		if (option != null) {

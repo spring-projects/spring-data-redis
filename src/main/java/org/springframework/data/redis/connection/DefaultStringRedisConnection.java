@@ -995,15 +995,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[], org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOptions, boolean)
-	 */
-	@Override
-	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option, boolean keepTtl) {
-		return convertAndReturn(delegate.set(key, value, expiration, option, keepTtl), identityConverter);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#setBit(byte[], long, boolean)
 	 */
 	@Override
