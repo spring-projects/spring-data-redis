@@ -32,6 +32,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Andrey Shlykov
  * @see <a href="https://redis.io/commands#zset">Redis Documentation: Sorted Set Commands</a>
  * @since 2.0
  */
@@ -461,4 +462,15 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 */
 	Mono<Boolean> delete(K key);
+
+	/**
+	 * Count number of elements within sorted set with a value between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}
+	 * @return
+	 * @see <a href="https://redis.io/commands/ZLEXCOUNT">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	Mono<Long> lexCount(K key, Range<String> range);
 }

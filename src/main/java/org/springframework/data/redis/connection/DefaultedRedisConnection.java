@@ -55,6 +55,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Tugdual Grall
+ * @author Andrey Shlykov
  * @since 2.0
  */
 public interface DefaultedRedisConnection extends RedisConnection {
@@ -1091,6 +1092,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Deprecated
 	default Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
 		return zSetCommands().zRangeByScore(key, min, max, offset, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Long zLexCount(byte[] key, Range range) {
+		return zSetCommands().zLexCount(key, range);
 	}
 
 	// HASH COMMANDS

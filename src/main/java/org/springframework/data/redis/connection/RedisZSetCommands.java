@@ -1059,4 +1059,16 @@ public interface RedisZSetCommands {
 	@Nullable
 	Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit);
 
+	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	@Nullable
+	Long zLexCount(byte[] key, Range range);
+
 }

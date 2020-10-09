@@ -33,6 +33,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Wongoo (望哥)
+ * @author Andrey Shlykov
  */
 public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 
@@ -413,6 +414,17 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Set<V> reverseRangeByLex(Range range, Limit limit);
+
+	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	@Nullable
+	Long lexCount(Range range);
 
 	/**
 	 * @return never {@literal null}.

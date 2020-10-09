@@ -1541,6 +1541,19 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	Set<String> zRevRangeByLex(String key, Range range, Limit limit);
 
+	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 * @see RedisZSetCommands#zLexCount(byte[], Range)
+	 */
+	@Nullable
+	Long zLexCount(String key, Range range);
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Hashes
 	// -------------------------------------------------------------------------

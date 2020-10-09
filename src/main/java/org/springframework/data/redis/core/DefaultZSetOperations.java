@@ -34,6 +34,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
  * @author David Liu
  * @author Mark Paluch
  * @author Wongoo (望哥)
+ * @author Andrey Shlykov
  */
 class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZSetOperations<K, V> {
 
@@ -465,5 +466,12 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[] rawKey = rawKey(key);
 
 		return execute(connection -> connection.zRangeByScore(rawKey, min, max, offset, count), true);
+	}
+
+	@Override
+	public Long lexCount(K key, Range range) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.zLexCount(rawKey, range), true);
 	}
 }

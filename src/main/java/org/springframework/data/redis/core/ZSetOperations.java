@@ -33,6 +33,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Rosty Kerei
  * @author Wongoo (望哥)
+ * @author Andrey Shlykov
  */
 public interface ZSetOperations<K, V> {
 
@@ -523,6 +524,18 @@ public interface ZSetOperations<K, V> {
 	 */
 	@Nullable
 	Set<V> reverseRangeByLex(K key, Range range, Limit limit);
+
+	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	@Nullable
+	Long lexCount(K key, Range range);
 
 	/**
 	 * @return never {@literal null}.

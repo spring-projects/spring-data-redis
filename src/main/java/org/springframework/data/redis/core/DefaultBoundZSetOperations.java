@@ -33,6 +33,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Wongoo (望哥)
+ * @author Andrey Shlykov
  */
 class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundZSetOperations<K, V> {
 
@@ -327,6 +328,15 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	@Override
 	public Long unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
 		return ops.unionAndStore(getKey(), otherKeys, destKey, aggregate, weights);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#lexCount(org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long lexCount(Range range) {
+		return ops.lexCount(getKey(), range);
 	}
 
 	/*
