@@ -48,6 +48,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Andrey Shlykov
  */
 @RunWith(Parameterized.class)
 @SuppressWarnings("unchecked")
@@ -691,6 +692,34 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 
 		zSetOperations.size(key).as(StepVerifier::create) //
 				.expectNext(0L) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-729
+	public void lexCount() {
+
+		assumeTrue(serializer instanceof StringRedisSerializer);
+
+		K key = keyFactory.instance();
+
+		zSetOperations.add(key, (V) "a", 0).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, (V) "b", 0).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, (V) "c", 0).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, (V) "d", 0).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, (V) "e", 0).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, (V) "f", 0).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, (V) "g", 0).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.lexCount(key, Range.unbounded()).as(StepVerifier::create)
+				.expectNext(7L)
+				.verifyComplete();
+
+		zSetOperations.lexCount(key, Range.leftOpen("b", "f")).as(StepVerifier::create)
+				.expectNext(4L)
+				.verifyComplete();
+
+		zSetOperations.lexCount(key, Range.rightOpen("b", "f")).as(StepVerifier::create)
+				.expectNext(4L)
 				.verifyComplete();
 	}
 }

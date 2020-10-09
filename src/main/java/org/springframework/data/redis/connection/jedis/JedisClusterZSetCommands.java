@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Clement Ong
+ * @author Andrey Shlykov
  * @since 2.0
  */
 class JedisClusterZSetCommands implements RedisZSetCommands {
@@ -765,6 +766,26 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		try {
 			return connection.getCluster().zrangeByScore(key, JedisConverters.toBytes(min), JedisConverters.toBytes(max),
 					Long.valueOf(offset).intValue(), Long.valueOf(count).intValue());
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zLexCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long zLexCount(byte[] key, Range range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null!");
+
+		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);
+		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
+
+		try {
+			return connection.getCluster().zlexcount(key, min, max);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

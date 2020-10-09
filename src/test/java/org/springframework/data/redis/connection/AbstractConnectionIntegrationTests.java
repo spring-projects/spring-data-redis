@@ -2441,6 +2441,43 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(values).doesNotContain("a", "c", "d", "e", "f", "g");
 	}
 
+	@Test // DATAREDIS-729
+	@IfProfileValue(name = "redisVersion", value = "2.9.0+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void zLexCountTest() {
+
+		actual.add(connection.zAdd("myzset", 0, "a"));
+		actual.add(connection.zAdd("myzset", 0, "b"));
+		actual.add(connection.zAdd("myzset", 0, "c"));
+		actual.add(connection.zAdd("myzset", 0, "d"));
+		actual.add(connection.zAdd("myzset", 0, "e"));
+		actual.add(connection.zAdd("myzset", 0, "f"));
+		actual.add(connection.zAdd("myzset", 0, "g"));
+
+		actual.add(connection.zLexCount("myzset", Range.unbounded()));
+		actual.add(connection.zLexCount("myzset", Range.range().lt("c")));
+		actual.add(connection.zLexCount("myzset", Range.range().lte("c")));
+		actual.add(connection.zLexCount("myzset", Range.range().gte("aaa").lt("g")));
+		actual.add(connection.zLexCount("myzset", Range.range().gte("e")));
+
+		List<Object> results = getResults();
+
+		Long count = (Long) results.get(7);
+		assertThat(count).isEqualTo(7);
+
+		count = (Long) results.get(8);
+		assertThat(count).isEqualTo(2);
+
+		count = (Long) results.get(9);
+		assertThat(count).isEqualTo(3);
+
+		count = (Long) results.get(10);
+		assertThat(count).isEqualTo(5);
+
+		count = (Long) results.get(11);
+		assertThat(count).isEqualTo(3);
+	}
+
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-316, DATAREDIS-692
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithExpirationAndNullOpionShouldThrowException() {
