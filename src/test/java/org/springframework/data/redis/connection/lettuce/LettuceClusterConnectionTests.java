@@ -234,7 +234,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void blPopShouldPopElementCorectly() {
+	public void blPopShouldPopElementCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
 		nativeConnection.lpush(KEY_2, VALUE_3);
@@ -243,7 +243,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void blPopShouldPopElementCorectlyWhenKeyOnSameSlot() {
+	public void blPopShouldPopElementCorrectlyWhenKeyOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
 		nativeConnection.lpush(SAME_SLOT_KEY_2, VALUE_3);
@@ -252,7 +252,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void brPopShouldPopElementCorectly() {
+	public void brPopShouldPopElementCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
 		nativeConnection.lpush(KEY_2, VALUE_3);
@@ -261,7 +261,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void brPopShouldPopElementCorectlyWhenKeyOnSameSlot() {
+	public void brPopShouldPopElementCorrectlyWhenKeyOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
 		nativeConnection.lpush(SAME_SLOT_KEY_2, VALUE_3);
