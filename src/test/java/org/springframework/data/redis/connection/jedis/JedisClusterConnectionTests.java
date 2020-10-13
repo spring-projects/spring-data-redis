@@ -202,7 +202,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void blPopShouldPopElementCorectly() {
+	public void blPopShouldPopElementCorrectly() {
 
 		nativeConnection.lpush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
 		nativeConnection.lpush(KEY_2_BYTES, VALUE_3_BYTES);
@@ -211,7 +211,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void blPopShouldPopElementCorectlyWhenKeyOnSameSlot() {
+	public void blPopShouldPopElementCorrectlyWhenKeyOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
 		nativeConnection.lpush(SAME_SLOT_KEY_2_BYTES, VALUE_3_BYTES);
@@ -220,7 +220,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void brPopShouldPopElementCorectly() {
+	public void brPopShouldPopElementCorrectly() {
 
 		nativeConnection.lpush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
 		nativeConnection.lpush(KEY_2_BYTES, VALUE_3_BYTES);
@@ -229,7 +229,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void brPopShouldPopElementCorectlyWhenKeyOnSameSlot() {
+	public void brPopShouldPopElementCorrectlyWhenKeyOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
 		nativeConnection.lpush(SAME_SLOT_KEY_2_BYTES, VALUE_3_BYTES);

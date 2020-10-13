@@ -31,6 +31,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jot Zhao
  * @since 2.0
  */
 class JedisClusterListCommands implements RedisListCommands {
