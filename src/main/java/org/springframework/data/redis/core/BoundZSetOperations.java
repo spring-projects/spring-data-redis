@@ -368,7 +368,9 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	@Nullable
-	Set<V> rangeByLex(Range range);
+	default Set<V> rangeByLex(Range range) {
+		return rangeByLex(range, Limit.unlimited());
+	}
 
 	/**
 	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
@@ -383,6 +385,34 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Set<V> rangeByLex(Range range, Limit limit);
+
+	/**
+	 * Get all elements with reverse lexicographical ordering with a value between {@link Range#getMin()} and
+	 * {@link Range#getMax()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 */
+	@Nullable
+	default Set<V> reverseRangeByLex(Range range) {
+		return reverseRangeByLex(range, Limit.unlimited());
+	}
+
+	/**
+	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering having a value between {@link Range#getMin()} and
+	 * {@link Range#getMax()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @param limit can be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 */
+	@Nullable
+	Set<V> reverseRangeByLex(Range range, Limit limit);
 
 	/**
 	 * @return never {@literal null}.

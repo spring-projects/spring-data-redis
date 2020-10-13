@@ -145,20 +145,20 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
-	@Override
-	public Set<E> rangeByLex(Range range) {
-		return boundZSetOps.rangeByLex(range);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.support.collections.RedisZSet#rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
 	public Set<E> rangeByLex(Range range, Limit limit) {
 		return boundZSetOps.rangeByLex(range, limit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisZSet#reverseRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<E> reverseRangeByLex(Range range, Limit limit) {
+		return boundZSetOps.reverseRangeByLex(range, limit);
 	}
 
 	/*
