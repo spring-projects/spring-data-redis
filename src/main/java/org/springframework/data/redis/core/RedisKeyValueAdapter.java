@@ -826,7 +826,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		private boolean isKeyExpirationMessage(Message message) {
 
-			if (message == null || message.getChannel() == null || message.getBody() == null) {
+			if (message == null) {
 				return false;
 			}
 
