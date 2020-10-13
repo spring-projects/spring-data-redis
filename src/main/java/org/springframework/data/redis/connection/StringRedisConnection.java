@@ -1501,6 +1501,47 @@ public interface StringRedisConnection extends RedisConnection {
 	Set<String> zRangeByLex(String key, Range range, Limit limit);
 
 	/**
+	 * Get all the elements in the sorted set at {@literal key} in reversed lexicographical ordering.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 * @see RedisZSetCommands#zRevRangeByLex(byte[])
+	 */
+	default Set<String> zRevRangeByLex(String key) {
+		return zRevRangeByLex(key, Range.unbounded());
+	}
+
+	/**
+	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 * @see RedisZSetCommands#zRevRangeByLex(byte[], Range)
+	 */
+	default Set<String> zRevRangeByLex(String key, Range range) {
+		return zRevRangeByLex(key, range, Limit.unlimited());
+	}
+
+	/**
+	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering. Result is
+	 * limited via {@link Limit}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param range can be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 * @see RedisZSetCommands#zRevRangeByLex(byte[], Range, Limit)
+	 */
+	Set<String> zRevRangeByLex(String key, Range range, Limit limit);
+
+	/**
 	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max}.
 	 *
 	 * @param key must not be {@literal null}.

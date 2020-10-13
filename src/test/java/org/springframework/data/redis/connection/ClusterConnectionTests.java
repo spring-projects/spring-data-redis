@@ -46,16 +46,16 @@ public interface ClusterConnectionTests {
 	void bitOpShouldThrowExceptionWhenKeysDoNotMapToSameSlot();
 
 	// DATAREDIS-315
-	void blPopShouldPopElementCorectly();
+	void blPopShouldPopElementCorrectly();
 
 	// DATAREDIS-315
-	void blPopShouldPopElementCorectlyWhenKeyOnSameSlot();
+	void blPopShouldPopElementCorrectlyWhenKeyOnSameSlot();
 
 	// DATAREDIS-315
-	void brPopShouldPopElementCorectly();
+	void brPopShouldPopElementCorrectly();
 
 	// DATAREDIS-315
-	void brPopShouldPopElementCorectlyWhenKeyOnSameSlot();
+	void brPopShouldPopElementCorrectlyWhenKeyOnSameSlot();
 
 	// DATAREDIS-315
 	void clientListShouldGetInfosForAllClients();

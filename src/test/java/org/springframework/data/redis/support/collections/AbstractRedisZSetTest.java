@@ -402,14 +402,31 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		zSet.add(t2, 2);
 		zSet.add(t3, 3);
 		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.range().gte(t1),
-				RedisZSetCommands.Limit.limit().count(1).offset(1));
+				RedisZSetCommands.Limit.limit().count(2).offset(1));
 
-		assertThat(tuples.size()).isEqualTo(1);
-		T tuple = tuples.iterator().next();
-		assertThat(tuple).isEqualTo(t2);
+		assertThat(tuples).hasSize(2).containsSequence(t2, t3);
 	}
 
-	@Test
+	@Test // DATAREDIS-729
+	public void testReverseRangeByLexBoundedWithLimit() {
+
+		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+		Set<T> tuples = zSet.reverseRangeByLex(RedisZSetCommands.Range.range().gte(t1),
+				RedisZSetCommands.Limit.limit().count(2).offset(1));
+
+		assertThat(tuples).hasSize(2).containsSequence(t2, t1);
+	}
+
+	@Test // DATAREDIS-729
 	public void testReverseRangeByScore() {
 
 		T t1 = getT();

@@ -247,9 +247,29 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
 		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.unbounded(),
-				RedisZSetCommands.Limit.limit().count(1).offset(1));
+				RedisZSetCommands.Limit.limit().count(2).offset(1));
 
-		assertThat(tuples).hasSize(1).startsWith(value2);
+		assertThat(tuples).hasSize(2).containsSequence(value2, value3);
+	}
+
+	@Test // DATAREDIS-729
+	public void testReverseRangeByLexUnboundedWithLimit() {
+
+		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.9);
+		zSetOps.add(key, value2, 3.7);
+		zSetOps.add(key, value3, 5.8);
+		Set<V> tuples = zSetOps.reverseRangeByLex(key, RedisZSetCommands.Range.unbounded(),
+				RedisZSetCommands.Limit.limit().count(2).offset(1));
+
+		assertThat(tuples).hasSize(2).containsSequence(value2, value1);
 	}
 
 	@Test // DATAREDIS-407

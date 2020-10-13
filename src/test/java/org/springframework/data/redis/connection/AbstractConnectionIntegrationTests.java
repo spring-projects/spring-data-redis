@@ -2411,34 +2411,47 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> results = getResults();
 
-		Set<String> values = (Set<String>) results.get(7);
+		assertThat((Set<String>) results.get(7)).containsExactly("a", "b", "c").doesNotContain("d", "e", "f", "g");
+		assertThat((Set<String>) results.get(8)).containsExactly("a", "b").doesNotContain("c");
+		assertThat((Set<String>) results.get(9)).containsExactly("b", "c", "d", "e", "f").doesNotContain("a", "g");
+		assertThat((Set<String>) results.get(10)).containsExactly("e", "f", "g").doesNotContain("a", "b", "c", "d");
+		assertThat((Set<String>) results.get(11)).containsExactly("a", "b", "c").doesNotContain("d", "e", "f", "g");
+		assertThat((Set<String>) results.get(12)).contains("a").doesNotContain("b", "c", "d", "e", "f", "g");
+		assertThat((Set<String>) results.get(13)).contains("b").doesNotContain("a", "c", "d", "e", "f", "g");
+	}
 
-		assertThat(values).contains("a", "b", "c");
-		assertThat(values).doesNotContain("d", "e", "f", "g");
+	@SuppressWarnings("unchecked")
+	@Test // DATAREDIS-729
+	@IfProfileValue(name = "redisVersion", value = "2.9.0+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void zRevRangeByLexTest() {
 
-		values = (Set<String>) results.get(8);
-		assertThat(values).contains("a", "b");
-		assertThat(values).doesNotContain("c");
+		actual.add(connection.zAdd("myzset", 0, "a"));
+		actual.add(connection.zAdd("myzset", 0, "b"));
+		actual.add(connection.zAdd("myzset", 0, "c"));
+		actual.add(connection.zAdd("myzset", 0, "d"));
+		actual.add(connection.zAdd("myzset", 0, "e"));
+		actual.add(connection.zAdd("myzset", 0, "f"));
+		actual.add(connection.zAdd("myzset", 0, "g"));
 
-		values = (Set<String>) results.get(9);
-		assertThat(values).contains("b", "c", "d", "e", "f");
-		assertThat(values).doesNotContain("a", "g");
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("c")));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lt("c")));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().gte("aaa").lt("g")));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().gte("e")));
 
-		values = (Set<String>) results.get(10);
-		assertThat(values).contains("e", "f", "g");
-		assertThat(values).doesNotContain("a", "b", "c", "d");
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("c"), Limit.unlimited()));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("d"), Limit.limit().count(2)));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("d"), Limit.limit().count(2).offset(1)));
 
-		values = (Set<String>) results.get(11);
-		assertThat(values).contains("a", "b", "c");
-		assertThat(values).doesNotContain("d", "e", "f", "g");
+		List<Object> results = getResults();
 
-		values = (Set<String>) results.get(12);
-		assertThat(values).contains("a");
-		assertThat(values).doesNotContain("b", "c", "d", "e", "f", "g");
-
-		values = (Set<String>) results.get(13);
-		assertThat(values).contains("b");
-		assertThat(values).doesNotContain("a", "c", "d", "e", "f", "g");
+		assertThat((Set<String>) results.get(7)).containsExactly("c", "b", "a").doesNotContain("d", "e", "f", "g");
+		assertThat((Set<String>) results.get(8)).containsExactly("b", "a").doesNotContain("c");
+		assertThat((Set<String>) results.get(9)).containsExactly("f", "e", "d", "c", "b").doesNotContain("a", "g");
+		assertThat((Set<String>) results.get(10)).containsExactly("g", "f", "e").doesNotContain("a", "b", "c", "d");
+		assertThat((Set<String>) results.get(11)).containsExactly("c", "b", "a").doesNotContain("d", "e", "f", "g");
+		assertThat((Set<String>) results.get(12)).contains("d", "c").doesNotContain("a", "b", "e", "f", "g");
+		assertThat((Set<String>) results.get(13)).contains("c", "b").doesNotContain("a", "d", "e", "f", "g");
 	}
 
 	@Test // DATAREDIS-729

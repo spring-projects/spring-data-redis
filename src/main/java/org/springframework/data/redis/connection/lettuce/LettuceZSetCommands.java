@@ -880,6 +880,55 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range for ZREVRANGEBYLEX must not be null!");
+		Assert.notNull(limit, "Limit must not be null!");
+
+		try {
+			if (isPipelined()) {
+				if (limit.isUnlimited()) {
+					pipeline(connection.newLettuceResult(
+							getAsyncConnection().zrevrangebylex(key, LettuceConverters.toRange(range, true)),
+							LettuceConverters.bytesListToBytesSet()));
+				} else {
+					pipeline(connection.newLettuceResult(getAsyncConnection().zrevrangebylex(key,
+							LettuceConverters.toRange(range, true), LettuceConverters.toLimit(limit)),
+							LettuceConverters.bytesListToBytesSet()));
+				}
+				return null;
+			}
+			if (isQueueing()) {
+				if (limit.isUnlimited()) {
+					transaction(connection.newLettuceResult(
+							getAsyncConnection().zrevrangebylex(key, LettuceConverters.toRange(range, true)),
+							LettuceConverters.bytesListToBytesSet()));
+				} else {
+					transaction(connection.newLettuceResult(getAsyncConnection().zrevrangebylex(key,
+							LettuceConverters.toRange(range, true), LettuceConverters.toLimit(limit)),
+							LettuceConverters.bytesListToBytesSet()));
+				}
+				return null;
+			}
+
+			if (limit.isUnlimited()) {
+				return LettuceConverters.bytesListToBytesSet()
+						.convert(getConnection().zrevrangebylex(key, LettuceConverters.toRange(range, true)));
+			}
+			return LettuceConverters.bytesListToBytesSet().convert(getConnection().zrevrangebylex(key,
+					LettuceConverters.toRange(range, true), LettuceConverters.toLimit(limit)));
+
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zLexCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
 	 */
 	@Override

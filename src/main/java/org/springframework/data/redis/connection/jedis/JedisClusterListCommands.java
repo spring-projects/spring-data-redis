@@ -31,6 +31,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jot Zhao
  * @since 2.0
  */
 class JedisClusterListCommands implements RedisListCommands {
@@ -302,6 +303,14 @@ class JedisClusterListCommands implements RedisListCommands {
 
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
+			try {
+				return connection.getCluster().brpop(timeout,keys);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
 
 		return connection.getClusterCommandExecutor()
 				.executeMultiKeyCommand(

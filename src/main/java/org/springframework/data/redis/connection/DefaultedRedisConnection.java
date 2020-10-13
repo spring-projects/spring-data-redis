@@ -957,6 +957,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
+	default Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit) {
+		return zSetCommands().zRevRangeByLex(key, range, limit);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
 	default Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
 		return zSetCommands().zRangeByScore(key, range, limit);
 	}
