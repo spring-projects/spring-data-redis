@@ -946,7 +946,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				transaction(connection.newLettuceResult(getAsyncConnection().zlexcount(key, LettuceConverters.toRange(range))));
 				return null;
 			}
-			return getConnection().zlexcount(key, LettuceConverters.toRange(range));
+			return getConnection().zlexcount(key, LettuceConverters.toRange(range, true));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

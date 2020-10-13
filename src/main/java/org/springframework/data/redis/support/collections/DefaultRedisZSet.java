@@ -37,6 +37,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Andrey Shlykov
  */
 public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements RedisZSet<E> {
 
@@ -390,6 +391,15 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public Long reverseRank(Object o) {
 		return boundZSetOps.reverseRank(o);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisZSet#lexCount(org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long lexCount(Range range) {
+		return boundZSetOps.lexCount(range);
 	}
 
 	/*

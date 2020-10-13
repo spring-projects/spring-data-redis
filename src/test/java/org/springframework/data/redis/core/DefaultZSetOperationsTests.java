@@ -53,6 +53,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Wongoo (望哥)
+ * @author Andrey Shlykov
  * @param <K> Key type
  * @param <V> Value type
  */
@@ -458,5 +459,41 @@ public class DefaultZSetOperationsTests<K, V> {
 				Weights.of(1, 2));
 
 		assertThat(zSetOps.score(key1, value1)).isCloseTo(6.0, offset(0.1));
+	}
+
+	@Test // DATAREDIS-729
+	public void testLexCountUnbounded() {
+
+		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 0);
+		zSetOps.add(key, value2, 0);
+		zSetOps.add(key, value3, 0);
+
+		assertThat(zSetOps.lexCount(key, RedisZSetCommands.Range.unbounded())).isEqualTo(3);
+	}
+
+	@Test // DATAREDIS-729
+	public void testLexCountBounded() {
+
+		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 0);
+		zSetOps.add(key, value2, 0);
+		zSetOps.add(key, value3, 0);
+
+		assertThat(zSetOps.lexCount(key, RedisZSetCommands.Range.range().gt(value1))).isEqualTo(2);
 	}
 }

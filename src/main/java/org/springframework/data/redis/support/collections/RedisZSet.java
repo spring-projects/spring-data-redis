@@ -36,6 +36,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Costin Leau
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Andrey Shlykov
  */
 public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
@@ -166,6 +167,16 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return the default score used by the implementation.
 	 */
 	Double getDefaultScore();
+
+	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	Long lexCount(Range range);
 
 	/**
 	 * Returns the first (lowest) element currently in this sorted set.
