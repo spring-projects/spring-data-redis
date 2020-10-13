@@ -933,7 +933,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 			}
 
 			if (!limit.isUnlimited()) {
-				return new LinkedHashSet<>(connection.getJedis().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount()));
+				return new LinkedHashSet<>(
+						connection.getJedis().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount()));
 			}
 			return new LinkedHashSet<>(connection.getJedis().zrevrangeByLex(key, max, min));
 		} catch (Exception ex) {

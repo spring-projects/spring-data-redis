@@ -309,11 +309,11 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(range, "Range cannot be null for ZRANGEBYLEX.");
+		Assert.notNull(range, "Range must not be null for ZRANGEBYLEX!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.toBytes("-"));
-		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.toBytes("+"));
+		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);
+		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
 
 		try {
 			if (limit.isUnlimited()) {
@@ -333,7 +333,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	public Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(range, "Range cannot be null for ZREVRANGEBYLEX.");
+		Assert.notNull(range, "Range must not be null for ZREVRANGEBYLEX!");
 		Assert.notNull(limit, "Limit must not be null!");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);

@@ -1046,8 +1046,8 @@ public interface RedisZSetCommands {
 	}
 
 	/**
-	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering. Result is
-	 * limited via {@link Limit}.
+	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering.
+	 * Result is limited via {@link Limit}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
