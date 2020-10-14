@@ -1,6 +1,19 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.4.0-RC2 (2020-10-14)
+-----------------------------------------
+* DATAREDIS-1231 - Use Jedis command routing if multiple BRPOP keys map to a single slot.
+* DATAREDIS-1226 - Add support for xClaimJustId.
+* DATAREDIS-1225 - Fix typos in reference documentation.
+* DATAREDIS-1223 - Upgrade to Lettuce 6.0 GA.
+* DATAREDIS-1222 - DefaultStringRedisConnection#zRangeByLex(String, Range, Limit) ignores the limit parameter.
+* DATAREDIS-1219 - Release 2.4 RC2 (2020.0.0).
+* DATAREDIS-1214 - Get a NullPointerException when using the geodist command of redis.
+* DATAREDIS-1103 - Support new KEEPTTL option of the SET operation.
+* DATAREDIS-729 - Support reverseRangeByLex and lexCount commands.
+
+
 Changes in version 2.4.0-RC1 (2020-09-16)
 -----------------------------------------
 * DATAREDIS-1215 - Upgrade to Lettuce 6.0-RC2.
@@ -2109,6 +2122,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
