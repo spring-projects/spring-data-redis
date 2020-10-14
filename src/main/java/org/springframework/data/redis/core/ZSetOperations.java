@@ -287,6 +287,19 @@ public interface ZSetOperations<K, V> {
 	Long count(K key, double min, double max);
 
 	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
+	 * lexicographical ordering.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	@Nullable
+	Long lexCount(K key, Range range);
+
+	/**
 	 * Returns the number of elements of the sorted set stored with given {@code key}.
 	 *
 	 * @see #zCard(Object)
@@ -524,18 +537,6 @@ public interface ZSetOperations<K, V> {
 	 */
 	@Nullable
 	Set<V> reverseRangeByLex(K key, Range range, Limit limit);
-
-	/**
-	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param range must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.4
-	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
-	 */
-	@Nullable
-	Long lexCount(K key, Range range);
 
 	/**
 	 * @return never {@literal null}.

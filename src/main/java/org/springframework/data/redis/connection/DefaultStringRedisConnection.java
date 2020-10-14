@@ -1661,15 +1661,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zLexCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
-	@Override
-	public Long zLexCount(byte[] key, Range range) {
-		return delegate.zLexCount(key, range);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#zLexCount(java.lang.String, org.springframework.data.redis.connection.RedisZSetCommands.Range)
 	 */
 	@Override
@@ -2725,6 +2716,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long zCount(String key, double min, double max) {
 		return zCount(serialize(key), min, max);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zLexCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long zLexCount(byte[] key, Range range) {
+		return delegate.zLexCount(key, range);
 	}
 
 	/*

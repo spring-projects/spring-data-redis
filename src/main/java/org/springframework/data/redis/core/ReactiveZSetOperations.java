@@ -270,6 +270,18 @@ public interface ReactiveZSetOperations<K, V> {
 	Mono<Long> count(K key, Range<Double> range);
 
 	/**
+	 * Count number of elements within sorted set with a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()} applying lexicographical ordering.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/ZLEXCOUNT">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	Mono<Long> lexCount(K key, Range<String> range);
+
+	/**
 	 * Returns the number of elements of the sorted set stored with given {@code key}.
 	 *
 	 * @param key
@@ -463,14 +475,4 @@ public interface ReactiveZSetOperations<K, V> {
 	 */
 	Mono<Boolean> delete(K key);
 
-	/**
-	 * Count number of elements within sorted set with a value between
-	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param range must not be {@literal null}
-	 * @return
-	 * @see <a href="https://redis.io/commands/ZLEXCOUNT">Redis Documentation: ZLEXCOUNT</a>
-	 */
-	Mono<Long> lexCount(K key, Range<String> range);
 }

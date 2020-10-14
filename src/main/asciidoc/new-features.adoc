@@ -9,6 +9,7 @@ This section briefly covers items that are new and noteworthy in the latest rele
 * `RedisCache` now exposes `CacheStatistics`.
 * ACL authentication support for Redis Standalone, Redis Cluster and Master/Replica.
 * Password support for Redis Sentinel using Jedis.
+* Support for `ZREVRANGEBYLEX` and `ZLEXCOUNT` commands.
 
 [[new-in-2.3.0]]
 == New in Spring Data Redis 2.3

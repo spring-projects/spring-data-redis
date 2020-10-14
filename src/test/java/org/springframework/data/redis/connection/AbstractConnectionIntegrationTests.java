@@ -1791,6 +1791,34 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { true, true, true, 2l }));
 	}
 
+	@Test // DATAREDIS-729
+	@IfProfileValue(name = "redisVersion", value = "2.9.0+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void zLexCountTest() {
+
+		actual.add(connection.zAdd("myzset", 0, "a"));
+		actual.add(connection.zAdd("myzset", 0, "b"));
+		actual.add(connection.zAdd("myzset", 0, "c"));
+		actual.add(connection.zAdd("myzset", 0, "d"));
+		actual.add(connection.zAdd("myzset", 0, "e"));
+		actual.add(connection.zAdd("myzset", 0, "f"));
+		actual.add(connection.zAdd("myzset", 0, "g"));
+
+		actual.add(connection.zLexCount("myzset", Range.unbounded()));
+		actual.add(connection.zLexCount("myzset", Range.range().lt("c")));
+		actual.add(connection.zLexCount("myzset", Range.range().lte("c")));
+		actual.add(connection.zLexCount("myzset", Range.range().gte("aaa").lt("g")));
+		actual.add(connection.zLexCount("myzset", Range.range().gte("e")));
+
+		List<Object> results = getResults();
+
+		assertThat((Long) results.get(7)).isEqualTo(7);
+		assertThat((Long) results.get(8)).isEqualTo(2);
+		assertThat((Long) results.get(9)).isEqualTo(3);
+		assertThat((Long) results.get(10)).isEqualTo(5);
+		assertThat((Long) results.get(11)).isEqualTo(3);
+	}
+
 	@Test
 	public void testZIncrBy() {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
@@ -2452,43 +2480,6 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Set<String>) results.get(11)).containsExactly("c", "b", "a").doesNotContain("d", "e", "f", "g");
 		assertThat((Set<String>) results.get(12)).contains("d", "c").doesNotContain("a", "b", "e", "f", "g");
 		assertThat((Set<String>) results.get(13)).contains("c", "b").doesNotContain("a", "d", "e", "f", "g");
-	}
-
-	@Test // DATAREDIS-729
-	@IfProfileValue(name = "redisVersion", value = "2.9.0+")
-	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
-	public void zLexCountTest() {
-
-		actual.add(connection.zAdd("myzset", 0, "a"));
-		actual.add(connection.zAdd("myzset", 0, "b"));
-		actual.add(connection.zAdd("myzset", 0, "c"));
-		actual.add(connection.zAdd("myzset", 0, "d"));
-		actual.add(connection.zAdd("myzset", 0, "e"));
-		actual.add(connection.zAdd("myzset", 0, "f"));
-		actual.add(connection.zAdd("myzset", 0, "g"));
-
-		actual.add(connection.zLexCount("myzset", Range.unbounded()));
-		actual.add(connection.zLexCount("myzset", Range.range().lt("c")));
-		actual.add(connection.zLexCount("myzset", Range.range().lte("c")));
-		actual.add(connection.zLexCount("myzset", Range.range().gte("aaa").lt("g")));
-		actual.add(connection.zLexCount("myzset", Range.range().gte("e")));
-
-		List<Object> results = getResults();
-
-		Long count = (Long) results.get(7);
-		assertThat(count).isEqualTo(7);
-
-		count = (Long) results.get(8);
-		assertThat(count).isEqualTo(2);
-
-		count = (Long) results.get(9);
-		assertThat(count).isEqualTo(3);
-
-		count = (Long) results.get(10);
-		assertThat(count).isEqualTo(5);
-
-		count = (Long) results.get(11);
-		assertThat(count).isEqualTo(3);
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-316, DATAREDIS-692

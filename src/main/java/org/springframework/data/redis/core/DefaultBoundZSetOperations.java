@@ -278,6 +278,15 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#lexCount(org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long lexCount(Range range) {
+		return ops.lexCount(getKey(), range);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#size()
 	 */
 	@Override
@@ -328,15 +337,6 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	@Override
 	public Long unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
 		return ops.unionAndStore(getKey(), otherKeys, destKey, aggregate, weights);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundZSetOperations#lexCount(org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
-	@Override
-	public Long lexCount(Range range) {
-		return ops.lexCount(getKey(), range);
 	}
 
 	/*

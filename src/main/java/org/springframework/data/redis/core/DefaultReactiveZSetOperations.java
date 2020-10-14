@@ -334,6 +334,19 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#lexCount(java.lang.Object, org.springframework.data.domain.Range)
+	 */
+	@Override
+	public Mono<Long> lexCount(K key, Range<String> range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null!");
+
+		return createMono(connection -> connection.zLexCount(rawKey(key), range));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#size(java.lang.Object)
 	 */
 	@Override
@@ -547,20 +560,6 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null!");
 
 		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#lexCount(java.lang.Object, org.springframework.data.domain.Range)
-	 */
-	@Override
-	public Mono<Long> lexCount(K key, Range<String> range) {
-
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(range, "Range must not be null!");
-
-
-		return createMono(connection -> connection.zLexCount(rawKey(key), range));
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveZSetCommands, Publisher<T>> function) {

@@ -329,6 +329,24 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zLexCount(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<NumericResponse<ZLexCountCommand, Long>> zLexCount(Publisher<ZLexCountCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getRange(), "Range must not be null!");
+
+			Mono<Long> result = cmd.zlexcount(command.getKey(), RangeConverter.toRange(command.getRange()));
+
+			return result.map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zCard(org.reactivestreams.Publisher)
 	 */
 	@Override
@@ -482,24 +500,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			}
 
 			return Mono.just(new CommandResponse<>(command, result));
-		}));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zLexCount(org.reactivestreams.Publisher)
-	 */
-	@Override
-	public Flux<NumericResponse<ZLexCountCommand, Long>> zLexCount(Publisher<ZLexCountCommand> commands) {
-
-		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
-
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getRange(), "Range must not be null!");
-
-			Mono<Long> result = cmd.zlexcount(command.getKey(), RangeConverter.toRange(command.getRange()));
-
-			return result.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
 

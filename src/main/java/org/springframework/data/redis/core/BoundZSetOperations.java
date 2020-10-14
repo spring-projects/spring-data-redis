@@ -200,6 +200,18 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Long count(double min, double max);
 
 	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
+	 * lexicographical ordering.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	@Nullable
+	Long lexCount(Range range);
+
+	/**
 	 * Returns the number of elements of the sorted set stored with given the bound key.
 	 *
 	 * @see #zCard()
@@ -414,17 +426,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Set<V> reverseRangeByLex(Range range, Limit limit);
-
-	/**
-	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max}.
-	 *
-	 * @param range must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.4
-	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
-	 */
-	@Nullable
-	Long lexCount(Range range);
 
 	/**
 	 * @return never {@literal null}.

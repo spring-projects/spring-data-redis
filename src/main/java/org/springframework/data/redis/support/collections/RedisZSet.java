@@ -136,6 +136,17 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	boolean add(E e);
 
 	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
+	 * lexicographical ordering.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	Long lexCount(Range range);
+
+	/**
 	 * Returns the score of the given element. Returns null if the element is not contained by the set.
 	 *
 	 * @param o object
@@ -167,16 +178,6 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return the default score used by the implementation.
 	 */
 	Double getDefaultScore();
-
-	/**
-	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max}.
-	 *
-	 * @param range must not be {@literal null}.
-	 * @return
-	 * @since 2.4
-	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
-	 */
-	Long lexCount(Range range);
 
 	/**
 	 * Returns the first (lowest) element currently in this sorted set.

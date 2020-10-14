@@ -1330,6 +1330,20 @@ public interface StringRedisConnection extends RedisConnection {
 	Long zCount(String key, double min, double max);
 
 	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
+	 * lexicographical ordering.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 * @see RedisZSetCommands#zLexCount(byte[], Range)
+	 */
+	@Nullable
+	Long zLexCount(String key, Range range);
+
+	/**
 	 * Get the size of sorted set with {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -1540,19 +1554,6 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisZSetCommands#zRevRangeByLex(byte[], Range, Limit)
 	 */
 	Set<String> zRevRangeByLex(String key, Range range, Limit limit);
-
-	/**
-	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param range must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.4
-	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
-	 * @see RedisZSetCommands#zLexCount(byte[], Range)
-	 */
-	@Nullable
-	Long zLexCount(String key, Range range);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Hashes

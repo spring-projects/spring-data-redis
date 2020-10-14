@@ -472,6 +472,31 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	/*
+	* (non-Javadoc)
+	* @see org.springframework.data.redis.connection.RedisZSetCommands#zLexCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	*/
+	@Override
+	public Long zLexCount(byte[] key, Range range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().zlexcount(key, LettuceConverters.toRange(range))));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().zlexcount(key, LettuceConverters.toRange(range))));
+				return null;
+			}
+			return getConnection().zlexcount(key, LettuceConverters.toRange(range, true));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zCard(byte[])
 	 */
@@ -922,31 +947,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 			return LettuceConverters.bytesListToBytesSet().convert(getConnection().zrevrangebylex(key,
 					LettuceConverters.toRange(range, true), LettuceConverters.toLimit(limit)));
 
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zLexCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
-	@Override
-	public Long zLexCount(byte[] key, Range range) {
-
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(range, "Range must not be null!");
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zlexcount(key, LettuceConverters.toRange(range))));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zlexcount(key, LettuceConverters.toRange(range))));
-				return null;
-			}
-			return getConnection().zlexcount(key, LettuceConverters.toRange(range, true));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

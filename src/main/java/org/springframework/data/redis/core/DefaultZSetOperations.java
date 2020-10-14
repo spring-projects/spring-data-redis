@@ -389,6 +389,17 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#lexCount(java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long lexCount(K key, Range range) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.zLexCount(rawKey, range), true);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ZSetOperations#size(java.lang.Object)
 	 */
 	@Override
@@ -468,10 +479,4 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zRangeByScore(rawKey, min, max, offset, count), true);
 	}
 
-	@Override
-	public Long lexCount(K key, Range range) {
-
-		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.zLexCount(rawKey, range), true);
-	}
 }

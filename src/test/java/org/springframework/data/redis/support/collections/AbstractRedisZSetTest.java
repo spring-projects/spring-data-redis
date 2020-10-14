@@ -190,6 +190,40 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertThat(zSet.rank(getT())).isNull();
 	}
 
+	@Test // DATAREDIS-729
+	public void testLexCountUnbounded() {
+
+		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 1);
+		zSet.add(t3, 1);
+
+		assertThat(zSet.lexCount(RedisZSetCommands.Range.unbounded())).isEqualTo(Long.valueOf(3));
+	}
+
+	@Test // DATAREDIS-729
+	public void testLexCountBounded() {
+
+		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 1);
+		zSet.add(t3, 1);
+
+		assertThat(zSet.lexCount(RedisZSetCommands.Range.range().gt(t1))).isEqualTo(Long.valueOf(2));
+	}
+
 	@Test
 	public void testScore() {
 		T t1 = getT();
@@ -392,7 +426,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 	@Test // DATAREDIS-407
 	public void testRangeByLexBoundedWithLimit() {
 
-		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class,
 				LongAsStringObjectFactory.class, LongObjectFactory.class);
 
 		T t1 = getT();
@@ -660,39 +694,5 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 		cursor.close();
 
-	}
-
-	@Test // DATAREDIS-729
-	public void testLexCountUnbounded() {
-
-		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
-				LongAsStringObjectFactory.class, LongObjectFactory.class);
-
-		T t1 = getT();
-		T t2 = getT();
-		T t3 = getT();
-
-		zSet.add(t1, 1);
-		zSet.add(t2, 1);
-		zSet.add(t3, 1);
-
-		assertThat(zSet.lexCount(RedisZSetCommands.Range.unbounded())).isEqualTo(Long.valueOf(3));
-	}
-
-	@Test // DATAREDIS-729
-	public void testLexCountBounded() {
-
-		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
-				LongAsStringObjectFactory.class, LongObjectFactory.class);
-
-		T t1 = getT();
-		T t2 = getT();
-		T t3 = getT();
-
-		zSet.add(t1, 1);
-		zSet.add(t2, 1);
-		zSet.add(t3, 1);
-
-		assertThat(zSet.lexCount(RedisZSetCommands.Range.range().gt(t1))).isEqualTo(Long.valueOf(2));
 	}
 }

@@ -493,6 +493,34 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zLexCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long zLexCount(byte[] key, Range range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null!");
+
+		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);
+		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zlexcount(key, min, max)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newJedisResult(connection.getRequiredTransaction().zlexcount(key, min, max)));
+				return null;
+			}
+			return connection.getJedis().zlexcount(key, min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zCard(byte[])
 	 */
 	@Override
@@ -937,34 +965,6 @@ class JedisZSetCommands implements RedisZSetCommands {
 						connection.getJedis().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount()));
 			}
 			return new LinkedHashSet<>(connection.getJedis().zrevrangeByLex(key, max, min));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zLexCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
-	@Override
-	public Long zLexCount(byte[] key, Range range) {
-
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(range, "Range must not be null!");
-
-		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);
-		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zlexcount(key, min, max)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zlexcount(key, min, max)));
-				return null;
-			}
-			return connection.getJedis().zlexcount(key, min, max);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
