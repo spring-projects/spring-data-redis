@@ -60,7 +60,7 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 	@Override
 	public void onMessage(Message message, @Nullable byte[] pattern) {
 
-		if (message == null || ObjectUtils.isEmpty(message.getChannel()) || ObjectUtils.isEmpty(message.getBody())) {
+		if (ObjectUtils.isEmpty(message.getChannel()) || ObjectUtils.isEmpty(message.getBody())) {
 			return;
 		}
 
