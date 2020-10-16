@@ -792,8 +792,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			Object value = CollectionUtils.isEmpty(hash) ? null : converter.read(Object.class, new RedisData(hash));
 
-			String channel = !ObjectUtils.isEmpty(message.getChannel())
-					? converter.getConversionService().convert(message.getChannel(), String.class) : null;
+			byte[] channelAsBytes = message.getChannel();
+			String channel = !ObjectUtils.isEmpty(channelAsBytes)
+					? converter.getConversionService().convert(channelAsBytes, String.class) : null;
 
 			RedisKeyExpiredEvent event = new RedisKeyExpiredEvent(channel, key, value);
 
@@ -808,11 +809,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 
 		private boolean isKeyExpirationMessage(Message message) {
-
-			if (message == null) {
-				return false;
-			}
-
 			return BinaryKeyspaceIdentifier.isValid(message.getBody());
 		}
 	}

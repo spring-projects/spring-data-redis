@@ -979,10 +979,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-	private void dispatchMessage(Collection<MessageListener> listeners, final Message message, final byte[] pattern) {
-		final byte[] source = (pattern != null ? pattern.clone() : message.getChannel());
+	private void dispatchMessage(Collection<MessageListener> listeners, Message message, @Nullable byte[] pattern) {
 
-		for (final MessageListener messageListener : listeners) {
+		byte[] source = (pattern != null ? pattern.clone() : message.getChannel());
+
+		for (MessageListener messageListener : listeners) {
 			taskExecutor.execute(() -> processMessage(messageListener, message, source));
 		}
 	}
