@@ -1303,7 +1303,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		 */
 		public static boolean isValid(byte[] key) {
 
-			if (key == null) {
+			if (key.length == 0) {
 				return false;
 			}
 

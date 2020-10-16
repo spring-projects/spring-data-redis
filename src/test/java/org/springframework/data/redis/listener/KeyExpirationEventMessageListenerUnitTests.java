@@ -64,14 +64,6 @@ public class KeyExpirationEventMessageListenerUnitTests {
 		assertThat((byte[]) captor.getValue().getSource()).isEqualTo(MESSAGE_BODY.getBytes());
 	}
 
-	@Test // DATAREDIS-425
-	public void handleMessageShouldNotRespondToNullMessage() {
-
-		listener.onMessage(null, "*".getBytes());
-
-		verifyZeroInteractions(publisherMock);
-	}
-
 	@Test // DATAREDIS-425, DATAREDIS-692
 	public void handleMessageShouldNotRespondToEmptyMessage() {
 
