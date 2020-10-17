@@ -18,16 +18,11 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.*;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
-import io.lettuce.core.models.stream.PendingMessage;
-import io.lettuce.core.models.stream.PendingMessages;
-import io.lettuce.core.models.stream.PendingParser;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
@@ -69,9 +64,6 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
-import org.springframework.data.redis.connection.stream.Consumer;
-import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
-import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -79,7 +71,6 @@ import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -91,6 +82,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author dengliming
  */
 abstract public class LettuceConverters extends Converters {
 
@@ -317,7 +309,6 @@ abstract public class LettuceConverters extends Converters {
 		KEY_VALUE_LIST_UNWRAPPER = new ListConverter<>(KEY_VALUE_UNWRAPPER);
 
 		TRANSACTION_RESULT_UNWRAPPER = transactionResult -> transactionResult.stream().collect(Collectors.toList());
-
 
 	}
 
@@ -657,15 +648,19 @@ abstract public class LettuceConverters extends Converters {
 
 			RedisURI.Builder sentinelBuilder = RedisURI.Builder.redis(sentinel.getHost(), sentinel.getPort());
 
-			if (sentinelPassword.isPresent()) {
-				sentinelBuilder.withPassword(sentinelPassword.get());
-			}
+			sentinelPassword.toOptional().ifPresent(sentinelBuilder::withPassword);
+
 			builder.withSentinel(sentinelBuilder.build());
 		}
 
+		String username = sentinelConfiguration.getUsername();
 		RedisPassword password = sentinelConfiguration.getPassword();
-		if (password.isPresent()) {
-			builder.withPassword(password.get());
+
+		if (StringUtils.hasText(username)) {
+			// See https://github.com/lettuce-io/lettuce-core/issues/1404
+			builder.withAuthentication(username, new String(password.toOptional().orElse(new char[0])));
+		} else {
+			password.toOptional().ifPresent(builder::withPassword);
 		}
 
 		builder.withSentinelMasterId(sentinelConfiguration.getMaster().getName());
@@ -775,15 +770,21 @@ abstract public class LettuceConverters extends Converters {
 	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
 
 		SetArgs args = new SetArgs();
-		if (expiration != null && !expiration.isPersistent()) {
 
-			switch (expiration.getTimeUnit()) {
-				case SECONDS:
-					args.ex(expiration.getExpirationTime());
-					break;
-				default:
-					args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
-					break;
+		if (expiration != null) {
+
+			if (expiration.isKeepTtl()) {
+				args.keepttl();
+			} else if (!expiration.isPersistent()) {
+
+				switch (expiration.getTimeUnit()) {
+					case SECONDS:
+						args.ex(expiration.getExpirationTime());
+						break;
+					default:
+						args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
+						break;
+				}
 			}
 		}
 

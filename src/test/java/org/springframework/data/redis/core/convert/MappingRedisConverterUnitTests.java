@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.core.convert.ConversionTestEntities.*;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -35,6 +36,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -45,7 +47,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
@@ -67,6 +68,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Christoph Strobl
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Golam Mazid Sajib
  */
 @RunWith(MockitoJUnitRunner.class)
 public class MappingRedisConverterUnitTests {
@@ -1846,6 +1848,75 @@ public class MappingRedisConverterUnitTests {
 		assertThat(outer.inners.get(0).values).isEqualTo(Arrays.asList("i-1", "i-2"));
 	}
 
+	@Test // DATAREDIS-911
+	public void writeEntityWithCustomConverter() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new AccountInfoToBytesConverter())));
+		this.converter.afterPropertiesSet();
+
+		AccountInfo accountInfo = new AccountInfo();
+		accountInfo.setId("ai-id-1");
+		accountInfo.setAccount("123456");
+		accountInfo.setAccountName("Inamur Rahman Sadid");
+
+		assertThat(write(accountInfo).getRedisData().getId()).isEqualTo(accountInfo.getId());
+	}
+
+	@Test // DATAREDIS-911
+	public void readEntityWithCustomConverter() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter
+				.setCustomConversions(new RedisCustomConversions(Collections.singletonList(new BytesToAccountInfoConverter())));
+		this.converter.afterPropertiesSet();
+
+		Bucket bucket = new Bucket();
+		bucket.put("_raw", "ai-id-1|123456|Golam Mazid Sajib".getBytes(StandardCharsets.UTF_8));
+
+		RedisData redisData = new RedisData(bucket);
+		redisData.setKeyspace(KEYSPACE_ACCOUNT);
+		redisData.setId("ai-id-1");
+
+		AccountInfo target = converter.read(AccountInfo.class, redisData);
+
+		assertThat(target.getAccount()).isEqualTo("123456");
+		assertThat(target.getAccountName()).isEqualTo("Golam Mazid Sajib");
+	}
+
+	@Test // DATAREDIS-1175
+	public void writePlainList() {
+
+		List<Object> source =  Arrays.asList("Hello", "stream", "message", 100L);
+		RedisTestData target = write(source);
+
+		System.out.println(target.getBucket().toString());
+
+		assertThat(target).containsEntry("[0]", "Hello") //
+				.containsEntry("[1]", "stream") //
+				.containsEntry("[2]", "message") //
+				.containsEntry("[3]", "100");
+	}
+
+	@Test // DATAREDIS-1175
+	public void readPlainList() {
+
+		Map<String, String> source = new LinkedHashMap<>();
+		source.put("[0]._class", "java.lang.String");
+		source.put("[0]", "Hello");
+		source.put("[1]._class", "java.lang.String");
+		source.put("[1]", "stream");
+		source.put("[2]._class", "java.lang.String");
+		source.put("[2]", "message");
+		source.put("[3]._class", "java.lang.Long");
+		source.put("[3]", "100");
+
+		List target = read(List.class, source);
+
+		assertThat(target).containsExactly("Hello", "stream", "message", 100L);
+	}
+
 	private RedisTestData write(Object source) {
 
 		RedisData rdo = new RedisData();
@@ -1943,6 +2014,32 @@ public class MappingRedisConverterUnitTests {
 		@Override
 		public Address convert(byte[] value) {
 			return serializer.deserialize(value);
+		}
+	}
+
+	@WritingConverter
+	static class AccountInfoToBytesConverter implements Converter<AccountInfo, byte[]> {
+
+		@Override
+		public byte[] convert(AccountInfo accountInfo) {
+			StringBuilder resp = new StringBuilder();
+			resp.append(accountInfo.getId()).append("|").append(accountInfo.getAccount()).append("|")
+					.append(accountInfo.getAccountName());
+			return resp.toString().getBytes(StandardCharsets.UTF_8);
+		}
+	}
+
+	@ReadingConverter
+	static class BytesToAccountInfoConverter implements Converter<byte[], AccountInfo> {
+
+		@Override
+		public AccountInfo convert(byte[] bytes) {
+			String[] values = new String(bytes, StandardCharsets.UTF_8).split("\\|");
+			AccountInfo accountInfo = new AccountInfo();
+			accountInfo.setId(values[0]);
+			accountInfo.setAccount(values[1]);
+			accountInfo.setAccountName(values[2]);
+			return accountInfo;
 		}
 	}
 

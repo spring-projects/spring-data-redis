@@ -140,13 +140,20 @@ public class RedisTestData implements AssertProvider<RedisTestData.RedisBucketAs
 			return actual.get(path);
 		}
 
-		private static Map<String, String> toStringMap(Map<String, byte[]> source) {
+	}
 
-			Map<String, String> converted = new LinkedHashMap<>();
 
-			source.forEach((k, v) -> converted.put(k, new String(v, StandardCharsets.UTF_8)));
+	private static Map<String, String> toStringMap(Map<String, byte[]> source) {
 
-			return converted;
-		}
+		Map<String, String> converted = new LinkedHashMap<>();
+
+		source.forEach((k, v) -> converted.put(k, new String(v, StandardCharsets.UTF_8)));
+
+		return converted;
+	}
+
+	@Override
+	public String toString() {
+		return toStringMap(getBucket().asMap()).toString();
 	}
 }

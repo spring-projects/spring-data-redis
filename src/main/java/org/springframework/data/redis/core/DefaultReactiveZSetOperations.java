@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -45,13 +43,20 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Andrey Shlykov
  * @since 2.0
  */
-@RequiredArgsConstructor
 class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V> {
 
-	private final @NonNull ReactiveRedisTemplate<?, ?> template;
-	private final @NonNull RedisSerializationContext<K, V> serializationContext;
+	private final ReactiveRedisTemplate<?, ?> template;
+	private final RedisSerializationContext<K, V> serializationContext;
+
+	public DefaultReactiveZSetOperations(ReactiveRedisTemplate<?, ?> template,
+			RedisSerializationContext<K, V> serializationContext) {
+
+		this.template = template;
+		this.serializationContext = serializationContext;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -325,6 +330,19 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(range, "Range must not be null!");
 
 		return createMono(connection -> connection.zCount(rawKey(key), range));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#lexCount(java.lang.Object, org.springframework.data.domain.Range)
+	 */
+	@Override
+	public Mono<Long> lexCount(K key, Range<String> range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null!");
+
+		return createMono(connection -> connection.zLexCount(rawKey(key), range));
 	}
 
 	/*

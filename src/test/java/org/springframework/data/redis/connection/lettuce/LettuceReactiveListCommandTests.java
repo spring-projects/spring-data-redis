@@ -23,19 +23,23 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 
+import org.junit.Rule;
 import org.junit.Test;
-
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.ReactiveListCommands.LPosCommand;
 import org.springframework.data.redis.connection.ReactiveListCommands.PopResult;
 import org.springframework.data.redis.connection.ReactiveListCommands.PushCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * @author Christoph Strobl
@@ -43,6 +47,8 @@ import org.springframework.data.redis.connection.RedisListCommands.Position;
  * @author Michele Mancioppi
  */
 public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTestsBase {
+
+	@Rule public MinimumRedisVersionRule redisVersion = new MinimumRedisVersionRule();
 
 	@Test // DATAREDIS-525
 	public void rPushShouldAppendValuesCorrectly() {
@@ -114,7 +120,8 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(unbounded(), inclusive(1L)));
 
-		StepVerifier.create(connection.listCommands().lRange(Mono.just(rangeCommand)).flatMap(CommandResponse::getOutput)) //
+		connection.listCommands().lRange(Mono.just(rangeCommand)).flatMap(CommandResponse::getOutput)
+				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER).expectNext(VALUE_2_BBUFFER).verifyComplete();
 	}
 
@@ -125,7 +132,8 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(inclusive(1L), unbounded()));
 
-		StepVerifier.create(connection.listCommands().lRange(Mono.just(rangeCommand)).flatMap(CommandResponse::getOutput)) //
+		connection.listCommands().lRange(Mono.just(rangeCommand)).flatMap(CommandResponse::getOutput)
+				.as(StepVerifier::create) //
 				.expectNext(VALUE_2_BBUFFER).expectNext(VALUE_3_BBUFFER).verifyComplete();
 	}
 
@@ -145,7 +153,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(unbounded(), inclusive(1L)));
 
-		StepVerifier.create(connection.listCommands().lTrim(Mono.just(rangeCommand))) //
+		connection.listCommands().lTrim(Mono.just(rangeCommand)).as(StepVerifier::create) //
 				.expectNext(new ReactiveRedisConnection.BooleanResponse<>(rangeCommand, true)) //
 				.verifyComplete();
 	}
@@ -157,7 +165,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		RangeCommand rangeCommand = RangeCommand.key(KEY_1_BBUFFER).within(Range.of(inclusive(1L), unbounded()));
 
-		StepVerifier.create(connection.listCommands().lTrim(Mono.just(rangeCommand))) //
+		connection.listCommands().lTrim(Mono.just(rangeCommand)).as(StepVerifier::create) //
 				.expectNext(new ReactiveRedisConnection.BooleanResponse<>(rangeCommand, true)) //
 				.verifyComplete();
 	}
@@ -302,4 +310,88 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.llen(KEY_2)).isEqualTo(2L);
 		assertThat(nativeCommands.lindex(KEY_2, 0)).isEqualTo(VALUE_3);
 	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	public void lPos() {
+
+		nativeCommands.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+
+		connection.listCommands().lPos(KEY_1_BBUFFER, ByteBuffer.wrap("c".getBytes(StandardCharsets.UTF_8))) //
+				.as(StepVerifier::create) //
+				.expectNext(2L) //
+				.verifyComplete();
+
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	public void lPosRank() {
+
+		nativeCommands.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+
+		connection.listCommands()
+				.lPos(LPosCommand.lPosOf(ByteBuffer.wrap("c".getBytes(StandardCharsets.UTF_8))).from(KEY_1_BBUFFER).rank(2)) //
+				.as(StepVerifier::create) //
+				.expectNext(6L) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	public void lPosNegativeRank() {
+
+		nativeCommands.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+
+		connection.listCommands()
+				.lPos(LPosCommand.lPosOf(ByteBuffer.wrap("c".getBytes(StandardCharsets.UTF_8))).from(KEY_1_BBUFFER).rank(-1)) //
+				.as(StepVerifier::create) //
+				.expectNext(7L) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	public void lPosCount() {
+
+		nativeCommands.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+
+		connection.listCommands()
+				.lPos(LPosCommand.lPosOf(ByteBuffer.wrap("c".getBytes(StandardCharsets.UTF_8))).from(KEY_1_BBUFFER).count(2)) //
+				.as(StepVerifier::create) //
+				.expectNext(2L) //
+				.expectNext(6L) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	public void lPosRankCount() {
+
+		nativeCommands.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+
+		connection.listCommands()
+				.lPos(LPosCommand.lPosOf(ByteBuffer.wrap("c".getBytes(StandardCharsets.UTF_8))).from(KEY_1_BBUFFER)
+						.from(KEY_1_BBUFFER).rank(-1).count(2)) //
+				.as(StepVerifier::create) //
+				.expectNext(7L) //
+				.expectNext(6L) //
+				.verifyComplete();
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	public void lPosCountZero() {
+
+		nativeCommands.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+
+		connection.listCommands()
+				.lPos(LPosCommand.lPosOf(ByteBuffer.wrap("c".getBytes(StandardCharsets.UTF_8))).from(KEY_1_BBUFFER).count(0)) //
+				.as(StepVerifier::create) //
+				.expectNext(2L) //
+				.expectNext(6L) //
+				.expectNext(7L) //
+				.verifyComplete();
+	}
+
 }

@@ -28,6 +28,7 @@ import org.springframework.data.keyvalue.repository.config.KeyValueRepositoryCon
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
+import org.springframework.data.redis.core.RedisKeyValueAdapter.ShadowCopy;
 import org.springframework.data.redis.core.RedisKeyValueTemplate;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
@@ -145,6 +146,8 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 						configuration.getRequiredAttribute("enableKeyspaceEvents", EnableKeyspaceEvents.class)) //
 				.addPropertyValue("keyspaceNotificationsConfigParameter",
 						configuration.getAttribute("keyspaceNotificationsConfigParameter", String.class).orElse("")) //
+				.addPropertyValue("shadowCopy",
+						configuration.getRequiredAttribute("shadowCopy", ShadowCopy.class)) //
 				.getBeanDefinition();
 	}
 

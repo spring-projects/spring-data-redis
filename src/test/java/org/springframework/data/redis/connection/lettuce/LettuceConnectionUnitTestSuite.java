@@ -19,23 +19,31 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.XAddArgs;
+import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.RedisCodec;
 
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
+import java.util.Collections;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-
+import org.mockito.ArgumentCaptor;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTestSuite.LettuceConnectionUnitTests;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTestSuite.LettucePipelineConnectionUnitTests;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Christoph Strobl
@@ -163,6 +171,55 @@ public class LettuceConnectionUnitTestSuite {
 
 			assertThatThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes()))
 					.hasMessageContaining(exception.getMessage()).hasRootCause(exception);
+		}
+
+		@Test // DATAREDIS-1122
+		public void xaddShouldHonorMaxlen() {
+
+			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
+
+			connection.streamCommands().xAdd(record, XAddOptions.maxlen(100));
+			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
+			if (connection.isPipelined()) {
+				verify(asyncCommandsMock, times(1)).xadd(any(), args.capture(), anyMap());
+			} else {
+				verify(syncCommandsMock, times(1)).xadd(any(), args.capture(), anyMap());
+			}
+
+			assertThat(args.getValue()).extracting("maxlen").isEqualTo(100L);
+		}
+
+		@Test // DATAREDIS-1226
+		public void xClaimShouldNotAddJustIdFlagToArgs() {
+
+			connection.streamCommands().xClaim("key".getBytes(), "group", "owner",
+					XClaimOptions.minIdle(Duration.ofMillis(100)).ids("1-1"));
+			ArgumentCaptor<XClaimArgs> args = ArgumentCaptor.forClass(XClaimArgs.class);
+
+			if (connection.isPipelined()) {
+				verify(asyncCommandsMock).xclaim(any(), any(), args.capture(), any());
+			} else {
+				verify(syncCommandsMock).xclaim(any(), any(), args.capture(), any());
+			}
+
+			assertThat(ReflectionTestUtils.getField(args.getValue(), "justid")).isEqualTo(false);
+
+		}
+
+		@Test // DATAREDIS-1226
+		public void xClaimJustIdShouldAddJustIdFlagToArgs() {
+
+			connection.streamCommands().xClaimJustId("key".getBytes(), "group", "owner",
+					XClaimOptions.minIdle(Duration.ofMillis(100)).ids("1-1"));
+			ArgumentCaptor<XClaimArgs> args = ArgumentCaptor.forClass(XClaimArgs.class);
+
+			if (connection.isPipelined()) {
+				verify(asyncCommandsMock).xclaim(any(), any(), args.capture(), any());
+			} else {
+				verify(syncCommandsMock).xclaim(any(), any(), args.capture(), any());
+			}
+
+			assertThat(ReflectionTestUtils.getField(args.getValue(), "justid")).isEqualTo(true);
 		}
 	}
 

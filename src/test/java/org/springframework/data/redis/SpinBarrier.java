@@ -15,10 +15,17 @@
  */
 package org.springframework.data.redis;
 
+import java.util.concurrent.TimeUnit;
+
+import org.awaitility.Awaitility;
+
 /**
  * @author Jennifer Hickey
+ * @author Mark Paluch
+ * @deprecated Use {@link Awaitility}.
  */
-abstract public class SpinBarrier {
+@Deprecated
+public abstract class SpinBarrier {
 
 	/**
 	 * Periodically tests for a condition until it is met or a timeout occurs
@@ -28,16 +35,12 @@ abstract public class SpinBarrier {
 	 * @return true if condition passes, false if condition does not pass within timeout
 	 */
 	public static boolean waitFor(TestCondition condition, long timeout) {
-		boolean passes = false;
-		for (long currentTime = System.currentTimeMillis(); System.currentTimeMillis() - currentTime < timeout;) {
-			if (condition.passes()) {
-				passes = true;
-				break;
-			}
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {}
+
+		try {
+			Awaitility.await().atMost(timeout, TimeUnit.MILLISECONDS).until(condition::passes);
+			return true;
+		} catch (Exception e) {
+			return false;
 		}
-		return passes;
 	}
 }

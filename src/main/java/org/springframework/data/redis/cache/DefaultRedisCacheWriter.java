@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author André Prata
  * @author Joongsoo Park
  * @since 2.0
  */
@@ -52,6 +53,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	private final RedisConnectionFactory connectionFactory;
 	private final Duration sleepTime;
+	private final CacheStatisticsCollector statistics;
 
 	/**
 	 * @param connectionFactory must not be {@literal null}.
@@ -66,12 +68,25 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 *          to disable locking.
 	 */
 	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime) {
+		this(connectionFactory, sleepTime, CacheStatisticsCollector.none());
+	}
+
+	/**
+	 * @param connectionFactory must not be {@literal null}.
+	 * @param sleepTime sleep time between lock request attempts. Must not be {@literal null}. Use {@link Duration#ZERO}
+	 *          to disable locking.
+	 * @param cacheStatisticsCollector must not be {@literal null}.
+	 */
+	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime,
+			CacheStatisticsCollector cacheStatisticsCollector) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
 		Assert.notNull(sleepTime, "SleepTime must not be null!");
+		Assert.notNull(cacheStatisticsCollector, "CacheStatisticsCollector must not be null!");
 
 		this.connectionFactory = connectionFactory;
 		this.sleepTime = sleepTime;
+		this.statistics = cacheStatisticsCollector;
 	}
 
 	/*
@@ -95,6 +110,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 			return "OK";
 		});
+
+		statistics.incPuts(name);
 	}
 
 	/*
@@ -107,7 +124,17 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(name, "Name must not be null!");
 		Assert.notNull(key, "Key must not be null!");
 
-		return execute(name, connection -> connection.get(key));
+		byte[] result = execute(name, connection -> connection.get(key));
+
+		statistics.incGets(name);
+
+		if (result != null) {
+			statistics.incHits(name);
+		} else {
+			statistics.incMisses(name);
+		}
+
+		return result;
 	}
 
 	/*
@@ -128,11 +155,17 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			}
 
 			try {
-				if (connection.setNX(key, value)) {
 
-					if (shouldExpireWithin(ttl)) {
-						connection.pExpire(key, ttl.toMillis());
-					}
+				boolean put;
+
+				if (shouldExpireWithin(ttl)) {
+					put = connection.set(key, value, Expiration.from(ttl), SetOption.ifAbsent());
+				} else {
+					put = connection.setNX(key, value);
+				}
+
+				if (put) {
+					statistics.incPuts(name);
 					return null;
 				}
 
@@ -157,6 +190,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(key, "Key must not be null!");
 
 		execute(name, connection -> connection.del(key));
+		statistics.incDeletes(name);
 	}
 
 	/*
@@ -181,6 +215,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 						.toArray(new byte[0][]);
 
 				if (keys.length > 0) {
+					statistics.incDeletesBy(name, keys.length);
 					connection.del(keys);
 				}
 			} finally {
@@ -192,6 +227,33 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 			return "OK";
 		});
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.cache.CacheStatisticsProvider#getCacheStatistics(java.lang.String)
+	 */
+	@Override
+	public CacheStatistics getCacheStatistics(String cacheName) {
+		return statistics.getCacheStatistics(cacheName);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter#clearStatistics(java.lang.String)
+	 */
+	@Override
+	public void clearStatistics(String name) {
+		statistics.reset(name);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter#with(CacheStatisticsCollector)
+	 */
+	@Override
+	public RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector) {
+		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, cacheStatisticsCollector);
 	}
 
 	/**
@@ -282,6 +344,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			return;
 		}
 
+		long lockWaitTimeNs = System.nanoTime();
 		try {
 
 			while (doCheckLock(name, connection)) {
@@ -294,6 +357,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 			throw new PessimisticLockingFailureException(String.format("Interrupted while waiting to unlock cache %s", name),
 					ex);
+		} finally {
+			statistics.incLockTime(name, System.nanoTime() - lockWaitTimeNs);
 		}
 	}
 

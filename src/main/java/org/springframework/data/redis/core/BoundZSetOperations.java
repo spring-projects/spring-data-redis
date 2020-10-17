@@ -33,6 +33,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Wongoo (望哥)
+ * @author Andrey Shlykov
  */
 public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 
@@ -197,6 +198,18 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Long count(double min, double max);
+
+	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
+	 * lexicographical ordering.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	@Nullable
+	Long lexCount(Range range);
 
 	/**
 	 * Returns the number of elements of the sorted set stored with given the bound key.
@@ -368,7 +381,9 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	@Nullable
-	Set<V> rangeByLex(Range range);
+	default Set<V> rangeByLex(Range range) {
+		return rangeByLex(range, Limit.unlimited());
+	}
 
 	/**
 	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
@@ -383,6 +398,34 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Set<V> rangeByLex(Range range, Limit limit);
+
+	/**
+	 * Get all elements with reverse lexicographical ordering with a value between {@link Range#getMin()} and
+	 * {@link Range#getMax()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 */
+	@Nullable
+	default Set<V> reverseRangeByLex(Range range) {
+		return reverseRangeByLex(range, Limit.unlimited());
+	}
+
+	/**
+	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering having a value between {@link Range#getMin()} and
+	 * {@link Range#getMax()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @param limit can be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 */
+	@Nullable
+	Set<V> reverseRangeByLex(Range range, Limit limit);
 
 	/**
 	 * @return never {@literal null}.

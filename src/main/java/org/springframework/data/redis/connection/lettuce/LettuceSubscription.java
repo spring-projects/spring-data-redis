@@ -27,6 +27,9 @@ import org.springframework.data.redis.connection.util.AbstractSubscription;
  * @author Costin Leau
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Sarah Abbey
+ * @author Murtuza Boxwala
+ * @author Jens Deppe
  */
 public class LettuceSubscription extends AbstractSubscription {
 
@@ -64,14 +67,15 @@ public class LettuceSubscription extends AbstractSubscription {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doClose()
 	 */
+	@Override
 	protected void doClose() {
 
 		if (!getChannels().isEmpty()) {
-			doUnsubscribe(true, new byte[0]);
+			doUnsubscribe(true);
 		}
 
 		if (!getPatterns().isEmpty()) {
-			doPUnsubscribe(true, new byte[0]);
+			doPUnsubscribe(true);
 		}
 
 		connection.removeListener(this.listener);
@@ -82,6 +86,7 @@ public class LettuceSubscription extends AbstractSubscription {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPsubscribe(byte[][])
 	 */
+	@Override
 	protected void doPsubscribe(byte[]... patterns) {
 		pubsub.psubscribe(patterns);
 	}
@@ -90,16 +95,21 @@ public class LettuceSubscription extends AbstractSubscription {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPUnsubscribe(boolean, byte[][])
 	 */
+	@Override
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
 
-		// ignore `all` flag as Lettuce unsubscribes from all patterns if none provided.
-		pubsub.punsubscribe(patterns);
+		if (all) {
+			pubsub.punsubscribe();
+		} else {
+			pubsub.punsubscribe(patterns);
+		}
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doSubscribe(byte[][])
 	 */
+	@Override
 	protected void doSubscribe(byte[]... channels) {
 		pubsub.subscribe(channels);
 	}
@@ -108,10 +118,13 @@ public class LettuceSubscription extends AbstractSubscription {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doUnsubscribe(boolean, byte[][])
 	 */
+	@Override
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
 
-		// ignore `all` flag as Lettuce unsubscribes from all channels if none provided.
-		pubsub.unsubscribe(channels);
+		if (all) {
+			pubsub.unsubscribe();
+		} else {
+			pubsub.unsubscribe(channels);
+		}
 	}
-
 }

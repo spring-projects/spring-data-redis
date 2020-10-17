@@ -49,6 +49,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 
 	private Set<RedisNode> clusterNodes;
 	private @Nullable Integer maxRedirects;
+	private @Nullable String username = null;
 	private RedisPassword password = RedisPassword.none();
 
 	/**
@@ -180,6 +181,25 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		for (String hostAndPort : hostAndPorts) {
 			addClusterNode(readHostAndPortFromString(hostAndPort));
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#setUsername(String)
+	 */
+	@Override
+	public void setUsername(@Nullable String username) {
+		this.username = username;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#getUsername()
+	 */
+	@Nullable
+	@Override
+	public String getUsername() {
+		return this.username;
 	}
 
 	/*

@@ -36,12 +36,12 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import org.assertj.core.data.Offset;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.geo.Circle;
@@ -234,7 +234,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void blPopShouldPopElementCorectly() {
+	public void blPopShouldPopElementCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
 		nativeConnection.lpush(KEY_2, VALUE_3);
@@ -243,7 +243,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void blPopShouldPopElementCorectlyWhenKeyOnSameSlot() {
+	public void blPopShouldPopElementCorrectlyWhenKeyOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
 		nativeConnection.lpush(SAME_SLOT_KEY_2, VALUE_3);
@@ -252,7 +252,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void brPopShouldPopElementCorectly() {
+	public void brPopShouldPopElementCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
 		nativeConnection.lpush(KEY_2, VALUE_3);
@@ -261,7 +261,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void brPopShouldPopElementCorectlyWhenKeyOnSameSlot() {
+	public void brPopShouldPopElementCorrectlyWhenKeyOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
 		nativeConnection.lpush(SAME_SLOT_KEY_2, VALUE_3);
@@ -1437,6 +1437,18 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2)).isEqualTo(VALUE_1);
 	}
 
+	@Test // DATAREDIS-1190
+	public void renameShouldOverwriteTargetKey() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.rename(KEY_1_BYTES, KEY_2_BYTES);
+
+		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(0L);
+		assertThat(nativeConnection.get(KEY_2)).isEqualTo(VALUE_1);
+	}
+
 	@Test // DATAREDIS-315
 	public void renameNXWhenOnSameSlot() {
 
@@ -2365,7 +2377,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.get(KEY_1);
 
-		assertThat(clusterConnection.keyCommands().idletime(KEY_1_BYTES)).isEqualTo(Duration.ofSeconds(0));
+		assertThat(clusterConnection.keyCommands().idletime(KEY_1_BYTES)).isLessThanOrEqualTo(Duration.ofSeconds(2));
 	}
 
 	@Test // DATAREDIS-716
@@ -2453,5 +2465,19 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 								create().get(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).get(INT_8)
 										.valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()))).containsExactly(100L,
 												-56L);
+	}
+
+	@Test // DATAREDIS-1103
+	public void setKeepTTL() {
+
+		long expireSeconds = 10;
+		nativeConnection.setex(KEY_1, expireSeconds, VALUE_1);
+
+		assertThat(
+				clusterConnection.stringCommands().set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.keepTtl(), SetOption.upsert()))
+						.isTrue();
+
+		assertThat(nativeConnection.ttl(KEY_1)).isCloseTo(expireSeconds, Offset.offset(5L));
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
 	}
 }

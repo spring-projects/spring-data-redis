@@ -58,6 +58,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Connection factory creating <a href="https://github.com/xetorthio/jedis">Jedis</a> based connections.
@@ -75,6 +76,7 @@ import org.springframework.util.CollectionUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Fu Jian
+ * @author Ajith Kumar
  * @see JedisClientConfiguration
  * @see Jedis
  */
@@ -327,6 +329,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 					clientConfiguration.getHostnameVerifier().orElse(null));
 
 			getRedisPassword().map(String::new).ifPresent(shardInfo::setPassword);
+			String username = getRedisUsername();
+			if (StringUtils.hasText(username)) {
+				shardInfo.setUser(username);
+			}
 
 			int readTimeout = getReadTimeout();
 
@@ -368,9 +374,13 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	protected Pool<Jedis> createRedisSentinelPool(RedisSentinelConfiguration config) {
 
-		GenericObjectPoolConfig poolConfig = getPoolConfig() != null ? getPoolConfig() : new JedisPoolConfig();
+		GenericObjectPoolConfig<?> poolConfig = getPoolConfig() != null ? getPoolConfig() : new JedisPoolConfig();
+		String sentinelUser = null;
+		String sentinelPassword = config.getSentinelPassword().toOptional().map(String::new).orElse(null);
+
 		return new JedisSentinelPool(config.getMaster().getName(), convertToJedisSentinelSet(config.getSentinels()),
-				poolConfig, getConnectTimeout(), getReadTimeout(), getPassword(), getDatabase(), getClientName());
+				poolConfig, getConnectTimeout(), getReadTimeout(), getUsername(), getPassword(), getDatabase(), getClientName(),
+				getConnectTimeout(), getReadTimeout(), sentinelUser, sentinelPassword, getClientName());
 	}
 
 	/**
@@ -382,7 +392,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	protected Pool<Jedis> createRedisPool() {
 
 		return new JedisPool(getPoolConfig(), getHostName(), getPort(), getConnectTimeout(), getReadTimeout(),
-				getPassword(), getDatabase(), getClientName(), isUseSsl(),
+				getUsername(), getPassword(), getDatabase(), getClientName(), isUseSsl(),
 				clientConfiguration.getSslSocketFactory().orElse(null), //
 				clientConfiguration.getSslParameters().orElse(null), //
 				clientConfiguration.getHostnameVerifier().orElse(null));
@@ -413,7 +423,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @return the actual {@link JedisCluster}.
 	 * @since 1.7
 	 */
-	protected JedisCluster createCluster(RedisClusterConfiguration clusterConfig, GenericObjectPoolConfig poolConfig) {
+	protected JedisCluster createCluster(RedisClusterConfiguration clusterConfig, GenericObjectPoolConfig<?> poolConfig) {
 
 		Assert.notNull(clusterConfig, "Cluster configuration must not be null!");
 
@@ -424,7 +434,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects() : 5;
 
-		return new JedisCluster(hostAndPort, getConnectTimeout(), getReadTimeout(), redirects, getPassword(),
+		return new JedisCluster(hostAndPort, getConnectTimeout(), getReadTimeout(), redirects, getUsername(), getPassword(),
 				getClientName(), poolConfig, isUseSsl(), clientConfiguration.getSslSocketFactory().orElse(null),
 				clientConfiguration.getSslParameters().orElse(null), clientConfiguration.getHostnameVerifier().orElse(null),
 				null);
@@ -544,6 +554,16 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	/**
+	 * Returns the username used for authenticating with the Redis server.
+	 *
+	 * @return username for authentication.
+	 */
+	@Nullable
+	private String getUsername() {
+		return getRedisUsername();
+	}
+
+	/**
 	 * Returns the password used for authenticating with the Redis server.
 	 *
 	 * @return password for authentication.
@@ -551,6 +571,11 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	@Nullable
 	public String getPassword() {
 		return getRedisPassword().map(String::new).orElse(null);
+	}
+
+	@Nullable
+	private String getRedisUsername() {
+		return RedisConfiguration.getUsernameOrElse(this.configuration, standaloneConfig::getUsername);
 	}
 
 	private RedisPassword getRedisPassword() {
@@ -567,7 +592,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	@Deprecated
 	public void setPassword(String password) {
 
-		if (RedisConfiguration.isPasswordAware(configuration)) {
+		if (RedisConfiguration.isAuthenticationAware(configuration)) {
 
 			((WithPassword) configuration).setPassword(password);
 			return;
@@ -850,15 +875,21 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private Jedis getActiveSentinel() {
 
 		Assert.isTrue(RedisConfiguration.isSentinelConfiguration(configuration), "SentinelConfig must not be null!");
+		SentinelConfiguration sentinelConfiguration = (SentinelConfiguration) configuration;
 
-		for (RedisNode node : ((SentinelConfiguration) configuration).getSentinels()) {
+		for (RedisNode node : sentinelConfiguration.getSentinels()) {
 
 			Jedis jedis = new Jedis(node.getHost(), node.getPort(), getConnectTimeout(), getReadTimeout());
+			sentinelConfiguration.getSentinelPassword().toOptional().map(String::new).ifPresent(jedis::auth);
 
-			if (jedis.ping().equalsIgnoreCase("pong")) {
+			try {
+				if (jedis.ping().equalsIgnoreCase("pong")) {
 
-				potentiallySetClientName(jedis);
-				return jedis;
+					potentiallySetClientName(jedis);
+					return jedis;
+				}
+			} catch (Exception ex) {
+				log.warn(String.format("Ping failed for sentinel host:%s", node.getHost()), ex);
 			}
 		}
 

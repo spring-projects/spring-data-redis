@@ -31,7 +31,6 @@ public class BinaryKeyspaceIdentifierUnitTests {
 	@Test // DATAREDIS-744
 	public void shouldReturnIfKeyIsValid() {
 
-		assertThat(BinaryKeyspaceIdentifier.isValid(null)).isFalse();
 		assertThat(BinaryKeyspaceIdentifier.isValid("foo".getBytes())).isFalse();
 		assertThat(BinaryKeyspaceIdentifier.isValid("".getBytes())).isFalse();
 		assertThat(BinaryKeyspaceIdentifier.isValid("foo:bar".getBytes())).isTrue();

@@ -5,26 +5,27 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-redis</artifactId>
-	<version>2.3.0.BUILD-SNAPSHOT</version>
+	<version>2.4.0-SNAPSHOT</version>
 
 	<name>Spring Data Redis</name>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.3.0.BUILD-SNAPSHOT</version>
+		<version>2.4.0-SNAPSHOT</version>
 	</parent>
 
 	<properties>
-		<springdata.keyvalue>2.3.0.BUILD-SNAPSHOT</springdata.keyvalue>
+		<springdata.keyvalue>2.4.0-SNAPSHOT</springdata.keyvalue>
+		<awaitility>4.0.2</awaitility>
 		<jta>1.1</jta>
 		<beanutils>1.9.2</beanutils>
-		<xstream>1.4.8</xstream>
+		<xstream>1.4.12</xstream>
 		<pool>2.7.0</pool>
-		<lettuce>5.2.2.RELEASE</lettuce>
-		<jedis>3.2.0</jedis>
+		<lettuce>6.0.0.RELEASE</lettuce>
+		<jedis>3.3.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
-		<netty>4.1.42.Final</netty>
+		<netty>4.1.51.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
 	</properties>
 
@@ -221,6 +222,13 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jdbc</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.awaitility</groupId>
+			<artifactId>awaitility</artifactId>
+			<version>${awaitility}</version>
 			<scope>test</scope>
 		</dependency>
 

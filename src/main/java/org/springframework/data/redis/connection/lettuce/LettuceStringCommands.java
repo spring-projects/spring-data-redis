@@ -19,8 +19,6 @@ import io.lettuce.core.BitFieldArgs;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -38,12 +36,16 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author dengliming
  * @since 2.0
  */
-@RequiredArgsConstructor
 class LettuceStringCommands implements RedisStringCommands {
 
-	private final @NonNull LettuceConnection connection;
+	private final LettuceConnection connection;
+
+	LettuceStringCommands(LettuceConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -727,8 +729,7 @@ class LettuceStringCommands implements RedisStringCommands {
 
 				if (isPipelined()) {
 					pipeline(this.connection.newLettuceResult(futureResult));
-				}
-				else if (isQueueing()) {
+				} else if (isQueueing()) {
 					transaction(this.connection.newLettuceResult(futureResult));
 				}
 				return null;

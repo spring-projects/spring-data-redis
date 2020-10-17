@@ -16,8 +16,6 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.pubsub.api.reactive.RedisPubSubReactiveCommands;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -35,10 +33,13 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.1
  */
-@RequiredArgsConstructor
 class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 
-	private final @NonNull LettuceReactiveRedisConnection connection;
+	private final LettuceReactiveRedisConnection connection;
+
+	LettuceReactivePubSubCommands(LettuceReactiveRedisConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)

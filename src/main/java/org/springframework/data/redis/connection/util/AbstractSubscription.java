@@ -111,22 +111,42 @@ public abstract class AbstractSubscription implements Subscription {
 	 */
 	protected abstract void doClose();
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Subscription#getListener()
+	 */
+	@Override
 	public MessageListener getListener() {
 		return listener;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Subscription#getChannels()
+	 */
+	@Override
 	public Collection<byte[]> getChannels() {
 		synchronized (channels) {
 			return clone(channels);
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Subscription#getPatterns()
+	 */
+	@Override
 	public Collection<byte[]> getPatterns() {
 		synchronized (patterns) {
 			return clone(patterns);
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Subscription#pSubscribe(byte[][])
+	 */
+	@Override
 	public void pSubscribe(byte[]... patterns) {
 		checkPulse();
 
@@ -139,10 +159,20 @@ public abstract class AbstractSubscription implements Subscription {
 		doPsubscribe(patterns);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Subscription#pUnsubscribe()
+	 */
+	@Override
 	public void pUnsubscribe() {
 		pUnsubscribe((byte[][]) null);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Subscription#subscribe(byte[][])
+	 */
+	@Override
 	public void subscribe(byte[]... channels) {
 		checkPulse();
 
@@ -155,10 +185,20 @@ public abstract class AbstractSubscription implements Subscription {
 		doSubscribe(channels);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Subscription#unsubscribe()
+	 */
+	@Override
 	public void unsubscribe() {
 		unsubscribe((byte[][]) null);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Subscription#pUnsubscribe(byte[][])
+	 */
+	@Override
 	public void pUnsubscribe(@Nullable byte[]... patts) {
 		if (!isAlive()) {
 			return;
@@ -186,6 +226,11 @@ public abstract class AbstractSubscription implements Subscription {
 		closeIfUnsubscribed();
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Subscription#unsubscribe(byte[][])
+	 */
+	@Override
 	public void unsubscribe(@Nullable byte[]... chans) {
 		if (!isAlive()) {
 			return;
@@ -213,6 +258,11 @@ public abstract class AbstractSubscription implements Subscription {
 		closeIfUnsubscribed();
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Subscription#isAlive()
+	 */
+	@Override
 	public boolean isAlive() {
 		return alive.get();
 	}

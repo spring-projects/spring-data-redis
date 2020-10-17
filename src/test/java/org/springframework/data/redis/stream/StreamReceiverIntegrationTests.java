@@ -17,12 +17,15 @@ package org.springframework.data.redis.stream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collections;
 
@@ -30,6 +33,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisVersionUtils;
@@ -55,6 +59,7 @@ import org.springframework.data.redis.stream.StreamReceiver.StreamReceiverOption
  * Integration tests for {@link StreamReceiver}.
  *
  * @author Mark Paluch
+ * @author Eddie McDaniel
  */
 public class StreamReceiverIntegrationTests {
 
@@ -168,6 +173,31 @@ public class StreamReceiverIntegrationTests {
 				.verify(Duration.ofSeconds(5));
 	}
 
+	@Test // DATAREDIS-1172
+	public void shouldReceiveCustomHashValueRecords() {
+
+		SerializationPair<Integer> serializationPair = mock(SerializationPair.class);
+		when(serializationPair.read(any(ByteBuffer.class))).thenReturn(345920);
+
+		StreamReceiverOptions<String, MapRecord<String, String, Integer>> receiverOptions = StreamReceiverOptions.builder()
+				.<String, Integer>hashValueSerializer(serializationPair).build();
+
+		StreamReceiver<String, MapRecord<String, String, Integer>> receiver = StreamReceiver.create(connectionFactory,
+				receiverOptions);
+
+		Flux<MapRecord<String, String, Integer>> messages = receiver.receive(StreamOffset.fromStart("my-stream"));
+
+		messages.as(StepVerifier::create)
+				.then(() -> reactiveRedisTemplate.opsForStream()
+					.add("my-stream", Collections.singletonMap("Jesse", "Pinkman")).subscribe())
+				.consumeNextWith(it -> {
+					assertThat(it.getStream()).isEqualTo("my-stream");
+					assertThat(it.getValue()).contains(entry("Jesse", 345920));
+				})
+				.thenCancel()
+				.verify(Duration.ofSeconds(5));
+	}
+
 	@Test // DATAREDIS-864
 	public void latestModeLosesMessages() {
 
@@ -183,28 +213,21 @@ public class StreamReceiverIntegrationTests {
 
 		messages.as(publisher -> StepVerifier.create(publisher, 0)) //
 				.thenRequest(1) //
+				.thenAwait(Duration.ofMillis(500)) //
 				.then(() -> {
-					try {
-						Thread.sleep(500);
-						reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"))
-								.subscribe();
-					} catch (InterruptedException e) {}
+					reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1")).subscribe();
 				}) //
 				.expectNextCount(1) //
 				.then(() -> {
 					reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value2")).subscribe();
 				}) //
 				.thenRequest(1) //
+				.thenAwait(Duration.ofMillis(500)) //
 				.then(() -> {
-					try {
-						Thread.sleep(500);
-						reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value3"))
-								.subscribe();
-					} catch (InterruptedException e) {}
+					reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value3")).subscribe();
 				}).consumeNextWith(it -> {
 
 					assertThat(it.getStream()).isEqualTo("my-stream");
-					// assertThat(it.getValue()).containsEntry("key", "value3");
 				}) //
 				.thenCancel() //
 				.verify(Duration.ofSeconds(5));
@@ -218,9 +241,8 @@ public class StreamReceiverIntegrationTests {
 		Flux<MapRecord<String, String, String>> messages = receiver.receive(Consumer.from("my-group", "my-consumer-id"),
 				StreamOffset.create("my-stream", ReadOffset.lastConsumed()));
 
-		// required to initialize stream
-		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
 		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from("0-0"), "my-group");
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
 		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key2", "value2"));
 
 		messages.as(StepVerifier::create) //
@@ -251,9 +273,8 @@ public class StreamReceiverIntegrationTests {
 		Flux<MapRecord<String, String, String>> messages = receiver.receive(Consumer.from("my-group", "my-consumer-id"),
 				StreamOffset.create("my-stream", ReadOffset.lastConsumed()));
 
-		// required to initialize stream
-		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
 		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from("0-0"), "my-group");
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value"));
 
 		messages.as(StepVerifier::create) //
 				.expectNextCount(1) //

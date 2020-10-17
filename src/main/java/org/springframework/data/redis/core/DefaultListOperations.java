@@ -55,6 +55,34 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#indexOf(java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Long indexOf(K key, V value) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+		return execute(connection -> connection.lPos(rawKey, rawValue), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#lastIndexOf(java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Long lastIndexOf(K key, V value) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+		return execute(connection -> {
+
+			List<Long> indexes = connection.lPos(rawKey, rawValue, -1, null);
+			return CollectionUtils.firstElement(indexes);
+		}, true);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ListOperations#leftPop(java.lang.Object)
 	 */
 	@Override

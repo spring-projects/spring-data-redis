@@ -33,6 +33,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Wongoo (望哥)
+ * @author Andrey Shlykov
  */
 class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundZSetOperations<K, V> {
 
@@ -104,7 +105,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		return ops.intersectAndStore(getKey(), otherKeys, destKey);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
 	 */
@@ -113,7 +114,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		return ops.intersectAndStore(getKey(), otherKeys, destKey, aggregate);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
 	 */
@@ -187,20 +188,20 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundZSetOperations#rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
-	@Override
-	public Set<V> rangeByLex(Range range) {
-		return rangeByLex(range, Limit.unlimited());
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
 	public Set<V> rangeByLex(Range range, Limit limit) {
 		return ops.rangeByLex(getKey(), range, limit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#reverseRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<V> reverseRangeByLex(Range range, Limit limit) {
+		return ops.reverseRangeByLex(getKey(), range, limit);
 	}
 
 	/*
@@ -277,6 +278,15 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#lexCount(org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long lexCount(Range range) {
+		return ops.lexCount(getKey(), range);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#size()
 	 */
 	@Override
@@ -311,7 +321,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		return ops.unionAndStore(getKey(), otherKeys, destKey);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
 	 */
@@ -320,7 +330,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		return ops.unionAndStore(getKey(), otherKeys, destKey, aggregate);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
 	 */

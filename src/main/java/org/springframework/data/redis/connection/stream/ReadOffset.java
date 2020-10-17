@@ -15,18 +15,12 @@
  */
 package org.springframework.data.redis.connection.stream;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
-
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Value object representing read offset for a Stream.
  */
-@EqualsAndHashCode
-@ToString
-@Getter
 public final class ReadOffset {
 
 	private final String offset;
@@ -80,5 +74,31 @@ public final class ReadOffset {
 		}
 
 		return from(offset.getValue());
+	}
+
+	public String getOffset() {
+		return this.offset;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		ReadOffset that = (ReadOffset) o;
+
+		return ObjectUtils.nullSafeEquals(offset, that.offset);
+	}
+
+	@Override
+	public int hashCode() {
+		return ObjectUtils.nullSafeHashCode(offset);
+	}
+
+	public String toString() {
+		return "ReadOffset(offset=" + this.getOffset() + ")";
 	}
 }

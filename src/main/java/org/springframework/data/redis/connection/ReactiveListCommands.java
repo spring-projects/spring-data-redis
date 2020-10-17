@@ -313,6 +313,125 @@ public interface ReactiveListCommands {
 	Flux<BooleanResponse<RangeCommand>> lTrim(Publisher<RangeCommand> commands);
 
 	/**
+	 * {@code LPOS} command parameters.
+	 * 
+	 * @author Christoph Strobl
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 */
+	class LPosCommand extends KeyCommand {
+
+		private final ByteBuffer element;
+		private final @Nullable Integer count;
+		private final @Nullable Integer rank;
+
+		private LPosCommand(@Nullable ByteBuffer key, ByteBuffer element, @Nullable Integer count, @Nullable Integer rank) {
+
+			super(key);
+			this.element = element;
+			this.count = count;
+			this.rank = rank;
+		}
+
+		/**
+		 * Creates a new {@link LPosCommand} for given {@literal element}.
+		 *
+		 * @param element
+		 * @return a new {@link LPosCommand} for {@literal element}.
+		 */
+		public static LPosCommand lPosOf(ByteBuffer element) {
+			return new LPosCommand(null, element, null, null);
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link LPosCommand} with {@literal key} applied.
+		 */
+		public LPosCommand from(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+			return new LPosCommand(key, element, count, rank);
+		}
+
+		/**
+		 * Applies the {@literal count} parameter specifying the number of matches to return. Constructs a new command
+		 * instance with all previously configured properties.
+		 *
+		 * @param count can be {@literal null}.
+		 * @return a new {@link LPosCommand} with {@literal count} applied.
+		 */
+		public LPosCommand count(Integer count) {
+			return new LPosCommand(getKey(), element, count, rank);
+		}
+
+		/**
+		 * Applies the {@literal rank} parameter specifying the "rank" of the first element to return. Constructs a new
+		 * command instance with all previously configured properties.
+		 *
+		 * @param rank can be {@literal null}.
+		 * @return a new {@link LPosCommand} with {@literal count} applied.
+		 */
+		public LPosCommand rank(Integer rank) {
+			return new LPosCommand(getKey(), element, count, rank);
+		}
+
+		@Nullable
+		public Integer getCount() {
+			return count;
+		}
+
+		@Nullable
+		public Integer getRank() {
+			return rank;
+		}
+
+		@Nullable
+		public ByteBuffer getElement() {
+			return element;
+		}
+	}
+
+	/**
+	 * Get first index of the {@literal element} from list at {@literal key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param element
+	 * @return a {@link Mono} emitting the elements index.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
+	 */
+	default Mono<Long> lPos(ByteBuffer key, ByteBuffer element) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return lPos(LPosCommand.lPosOf(element).from(key)).next();
+	}
+
+	/**
+	 * Get indices of the {@literal element} from list at {@link LPosCommand#getKey()}.
+	 *
+	 * @param command must not be {@literal null}.
+	 * @return a {@link Flux} emitting the elements indices one by one.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
+	 */
+	default Flux<Long> lPos(LPosCommand command) {
+		return lPos(Mono.just(command)).map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Get indices of the {@literal element} from list at {@link LPosCommand#getKey()}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting the elements indices one by one.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
+	 */
+	Flux<NumericResponse<LPosCommand, Long>> lPos(Publisher<LPosCommand> commands);
+
+	/**
 	 * {@code LINDEX} command parameters.
 	 *
 	 * @author Christoph Strobl

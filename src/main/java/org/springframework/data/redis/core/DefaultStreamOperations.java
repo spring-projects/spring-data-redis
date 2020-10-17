@@ -34,6 +34,9 @@ import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.hash.HashMapper;
@@ -156,7 +159,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public String createGroup(K key, ReadOffset readOffset, String group) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xGroupCreate(rawKey, group, readOffset), true);
+		return execute(connection -> connection.xGroupCreate(rawKey, group, readOffset, true), true);
 	}
 
 	/*
@@ -179,6 +182,39 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xGroupDestroy(rawKey, group), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.StreamOperations#info(java.lang.Object)
+	 */
+	@Override
+	public XInfoStream info(K key) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.xInfo(rawKey), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.StreamOperations#consumers(java.lang.Object, java.lang.String)
+	 */
+	@Override
+	public XInfoConsumers consumers(K key, String group) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.xInfoConsumers(rawKey, group), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.StreamOperations#groups(java.lang.Object)
+	 */
+	@Override
+	public XInfoGroups groups(K key) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.xInfoGroups(rawKey), true);
 	}
 
 	/*
@@ -298,6 +334,12 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xTrim(rawKey, count), true);
+	}
+
+	@Override
+	public Long trim(K key, long count, boolean approximateTrimming) {
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.xTrim(rawKey, count, approximateTrimming), true);
 	}
 
 	@Override

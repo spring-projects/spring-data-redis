@@ -17,14 +17,14 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.XAddArgs;
 import io.lettuce.core.XClaimArgs;
+import io.lettuce.core.XGroupCreateArgs;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import org.springframework.dao.DataAccessException;
@@ -38,18 +38,27 @@ import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Paluch
+ * @author Tugdual Grall
+ * @author Dejan Jankov
+ * @author Dengliming
  * @since 2.2
  */
-@RequiredArgsConstructor
 class LettuceStreamCommands implements RedisStreamCommands {
 
-	private final @NonNull LettuceConnection connection;
+	private final LettuceConnection connection;
+
+	LettuceStreamCommands(LettuceConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -81,16 +90,19 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAdd(byte[], MapRecord)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAdd(byte[], MapRecord, XAddOptions)
 	 */
 	@Override
-	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
+	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, XAddOptions options) {
 
 		Assert.notNull(record.getStream(), "Stream must not be null!");
 		Assert.notNull(record, "Record must not be null!");
 
 		XAddArgs args = new XAddArgs();
 		args.id(record.getId().getValue());
+		if (options.hasMaxlen()) {
+			args.maxlen(options.getMaxlen());
+		}
 
 		try {
 			if (isPipelined()) {
@@ -105,6 +117,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 						RecordId::of));
 				return null;
 			}
+
 			return RecordId.of(getConnection().xadd(record.getStream(), args, record.getValue()));
 
 		} catch (Exception ex) {
@@ -122,11 +135,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		String[] ids = options.getIdsAsStringArray();
 		io.lettuce.core.Consumer<byte[]> from = io.lettuce.core.Consumer.from(LettuceConverters.toBytes(group),
 				LettuceConverters.toBytes(newOwner));
-		XClaimArgs args = StreamConverters.toXClaimArgs(options);
-
-		if (true /* TODO: set the JUSTID flag */ ) {
-			throw new UnsupportedOperationException("Lettuce does not support XCLAIM with JUSTID. (Ref: lettuce-io#1233)");
-		}
+		XClaimArgs args = StreamConverters.toXClaimArgs(options).justid();
 
 		try {
 			if (isPipelined()) {
@@ -209,6 +218,15 @@ class LettuceStreamCommands implements RedisStreamCommands {
 	 */
 	@Override
 	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset) {
+		return xGroupCreate(key, groupName, readOffset, false);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupCreate(byte[], org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String, boolean)
+	 */
+	@Override
+	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkSteam) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.hasText(groupName, "Group name must not be null or empty!");
@@ -218,16 +236,17 @@ class LettuceStreamCommands implements RedisStreamCommands {
 			XReadArgs.StreamOffset<byte[]> streamOffset = XReadArgs.StreamOffset.from(key, readOffset.getOffset());
 
 			if (isPipelined()) {
-				pipeline(connection
-						.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName))));
+				pipeline(connection.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset,
+						LettuceConverters.toBytes(groupName), XGroupCreateArgs.Builder.mkstream(mkSteam))));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection
-						.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName))));
+				transaction(connection.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset,
+						LettuceConverters.toBytes(groupName), XGroupCreateArgs.Builder.mkstream(mkSteam))));
 				return null;
 			}
-			return getConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName));
+			return getConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName),
+					XGroupCreateArgs.Builder.mkstream(mkSteam));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -247,14 +266,16 @@ class LettuceStreamCommands implements RedisStreamCommands {
 			io.lettuce.core.Consumer<byte[]> lettuceConsumer = toConsumer(consumer);
 
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xgroupDelconsumer(key, lettuceConsumer)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().xgroupDelconsumer(key, lettuceConsumer),
+						Objects::nonNull));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xgroupDelconsumer(key, lettuceConsumer)));
+				transaction(connection.newLettuceResult(getAsyncConnection().xgroupDelconsumer(key, lettuceConsumer),
+						Objects::nonNull));
 				return null;
 			}
-			return getConnection().xgroupDelconsumer(key, lettuceConsumer);
+			return Objects.nonNull(getConnection().xgroupDelconsumer(key, lettuceConsumer));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -282,6 +303,83 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				return null;
 			}
 			return getConnection().xgroupDestroy(key, LettuceConverters.toBytes(groupName));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfo(byte[])
+	 */
+	@Override
+	public XInfoStream xInfo(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().xinfoStream(key), XInfoStream::fromList));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().xinfoStream(key), XInfoStream::fromList));
+				return null;
+			}
+			return XInfoStream.fromList(getConnection().xinfoStream(key));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfoGroups(byte[])
+	 */
+	@Override
+	public XInfoGroups xInfoGroups(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().xinfoGroups(key), XInfoGroups::fromList));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().xinfoGroups(key), XInfoGroups::fromList));
+				return null;
+			}
+			return XInfoGroups.fromList(getConnection().xinfoGroups(key));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfoConsumers(byte[], java.lang.String)
+	 */
+	@Override
+	public XInfoConsumers xInfoConsumers(byte[] key, String groupName) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(groupName, "GroupName must not be null!");
+
+		byte[] binaryGroupName = LettuceConverters.toBytes(groupName);
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().xinfoConsumers(key, binaryGroupName),
+						it -> XInfoConsumers.fromList(groupName, it)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().xinfoConsumers(key, binaryGroupName),
+						it -> XInfoConsumers.fromList(groupName, it)));
+				return null;
+			}
+			return XInfoConsumers.fromList(groupName, getConnection().xinfoConsumers(key, binaryGroupName));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -344,7 +442,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 	public PendingMessages xPending(byte[] key, String groupName, XPendingOptions options) {
 
 		byte[] group = LettuceConverters.toBytes(groupName);
-		io.lettuce.core.Range<String> range = RangeConverter.toRangeWithDefault(options.getRange(), "-", "+");
+		io.lettuce.core.Range<String> range = RangeConverter.toRangeWithDefault(options.getRange(), "-", "+", Function.identity());
 		io.lettuce.core.Limit limit = options.isLimited() ? io.lettuce.core.Limit.from(options.getCount())
 				: io.lettuce.core.Limit.unlimited();
 
@@ -432,7 +530,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		XReadArgs.StreamOffset<byte[]>[] streamOffsets = toStreamOffsets(streams);
 		XReadArgs args = StreamConverters.toReadArgs(readOptions);
 
-		if (isBlocking(readOptions)) {
+		if (readOptions.isBlocking()) {
 
 			try {
 				if (isPipelined()) {
@@ -484,7 +582,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		XReadArgs args = StreamConverters.toReadArgs(readOptions);
 		io.lettuce.core.Consumer<byte[]> lettuceConsumer = toConsumer(consumer);
 
-		if (isBlocking(readOptions)) {
+		if (readOptions.isBlocking()) {
 
 			try {
 				if (isPipelined()) {
@@ -535,7 +633,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		Assert.notNull(range, "Range must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		io.lettuce.core.Range<String> lettuceRange = RangeConverter.toRange(range);
+		io.lettuce.core.Range<String> lettuceRange = RangeConverter.toRange(range, Function.identity());
 		io.lettuce.core.Limit lettuceLimit = LettuceConverters.toLimit(limit);
 		try {
 			if (isPipelined()) {
@@ -561,19 +659,27 @@ class LettuceStreamCommands implements RedisStreamCommands {
 	 */
 	@Override
 	public Long xTrim(byte[] key, long count) {
+		return xTrim(key, count, false);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xTrim(byte[], long, boolean)
+	 */
+	@Override
+	public Long xTrim(byte[] key, long count, boolean approximateTrimming) {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
 			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xtrim(key, count)));
+				pipeline(connection.newLettuceResult(getAsyncConnection().xtrim(key, approximateTrimming, count)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xtrim(key, count)));
+				transaction(connection.newLettuceResult(getAsyncConnection().xtrim(key, approximateTrimming, count)));
 				return null;
 			}
-			return getConnection().xtrim(key, count);
+			return getConnection().xtrim(key, approximateTrimming, count);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -613,10 +719,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 	private DataAccessException convertLettuceAccessException(Exception ex) {
 		return connection.convertLettuceAccessException(ex);
-	}
-
-	private static boolean isBlocking(StreamReadOptions readOptions) {
-		return readOptions.getBlock() != null && readOptions.getBlock() > 0;
 	}
 
 	@SuppressWarnings("unchecked")

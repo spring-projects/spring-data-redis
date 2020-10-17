@@ -39,7 +39,6 @@ import io.lettuce.core.protocol.CommandArgs;
 import io.lettuce.core.protocol.CommandType;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
-import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -1137,6 +1136,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			COMMAND_OUTPUT_TYPE_MAPPING.put(LINSERT, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(LLEN, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(LPUSH, IntegerOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(LPOS, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(LPUSHX, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(LREM, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(PTTL, IntegerOutput.class);
@@ -1308,10 +1308,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	@RequiredArgsConstructor
 	static class LettucePoolConnectionProvider implements LettuceConnectionProvider {
 
 		private final LettucePool pool;
+
+		LettucePoolConnectionProvider(LettucePool pool) {
+			this.pool = pool;
+		}
 
 		/*
 		 * (non-Javadoc)
@@ -1437,8 +1440,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Implementation to flush on each command.
-	 *  @author Mark Paluch
-	 * 	@since 2.3
+	 * 
+	 * @author Mark Paluch
+	 * @since 2.3
 	 */
 	private enum FlushEachCommand implements PipeliningFlushPolicy, PipeliningFlushState {
 
@@ -1461,8 +1465,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Implementation to flush on closing the pipeline.
-	 *  @author Mark Paluch
-	 * 	@since 2.3
+	 * 
+	 * @author Mark Paluch
+	 * @since 2.3
 	 */
 	private enum FlushOnClose implements PipeliningFlushPolicy, PipeliningFlushState {
 
@@ -1492,8 +1497,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Pipeline state for buffered flushing.
-	 *  @author Mark Paluch
-	 * 	@since 2.3
+	 * 
+	 * @author Mark Paluch
+	 * @since 2.3
 	 */
 	private static class BufferedFlushing implements PipeliningFlushState {
 

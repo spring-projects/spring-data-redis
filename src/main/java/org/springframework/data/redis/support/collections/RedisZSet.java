@@ -36,6 +36,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Costin Leau
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Andrey Shlykov
  */
 public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
@@ -60,7 +61,9 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @see BoundZSetOperations#rangeByLex(Range)
 	 * @since 1.7
 	 */
-	Set<E> rangeByLex(Range range);
+	default Set<E> rangeByLex(Range range) {
+		return rangeByLex(range, Limit.unlimited());
+	}
 
 	/**
 	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
@@ -70,10 +73,36 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
 	 * @return
-	 * @see BoundZSetOperations#rangeByLex(Range, Limit)
 	 * @since 1.7
+	 * @see BoundZSetOperations#rangeByLex(Range, Limit)
 	 */
 	Set<E> rangeByLex(Range range, Limit limit);
+
+	/**
+	 * Get all elements with reverse lexicographical ordering with a value between {@link Range#getMin()} and
+	 * {@link Range#getMax()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see BoundZSetOperations#reverseRangeByLex(Range)
+	 */
+	default Set<E> reverseRangeByLex(Range range) {
+		return reverseRangeByLex(range, Limit.unlimited());
+	}
+
+	/**
+	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering having a value between {@link Range#getMin()} and
+	 * {@link Range#getMax()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @param limit can be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see BoundZSetOperations#reverseRangeByLex(Range, Limit)
+	 */
+	Set<E> reverseRangeByLex(Range range, Limit limit);
 
 	Set<E> rangeByScore(double min, double max);
 
@@ -105,6 +134,17 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * is implementation specific. {@inheritDoc}
 	 */
 	boolean add(E e);
+
+	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
+	 * lexicographical ordering.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	Long lexCount(Range range);
 
 	/**
 	 * Returns the score of the given element. Returns null if the element is not contained by the set.

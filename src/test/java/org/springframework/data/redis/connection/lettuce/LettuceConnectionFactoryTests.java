@@ -22,12 +22,14 @@ import io.lettuce.core.EpollProvider;
 import io.lettuce.core.KqueueProvider;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisException;
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.reactive.BaseRedisReactiveCommands;
 import reactor.test.StepVerifier;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -230,11 +232,12 @@ public class LettuceConnectionFactoryTests {
 		assertThat(conn2.isClosed()).isTrue();
 		// Give some time for native connection to asynchronously close
 		Thread.sleep(100);
+		RedisFuture<String> future = ((RedisAsyncCommands<byte[], byte[]>) conn2.getNativeConnection()).ping();
 		try {
-			((RedisAsyncCommands<byte[], byte[]>) conn2.getNativeConnection()).ping();
+			future.get();
 			fail("The native connection should be closed");
-		} catch (RedisException e) {
-			// expected
+		} catch (ExecutionException e) {
+			// expected, Lettuce async failures are signalled on the Future
 		}
 	}
 
@@ -313,25 +316,6 @@ public class LettuceConnectionFactoryTests {
 		conn2.close();
 		factory2.destroy();
 		pool.destroy();
-	}
-
-	@Ignore("Uncomment this test to manually check connection reuse in a pool scenario")
-	@Test
-	public void testLotsOfConnections() throws InterruptedException {
-		// Running a netstat here should show only the 8 conns from the pool (plus 2 from setUp and 1 from factory2
-		// afterPropertiesSet for shared conn)
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.afterPropertiesSet();
-		final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
-		factory2.afterPropertiesSet();
-
-		ConnectionFactoryTracker.add(factory2);
-
-		for (int i = 1; i < 1000; i++) {
-			Thread th = new Thread(() -> factory2.getConnection().bRPop(50000, "foo".getBytes()));
-			th.start();
-		}
-		Thread.sleep(234234234);
 	}
 
 	@Ignore("Redis must have requirepass set to run this test")
@@ -492,7 +476,8 @@ public class LettuceConnectionFactoryTests {
 		RedisConnection connection = factory.getConnection();
 
 		assertThatThrownBy(() -> connection.pSubscribe((message, pattern) -> {
-		}, "foo".getBytes())).isInstanceOf(RedisSystemException.class).hasCauseInstanceOf(UnsupportedOperationException.class);
+		}, "foo".getBytes())).isInstanceOf(RedisConnectionFailureException.class)
+				.hasCauseInstanceOf(UnsupportedOperationException.class);
 
 		connection.close();
 		factory.destroy();

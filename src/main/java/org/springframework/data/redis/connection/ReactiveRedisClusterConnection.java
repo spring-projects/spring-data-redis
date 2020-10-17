@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono;
  * @author Mark Paluch
  * @since 2.0
  */
-public interface ReactiveRedisClusterConnection extends ReactiveRedisConnection {
+public interface ReactiveRedisClusterConnection extends ReactiveRedisConnection, ReactiveClusterCommands {
 
 	@Override
 	ReactiveClusterKeyCommands keyCommands();

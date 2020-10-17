@@ -53,6 +53,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Wongoo (望哥)
+ * @author Andrey Shlykov
  * @param <K> Key type
  * @param <V> Value type
  */
@@ -114,6 +115,42 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key1, value2, 5.5);
 
 		assertThat(zSetOps.count(key1, 2.7, 5.7)).isEqualTo(Long.valueOf(1));
+	}
+
+	@Test // DATAREDIS-729
+	public void testLexCountUnbounded() {
+
+		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 0);
+		zSetOps.add(key, value2, 0);
+		zSetOps.add(key, value3, 0);
+
+		assertThat(zSetOps.lexCount(key, RedisZSetCommands.Range.unbounded())).isEqualTo(3);
+	}
+
+	@Test // DATAREDIS-729
+	public void testLexCountBounded() {
+
+		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 0);
+		zSetOps.add(key, value2, 0);
+		zSetOps.add(key, value3, 0);
+
+		assertThat(zSetOps.lexCount(key, RedisZSetCommands.Range.range().gt(value1))).isEqualTo(2);
 	}
 
 	@Test
@@ -247,9 +284,29 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
 		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.unbounded(),
-				RedisZSetCommands.Limit.limit().count(1).offset(1));
+				RedisZSetCommands.Limit.limit().count(2).offset(1));
 
-		assertThat(tuples).hasSize(1).startsWith(value2);
+		assertThat(tuples).hasSize(2).containsSequence(value2, value3);
+	}
+
+	@Test // DATAREDIS-729
+	public void testReverseRangeByLexUnboundedWithLimit() {
+
+		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.9);
+		zSetOps.add(key, value2, 3.7);
+		zSetOps.add(key, value3, 5.8);
+		Set<V> tuples = zSetOps.reverseRangeByLex(key, RedisZSetCommands.Range.unbounded(),
+				RedisZSetCommands.Limit.limit().count(2).offset(1));
+
+		assertThat(tuples).hasSize(2).containsSequence(value2, value1);
 	}
 
 	@Test // DATAREDIS-407
@@ -439,4 +496,5 @@ public class DefaultZSetOperationsTests<K, V> {
 
 		assertThat(zSetOps.score(key1, value1)).isCloseTo(6.0, offset(0.1));
 	}
+
 }

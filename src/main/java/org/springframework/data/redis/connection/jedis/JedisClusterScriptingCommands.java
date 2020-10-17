@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.JedisCluster;
 
@@ -33,10 +31,13 @@ import org.springframework.util.Assert;
  * @author Pavel Khokhlov
  * @since 2.0
  */
-@RequiredArgsConstructor
 class JedisClusterScriptingCommands implements RedisScriptingCommands {
 
-	private final @NonNull JedisClusterConnection connection;
+	private final JedisClusterConnection connection;
+
+	JedisClusterScriptingCommands(JedisClusterConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)

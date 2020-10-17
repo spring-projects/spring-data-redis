@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.LPosArgs;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -146,8 +147,32 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 					LettuceConverters.getLowerBoundIndex(range), //
 					LettuceConverters.getUpperBoundIndex(range));
 
-			return result
-					.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value));
+			return result.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lPos(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<NumericResponse<LPosCommand, Long>> lPos(Publisher<LPosCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			LPosArgs args = new LPosArgs();
+			if (command.getRank() != null) {
+				args.rank(command.getRank());
+			}
+
+			Flux<Long> values;
+			if (command.getCount() != null) {
+				values = cmd.lpos(command.getKey(), command.getElement(), command.getCount(), args);
+			} else {
+				values = cmd.lpos(command.getKey(), command.getElement(), args).flux();
+			}
+
+			return values.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
 
@@ -238,7 +263,8 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 			Assert.notNull(command.getDirection(), "Direction must not be null!");
 
 			Mono<ByteBuffer> popResult = ObjectUtils.nullSafeEquals(Direction.RIGHT, command.getDirection())
-					? cmd.rpop(command.getKey()) : cmd.lpop(command.getKey());
+					? cmd.rpop(command.getKey())
+					: cmd.lpop(command.getKey());
 
 			return popResult.map(value -> new ByteBufferResponse<>(command, value));
 		}));

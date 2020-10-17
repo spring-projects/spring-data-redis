@@ -96,7 +96,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRange(KEY_1_BBUFFER, ONE_TO_TWO)) //
+		connection.zSetCommands().zRange(KEY_1_BBUFFER, ONE_TO_TWO).as(StepVerifier::create) //
 				.expectNext(VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -108,7 +108,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeWithScores(KEY_1_BBUFFER, ONE_TO_TWO)) //
+		connection.zSetCommands().zRangeWithScores(KEY_1_BBUFFER, ONE_TO_TWO).as(StepVerifier::create) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D), new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
 				.verifyComplete();
 	}
@@ -120,7 +120,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRange(KEY_1_BBUFFER, ONE_TO_TWO)) //
+		connection.zSetCommands().zRevRange(KEY_1_BBUFFER, ONE_TO_TWO).as(StepVerifier::create) //
 				.expectNext(VALUE_2_BBUFFER, VALUE_1_BBUFFER) //
 				.verifyComplete();
 	}
@@ -132,7 +132,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRangeWithScores(KEY_1_BBUFFER, ONE_TO_TWO)) //
+		connection.zSetCommands().zRevRangeWithScores(KEY_1_BBUFFER, ONE_TO_TWO).as(StepVerifier::create) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D), new DefaultTuple(VALUE_1_BBUFFER.array(), 1D)) //
 				.verifyComplete();
 	}
@@ -144,7 +144,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, Range.closed(2D, 3D))) //
+		connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, Range.closed(2D, 3D)).as(StepVerifier::create) //
 				.expectNext(VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -156,9 +156,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier
-				.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER,
-						Range.of(Range.Bound.unbounded(), Range.Bound.inclusive(3D)))) //
+		connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, Range.of(Range.Bound.unbounded(), Range.Bound.inclusive(3D)))
+				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -170,9 +169,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier
-				.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER,
-						Range.of(Range.Bound.inclusive(0D), Range.Bound.unbounded()))) //
+		connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, Range.of(Range.Bound.inclusive(0D), Range.Bound.unbounded()))
+				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -184,7 +182,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE)) //
+		connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE).as(StepVerifier::create) //
 				.expectNext(VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -196,7 +194,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE)) //
+		connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE).as(StepVerifier::create) //
 				.expectNext(VALUE_2_BBUFFER) //
 				.verifyComplete();
 	}
@@ -208,7 +206,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, TWO_TO_THREE_ALL_INCLUSIVE)) //
+		connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, TWO_TO_THREE_ALL_INCLUSIVE)
+				.as(StepVerifier::create) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D), new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
 				.verifyComplete();
 	}
@@ -220,8 +219,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier
-				.create(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE)) //
+		connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE)
+				.as(StepVerifier::create) //
 				.expectNext(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
 				.verifyComplete();
 	}
@@ -233,8 +232,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier
-				.create(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE)) //
+		connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE)
+				.as(StepVerifier::create) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
 				.verifyComplete();
 	}
@@ -246,7 +245,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, TWO_TO_THREE_ALL_INCLUSIVE)) //
+		connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, TWO_TO_THREE_ALL_INCLUSIVE).as(StepVerifier::create) //
 				.expectNext(VALUE_3_BBUFFER, VALUE_2_BBUFFER) //
 				.verifyComplete();
 	}
@@ -258,7 +257,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE)) //
+		connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE).as(StepVerifier::create) //
 				.expectNext(VALUE_3_BBUFFER) //
 				.verifyComplete();
 	}
@@ -270,7 +269,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE)) //
+		connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE).as(StepVerifier::create) //
 				.expectNext(VALUE_2_BBUFFER) //
 				.verifyComplete();
 	}
@@ -282,7 +281,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, TWO_TO_THREE_ALL_INCLUSIVE)) //
+		connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, TWO_TO_THREE_ALL_INCLUSIVE)
+				.as(StepVerifier::create) //
 				.expectNext(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D), new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
 				.verifyComplete();
 	}
@@ -294,8 +294,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier
-				.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE)) //
+		connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, TWO_EXCLUSIVE_TO_THREE_INCLUSIVE)
+				.as(StepVerifier::create) //
 				.expectNext(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
 				.verifyComplete();
 	}
@@ -307,8 +307,8 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier
-				.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE)) //
+		connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, TWO_INCLUSIVE_TO_THREE_EXCLUSIVE)
+				.as(StepVerifier::create) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
 				.verifyComplete();
 	}
@@ -320,11 +320,11 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		StepVerifier.create(connection.zSetCommands().zScan(KEY_1_BBUFFER, ScanOptions.scanOptions().count(1).build())) //
+		connection.zSetCommands().zScan(KEY_1_BBUFFER, ScanOptions.scanOptions().count(1).build()).as(StepVerifier::create) //
 				.expectNextCount(3).verifyComplete();
 
-		StepVerifier
-				.create(connection.zSetCommands().zScan(KEY_1_BBUFFER, ScanOptions.scanOptions().match(VALUE_2).build())) //
+		connection.zSetCommands().zScan(KEY_1_BBUFFER, ScanOptions.scanOptions().match(VALUE_2).build())
+				.as(StepVerifier::create) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
 				.verifyComplete();
 	}

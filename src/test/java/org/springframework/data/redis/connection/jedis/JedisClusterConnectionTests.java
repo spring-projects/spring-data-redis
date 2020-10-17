@@ -202,7 +202,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void blPopShouldPopElementCorectly() {
+	public void blPopShouldPopElementCorrectly() {
 
 		nativeConnection.lpush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
 		nativeConnection.lpush(KEY_2_BYTES, VALUE_3_BYTES);
@@ -211,7 +211,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void blPopShouldPopElementCorectlyWhenKeyOnSameSlot() {
+	public void blPopShouldPopElementCorrectlyWhenKeyOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
 		nativeConnection.lpush(SAME_SLOT_KEY_2_BYTES, VALUE_3_BYTES);
@@ -220,7 +220,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void brPopShouldPopElementCorectly() {
+	public void brPopShouldPopElementCorrectly() {
 
 		nativeConnection.lpush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
 		nativeConnection.lpush(KEY_2_BYTES, VALUE_3_BYTES);
@@ -229,7 +229,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void brPopShouldPopElementCorectlyWhenKeyOnSameSlot() {
+	public void brPopShouldPopElementCorrectlyWhenKeyOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
 		nativeConnection.lpush(SAME_SLOT_KEY_2_BYTES, VALUE_3_BYTES);
@@ -1421,6 +1421,18 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
+	@Test // DATAREDIS-1190
+	public void renameShouldOverwriteTargetKey() {
+
+		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
+		nativeConnection.set(KEY_2_BYTES, VALUE_2_BYTES);
+
+		clusterConnection.rename(KEY_1_BYTES, KEY_2_BYTES);
+
+		assertThat(nativeConnection.exists(KEY_1_BYTES)).isFalse();
+		assertThat(nativeConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
+	}
+
 	@Test // DATAREDIS-315
 	public void renameNXWhenOnSameSlot() {
 
@@ -2346,7 +2358,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 		nativeConnection.get(KEY_1_BYTES);
 
-		assertThat(clusterConnection.keyCommands().idletime(KEY_1_BYTES)).isEqualTo(Duration.ofSeconds(0));
+		assertThat(clusterConnection.keyCommands().idletime(KEY_1_BYTES)).isLessThan(Duration.ofSeconds(5));
 	}
 
 	@Test // DATAREDIS-716

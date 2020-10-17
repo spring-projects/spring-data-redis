@@ -26,8 +26,12 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.*;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,6 +39,8 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tugdual Grall
+ * @author Dengliming
  * @see <a href="https://redis.io/topics/streams-intro">Redis Documentation - Streams</a>
  * @since 2.2
  */
@@ -87,7 +93,92 @@ public interface RedisStreamCommands {
 	 * @param record the {@link MapRecord record} to append.
 	 * @return the {@link RecordId id} after save. {@literal null} when used in pipeline / transaction.
 	 */
-	RecordId xAdd(MapRecord<byte[], byte[], byte[]> record);
+	@Nullable
+	default RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
+		return xAdd(record, XAddOptions.none());
+	}
+
+	/**
+	 * Append the given {@link MapRecord record} to the stream stored at {@link Record#getStream()}. <br />
+	 * If you prefer manual id assignment over server generated ones make sure to provide an id via
+	 * {@link Record#withId(RecordId)}.
+	 *
+	 * @param record the {@link MapRecord record} to append.
+	 * @param options additional options (eg. {@literal MAXLEN}). Must not be {@literal null}, use
+	 *          {@link XAddOptions#none()} instead.
+	 * @return the {@link RecordId id} after save. {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, XAddOptions options);
+
+	/**
+	 * Additional options applicable for {@literal XADD} command.
+	 *
+	 * @author Christoph Strobl
+	 * @since 2.3
+	 */
+	class XAddOptions {
+
+		private static final XAddOptions NONE = new XAddOptions(null);
+
+		private final @Nullable Long maxlen;
+
+		private XAddOptions(@Nullable Long maxlen) {
+			this.maxlen = maxlen;
+		}
+
+		/**
+		 * @return
+		 */
+		public static XAddOptions none() {
+			return NONE;
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 *
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public static XAddOptions maxlen(long maxlen) {
+			return new XAddOptions(maxlen);
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 *
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public Long getMaxlen() {
+			return maxlen;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal MAXLEN} is set.
+		 */
+		public boolean hasMaxlen() {
+			return maxlen != null && maxlen > 0;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+
+			XAddOptions that = (XAddOptions) o;
+			return ObjectUtils.nullSafeEquals(this.maxlen, that.maxlen);
+		}
+
+		@Override
+		public int hashCode() {
+			return ObjectUtils.nullSafeHashCode(this.maxlen);
+		}
+	}
 
 	/**
 	 * Change the ownership of a pending message to the given new {@literal consumer} without increasing the delivered
@@ -101,6 +192,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
+	@Nullable
 	List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options);
 
 	/**
@@ -115,6 +207,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
+	@Nullable
 	default List<ByteRecord> xClaim(byte[] key, String group, String newOwner, Duration minIdleTime,
 			RecordId... recordIds) {
 		return xClaim(key, group, newOwner, XClaimOptions.minIdle(minIdleTime).ids(recordIds));
@@ -131,6 +224,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
+	@Nullable
 	List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options);
 
 	/**
@@ -358,6 +452,7 @@ public interface RedisStreamCommands {
 	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
+	@Nullable
 	Long xDel(byte[] key, RecordId... recordIds);
 
 	/**
@@ -370,6 +465,19 @@ public interface RedisStreamCommands {
 	 */
 	@Nullable
 	String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset);
+
+	/**
+	 * Create a consumer group.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param groupName name of the consumer group to create.
+	 * @param readOffset the offset to start at.
+	 * @param mkStream if true the group will create the stream if not already present (MKSTREAM)
+	 * @return {@literal ok} if successful. {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkStream);
 
 	/**
 	 * Delete a consumer from a consumer group.
@@ -403,6 +511,39 @@ public interface RedisStreamCommands {
 	 */
 	@Nullable
 	Boolean xGroupDestroy(byte[] key, String groupName);
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	XInfoStream xInfo(byte[] key);
+
+	/**
+	 * Obtain information about {@literal consumer groups} associated with the stream stored at the specified
+	 * {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	XInfoGroups xInfoGroups(byte[] key);
+
+	/**
+	 * Obtain information about every consumer in a specific {@literal consumer group} for the stream stored at the
+	 * specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param groupName name of the {@literal consumer group}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	XInfoConsumers xInfoConsumers(byte[] key, String groupName);
 
 	/**
 	 * Get the length of a stream.
@@ -733,4 +874,17 @@ public interface RedisStreamCommands {
 	 */
 	@Nullable
 	Long xTrim(byte[] key, long count);
+
+	/**
+	 * Trims the stream to {@code count} elements.
+	 *
+	 * @param key the stream key.
+	 * @param count length of the stream.
+	 * @param approximateTrimming the trimming must be performed in a approximated way in order to maximize performances.
+	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
+	@Nullable
+	Long xTrim(byte[] key, long count, boolean approximateTrimming);
 }

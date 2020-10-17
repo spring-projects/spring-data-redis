@@ -20,7 +20,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Redis list specific operations.
@@ -196,6 +195,30 @@ public interface ReactiveListOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 */
 	Mono<V> index(K key, long index);
+
+	/**
+	 * Returns the index of the first occurrence of the specified value in the list at at {@code key}. <br />
+	 * Requires Redis 6.0.6 or newer.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 */
+	Mono<Long> indexOf(K key, V value);
+
+	/**
+	 * Returns the index of the last occurrence of the specified value in the list at at {@code key}. <br />
+	 * Requires Redis 6.0.6 or newer.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 */
+	Mono<Long> lastIndexOf(K key, V value);
 
 	/**
 	 * Removes and returns first element in list stored at {@code key}.

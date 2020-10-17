@@ -53,6 +53,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Andrey Shlykov
  */
 public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTests<T> {
 
@@ -187,6 +188,40 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertThat(zSet.reverseRank(t2)).isEqualTo(Long.valueOf(1));
 		assertThat(zSet.reverseRank(t1)).isEqualTo(Long.valueOf(2));
 		assertThat(zSet.rank(getT())).isNull();
+	}
+
+	@Test // DATAREDIS-729
+	public void testLexCountUnbounded() {
+
+		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 1);
+		zSet.add(t3, 1);
+
+		assertThat(zSet.lexCount(RedisZSetCommands.Range.unbounded())).isEqualTo(Long.valueOf(3));
+	}
+
+	@Test // DATAREDIS-729
+	public void testLexCountBounded() {
+
+		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 1);
+		zSet.add(t3, 1);
+
+		assertThat(zSet.lexCount(RedisZSetCommands.Range.range().gt(t1))).isEqualTo(Long.valueOf(2));
 	}
 
 	@Test
@@ -391,7 +426,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 	@Test // DATAREDIS-407
 	public void testRangeByLexBoundedWithLimit() {
 
-		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class,
 				LongAsStringObjectFactory.class, LongObjectFactory.class);
 
 		T t1 = getT();
@@ -402,14 +437,31 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		zSet.add(t2, 2);
 		zSet.add(t3, 3);
 		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.range().gte(t1),
-				RedisZSetCommands.Limit.limit().count(1).offset(1));
+				RedisZSetCommands.Limit.limit().count(2).offset(1));
 
-		assertThat(tuples.size()).isEqualTo(1);
-		T tuple = tuples.iterator().next();
-		assertThat(tuple).isEqualTo(t2);
+		assertThat(tuples).hasSize(2).containsSequence(t2, t3);
 	}
 
-	@Test
+	@Test // DATAREDIS-729
+	public void testReverseRangeByLexBoundedWithLimit() {
+
+		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+		Set<T> tuples = zSet.reverseRangeByLex(RedisZSetCommands.Range.range().gte(t1),
+				RedisZSetCommands.Limit.limit().count(2).offset(1));
+
+		assertThat(tuples).hasSize(2).containsSequence(t2, t1);
+	}
+
+	@Test // DATAREDIS-729
 	public void testReverseRangeByScore() {
 
 		T t1 = getT();

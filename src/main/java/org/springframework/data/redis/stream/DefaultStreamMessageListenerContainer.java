@@ -15,9 +15,6 @@
  */
 package org.springframework.data.redis.stream;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +34,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Simple {@link Executor} based {@link StreamMessageListenerContainer} implementation for running {@link Task tasks} to
@@ -286,11 +284,13 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 	 * @author Mark Paluch
 	 * @since 2.2
 	 */
-	@EqualsAndHashCode
-	@RequiredArgsConstructor
 	static class TaskSubscription implements Subscription {
 
 		private final Task task;
+
+		protected TaskSubscription(Task task) {
+			this.task = task;
+		}
 
 		Task getTask() {
 			return task;
@@ -321,6 +321,23 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		@Override
 		public void cancel() throws DataAccessResourceFailureException {
 			task.cancel();
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+
+			TaskSubscription that = (TaskSubscription) o;
+
+			return ObjectUtils.nullSafeEquals(task, that.task);
+		}
+
+		@Override
+		public int hashCode() {
+			return ObjectUtils.nullSafeHashCode(task);
 		}
 	}
 

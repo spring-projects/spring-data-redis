@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.assertj.core.data.Offset;
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.AssumptionViolatedException;
@@ -61,6 +62,7 @@ import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptio
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
+import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
@@ -72,6 +74,9 @@ import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
@@ -94,6 +99,9 @@ import org.springframework.test.annotation.ProfileValueSourceConfiguration;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Tugdual Grall
+ * @author Dejan Jankov
+ * @author Andrey Shlykov
  */
 @ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
 public abstract class AbstractConnectionIntegrationTests {
@@ -169,6 +177,20 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		verifyResults(Arrays.asList(true, true));
 		assertThat(waitFor(new KeyExpired("exp"), 3000l)).isTrue();
+	}
+
+	@Test // DATAREDIS-1103
+	public void testSetWithKeepTTL() {
+
+		actual.add(connection.set("exp", "true"));
+		actual.add(connection.expire("exp", 10));
+		actual.add(connection.set("exp", "changed", Expiration.keepTtl(), SetOption.upsert()));
+		actual.add(connection.ttl("exp"));
+
+		List<Object> results = getResults();
+
+		assertThat(results.get(2)).isEqualTo(true);
+		assertThat((Long) results.get(3)).isCloseTo(10L, Offset.offset(5L));
 	}
 
 	@Test
@@ -393,7 +415,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		Thread.sleep(200);
 		connection.scriptKill();
 		getResults();
-		assertThat(waitFor(() -> scriptDead.get(), 3000l)).isTrue();
+
+		Awaitility.await().untilTrue(scriptDead);
 	}
 
 	@Test
@@ -830,7 +853,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		connection.watch("testitnow".getBytes());
 		// Give some time for watch to be asynch executed in extending tests
-		Thread.sleep(500);
+		Thread.sleep(200);
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
 		conn2.close();
@@ -849,11 +872,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		connection.watch("testitnow".getBytes());
 		connection.unwatch();
-
 		connection.multi();
 
 		// Give some time for unwatch to be asynch executed
-		Thread.sleep(100);
+		Thread.sleep(200);
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
 
@@ -1473,6 +1495,72 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 2l, Arrays.asList(new String[] { "baz", "bar" }) }));
 	}
 
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPos() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c"));
+
+		assertThat((Long) getResults().get(1)).isEqualTo(2);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosRank() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", 2, null));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(6L);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosNegativeRank() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", -1, null));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(7L);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosCount() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", null, 2));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(2L, 6L);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosRankCount() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", -1, 2));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(7L, 6L);
+	}
+
+	@Test // DATAREDIS-1196
+	@IfProfileValue(name = "redisVersion", value = "6.0.6+")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void lPosCountZero() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "c", null, 0));
+
+		assertThat((List<Long>) getResults().get(1)).containsExactly(2L, 6L, 7L);
+	}
+
 	// Set operations
 
 	@Test
@@ -1701,6 +1789,34 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 4, "Joe"));
 		actual.add(connection.zCount("myset", 1, 2));
 		verifyResults(Arrays.asList(new Object[] { true, true, true, 2l }));
+	}
+
+	@Test // DATAREDIS-729
+	@IfProfileValue(name = "redisVersion", value = "2.9.0+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void zLexCountTest() {
+
+		actual.add(connection.zAdd("myzset", 0, "a"));
+		actual.add(connection.zAdd("myzset", 0, "b"));
+		actual.add(connection.zAdd("myzset", 0, "c"));
+		actual.add(connection.zAdd("myzset", 0, "d"));
+		actual.add(connection.zAdd("myzset", 0, "e"));
+		actual.add(connection.zAdd("myzset", 0, "f"));
+		actual.add(connection.zAdd("myzset", 0, "g"));
+
+		actual.add(connection.zLexCount("myzset", Range.unbounded()));
+		actual.add(connection.zLexCount("myzset", Range.range().lt("c")));
+		actual.add(connection.zLexCount("myzset", Range.range().lte("c")));
+		actual.add(connection.zLexCount("myzset", Range.range().gte("aaa").lt("g")));
+		actual.add(connection.zLexCount("myzset", Range.range().gte("e")));
+
+		List<Object> results = getResults();
+
+		assertThat((Long) results.get(7)).isEqualTo(7);
+		assertThat((Long) results.get(8)).isEqualTo(2);
+		assertThat((Long) results.get(9)).isEqualTo(3);
+		assertThat((Long) results.get(10)).isEqualTo(5);
+		assertThat((Long) results.get(11)).isEqualTo(3);
 	}
 
 	@Test
@@ -2299,7 +2415,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // DATAREDIS-378
+	@Test // DATAREDIS-378, DATAREDIS-1222
 	@IfProfileValue(name = "redisVersion", value = "2.9.0+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void zRangeByLexTest() {
@@ -2317,24 +2433,53 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zRangeByLex("myzset", Range.range().gte("aaa").lt("g")));
 		actual.add(connection.zRangeByLex("myzset", Range.range().gte("e")));
 
+		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c"), Limit.unlimited()));
+		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c"), Limit.limit().count(1)));
+		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c"), Limit.limit().count(1).offset(1)));
+
 		List<Object> results = getResults();
 
-		Set<String> values = (Set<String>) results.get(7);
+		assertThat((Set<String>) results.get(7)).containsExactly("a", "b", "c").doesNotContain("d", "e", "f", "g");
+		assertThat((Set<String>) results.get(8)).containsExactly("a", "b").doesNotContain("c");
+		assertThat((Set<String>) results.get(9)).containsExactly("b", "c", "d", "e", "f").doesNotContain("a", "g");
+		assertThat((Set<String>) results.get(10)).containsExactly("e", "f", "g").doesNotContain("a", "b", "c", "d");
+		assertThat((Set<String>) results.get(11)).containsExactly("a", "b", "c").doesNotContain("d", "e", "f", "g");
+		assertThat((Set<String>) results.get(12)).contains("a").doesNotContain("b", "c", "d", "e", "f", "g");
+		assertThat((Set<String>) results.get(13)).contains("b").doesNotContain("a", "c", "d", "e", "f", "g");
+	}
 
-		assertThat(values).contains("a", "b", "c");
-		assertThat(values).doesNotContain("d", "e", "f", "g");
+	@SuppressWarnings("unchecked")
+	@Test // DATAREDIS-729
+	@IfProfileValue(name = "redisVersion", value = "2.9.0+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void zRevRangeByLexTest() {
 
-		values = (Set<String>) results.get(8);
-		assertThat(values).contains("a", "b");
-		assertThat(values).doesNotContain("c");
+		actual.add(connection.zAdd("myzset", 0, "a"));
+		actual.add(connection.zAdd("myzset", 0, "b"));
+		actual.add(connection.zAdd("myzset", 0, "c"));
+		actual.add(connection.zAdd("myzset", 0, "d"));
+		actual.add(connection.zAdd("myzset", 0, "e"));
+		actual.add(connection.zAdd("myzset", 0, "f"));
+		actual.add(connection.zAdd("myzset", 0, "g"));
 
-		values = (Set<String>) results.get(9);
-		assertThat(values).contains("b", "c", "d", "e", "f");
-		assertThat(values).doesNotContain("a", "g");
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("c")));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lt("c")));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().gte("aaa").lt("g")));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().gte("e")));
 
-		values = (Set<String>) results.get(10);
-		assertThat(values).contains("e", "f", "g");
-		assertThat(values).doesNotContain("a", "b", "c", "d");
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("c"), Limit.unlimited()));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("d"), Limit.limit().count(2)));
+		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("d"), Limit.limit().count(2).offset(1)));
+
+		List<Object> results = getResults();
+
+		assertThat((Set<String>) results.get(7)).containsExactly("c", "b", "a").doesNotContain("d", "e", "f", "g");
+		assertThat((Set<String>) results.get(8)).containsExactly("b", "a").doesNotContain("c");
+		assertThat((Set<String>) results.get(9)).containsExactly("f", "e", "d", "c", "b").doesNotContain("a", "g");
+		assertThat((Set<String>) results.get(10)).containsExactly("g", "f", "e").doesNotContain("a", "b", "c", "d");
+		assertThat((Set<String>) results.get(11)).containsExactly("c", "b", "a").doesNotContain("d", "e", "f", "g");
+		assertThat((Set<String>) results.get(12)).contains("d", "c").doesNotContain("a", "b", "e", "f", "g");
+		assertThat((Set<String>) results.get(13)).contains("c", "b").doesNotContain("a", "d", "e", "f", "g");
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-316, DATAREDIS-692
@@ -2612,6 +2757,19 @@ public abstract class AbstractConnectionIntegrationTests {
 		List<Object> result = getResults();
 		assertThat(((Distance) result.get(1)).getValue()).isCloseTo(166274.15156960033D, Offset.offset(0.005));
 		assertThat(((Distance) result.get(1)).getUnit()).isEqualTo("m");
+	}
+
+	@Test // DATAREDIS-1214
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void geoDistNotExisting() {
+
+		String key = "geo-" + UUID.randomUUID();
+		actual.add(connection.geoAdd(key, Arrays.asList(PALERMO, CATANIA)));
+		actual.add(connection.geoDist(key, "Spring", "Data"));
+
+		List<Object> result = getResults();
+		assertThat(result.get(1)).isNull();
 	}
 
 	@Test // DATAREDIS-438
@@ -3057,6 +3215,29 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // DATAREDIS-864
 	@IfProfileValue(name = "redisVersion", value = "5.0")
 	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xGroupCreateShouldWorkWithAndWithoutExistingStream() {
+
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group", true));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+
+		List<Object> results = getResults();
+
+		List<MapRecord<String, String, String>> messages = (List) results.get(2);
+
+		assertThat(messages.get(0).getStream()).isEqualTo(KEY_1);
+		assertThat(messages.get(0).getValue()).isEqualTo(Collections.singletonMap(KEY_2, VALUE_2));
+
+		assertThat((List<MapRecord>) results.get(3)).isEmpty();
+	}
+
+	@Test // DATAREDIS-864
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
 	public void xRangeShouldReportMessages() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
@@ -3089,6 +3270,28 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((RecordId) results.get(0)).getValue()).contains("-");
 
 		List<MapRecord<String, String, String>> messages = (List) results.get(2);
+
+		assertThat(messages.get(0).getStream()).isEqualTo(KEY_1);
+		assertThat(messages.get(0).getValue()).isEqualTo(Collections.singletonMap(KEY_3, VALUE_3));
+
+		assertThat(messages.get(1).getStream()).isEqualTo(KEY_1);
+		assertThat(messages.get(1).getValue()).isEqualTo(Collections.singletonMap(KEY_2, VALUE_2));
+	}
+
+	@Test // DATAREDIS-1207
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xRevRangeShouldWorkWithBoundedRange() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
+		actual.add(connection.xRevRange(KEY_1, org.springframework.data.domain.Range.closed("0-0", "+")));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(3);
+
+		List<MapRecord<String, String, String>> messages = (List) results.get(2);
+		assertThat(messages).hasSize(2);
 
 		assertThat(messages.get(0).getStream()).isEqualTo(KEY_1);
 		assertThat(messages.get(0).getValue()).isEqualTo(Collections.singletonMap(KEY_3, VALUE_3));
@@ -3149,6 +3352,29 @@ public abstract class AbstractConnectionIntegrationTests {
 				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
 		actual.add(connection.xPending(KEY_1, "my-group", org.springframework.data.domain.Range.open("-", "+"), 10L));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		PendingMessages pending = (PendingMessages) results.get(3);
+
+		assertThat(pending.size()).isOne();
+		assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
+		assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
+		assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
+		assertThat(pending.get(0).getIdAsString()).isNotNull();
+	}
+
+	@Test // DATAREDIS-1207
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xPendingShouldWorkWithBoundedRange() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+
+		actual.add(connection.xPending(KEY_1, "my-group", org.springframework.data.domain.Range.open("0-0", "+"), 10L));
 
 		List<Object> results = getResults();
 		assertThat(results).hasSize(4);
@@ -3241,6 +3467,166 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<MapRecord<String, String, String>> claimed = (List<MapRecord<String, String, String>>) getResults().get(3);
 		assertThat(claimed).containsAll(messages);
+	}
+
+	@Test // DATAREDIS-1119
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xinfo() {
+
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group-without-stream", true));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+
+		actual.add(connection.xInfo(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(6);
+		RecordId firstRecord = (RecordId) results.get(1);
+		RecordId lastRecord = (RecordId) results.get(2);
+		XInfoStream info = (XInfoStream) results.get(5);
+
+		assertThat(info.streamLength()).isEqualTo(2L);
+		assertThat(info.radixTreeKeySize()).isOne();
+		assertThat(info.radixTreeNodesSize()).isEqualTo(2L);
+		assertThat(info.groupCount()).isEqualTo(2L);
+		assertThat(info.lastGeneratedId()).isEqualTo(lastRecord.getValue());
+		assertThat(info.firstEntryId()).isEqualTo(firstRecord.getValue());
+		assertThat(info.lastEntryId()).isEqualTo(lastRecord.getValue());
+	}
+
+	@Test // DATAREDIS-1119
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xinfoNoGroup() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
+
+		actual.add(connection.xInfo(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(3);
+		RecordId firstRecord = (RecordId) results.get(0);
+		RecordId lastRecord = (RecordId) results.get(1);
+		XInfoStream info = (XInfoStream) results.get(2);
+
+		assertThat(info.streamLength()).isEqualTo(2L);
+		assertThat(info.radixTreeKeySize()).isOne();
+		assertThat(info.radixTreeNodesSize()).isEqualTo(2L);
+		assertThat(info.groupCount()).isZero();
+		assertThat(info.lastGeneratedId()).isEqualTo(lastRecord.getValue());
+		assertThat(info.firstEntryId()).isEqualTo(firstRecord.getValue());
+		assertThat(info.lastEntryId()).isEqualTo(lastRecord.getValue());
+	}
+
+	@Test // DATAREDIS-1119
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xinfoGroups() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+
+		actual.add(connection.xInfoGroups(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(5);
+		RecordId lastRecord = (RecordId) results.get(1);
+		XInfoGroups info = (XInfoGroups) results.get(4);
+
+		assertThat(info.size()).isOne();
+		assertThat(info.get(0).groupName()).isEqualTo("my-group");
+		assertThat(info.get(0).consumerCount()).isEqualTo(1L);
+		assertThat(info.get(0).pendingCount()).isEqualTo(2L);
+		assertThat(info.get(0).lastDeliveredId()).isEqualTo(lastRecord.getValue());
+	}
+
+	@Test // DATAREDIS-1119
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xinfoGroupsNoGroup() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
+
+		actual.add(connection.xInfoGroups(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(3);
+		XInfoGroups info = (XInfoGroups) results.get(2);
+
+		assertThat(info.size()).isZero();
+	}
+
+	@Test // DATAREDIS-1119
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xinfoGroupsNoConsumer() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+
+		actual.add(connection.xInfoGroups(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		XInfoGroups info = (XInfoGroups) results.get(3);
+
+		assertThat(info.size()).isOne();
+
+		assertThat(info.get(0).groupName()).isEqualTo("my-group");
+		assertThat(info.get(0).consumerCount()).isZero();
+		assertThat(info.get(0).pendingCount()).isZero();
+		assertThat(info.get(0).lastDeliveredId()).isEqualTo("0-0");
+	}
+
+	@Test // DATAREDIS-1119
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xinfoConsumers() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+
+		actual.add(connection.xInfoConsumers(KEY_1, "my-group"));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(5);
+		XInfoConsumers info = (XInfoConsumers) results.get(4);
+
+		assertThat(info.size()).isOne();
+		assertThat(info.get(0).groupName()).isEqualTo("my-group");
+		assertThat(info.get(0).consumerName()).isEqualTo("my-consumer");
+		assertThat(info.get(0).pendingCount()).isEqualTo(2L);
+		assertThat(info.get(0).idleTimeMs()).isCloseTo(1L, Offset.offset(200L));
+	}
+
+	@Test // DATAREDIS-1119
+	@IfProfileValue(name = "redisVersion", value = "5.0")
+	@WithRedisDriver({ RedisDriver.LETTUCE })
+	public void xinfoConsumersNoConsumer() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xInfoConsumers(KEY_1, "my-group"));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		XInfoConsumers info = (XInfoConsumers) results.get(3);
+
+		assertThat(info.size()).isZero();
 	}
 
 	protected void verifyResults(List<Object> expected) {

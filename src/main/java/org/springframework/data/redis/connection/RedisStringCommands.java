@@ -83,7 +83,8 @@ public interface RedisStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
 	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non existing.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.7

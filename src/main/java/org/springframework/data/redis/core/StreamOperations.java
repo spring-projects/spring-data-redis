@@ -24,6 +24,9 @@ import java.util.Map;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.*;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -33,6 +36,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Dengliming
  * @since 2.2
  */
 public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {
@@ -152,7 +156,8 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	Long delete(K key, RecordId... recordIds);
 
 	/**
-	 * Create a consumer group at the {@link ReadOffset#latest() latest offset}.
+	 * Create a consumer group at the {@link ReadOffset#latest() latest offset}. This command creates the stream if it
+	 * does not already exist.
 	 *
 	 * @param key the {@literal key} the stream is stored at.
 	 * @param group name of the consumer group.
@@ -163,7 +168,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	}
 
 	/**
-	 * Create a consumer group.
+	 * Create a consumer group. This command creates the stream if it does not already exist.
 	 *
 	 * @param key the {@literal key} the stream is stored at.
 	 * @param readOffset the {@link ReadOffset} to apply.
@@ -192,6 +197,36 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 */
 	@Nullable
 	Boolean destroyGroup(K key, String group);
+
+	/**
+	 * Obtain information about every consumer in a specific {@literal consumer group} for the stream stored at the
+	 * specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group name of the {@literal consumer group}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	XInfoConsumers consumers(K key, String group);
+
+	/**
+	 * Obtain information about {@literal consumer groups} associated with the stream stored at the specified
+	 * {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	XInfoGroups groups(K key);
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	XInfoStream info(K key);
 
 	/**
 	 * Obtain the {@link PendingMessagesSummary} for a given {@literal consumer group}.
@@ -490,6 +525,19 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 */
 	@Nullable
 	Long trim(K key, long count);
+
+	/**
+	 * Trims the stream to {@code count} elements.
+	 *
+	 * @param key the stream key.
+	 * @param count length of the stream.
+	 * @param approximateTrimming the trimming must be performed in a approximated way in order to maximize performances.
+	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
+	@Nullable
+	Long trim(K key, long count, boolean approximateTrimming);
 
 	/**
 	 * Get the {@link HashMapper} for a specific type.

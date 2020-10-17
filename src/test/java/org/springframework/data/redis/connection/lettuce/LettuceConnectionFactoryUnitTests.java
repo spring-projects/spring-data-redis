@@ -49,6 +49,8 @@ import org.mockito.ArgumentMatchers;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.PoolException;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConfiguration;
@@ -67,6 +69,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Balázs Németh
  * @author Ruben Cervilla
  * @author Luis De Bello
+ * @author Andrea Como
  */
 public class LettuceConnectionFactoryUnitTests {
 
@@ -860,6 +863,27 @@ public class LettuceConnectionFactoryUnitTests {
 		verify(connectionProviderMock, times(2)).getConnection(StatefulConnection.class);
 	}
 
+	@Test // DATAREDIS-1189
+	public void shouldTranslateConnectionException() {
+
+		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class);
+
+		when(connectionProviderMock.getConnection(any())).thenThrow(new PoolException("error!"));
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory() {
+			@Override
+			protected LettuceConnectionProvider doCreateConnectionProvider(AbstractRedisClient client,
+					RedisCodec<?, ?> codec) {
+				return connectionProviderMock;
+			}
+		};
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.afterPropertiesSet();
+
+		assertThatExceptionOfType(RedisConnectionFailureException.class)
+				.isThrownBy(() -> connectionFactory.getConnection().ping()).withCauseInstanceOf(PoolException.class);
+	}
+
 	@Test // DATAREDIS-1027
 	public void shouldDisposeConnectionProviders() throws Exception {
 
@@ -940,6 +964,27 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(options.getMaxRedirects()).isEqualTo(42);
 		assertThat(options.isValidateClusterNodeMembership()).isFalse();
 		assertThat(options.getTimeoutOptions().isApplyConnectionTimeout()).isFalse();
+	}
+
+	@Test // DATAREDIS-1142
+	public void shouldFallbackToReactiveRedisClusterConnectionWhenGetReactiveConnectionWithClusterConfig() {
+
+		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class);
+		StatefulConnection<?, ?> statefulConnection = mock(StatefulConnection.class);
+		when(connectionProviderMock.getConnection(any())).thenReturn(statefulConnection);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig) {
+
+			@Override
+			protected LettuceConnectionProvider doCreateConnectionProvider(AbstractRedisClient client,
+					RedisCodec<?, ?> codec) {
+				return connectionProviderMock;
+			}
+		};
+		connectionFactory.afterPropertiesSet();
+
+		LettuceReactiveRedisConnection reactiveConnection = connectionFactory.getReactiveConnection();
+
+		assertThat(reactiveConnection).isInstanceOf(LettuceReactiveRedisClusterConnection.class);
 	}
 
 	@Data

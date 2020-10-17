@@ -15,15 +15,16 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.LPosArgs;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisListCommands;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -31,10 +32,13 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-@RequiredArgsConstructor
 class LettuceListCommands implements RedisListCommands {
 
-	private final @NonNull LettuceConnection connection;
+	private final LettuceConnection connection;
+
+	LettuceListCommands(LettuceConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -55,6 +59,47 @@ class LettuceListCommands implements RedisListCommands {
 				return null;
 			}
 			return getConnection().rpush(key, values);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#l{lPos(byte[], byte[], java.lang.Integer, java.lang.Integer)
+	 */
+	@Override
+	public List<Long> lPos(byte[] key, byte[] element, @Nullable Integer rank, @Nullable Integer count) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(element, "Element must not be null!");
+
+		LPosArgs args = new LPosArgs();
+		if (rank != null) {
+			args.rank(rank);
+		}
+		try {
+			if (isPipelined()) {
+				if (count != null) {
+					pipeline(connection.newLettuceResult(getAsyncConnection().lpos(key, element, count, args)));
+				} else {
+					pipeline(connection.newLettuceResult(getAsyncConnection().lpos(key, element, args)));
+				}
+				return null;
+			}
+			if (isQueueing()) {
+				if (count != null) {
+					transaction(connection.newLettuceResult(getAsyncConnection().lpos(key, element, count, args)));
+				} else {
+					transaction(connection.newLettuceResult(getAsyncConnection().lpos(key, element, args)));
+				}
+				return null;
+			}
+			if (count != null) {
+				return getConnection().lpos(key, element, count, args);
+			}
+
+			return Collections.singletonList(getConnection().lpos(key, element, args));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

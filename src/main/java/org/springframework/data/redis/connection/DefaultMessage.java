@@ -23,9 +23,11 @@ import org.springframework.util.Assert;
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class DefaultMessage implements Message {
 
+	private static final byte[] EMPTY = new byte[0];
 	private final byte[] channel;
 	private final byte[] body;
 	private @Nullable String toString;
@@ -39,15 +41,14 @@ public class DefaultMessage implements Message {
 		this.channel = channel;
 	}
 
-	/**
-	 * @return
-	 */
+	@Override
 	public byte[] getChannel() {
-		return channel.clone();
+		return channel.length == 0 ? EMPTY : channel.clone();
 	}
 
+	@Override
 	public byte[] getBody() {
-		return body.clone();
+		return body.length == 0 ? EMPTY : body.clone();
 	}
 
 	@Override

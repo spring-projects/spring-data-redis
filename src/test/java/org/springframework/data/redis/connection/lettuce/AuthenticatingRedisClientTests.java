@@ -22,24 +22,26 @@ import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.springframework.data.redis.test.util.ServerAvailable;
 
 /**
- * Integration test of {@link AuthenticatingRedisClient}. Enable requirepass and comment out the @Ignore to run.
+ * Integration test of {@link AuthenticatingRedisClient}.
  *
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
  */
-@Ignore("Redis must have requirepass set to run this test")
 public class AuthenticatingRedisClientTests {
 
 	private RedisClient client;
 
+	@ClassRule public static ServerAvailable serverAvailable = ServerAvailable.runningAtLocalhost(6382);
+
 	@Before
 	public void setUp() {
-		client = new AuthenticatingRedisClient("localhost", "foo");
+		client = new AuthenticatingRedisClient("localhost", 6382, "foobared");
 	}
 
 	@After
@@ -63,7 +65,7 @@ public class AuthenticatingRedisClientTests {
 			client.shutdown();
 		}
 
-		RedisClient badClient = new AuthenticatingRedisClient("localhost", "notthepassword");
+		RedisClient badClient = new AuthenticatingRedisClient("localhost", 6382, "notthepassword");
 		badClient.connect();
 	}
 

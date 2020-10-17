@@ -17,8 +17,6 @@ package org.springframework.data.redis.config;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.concurrent.TimeUnit;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -26,12 +24,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
-import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Costin Leau
+ * @author Mark Paluch
  */
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration("namespace.xml")
@@ -45,24 +43,13 @@ public class NamespaceTest {
 	@Autowired private StubErrorHandler handler;
 
 	@Test
-	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testSanityTest() throws Exception {
 		assertThat(container.isRunning()).isTrue();
-		Thread.sleep(TimeUnit.SECONDS.toMillis(8));
 	}
 
 	@Test
-	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testWithMessages() throws Exception {
 		template.convertAndSend("x1", "[X]test");
 		template.convertAndSend("z1", "[Z]test");
-		Thread.sleep(TimeUnit.SECONDS.toMillis(8));
-	}
-
-	public void testErrorHandler() throws Exception {
-		int index = handler.throwables.size();
-		template.convertAndSend("exception", "test1");
-		handler.throwables.pollLast(3, TimeUnit.SECONDS);
-		assertThat(handler.throwables.size()).isEqualTo(index + 1);
 	}
 }

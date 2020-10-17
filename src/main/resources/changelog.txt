@@ -1,6 +1,205 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.4.0-RC2 (2020-10-14)
+-----------------------------------------
+* DATAREDIS-1231 - Use Jedis command routing if multiple BRPOP keys map to a single slot.
+* DATAREDIS-1226 - Add support for xClaimJustId.
+* DATAREDIS-1225 - Fix typos in reference documentation.
+* DATAREDIS-1223 - Upgrade to Lettuce 6.0 GA.
+* DATAREDIS-1222 - DefaultStringRedisConnection#zRangeByLex(String, Range, Limit) ignores the limit parameter.
+* DATAREDIS-1219 - Release 2.4 RC2 (2020.0.0).
+* DATAREDIS-1214 - Get a NullPointerException when using the geodist command of redis.
+* DATAREDIS-1103 - Support new KEEPTTL option of the SET operation.
+* DATAREDIS-729 - Support reverseRangeByLex and lexCount commands.
+
+
+Changes in version 2.4.0-RC1 (2020-09-16)
+-----------------------------------------
+* DATAREDIS-1215 - Upgrade to Lettuce 6.0-RC2.
+* DATAREDIS-1210 - StreamReadOptions toString method cause StackOverflowError due to endless loop.
+* DATAREDIS-1207 - LettuceStreamCommands.xRevRange incorrectly converts Ranges.
+* DATAREDIS-1201 - Release 2.4 RC1 (2020.0.0).
+* DATAREDIS-1197 - Upgrade to Lettuce 6.0 RC1.
+* DATAREDIS-1196 - Add support for LPOS command.
+* DATAREDIS-1145 - Support Sentinel password for Jedis.
+* DATAREDIS-1136 - Upgrade CI Build to Redis 6.0.0.
+* DATAREDIS-1085 - Add approximate trim support for XTRIM.
+* DATAREDIS-1046 - Implement Redis 6.0 ACL in Spring Data.
+
+
+Changes in version 2.3.4.RELEASE (2020-09-16)
+---------------------------------------------
+* DATAREDIS-1216 - Upgrade to Lettuce 5.3.4.RELEASE.
+* DATAREDIS-1207 - LettuceStreamCommands.xRevRange incorrectly converts Ranges.
+* DATAREDIS-1202 - Release 2.3.4 (Neumann SR4).
+
+
+Changes in version 2.2.10.RELEASE (2020-09-16)
+----------------------------------------------
+* DATAREDIS-1207 - LettuceStreamCommands.xRevRange incorrectly converts Ranges.
+* DATAREDIS-1195 - DefaultRedisCacheWriter.putIfAbsent may not set the TTL if the connection drops.
+* DATAREDIS-1191 - Redis repository returns empty object instead of Optional.Empty().
+* DATAREDIS-1190 - Cluster rename fails when targetKey already exists on target node.
+* DATAREDIS-1189 - No subscription retry when using a connection pool.
+* DATAREDIS-1187 - Release 2.2.10 (Moore SR10).
+
+
+Changes in version 2.1.20.RELEASE (2020-09-16)
+----------------------------------------------
+* DATAREDIS-1190 - Cluster rename fails when targetKey already exists on target node.
+* DATAREDIS-1186 - Release 2.1.20 (Lovelace SR20).
+
+
+Changes in version 2.3.3.RELEASE (2020-08-12)
+---------------------------------------------
+* DATAREDIS-1199 - Upgrade to Lettuce 5.3.3.
+* DATAREDIS-1195 - DefaultRedisCacheWriter.putIfAbsent may not set the TTL if the connection drops.
+* DATAREDIS-1191 - Redis repository returns empty object instead of Optional.Empty().
+* DATAREDIS-1190 - Cluster rename fails when targetKey already exists on target node.
+* DATAREDIS-1189 - No subscription retry when using a connection pool.
+* DATAREDIS-1188 - Release 2.3.3 (Neumann SR3).
+
+
+Changes in version 2.4.0-M2 (2020-08-12)
+----------------------------------------
+* DATAREDIS-1199 - Upgrade to Lettuce 5.3.3.
+* DATAREDIS-1198 - Move off deprecated Spring Framework API.
+* DATAREDIS-1195 - DefaultRedisCacheWriter.putIfAbsent may not set the TTL if the connection drops.
+* DATAREDIS-1191 - Redis repository returns empty object instead of Optional.Empty().
+* DATAREDIS-1190 - Cluster rename fails when targetKey already exists on target node.
+* DATAREDIS-1189 - No subscription retry when using a connection pool.
+* DATAREDIS-1181 - Upgrade to Lettuce 5.3.2.
+* DATAREDIS-1179 - ObjectHashMapper not able to resolve type alias.
+* DATAREDIS-1178 - Scan method on ReactiveSetOperations ignores ScanOptions parameter.
+* DATAREDIS-1177 - Upgrade to xstream 1.4.12.
+* DATAREDIS-1175 - Unable to read a List from a Redis Stream.
+* DATAREDIS-1174 - Release 2.4 M2 (2020.0.0).
+* DATAREDIS-1173 - Close connection unsubscribes from all channels incorrectly using Lettuce.
+* DATAREDIS-1172 - StreamReceiverOptionsBuilder.hashValueSerializer mis-typed.
+* DATAREDIS-1091 - Use of TTL doubles data footprint with phantom records.
+* DATAREDIS-1082 - Expose cache metrics for RedisCache.
+
+
+Changes in version 2.3.2.RELEASE (2020-07-22)
+---------------------------------------------
+* DATAREDIS-1181 - Upgrade to Lettuce 5.3.2.
+* DATAREDIS-1179 - ObjectHashMapper not able to resolve type alias.
+* DATAREDIS-1178 - Scan method on ReactiveSetOperations ignores ScanOptions parameter.
+* DATAREDIS-1177 - Upgrade to xstream 1.4.12.
+* DATAREDIS-1175 - Unable to read a List from a Redis Stream.
+* DATAREDIS-1173 - Close connection unsubscribes from all channels incorrectly using Lettuce.
+* DATAREDIS-1172 - StreamReceiverOptionsBuilder.hashValueSerializer mis-typed.
+* DATAREDIS-1168 - Release 2.3.2 (Neumann SR2).
+* DATAREDIS-1150 - Add reactive variant of RedisClusterCommands.
+
+
+Changes in version 2.2.9.RELEASE (2020-07-22)
+---------------------------------------------
+* DATAREDIS-1178 - Scan method on ReactiveSetOperations ignores ScanOptions parameter.
+* DATAREDIS-1177 - Upgrade to xstream 1.4.12.
+* DATAREDIS-1175 - Unable to read a List from a Redis Stream.
+* DATAREDIS-1173 - Close connection unsubscribes from all channels incorrectly using Lettuce.
+* DATAREDIS-1167 - Release 2.2.9 (Moore SR9).
+
+
+Changes in version 2.1.19.RELEASE (2020-07-22)
+----------------------------------------------
+* DATAREDIS-1178 - Scan method on ReactiveSetOperations ignores ScanOptions parameter.
+* DATAREDIS-1173 - Close connection unsubscribes from all channels incorrectly using Lettuce.
+* DATAREDIS-1166 - Release 2.1.19 (Lovelace SR19).
+
+
+Changes in version 2.4.0-M1 (2020-06-25)
+----------------------------------------
+* DATAREDIS-1165 - Use standard Spring code of conduct.
+* DATAREDIS-1164 - Upgrade to Lettuce 5.3.1.RELEASE.
+* DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
+* DATAREDIS-1159 - RedisStaticMasterReplicaConfiguration.node(String hostName) should return RedisStaticMasterReplicaConfiguration.
+* DATAREDIS-1150 - Add reactive variant of RedisClusterCommands.
+* DATAREDIS-1147 - Release 2.4 M1 (2020.0.0).
+* DATAREDIS-1143 - Delombok source files.
+* DATAREDIS-911 - Spring data redis is not working for custom converter.
+
+
+Changes in version 2.3.1.RELEASE (2020-06-10)
+---------------------------------------------
+* DATAREDIS-1164 - Upgrade to Lettuce 5.3.1.RELEASE.
+* DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
+* DATAREDIS-1159 - RedisStaticMasterReplicaConfiguration.node(String hostName) should return RedisStaticMasterReplicaConfiguration.
+* DATAREDIS-1146 - Release 2.3.1 (Neumann SR1).
+
+
+Changes in version 2.2.8.RELEASE (2020-06-10)
+---------------------------------------------
+* DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
+* DATAREDIS-1142 - "CROSSSLOT Keys in request don't hash to the same slot" error using Spring Data along with Spring Session while OAuth2 login process.
+* DATAREDIS-1139 - org.springframework.data.redis.core.RedisCommand Constant.
+* DATAREDIS-1138 - ReactiveStreamCommands hangs with indefinite block.
+* DATAREDIS-1137 - Remove Travis CI.
+* DATAREDIS-1134 - Release 2.2.8 (Moore SR8).
+
+
+Changes in version 2.1.18.RELEASE (2020-06-10)
+----------------------------------------------
+* DATAREDIS-1161 - DefaultReactiveHashOperations.readHashValue might return null.
+* DATAREDIS-1137 - Remove Travis CI.
+* DATAREDIS-1133 - Release 2.1.18 (Lovelace SR18).
+
+
+Changes in version 2.3.0.RELEASE (2020-05-12)
+---------------------------------------------
+* DATAREDIS-1144 - Upgrade to Jedis 3.3.0.
+* DATAREDIS-1142 - "CROSSSLOT Keys in request don't hash to the same slot" error using Spring Data along with Spring Session while OAuth2 login process.
+* DATAREDIS-1139 - org.springframework.data.redis.core.RedisCommand Constant.
+* DATAREDIS-1138 - ReactiveStreamCommands hangs with indefinite block.
+* DATAREDIS-1137 - Remove Travis CI.
+* DATAREDIS-1135 - Release 2.3 GA (Neumann).
+* DATAREDIS-1042 - Add MKSTREAM support.
+
+
+Changes in version 2.3.0.RC2 (2020-04-28)
+-----------------------------------------
+* DATAREDIS-1132 - Upgrade to Netty 4.1.49.Final.
+* DATAREDIS-1128 - Improve test stability.
+* DATAREDIS-1127 - JedisConnectionFactory getSentinelConnection method fails if first sentinel host in the list of sentinel hosts is down/unreachable.
+* DATAREDIS-1124 - Release 2.3 RC2 (Neumann).
+* DATAREDIS-1122 - Add support for MAXLEN attribute of XADD.
+* DATAREDIS-1119 - Complete the Redis Stream Operations.
+* DATAREDIS-1118 - Provide support to change the RedisCacheWriter on the RedisCacheManager.RedisCacheManagerBuilder.
+* DATAREDIS-1112 - Upgrade to Lettuce 5.3.
+* DATAREDIS-1106 - Phantom key not removed when deleting an item.
+
+
+Changes in version 2.2.7.RELEASE (2020-04-28)
+---------------------------------------------
+* DATAREDIS-1132 - Upgrade to Netty 4.1.49.Final.
+* DATAREDIS-1127 - JedisConnectionFactory getSentinelConnection method fails if first sentinel host in the list of sentinel hosts is down/unreachable.
+* DATAREDIS-1121 - Add missing anchors.
+* DATAREDIS-1120 - Release 2.2.7 (Moore SR7).
+
+
+Changes in version 2.1.17.RELEASE (2020-04-28)
+----------------------------------------------
+* DATAREDIS-1127 - JedisConnectionFactory getSentinelConnection method fails if first sentinel host in the list of sentinel hosts is down/unreachable.
+* DATAREDIS-1121 - Add missing anchors.
+* DATAREDIS-1107 - Release 2.1.17 (Lovelace SR17).
+
+
+Changes in version 2.3.0.RC1 (2020-03-31)
+-----------------------------------------
+* DATAREDIS-1121 - Add missing anchors.
+* DATAREDIS-1115 - Reduce log level for shared connection renewal.
+* DATAREDIS-1114 - Release 2.3 RC1 (Neumann).
+
+
+Changes in version 2.2.6.RELEASE (2020-03-25)
+---------------------------------------------
+* DATAREDIS-1115 - Reduce log level for shared connection renewal.
+* DATAREDIS-1110 - Wrong type parameter in StreamMessageListenerContainerOptionsBuilder.hashValueSerializer().
+* DATAREDIS-1108 - Release 2.2.6 (Moore SR6).
+
+
 Changes in version 2.3.0.M4 (2020-03-11)
 ----------------------------------------
 * DATAREDIS-1111 - Add missing list and zset coroutine extensions.
@@ -1923,6 +2122,25 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

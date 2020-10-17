@@ -533,6 +533,24 @@ abstract public class JedisConverters extends Converters {
 
 		SetParams paramsToUse = params == null ? SetParams.setParams() : params;
 
+		if (expiration.isKeepTtl()) {
+
+			// TODO: remove once jedis supports KEEPTTL (https://github.com/xetorthio/jedis/issues/2248)
+			return new SetParams() {
+
+				@Override
+				public byte[][] getByteParams(byte[]... args) {
+
+					ArrayList<byte[]> byteParams = new ArrayList<>();
+					for (byte[] arg : paramsToUse.getByteParams(args)) {
+						byteParams.add(arg);
+					}
+					byteParams.add(SafeEncoder.encode("keepttl"));
+					return byteParams.toArray(new byte[byteParams.size()][]);
+				}
+			};
+		}
+
 		if (!expiration.isPersistent()) {
 			if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
 				return paramsToUse.px(expiration.getExpirationTime());

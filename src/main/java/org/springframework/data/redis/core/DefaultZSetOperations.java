@@ -34,6 +34,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
  * @author David Liu
  * @author Mark Paluch
  * @author Wongoo (望哥)
+ * @author Andrey Shlykov
  */
 class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZSetOperations<K, V> {
 
@@ -166,15 +167,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByLex(java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
-	@Override
-	public Set<V> rangeByLex(K key, Range range) {
-		return rangeByLex(key, range, Limit.unlimited());
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByLex(java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
@@ -182,6 +174,19 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 		Set<byte[]> rawValues = execute(connection -> connection.zRangeByLex(rawKey, range, limit), true);
+
+		return deserializeValues(rawValues);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRangeByLex(java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<V> reverseRangeByLex(K key, Range range, Limit limit) {
+
+		byte[] rawKey = rawKey(key);
+		Set<byte[]> rawValues = execute(connection -> connection.zRevRangeByLex(rawKey, range, limit), true);
 
 		return deserializeValues(rawValues);
 	}
@@ -384,6 +389,17 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#lexCount(java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long lexCount(K key, Range range) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.zLexCount(rawKey, range), true);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ZSetOperations#size(java.lang.Object)
 	 */
 	@Override
@@ -462,4 +478,5 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		return execute(connection -> connection.zRangeByScore(rawKey, min, max, offset, count), true);
 	}
+
 }

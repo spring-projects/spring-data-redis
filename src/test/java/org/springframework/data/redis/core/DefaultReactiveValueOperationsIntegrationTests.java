@@ -107,9 +107,9 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.get(key)).expectNext(value).verifyComplete();
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -118,12 +118,12 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.set(key, value, Duration.ofSeconds(10))).expectNext(true).expectComplete()
+		valueOperations.set(key, value, Duration.ofSeconds(10)).as(StepVerifier::create).expectNext(true).expectComplete()
 				.verify();
 
-		StepVerifier.create(valueOperations.get(key)).expectNext(value).verifyComplete();
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
 
-		StepVerifier.create(redisTemplate.getExpire(key)) //
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))) //
 				.expectComplete() //
 				.verify();
@@ -135,9 +135,9 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(true).verifyComplete();
+		valueOperations.setIfAbsent(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(false).verifyComplete();
+		valueOperations.setIfAbsent(key, value).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
 	@Test // DATAREDIS-782
@@ -146,14 +146,14 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.setIfAbsent(key, value, Duration.ofSeconds(5))).expectNext(true)
+		valueOperations.setIfAbsent(key, value, Duration.ofSeconds(5)).as(StepVerifier::create).expectNext(true)
 				.expectComplete().verify();
 
-		StepVerifier.create(valueOperations.setIfAbsent(key, value)).expectNext(false).verifyComplete();
-		StepVerifier.create(valueOperations.setIfAbsent(key, value, Duration.ofSeconds(5))).expectNext(false)
+		valueOperations.setIfAbsent(key, value).as(StepVerifier::create).expectNext(false).verifyComplete();
+		valueOperations.setIfAbsent(key, value, Duration.ofSeconds(5)).as(StepVerifier::create).expectNext(false)
 				.verifyComplete();
 
-		StepVerifier.create(redisTemplate.getExpire(key)) //
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
 				.assertNext(actual -> {
 
 					assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5));
@@ -167,13 +167,13 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		V value = valueFactory.instance();
 		V laterValue = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.setIfPresent(key, value)).expectNext(false).verifyComplete();
+		valueOperations.setIfPresent(key, value).as(StepVerifier::create).expectNext(false).verifyComplete();
 
-		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.setIfPresent(key, laterValue)).expectNext(true).verifyComplete();
+		valueOperations.setIfPresent(key, laterValue).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.get(key)).expectNext(laterValue).verifyComplete();
+		valueOperations.get(key).as(StepVerifier::create).expectNext(laterValue).verifyComplete();
 	}
 
 	@Test // DATAREDIS-782
@@ -183,17 +183,17 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		V value = valueFactory.instance();
 		V laterValue = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.setIfPresent(key, value, Duration.ofSeconds(5))).expectNext(false)
+		valueOperations.setIfPresent(key, value, Duration.ofSeconds(5)).as(StepVerifier::create).expectNext(false)
 				.verifyComplete();
 
-		StepVerifier.create(valueOperations.set(key, value, Duration.ofSeconds(5))).expectNext(true).verifyComplete();
+		valueOperations.set(key, value, Duration.ofSeconds(5)).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.setIfPresent(key, laterValue, Duration.ofSeconds(5))).expectNext(true)
+		valueOperations.setIfPresent(key, laterValue, Duration.ofSeconds(5)).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
 
-		StepVerifier.create(valueOperations.get(key)).expectNext(laterValue).verifyComplete();
+		valueOperations.get(key).as(StepVerifier::create).expectNext(laterValue).verifyComplete();
 
-		StepVerifier.create(redisTemplate.getExpire(key)) //
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
 				.assertNext(actual -> {
 
 					assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5));
@@ -212,10 +212,10 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		map.put(key1, value1);
 		map.put(key2, value2);
 
-		StepVerifier.create(valueOperations.multiSet(map)).expectNext(true).verifyComplete();
+		valueOperations.multiSet(map).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.get(key1)).expectNext(value1).verifyComplete();
-		StepVerifier.create(valueOperations.get(key2)).expectNext(value2).verifyComplete();
+		valueOperations.get(key1).as(StepVerifier::create).expectNext(value1).verifyComplete();
+		valueOperations.get(key2).as(StepVerifier::create).expectNext(value2).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -230,13 +230,13 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		map.put(key1, value1);
 
-		StepVerifier.create(valueOperations.multiSetIfAbsent(map)).expectNext(true).verifyComplete();
+		valueOperations.multiSetIfAbsent(map).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		map.put(key2, value2);
-		StepVerifier.create(valueOperations.multiSetIfAbsent(map)).expectNext(false).verifyComplete();
+		valueOperations.multiSetIfAbsent(map).as(StepVerifier::create).expectNext(false).verifyComplete();
 
-		StepVerifier.create(valueOperations.get(key1)).expectNext(value1).verifyComplete();
-		StepVerifier.create(valueOperations.get(key2)).expectNextCount(0).verifyComplete();
+		valueOperations.get(key1).as(StepVerifier::create).expectNext(value1).verifyComplete();
+		valueOperations.get(key2).as(StepVerifier::create).expectNextCount(0).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -245,11 +245,11 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.get(key)).verifyComplete();
+		valueOperations.get(key).as(StepVerifier::create).verifyComplete();
 
-		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.get(key)).expectNext(value).verifyComplete();
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -259,13 +259,13 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		V value = valueFactory.instance();
 		V nextValue = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.getAndSet(key, nextValue)).verifyComplete();
+		valueOperations.getAndSet(key, nextValue).as(StepVerifier::create).verifyComplete();
 
-		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.getAndSet(key, nextValue)).expectNext(value).verifyComplete();
+		valueOperations.getAndSet(key, nextValue).as(StepVerifier::create).expectNext(value).verifyComplete();
 
-		StepVerifier.create(valueOperations.get(key)).expectNext(nextValue).verifyComplete();
+		valueOperations.get(key).as(StepVerifier::create).expectNext(nextValue).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -289,9 +289,9 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		map.put(key1, value1);
 		map.put(key2, value2);
 
-		StepVerifier.create(valueOperations.multiSet(map)).expectNext(true).verifyComplete();
+		valueOperations.multiSet(map).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.multiGet(Arrays.asList(key2, key1, absent)))
+		valueOperations.multiGet(Arrays.asList(key2, key1, absent)).as(StepVerifier::create)
 				.expectNext(Arrays.asList(value2, value1, absentValue)).verifyComplete();
 	}
 
@@ -303,11 +303,11 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.append(key, "foo")).expectNextCount(1).verifyComplete();
+		valueOperations.append(key, "foo").as(StepVerifier::create).expectNextCount(1).verifyComplete();
 
-		StepVerifier.create(valueOperations.get(key)).expectNext((V) (value + "foo")).verifyComplete();
+		valueOperations.get(key).as(StepVerifier::create).expectNext((V) (value + "foo")).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -318,11 +318,11 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		String substring = value.toString().substring(1, 5);
 
-		StepVerifier.create(valueOperations.get(key, 1, 4)).expectNext(substring).verifyComplete();
+		valueOperations.get(key, 1, 4).as(StepVerifier::create).expectNext(substring).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -333,10 +333,10 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
-		StepVerifier.create(valueOperations.set(key, (V) "boo", 2)).expectNextCount(1).verifyComplete();
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
+		valueOperations.set(key, (V) "boo", 2).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 
-		StepVerifier.create(valueOperations.get(key)).consumeNextWith(actual -> {
+		valueOperations.get(key).as(StepVerifier::create).consumeNextWith(actual -> {
 
 			String string = (String) actual;
 			String prefix = value.toString().substring(0, 2);
@@ -353,8 +353,8 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
-		StepVerifier.create(valueOperations.size(key)).expectNext((long) value.toString().length()).expectComplete()
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
+		valueOperations.size(key).as(StepVerifier::create).expectNext((long) value.toString().length()).expectComplete()
 				.verify();
 	}
 
@@ -363,8 +363,8 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(valueOperations.setBit(key, 0, true)).expectNext(false).expectComplete();
-		StepVerifier.create(valueOperations.setBit(key, 2, true)).expectNext(false).expectComplete();
+		valueOperations.setBit(key, 0, true).as(StepVerifier::create).expectNext(false).expectComplete();
+		valueOperations.setBit(key, 2, true).as(StepVerifier::create).expectNext(false).expectComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -372,9 +372,9 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(valueOperations.setBit(key, 0, true)).expectNext(false).expectComplete();
-		StepVerifier.create(valueOperations.getBit(key, 0)).expectNext(true).expectComplete();
-		StepVerifier.create(valueOperations.getBit(key, 1)).expectNext(false).expectComplete();
+		valueOperations.setBit(key, 0, true).as(StepVerifier::create).expectNext(false).expectComplete();
+		valueOperations.getBit(key, 0).as(StepVerifier::create).expectNext(true).expectComplete();
+		valueOperations.getBit(key, 1).as(StepVerifier::create).expectNext(false).expectComplete();
 	}
 
 	@Test // DATAREDIS-562
@@ -382,17 +382,17 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier
-				.create(valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+		valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
+				.as(StepVerifier::create)
 				.expectNext(Collections.singletonList(1L)).verifyComplete();
-		StepVerifier
-				.create(valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+		valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
+				.as(StepVerifier::create)
 				.expectNext(Collections.singletonList(2L)).verifyComplete();
-		StepVerifier
-				.create(valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+		valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
+				.as(StepVerifier::create)
 				.expectNext(Collections.singletonList(3L)).verifyComplete();
-		StepVerifier
-				.create(valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)))
+		valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
+				.as(StepVerifier::create)
 				.expectNext(Collections.singletonList(null)).verifyComplete();
 	}
 
@@ -402,11 +402,11 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.delete(key)).expectNext(true).verifyComplete();
+		valueOperations.delete(key).as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		StepVerifier.create(valueOperations.size(key)).expectNext(0L).verifyComplete();
+		valueOperations.size(key).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-784
@@ -414,9 +414,9 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(valueOperations.increment(key)).expectNext(1L).verifyComplete();
+		valueOperations.increment(key).as(StepVerifier::create).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(valueOperations.increment(key)).expectNext(2L).verifyComplete();
+		valueOperations.increment(key).as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-784
@@ -424,11 +424,11 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(valueOperations.increment(key, 2L)).expectNext(2L).verifyComplete();
+		valueOperations.increment(key, 2L).as(StepVerifier::create).expectNext(2L).verifyComplete();
 
-		StepVerifier.create(valueOperations.increment(key, -3L)).expectNext(-1L).verifyComplete();
+		valueOperations.increment(key, -3L).as(StepVerifier::create).expectNext(-1L).verifyComplete();
 
-		StepVerifier.create(valueOperations.increment(key, 1L)).expectNext(0L).verifyComplete();
+		valueOperations.increment(key, 1L).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-784
@@ -436,11 +436,11 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(valueOperations.increment(key, 0.1)).expectNext(0.1).verifyComplete();
+		valueOperations.increment(key, 0.1).as(StepVerifier::create).expectNext(0.1).verifyComplete();
 
-		StepVerifier.create(valueOperations.increment(key, -0.3)).expectNext(-0.2).verifyComplete();
+		valueOperations.increment(key, -0.3).as(StepVerifier::create).expectNext(-0.2).verifyComplete();
 
-		StepVerifier.create(valueOperations.increment(key, 0.2)).expectNext(0.0).verifyComplete();
+		valueOperations.increment(key, 0.2).as(StepVerifier::create).expectNext(0.0).verifyComplete();
 	}
 
 	@Test // DATAREDIS-784
@@ -448,9 +448,9 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(valueOperations.decrement(key)).expectNext(-1L).verifyComplete();
+		valueOperations.decrement(key).as(StepVerifier::create).expectNext(-1L).verifyComplete();
 
-		StepVerifier.create(valueOperations.decrement(key)).expectNext(-2L).verifyComplete();
+		valueOperations.decrement(key).as(StepVerifier::create).expectNext(-2L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-784
@@ -458,10 +458,10 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 
-		StepVerifier.create(valueOperations.decrement(key, 2L)).expectNext(-2L).verifyComplete();
+		valueOperations.decrement(key, 2L).as(StepVerifier::create).expectNext(-2L).verifyComplete();
 
-		StepVerifier.create(valueOperations.decrement(key, -3L)).expectNext(1L).verifyComplete();
+		valueOperations.decrement(key, -3L).as(StepVerifier::create).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(valueOperations.decrement(key, 1L)).expectNext(0L).verifyComplete();
+		valueOperations.decrement(key, 1L).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 }

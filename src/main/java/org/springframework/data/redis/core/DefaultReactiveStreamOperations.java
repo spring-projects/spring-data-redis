@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.connection.stream.PendingMessages;
-import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -36,9 +34,14 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumer;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroup;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.hash.HashMapper;
@@ -164,7 +167,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(readOffset, "ReadOffset must not be null!");
 		Assert.notNull(group, "Group must not be null!");
 
-		return createMono(connection -> connection.xGroupCreate(rawKey(key), group, readOffset));
+		return createMono(connection -> connection.xGroupCreate(rawKey(key), group, readOffset, true));
 	}
 
 	@Override
@@ -183,6 +186,43 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(group, "Group must not be null!");
 
 		return createMono(connection -> connection.xGroupDestroy(rawKey(key), group));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#consumers(java.lang.Object)
+	 */
+	@Override
+	public Flux<XInfoConsumer> consumers(K key, String group) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(group, "Group must not be null!");
+
+		return createFlux(connection -> connection.xInfoConsumers(rawKey(key), group));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#info(java.lang.Object)
+	 */
+	@Override
+	public Mono<XInfoStream> info(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> connection.xInfo(rawKey(key)));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#groups(java.lang.Object)
+	 */
+	@Override
+	public Flux<XInfoGroup> groups(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createFlux(connection -> connection.xInfoGroups(rawKey(key)));
 	}
 
 	/*
@@ -217,7 +257,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		ByteBuffer rawKey = rawKey(key);
 		return createMono(connection -> connection.xPending(rawKey, group));
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -302,10 +341,18 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	 */
 	@Override
 	public Mono<Long> trim(K key, long count) {
+		return trim(key, count, false);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#trim(java.lang.Object, long, boolean)
+	 */
+	@Override
+	public Mono<Long> trim(K key, long count, boolean approximateTrimming) {
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.xTrim(rawKey(key), count));
+		return createMono(connection -> connection.xTrim(rawKey(key), count, approximateTrimming));
 	}
 
 	@Override

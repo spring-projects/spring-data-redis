@@ -15,9 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
@@ -30,10 +27,13 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-@RequiredArgsConstructor
 class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 
-	private final @NonNull JedisClusterConnection connection;
+	private final JedisClusterConnection connection;
+
+	JedisClusterHyperLogLogCommands(JedisClusterConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)

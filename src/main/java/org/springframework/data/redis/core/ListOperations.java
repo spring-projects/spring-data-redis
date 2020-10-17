@@ -214,6 +214,30 @@ public interface ListOperations<K, V> {
 	V index(K key, long index);
 
 	/**
+	 * Returns the index of the first occurrence of the specified value in the list at at {@code key}. <br />
+	 * Requires Redis 6.0.6 or newer.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction or when not contained in list.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 */
+	Long indexOf(K key, V value);
+
+	/**
+	 * Returns the index of the last occurrence of the specified value in the list at at {@code key}. <br />
+	 * Requires Redis 6.0.6 or newer.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction or when not contained in list.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 */
+	Long lastIndexOf(K key, V value);
+
+	/**
 	 * Removes and returns first element in list stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.

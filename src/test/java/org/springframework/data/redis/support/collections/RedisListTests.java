@@ -31,16 +31,16 @@ public class RedisListTests extends AbstractRedisListTests<Object> {
 	 * @param factory
 	 * @param connFactory
 	 */
-	public RedisListTests(ObjectFactory<Object> factory, RedisTemplate template) {
+	public RedisListTests(ObjectFactory<Object> factory, RedisTemplate<Object, Object> template) {
 		super(factory, template);
 	}
 
 	RedisStore copyStore(RedisStore store) {
-		return new DefaultRedisList(store.getKey().toString(), store.getOperations());
+		return new DefaultRedisList<>(store.getKey(), store.getOperations());
 	}
 
 	AbstractRedisCollection<Object> createCollection() {
 		String redisName = getClass().getName();
-		return new DefaultRedisList(redisName, template);
+		return new DefaultRedisList<>(redisName, template);
 	}
 }

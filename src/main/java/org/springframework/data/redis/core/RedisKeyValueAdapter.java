@@ -104,6 +104,11 @@ import org.springframework.util.ObjectUtils;
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		implements InitializingBean, ApplicationContextAware, ApplicationListener<RedisKeyspaceEvent> {
 
+	/**
+	 * Time To Live in seconds that phantom keys should live longer than the actual key.
+	 */
+	private static final int PHANTOM_KEY_TTL = 300;
+
 	private RedisOperations<?, ?> redisOps;
 	private RedisConverter converter;
 	private @Nullable RedisMessageListenerContainer messageListenerContainer;
@@ -112,6 +117,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	private EnableKeyspaceEvents enableKeyspaceEvents = EnableKeyspaceEvents.OFF;
 	private @Nullable String keyspaceNotificationsConfigParameter = null;
+	private ShadowCopy shadowCopy = ShadowCopy.DEFAULT;
 
 	/**
 	 * Creates new {@link RedisKeyValueAdapter} with default {@link RedisMappingContext} and default
@@ -201,7 +207,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#put(java.lang.Object, java.lang.Object, java.lang.String)
 	 */
 	@Override
-	public Object put(final Object id, Object item, String keyspace) {
+	public Object put(Object id, Object item, String keyspace) {
 
 		RedisData rdo = item instanceof RedisData ? (RedisData) item : new RedisData();
 		if (!(item instanceof RedisData)) {
@@ -233,11 +239,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 				connection.expire(objectKey, rdo.getTimeToLive());
 
-				// add phantom key so values can be restored
-				byte[] phantomKey = ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
-				connection.del(phantomKey);
-				connection.hMSet(phantomKey, rdo.getBucket().rawMap());
-				connection.expire(phantomKey, rdo.getTimeToLive() + 300);
+				if (keepShadowCopy()) { // add phantom key so values can be restored
+
+					byte[] phantomKey = ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
+					connection.del(phantomKey);
+					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
+					connection.expire(phantomKey, rdo.getTimeToLive() + PHANTOM_KEY_TTL);
+				}
 			}
 
 			connection.sAdd(toBytes(rdo.getKeyspace()), key);
@@ -293,6 +301,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		Map<byte[], byte[]> raw = redisOps
 				.execute((RedisCallback<Map<byte[], byte[]>>) connection -> connection.hGetAll(binId));
 
+		if (CollectionUtils.isEmpty(raw)) {
+			return null;
+		}
+
 		RedisData data = new RedisData(raw);
 		data.setId(stringId);
 		data.setKeyspace(stringKeyspace);
@@ -329,8 +341,14 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 				connection.del(keyToDelete);
 				connection.sRem(binKeyspace, binId);
-
 				new IndexWriter(connection, converter).removeKeyFromIndexes(asString(keyspace), binId);
+
+				RedisPersistentEntity<?> persistentEntity = converter.getMappingContext().getPersistentEntity(type);
+				if (persistentEntity != null && persistentEntity.isExpiring()) {
+
+					byte[] phantomKey = ByteUtils.concat(keyToDelete, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
+					connection.del(phantomKey);
+				}
 				return null;
 			});
 		}
@@ -464,10 +482,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 					connection.expire(redisKey, rdo.getTimeToLive());
 
-					// add phantom key so values can be restored
-					byte[] phantomKey = ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
-					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
-					connection.expire(phantomKey, rdo.getTimeToLive() + 300);
+					if (keepShadowCopy()) { // add phantom key so values can be restored
+
+						byte[] phantomKey = ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
+						connection.hMSet(phantomKey, rdo.getBucket().rawMap());
+						connection.expire(phantomKey, rdo.getTimeToLive() + PHANTOM_KEY_TTL);
+					}
 
 				} else {
 
@@ -651,6 +671,16 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	}
 
 	/**
+	 * Configure storage of phantom keys (shadow copies) of expiring entities.
+	 *
+	 * @param shadowCopy must not be {@literal null}.
+	 * @since 2.3
+	 */
+	public void setShadowCopy(ShadowCopy shadowCopy) {
+		this.shadowCopy = shadowCopy;
+	}
+
+	/**
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 * @since 1.8
 	 */
@@ -762,7 +792,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			byte[] key = message.getBody();
 
-			byte[] phantomKey = ByteUtils.concat(key, converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
+			byte[] phantomKey = ByteUtils.concat(key,
+					converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
 
 			Map<byte[], byte[]> hash = ops.execute((RedisCallback<Map<byte[], byte[]>>) connection -> {
 
@@ -775,10 +806,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				return hash1;
 			});
 
-			Object value = converter.read(Object.class, new RedisData(hash));
+			Object value = CollectionUtils.isEmpty(hash) ? null : converter.read(Object.class, new RedisData(hash));
 
-			String channel = !ObjectUtils.isEmpty(message.getChannel())
-					? converter.getConversionService().convert(message.getChannel(), String.class) : null;
+			byte[] channelAsBytes = message.getChannel();
+			String channel = !ObjectUtils.isEmpty(channelAsBytes)
+					? converter.getConversionService().convert(channelAsBytes, String.class)
+					: null;
 
 			RedisKeyExpiredEvent event = new RedisKeyExpiredEvent(channel, key, value);
 
@@ -793,12 +826,19 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 
 		private boolean isKeyExpirationMessage(Message message) {
-
-			if (message == null || message.getChannel() == null || message.getBody() == null) {
-				return false;
-			}
-
 			return BinaryKeyspaceIdentifier.isValid(message.getBody());
+		}
+	}
+
+	private boolean keepShadowCopy() {
+
+		switch (shadowCopy) {
+			case OFF:
+				return false;
+			case ON:
+				return true;
+			default:
+				return this.expirationListener.get() != null;
 		}
 	}
 
@@ -825,6 +865,31 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	}
 
 	/**
+	 * Configuration flag controlling storage of phantom keys (shadow copies) of expiring entities to read them later when
+	 * publishing {@link RedisKeyspaceEvent}.
+	 *
+	 * @author Christoph Strobl
+	 * @since 2.4
+	 */
+	public enum ShadowCopy {
+
+		/**
+		 * Store shadow copies of expiring entities depending on the {@link EnableKeyspaceEvents}.
+		 */
+		DEFAULT,
+
+		/**
+		 * Store shadow copies of expiring entities.
+		 */
+		ON,
+
+		/**
+		 * Do not store shadow copies.
+		 */
+		OFF
+	}
+
+	/**
 	 * Container holding update information like fields to remove from the Redis Hash.
 	 *
 	 * @author Christoph Strobl
@@ -835,8 +900,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		private final Object targetId;
 		private final byte[] targetKey;
 
-		private Set<byte[]> fieldsToRemove = new LinkedHashSet<>();
-		private Set<Index> indexesToUpdate = new LinkedHashSet<>();
+		private final Set<byte[]> fieldsToRemove = new LinkedHashSet<>();
+		private final Set<Index> indexesToUpdate = new LinkedHashSet<>();
 
 		RedisUpdateObject(byte[] targetKey, String keyspace, Object targetId) {
 

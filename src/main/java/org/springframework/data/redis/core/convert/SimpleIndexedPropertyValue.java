@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import org.springframework.util.ObjectUtils;
 
 /**
  * {@link IndexedData} implementation indicating storage of data within a Redis Set.
@@ -25,8 +24,6 @@ import lombok.ToString;
  * @author Rob Winch
  * @since 1.7
  */
-@EqualsAndHashCode
-@ToString
 public class SimpleIndexedPropertyValue implements IndexedData {
 
 	private final String keyspace;
@@ -72,5 +69,37 @@ public class SimpleIndexedPropertyValue implements IndexedData {
 	@Override
 	public String getKeyspace() {
 		return this.keyspace;
+	}
+
+	@Override
+	public String toString() {
+		return "SimpleIndexedPropertyValue{" + "keyspace='" + keyspace + '\'' + ", indexName='" + indexName + '\''
+				+ ", value=" + value + '}';
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		SimpleIndexedPropertyValue that = (SimpleIndexedPropertyValue) o;
+
+		if (!ObjectUtils.nullSafeEquals(keyspace, that.keyspace)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(indexName, that.indexName)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(value, that.value);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = ObjectUtils.nullSafeHashCode(keyspace);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(indexName);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(value);
+		return result;
 	}
 }

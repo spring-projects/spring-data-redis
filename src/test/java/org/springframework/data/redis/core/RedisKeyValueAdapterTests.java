@@ -37,7 +37,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
@@ -50,6 +49,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
+import org.springframework.data.redis.core.RedisKeyValueAdapter.ShadowCopy;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.index.GeoIndexed;
@@ -58,6 +58,8 @@ import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 
 /**
+ * Integration tests for {@link RedisKeyValueAdapter}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
@@ -297,6 +299,24 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand")).doesNotContain("1");
 	}
 
+	@Test // DATAREDIS-1106
+	public void deleteRemovesExpireHelperStructures() {
+
+		WithExpiration source = new WithExpiration();
+		source.id = "1";
+		source.value = "vale";
+
+		adapter.put("1", source, "withexpiration");
+
+		assertThat(template.hasKey("withexpiration:1")).isTrue();
+		assertThat(template.hasKey("withexpiration:1:phantom")).isTrue();
+
+		adapter.delete("1", "withexpiration", WithExpiration.class);
+
+		assertThat(template.hasKey("withexpiration:1")).isFalse();
+		assertThat(template.hasKey("withexpiration:1:phantom")).isFalse();
+	}
+
 	@Test // DATAREDIS-425
 	public void keyExpiredEventShouldRemoveHelperStructures() throws Exception {
 
@@ -323,7 +343,6 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:firstname:rand")).isFalse();
 		assertThat(template.hasKey("persons:1:idx")).isFalse();
 		assertThat(template.opsForSet().members("persons")).doesNotContain("1");
-		;
 	}
 
 	@Test // DATAREDIS-744
@@ -669,6 +688,56 @@ public class RedisKeyValueAdapterTests {
 		assertThat(updatedLocation.getY()).isCloseTo(18D, offset(0.005));
 	}
 
+	@Test // DATAREDIS-1091
+	public void phantomKeyNotInsertedOnPutWhenShadowCopyIsTurnedOff() {
+
+		RedisMappingContext mappingContext = new RedisMappingContext(
+				new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration()));
+		mappingContext.afterPropertiesSet();
+
+		RedisKeyValueAdapter kvAdapter = new RedisKeyValueAdapter(template, mappingContext);
+		kvAdapter.setShadowCopy(ShadowCopy.OFF);
+
+		ExpiringPerson rand = new ExpiringPerson();
+		rand.age = 24;
+		rand.ttl = 3000L;
+
+		kvAdapter.put("1", rand, "persons");
+
+		assertThat(template.hasKey("persons:1:phantom")).isFalse();
+	}
+
+	@Test // DATAREDIS-1091
+	public void phantomKeyInsertedOnPutWhenShadowCopyIsTurnedOn() {
+
+		RedisMappingContext mappingContext = new RedisMappingContext(
+				new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration()));
+		mappingContext.afterPropertiesSet();
+
+		RedisKeyValueAdapter kvAdapter = new RedisKeyValueAdapter(template, mappingContext);
+		kvAdapter.setShadowCopy(ShadowCopy.ON);
+
+		ExpiringPerson rand = new ExpiringPerson();
+		rand.age = 24;
+		rand.ttl = 3000L;
+
+		kvAdapter.put("1", rand, "persons");
+
+		assertThat(template.hasKey("persons:1:phantom")).isTrue();
+	}
+
+	@Test // DATAREDIS-1091
+	public void phantomKeyInsertedOnPutWhenShadowCopyIsInDefaultAndKeyspaceNotificationEnabled() {
+
+		ExpiringPerson rand = new ExpiringPerson();
+		rand.age = 24;
+		rand.ttl = 3000L;
+
+		adapter.put("1", rand, "persons");
+
+		assertThat(template.hasKey("persons:1:phantom")).isTrue();
+	}
+
 	/**
 	 * Wait up to 5 seconds until {@code key} is no longer available in Redis.
 	 *
@@ -758,11 +827,24 @@ public class RedisKeyValueAdapterTests {
 
 	}
 
+	static class ExpiringPerson extends Person {
+
+		@TimeToLive Long ttl;
+	}
+
 	@KeySpace("locations")
 	static class Location {
 
 		@Id String id;
 		String name;
+	}
+
+	@KeySpace("withexpiration")
+	@RedisHash(timeToLive = 30)
+	static class WithExpiration {
+
+		@Id String id;
+		String value;
 	}
 
 }

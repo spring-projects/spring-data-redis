@@ -20,8 +20,6 @@ import io.lettuce.core.GeoCoordinates;
 import io.lettuce.core.GeoWithin;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,10 +46,13 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-@RequiredArgsConstructor
 class LettuceGeoCommands implements RedisGeoCommands {
 
-	private final @NonNull LettuceConnection connection;
+	private final LettuceConnection connection;
+
+	LettuceGeoCommands(LettuceConnection connection) {
+		this.connection = connection;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -175,7 +176,9 @@ class LettuceGeoCommands implements RedisGeoCommands {
 						distanceConverter));
 				return null;
 			}
-			return distanceConverter.convert(getConnection().geodist(key, member1, member2, geoUnit));
+
+			Double distance = getConnection().geodist(key, member1, member2, geoUnit);
+			return distance != null ? distanceConverter.convert(distance) : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

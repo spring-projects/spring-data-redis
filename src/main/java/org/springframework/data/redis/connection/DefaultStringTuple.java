@@ -15,17 +15,15 @@
  */
 package org.springframework.data.redis.connection;
 
-import lombok.EqualsAndHashCode;
-
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Default implementation for {@link StringTuple} interface.
  *
  * @author Costin Leau
  */
-@EqualsAndHashCode(callSuper = true)
 public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 
 	private final String valueAsString;
@@ -59,5 +57,26 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 
 	public String toString() {
 		return "DefaultStringTuple[value=" + getValueAsString() + ", score=" + getScore() + "]";
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		if (!super.equals(o))
+			return false;
+
+		DefaultStringTuple that = (DefaultStringTuple) o;
+
+		return ObjectUtils.nullSafeEquals(valueAsString, that.valueAsString);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + ObjectUtils.nullSafeHashCode(valueAsString);
+		return result;
 	}
 }

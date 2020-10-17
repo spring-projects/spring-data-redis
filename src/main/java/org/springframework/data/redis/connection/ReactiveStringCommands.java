@@ -169,7 +169,8 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @param expiration must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} for no expiration time or
+	 *          {@link Expiration#keepTtl()} to keep the existing.
 	 * @param option must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>

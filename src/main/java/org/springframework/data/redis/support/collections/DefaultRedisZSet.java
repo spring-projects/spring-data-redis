@@ -37,6 +37,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Andrey Shlykov
  */
 public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements RedisZSet<E> {
 
@@ -145,20 +146,20 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
-	@Override
-	public Set<E> rangeByLex(Range range) {
-		return boundZSetOps.rangeByLex(range);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.support.collections.RedisZSet#rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
 	public Set<E> rangeByLex(Range range, Limit limit) {
 		return boundZSetOps.rangeByLex(range, limit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisZSet#reverseRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<E> reverseRangeByLex(Range range, Limit limit) {
+		return boundZSetOps.reverseRangeByLex(range, limit);
 	}
 
 	/*
@@ -390,6 +391,15 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public Long reverseRank(Object o) {
 		return boundZSetOps.reverseRank(o);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisZSet#lexCount(org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long lexCount(Range range) {
+		return boundZSetOps.lexCount(range);
 	}
 
 	/*

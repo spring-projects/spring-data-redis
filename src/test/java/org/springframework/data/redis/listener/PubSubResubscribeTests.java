@@ -17,7 +17,6 @@ package org.springframework.data.redis.listener;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
-import static org.springframework.data.redis.SpinBarrier.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +25,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +39,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.junit.runners.model.Statement;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
@@ -150,17 +149,15 @@ public class PubSubResubscribeTests {
 		container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(template.getConnectionFactory());
 		container.setBeanName("container");
-		container.addMessageListener(adapter, new ChannelTopic(CHANNEL));
 		container.setTaskExecutor(new SyncTaskExecutor());
 		container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor());
 		container.afterPropertiesSet();
 		container.start();
-
-		waitFor(container.getConnectionFactory().getConnection()::isSubscribed, 1000);
 	}
 
 	@After
 	public void tearDown() {
+		container.stop();
 		bag.clear();
 	}
 
@@ -180,7 +177,6 @@ public class PubSubResubscribeTests {
 
 		// remove adapter from all channels
 		container.addMessageListener(anotherListener, new PatternTopic(PATTERN));
-		container.removeMessageListener(adapter);
 
 		// Wait for async subscription tasks to setup
 		Thread.sleep(400);
@@ -275,18 +271,24 @@ public class PubSubResubscribeTests {
 	@Test
 	public void testInitializeContainerWithMultipleTopicsIncludingPattern() throws Exception {
 
-		container.removeMessageListener(adapter);
+		assumeFalse(isClusterAware(template.getConnectionFactory()));
+
 		container.stop();
-		container.addMessageListener(adapter,
-				Arrays.asList(new Topic[] { new ChannelTopic(CHANNEL), new PatternTopic("s*") }));
-		container.start();
+
+		String uniqueChannel = "random-" + UUID.randomUUID().toString();
+		PubSubAwaitUtil.runAndAwaitChannelSubscription(template.getConnectionFactory(), uniqueChannel, () -> {
+
+			container.addMessageListener(adapter,
+					Arrays.asList(new Topic[] { new ChannelTopic(uniqueChannel), new PatternTopic("s*") }));
+			container.start();
+		});
 
 		// timing: There's currently no other way to synchronize
 		// than to hope the subscribe/unsubscribe are executed within the time.
-		Thread.sleep(1000);
+		Thread.sleep(50);
 
 		template.convertAndSend("somechannel", "HELLO");
-		template.convertAndSend(CHANNEL, "WORLD");
+		template.convertAndSend(uniqueChannel, "WORLD");
 
 		Set<String> set = new LinkedHashSet<>();
 		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
@@ -313,17 +315,16 @@ public class PubSubResubscribeTests {
 	}
 
 	private static boolean clusterAvailable() {
+		return new RedisClusterRule().isAvailable();
+	}
 
-		try {
-			new RedisClusterRule().apply(new Statement() {
-				@Override
-				public void evaluate() throws Throwable {
+	private static boolean isClusterAware(RedisConnectionFactory connectionFactory) {
 
-				}
-			}, null).evaluate();
-		} catch (Throwable throwable) {
-			return false;
+		if (connectionFactory instanceof LettuceConnectionFactory) {
+			return ((LettuceConnectionFactory) connectionFactory).isClusterAware();
+		} else if (connectionFactory instanceof JedisConnectionFactory) {
+			return ((JedisConnectionFactory) connectionFactory).isRedisClusterAware();
 		}
-		return true;
+		return false;
 	}
 }

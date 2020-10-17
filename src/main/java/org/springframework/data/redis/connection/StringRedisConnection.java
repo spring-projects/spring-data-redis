@@ -34,6 +34,9 @@ import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
+import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
@@ -46,6 +49,7 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Convenience extension of {@link RedisConnection} that accepts and returns {@link String}s instead of byte arrays.
@@ -57,6 +61,9 @@ import org.springframework.lang.Nullable;
  * @author David Liu
  * @author Mark Paluch
  * @author Ninad Divadkar
+ * @author Tugdual Grall
+ * @author Dengliming
+ * @author Andrey Shlykov
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -414,7 +421,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}.
+	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}. Use
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
 	 * @param option can be {@literal null}. Defaulted to {@link SetOption#UPSERT}.
 	 * @since 1.7
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
@@ -680,6 +688,36 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisListCommands#rPush(byte[], byte[]...)
 	 */
 	Long rPush(String key, String... values);
+
+	/**
+	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
+	 * Requires Redis 6.0.6 or newer.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param element must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 * @since 2.4
+	 */
+	@Nullable
+	default Long lPos(String key, String element) {
+		return CollectionUtils.firstElement(lPos(key, element, null, null));
+	}
+
+	/**
+	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
+	 * Requires Redis 6.0.6 or newer.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param element must not be {@literal null}.
+	 * @param rank specifies the "rank" of the first element to return, in case there are multiple matches. A rank of 1
+	 *          means to return the first match, 2 to return the second match, and so forth.
+	 * @param count number of matches to return.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
+	 * @since 2.4
+	 */
+	List<Long> lPos(String key, String element, @Nullable Integer rank, @Nullable Integer count);
 
 	/**
 	 * Prepend {@code values} to {@code key}.
@@ -1292,6 +1330,20 @@ public interface StringRedisConnection extends RedisConnection {
 	Long zCount(String key, double min, double max);
 
 	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
+	 * lexicographical ordering.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 * @see RedisZSetCommands#zLexCount(byte[], Range)
+	 */
+	@Nullable
+	Long zLexCount(String key, Range range);
+
+	/**
 	 * Get the size of sorted set with {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -1461,6 +1513,47 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisZSetCommands#zRangeByLex(byte[], Range, Limit)
 	 */
 	Set<String> zRangeByLex(String key, Range range, Limit limit);
+
+	/**
+	 * Get all the elements in the sorted set at {@literal key} in reversed lexicographical ordering.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 * @see RedisZSetCommands#zRevRangeByLex(byte[])
+	 */
+	default Set<String> zRevRangeByLex(String key) {
+		return zRevRangeByLex(key, Range.unbounded());
+	}
+
+	/**
+	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 * @see RedisZSetCommands#zRevRangeByLex(byte[], Range)
+	 */
+	default Set<String> zRevRangeByLex(String key, Range range) {
+		return zRevRangeByLex(key, range, Limit.unlimited());
+	}
+
+	/**
+	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering. Result is
+	 * limited via {@link Limit}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param range can be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 * @see RedisZSetCommands#zRevRangeByLex(byte[], Range, Limit)
+	 */
+	Set<String> zRevRangeByLex(String key, Range range, Limit limit);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Hashes
@@ -2010,7 +2103,28 @@ public interface StringRedisConnection extends RedisConnection {
 		return xAdd(StreamRecords.newRecord().in(key).ofStrings(body));
 	}
 
-	RecordId xAdd(StringRecord record);
+	/**
+	 * Append the given {@link StringRecord} to the stream stored at {@link StringRecord#getStream()}.
+	 *
+	 * @param record must not be {@literal null}.
+	 * @return the record Id. {@literal null} when used in pipeline / transaction.
+	 * @since 2.2
+	 */
+	@Nullable
+	default RecordId xAdd(StringRecord record) {
+		return xAdd(record, XAddOptions.none());
+	}
+
+	/**
+	 * Append the given {@link StringRecord} to the stream stored at {@link StringRecord#getStream()}.
+	 *
+	 * @param record must not be {@literal null}.
+	 * @param options must not be {@literal null}, use {@link XAddOptions#none()} instead.
+	 * @return the record Id. {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	RecordId xAdd(StringRecord record, XAddOptions options);
 
 	/**
 	 * Change the ownership of a pending message to the given new {@literal consumer} without increasing the delivered
@@ -2076,7 +2190,7 @@ public interface StringRedisConnection extends RedisConnection {
 	/**
 	 * Create a consumer group.
 	 *
-	 * @param key
+	 * @param key the stream key.
 	 * @param readOffset
 	 * @param group name of the consumer group.
 	 * @since 2.2
@@ -2084,6 +2198,20 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	String xGroupCreate(String key, ReadOffset readOffset, String group);
+
+	/**
+	 * Create a consumer group.
+	 *
+	 * @param key the stream key.
+	 * @param readOffset
+	 * @param group name of the consumer group.
+	 * @param mkStream if true the group will create the stream if needed (MKSTREAM)
+	 * @since
+	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	String xGroupCreate(String key, ReadOffset readOffset, String group, boolean mkStream);
 
 	/**
 	 * Delete a consumer from a consumer group.
@@ -2106,6 +2234,39 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	Boolean xGroupDestroy(String key, String group);
+
+	/**
+	 * Obtain general information about the stream stored at the specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	XInfoStream xInfo(String key);
+
+	/**
+	 * Obtain information about {@literal consumer groups} associated with the stream stored at the specified
+	 * {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	XInfoGroups xInfoGroups(String key);
+
+	/**
+	 * Obtain information about every consumer in a specific {@literal consumer group} for the stream stored at the
+	 * specified {@literal key}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param groupName name of the {@literal consumer group}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.3
+	 */
+	@Nullable
+	XInfoConsumers xInfoConsumers(String key, String groupName);
 
 	/**
 	 * Get the length of a stream.
@@ -2356,4 +2517,17 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	Long xTrim(String key, long count);
+
+	/**
+	 * Trims the stream to {@code count} elements.
+	 *
+	 * @param key the stream key.
+	 * @param count length of the stream.
+	 * @param approximateTrimming the trimming must be performed in a approximated way in order to maximize performances.
+	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
+	@Nullable
+	Long xTrim(String key, long count, boolean approximateTrimming);
 }

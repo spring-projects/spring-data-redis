@@ -129,15 +129,17 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		List<T> result = new ArrayList<>(raw.size());
 		for (Map.Entry<byte[], Map<byte[], byte[]>> entry : raw.entrySet()) {
 
+			if (CollectionUtils.isEmpty(entry.getValue())) {
+				continue;
+			}
+
 			RedisData data = new RedisData(entry.getValue());
 			data.setId(getAdapter().getConverter().getConversionService().convert(entry.getKey(), String.class));
 			data.setKeyspace(keyspace);
 
 			T converted = this.getAdapter().getConverter().read(type, data);
 
-			if (converted != null) {
-				result.add(converted);
-			}
+			result.add(converted);
 		}
 		return result;
 	}

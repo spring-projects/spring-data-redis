@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
-public interface RedisCacheWriter {
+public interface RedisCacheWriter extends CacheStatisticsProvider {
 
 	/**
 	 * Create new {@link RedisCacheWriter} without locking behavior.
@@ -106,4 +106,20 @@ public interface RedisCacheWriter {
 	 * @param pattern The pattern for the keys to remove. Must not be {@literal null}.
 	 */
 	void clean(String name, byte[] pattern);
+
+	/**
+	 * Reset all statistics counters and gauges for this cache.
+	 *
+	 * @since 2.4
+	 */
+	void clearStatistics(String name);
+
+	/**
+	 * Obtain a {@link RedisCacheWriter} using the given {@link CacheStatisticsCollector} to collect metrics.
+	 *
+	 * @param cacheStatisticsCollector must not be {@literal null}.
+	 * @return new instance of {@link RedisCacheWriter}.
+	 */
+	RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector);
+
 }

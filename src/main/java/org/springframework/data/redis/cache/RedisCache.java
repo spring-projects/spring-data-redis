@@ -194,6 +194,26 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	/**
+	 * Return the {@link CacheStatistics} snapshot for this cache instance. Statistics are accumulated per cache instance
+	 * and not from the backing Redis data store.
+	 *
+	 * @return statistics object for this {@link RedisCache}.
+	 * @since 2.4
+	 */
+	public CacheStatistics getStatistics() {
+		return cacheWriter.getCacheStatistics(getName());
+	}
+
+	/**
+	 * Reset all statistics counters and gauges for this cache.
+	 *
+	 * @since 2.4
+	 */
+	public void clearStatistics() {
+		cacheWriter.clearStatistics(getName());
+	}
+
+	/**
 	 * Get {@link RedisCacheConfiguration} used.
 	 *
 	 * @return immutable {@link RedisCacheConfiguration}. Never {@literal null}.

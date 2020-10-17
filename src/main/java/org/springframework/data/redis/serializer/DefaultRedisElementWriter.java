@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.serializer;
 
-import lombok.RequiredArgsConstructor;
-
 import java.nio.ByteBuffer;
 
 import org.springframework.lang.Nullable;
@@ -28,10 +26,13 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @since 2.0
  */
-@RequiredArgsConstructor
 class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 
 	private final @Nullable RedisSerializer<T> serializer;
+
+	DefaultRedisElementWriter(RedisSerializer<T> serializer) {
+		this.serializer = serializer;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.serializer.RedisElementWriter#write(java.lang.Object)
@@ -51,7 +52,8 @@ class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 			return (ByteBuffer) value;
 		}
 
-		throw new IllegalStateException(String.format("Cannot serialize value of type %s without a serializer", value.getClass()));
+		throw new IllegalStateException(
+				String.format("Cannot serialize value of type %s without a serializer", value.getClass()));
 
 	}
 }

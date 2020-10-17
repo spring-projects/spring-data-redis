@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Andrey Shlykov
  * @since 2.0
  */
 public interface ReactiveZSetCommands {
@@ -1121,6 +1122,82 @@ public interface ReactiveZSetCommands {
 	Flux<NumericResponse<ZCountCommand, Long>> zCount(Publisher<ZCountCommand> commands);
 
 	/**
+	 * {@code ZLEXCOUNT} command parameters.
+	 *
+	 * @author Andrey Shlykov
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	class ZLexCountCommand extends KeyCommand {
+
+		private final Range<String> range;
+
+		private ZLexCountCommand(@Nullable ByteBuffer key, Range<String> range) {
+			super(key);
+			this.range = range;
+		}
+
+		/**
+		 * Creates a new {@link ZLexCountCommand} given a {@link Range} of {@link String} to retrieve elements count.
+		 *
+		 * @param range must not be {@literal null}.
+		 * @return a new {@link ZLexCountCommand} for {@link Range}.
+		 */
+		public static ZLexCountCommand stringsWithin(Range<String> range) {
+
+			Assert.notNull(range, "Range must not be null!");
+
+			return new ZLexCountCommand(null, range);
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ZLexCountCommand} with {@literal key} applied.
+		 */
+		public ZLexCountCommand forKey(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new ZLexCountCommand(key, range);
+		}
+
+		/**
+		 * @return
+		 */
+		public Range<String> getRange() {
+			return range;
+		}
+	}
+
+	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
+	 * lexicographical ordering.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	default Mono<Long> zLexCount(ByteBuffer key, Range<String> range) {
+		return zLexCount(Mono.just(ZLexCountCommand.stringsWithin(range).forKey(key))).next()
+				.map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
+	 * lexicographical ordering.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 */
+	Flux<NumericResponse<ZLexCountCommand, Long>> zLexCount(Publisher<ZLexCountCommand> commands);
+
+	/**
 	 * Get the size of sorted set with {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -1935,4 +2012,5 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
 	Flux<CommandResponse<ZRangeByLexCommand, Flux<ByteBuffer>>> zRangeByLex(Publisher<ZRangeByLexCommand> commands);
+
 }

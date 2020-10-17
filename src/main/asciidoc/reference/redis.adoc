@@ -324,11 +324,6 @@ public RedisConnectionFactory lettuceConnectionFactory() {
 
 Sometimes, direct interaction with one of the Sentinels is required. Using `RedisConnectionFactory.getSentinelConnection()` or `RedisConnection.getSentinelCommands()` gives you access to the first active Sentinel configured.
 
-[NOTE]
-====
-Sentinel authentication is only available using https://lettuce.io/[Lettuce].
-====
-
 [[redis:template]]
 == Working with Objects through RedisTemplate
 
@@ -504,7 +499,7 @@ Do note that the storage format is not limited only to values. It can be used fo
 
 [WARNING]
 ====
-By default, `RedisCache` and `RedisTemplate` are configured to use Java native serialization. Java native serialization is known for allowing remote code execution caused by payloads that exploit vulnerable libraries and classes injecting unverified bytecode. Manipulated input could lead to unwanted code execution in the application during the deserialization step. As a consequence, do not use serialization in untrusted environments. In general, we strongly recommend any other message format (such as JSON) instead.
+By default, `RedisCache` and `RedisTemplate` are configured to use Java native serialization. Java native serialization is known for allowing the running of remote code caused by payloads that exploit vulnerable libraries and classes injecting unverified bytecode. Manipulated input could lead to unwanted code being run in the application during the deserialization step. As a consequence, do not use serialization in untrusted environments. In general, we strongly recommend any other message format (such as JSON) instead.
 
 If you are concerned about security vulnerabilities due to Java serialization, consider the general-purpose serialization filter mechanism at the core JVM level, originally developed for JDK 9 but backported to JDK 8, 7, and 6:
 
@@ -809,3 +804,9 @@ The following table lists the default settings for `RedisCacheConfiguration`:
 |Conversion Service
 |`DefaultFormattingConversionService` with default cache key converters
 |====
+
+[NOTE]
+====
+By default `RedisCache`, statistics are disabled.
+Use `RedisCacheManagerBuilder.enableStatistics()` to collect local _hits_ and _misses_ through  `RedisCache#getStatistics()`, returning a snapshot of the collected data.
+====

@@ -50,6 +50,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	private Set<RedisNode> sentinels;
 	private int database;
 
+	private @Nullable String dataNodeUsername = null;
 	private RedisPassword dataNodePassword = RedisPassword.none();
 	private RedisPassword sentinelPassword = RedisPassword.none();
 
@@ -227,6 +228,25 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
 
 		this.database = index;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#setUsername(String)
+	 */
+	@Override
+	public void setUsername(@Nullable String username) {
+		this.dataNodeUsername = username;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#getUsername()
+	 */
+	@Nullable
+	@Override
+	public String getUsername() {
+		return this.dataNodeUsername;
 	}
 
 	/*
