@@ -27,34 +27,30 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map.Entry;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
-import org.springframework.data.redis.connection.jedis.JedisConnectionUnitTestSuite.JedisConnectionPipelineUnitTests;
-import org.springframework.data.redis.connection.jedis.JedisConnectionUnitTestSuite.JedisConnectionUnitTests;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 
 /**
  * @author Christoph Strobl
  */
-@RunWith(Suite.class)
-@SuiteClasses({ JedisConnectionUnitTests.class, JedisConnectionPipelineUnitTests.class })
-public class JedisConnectionUnitTestSuite {
+class JedisConnectionUnitTests {
 
-	public static class JedisConnectionUnitTests extends AbstractConnectionUnitTestBase<Client> {
+	@Nested
+	public class BasicUnitTests extends AbstractConnectionUnitTestBase<Client> {
 
 		protected JedisConnection connection;
 		private Jedis jedisSpy;
 
-		@Before
+		@BeforeEach
 		public void setUp() {
 
 			jedisSpy = spy(new MockedClientJedis("http://localhost:1234", getNativeRedisConnectionMock()));
@@ -62,7 +58,7 @@ public class JedisConnectionUnitTestSuite {
 		}
 
 		@Test // DATAREDIS-184
-		public void shutdownWithNullShouldDelegateCommandCorrectly() {
+		void shutdownWithNullShouldDelegateCommandCorrectly() {
 
 			connection.shutdown(null);
 
@@ -106,7 +102,7 @@ public class JedisConnectionUnitTestSuite {
 		}
 
 		@Test // DATAREDIS-277
-		public void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
+		void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
 			assertThatIllegalArgumentException().isThrownBy(() -> connection.slaveOf(null, 0));
 		}
 
@@ -125,37 +121,37 @@ public class JedisConnectionUnitTestSuite {
 		}
 
 		@Test // DATAREDIS-330
-		public void shouldThrowExceptionWhenAccessingRedisSentinelsCommandsWhenNoSentinelsConfigured() {
+		void shouldThrowExceptionWhenAccessingRedisSentinelsCommandsWhenNoSentinelsConfigured() {
 			assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class)
 					.isThrownBy(() -> connection.getSentinelConnection());
 		}
 
 		@Test // DATAREDIS-472
-		public void restoreShouldThrowExceptionWhenTtlInMillisExceedsIntegerRange() {
+		void restoreShouldThrowExceptionWhenTtlInMillisExceedsIntegerRange() {
 			assertThatIllegalArgumentException()
 					.isThrownBy(() -> connection.restore("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes()));
 		}
 
 		@Test // DATAREDIS-472
-		public void setExShouldThrowExceptionWhenTimeExceedsIntegerRange() {
+		void setExShouldThrowExceptionWhenTimeExceedsIntegerRange() {
 			assertThatIllegalArgumentException()
 					.isThrownBy(() -> connection.setEx("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes()));
 		}
 
 		@Test // DATAREDIS-472
-		public void sRandMemberShouldThrowExceptionWhenCountExceedsIntegerRange() {
+		void sRandMemberShouldThrowExceptionWhenCountExceedsIntegerRange() {
 			assertThatIllegalArgumentException()
 					.isThrownBy(() -> connection.sRandMember("foo".getBytes(), (long) Integer.MAX_VALUE + 1L));
 		}
 
 		@Test // DATAREDIS-472
-		public void zRangeByScoreShouldThrowExceptionWhenOffsetExceedsIntegerRange() {
+		void zRangeByScoreShouldThrowExceptionWhenOffsetExceedsIntegerRange() {
 			assertThatIllegalArgumentException().isThrownBy(() -> connection.zRangeByScore("foo".getBytes(), "foo", "bar",
 					(long) Integer.MAX_VALUE + 1L, Integer.MAX_VALUE));
 		}
 
 		@Test // DATAREDIS-472
-		public void zRangeByScoreShouldThrowExceptionWhenCountExceedsIntegerRange() {
+		void zRangeByScoreShouldThrowExceptionWhenCountExceedsIntegerRange() {
 			assertThatIllegalArgumentException().isThrownBy(() -> connection.zRangeByScore("foo".getBytes(), "foo", "bar",
 					Integer.MAX_VALUE, (long) Integer.MAX_VALUE + 1L));
 		}
@@ -253,7 +249,7 @@ public class JedisConnectionUnitTestSuite {
 		}
 
 		@Test // DATAREDIS-714
-		public void doesNotSelectDbWhenCurrentDbMatchesDesiredOne() {
+		void doesNotSelectDbWhenCurrentDbMatchesDesiredOne() {
 
 			Jedis jedisSpy = spy(new MockedClientJedis("http://localhost:1234", getNativeRedisConnectionMock()));
 			new JedisConnection(jedisSpy);
@@ -262,7 +258,7 @@ public class JedisConnectionUnitTestSuite {
 		}
 
 		@Test // DATAREDIS-714
-		public void doesNotSelectDbWhenCurrentDbDoesNotMatchDesiredOne() {
+		void doesNotSelectDbWhenCurrentDbDoesNotMatchDesiredOne() {
 
 			Jedis jedisSpy = spy(new MockedClientJedis("http://localhost:1234", getNativeRedisConnectionMock()));
 			when(jedisSpy.getDB()).thenReturn(3);
@@ -273,9 +269,10 @@ public class JedisConnectionUnitTestSuite {
 		}
 	}
 
-	public static class JedisConnectionPipelineUnitTests extends JedisConnectionUnitTests {
+	@Nested
+	public class JedisConnectionPipelineUnitTests extends BasicUnitTests {
 
-		@Before
+		@BeforeEach
 		public void setUp() {
 			super.setUp();
 			connection.openPipeline();
@@ -380,7 +377,7 @@ public class JedisConnectionUnitTestSuite {
 	 */
 	private static class MockedClientJedis extends Jedis {
 
-		public MockedClientJedis(String host, Client client) {
+		MockedClientJedis(String host, Client client) {
 			super(host);
 			this.client = client;
 		}

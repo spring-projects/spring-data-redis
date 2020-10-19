@@ -24,17 +24,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.Person;
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -45,6 +44,7 @@ import org.springframework.data.redis.serializer.RedisElementWriter;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializationContext.RedisSerializationContextBuilder;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.scripting.support.StaticScriptSource;
 
 /**
@@ -57,27 +57,17 @@ public class DefaultReactiveScriptExecutorTests {
 	private static StringRedisTemplate stringTemplate;
 	private static ReactiveScriptExecutor<String> stringScriptExecutor;
 
-	@BeforeClass
-	public static void setUp() {
+	@BeforeAll
+	static void setUp() {
 
-		connectionFactory = new LettuceConnectionFactory(SettingsUtils.standaloneConfiguration(),
-				LettuceTestClientConfiguration.create());
-		connectionFactory.afterPropertiesSet();
+		connectionFactory = LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
 
 		stringTemplate = new StringRedisTemplate(connectionFactory);
 		stringScriptExecutor = new DefaultReactiveScriptExecutor<>(connectionFactory, RedisSerializationContext.string());
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-
-		if (connectionFactory != null) {
-			connectionFactory.destroy();
-		}
-	}
-
-	@After
-	public void tearDown() {
+	@BeforeEach
+	void before() {
 
 		RedisConnection connection = connectionFactory.getConnection();
 		try {
@@ -93,7 +83,7 @@ public class DefaultReactiveScriptExecutorTests {
 	}
 
 	@Test // DATAREDIS-711
-	public void shouldReturnLong() {
+	void shouldReturnLong() {
 
 		DefaultRedisScript<Long> script = new DefaultRedisScript<>();
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/increment.lua"));
@@ -108,7 +98,7 @@ public class DefaultReactiveScriptExecutorTests {
 	}
 
 	@Test // DATAREDIS-711
-	public void shouldReturnBoolean() {
+	void shouldReturnBoolean() {
 
 		RedisSerializationContextBuilder<String, Long> builder = RedisSerializationContext
 				.newSerializationContext(StringRedisSerializer.UTF_8);
@@ -132,7 +122,7 @@ public class DefaultReactiveScriptExecutorTests {
 
 	@Test // DATAREDIS-711
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void shouldApplyCustomArgsSerializer() {
+	void shouldApplyCustomArgsSerializer() {
 
 		DefaultRedisScript<List> script = new DefaultRedisScript<>();
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/bulkpop.lua"));
@@ -148,7 +138,7 @@ public class DefaultReactiveScriptExecutorTests {
 	}
 
 	@Test // DATAREDIS-711
-	public void testExecuteMixedListResult() {
+	void testExecuteMixedListResult() {
 
 		DefaultRedisScript<List> script = new DefaultRedisScript<>();
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/popandlength.lua"));
@@ -164,7 +154,7 @@ public class DefaultReactiveScriptExecutorTests {
 	}
 
 	@Test // DATAREDIS-711
-	public void shouldReturnValueResult() {
+	void shouldReturnValueResult() {
 
 		DefaultRedisScript<String> script = new DefaultRedisScript<>();
 		script.setScriptText("return redis.call('GET',KEYS[1])");
@@ -179,7 +169,7 @@ public class DefaultReactiveScriptExecutorTests {
 
 	@Test // DATAREDIS-711
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void shouldReturnStatusValue() {
+	void shouldReturnStatusValue() {
 
 		DefaultRedisScript script = new DefaultRedisScript();
 		script.setScriptText("return redis.call('SET',KEYS[1], ARGV[1])");
@@ -198,7 +188,7 @@ public class DefaultReactiveScriptExecutorTests {
 	}
 
 	@Test // DATAREDIS-711
-	public void shouldApplyCustomResultSerializer() {
+	void shouldApplyCustomResultSerializer() {
 
 		Jackson2JsonRedisSerializer<Person> personSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 
@@ -223,7 +213,7 @@ public class DefaultReactiveScriptExecutorTests {
 	}
 
 	@Test // DATAREDIS-711
-	public void executeAddsScriptToScriptCache() {
+	void executeAddsScriptToScriptCache() {
 
 		DefaultRedisScript<String> script = new DefaultRedisScript<>();
 		script.setScriptText("return 'HELLO'");

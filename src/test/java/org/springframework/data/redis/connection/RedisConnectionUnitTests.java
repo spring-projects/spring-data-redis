@@ -25,8 +25,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -47,14 +48,14 @@ import org.springframework.util.ObjectUtils;
  * @author Ninad Divadkar
  * @author Mark Paluch
  */
-public class RedisConnectionUnitTests {
+class RedisConnectionUnitTests {
 
 	private final RedisNode SENTINEL_1 = new RedisNodeBuilder().listeningAt("localhost", 23679).build();
 	private AbstractDelegatingRedisConnectionStub connection;
 	private RedisSentinelConnection sentinelConnectionMock;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 		sentinelConnectionMock = mock(RedisSentinelConnection.class);
 
 		connection = new AbstractDelegatingRedisConnectionStub(mock(AbstractRedisConnection.class, CALLS_REAL_METHODS));
@@ -63,7 +64,7 @@ public class RedisConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-330
-	public void shouldCloseSentinelConnectionAlongWithRedisConnection() throws IOException {
+	void shouldCloseSentinelConnectionAlongWithRedisConnection() throws IOException {
 
 		when(sentinelConnectionMock.isOpen()).thenReturn(true).thenReturn(false);
 
@@ -75,7 +76,7 @@ public class RedisConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-330
-	public void shouldNotTryToCloseSentinelConnectionsWhenAlreadyClosed() throws IOException {
+	void shouldNotTryToCloseSentinelConnectionsWhenAlreadyClosed() throws IOException {
 
 		when(sentinelConnectionMock.isOpen()).thenReturn(true);
 		when(sentinelConnectionMock.isOpen()).thenReturn(false);
@@ -93,7 +94,7 @@ public class RedisConnectionUnitTests {
 		RedisNode activeNode;
 		RedisSentinelConnection sentinelConnection;
 
-		public AbstractDelegatingRedisConnectionStub(RedisConnection delegate) {
+		AbstractDelegatingRedisConnectionStub(RedisConnection delegate) {
 			this.delegate = delegate;
 		}
 
@@ -102,11 +103,11 @@ public class RedisConnectionUnitTests {
 			return ObjectUtils.nullSafeEquals(activeNode, node);
 		}
 
-		public void setActiveNode(RedisNode activeNode) {
+		void setActiveNode(RedisNode activeNode) {
 			this.activeNode = activeNode;
 		}
 
-		public void setSentinelConnection(RedisSentinelConnection sentinelConnection) {
+		void setSentinelConnection(RedisSentinelConnection sentinelConnection) {
 			this.sentinelConnection = sentinelConnection;
 		}
 

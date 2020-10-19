@@ -27,6 +27,8 @@ import java.time.Duration;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
 
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
+
 /**
  * Unit tests for {@link LettucePoolingClientConfiguration}.
  *

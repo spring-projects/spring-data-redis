@@ -21,8 +21,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -42,13 +42,13 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration
 public class RedisRepositoryIntegrationTests extends RedisRepositoryIntegrationTestBase {
 

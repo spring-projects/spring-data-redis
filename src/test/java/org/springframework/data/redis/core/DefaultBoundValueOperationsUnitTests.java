@@ -20,29 +20,32 @@ import static org.mockito.Mockito.*;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * Unit tests for {@link DefaultBoundValueOperations}
- * 
+ *
  * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
-public class DefaultBoundValueOperationsUnitTests {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class DefaultBoundValueOperationsUnitTests {
 
-	DefaultBoundValueOperations<String, Object> boundValueOps;
+	private DefaultBoundValueOperations<String, Object> boundValueOps;
 
 	@Mock ValueOperations<String, Object> valueOps;
 
-	static final String KEY = "key-1";
-	static final Object VALUE = "value";
+	private static final String KEY = "key-1";
+	private static final Object VALUE = "value";
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		RedisOperations<String, Object> redisOps = mock(RedisOperations.class);
 		when(redisOps.opsForValue()).thenReturn(valueOps);
@@ -51,7 +54,7 @@ public class DefaultBoundValueOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-786
-	public void setIfPresentShouldDelegateCorrectly() {
+	void setIfPresentShouldDelegateCorrectly() {
 
 		boundValueOps.setIfPresent(VALUE);
 
@@ -59,7 +62,7 @@ public class DefaultBoundValueOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-786
-	public void setIfPresentWithTimeoutShouldDelegateCorrectly() {
+	void setIfPresentWithTimeoutShouldDelegateCorrectly() {
 
 		boundValueOps.setIfPresent(VALUE, 10, TimeUnit.SECONDS);
 
@@ -67,7 +70,7 @@ public class DefaultBoundValueOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-815
-	public void setWithDurationOfSecondsShouldDelegateCorrectly() {
+	void setWithDurationOfSecondsShouldDelegateCorrectly() {
 
 		boundValueOps.set(VALUE, Duration.ofSeconds(1));
 
@@ -75,7 +78,7 @@ public class DefaultBoundValueOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-815
-	public void setWithDurationOfMillisShouldDelegateCorrectly() {
+	void setWithDurationOfMillisShouldDelegateCorrectly() {
 
 		boundValueOps.set(VALUE, Duration.ofMillis(250));
 
@@ -83,7 +86,7 @@ public class DefaultBoundValueOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-815
-	public void setIfAbsentWithDurationOfSecondsShouldDelegateCorrectly() {
+	void setIfAbsentWithDurationOfSecondsShouldDelegateCorrectly() {
 
 		boundValueOps.setIfAbsent(VALUE, Duration.ofSeconds(1));
 
@@ -91,7 +94,7 @@ public class DefaultBoundValueOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-815
-	public void setIfAbsentWithDurationOfMillisShouldDelegateCorrectly() {
+	void setIfAbsentWithDurationOfMillisShouldDelegateCorrectly() {
 
 		boundValueOps.setIfAbsent(VALUE, Duration.ofMillis(250));
 
@@ -99,7 +102,7 @@ public class DefaultBoundValueOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-815
-	public void setIfPresentWithDurationOfSecondsShouldDelegateCorrectly() {
+	void setIfPresentWithDurationOfSecondsShouldDelegateCorrectly() {
 
 		boundValueOps.setIfPresent(VALUE, Duration.ofSeconds(1));
 
@@ -107,7 +110,7 @@ public class DefaultBoundValueOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-815
-	public void setIfPresentWithDurationOfMillisShouldDelegateCorrectly() {
+	void setIfPresentWithDurationOfMillisShouldDelegateCorrectly() {
 
 		boundValueOps.setIfPresent(VALUE, Duration.ofMillis(250));
 

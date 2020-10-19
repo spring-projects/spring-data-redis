@@ -32,8 +32,11 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 
 /**
  * @author Artem Bilian
@@ -47,25 +50,14 @@ public class MultithreadedRedisTemplateTests {
 
 	public MultithreadedRedisTemplateTests(RedisConnectionFactory factory) {
 		this.factory = factory;
-		ConnectionFactoryTracker.add(factory);
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Parameters
 	public static Collection<Object[]> testParams() {
 
-		JedisConnectionFactory jedis = new JedisConnectionFactory();
-		jedis.setPort(6379);
-		jedis.afterPropertiesSet();
+		JedisConnectionFactory jedis = JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
 
-		LettuceConnectionFactory lettuce = new LettuceConnectionFactory();
-		lettuce.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuce.setPort(6379);
-		lettuce.afterPropertiesSet();
+		LettuceConnectionFactory lettuce = LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
 
 		return Arrays.asList(new Object[][] { { jedis }, { lettuce } });
 	}

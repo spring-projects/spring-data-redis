@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.Iterator;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
@@ -30,7 +30,7 @@ import org.springframework.data.redis.connection.RedisNode.NodeType;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public class ConvertersUnitTests {
+class ConvertersUnitTests {
 
 	private static final String REDIS_3_0_CLUSTER_NODES_RESPONSE = "" //
 			+ "ef570f86c7b1a953846668debc177a3a16733420 127.0.0.1:6379@16379 myself,master - 0 0 1 connected 0-5460 5602"
@@ -57,7 +57,7 @@ public class ConvertersUnitTests {
 	private static final String CLUSTER_NODE_IMPORTING_SLOT = "ef570f86c7b1a953846668debc177a3a16733420 127.0.0.1:6379 myself,master - 0 0 1 connected [5461-<-0f2ee5df45d18c50aca07228cc18b1da96fd5e84]";
 
 	@Test // DATAREDIS-315
-	public void toSetOfRedis30ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
+	void toSetOfRedis30ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
 
 		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(REDIS_3_0_CLUSTER_NODES_RESPONSE).iterator();
 
@@ -107,7 +107,7 @@ public class ConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void toSetOfRedis32ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
+	void toSetOfRedis32ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
 
 		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(REDIS_3_2_CLUSTER_NODES_RESPONSE).iterator();
 
@@ -157,7 +157,7 @@ public class ConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void toSetOfRedisClusterNodesShouldConvertNodesWithSingleSlotCorrectly() {
+	void toSetOfRedisClusterNodesShouldConvertNodesWithSingleSlotCorrectly() {
 
 		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(CLUSTER_NODE_WITH_SINGLE_SLOT_RESPONSE)
 				.iterator();
@@ -171,7 +171,7 @@ public class ConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void toSetOfRedisClusterNodesShouldParseLinkStateAndDisconnectedCorrectly() {
+	void toSetOfRedisClusterNodesShouldParseLinkStateAndDisconnectedCorrectly() {
 
 		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(
 				CLUSTER_NODE_WITH_FAIL_FLAG_AND_DISCONNECTED_LINK_STATE).iterator();
@@ -187,7 +187,7 @@ public class ConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void toSetOfRedisClusterNodesShouldIgnoreImportingSlot() {
+	void toSetOfRedisClusterNodesShouldIgnoreImportingSlot() {
 
 		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(CLUSTER_NODE_IMPORTING_SLOT).iterator();
 

@@ -28,12 +28,14 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
@@ -49,9 +51,6 @@ abstract public class AbstractOperationsTestParams {
 	// DATAREDIS-241
 	public static Collection<Object[]> testParams() {
 
-		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration(SettingsUtils.getHost(),
-				SettingsUtils.getPort());
-
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 		ObjectFactory<Long> longFactory = new LongObjectFactory();
 		ObjectFactory<Double> doubleFactory = new DoubleObjectFactory();
@@ -66,9 +65,8 @@ abstract public class AbstractOperationsTestParams {
 			throw new RuntimeException("Cannot init XStream", ex);
 		}
 
-		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(standaloneConfiguration);
-		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnectionFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnectionFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate();
 		stringTemplate.setConnectionFactory(lettuceConnectionFactory);

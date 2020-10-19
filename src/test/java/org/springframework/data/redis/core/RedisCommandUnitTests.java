@@ -17,9 +17,7 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link RedisCommand}.
@@ -29,42 +27,40 @@ import org.junit.rules.ExpectedException;
  * @author Mark Paluch
  * @author Oscar Cai
  */
-public class RedisCommandUnitTests {
-
-	public @Rule ExpectedException expectedException = ExpectedException.none();
+class RedisCommandUnitTests {
 
 	@Test // DATAREDIS-73
-	public void shouldIdentifyAliasCorrectly() {
+	void shouldIdentifyAliasCorrectly() {
 		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy("setconfig")).isTrue();
 	}
 
 	@Test // DATAREDIS-73
-	public void shouldIdentifyAliasCorrectlyWhenNamePassedInMixedCase() {
+	void shouldIdentifyAliasCorrectlyWhenNamePassedInMixedCase() {
 		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy("SetConfig")).isTrue();
 	}
 
 	@Test // DATAREDIS-73
-	public void shouldNotThrowExceptionWhenUsingNullKeyForRepresentationCheck() {
+	void shouldNotThrowExceptionWhenUsingNullKeyForRepresentationCheck() {
 		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy(null)).isFalse();
 	}
 
 	@Test // DATAREDIS-73
-	public void shouldIdentifyAliasCorrectlyViaLookup() {
+	void shouldIdentifyAliasCorrectlyViaLookup() {
 		assertThat(RedisCommand.failsafeCommandLookup("setconfig")).isEqualTo(RedisCommand.CONFIG_SET);
 	}
 
 	@Test // DATAREDIS-73
-	public void shouldIdentifyAliasCorrectlyWhenNamePassedInMixedCaseViaLookup() {
+	void shouldIdentifyAliasCorrectlyWhenNamePassedInMixedCaseViaLookup() {
 		assertThat(RedisCommand.failsafeCommandLookup("SetConfig")).isEqualTo(RedisCommand.CONFIG_SET);
 	}
 
 	@Test // DATAREDIS-73
-	public void shouldReturnUnknownCommandForUnknownCommandString() {
+	void shouldReturnUnknownCommandForUnknownCommandString() {
 		assertThat(RedisCommand.failsafeCommandLookup("strangecommand")).isEqualTo(RedisCommand.UNKNOWN);
 	}
 
 	@Test // DATAREDIS-73, DATAREDIS-972, DATAREDIS-1013
-	public void shouldNotThrowExceptionOnValidArgumentCount() {
+	void shouldNotThrowExceptionOnValidArgumentCount() {
 
 		RedisCommand.AUTH.validateArgumentCount(1);
 		RedisCommand.ZADD.validateArgumentCount(3);
@@ -75,7 +71,7 @@ public class RedisCommandUnitTests {
 	}
 
 	@Test // DATAREDIS-822
-	public void shouldConsiderMinMaxArguments() {
+	void shouldConsiderMinMaxArguments() {
 
 		RedisCommand.BITPOS.validateArgumentCount(2);
 		RedisCommand.BITPOS.validateArgumentCount(3);
@@ -83,38 +79,26 @@ public class RedisCommandUnitTests {
 	}
 
 	@Test // DATAREDIS-822
-	public void shouldReportArgumentMismatchIfMaxArgumentsExceeded() {
-
-		expectedException.expect(IllegalArgumentException.class);
-		expectedException.expectMessage("SELECT command requires 1 argument");
-
-		RedisCommand.SELECT.validateArgumentCount(0);
+	void shouldReportArgumentMismatchIfMaxArgumentsExceeded() {
+		assertThatIllegalArgumentException().isThrownBy(() -> RedisCommand.SELECT.validateArgumentCount(0))
+				.withMessageContaining("SELECT command requires 1 argument");
 	}
 
 	@Test // DATAREDIS-73
-	public void shouldThrowExceptionOnInvalidArgumentCountWhenExpectedExactMatch() {
-
-		expectedException.expect(IllegalArgumentException.class);
-		expectedException.expectMessage("AUTH command requires 1 argument");
-
-		RedisCommand.AUTH.validateArgumentCount(2);
+	void shouldThrowExceptionOnInvalidArgumentCountWhenExpectedExactMatch() {
+		assertThatIllegalArgumentException().isThrownBy(() -> RedisCommand.AUTH.validateArgumentCount(2))
+				.withMessageContaining("AUTH command requires 1 argument");
 	}
 
 	@Test // DATAREDIS-73
-	public void shouldThrowExceptionOnInvalidArgumentCountForDelWhenExpectedMinimalMatch() {
-
-		expectedException.expect(IllegalArgumentException.class);
-		expectedException.expectMessage("DEL command requires at least 1 argument");
-
-		RedisCommand.DEL.validateArgumentCount(0);
+	void shouldThrowExceptionOnInvalidArgumentCountForDelWhenExpectedMinimalMatch() {
+		assertThatIllegalArgumentException().isThrownBy(() -> RedisCommand.DEL.validateArgumentCount(0))
+				.withMessageContaining("DEL command requires at least 1 argument");
 	}
 
 	@Test // DATAREDIS-972
-	public void shouldThrowExceptionOnInvalidArgumentCountForZaddWhenExpectedMinimalMatch() {
-
-		expectedException.expect(IllegalArgumentException.class);
-		expectedException.expectMessage("ZADD command requires at least 3 arguments");
-
-		RedisCommand.ZADD.validateArgumentCount(2);
+	void shouldThrowExceptionOnInvalidArgumentCountForZaddWhenExpectedMinimalMatch() {
+		assertThatIllegalArgumentException().isThrownBy(() -> RedisCommand.ZADD.validateArgumentCount(2))
+				.withMessageContaining("ZADD command requires at least 3 arguments");
 	}
 }

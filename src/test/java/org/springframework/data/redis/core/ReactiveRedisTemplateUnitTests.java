@@ -24,7 +24,8 @@ import reactor.test.StepVerifier;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.connection.ReactivePubSubCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
@@ -36,13 +37,13 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
  *
  * @author Mark Paluch
  */
-public class ReactiveRedisTemplateUnitTests {
+class ReactiveRedisTemplateUnitTests {
 
-	ReactiveRedisConnectionFactory connectionFactoryMock = mock(ReactiveRedisConnectionFactory.class);
-	ReactiveRedisConnection connectionMock = mock(ReactiveRedisConnection.class);
+	private ReactiveRedisConnectionFactory connectionFactoryMock = mock(ReactiveRedisConnectionFactory.class);
+	private ReactiveRedisConnection connectionMock = mock(ReactiveRedisConnection.class);
 
 	@Test // DATAREDIS-999
-	public void closeShouldUseAsyncRelease() {
+	void closeShouldUseAsyncRelease() {
 
 		when(connectionFactoryMock.getReactiveConnection()).thenReturn(connectionMock);
 		when(connectionMock.closeLater()).thenReturn(Mono.empty());
@@ -59,7 +60,7 @@ public class ReactiveRedisTemplateUnitTests {
 	}
 
 	@Test // DATAREDIS-1053
-	public void listenToShouldSubscribeToChannel() {
+	void listenToShouldSubscribeToChannel() {
 
 		AtomicBoolean closed = new AtomicBoolean();
 		when(connectionFactoryMock.getReactiveConnection()).thenReturn(connectionMock);

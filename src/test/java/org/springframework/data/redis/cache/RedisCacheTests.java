@@ -83,11 +83,6 @@ public class RedisCacheTests {
 		return CacheTestParams.connectionFactoriesAndSerializers();
 	}
 
-	@AfterClass
-	public static void cleanUpResources() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
 	@Before
 	public void setUp() {
 

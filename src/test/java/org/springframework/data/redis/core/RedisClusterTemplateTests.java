@@ -35,13 +35,16 @@ import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
+import org.springframework.data.redis.test.extension.RedisCluster;
 import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
@@ -50,8 +53,6 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
  * @author Mark Paluch
  */
 public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
-
-	static final List<String> CLUSTER_NODES = Arrays.asList("127.0.0.1:7379", "127.0.0.1:7380", "127.0.0.1:7381");
 
 	public RedisClusterTemplateTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<V> valueFactory) {
@@ -166,8 +167,8 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 
 		// JEDIS
-		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(
-				new RedisClusterConfiguration(CLUSTER_NODES));
+		JedisConnectionFactory jedisConnectionFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisCluster.class);
 
 		jedisConnectionFactory.afterPropertiesSet();
 
@@ -203,17 +204,8 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 
 		// LETTUCE
 
-		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(
-				new RedisClusterConfiguration(CLUSTER_NODES));
-		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-
-		lettuceConnectionFactory.afterPropertiesSet();
-
-		LettuceConnectionFactory pooledLettuceConnectionFactory = new LettuceConnectionFactory(
-				new RedisClusterConfiguration(CLUSTER_NODES), LettucePoolingClientConfiguration.builder()
-						.clientResources(LettuceTestClientResources.getSharedClientResources()).build());
-
-		pooledLettuceConnectionFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnectionFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisCluster.class);
 
 		RedisTemplate<String, String> lettuceStringTemplate = new RedisTemplate<>();
 		lettuceStringTemplate.setDefaultSerializer(StringRedisSerializer.UTF_8);
@@ -245,11 +237,6 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 		lettuceJackson2JsonPersonTemplate.setValueSerializer(jackson2JsonSerializer);
 		lettuceJackson2JsonPersonTemplate.afterPropertiesSet();
 
-		RedisTemplate<String, String> pooledLettuceStringTemplate = new RedisTemplate<>();
-		pooledLettuceStringTemplate.setDefaultSerializer(StringRedisSerializer.UTF_8);
-		pooledLettuceStringTemplate.setConnectionFactory(pooledLettuceConnectionFactory);
-		pooledLettuceStringTemplate.afterPropertiesSet();
-
 		return Arrays.asList(new Object[][] { //
 
 				// JEDIS
@@ -267,7 +254,6 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 				{ lettucePersonTemplate, stringFactory, personFactory }, //
 				{ lettuceXstreamStringTemplate, stringFactory, stringFactory }, //
 				{ lettuceJackson2JsonPersonTemplate, stringFactory, personFactory }, //
-				{ pooledLettuceStringTemplate, stringFactory, stringFactory } //
 		});
 	}
 

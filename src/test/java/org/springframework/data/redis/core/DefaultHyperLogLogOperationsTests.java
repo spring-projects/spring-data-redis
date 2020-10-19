@@ -57,8 +57,6 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
-
-		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Parameters

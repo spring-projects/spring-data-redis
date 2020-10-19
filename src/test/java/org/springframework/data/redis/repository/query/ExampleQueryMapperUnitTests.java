@@ -24,7 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
@@ -44,11 +45,11 @@ import org.springframework.data.redis.repository.query.RedisOperationChain.PathA
  */
 public class ExampleQueryMapperUnitTests {
 
-	RedisMappingContext mappingContext = new RedisMappingContext();
-	ExampleQueryMapper mapper = new ExampleQueryMapper(mappingContext, new PathIndexResolver(mappingContext));
+	private RedisMappingContext mappingContext = new RedisMappingContext();
+	private ExampleQueryMapper mapper = new ExampleQueryMapper(mappingContext, new PathIndexResolver(mappingContext));
 
 	@Test // DATAREDIS-605
-	public void shouldRejectCaseInsensitiveMatching() {
+	void shouldRejectCaseInsensitiveMatching() {
 
 		assertThatThrownBy(() -> {
 			mapper.getMappedExample(Example.of(new Person(), ExampleMatcher.matching().withIgnoreCase()));
@@ -56,7 +57,7 @@ public class ExampleQueryMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-605
-	public void shouldRejectUnsupportedStringMatchers() {
+	void shouldRejectUnsupportedStringMatchers() {
 
 		List<StringMatcher> unsupported = Arrays.asList(StringMatcher.STARTING, StringMatcher.REGEX,
 				StringMatcher.CONTAINING, StringMatcher.ENDING);
@@ -74,7 +75,7 @@ public class ExampleQueryMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-605
-	public void shouldMapSimpleExample() {
+	void shouldMapSimpleExample() {
 
 		Person person = new Person();
 		person.setFirstname("Walter");
@@ -89,7 +90,7 @@ public class ExampleQueryMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-605
-	public void shouldIgnoreFieldsWithoutIndexWithAllMatch() {
+	void shouldIgnoreFieldsWithoutIndexWithAllMatch() {
 
 		Person person = new Person();
 		person.setLastname("Foo");
@@ -101,7 +102,7 @@ public class ExampleQueryMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-605
-	public void shouldIncludeFieldsWithoutIndexWithAnyMatch() {
+	void shouldIncludeFieldsWithoutIndexWithAnyMatch() {
 
 		Person person = new Person();
 		person.setLastname("Foo");
@@ -113,7 +114,7 @@ public class ExampleQueryMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-605
-	public void shouldIgnorePaths() {
+	void shouldIgnorePaths() {
 
 		Person person = new Person();
 		person.setFirstname("Walter");
@@ -128,7 +129,7 @@ public class ExampleQueryMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-605
-	public void shouldMapNestedExample() {
+	void shouldMapNestedExample() {
 
 		Person person = new Person();
 
@@ -145,7 +146,7 @@ public class ExampleQueryMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-605
-	public void shouldIgnoreMapsAndCollections() {
+	void shouldIgnoreMapsAndCollections() {
 
 		Person person = new Person();
 		person.setNicknames(Arrays.asList("Heisenberg"));
@@ -158,7 +159,7 @@ public class ExampleQueryMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-605
-	public void shouldMapMatchingAny() {
+	void shouldMapMatchingAny() {
 
 		Person person = new Person();
 		person.setFirstname("Walter");
@@ -173,7 +174,7 @@ public class ExampleQueryMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-605
-	public void shouldApplyPropertyTransformation() {
+	void shouldApplyPropertyTransformation() {
 
 		Person person = new Person();
 		person.setFirstname("Walter");

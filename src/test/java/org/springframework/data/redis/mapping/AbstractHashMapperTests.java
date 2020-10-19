@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
@@ -29,7 +29,7 @@ import org.springframework.data.redis.hash.HashMapper;
  * @author Costin Leau
  * @author Christoph Strobl
  */
-public abstract class AbstractHashMapperTest {
+public abstract class AbstractHashMapperTests {
 
 	@SuppressWarnings("rawtypes")
 	protected abstract <T> HashMapper mapperFor(Class<T> t);

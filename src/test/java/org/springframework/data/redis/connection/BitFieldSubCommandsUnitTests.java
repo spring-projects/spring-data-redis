@@ -15,9 +15,10 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
 
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType;
 
@@ -26,10 +27,10 @@ import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldTyp
  *
  * @author Mark Paluch
  */
-public class BitFieldSubCommandsUnitTests {
+class BitFieldSubCommandsUnitTests {
 
 	@Test // DATAREDIS-971
-	public void shouldCreateSignedBitFieldType() {
+	void shouldCreateSignedBitFieldType() {
 
 		BitFieldType type = BitFieldType.signed(10);
 
@@ -38,7 +39,7 @@ public class BitFieldSubCommandsUnitTests {
 	}
 
 	@Test // DATAREDIS-971
-	public void shouldCreateUnsignedBitFieldType() {
+	void shouldCreateUnsignedBitFieldType() {
 
 		BitFieldType type = BitFieldType.unsigned(10);
 

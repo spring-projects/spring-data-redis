@@ -33,15 +33,16 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import org.springframework.data.redis.ConnectionFactoryTracker;
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 
 /**
  * @author Mark Paluch
@@ -57,31 +58,19 @@ public class ScanTests {
 			new LinkedBlockingDeque<>());
 
 	public ScanTests(RedisConnectionFactory factory) {
-
 		this.factory = factory;
-		ConnectionFactoryTracker.add(factory);
 	}
 
 	@Parameters
 	public static List<RedisConnectionFactory> params() {
 
-		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory();
-		jedisConnectionFactory.setHostName(SettingsUtils.getHost());
-		jedisConnectionFactory.setPort(SettingsUtils.getPort());
-		jedisConnectionFactory.afterPropertiesSet();
+		JedisConnectionFactory jedisConnectionFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
-		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
-		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnectionFactory.setHostName(SettingsUtils.getHost());
-		lettuceConnectionFactory.setPort(SettingsUtils.getPort());
-		lettuceConnectionFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnectionFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		return Arrays.<RedisConnectionFactory> asList(jedisConnectionFactory, lettuceConnectionFactory);
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Before

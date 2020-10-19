@@ -15,10 +15,11 @@
  */
 package org.springframework.data.redis.core;
 
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.junit.Test;
 
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -27,14 +28,14 @@ import org.springframework.data.redis.connection.StringRedisConnection;
 /**
  * @author Costin Leau
  */
-public class SessionTest {
+class SessionUnitTests {
 
 	@Test
-	public void testSession() throws Exception {
-		final RedisConnection conn = mock(RedisConnection.class);
-		final StringRedisConnection stringConn = mock(StringRedisConnection.class);
+	void testSession() throws Exception {
+		RedisConnection conn = mock(RedisConnection.class);
+		StringRedisConnection stringConn = mock(StringRedisConnection.class);
 		RedisConnectionFactory factory = mock(RedisConnectionFactory.class);
-		final StringRedisTemplate template = spy(new StringRedisTemplate(factory));
+		StringRedisTemplate template = spy(new StringRedisTemplate(factory));
 		when(factory.getConnection()).thenReturn(conn);
 		doReturn(stringConn).when(template).preProcessConnection(eq(conn), anyBoolean());
 
@@ -50,7 +51,7 @@ public class SessionTest {
 		});
 	}
 
-	private void checkConnection(RedisTemplate<?, ?> template, final RedisConnection expectedConnection) {
+	private void checkConnection(RedisTemplate<?, ?> template, RedisConnection expectedConnection) {
 		template.execute(connection -> {
 			assertThat(connection).isSameAs(expectedConnection);
 			return null;

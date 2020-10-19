@@ -66,20 +66,13 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		return ReactiveOperationsTestParams.testParams();
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
 	/**
 	 * @param connectionFactory
 	 * @param label parameterized test label, no further use besides that.
 	 */
 	public ReactiveRedisMessageListenerContainerIntegrationTests(LettuceConnectionFactory connectionFactory,
 			String label) {
-
 		this.connectionFactory = connectionFactory;
-		ConnectionFactoryTracker.add(connectionFactory);
 	}
 
 	@Before

@@ -23,7 +23,7 @@ import io.lettuce.core.protocol.ProtocolVersion;
 import org.junit.rules.ExternalResource;
 
 import org.springframework.data.redis.SettingsUtils;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 
 /**
  * @author Christoph Strobl

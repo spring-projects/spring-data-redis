@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
-import static org.springframework.data.redis.SpinBarrier.*;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -33,6 +32,7 @@ import org.springframework.data.redis.connection.AbstractConnectionPipelineInteg
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;

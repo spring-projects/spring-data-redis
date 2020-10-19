@@ -15,8 +15,13 @@
  */
 package org.springframework.data.redis;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Properties;
 
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSocketConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 
@@ -35,6 +40,8 @@ public abstract class SettingsUtils {
 	static {
 		DEFAULTS.put("host", "127.0.0.1");
 		DEFAULTS.put("port", "6379");
+		DEFAULTS.put("clusterPort", "7379");
+		DEFAULTS.put("sentinelPort", "26379");
 		DEFAULTS.put("socket", "work/redis-6379.sock");
 
 		SETTINGS = new Properties(DEFAULTS);
@@ -63,6 +70,28 @@ public abstract class SettingsUtils {
 	}
 
 	/**
+	 * @return the Redis Cluster port.
+	 */
+	public static int getSentinelPort() {
+		return Integer.valueOf(SETTINGS.getProperty("sentinelPort"));
+	}
+
+	/**
+	 * @return the Redis Sentinel Master Id.
+	 */
+	public static String getSentinelMaster() {
+		return "mymaster";
+	}
+
+	/**
+	 * @return the Redis Cluster port.
+	 */
+	public static int getClusterPort() {
+		return Integer.valueOf(SETTINGS.getProperty("clusterPort"));
+	}
+
+
+	/**
 	 * @return path to the unix domain socket.
 	 */
 	public static String getSocket() {
@@ -79,6 +108,27 @@ public abstract class SettingsUtils {
 	}
 
 	/**
+	 * Construct a new {@link RedisSentinelConfiguration} initialized with test endpoint settings.
+	 *
+	 * @return a new {@link RedisSentinelConfiguration} initialized with test endpoint settings.
+	 */
+	public static RedisSentinelConfiguration sentinelConfiguration() {
+		return new RedisSentinelConfiguration(getSentinelMaster(),
+				new HashSet<>(Arrays.asList(String.format("%s:%d", getHost(), getSentinelPort()),
+						String.format("%s:%d", getHost(), getSentinelPort() + 1))));
+	}
+
+	/**
+	 * Construct a new {@link RedisClusterConfiguration} initialized with test endpoint settings.
+	 *
+	 * @return a new {@link RedisClusterConfiguration} initialized with test endpoint settings.
+	 */
+	public static RedisClusterConfiguration clusterConfiguration() {
+		return new RedisClusterConfiguration(
+				Collections.singletonList(String.format("%s:%d", getHost(), getClusterPort())));
+	}
+
+	/**
 	 * Construct a new {@link RedisSocketConfiguration} initialized with test endpoint settings.
 	 *
 	 * @return a new {@link RedisSocketConfiguration} initialized with test endpoint settings.
@@ -86,4 +136,5 @@ public abstract class SettingsUtils {
 	public static RedisSocketConfiguration socketConfiguration() {
 		return new RedisSocketConfiguration(getSocket());
 	}
+
 }

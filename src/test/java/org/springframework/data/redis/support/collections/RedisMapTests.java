@@ -29,13 +29,16 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.PoolConfig;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
@@ -88,12 +91,8 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		ObjectFactory<String> longFactory = new LongAsStringObjectFactory();
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
-		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.getPoolConfig().setMaxTotal(defaultPoolConfig.getMaxTotal());
-		jedisConnFactory.setUsePool(true);
-		jedisConnFactory.setPort(SettingsUtils.getPort());
-		jedisConnFactory.setHostName(SettingsUtils.getHost());
-		jedisConnFactory.afterPropertiesSet();
+		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		RedisTemplate genericTemplate = new RedisTemplate();
 		genericTemplate.setConnectionFactory(jedisConnFactory);
@@ -118,11 +117,8 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		rawTemplate.afterPropertiesSet();
 
 		// Lettuce
-		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
-		lettuceConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnFactory.setHostName(SettingsUtils.getHost());
-		lettuceConnFactory.setPort(SettingsUtils.getPort());
-		lettuceConnFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class, false);
 
 		RedisTemplate genericTemplateLettuce = new RedisTemplate();
 		genericTemplateLettuce.setConnectionFactory(lettuceConnFactory);

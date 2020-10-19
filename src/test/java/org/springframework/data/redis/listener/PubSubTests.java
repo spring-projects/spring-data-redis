@@ -116,11 +116,6 @@ public class PubSubTests<T> {
 		ConnectionFactoryTracker.add(template.getConnectionFactory());
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
 	@Parameters
 	public static Collection<Object[]> testParams() {
 		return PubSubTestParams.testParams();

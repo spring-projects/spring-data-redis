@@ -73,11 +73,6 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		return ReactiveOperationsTestParams.testParams();
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
 	/**
 	 * @param redisTemplate
 	 * @param keyFactory
@@ -92,8 +87,6 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
 		this.serializer = serializer;
-
-		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Before

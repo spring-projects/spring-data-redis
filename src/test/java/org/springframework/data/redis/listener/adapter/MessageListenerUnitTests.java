@@ -18,10 +18,11 @@ package org.springframework.data.redis.listener.adapter;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.connection.Message;
@@ -38,7 +39,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Thomas Darimont
  * @author Mark Paluch
  */
-public class MessageListenerTest {
+@ExtendWith(MockitoExtension.class)
+class MessageListenerUnitTests {
 
 	private static final StringRedisSerializer serializer = StringRedisSerializer.UTF_8;
 	private static final String CHANNEL = "some::test:";
@@ -59,24 +61,24 @@ public class MessageListenerTest {
 
 	@Mock private Delegate target;
 
-	@Before
-	public void setUp() {
-		MockitoAnnotations.initMocks(this);
+	@BeforeEach
+	void setUp() {
 		this.adapter = new MessageListenerAdapter();
 	}
 
 	@Test
-	public void testThatWhenNoDelegateIsSuppliedTheDelegateIsAssumedToBeTheMessageListenerAdapterItself()
+	void testThatWhenNoDelegateIsSuppliedTheDelegateIsAssumedToBeTheMessageListenerAdapterItself()
 			throws Exception {
 		assertThat(adapter.getDelegate()).isSameAs(adapter);
 	}
 
 	@Test
-	public void testThatTheDefaultMessageHandlingMethodNameIsTheConstantDefault() throws Exception {
+	void testThatTheDefaultMessageHandlingMethodNameIsTheConstantDefault() throws Exception {
 		assertThat(adapter.getDefaultListenerMethod()).isEqualTo(MessageListenerAdapter.ORIGINAL_DEFAULT_LISTENER_METHOD);
 	}
 
-	public void testAdapterWithListenerAndDefaultMessage() throws Exception {
+	@Test
+	void testAdapterWithListenerAndDefaultMessage() throws Exception {
 		MessageListener mock = mock(MessageListener.class);
 
 		MessageListenerAdapter adapter = new MessageListenerAdapter(mock) {
@@ -90,7 +92,7 @@ public class MessageListenerTest {
 	}
 
 	@Test
-	public void testRawMessage() throws Exception {
+	void testRawMessage() throws Exception {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target);
 		adapter.afterPropertiesSet();
 		adapter.onMessage(STRING_MSG, null);
@@ -99,7 +101,7 @@ public class MessageListenerTest {
 	}
 
 	@Test
-	public void testCustomMethod() throws Exception {
+	void testCustomMethod() throws Exception {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target);
 		adapter.setDefaultListenerMethod("customMethod");
 		adapter.afterPropertiesSet();
@@ -110,7 +112,7 @@ public class MessageListenerTest {
 	}
 
 	@Test
-	public void testCustomMethodWithAlternateConstructor() throws Exception {
+	void testCustomMethodWithAlternateConstructor() throws Exception {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target, "customMethod");
 		adapter.afterPropertiesSet();
 
@@ -120,7 +122,7 @@ public class MessageListenerTest {
 	}
 
 	@Test
-	public void testCustomMethodWithChannel() throws Exception {
+	void testCustomMethodWithChannel() {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target);
 		adapter.setDefaultListenerMethod("customMethodWithChannel");
 		adapter.afterPropertiesSet();
@@ -131,7 +133,7 @@ public class MessageListenerTest {
 	}
 
 	@Test
-	public void testCustomMethodWithChannelAndAlternateConstructor() throws Exception {
+	void testCustomMethodWithChannelAndAlternateConstructor() {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target, "customMethodWithChannel");
 		adapter.afterPropertiesSet();
 
@@ -141,7 +143,7 @@ public class MessageListenerTest {
 	}
 
 	@Test // DATAREDIS-92
-	public void triggersListenerImplementingInterfaceCorrectly() {
+	void triggersListenerImplementingInterfaceCorrectly() {
 
 		SampleListener listener = new SampleListener();
 
@@ -157,7 +159,7 @@ public class MessageListenerTest {
 	}
 
 	@Test // DATAREDIS-337
-	public void defaultConcreteHandlerMethodShouldOnlyBeInvokedOnce() {
+	void defaultConcreteHandlerMethodShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
 
@@ -170,7 +172,7 @@ public class MessageListenerTest {
 	}
 
 	@Test // DATAREDIS-337
-	public void defaultConcreteHandlerMethodWithoutSerializerShouldOnlyBeInvokedOnce() {
+	void defaultConcreteHandlerMethodWithoutSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
 
@@ -184,7 +186,7 @@ public class MessageListenerTest {
 	}
 
 	@Test // DATAREDIS-337
-	public void defaultConcreteHandlerMethodWithCustomSerializerShouldOnlyBeInvokedOnce() {
+	void defaultConcreteHandlerMethodWithCustomSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
 
@@ -198,7 +200,7 @@ public class MessageListenerTest {
 	}
 
 	@Test // DATAREDIS-337
-	public void customConcreteHandlerMethodShouldOnlyBeInvokedOnce() {
+	void customConcreteHandlerMethodShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
 
@@ -212,7 +214,7 @@ public class MessageListenerTest {
 	}
 
 	@Test // DATAREDIS-337
-	public void customConcreteMessageOnlyHandlerMethodShouldOnlyBeInvokedOnce() {
+	void customConcreteMessageOnlyHandlerMethodShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
 
@@ -226,7 +228,7 @@ public class MessageListenerTest {
 	}
 
 	@Test // DATAREDIS-337
-	public void customConcreteHandlerMethodWithoutSerializerShouldOnlyBeInvokedOnce() {
+	void customConcreteHandlerMethodWithoutSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
 
@@ -241,7 +243,7 @@ public class MessageListenerTest {
 	}
 
 	@Test // DATAREDIS-337
-	public void customConcreteHandlerMethodWithCustomSerializerShouldOnlyBeInvokedOnce() {
+	void customConcreteHandlerMethodWithCustomSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
 

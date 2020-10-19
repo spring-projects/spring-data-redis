@@ -19,17 +19,17 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.Properties;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link RedisServer}.
  *
  * @author Mark Paluch
  */
-public class RedisServerUnitTests {
+class RedisServerUnitTests {
 
 	@Test // DATAREDIS-618
-	public void shouldReadNumberOfOtherSentinelsCorrectly() {
+	void shouldReadNumberOfOtherSentinelsCorrectly() {
 
 		RedisServer redisServer = RedisServer.newServerFrom(createProperties());
 

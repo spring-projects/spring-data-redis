@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.springframework.data.redis.connection.ClusterTestVariables.*;
-
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 
@@ -27,18 +25,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.runners.model.Statement;
+
 import org.springframework.data.redis.SettingsUtils;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
-import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.test.extension.RedisCluster;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 import org.springframework.util.StringUtils;
@@ -57,32 +57,27 @@ class CacheTestParams {
 		List<RedisConnectionFactory> factoryList = new ArrayList<>(3);
 
 		// Jedis Standalone
-		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(config);
-		jedisConnectionFactory.afterPropertiesSet();
+		JedisConnectionFactory jedisConnectionFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 		factoryList.add(new FixDamnedJunitParameterizedNameForConnectionFactory(jedisConnectionFactory, ""));
 
 		// Lettuce Standalone
-		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(config);
-		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnectionFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnectionFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 		factoryList.add(new FixDamnedJunitParameterizedNameForConnectionFactory(lettuceConnectionFactory, ""));
 
 		if (clusterAvailable()) {
 
-			RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
-			clusterConfiguration.addClusterNode(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
 
 			// Jedis Cluster
-			JedisConnectionFactory jedisClusterConnectionFactory = new JedisConnectionFactory(clusterConfiguration);
-			jedisClusterConnectionFactory.afterPropertiesSet();
+			JedisConnectionFactory jedisClusterConnectionFactory = JedisConnectionFactoryExtension
+					.getConnectionFactory(RedisCluster.class);
 			factoryList
 					.add(new FixDamnedJunitParameterizedNameForConnectionFactory(jedisClusterConnectionFactory, "cluster"));
 
 			// Lettuce Cluster
-			LettuceConnectionFactory lettuceClusterConnectionFactory = new LettuceConnectionFactory(clusterConfiguration);
-			lettuceClusterConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-			lettuceClusterConnectionFactory.afterPropertiesSet();
-
+			LettuceConnectionFactory lettuceClusterConnectionFactory = LettuceConnectionFactoryExtension
+					.getConnectionFactory(RedisCluster.class);
 			factoryList
 					.add(new FixDamnedJunitParameterizedNameForConnectionFactory(lettuceClusterConnectionFactory, "cluster"));
 		}

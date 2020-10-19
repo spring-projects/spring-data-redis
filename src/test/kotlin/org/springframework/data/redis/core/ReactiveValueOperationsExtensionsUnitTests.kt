@@ -20,7 +20,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.springframework.data.redis.connection.BitFieldSubCommands
 import reactor.core.publisher.Mono
 import java.time.Duration

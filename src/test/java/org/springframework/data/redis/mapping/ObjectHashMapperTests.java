@@ -34,7 +34,7 @@ import org.springframework.data.redis.hash.ObjectHashMapper;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-class ObjectHashMapperTests extends AbstractHashMapperTest {
+class ObjectHashMapperTests extends AbstractHashMapperTests {
 
 	protected ObjectHashMapper mapperFor(Class t) {
 		return new ObjectHashMapper();

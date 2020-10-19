@@ -68,8 +68,6 @@ public class DefaultListOperationsTests<K, V> {
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
-
-		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Parameters

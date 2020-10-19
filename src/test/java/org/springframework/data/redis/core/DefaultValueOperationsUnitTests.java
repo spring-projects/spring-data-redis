@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.core;
 
 import static org.mockito.Mockito.*;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType;
@@ -34,17 +35,18 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 /**
  * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
-public class DefaultValueOperationsUnitTests<K, V> {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class DefaultValueOperationsUnitTests<K, V> {
 
 	@Mock RedisConnectionFactory connectionFactoryMock;
 	@Mock RedisConnection connectionMock;
-	RedisSerializer<String> serializer;
-	RedisTemplate<String, V> template;
-	ValueOperations<String, V> valueOps;
+	private RedisSerializer<String> serializer;
+	private RedisTemplate<String, V> template;
+	private ValueOperations<String, V> valueOps;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);
 
@@ -59,7 +61,7 @@ public class DefaultValueOperationsUnitTests<K, V> {
 	}
 
 	@Test // DATAREDIS-562
-	public void bitfieldShouldBeDelegatedCorrectly() {
+	void bitfieldShouldBeDelegatedCorrectly() {
 
 		BitFieldSubCommands command = BitFieldSubCommands.create().get(BitFieldType.INT_8).valueAt(0L);
 

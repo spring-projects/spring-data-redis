@@ -17,9 +17,9 @@ package org.springframework.data.redis;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.data.redis.core.RedisOperations;
@@ -27,23 +27,23 @@ import org.springframework.data.redis.core.RedisOperations;
 /**
  * @author Costin Leau
  */
-public class PropertyEditorsTest {
+class PropertyEditorsTest {
 
 	private GenericXmlApplicationContext ctx;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 		ctx = new GenericXmlApplicationContext("/org/springframework/data/redis/pe.xml");
 	}
 
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 		if (ctx != null)
 			ctx.destroy();
 	}
 
 	@Test
-	public void testInjection() throws Exception {
+	void testInjection() throws Exception {
 		RedisViewPE bean = ctx.getBean(RedisViewPE.class);
 		RedisOperations<?, ?> ops = ctx.getBean(RedisOperations.class);
 

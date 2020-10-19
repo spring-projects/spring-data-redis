@@ -19,24 +19,25 @@ import static org.assertj.core.api.Assertions.*;
 
 import redis.clients.jedis.JedisShardInfo;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.lang.Nullable;
 
 /**
  * Integration tests for {@link JedisConnectionFactory}.
  *
  * @author Mark Paluch
  */
-public class JedisConnectionFactoryIntegrationTests {
+class JedisConnectionFactoryIntegrationTests {
 
-	private JedisConnectionFactory factory;
+	private @Nullable JedisConnectionFactory factory;
 
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 
 		if (factory != null) {
 			factory.destroy();
@@ -44,7 +45,7 @@ public class JedisConnectionFactoryIntegrationTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shardInfoShouldOverrideFactorySettings() {
+	void shardInfoShouldOverrideFactorySettings() {
 
 		factory = new JedisConnectionFactory(new JedisShardInfo(SettingsUtils.getHost(), SettingsUtils.getPort()));
 		factory.setUsePool(false);
@@ -57,7 +58,7 @@ public class JedisConnectionFactoryIntegrationTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldInitializeWithStandaloneConfiguration() {
+	void shouldInitializeWithStandaloneConfiguration() {
 
 		factory = new JedisConnectionFactory(
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
@@ -68,7 +69,7 @@ public class JedisConnectionFactoryIntegrationTests {
 	}
 
 	@Test // DATAREDIS-575
-	public void connectionAppliesClientName() {
+	void connectionAppliesClientName() {
 
 		factory = new JedisConnectionFactory(
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),

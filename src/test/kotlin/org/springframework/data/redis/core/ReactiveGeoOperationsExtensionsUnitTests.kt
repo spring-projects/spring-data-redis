@@ -18,20 +18,15 @@ package org.springframework.data.redis.core
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.reactivestreams.Publisher
-import org.springframework.data.geo.Circle
-import org.springframework.data.geo.Distance
-import org.springframework.data.geo.GeoResult
-import org.springframework.data.geo.Metrics
-import org.springframework.data.geo.Point
-import org.springframework.data.redis.connection.RedisGeoCommands
-import org.springframework.data.redis.connection.RedisGeoCommands.*
+import org.springframework.data.geo.*
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 

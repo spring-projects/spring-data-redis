@@ -15,30 +15,31 @@
  */
 package org.springframework.data.redis.core;
 
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
 
 /**
  * Unit tests for {@link RedisKeyExpiredEvent}.
  *
  * @author Mark Paluch
  */
-public class RedisKeyExpiredEventUnitTests {
+class RedisKeyExpiredEventUnitTests {
 
 	@Test // DATAREDIS-744
-	public void shouldReturnKeyspace() {
+	void shouldReturnKeyspace() {
 
-		assertThat(new RedisKeyExpiredEvent<Object>("foo".getBytes(), "").getKeyspace()).isNull();
-		assertThat(new RedisKeyExpiredEvent<Object>("foo:bar".getBytes(), "").getKeyspace()).isEqualTo("foo");
-		assertThat(new RedisKeyExpiredEvent<Object>("foo:bar:baz".getBytes(), "").getKeyspace()).isEqualTo("foo");
+		assertThat(new RedisKeyExpiredEvent<>("foo".getBytes(), "").getKeyspace()).isNull();
+		assertThat(new RedisKeyExpiredEvent<>("foo:bar".getBytes(), "").getKeyspace()).isEqualTo("foo");
+		assertThat(new RedisKeyExpiredEvent<>("foo:bar:baz".getBytes(), "").getKeyspace()).isEqualTo("foo");
 	}
 
 	@Test // DATAREDIS-744
-	public void shouldReturnId() {
+	void shouldReturnId() {
 
-		assertThat(new RedisKeyExpiredEvent<Object>("foo".getBytes(), "").getId()).isEqualTo("foo".getBytes());
-		assertThat(new RedisKeyExpiredEvent<Object>("foo:bar".getBytes(), "").getId()).isEqualTo("bar".getBytes());
-		assertThat(new RedisKeyExpiredEvent<Object>("foo:bar:baz".getBytes(), "").getId()).isEqualTo("bar:baz".getBytes());
+		assertThat(new RedisKeyExpiredEvent<>("foo".getBytes(), "").getId()).isEqualTo("foo".getBytes());
+		assertThat(new RedisKeyExpiredEvent<>("foo:bar".getBytes(), "").getId()).isEqualTo("bar".getBytes());
+		assertThat(new RedisKeyExpiredEvent<>("foo:bar:baz".getBytes(), "").getId()).isEqualTo("bar:baz".getBytes());
 	}
 }

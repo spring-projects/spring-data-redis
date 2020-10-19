@@ -61,11 +61,6 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		return ReactiveOperationsTestParams.testParams();
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
 	/**
 	 * @param redisTemplate
 	 * @param keyFactory
@@ -79,8 +74,6 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		this.listOperations = redisTemplate.opsForList();
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
-
-		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Before

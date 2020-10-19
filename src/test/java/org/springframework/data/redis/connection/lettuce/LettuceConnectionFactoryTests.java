@@ -48,6 +48,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 
 /**
  * Integration test of {@link LettuceConnectionFactory}

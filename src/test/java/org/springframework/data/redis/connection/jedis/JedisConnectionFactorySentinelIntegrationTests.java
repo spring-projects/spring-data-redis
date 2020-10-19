@@ -17,12 +17,13 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.test.util.RedisSentinelRule;
+import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
+import org.springframework.lang.Nullable;
 
 /**
  * Sentinel integration tests for {@link JedisConnectionFactory}.
@@ -32,16 +33,15 @@ import org.springframework.data.redis.test.util.RedisSentinelRule;
  * @author Mark Paluch
  * @author Ajith Kumar
  */
-public class JedisConnectionFactorySentinelIntegrationTests {
+@EnabledOnRedisSentinelAvailable
+class JedisConnectionFactorySentinelIntegrationTests {
 
 	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration().master("mymaster")
 			.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
-	private JedisConnectionFactory factory;
+	private @Nullable JedisConnectionFactory factory;
 
-	public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();
-
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 
 		if (factory != null) {
 			factory.destroy();
@@ -49,7 +49,7 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 	}
 
 	@Test // DATAREDIS-574, DATAREDIS-765
-	public void shouldInitializeWithSentinelConfiguration() {
+	void shouldInitializeWithSentinelConfiguration() {
 
 		JedisClientConfiguration clientConfiguration = JedisClientConfiguration.builder() //
 				.clientName("clientName") //
@@ -65,7 +65,7 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 	}
 
 	@Test // DATAREDIS-324
-	public void shouldSendCommandCorrectlyViaConnectionFactoryUsingSentinel() {
+	void shouldSendCommandCorrectlyViaConnectionFactoryUsingSentinel() {
 
 		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
 		factory.afterPropertiesSet();
@@ -74,7 +74,7 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 	}
 
 	@Test // DATAREDIS-552
-	public void getClientNameShouldEqualWithFactorySetting() {
+	void getClientNameShouldEqualWithFactorySetting() {
 
 		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
 		factory.setClientName("clientName");
@@ -84,7 +84,7 @@ public class JedisConnectionFactorySentinelIntegrationTests {
 	}
 
 	@Test // DATAREDIS-1127
-	public void shouldNotFailOnFirstSentinelDown() {
+	void shouldNotFailOnFirstSentinelDown() {
 
 		RedisSentinelConfiguration oneDownSentinelConfig = new RedisSentinelConfiguration().master("mymaster")
 				.sentinel("any.unavailable.host", 26379).sentinel("127.0.0.1", 26379);

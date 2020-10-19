@@ -93,8 +93,6 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
-
-		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Before
@@ -218,13 +216,13 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.hasKey(key1).as(StepVerifier::create).expectNext(false).verifyComplete();
 		redisTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
-	
+
 	@Test // DATAREDIS-913
 	public void unlinkManyPublisher() {
 
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
-		
+
 		assumeTrue(key1 instanceof String && valueFactory instanceof StringObjectFactory);
 
 		redisTemplate.opsForValue().set(key1, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
@@ -237,13 +235,13 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.hasKey(key1).as(StepVerifier::create).expectNext(false).verifyComplete();
 		redisTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
-	
+
 	@Test // DATAREDIS-913
 	public void deleteManyPublisher() {
 
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
-		
+
 		assumeTrue(key1 instanceof String && valueFactory instanceof StringObjectFactory);
 
 		redisTemplate.opsForValue().set(key1, valueFactory.instance()).as(StepVerifier::create).expectNext(true)

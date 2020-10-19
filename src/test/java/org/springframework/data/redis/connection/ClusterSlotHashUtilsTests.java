@@ -17,97 +17,82 @@ package org.springframework.data.redis.connection;
 
 import static org.assertj.core.api.Assertions.*;
 
-import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
 
-import java.io.IOException;
-import java.util.Collections;
 import java.util.Random;
 
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.data.redis.test.util.RedisClusterRule;
+import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
+import org.springframework.data.redis.test.extension.JedisExtension;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
  */
+@EnabledOnRedisClusterAvailable
+@ExtendWith(JedisExtension.class)
 public class ClusterSlotHashUtilsTests {
 
-	public static @ClassRule RedisClusterRule requiresCluster = new RedisClusterRule();
+	private final JedisCluster cluster;
 
-	@Test
-	public void localCalculationShoudMatchServers() throws IOException {
-
-		JedisCluster cluster = null;
-		try {
-			cluster = new JedisCluster(Collections.singleton(new HostAndPort("127.0.0.1", 7379)));
-
-			JedisPool pool = cluster.getClusterNodes().values().iterator().next();
-			Jedis jedis = pool.getResource();
-			for (int i = 0; i < 10000; i++) {
-
-				String key = randomString();
-				int slot = ClusterSlotHashUtil.calculateSlot(key);
-				Long serverSlot = jedis.clusterKeySlot(key);
-
-				assertThat(slot)
-						.as(String.format("Expected slot for key '%s' to be %s but server calculated %s.", key, slot, serverSlot))
-						.isEqualTo(serverSlot.intValue());
-
-			}
-			jedis.close();
-		} finally {
-			if (cluster != null) {
-				cluster.close();
-			}
-		}
-
+	public ClusterSlotHashUtilsTests(JedisCluster cluster) {
+		this.cluster = cluster;
 	}
 
 	@Test
-	public void localCalculationShoudMatchServersForPrefixedKeys() throws IOException {
+	void localCalculationShouldMatchServers() {
 
-		JedisCluster cluster = null;
-		try {
-			cluster = new JedisCluster(Collections.singleton(new HostAndPort("127.0.0.1", 7379)));
+		JedisPool pool = cluster.getClusterNodes().values().iterator().next();
+		Jedis jedis = pool.getResource();
+		for (int i = 0; i < 100; i++) {
 
-			JedisPool pool = cluster.getClusterNodes().values().iterator().next();
-			Jedis jedis = pool.getResource();
-			for (int i = 0; i < 10000; i++) {
+			String key = randomString();
+			int slot = ClusterSlotHashUtil.calculateSlot(key);
+			Long serverSlot = jedis.clusterKeySlot(key);
 
-				String slotPrefix = "{" + randomString() + "}";
+			assertThat(slot)
+					.as(String.format("Expected slot for key '%s' to be %s but server calculated %s.", key, slot, serverSlot))
+					.isEqualTo(serverSlot.intValue());
 
-				String key1 = slotPrefix + "." + randomString();
-				String key2 = slotPrefix + "." + randomString();
-
-				int slot1 = ClusterSlotHashUtil.calculateSlot(key1);
-				int slot2 = ClusterSlotHashUtil.calculateSlot(key2);
-
-				assertThat(slot2).as(String.format("Expected slot for prefixed keys '%s' and '%s' to be %s but was  %s.", key1,
-						key2, slot1, slot2)).isEqualTo(slot1);
-
-				Long serverSlot1 = jedis.clusterKeySlot(key1);
-				Long serverSlot2 = jedis.clusterKeySlot(key2);
-
-				assertThat(slot1).as(
-						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key1, slot1, serverSlot1))
-						.isEqualTo(serverSlot1.intValue());
-				assertThat(slot1).as(
-						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key2, slot2, serverSlot2))
-						.isEqualTo(serverSlot1.intValue());
-
-			}
-			jedis.close();
-		} finally {
-			if (cluster != null) {
-				cluster.close();
-			}
 		}
+		jedis.close();
+	}
+
+	@Test
+	void localCalculationShoudMatchServersForPrefixedKeys() {
+
+		JedisPool pool = cluster.getClusterNodes().values().iterator().next();
+		Jedis jedis = pool.getResource();
+		for (int i = 0; i < 100; i++) {
+
+			String slotPrefix = "{" + randomString() + "}";
+
+			String key1 = slotPrefix + "." + randomString();
+			String key2 = slotPrefix + "." + randomString();
+
+			int slot1 = ClusterSlotHashUtil.calculateSlot(key1);
+			int slot2 = ClusterSlotHashUtil.calculateSlot(key2);
+
+			assertThat(slot2).as(String.format("Expected slot for prefixed keys '%s' and '%s' to be %s but was  %s.", key1,
+					key2, slot1, slot2)).isEqualTo(slot1);
+
+			Long serverSlot1 = jedis.clusterKeySlot(key1);
+			Long serverSlot2 = jedis.clusterKeySlot(key2);
+
+			assertThat(slot1)
+					.as(String.format("Expected slot for key '%s' to be %s but server calculated %s.", key1, slot1, serverSlot1))
+					.isEqualTo(serverSlot1.intValue());
+			assertThat(slot1)
+					.as(String.format("Expected slot for key '%s' to be %s but server calculated %s.", key2, slot2, serverSlot2))
+					.isEqualTo(serverSlot1.intValue());
+
+		}
+		jedis.close();
 	}
 
 	/**

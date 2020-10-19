@@ -37,9 +37,12 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 
 /**
  * Integration tests confirming that {@link RedisMessageListenerContainer} closes connections after unsubscribing
@@ -68,7 +71,6 @@ public class SubscriptionConnectionTests {
 
 	public SubscriptionConnectionTests(RedisConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
-		ConnectionFactoryTracker.add(connectionFactory);
 	}
 
 	@After
@@ -80,29 +82,18 @@ public class SubscriptionConnectionTests {
 		}
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
 	@Parameters
 	public static Collection<Object[]> testParams() {
 		int port = SettingsUtils.getPort();
 		String host = SettingsUtils.getHost();
 
 		// Jedis
-		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setPort(port);
-		jedisConnFactory.setHostName(host);
-		jedisConnFactory.afterPropertiesSet();
+		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		// Lettuce
-		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
-		lettuceConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnFactory.setPort(port);
-		lettuceConnFactory.setHostName(host);
-		lettuceConnFactory.setValidateConnection(true);
-		lettuceConnFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory } });
 	}

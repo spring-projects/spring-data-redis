@@ -21,8 +21,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
@@ -36,9 +36,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.scripting.support.StaticScriptSource;
-import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link DefaultScriptExecutor}
@@ -48,23 +46,19 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@IfProfileValue(name = "redisVersion", value = "2.6+")
 public abstract class AbstractDefaultScriptExecutorTests {
-
-	public static @ClassRule MinimumRedisVersionRule minRedisVersion = new MinimumRedisVersionRule();
 
 	@SuppressWarnings("rawtypes") //
 	private RedisTemplate template;
 
 	protected abstract RedisConnectionFactory getConnectionFactory();
 
-	@SuppressWarnings("unchecked")
-	public void tearDown() {
+	@BeforeEach
+	void setup() {
 
-		if (template == null) {
-			return;
-		}
-
+		StringRedisTemplate template = new StringRedisTemplate();
+		template.setConnectionFactory(getConnectionFactory());
+		template.afterPropertiesSet();
 		template.execute((RedisCallback<Object>) connection -> {
 			connection.flushDb();
 			connection.scriptFlush();
@@ -74,7 +68,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testExecuteLongResult() {
+	void testExecuteLongResult() {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
@@ -90,7 +84,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testExecuteBooleanResult() {
+	void testExecuteBooleanResult() {
 		this.template = new RedisTemplate<String, Long>();
 		template.setKeySerializer(StringRedisSerializer.UTF_8);
 		template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
@@ -108,7 +102,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testExecuteListResultCustomArgsSerializer() {
+	void testExecuteListResultCustomArgsSerializer() {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
@@ -124,7 +118,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testExecuteMixedListResult() {
+	void testExecuteMixedListResult() {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
@@ -140,7 +134,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testExecuteValueResult() {
+	void testExecuteValueResult() {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
@@ -154,7 +148,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testExecuteStatusResult() {
+	void testExecuteStatusResult() {
 		this.template = new RedisTemplate<String, Long>();
 		template.setKeySerializer(StringRedisSerializer.UTF_8);
 		template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
@@ -170,7 +164,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testExecuteCustomResultSerializer() {
+	void testExecuteCustomResultSerializer() {
 		Jackson2JsonRedisSerializer<Person> personSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 		this.template = new RedisTemplate<String, Person>();
 		template.setKeySerializer(StringRedisSerializer.UTF_8);
@@ -232,7 +226,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testExecuteCachedNullKeys() {
+	void testExecuteCachedNullKeys() {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
@@ -246,7 +240,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 	}
 
 	@Test // DATAREDIS-356
-	public void shouldTransparentlyReEvaluateScriptIfNotPresent() throws Exception {
+	void shouldTransparentlyReEvaluateScriptIfNotPresent() throws Exception {
 
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(getConnectionFactory());

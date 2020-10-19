@@ -17,24 +17,19 @@ package org.springframework.data.redis.config;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
-import org.springframework.test.annotation.ProfileValueSourceConfiguration;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Costin Leau
  * @author Mark Paluch
  */
-@RunWith(RelaxedJUnit4ClassRunner.class)
-@ContextConfiguration("namespace.xml")
-@ProfileValueSourceConfiguration
-public class NamespaceTest {
+@SpringJUnitConfig(locations = "namespace.xml")
+class NamespaceIntegrationTests {
 
 	@Autowired private RedisMessageListenerContainer container;
 
@@ -43,12 +38,12 @@ public class NamespaceTest {
 	@Autowired private StubErrorHandler handler;
 
 	@Test
-	public void testSanityTest() throws Exception {
+	void testSanityTest() throws Exception {
 		assertThat(container.isRunning()).isTrue();
 	}
 
 	@Test
-	public void testWithMessages() throws Exception {
+	void testWithMessages() throws Exception {
 		template.convertAndSend("x1", "[X]test");
 		template.convertAndSend("z1", "[Z]test");
 	}

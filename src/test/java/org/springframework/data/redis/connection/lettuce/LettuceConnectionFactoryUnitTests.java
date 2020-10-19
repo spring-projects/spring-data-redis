@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.RedisConfiguration.*;
-import static org.springframework.data.redis.connection.lettuce.LettuceTestClientResources.*;
+import static org.springframework.data.redis.test.extension.LettuceTestClientResources.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import io.lettuce.core.AbstractRedisClient;
@@ -59,6 +59,7 @@ import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSocketConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**

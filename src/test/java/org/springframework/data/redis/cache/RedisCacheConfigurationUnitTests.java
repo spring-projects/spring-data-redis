@@ -15,9 +15,10 @@
  */
 package org.springframework.data.redis.cache;
 
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
@@ -28,10 +29,10 @@ import org.springframework.lang.Nullable;
  *
  * @author Mark Paluch
  */
-public class RedisCacheConfigurationUnitTests {
+class RedisCacheConfigurationUnitTests {
 
 	@Test // DATAREDIS-763
-	public void shouldSetClassLoader() {
+	void shouldSetClassLoader() {
 
 		ShadowingClassLoader classLoader = new ShadowingClassLoader(getClass().getClassLoader());
 
@@ -47,7 +48,7 @@ public class RedisCacheConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-1032
-	public void shouldAllowConverterRegistration() {
+	void shouldAllowConverterRegistration() {
 
 		RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig();
 		config.configureKeyConverters(registry -> registry.addConverter(new DomainTypeConverter()));

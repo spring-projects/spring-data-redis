@@ -25,21 +25,21 @@ import javax.enterprise.inject.se.SeContainer;
 import javax.enterprise.inject.se.SeContainerInitializer;
 import javax.enterprise.inject.spi.Bean;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * Integration tests for Spring Data Redis CDI extension.
  *
  * @author Mark Paluch
  */
-public class CdiExtensionIntegrationTests {
+class CdiExtensionIntegrationTests {
 
-	static SeContainer container;
+	private static SeContainer container;
 
-	@BeforeClass
-	public static void setUp() {
+	@BeforeAll
+	static void setUp() {
 
 		container = SeContainerInitializer.newInstance() //
 				.disableDiscovery() //
@@ -47,14 +47,14 @@ public class CdiExtensionIntegrationTests {
 				.initialize();
 	}
 
-	@AfterClass
-	public static void cleanUp() {
+	@AfterAll
+	static void cleanUp() {
 		container.close();
 	}
 
 	@Test // DATAREDIS-425, DATAREDIS-700
 	@SuppressWarnings("rawtypes")
-	public void beanShouldBeRegistered() {
+	void beanShouldBeRegistered() {
 
 		Set<Bean<?>> beans = container.getBeanManager().getBeans(PersonRepository.class);
 
@@ -63,7 +63,7 @@ public class CdiExtensionIntegrationTests {
 	}
 
 	@Test // DATAREDIS-425, DATAREDIS-700
-	public void saveAndFindUnqualified() {
+	void saveAndFindUnqualified() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 		repositoryConsumer.deleteAll();
@@ -77,7 +77,7 @@ public class CdiExtensionIntegrationTests {
 	}
 
 	@Test // DATAREDIS-425, DATAREDIS-700
-	public void saveAndFindQualified() {
+	void saveAndFindQualified() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 		repositoryConsumer.deleteAll();
@@ -91,7 +91,7 @@ public class CdiExtensionIntegrationTests {
 	}
 
 	@Test // DATAREDIS-425, DATAREDIS-700
-	public void callMethodOnCustomRepositoryShouldSuceed() {
+	void callMethodOnCustomRepositoryShouldSuceed() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
 

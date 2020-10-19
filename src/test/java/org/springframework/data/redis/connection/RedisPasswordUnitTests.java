@@ -15,9 +15,10 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
 
 /**
  * Unit tests for {@link RedisPassword}.
@@ -25,30 +26,30 @@ import org.junit.Test;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-public class RedisPasswordUnitTests {
+class RedisPasswordUnitTests {
 
 	@Test // DATAREDIS-574
-	public void shouldCreateFromEmptyString() {
+	void shouldCreateFromEmptyString() {
 		assertThat(RedisPassword.of("").toOptional()).isEmpty();
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldCreateFromExistingString() {
+	void shouldCreateFromExistingString() {
 		assertThat(RedisPassword.of("foo").map(String::new)).contains("foo");
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldCreateFromEmptyCharArray() {
+	void shouldCreateFromEmptyCharArray() {
 		assertThat(RedisPassword.of("".toCharArray()).toOptional()).isEmpty();
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldCreateFromExistingCharArray() {
+	void shouldCreateFromExistingCharArray() {
 		assertThat(RedisPassword.of("foo".toCharArray()).map(String::new)).contains("foo");
 	}
 
 	@Test // DATAREDIS-574
-	public void toStringShouldHideValue() {
+	void toStringShouldHideValue() {
 		assertThat(RedisPassword.of("foo".toCharArray()).toString()).startsWith("RedisPassword[**").doesNotContain("foo");
 	}
 }

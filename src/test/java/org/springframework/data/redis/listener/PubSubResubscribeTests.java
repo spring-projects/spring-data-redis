@@ -50,7 +50,7 @@ import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
@@ -80,7 +80,6 @@ public class PubSubResubscribeTests {
 	public PubSubResubscribeTests(RedisConnectionFactory connectionFactory) {
 
 		this.factory = connectionFactory;
-		ConnectionFactoryTracker.add(factory);
 	}
 
 	@BeforeClass

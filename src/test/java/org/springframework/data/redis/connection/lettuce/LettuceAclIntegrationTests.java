@@ -33,6 +33,7 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.ServerAvailable;
 

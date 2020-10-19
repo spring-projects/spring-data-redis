@@ -17,7 +17,6 @@ package org.springframework.data.redis.support.collections;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -28,7 +27,6 @@ import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
@@ -36,15 +34,16 @@ import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
@@ -107,43 +106,12 @@ public class RedisPropertiesTests extends RedisMapTests {
 	}
 
 	@Test
-	@Ignore
-	public void testPropertiesLoadXml() throws Exception {
-		InputStream stream = getClass()
-				.getResourceAsStream("/org/springframework/data/keyvalue/redis/support/collections/props.properties");
-
-		assertThat(stream).isNotNull();
-
-		int size = props.size();
-
-		try {
-			props.loadFromXML(stream);
-		} finally {
-			stream.close();
-		}
-
-		assertThat(props.get("foo")).isEqualTo("bar");
-		assertThat(props.get("bucket")).isEqualTo("head");
-		assertThat(props.get("lotus")).isEqualTo("island");
-		assertThat(props.size()).isEqualTo(size + 3);
-	}
-
-	@Test
 	public void testPropertiesSave() throws Exception {
 		props.setProperty("x", "y");
 		props.setProperty("a", "b");
 
 		StringWriter writer = new StringWriter();
 		props.store(writer, "no-comment");
-	}
-
-	@Test
-	@Ignore
-	public void testPropertiesSaveXml() throws Exception {
-		props.setProperty("x", "y");
-		props.setProperty("a", "b");
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		props.storeToXML(bos, "comment");
 	}
 
 	@Test
@@ -246,13 +214,8 @@ public class RedisPropertiesTests extends RedisMapTests {
 		ObjectFactory<String> longFactory = new LongAsStringObjectFactory();
 		ObjectFactory<String> doubleFactory = new DoubleAsStringObjectFactory();
 
-		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setUsePool(true);
-
-		jedisConnFactory.setPort(SettingsUtils.getPort());
-		jedisConnFactory.setHostName(SettingsUtils.getHost());
-
-		jedisConnFactory.afterPropertiesSet();
+		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		RedisTemplate<String, String> genericTemplate = new StringRedisTemplate(jedisConnFactory);
 
@@ -269,11 +232,8 @@ public class RedisPropertiesTests extends RedisMapTests {
 		jackson2JsonPersonTemplate.afterPropertiesSet();
 
 		// Lettuce
-		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
-		lettuceConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnFactory.setPort(SettingsUtils.getPort());
-		lettuceConnFactory.setHostName(SettingsUtils.getHost());
-		lettuceConnFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class, false);
 
 		RedisTemplate<String, String> genericTemplateLtc = new StringRedisTemplate(lettuceConnFactory);
 		RedisTemplate<String, Person> xGenericTemplateLtc = new RedisTemplate<>();

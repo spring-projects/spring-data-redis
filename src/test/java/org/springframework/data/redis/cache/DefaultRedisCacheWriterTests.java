@@ -27,18 +27,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.springframework.data.redis.ConnectionFactoryTracker;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 
 /**
  * Integration tests for {@link DefaultRedisCacheWriter}.
@@ -60,10 +61,7 @@ public class DefaultRedisCacheWriterTests {
 	RedisConnectionFactory connectionFactory;
 
 	public DefaultRedisCacheWriterTests(RedisConnectionFactory connectionFactory) {
-
 		this.connectionFactory = connectionFactory;
-
-		ConnectionFactoryTracker.add(connectionFactory);
 	}
 
 	@Parameters(name = "{index}: {0}")
@@ -71,16 +69,10 @@ public class DefaultRedisCacheWriterTests {
 		return CacheTestParams.justConnectionFactories();
 	}
 
-	@AfterClass
-	public static void cleanUpResources() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
 	@Before
 	public void setUp() {
 
-		JedisConnectionFactory cf = new JedisConnectionFactory();
-		cf.afterPropertiesSet();
+		JedisConnectionFactory cf = JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
 
 		connectionFactory = cf;
 

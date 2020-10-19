@@ -17,31 +17,28 @@ package org.springframework.data.redis.listener.adapter;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.test.condition.EnabledOnRedisAvailable;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * @author Costin Leau
  * @author Jennifer Hickey
  */
-public class ContainerXmlSetupTest {
+@ExtendWith(SpringExtension.class)
+@EnabledOnRedisAvailable
+@ContextConfiguration("/org/springframework/data/redis/listener/container.xml")
+class ContainerXmlSetupTest {
 
-	private GenericXmlApplicationContext ctx;
-
-	@After
-	public void tearDown() {
-		if (ctx != null) {
-			ctx.destroy();
-		}
-	}
+	@Autowired RedisMessageListenerContainer container;
 
 	@Test
-	public void testContainerSetup() throws Exception {
-		ctx = new GenericXmlApplicationContext("/org/springframework/data/redis/listener/container.xml");
-		RedisMessageListenerContainer container = ctx.getBean("redisContainer", RedisMessageListenerContainer.class);
+	void testContainerSetup() {
 		assertThat(container.isRunning()).isTrue();
 	}
 }

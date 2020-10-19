@@ -15,12 +15,9 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
-import static org.springframework.data.redis.SpinBarrier.*;
 
 import io.lettuce.core.ScriptOutputType;
-import org.awaitility.Awaitility;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -29,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.awaitility.Awaitility;
 import org.junit.Test;
 
 import org.springframework.data.redis.RedisSystemException;

@@ -60,7 +60,6 @@ public class BoundKeyOperationsTest {
 		this.objFactory = objFactory;
 		this.keyOps = keyOps;
 		this.template = template;
-		ConnectionFactoryTracker.add(template.getConnectionFactory());
 	}
 
 	@Before
@@ -75,11 +74,6 @@ public class BoundKeyOperationsTest {
 			connection.flushDb();
 			return null;
 		});
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Parameters

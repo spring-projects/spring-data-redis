@@ -20,6 +20,7 @@ import io.lettuce.core.resource.ClientResources;
 import java.time.Duration;
 
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 
 /**
  * Creates a specific client configuration for Lettuce tests.

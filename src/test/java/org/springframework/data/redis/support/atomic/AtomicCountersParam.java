@@ -20,9 +20,12 @@ import java.util.Collection;
 
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 
 /**
  * @author Costin Leau
@@ -35,14 +38,12 @@ abstract class AtomicCountersParam {
 	static Collection<Object[]> testParams() {
 
 		// Jedis
-		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration());
-		jedisConnFactory.afterPropertiesSet();
+		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		// Lettuce
-		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
-				LettuceClientConfiguration.builder().clientResources(LettuceTestClientResources.getSharedClientResources())
-						.build());
-		lettuceConnFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class, false);
 
 		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory } });
 	}

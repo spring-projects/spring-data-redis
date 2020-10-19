@@ -38,6 +38,8 @@ import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
 
@@ -72,8 +74,6 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		this.keyFactory = keyFactory;
 		this.hashKeyFactory = hashKeyFactory;
 		this.hashValueFactory = hashValueFactory;
-
-		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Parameters
@@ -81,10 +81,8 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
-		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory();
-		jedisConnectionFactory.setPort(SettingsUtils.getPort());
-		jedisConnectionFactory.setHostName(SettingsUtils.getHost());
-		jedisConnectionFactory.afterPropertiesSet();
+		JedisConnectionFactory jedisConnectionFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate();
 		stringTemplate.setConnectionFactory(jedisConnectionFactory);
@@ -97,11 +95,6 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 
 		return Arrays.asList(new Object[][] { { stringTemplate, stringFactory, stringFactory, stringFactory },
 				{ rawTemplate, rawFactory, rawFactory, rawFactory } });
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Before

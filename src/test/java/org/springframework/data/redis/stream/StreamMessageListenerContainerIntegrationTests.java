@@ -16,7 +16,6 @@
 package org.springframework.data.redis.stream;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assume.*;
 
 import io.lettuce.core.codec.StringCodec;
 import io.lettuce.core.output.NestedMultiOutput;
@@ -31,20 +30,17 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.awaitility.Awaitility;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.springframework.data.redis.ConnectionFactoryTracker;
-import org.springframework.data.redis.RedisVersionUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
@@ -55,6 +51,7 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamMessageListenerContainerOptions;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamReadRequest;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.util.NumberUtils;
 
 /**
@@ -63,44 +60,28 @@ import org.springframework.util.NumberUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
+@ExtendWith(LettuceConnectionFactoryExtension.class)
+@EnabledOnCommand("XREAD")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class StreamMessageListenerContainerIntegrationTests {
 
 	private static final RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration(
 			SettingsUtils.getHost(), SettingsUtils.getPort());
-	public static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(2);
+	private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(2);
 
-	private static RedisConnectionFactory connectionFactory;
-
-	private StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
-	private StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> containerOptions = StreamMessageListenerContainerOptions
+	private final RedisConnectionFactory connectionFactory;
+	private final StringRedisTemplate redisTemplate;
+	private final StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> containerOptions = StreamMessageListenerContainerOptions
 			.builder().pollTimeout(Duration.ofMillis(100)).build();
 
-	@BeforeClass
-	public static void beforeClass() {
-
-		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder() //
-				.shutdownTimeout(Duration.ZERO) //
-				.clientResources(LettuceTestClientResources.getSharedClientResources()) //
-				.build();
-
-		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(standaloneConfiguration,
-				clientConfiguration);
-		lettuceConnectionFactory.afterPropertiesSet();
-
-		ConnectionFactoryTracker.add(lettuceConnectionFactory);
-
-		connectionFactory = lettuceConnectionFactory;
-
-		assumeTrue(RedisVersionUtils.atLeast("5.0", connectionFactory.getConnection()));
+	public StreamMessageListenerContainerIntegrationTests(RedisConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
+		this.redisTemplate = new StringRedisTemplate(connectionFactory);
+		this.redisTemplate.afterPropertiesSet();
 	}
 
-	@AfterClass
-	public static void tearDown() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
-	@Before
-	public void before() {
+	@BeforeEach
+	void before() {
 
 		RedisConnection connection = connectionFactory.getConnection();
 		connection.flushDb();
@@ -108,7 +89,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void shouldReceiveMapMessages() throws InterruptedException {
+	void shouldReceiveMapMessages() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
 				.create(connectionFactory, containerOptions);
@@ -133,7 +114,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void shouldReceiveSimpleObjectHashRecords() throws InterruptedException {
+	void shouldReceiveSimpleObjectHashRecords() throws InterruptedException {
 
 		StreamMessageListenerContainerOptions<String, ObjectRecord<String, String>> containerOptions = StreamMessageListenerContainerOptions
 				.builder().pollTimeout(Duration.ofMillis(100)).targetType(String.class).build();
@@ -157,7 +138,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void shouldReceiveObjectHashRecords() throws InterruptedException {
+	void shouldReceiveObjectHashRecords() throws InterruptedException {
 
 		StreamMessageListenerContainerOptions<String, ObjectRecord<String, LoginEvent>> containerOptions = StreamMessageListenerContainerOptions
 				.builder().pollTimeout(Duration.ofMillis(100)).targetType(LoginEvent.class).build();
@@ -182,7 +163,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	}
 
 	@Test // DATAREDIS-864, DATAREDIS-1079
-	public void shouldReceiveMessagesInConsumerGroup() throws InterruptedException {
+	void shouldReceiveMessagesInConsumerGroup() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
 				.create(connectionFactory, containerOptions);
@@ -208,7 +189,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	}
 
 	@Test // DATAREDIS-1079
-	public void shouldReceiveAndAckMessagesInConsumerGroup() throws InterruptedException {
+	void shouldReceiveAndAckMessagesInConsumerGroup() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
 				.create(connectionFactory, containerOptions);
@@ -234,7 +215,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void shouldUseCustomErrorHandler() throws InterruptedException {
+	void shouldUseCustomErrorHandler() throws InterruptedException {
 
 		BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
 
@@ -257,7 +238,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void errorShouldStopListening() throws InterruptedException {
+	void errorShouldStopListening() throws InterruptedException {
 
 		BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
 
@@ -286,7 +267,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void customizedCancelPredicateShouldNotStopListening() throws InterruptedException {
+	void customizedCancelPredicateShouldNotStopListening() throws InterruptedException {
 
 		BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
 
@@ -318,7 +299,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void cancelledStreamShouldNotReceiveMessages() throws InterruptedException {
+	void cancelledStreamShouldNotReceiveMessages() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
 				.create(connectionFactory, containerOptions);
@@ -336,7 +317,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void containerRestartShouldRestartSubscription() throws InterruptedException {
+	void containerRestartShouldRestartSubscription() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
 				.create(connectionFactory, containerOptions);

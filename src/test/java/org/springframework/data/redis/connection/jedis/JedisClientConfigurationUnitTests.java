@@ -28,17 +28,17 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link JedisClientConfiguration}.
  *
  * @author Mark Paluch
  */
-public class JedisClientConfigurationUnitTests {
+class JedisClientConfigurationUnitTests {
 
 	@Test // DATAREDIS-574
-	public void shouldCreateEmptyConfiguration() {
+	void shouldCreateEmptyConfiguration() {
 
 		JedisClientConfiguration configuration = JedisClientConfiguration.defaultConfiguration();
 
@@ -52,7 +52,7 @@ public class JedisClientConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldConfigureAllProperties() throws NoSuchAlgorithmException {
+	void shouldConfigureAllProperties() throws NoSuchAlgorithmException {
 
 		SSLParameters sslParameters = new SSLParameters();
 		SSLContext context = SSLContext.getDefault();

@@ -20,17 +20,17 @@ import static org.assertj.core.api.Assertions.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link DefaultRedisElementWriter}.
  *
  * @author Mark Paluch
  */
-public class DefaultRedisElementWriterUnitTests {
+class DefaultRedisElementWriterUnitTests {
 
 	@Test // DATAREDIS-602
-	public void shouldSerializeInputCorrectly() {
+	void shouldSerializeInputCorrectly() {
 
 		String input = "123ü?™";
 		byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
@@ -44,7 +44,7 @@ public class DefaultRedisElementWriterUnitTests {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldWrapByteArrayForAbsentSerializer() {
+	void shouldWrapByteArrayForAbsentSerializer() {
 
 		DefaultRedisElementWriter<Object> writer = new DefaultRedisElementWriter<>(null);
 
@@ -55,7 +55,7 @@ public class DefaultRedisElementWriterUnitTests {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldPassThroughByteBufferForAbsentSerializer() {
+	void shouldPassThroughByteBufferForAbsentSerializer() {
 
 		DefaultRedisElementWriter<Object> writer = new DefaultRedisElementWriter<>(null);
 
@@ -65,11 +65,11 @@ public class DefaultRedisElementWriterUnitTests {
 		assertThat(result.array()).isEqualTo(input);
 	}
 
-	@Test(expected = IllegalStateException.class) // DATAREDIS-602
-	public void shouldFailForUnsupportedTypeWithAbsentSerializer() {
+	@Test // DATAREDIS-602
+	void shouldFailForUnsupportedTypeWithAbsentSerializer() {
 
 		DefaultRedisElementWriter<Object> writer = new DefaultRedisElementWriter<>(null);
 
-		writer.write(new Object());
+		assertThatIllegalStateException().isThrownBy(() -> writer.write(new Object()));
 	}
 }

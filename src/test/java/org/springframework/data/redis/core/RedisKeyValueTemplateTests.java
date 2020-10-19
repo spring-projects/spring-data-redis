@@ -43,10 +43,13 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -65,28 +68,17 @@ public class RedisKeyValueTemplateTests {
 	RedisKeyValueAdapter adapter;
 
 	public RedisKeyValueTemplateTests(RedisConnectionFactory connectionFactory) {
-
 		this.connectionFactory = connectionFactory;
-		ConnectionFactoryTracker.add(connectionFactory);
-
 	}
 
 	@Parameters
 	public static List<RedisConnectionFactory> params() {
 
-		JedisConnectionFactory jedis = new JedisConnectionFactory();
-		jedis.afterPropertiesSet();
+		JedisConnectionFactory jedis = JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
 
-		LettuceConnectionFactory lettuce = new LettuceConnectionFactory();
-		lettuce.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuce.afterPropertiesSet();
+		LettuceConnectionFactory lettuce = LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
 
 		return Arrays.<RedisConnectionFactory> asList(jedis, lettuce);
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Before

@@ -15,14 +15,19 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.mockito.Mockito.*;
+
 import java.lang.reflect.Method;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -32,8 +37,9 @@ import org.springframework.util.ClassUtils;
 /**
  * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ConnectionSplittingInterceptorUnitTests {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ConnectionSplittingInterceptorUnitTests {
 
 	private static final Method WRITE_METHOD, READONLY_METHOD;
 
@@ -54,35 +60,37 @@ public class ConnectionSplittingInterceptorUnitTests {
 		}
 	}
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 		interceptor = new ConnectionSplittingInterceptor(connectionFactoryMock);
-		Mockito.when(connectionFactoryMock.getConnection()).thenReturn(freshConnectionMock);
+		when(connectionFactoryMock.getConnection()).thenReturn(freshConnectionMock);
 	}
 
 	@Test // DATAREDIS-73
-	public void interceptorShouldRequestFreshConnectionForReadonlyCommand() throws Throwable {
+	void interceptorShouldRequestFreshConnectionForReadonlyCommand() throws Throwable {
 
 		interceptor.intercept(boundConnectionMock, READONLY_METHOD, new Object[] { new byte[] {} }, null);
-		Mockito.verify(connectionFactoryMock, Mockito.times(1)).getConnection();
-		Mockito.verifyZeroInteractions(boundConnectionMock);
+		verify(connectionFactoryMock, times(1)).getConnection();
+		verifyZeroInteractions(boundConnectionMock);
 	}
 
 	@Test // DATAREDIS-73
-	public void interceptorShouldUseBoundConnectionForWriteOperations() throws Throwable {
+	void interceptorShouldUseBoundConnectionForWriteOperations() throws Throwable {
 
 		interceptor.intercept(boundConnectionMock, WRITE_METHOD, new Object[] { new byte[] {}, 0L }, null);
-		Mockito.verify(boundConnectionMock, Mockito.times(1)).expire(Mockito.any(byte[].class), Mockito.anyLong());
-		Mockito.verifyZeroInteractions(connectionFactoryMock);
+		verify(boundConnectionMock, times(1)).expire(any(byte[].class), anyLong());
+		verifyZeroInteractions(connectionFactoryMock);
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-73
-	public void interceptorShouldNotWrapException() throws Throwable {
+	@Test // DATAREDIS-73
+	void interceptorShouldNotWrapException() {
 
-		Mockito.when(freshConnectionMock.keys(Mockito.any(byte[].class))).thenThrow(
+		when(freshConnectionMock.keys(any(byte[].class))).thenThrow(
 				InvalidDataAccessApiUsageException.class);
-		interceptor.intercept(boundConnectionMock, READONLY_METHOD, new Object[] { new byte[] {} }, null);
+
+		Assertions.assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(
+				() -> interceptor.intercept(boundConnectionMock, READONLY_METHOD, new Object[] { new byte[] {} }, null));
 	}
 
 }

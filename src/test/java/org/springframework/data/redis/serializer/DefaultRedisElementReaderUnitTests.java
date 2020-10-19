@@ -20,17 +20,17 @@ import static org.assertj.core.api.Assertions.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link DefaultRedisElementReader}.
  *
  * @author Mark Paluch
  */
-public class DefaultRedisElementReaderUnitTests {
+class DefaultRedisElementReaderUnitTests {
 
 	@Test // DATAREDIS-602
-	public void shouldDecodeByteBufferCorrectly() {
+	void shouldDecodeByteBufferCorrectly() {
 
 		String input = "123ü?™";
 		byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
@@ -44,7 +44,7 @@ public class DefaultRedisElementReaderUnitTests {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldPassThroughByteBufferForAbsentSerializer() {
+	void shouldPassThroughByteBufferForAbsentSerializer() {
 
 		ByteBuffer input = ByteBuffer.allocate(1);
 

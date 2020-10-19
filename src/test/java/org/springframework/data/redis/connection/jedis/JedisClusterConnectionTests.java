@@ -25,7 +25,9 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.Distanc
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
+import org.junit.jupiter.api.TestInstance;
 import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
 
@@ -35,11 +37,9 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -69,9 +69,9 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.script.DigestUtils;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
+import org.springframework.data.redis.test.extension.JedisExtension;
 import org.springframework.data.redis.test.util.HexStringUtils;
-import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
-import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.test.annotation.IfProfileValue;
 
 /**
@@ -79,61 +79,51 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Mark Paluch
  * @author Pavel Khokhlov
  */
+@EnabledOnRedisClusterAvailable
+@ExtendWith(JedisExtension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	static final List<HostAndPort> CLUSTER_NODES = Arrays.asList(new HostAndPort(CLUSTER_HOST, MASTER_NODE_1_PORT),
 			new HostAndPort(CLUSTER_HOST, MASTER_NODE_2_PORT), new HostAndPort(CLUSTER_HOST, MASTER_NODE_3_PORT));
 
-	static final byte[] KEY_1_BYTES = JedisConverters.toBytes(KEY_1);
-	static final byte[] KEY_2_BYTES = JedisConverters.toBytes(KEY_2);
-	static final byte[] KEY_3_BYTES = JedisConverters.toBytes(KEY_3);
+	private static final byte[] KEY_1_BYTES = JedisConverters.toBytes(KEY_1);
+	private static final byte[] KEY_2_BYTES = JedisConverters.toBytes(KEY_2);
+	private static final byte[] KEY_3_BYTES = JedisConverters.toBytes(KEY_3);
 
-	static final byte[] SAME_SLOT_KEY_1_BYTES = JedisConverters.toBytes(SAME_SLOT_KEY_1);
-	static final byte[] SAME_SLOT_KEY_2_BYTES = JedisConverters.toBytes(SAME_SLOT_KEY_2);
-	static final byte[] SAME_SLOT_KEY_3_BYTES = JedisConverters.toBytes(SAME_SLOT_KEY_3);
+	private static final byte[] SAME_SLOT_KEY_1_BYTES = JedisConverters.toBytes(SAME_SLOT_KEY_1);
+	private static final byte[] SAME_SLOT_KEY_2_BYTES = JedisConverters.toBytes(SAME_SLOT_KEY_2);
+	private static final byte[] SAME_SLOT_KEY_3_BYTES = JedisConverters.toBytes(SAME_SLOT_KEY_3);
 
-	static final byte[] VALUE_1_BYTES = JedisConverters.toBytes(VALUE_1);
-	static final byte[] VALUE_2_BYTES = JedisConverters.toBytes(VALUE_2);
-	static final byte[] VALUE_3_BYTES = JedisConverters.toBytes(VALUE_3);
+	private static final byte[] VALUE_1_BYTES = JedisConverters.toBytes(VALUE_1);
+	private static final byte[] VALUE_2_BYTES = JedisConverters.toBytes(VALUE_2);
+	private static final byte[] VALUE_3_BYTES = JedisConverters.toBytes(VALUE_3);
 
-	static final GeoLocation<byte[]> ARIGENTO = new GeoLocation<>("arigento".getBytes(Charset.forName("UTF-8")),
+	private static final GeoLocation<byte[]> ARIGENTO = new GeoLocation<>("arigento".getBytes(Charset.forName("UTF-8")),
 			POINT_ARIGENTO);
-	static final GeoLocation<byte[]> CATANIA = new GeoLocation<>("catania".getBytes(Charset.forName("UTF-8")),
+	private static final GeoLocation<byte[]> CATANIA = new GeoLocation<>("catania".getBytes(Charset.forName("UTF-8")),
 			POINT_CATANIA);
-	static final GeoLocation<byte[]> PALERMO = new GeoLocation<>("palermo".getBytes(Charset.forName("UTF-8")),
+	private static final GeoLocation<byte[]> PALERMO = new GeoLocation<>("palermo".getBytes(Charset.forName("UTF-8")),
 			POINT_PALERMO);
 
-	JedisCluster nativeConnection;
-	JedisClusterConnection clusterConnection;
+	private final JedisCluster nativeConnection;
+	private final JedisClusterConnection clusterConnection;
 
-	/**
-	 * ONLY RUN WHEN CLUSTER AVAILABLE
-	 */
-	public static @ClassRule RedisClusterRule clusterRule = new RedisClusterRule();
-
-	/**
-	 * Check for specific Redis Versions
-	 */
-	public @Rule MinimumRedisVersionRule version = new MinimumRedisVersionRule();
-
-	@Before
-	public void setUp() throws IOException {
-
-		nativeConnection = new JedisCluster(new HashSet<>(CLUSTER_NODES));
+	public JedisClusterConnectionTests(JedisCluster nativeConnection) {
+		this.nativeConnection = nativeConnection;
 		clusterConnection = new JedisClusterConnection(this.nativeConnection);
 	}
 
-	@After
-	public void tearDown() throws IOException {
+	@BeforeEach
+	void tearDown() throws IOException {
 
 		for (JedisPool pool : nativeConnection.getClusterNodes().values()) {
-			try {
-				pool.getResource().flushDB();
+			try (Jedis jedis = pool.getResource()) {
+				jedis.flushAll();
 			} catch (Exception e) {
 				// ignore this one since we cannot remove data from slaves
 			}
 		}
-		nativeConnection.close();
 	}
 
 	@Test // DATAREDIS-315
@@ -191,7 +181,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void bitOpShouldWorkCorrectly() {
+	void bitOpShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
 		nativeConnection.set(SAME_SLOT_KEY_2, "bar");
@@ -347,7 +337,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-315
 	public void discardShouldThrowException() {
-		assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> clusterConnection.discard());
+		assertThatExceptionOfType(DataAccessException.class).isThrownBy(clusterConnection::discard);
 	}
 
 	@Test // DATAREDIS-315
@@ -382,11 +372,11 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-315
 	public void execShouldThrowException() {
-		assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> clusterConnection.exec());
+		assertThatExceptionOfType(DataAccessException.class).isThrownBy(clusterConnection::exec);
 	}
 
 	@Test // DATAREDIS-689
-	public void executeWithArgs() {
+	void executeWithArgs() {
 
 		assertThat(clusterConnection.execute("SET", KEY_1_BYTES, VALUE_1_BYTES)).isEqualTo("OK".getBytes());
 
@@ -394,7 +384,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-689
-	public void executeWithKeyAndArgs() {
+	void executeWithKeyAndArgs() {
 
 		Object result = clusterConnection.execute("SET", KEY_1_BYTES, Collections.singletonList(VALUE_1_BYTES));
 		assertThat(result).isEqualTo("OK".getBytes());
@@ -403,7 +393,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-689
-	public void executeWithNoKeyAndArgsThrowsException() {
+	void executeWithNoKeyAndArgsThrowsException() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> clusterConnection.execute("KEYS", (byte[]) null, Collections.singletonList("*".getBytes())));
 	}
@@ -440,7 +430,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.expireAt(KEY_1_BYTES, System.currentTimeMillis() / 1000 + 5000);
 
-		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES)) > 1).isTrue();
+		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
 	}
 
 	@Test // DATAREDIS-315
@@ -450,7 +440,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.expire(KEY_1_BYTES, 5);
 
-		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES)) > 1).isTrue();
+		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
 	}
 
 	@Test // DATAREDIS-315
@@ -994,13 +984,14 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(keysOnNode).contains(KEY_2_BYTES).doesNotContain(KEY_1_BYTES);
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-635
+	@Test // DATAREDIS-635
 	public void scanShouldReturnAllKeys() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.set(KEY_2, VALUE_2);
 
-		clusterConnection.scan(ScanOptions.NONE);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> clusterConnection.scan(ScanOptions.NONE));
 	}
 
 	@Override // DATAREDIS-635
@@ -1219,7 +1210,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-315
 	public void multiShouldThrowException() {
-		assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> clusterConnection.multi());
+		assertThatExceptionOfType(DataAccessException.class).isThrownBy(clusterConnection::multi);
 	}
 
 	@Test // DATAREDIS-315
@@ -1229,7 +1220,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.pExpireAt(KEY_1_BYTES, System.currentTimeMillis() + 5000);
 
-		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES)) > 1).isTrue();
+		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
 	}
 
 	@Test // DATAREDIS-315
@@ -1239,7 +1230,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.pExpire(KEY_1_BYTES, 5000);
 
-		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES)) > 1).isTrue();
+		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
 	}
 
 	@Test // DATAREDIS-315
@@ -1248,7 +1239,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.pSetEx(KEY_1_BYTES, 5000, VALUE_1_BYTES);
 
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
-		assertThat(nativeConnection.ttl(KEY_1) > 1).isTrue();
+		assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(1);
 	}
 
 	@Test // DATAREDIS-315
@@ -1257,7 +1248,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.expire(KEY_1, 5);
 
-		assertThat(clusterConnection.pTtl(KEY_1_BYTES) > 1).isTrue();
+		assertThat(clusterConnection.pTtl(KEY_1_BYTES)).isGreaterThan(1);
 	}
 
 	@Test // DATAREDIS-315
@@ -1312,13 +1303,14 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.pfCount(KEY_1_BYTES)).isEqualTo(3L);
 	}
 
-	@Test(expected = DataAccessException.class) // DATAREDIS-315
+	@Test // DATAREDIS-315
 	public void pfCountShouldThrowErrorCountingOnDifferentSlotKeys() {
 
 		nativeConnection.pfadd(KEY_1, VALUE_1, VALUE_2);
 		nativeConnection.pfadd(KEY_2, VALUE_2, VALUE_3);
 
-		clusterConnection.pfCount(KEY_1_BYTES, KEY_2_BYTES);
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.pfCount(KEY_1_BYTES, KEY_2_BYTES));
 	}
 
 	@Test // DATAREDIS-315
@@ -1633,7 +1625,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-668
-	public void sPopWithCountShouldPopValueFromSetCorrectly() {
+	void sPopWithCountShouldPopValueFromSetCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
@@ -1735,7 +1727,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.setEx(KEY_1_BYTES, 5, VALUE_1_BYTES);
 
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
-		assertThat(nativeConnection.ttl(KEY_1) > 1).isTrue();
+		assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(1);
 	}
 
 	@Test // DATAREDIS-315
@@ -1927,7 +1919,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.expire(KEY_1, 5);
 
-		assertThat(clusterConnection.ttl(KEY_1_BYTES) > 1).isTrue();
+		assertThat(clusterConnection.ttl(KEY_1_BYTES)).isGreaterThan(1);
 	}
 
 	@Test // DATAREDIS-526
@@ -1949,16 +1941,16 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-315
 	public void unwatchShouldThrowException() {
-		assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> clusterConnection.unwatch());
+		assertThatExceptionOfType(DataAccessException.class).isThrownBy(clusterConnection::unwatch);
 	}
 
 	@Test // DATAREDIS-315
 	public void watchShouldThrowException() {
-		assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> clusterConnection.watch());
+		assertThatExceptionOfType(DataAccessException.class).isThrownBy(clusterConnection::watch);
 	}
 
 	@Test // DATAREDIS-674
-	public void zAddShouldAddMultipleValuesWithScoreCorrectly() {
+	void zAddShouldAddMultipleValuesWithScoreCorrectly() {
 
 		Set<Tuple> tuples = new HashSet<>();
 		tuples.add(new DefaultTuple(VALUE_1_BYTES, 10D));
@@ -2293,7 +2285,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-694
-	public void touchReturnsNrOfKeysTouched() {
+	void touchReturnsNrOfKeysTouched() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.set(KEY_2, VALUE_1);
@@ -2302,12 +2294,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-694
-	public void touchReturnsZeroIfNoKeysTouched() {
+	void touchReturnsZeroIfNoKeysTouched() {
 		assertThat(clusterConnection.keyCommands().touch(KEY_1_BYTES)).isEqualTo(0L);
 	}
 
 	@Test // DATAREDIS-693
-	public void unlinkReturnsNrOfKeysTouched() {
+	void unlinkReturnsNrOfKeysTouched() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.set(KEY_2, VALUE_1);
@@ -2316,13 +2308,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-693
-	public void unlinkReturnsZeroIfNoKeysTouched() {
+	void unlinkReturnsZeroIfNoKeysTouched() {
 		assertThat(clusterConnection.keyCommands().unlink(KEY_1_BYTES)).isEqualTo(0L);
 	}
 
 	@Test // DATAREDIS-697
 	@IfProfileValue(name = "redisVersion", value = "2.8.7+")
-	public void bitPosShouldReturnPositionCorrectly() {
+	void bitPosShouldReturnPositionCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, HexStringUtils.hexToBytes("fff000"));
 
@@ -2331,7 +2323,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-697
 	@IfProfileValue(name = "redisVersion", value = "2.8.7+")
-	public void bitPosShouldReturnPositionInRangeCorrectly() {
+	void bitPosShouldReturnPositionInRangeCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, HexStringUtils.hexToBytes("fff0f0"));
 
@@ -2340,7 +2332,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-716
-	public void encodingReturnsCorrectly() {
+	void encodingReturnsCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, "1000".getBytes());
 
@@ -2348,12 +2340,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-716
-	public void encodingReturnsVacantWhenKeyDoesNotExist() {
+	void encodingReturnsVacantWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.keyCommands().encodingOf(KEY_2_BYTES)).isEqualTo(RedisValueEncoding.VACANT);
 	}
 
 	@Test // DATAREDIS-716
-	public void idletimeReturnsCorrectly() {
+	void idletimeReturnsCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 		nativeConnection.get(KEY_1_BYTES);
@@ -2362,12 +2354,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-716
-	public void idldetimeReturnsNullWhenKeyDoesNotExist() {
+	void idldetimeReturnsNullWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.keyCommands().idletime(KEY_3_BYTES)).isNull();
 	}
 
 	@Test // DATAREDIS-716
-	public void refcountReturnsCorrectly() {
+	void refcountReturnsCorrectly() {
 
 		nativeConnection.lpush(KEY_1_BYTES, VALUE_1_BYTES);
 
@@ -2375,13 +2367,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-716
-	public void refcountReturnsNullWhenKeyDoesNotExist() {
+	void refcountReturnsNullWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.keyCommands().refcount(KEY_3_BYTES)).isNull();
 	}
 
 	@Test // DATAREDIS-562
 	@IfProfileValue(name = "redisVersion", value = "3.2+")
-	public void bitFieldSetShouldWorkCorrectly() {
+	void bitFieldSetShouldWorkCorrectly() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L)).to(10L))).containsExactly(0L);
@@ -2391,7 +2383,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-562
 	@IfProfileValue(name = "redisVersion", value = "3.2+")
-	public void bitFieldGetShouldWorkCorrectly() {
+	void bitFieldGetShouldWorkCorrectly() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().get(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L)))).containsExactly(0L);
@@ -2399,7 +2391,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-562
 	@IfProfileValue(name = "redisVersion", value = "3.2+")
-	public void bitFieldIncrByShouldWorkCorrectly() {
+	void bitFieldIncrByShouldWorkCorrectly() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(INT_8).valueAt(BitFieldSubCommands.Offset.offset(100L)).by(1L))).containsExactly(1L);
@@ -2407,7 +2399,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-562
 	@IfProfileValue(name = "redisVersion", value = "3.2+")
-	public void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
+	void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
@@ -2426,7 +2418,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-562
 	@IfProfileValue(name = "redisVersion", value = "3.2+")
-	public void bitfieldShouldAllowMultipleSubcommands() {
+	void bitfieldShouldAllowMultipleSubcommands() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(signed(5)).valueAt(BitFieldSubCommands.Offset.offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)))
@@ -2435,7 +2427,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-562
 	@IfProfileValue(name = "redisVersion", value = "3.2+")
-	public void bitfieldShouldWorkUsingNonZeroBasedOffset() {
+	void bitfieldShouldWorkUsingNonZeroBasedOffset() {
 
 		assertThat(
 				clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
@@ -2452,7 +2444,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-1005
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void evalShouldRunScript() {
+	void evalShouldRunScript() {
 
 		byte[] keyAndArgs = JedisConverters.toBytes("FOO");
 		String luaScript = "return redis.call(\"INCR\", KEYS[1])";
@@ -2465,7 +2457,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-1005
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void scriptLoadShouldLoadScript() {
+	void scriptLoadShouldLoadScript() {
 
 		String luaScript = "return redis.call(\"INCR\", KEYS[1])";
 		String digest = DigestUtils.sha1DigestAsHex(luaScript);
@@ -2478,7 +2470,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-1005
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void scriptFlushShouldRemoveScripts() {
+	void scriptFlushShouldRemoveScripts() {
 
 		byte[] keyAndArgs = JedisConverters.toBytes("FOO");
 		String luaScript = "return redis.call(\"GET\", KEYS[1])";
@@ -2497,7 +2489,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-1005
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void evelShaShouldRunScript() {
+	void evelShaShouldRunScript() {
 
 		byte[] keyAndArgs = JedisConverters.toBytes("FOO");
 		String luaScript = "return redis.call(\"INCR\", KEYS[1])";

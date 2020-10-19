@@ -17,12 +17,12 @@ package org.springframework.data.redis.serializer;
 
 import static org.assertj.core.api.Assertions.*;
 
+import lombok.EqualsAndHashCode;
+
 import java.io.Serializable;
 import java.util.UUID;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
@@ -34,85 +34,25 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-public class SimpleRedisSerializerTests {
+class SimpleRedisSerializerTests {
 
+	@EqualsAndHashCode
 	private static class A implements Serializable {
 
 		private Integer value = Integer.valueOf(30);
-
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((value == null) ? 0 : value.hashCode());
-			return result;
-		}
-
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			A other = (A) obj;
-			if (value == null) {
-				if (other.value != null)
-					return false;
-			} else if (!value.equals(other.value))
-				return false;
-			return true;
-		}
 	}
 
+	@EqualsAndHashCode
 	private static class B implements Serializable {
 
 		private String name = getClass().getName();
 		private A a = new A();
-
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((a == null) ? 0 : a.hashCode());
-			result = prime * result + ((name == null) ? 0 : name.hashCode());
-			return result;
-		}
-
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			B other = (B) obj;
-			if (a == null) {
-				if (other.a != null)
-					return false;
-			} else if (!a.equals(other.a))
-				return false;
-			if (name == null) {
-				if (other.name != null)
-					return false;
-			} else if (!name.equals(other.name))
-				return false;
-			return true;
-		}
 	}
 
-	private RedisSerializer serializer;
-
-	@Before
-	public void setUp() {
-		serializer = new JdkSerializationRedisSerializer();
-	}
-
-	@After
-	public void tearDown() {
-		serializer = null;
-	}
+	private RedisSerializer serializer = new JdkSerializationRedisSerializer();
 
 	@Test
-	public void testBasicSerializationRoundtrip() throws Exception {
+	void testBasicSerializationRoundtrip() throws Exception {
 		verifySerializedObjects(new Integer(300), new Double(200), new B());
 	}
 
@@ -124,7 +64,7 @@ public class SimpleRedisSerializerTests {
 	}
 
 	@Test // DATAREDIS-427
-	public void jdkSerializerShouldUseCustomClassLoader() throws ClassNotFoundException {
+	void jdkSerializerShouldUseCustomClassLoader() throws ClassNotFoundException {
 
 		ClassLoader customClassLoader = new ShadowingClassLoader(ClassLoader.getSystemClassLoader());
 
@@ -140,7 +80,7 @@ public class SimpleRedisSerializerTests {
 	}
 
 	@Test
-	public void testStringEncodedSerialization() {
+	void testStringEncodedSerialization() {
 		String value = UUID.randomUUID().toString();
 		assertThat(serializer.deserialize(serializer.serialize(value))).isEqualTo(value);
 		assertThat(serializer.deserialize(serializer.serialize(value))).isEqualTo(value);
@@ -148,7 +88,7 @@ public class SimpleRedisSerializerTests {
 	}
 
 	@Test
-	public void testPersonSerialization() throws Exception {
+	void testPersonSerialization() throws Exception {
 		String value = UUID.randomUUID().toString();
 		Person p1 = new Person(value, value, 1, new Address(value, 2));
 		assertThat(serializer.deserialize(serializer.serialize(p1))).isEqualTo(p1);
@@ -156,7 +96,7 @@ public class SimpleRedisSerializerTests {
 	}
 
 	@Test
-	public void testOxmSerializer() throws Exception {
+	void testOxmSerializer() throws Exception {
 		XStreamMarshaller xstream = new XStreamMarshaller();
 		xstream.afterPropertiesSet();
 
@@ -169,7 +109,7 @@ public class SimpleRedisSerializerTests {
 	}
 
 	@Test
-	public void testJsonSerializer() throws Exception {
+	void testJsonSerializer() throws Exception {
 		Jackson2JsonRedisSerializer<Person> serializer = new Jackson2JsonRedisSerializer<>(Person.class);
 		String value = UUID.randomUUID().toString();
 		Person p1 = new Person(value, value, 1, new Address(value, 2));

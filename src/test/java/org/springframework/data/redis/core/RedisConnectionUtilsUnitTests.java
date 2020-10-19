@@ -17,7 +17,7 @@ package org.springframework.data.redis.core;
 
 import static org.mockito.Mockito.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -27,10 +27,10 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
  *
  * @author Mark Paluch
  */
-public class RedisConnectionUtilsUnitTests {
+class RedisConnectionUtilsUnitTests {
 
 	@Test // DATAREDIS-1104
-	public void shouldSilentlyCloseRedisConnection() {
+	void shouldSilentlyCloseRedisConnection() {
 
 		RedisConnection connectionMock = mock(RedisConnection.class);
 		RedisConnectionFactory factoryMock = mock(RedisConnectionFactory.class);

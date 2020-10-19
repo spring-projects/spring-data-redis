@@ -22,14 +22,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongUnaryOperator;
 
-import org.junit.After;
-import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -55,7 +54,6 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 
 	public RedisAtomicLongTests(RedisConnectionFactory factory) {
 
-		this.longCounter = new RedisAtomicLong(getClass().getSimpleName() + ":long", factory);
 		this.factory = factory;
 
 		this.template = new RedisTemplate<>();
@@ -63,8 +61,6 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		this.template.setKeySerializer(StringRedisSerializer.UTF_8);
 		this.template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		this.template.afterPropertiesSet();
-
-		ConnectionFactoryTracker.add(factory);
 	}
 
 	@Parameters
@@ -72,17 +68,14 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		return AtomicCountersParam.testParams();
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
-	@After
-	public void tearDown() {
+	@Before
+	public void before() {
 
 		RedisConnection connection = factory.getConnection();
 		connection.flushDb();
 		connection.close();
+
+		this.longCounter = new RedisAtomicLong(getClass().getSimpleName() + ":long", factory);
 	}
 
 	@Test

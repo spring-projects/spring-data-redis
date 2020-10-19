@@ -43,6 +43,7 @@ import org.springframework.data.redis.connection.ClusterTopologyProvider;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConfiguration;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.lang.Nullable;
 

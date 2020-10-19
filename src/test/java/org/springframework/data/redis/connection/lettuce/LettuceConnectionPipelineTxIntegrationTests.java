@@ -33,37 +33,31 @@ import org.springframework.test.annotation.IfProfileValue;
 public class LettuceConnectionPipelineTxIntegrationTests extends LettuceConnectionTransactionIntegrationTests {
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaNotFound() {
 		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(() -> super.testEvalShaNotFound());
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleError() {
 		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(() -> super.testEvalReturnSingleError());
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreBadData() {
 		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(() -> super.testRestoreBadData());
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreExistingKey() {
 		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(() -> super.testRestoreExistingKey());
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalArrayScriptError() {
 		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(() -> super.testEvalArrayScriptError());
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayError() {
 		assertThatExceptionOfType(RedisPipelineException.class).isThrownBy(() -> super.testEvalShaArrayError());
 	}

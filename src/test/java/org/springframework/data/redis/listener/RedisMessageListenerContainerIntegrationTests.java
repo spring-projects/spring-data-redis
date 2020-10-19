@@ -20,9 +20,9 @@ import static org.mockito.Mockito.*;
 
 import java.util.concurrent.Executor;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.SettingsUtils;
@@ -36,7 +36,7 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-public class RedisMessageListenerContainerTests {
+class RedisMessageListenerContainerIntegrationTests {
 
 	private final Object handler = new Object() {
 
@@ -51,8 +51,8 @@ public class RedisMessageListenerContainerTests {
 
 	private Executor executorMock;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		executorMock = mock(Executor.class);
 
@@ -72,15 +72,15 @@ public class RedisMessageListenerContainerTests {
 		container.afterPropertiesSet();
 	}
 
-	@After
-	public void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 
 		container.destroy();
 		connectionFactory.destroy();
 	}
 
 	@Test // DATAREDIS-415
-	public void interruptAtStart() {
+	void interruptAtStart() {
 
 		final Thread main = Thread.currentThread();
 

@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractTransactionalTestBase;
 import org.springframework.data.redis.connection.lettuce.TransactionalLettuceIntegrationTests.LettuceContextConfiguration;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.test.context.ContextConfiguration;
 
 /**

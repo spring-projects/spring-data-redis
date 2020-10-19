@@ -35,16 +35,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.redis.ClusterStateFailureException;
 import org.springframework.data.redis.RedisSystemException;
@@ -58,8 +59,9 @@ import org.springframework.data.redis.connection.jedis.JedisClusterConnection.Je
  * @author Mark Paluch
  * @author Chen Guanqun
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class JedisClusterConnectionUnitTests {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class JedisClusterConnectionUnitTests {
 
 	private static final String CLUSTER_NODES_RESPONSE = "" //
 			+ MASTER_NODE_1_ID + " " + CLUSTER_HOST + ":" + MASTER_NODE_1_PORT + " myself,master - 0 0 1 connected 0-5460"
@@ -67,13 +69,13 @@ public class JedisClusterConnectionUnitTests {
 			+ " master - 0 1427718161587 2 connected 5461-10922" + "\n" + MASTER_NODE_2_ID + " " + CLUSTER_HOST + ":"
 			+ MASTER_NODE_3_PORT + " master - 0 1427718161587 3 connected 10923-16383";
 
-	static final String CLUSTER_INFO_RESPONSE = "cluster_state:ok" + "\n" + "cluster_slots_assigned:16384" + "\n"
+	private static final String CLUSTER_INFO_RESPONSE = "cluster_state:ok" + "\n" + "cluster_slots_assigned:16384" + "\n"
 			+ "cluster_slots_ok:16384" + "\n" + "cluster_slots_pfail:0" + "\n" + "cluster_slots_fail:0" + "\n"
 			+ "cluster_known_nodes:4" + "\n" + "cluster_size:3" + "\n" + "cluster_current_epoch:30" + "\n"
 			+ "cluster_my_epoch:2" + "\n" + "cluster_stats_messages_sent:2560260" + "\n"
 			+ "cluster_stats_messages_received:2560086";
 
-	JedisClusterConnection connection;
+	private JedisClusterConnection connection;
 
 	@Spy StubJedisCluster clusterMock;
 	@Mock JedisClusterConnectionHandler connectionHandlerMock;
@@ -86,12 +88,10 @@ public class JedisClusterConnectionUnitTests {
 	@Mock Jedis con2Mock;
 	@Mock Jedis con3Mock;
 
-	Map<String, JedisPool> nodes = new LinkedHashMap<>();
+	private Map<String, JedisPool> nodes = new LinkedHashMap<>();
 
-	public @Rule ExpectedException expectedException = ExpectedException.none();
-
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		nodes.put(CLUSTER_HOST + ":" + MASTER_NODE_1_PORT, node1PoolMock);
 		nodes.put(CLUSTER_HOST + ":" + MASTER_NODE_2_PORT, node2PoolMock);
@@ -111,15 +111,12 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void throwsExceptionWhenClusterCommandExecutorIsNull() {
-
-		expectedException.expect(IllegalArgumentException.class);
-
-		new JedisClusterConnection(clusterMock, null);
+	void throwsExceptionWhenClusterCommandExecutorIsNull() {
+		assertThatIllegalArgumentException().isThrownBy(() -> new JedisClusterConnection(clusterMock, null));
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterMeetShouldSendCommandsToExistingNodesCorrectly() {
+	void clusterMeetShouldSendCommandsToExistingNodesCorrectly() {
 
 		connection.clusterMeet(UNKNOWN_CLUSTER_NODE);
 
@@ -129,15 +126,12 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterMeetShouldThrowExceptionWhenNodeIsNull() {
-
-		expectedException.expect(IllegalArgumentException.class);
-
-		connection.clusterMeet(null);
+	void clusterMeetShouldThrowExceptionWhenNodeIsNull() {
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.clusterMeet(null));
 	}
 
 	@Test // DATAREDIS-315, DATAREDIS-890
-	public void clusterForgetShouldSendCommandsToRemainingNodesCorrectly() {
+	void clusterForgetShouldSendCommandsToRemainingNodesCorrectly() {
 
 		connection.clusterForget(CLUSTER_NODE_2);
 
@@ -146,7 +140,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315, DATAREDIS-890
-	public void clusterReplicateShouldSendCommandsCorrectly() {
+	void clusterReplicateShouldSendCommandsCorrectly() {
 
 		connection.clusterReplicate(CLUSTER_NODE_1, CLUSTER_NODE_2);
 
@@ -157,7 +151,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void closeShouldNotCloseUnderlyingClusterPool() throws IOException {
+	void closeShouldNotCloseUnderlyingClusterPool() throws IOException {
 
 		connection.close();
 
@@ -165,7 +159,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void isClosedShouldReturnConnectionStateCorrectly() {
+	void isClosedShouldReturnConnectionStateCorrectly() {
 
 		assertThat(connection.isClosed()).isFalse();
 
@@ -175,7 +169,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterInfoShouldBeReturnedCorrectly() {
+	void clusterInfoShouldBeReturnedCorrectly() {
 
 		when(con1Mock.clusterInfo()).thenReturn(CLUSTER_INFO_RESPONSE);
 		when(con2Mock.clusterInfo()).thenReturn(CLUSTER_INFO_RESPONSE);
@@ -188,7 +182,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterSetSlotImportingShouldBeExecutedCorrectly() {
+	void clusterSetSlotImportingShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.IMPORTING);
 
@@ -196,7 +190,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterSetSlotMigratingShouldBeExecutedCorrectly() {
+	void clusterSetSlotMigratingShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.MIGRATING);
 
@@ -204,7 +198,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterSetSlotStableShouldBeExecutedCorrectly() {
+	void clusterSetSlotStableShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.STABLE);
 
@@ -212,7 +206,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterSetSlotNodeShouldBeExecutedCorrectly() {
+	void clusterSetSlotNodeShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.NODE);
 
@@ -220,7 +214,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterSetSlotShouldBeExecutedOnTargetNodeWhenNodeIdNotSet() {
+	void clusterSetSlotShouldBeExecutedOnTargetNodeWhenNodeIdNotSet() {
 
 		connection.clusterSetSlot(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT), 100, AddSlots.IMPORTING);
 
@@ -228,12 +222,12 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterSetSlotShouldThrowExceptionWhenModeIsNull() {
+	void clusterSetSlotShouldThrowExceptionWhenModeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.clusterSetSlot(CLUSTER_NODE_1, 100, null));
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterDeleteSlotsShouldBeExecutedCorrectly() {
+	void clusterDeleteSlotsShouldBeExecutedCorrectly() {
 
 		int[] slots = new int[] { 9000, 10000 };
 		connection.clusterDeleteSlots(CLUSTER_NODE_2, slots);
@@ -242,12 +236,12 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterDeleteSlotShouldThrowExceptionWhenNodeIsNull() {
+	void clusterDeleteSlotShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.clusterDeleteSlots(null, new int[] { 1 }));
 	}
 
 	@Test // DATAREDIS-315
-	public void timeShouldBeExecutedOnArbitraryNode() {
+	void timeShouldBeExecutedOnArbitraryNode() {
 
 		List<String> values = Arrays.asList("1449655759", "92217");
 		when(con1Mock.time()).thenReturn(values);
@@ -260,7 +254,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-679
-	public void shouldFailWithUnknownNode() {
+	void shouldFailWithUnknownNode() {
 
 		try {
 			connection.serverCommands().dbSize(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT));
@@ -271,18 +265,17 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-679
-	public void shouldFailWithAbsentConnection() {
+	void shouldFailWithAbsentConnection() {
 
 		nodes.remove(CLUSTER_HOST + ":" + MASTER_NODE_3_PORT);
 
-		expectedException.expect(DataAccessResourceFailureException.class);
-		expectedException.expectMessage("Node " + CLUSTER_HOST + ":" + MASTER_NODE_3_PORT + " is unknown to cluster");
-
-		connection.serverCommands().dbSize(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT));
+		assertThatExceptionOfType(DataAccessResourceFailureException.class)
+				.isThrownBy(() -> connection.serverCommands().dbSize(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT)))
+				.withMessageContaining("Node " + CLUSTER_HOST + ":" + MASTER_NODE_3_PORT + " is unknown to cluster");
 	}
 
 	@Test // DATAREDIS-679
-	public void shouldReconfigureJedisWithDiscoveredNode() {
+	void shouldReconfigureJedisWithDiscoveredNode() {
 
 		nodes.remove(CLUSTER_HOST + ":" + MASTER_NODE_3_PORT);
 
@@ -306,7 +299,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315, DATAREDIS-890
-	public void timeShouldBeExecutedOnSingleNode() {
+	void timeShouldBeExecutedOnSingleNode() {
 
 		when(con2Mock.time()).thenReturn(Arrays.asList("1449655759", "92217"));
 
@@ -320,7 +313,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void resetConfigStatsShouldBeExecutedOnAllNodes() {
+	void resetConfigStatsShouldBeExecutedOnAllNodes() {
 
 		connection.resetConfigStats();
 
@@ -330,7 +323,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315, DATAREDIS-890
-	public void resetConfigStatsShouldBeExecutedOnSingleNodeCorrectly() {
+	void resetConfigStatsShouldBeExecutedOnSingleNodeCorrectly() {
 
 		connection.resetConfigStats(CLUSTER_NODE_2);
 
@@ -341,22 +334,19 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterTopologyProviderShouldCollectErrorsWhenLoadingNodes() {
-
-		expectedException.expect(ClusterStateFailureException.class);
-		expectedException.expectMessage("127.0.0.1:7379 failed: o.O");
-		expectedException.expectMessage("127.0.0.1:7380 failed: o.1");
-		expectedException.expectMessage("127.0.0.1:7381 failed: o.2");
+	void clusterTopologyProviderShouldCollectErrorsWhenLoadingNodes() {
 
 		when(con1Mock.clusterNodes()).thenThrow(new JedisConnectionException("o.O"));
 		when(con2Mock.clusterNodes()).thenThrow(new JedisConnectionException("o.1"));
 		when(con3Mock.clusterNodes()).thenThrow(new JedisConnectionException("o.2"));
 
-		new JedisClusterTopologyProvider(clusterMock).getTopology();
+		assertThatExceptionOfType(ClusterStateFailureException.class)
+				.isThrownBy(() -> new JedisClusterTopologyProvider(clusterMock).getTopology())
+				.withMessageContaining("127.0.0.1:7379 failed: o.O").withMessageContaining("127.0.0.1:7380 failed: o.1");
 	}
 
 	@Test // DATAREDIS-603
-	public void translatesUnknownExceptions() {
+	void translatesUnknownExceptions() {
 
 		IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
 
@@ -368,7 +358,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-794
-	public void clusterTopologyProviderShouldUseCachedTopology() {
+	void clusterTopologyProviderShouldUseCachedTopology() {
 
 		when(clusterMock.getClusterNodes()).thenReturn(Collections.singletonMap("mock", node1PoolMock));
 		when(con1Mock.clusterNodes()).thenReturn(CLUSTER_NODES_RESPONSE);
@@ -381,7 +371,7 @@ public class JedisClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-794
-	public void clusterTopologyProviderShouldRequestTopology() {
+	void clusterTopologyProviderShouldRequestTopology() {
 
 		when(clusterMock.getClusterNodes()).thenReturn(Collections.singletonMap("mock", node1PoolMock));
 		when(con1Mock.clusterNodes()).thenReturn(CLUSTER_NODES_RESPONSE);

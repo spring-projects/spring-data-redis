@@ -55,11 +55,6 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		return ReactiveOperationsTestParams.testParams();
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
 	/**
 	 * @param redisTemplate
 	 * @param keyFactory
@@ -73,8 +68,6 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		this.hyperLogLogOperations = redisTemplate.opsForHyperLogLog();
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
-
-		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Before

@@ -17,17 +17,17 @@ package org.springframework.data.redis.connection;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link RedisStaticMasterReplicaConfiguration}.
  *
  * @author Mark Paluch
  */
-public class RedisElastiCacheConfigurationUnitTests {
+class RedisElastiCacheConfigurationUnitTests {
 
 	@Test // DATAREDIS-762
-	public void shouldCreateSingleHostConfiguration() {
+	void shouldCreateSingleHostConfiguration() {
 
 		RedisStaticMasterReplicaConfiguration singleHost = new RedisStaticMasterReplicaConfiguration("localhost");
 
@@ -40,7 +40,7 @@ public class RedisElastiCacheConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-762
-	public void shouldCreateMultiHostConfiguration() {
+	void shouldCreateMultiHostConfiguration() {
 
 		RedisStaticMasterReplicaConfiguration multiHost = new RedisStaticMasterReplicaConfiguration("localhost");
 		multiHost.node("other-host", 6479);
@@ -59,7 +59,7 @@ public class RedisElastiCacheConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-762
-	public void shouldApplyPasswordToNodes() {
+	void shouldApplyPasswordToNodes() {
 
 		RedisStaticMasterReplicaConfiguration multiHost = new RedisStaticMasterReplicaConfiguration("localhost").node("other-host", 6479);
 
@@ -71,7 +71,7 @@ public class RedisElastiCacheConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-762
-	public void shouldApplyDatabaseToNodes() {
+	void shouldApplyDatabaseToNodes() {
 
 		RedisStaticMasterReplicaConfiguration multiHost = new RedisStaticMasterReplicaConfiguration("localhost").node("other-host", 6479);
 

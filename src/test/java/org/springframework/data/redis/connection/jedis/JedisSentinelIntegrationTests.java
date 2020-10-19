@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
 
+import org.junit.jupiter.api.extension.ExtendWith;
 import redis.clients.jedis.Jedis;
 
 import java.util.Collection;
@@ -24,11 +25,8 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
@@ -36,11 +34,9 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
-import org.springframework.data.redis.test.util.RedisSentinelRule;
-import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
-import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -48,8 +44,9 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  */
-@RunWith(RelaxedJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
+@EnabledOnRedisSentinelAvailable
 public class JedisSentinelIntegrationTests extends AbstractConnectionIntegrationTests {
 
 	private static final String MASTER_NAME = "mymaster";
@@ -62,8 +59,6 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration() //
 			.master(MASTER_NAME).sentinel(SENTINEL_0).sentinel(SENTINEL_1);
 
-	public static @ClassRule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();
-	public @Rule MinimumRedisVersionRule minimumVersionRule = new MinimumRedisVersionRule();
 
 	@Before
 	public void setUp() {
@@ -87,40 +82,34 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleError() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalArrayScriptError() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> super.testEvalArrayScriptError());
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaNotFound() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2"));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayError() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testEvalShaArrayError());
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreBadData() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testRestoreBadData());
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreExistingKey() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> super.testRestoreExistingKey());

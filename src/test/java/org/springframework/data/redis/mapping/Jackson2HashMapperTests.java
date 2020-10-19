@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,14 +28,13 @@ import org.junit.runners.Parameterized.Parameters;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.Address;
-import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.hash.Jackson2HashMapper;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 
 /**
  * Integration tests for {@link Jackson2HashMapper}.
@@ -57,21 +55,13 @@ public class Jackson2HashMapperTests {
 		if (factory instanceof InitializingBean) {
 			((InitializingBean) factory).afterPropertiesSet();
 		}
-
-		ConnectionFactoryTracker.add(factory);
 	}
 
 	@Parameters
 	public static Collection<RedisConnectionFactory> params() {
 
-		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
-		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		return Arrays.<RedisConnectionFactory> asList(new JedisConnectionFactory(), lettuceConnectionFactory);
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
+		return Arrays.asList(JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class),
+				LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class));
 	}
 
 	@Before

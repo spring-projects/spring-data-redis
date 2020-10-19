@@ -22,16 +22,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.hash.HashMapper;
@@ -43,18 +40,25 @@ import org.springframework.data.redis.hash.Jackson2HashMapper;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(Parameterized.class)
-public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
+public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTests {
 
 	private final Jackson2HashMapper mapper;
 
-	public Jackson2HashMapperUnitTests(Jackson2HashMapper mapper) {
+	Jackson2HashMapperUnitTests(Jackson2HashMapper mapper) {
 		this.mapper = mapper;
 	}
 
-	@Parameters
-	public static Collection<Jackson2HashMapper> params() {
-		return Arrays.asList(new Jackson2HashMapper(true), new Jackson2HashMapper(false));
+	static class FlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
+		FlatteningJackson2HashMapperUnitTests() {
+			super(new Jackson2HashMapper(true));
+		}
+	}
+
+	static class NonFlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
+
+		NonFlatteningJackson2HashMapperUnitTests() {
+			super(new Jackson2HashMapper(false));
+		}
 	}
 
 	@Override
@@ -64,7 +68,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	}
 
 	@Test // DATAREDIS-423
-	public void shouldMapTypedListOfSimpleType() {
+	void shouldMapTypedListOfSimpleType() {
 
 		WithList source = new WithList();
 		source.strings = Arrays.asList("spring", "data", "redis");
@@ -72,7 +76,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	}
 
 	@Test // DATAREDIS-423
-	public void shouldMapTypedListOfComplexType() {
+	void shouldMapTypedListOfComplexType() {
 
 		WithList source = new WithList();
 
@@ -81,7 +85,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	}
 
 	@Test // DATAREDIS-423
-	public void shouldMapTypedListOfComplexObjectWihtNestedElements() {
+	void shouldMapTypedListOfComplexObjectWihtNestedElements() {
 
 		WithList source = new WithList();
 
@@ -96,7 +100,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	}
 
 	@Test // DATAREDIS-423
-	public void shouldMapNestedObject() {
+	void shouldMapNestedObject() {
 
 		Person jon = new Person("jon", "snow", 19);
 		Address adr = new Address();
@@ -108,7 +112,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	}
 
 	@Test // DATAREDIS-423
-	public void shouldMapUntypedList() {
+	void shouldMapUntypedList() {
 
 		WithList source = new WithList();
 		source.objects = Arrays.asList(100, "foo", new Person("jon", "snow", 19));
@@ -116,7 +120,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	}
 
 	@Test // DATAREDIS-423
-	public void shouldMapTypedMapOfSimpleTypes() {
+	void shouldMapTypedMapOfSimpleTypes() {
 
 		WithMap source = new WithMap();
 		source.strings = new LinkedHashMap<>();
@@ -127,7 +131,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	}
 
 	@Test // DATAREDIS-423
-	public void shouldMapTypedMapOfComplexTypes() {
+	void shouldMapTypedMapOfComplexTypes() {
 
 		WithMap source = new WithMap();
 		source.persons = new LinkedHashMap<>();
@@ -137,7 +141,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	}
 
 	@Test // DATAREDIS-423
-	public void shouldMapUntypedMap() {
+	void shouldMapUntypedMap() {
 
 		WithMap source = new WithMap();
 		source.objects = new LinkedHashMap<>();
@@ -148,7 +152,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	}
 
 	@Test // DATAREDIS-423
-	public void nestedStuff() {
+	void nestedStuff() {
 
 		WithList nestedList = new WithList();
 		nestedList.objects = new ArrayList<>();
@@ -167,7 +171,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	}
 
 	@Test // DATAREDIS-1001
-	public void dateValueShouldBeTreatedCorrectly() {
+	void dateValueShouldBeTreatedCorrectly() {
 
 		WithDates source = new WithDates();
 		source.string = "id-1";
@@ -194,7 +198,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	}
 
 	@Data
-	static class WithDates {
+	private static class WithDates {
 
 		private String string;
 		private Date date;

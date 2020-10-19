@@ -25,14 +25,13 @@ import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 
 import org.assertj.core.data.Offset;
-import org.junit.After;
-import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -57,7 +56,6 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 	public RedisAtomicDoubleTests(RedisConnectionFactory factory) {
 
-		this.doubleCounter = new RedisAtomicDouble(getClass().getSimpleName() + ":double", factory);
 		this.factory = factory;
 
 		this.template = new RedisTemplate<>();
@@ -65,8 +63,6 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		this.template.setKeySerializer(StringRedisSerializer.UTF_8);
 		this.template.setValueSerializer(new GenericToStringSerializer<>(Double.class));
 		this.template.afterPropertiesSet();
-
-		ConnectionFactoryTracker.add(factory);
 	}
 
 	@Parameters
@@ -74,17 +70,14 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		return AtomicCountersParam.testParams();
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
-	@After
-	public void tearDown() {
+	@Before
+	public void before() {
 
 		RedisConnection connection = factory.getConnection();
 		connection.flushDb();
 		connection.close();
+
+		this.doubleCounter = new RedisAtomicDouble(getClass().getSimpleName() + ":double", factory);
 	}
 
 	@Test // DATAREDIS-198

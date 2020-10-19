@@ -78,11 +78,6 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		return ReactiveOperationsTestParams.testParams();
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
 	/**
 	 * @param redisTemplate
 	 * @param keyFactory
@@ -96,8 +91,6 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		this.geoOperations = redisTemplate.opsForGeo();
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
-
-		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Before

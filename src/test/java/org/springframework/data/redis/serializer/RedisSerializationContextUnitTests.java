@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link RedisSerializationContext}.
@@ -27,10 +27,10 @@ import org.junit.Test;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-public class RedisSerializationContextUnitTests {
+class RedisSerializationContextUnitTests {
 
 	@Test // DATAREDIS-602
-	public void shouldRejectBuildIfKeySerializerIsNotSet() {
+	void shouldRejectBuildIfKeySerializerIsNotSet() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> RedisSerializationContext.<String, String> newSerializationContext() //
 				.value(StringRedisSerializer.UTF_8) //
@@ -40,7 +40,7 @@ public class RedisSerializationContextUnitTests {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldRejectBuildIfValueSerializerIsNotSet() {
+	void shouldRejectBuildIfValueSerializerIsNotSet() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> RedisSerializationContext.<String, String> newSerializationContext() //
 				.key(StringRedisSerializer.UTF_8) //
@@ -50,7 +50,7 @@ public class RedisSerializationContextUnitTests {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldRejectBuildIfHashKeySerializerIsNotSet() {
+	void shouldRejectBuildIfHashKeySerializerIsNotSet() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> RedisSerializationContext.<String, String> newSerializationContext() //
 				.key(StringRedisSerializer.UTF_8) //
@@ -60,7 +60,7 @@ public class RedisSerializationContextUnitTests {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldRejectBuildIfHashValueSerializerIsNotSet() {
+	void shouldRejectBuildIfHashValueSerializerIsNotSet() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> RedisSerializationContext.<String, String> newSerializationContext() //
 				.key(StringRedisSerializer.UTF_8) //
@@ -70,7 +70,7 @@ public class RedisSerializationContextUnitTests {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldUseDefaultIfSet() {
+	void shouldUseDefaultIfSet() {
 
 		RedisSerializationContext.<String, String> newSerializationContext(StringRedisSerializer.UTF_8)
 				.key(new GenericToStringSerializer(Long.class))//
@@ -78,7 +78,7 @@ public class RedisSerializationContextUnitTests {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldBuildSerializationContext() {
+	void shouldBuildSerializationContext() {
 
 		RedisSerializationContext<String, Long> serializationContext = createSerializationContext();
 
@@ -90,7 +90,7 @@ public class RedisSerializationContextUnitTests {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldEncodeAndDecodeKey() {
+	void shouldEncodeAndDecodeKey() {
 
 		RedisSerializationContext<String, Long> serializationContext = createSerializationContext();
 
@@ -101,7 +101,7 @@ public class RedisSerializationContextUnitTests {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldEncodeAndDecodeValue() {
+	void shouldEncodeAndDecodeValue() {
 
 		RedisSerializationContext<String, Long> serializationContext = createSerializationContext();
 
@@ -112,7 +112,7 @@ public class RedisSerializationContextUnitTests {
 	}
 
 	@Test // DATAREDIS-1000
-	public void shouldEncodeAndDecodeRawByteBufferValue() {
+	void shouldEncodeAndDecodeRawByteBufferValue() {
 
 		RedisSerializationContext<ByteBuffer, ByteBuffer> serializationContext = RedisSerializationContext
 				.byteBuffer();
@@ -125,7 +125,7 @@ public class RedisSerializationContextUnitTests {
 	}
 
 	@Test // DATAREDIS-1000
-	public void shouldEncodeAndDecodeByteArrayValue() {
+	void shouldEncodeAndDecodeByteArrayValue() {
 
 		RedisSerializationContext<byte[], byte[]> serializationContext = RedisSerializationContext
 				.byteArray();

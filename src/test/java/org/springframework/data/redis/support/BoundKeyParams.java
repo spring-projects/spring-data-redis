@@ -18,11 +18,11 @@ package org.springframework.data.redis.support;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
@@ -30,6 +30,7 @@ import org.springframework.data.redis.support.collections.DefaultRedisList;
 import org.springframework.data.redis.support.collections.DefaultRedisMap;
 import org.springframework.data.redis.support.collections.DefaultRedisSet;
 import org.springframework.data.redis.support.collections.RedisList;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 
 /**
  * @author Costin Leau
@@ -40,10 +41,8 @@ public class BoundKeyParams {
 
 	public static Collection<Object[]> testParams() {
 		// Jedis
-		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setPort(SettingsUtils.getPort());
-		jedisConnFactory.setHostName(SettingsUtils.getHost());
-		jedisConnFactory.afterPropertiesSet();
+		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		StringRedisTemplate templateJS = new StringRedisTemplate(jedisConnFactory);
 		DefaultRedisMap mapJS = new DefaultRedisMap("bound:key:map", templateJS);
@@ -51,11 +50,8 @@ public class BoundKeyParams {
 		RedisList list = new DefaultRedisList("bound:key:list", templateJS);
 
 		// Lettuce
-		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
-		lettuceConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnFactory.setPort(SettingsUtils.getPort());
-		lettuceConnFactory.setHostName(SettingsUtils.getHost());
-		lettuceConnFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		StringRedisTemplate templateLT = new StringRedisTemplate(lettuceConnFactory);
 		DefaultRedisMap mapLT = new DefaultRedisMap("bound:key:mapLT", templateLT);

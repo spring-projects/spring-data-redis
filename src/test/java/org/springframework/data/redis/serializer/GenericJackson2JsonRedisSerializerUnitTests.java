@@ -22,7 +22,7 @@ import static org.springframework.util.ObjectUtils.*;
 
 import java.io.IOException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.BeanUtils;
@@ -44,18 +44,18 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public class GenericJackson2JsonRedisSerializerUnitTests {
+class GenericJackson2JsonRedisSerializerUnitTests {
 
 	private static final SimpleObject SIMPLE_OBJECT = new SimpleObject(1L);
 	private static final ComplexObject COMPLEX_OBJECT = new ComplexObject("steelheart", SIMPLE_OBJECT);
 
 	@Test // DATAREDIS-392
-	public void shouldUseDefaultTyping() {
+	void shouldUseDefaultTyping() {
 		assertThat(extractTypeResolver(new GenericJackson2JsonRedisSerializer())).isNotNull();
 	}
 
 	@Test // DATAREDIS-392
-	public void shouldUseDefaultTypingWhenClassPropertyNameIsEmpty() {
+	void shouldUseDefaultTypingWhenClassPropertyNameIsEmpty() {
 
 		TypeResolverBuilder<?> typeResolver = extractTypeResolver(new GenericJackson2JsonRedisSerializer(""));
 		assertThat((String) getField(typeResolver, "_typeProperty"))
@@ -63,7 +63,7 @@ public class GenericJackson2JsonRedisSerializerUnitTests {
 	}
 
 	@Test // DATAREDIS-392
-	public void shouldUseDefaultTypingWhenClassPropertyNameIsNull() {
+	void shouldUseDefaultTypingWhenClassPropertyNameIsNull() {
 
 		TypeResolverBuilder<?> typeResolver = extractTypeResolver(new GenericJackson2JsonRedisSerializer((String) null));
 		assertThat((String) getField(typeResolver, "_typeProperty"))
@@ -71,29 +71,29 @@ public class GenericJackson2JsonRedisSerializerUnitTests {
 	}
 
 	@Test // DATAREDIS-392
-	public void shouldUseDefaultTypingWhenClassPropertyNameIsProvided() {
+	void shouldUseDefaultTypingWhenClassPropertyNameIsProvided() {
 
 		TypeResolverBuilder<?> typeResolver = extractTypeResolver(new GenericJackson2JsonRedisSerializer("firefight"));
 		assertThat((String) getField(typeResolver, "_typeProperty")).isEqualTo("firefight");
 	}
 
 	@Test // DATAREDIS-392
-	public void serializeShouldReturnEmptyByteArrayWhenSouceIsNull() {
+	void serializeShouldReturnEmptyByteArrayWhenSouceIsNull() {
 		assertThat(new GenericJackson2JsonRedisSerializer().serialize(null)).isEqualTo(SerializationUtils.EMPTY_ARRAY);
 	}
 
 	@Test // DATAREDIS-392
-	public void deserializeShouldReturnNullWhenSouceIsNull() {
+	void deserializeShouldReturnNullWhenSouceIsNull() {
 		assertThat(new GenericJackson2JsonRedisSerializer().deserialize(null)).isNull();
 	}
 
 	@Test // DATAREDIS-392
-	public void deserializeShouldReturnNullWhenSouceIsEmptyArray() {
+	void deserializeShouldReturnNullWhenSouceIsEmptyArray() {
 		assertThat(new GenericJackson2JsonRedisSerializer().deserialize(SerializationUtils.EMPTY_ARRAY)).isNull();
 	}
 
 	@Test // DATAREDIS-392
-	public void deserializeShouldBeAbleToRestoreSimpleObjectAfterSerialization() {
+	void deserializeShouldBeAbleToRestoreSimpleObjectAfterSerialization() {
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
 
@@ -101,34 +101,36 @@ public class GenericJackson2JsonRedisSerializerUnitTests {
 	}
 
 	@Test // DATAREDIS-392
-	public void deserializeShouldBeAbleToRestoreComplexObjectAfterSerialization() {
+	void deserializeShouldBeAbleToRestoreComplexObjectAfterSerialization() {
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
 
 		assertThat((ComplexObject) serializer.deserialize(serializer.serialize(COMPLEX_OBJECT))).isEqualTo(COMPLEX_OBJECT);
 	}
 
-	@Test(expected = SerializationException.class) // DATAREDIS-392
-	public void serializeShouldThrowSerializationExceptionProcessingError() throws JsonProcessingException {
+	@Test // DATAREDIS-392
+	void serializeShouldThrowSerializationExceptionProcessingError() throws JsonProcessingException {
 
 		ObjectMapper objectMapperMock = mock(ObjectMapper.class);
 		when(objectMapperMock.writeValueAsBytes(any())).thenThrow(new JsonGenerationException("nightwielder"));
 
-		new GenericJackson2JsonRedisSerializer(objectMapperMock).serialize(SIMPLE_OBJECT);
+		assertThatExceptionOfType(SerializationException.class)
+				.isThrownBy(() -> new GenericJackson2JsonRedisSerializer(objectMapperMock).serialize(SIMPLE_OBJECT));
 	}
 
-	@Test(expected = SerializationException.class) // DATAREDIS-392
-	public void deserializeShouldThrowSerializationExceptionProcessingError() throws IOException {
+	@Test // DATAREDIS-392
+	void deserializeShouldThrowSerializationExceptionProcessingError() throws IOException {
 
 		ObjectMapper objectMapperMock = mock(ObjectMapper.class);
 		when(objectMapperMock.readValue(Mockito.any(byte[].class), Mockito.any(Class.class)))
 				.thenThrow(new JsonMappingException("conflux"));
 
-		new GenericJackson2JsonRedisSerializer(objectMapperMock).deserialize(new byte[] { 1 });
+		assertThatExceptionOfType(SerializationException.class)
+				.isThrownBy(() -> new GenericJackson2JsonRedisSerializer(objectMapperMock).deserialize(new byte[] { 1 }));
 	}
 
 	@Test // DATAREDIS-553, DATAREDIS-865
-	public void shouldSerializeNullValueSoThatItCanBeDeserializedWithDefaultTypingEnabled() {
+	void shouldSerializeNullValueSoThatItCanBeDeserializedWithDefaultTypingEnabled() {
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
 
@@ -136,7 +138,7 @@ public class GenericJackson2JsonRedisSerializerUnitTests {
 	}
 
 	@Test // DATAREDIS-865
-	public void shouldSerializeNullValueWithCustomObjectMapper() {
+	void shouldSerializeNullValueWithCustomObjectMapper() {
 
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
@@ -166,12 +168,12 @@ public class GenericJackson2JsonRedisSerializerUnitTests {
 
 	static class ComplexObject {
 
-		public String stringValue;
-		public SimpleObject simpleObject;
+		String stringValue;
+		SimpleObject simpleObject;
 
 		public ComplexObject() {}
 
-		public ComplexObject(String stringValue, SimpleObject simpleObject) {
+		ComplexObject(String stringValue, SimpleObject simpleObject) {
 			this.stringValue = stringValue;
 			this.simpleObject = simpleObject;
 		}
@@ -201,11 +203,11 @@ public class GenericJackson2JsonRedisSerializerUnitTests {
 
 	static class SimpleObject {
 
-		public Long longValue;
+		Long longValue;
 
 		public SimpleObject() {}
 
-		public SimpleObject(Long longValue) {
+		SimpleObject(Long longValue) {
 			this.longValue = longValue;
 		}
 

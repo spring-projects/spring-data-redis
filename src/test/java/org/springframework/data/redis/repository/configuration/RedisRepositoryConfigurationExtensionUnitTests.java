@@ -19,8 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collection;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -45,41 +44,36 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public class RedisRepositoryConfigurationExtensionUnitTests {
+class RedisRepositoryConfigurationExtensionUnitTests {
 
-	StandardAnnotationMetadata metadata = new StandardAnnotationMetadata(Config.class, true);
-	ResourceLoader loader = new PathMatchingResourcePatternResolver();
-	Environment environment = new StandardEnvironment();
-	BeanDefinitionRegistry registry = new DefaultListableBeanFactory();
-	RepositoryConfigurationSource configurationSource = new AnnotationRepositoryConfigurationSource(metadata,
+	private StandardAnnotationMetadata metadata = new StandardAnnotationMetadata(Config.class, true);
+	private ResourceLoader loader = new PathMatchingResourcePatternResolver();
+	private Environment environment = new StandardEnvironment();
+	private BeanDefinitionRegistry registry = new DefaultListableBeanFactory();
+	private RepositoryConfigurationSource configurationSource = new AnnotationRepositoryConfigurationSource(metadata,
 			EnableRedisRepositories.class, loader, environment, registry);
 
-	RedisRepositoryConfigurationExtension extension;
-
-	@Before
-	public void setUp() {
-		extension = new RedisRepositoryConfigurationExtension();
-	}
+	private RedisRepositoryConfigurationExtension extension = new RedisRepositoryConfigurationExtension();
 
 	@Test // DATAREDIS-425
-	public void isStrictMatchIfDomainTypeIsAnnotatedWithDocument() {
+	void isStrictMatchIfDomainTypeIsAnnotatedWithDocument() {
 		assertHasRepo(SampleRepository.class, extension.getRepositoryConfigurations(configurationSource, loader, true));
 	}
 
 	@Test // DATAREDIS-425
-	public void isStrictMatchIfRepositoryExtendsStoreSpecificBase() {
+	void isStrictMatchIfRepositoryExtendsStoreSpecificBase() {
 		assertHasRepo(StoreRepository.class, extension.getRepositoryConfigurations(configurationSource, loader, true));
 	}
 
 	@Test // DATAREDIS-425
-	public void isNotStrictMatchIfDomainTypeIsNotAnnotatedWithDocument() {
+	void isNotStrictMatchIfDomainTypeIsNotAnnotatedWithDocument() {
 
 		assertDoesNotHaveRepo(UnannotatedRepository.class,
 				extension.getRepositoryConfigurations(configurationSource, loader, true));
 	}
 
 	@Test // DATAREDIS-491
-	public void picksUpEnableKeyspaceEventsOnStartupCorrectly() {
+	void picksUpEnableKeyspaceEventsOnStartupCorrectly() {
 
 		metadata = new StandardAnnotationMetadata(Config.class, true);
 		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
@@ -88,7 +82,7 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 	}
 
 	@Test // DATAREDIS-491
-	public void picksUpEnableKeyspaceEventsDefaultCorrectly() {
+	void picksUpEnableKeyspaceEventsDefaultCorrectly() {
 
 		metadata = new StandardAnnotationMetadata(ConfigWithKeyspaceEventsDisabled.class, true);
 		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
@@ -97,7 +91,7 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 	}
 
 	@Test // DATAREDIS-505
-	public void picksUpDefaultKeyspaceNotificationsConfigParameterCorrectly() {
+	void picksUpDefaultKeyspaceNotificationsConfigParameterCorrectly() {
 
 		metadata = new StandardAnnotationMetadata(Config.class, true);
 		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
@@ -106,7 +100,7 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 	}
 
 	@Test // DATAREDIS-505
-	public void picksUpCustomKeyspaceNotificationsConfigParameterCorrectly() {
+	void picksUpCustomKeyspaceNotificationsConfigParameterCorrectly() {
 
 		metadata = new StandardAnnotationMetadata(ConfigWithKeyspaceEventsEnabledAndCustomEventConfig.class, true);
 		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
@@ -115,7 +109,7 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 	}
 
 	@Test // DATAREDIS-1049
-	public void explicitlyEmptyKeyspaceNotificationsConfigParameterShouldBeCapturedCorrectly() {
+	void explicitlyEmptyKeyspaceNotificationsConfigParameterShouldBeCapturedCorrectly() {
 
 		metadata = new StandardAnnotationMetadata(ConfigWithEmptyConfigParameter.class, true);
 		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
@@ -173,24 +167,24 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 	}
 
 	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP)
-	static class Config {
+	private static class Config {
 
 	}
 
 	@EnableRedisRepositories(considerNestedRepositories = true)
-	static class ConfigWithKeyspaceEventsDisabled {
+	private static class ConfigWithKeyspaceEventsDisabled {
 
 	}
 
 	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP,
 			keyspaceNotificationsConfigParameter = "KEA")
-	static class ConfigWithKeyspaceEventsEnabledAndCustomEventConfig {
+	private static class ConfigWithKeyspaceEventsEnabledAndCustomEventConfig {
 
 	}
 
 	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP,
 			keyspaceNotificationsConfigParameter = "")
-	static class ConfigWithEmptyConfigParameter {
+	private static class ConfigWithEmptyConfigParameter {
 
 	}
 

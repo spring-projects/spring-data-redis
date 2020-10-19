@@ -19,8 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
@@ -29,44 +28,39 @@ import org.springframework.data.redis.PersonObjectFactory;
  * @author Thomas Darimont
  * @author Christoph Strobl
  */
-public class Jackson2JsonRedisSerializerTests {
+class Jackson2JsonRedisSerializerTests {
 
-	private Jackson2JsonRedisSerializer<Person> serializer;
-
-	@Before
-	public void setUp() {
-		this.serializer = new Jackson2JsonRedisSerializer<>(Person.class);
-	}
+	private Jackson2JsonRedisSerializer<Person> serializer = new Jackson2JsonRedisSerializer<>(Person.class);
 
 	@Test // DATAREDIS-241
-	public void testJackson2JsonSerializer() throws Exception {
+	void testJackson2JsonSerializer() throws Exception {
 
 		Person person = new PersonObjectFactory().instance();
 		assertThat(serializer.deserialize(serializer.serialize(person))).isEqualTo(person);
 	}
 
 	@Test // DATAREDIS-241
-	public void testJackson2JsonSerializerShouldReturnEmptyByteArrayWhenSerializingNull() {
+	void testJackson2JsonSerializerShouldReturnEmptyByteArrayWhenSerializingNull() {
 		assertThat(serializer.serialize(null)).isEqualTo(new byte[0]);
 	}
 
 	@Test // DTATREDIS-241
-	public void testJackson2JsonSerializerShouldReturnNullWhenDerserializingEmtyByteArray() {
+	void testJackson2JsonSerializerShouldReturnNullWhenDerserializingEmtyByteArray() {
 		assertThat(serializer.deserialize(new byte[0])).isNull();
 	}
 
-	@Test(expected = SerializationException.class) // DTATREDIS-241
-	public void testJackson2JsonSerilizerShouldThrowExceptionWhenDeserializingInvalidByteArray() {
+	@Test // DTATREDIS-241
+	void testJackson2JsonSerilizerShouldThrowExceptionWhenDeserializingInvalidByteArray() {
 
 		Person person = new PersonObjectFactory().instance();
 		byte[] serializedValue = serializer.serialize(person);
 		Arrays.sort(serializedValue); // corrupt serialization result
 
-		serializer.deserialize(serializedValue);
+		assertThatExceptionOfType(SerializationException.class).isThrownBy(() -> serializer.deserialize(serializedValue));
 	}
 
 	@Test // DTATREDIS-241
-	public void testJackson2JsonSerilizerThrowsExceptionWhenSettingNullObjectMapper() {
+	void testJackson2JsonSerilizerThrowsExceptionWhenSettingNullObjectMapper() {
 		assertThatIllegalArgumentException().isThrownBy(() -> serializer.setObjectMapper(null));
 	}
 

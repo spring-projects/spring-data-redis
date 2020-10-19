@@ -72,7 +72,6 @@ public class LegacyRedisCacheTests {
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
 		this.allowCacheNullValues = allowCacheNullValues;
-		ConnectionFactoryTracker.add(connectionFactory);
 
 		cache = createCache();
 	}
@@ -96,11 +95,6 @@ public class LegacyRedisCacheTests {
 		}
 
 		return target;
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@SuppressWarnings("unchecked")

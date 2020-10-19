@@ -19,15 +19,15 @@ import static org.assertj.core.api.Assertions.*;
 
 import lombok.Data;
 import lombok.Value;
-import lombok.experimental.Wither;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
+import lombok.With;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
@@ -64,8 +64,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	@Autowired ImmutableObjectRepository immutableObjectRepo;
 	@Autowired KeyValueTemplate kvTemplate;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		// flush keyspaces
 		kvTemplate.delete(Person.class);
@@ -73,7 +73,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-425
-	public void simpleFindShouldReturnEntitiesCorrectly() {
+	void simpleFindShouldReturnEntitiesCorrectly() {
 
 		Person rand = new Person();
 		rand.firstname = "rand";
@@ -99,7 +99,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-425
-	public void simpleFindByMultipleProperties() {
+	void simpleFindByMultipleProperties() {
 
 		Person egwene = new Person();
 		egwene.firstname = "egwene";
@@ -118,7 +118,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-425
-	public void findReturnsReferenceDataCorrectly() {
+	void findReturnsReferenceDataCorrectly() {
 
 		// Prepare referenced data entry
 		City tarValon = new City();
@@ -148,7 +148,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-425
-	public void findReturnsPageCorrectly() {
+	void findReturnsPageCorrectly() {
 
 		Person eddard = new Person("eddard", "stark");
 		Person robb = new Person("robb", "stark");
@@ -171,7 +171,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-425
-	public void findUsingOrReturnsResultCorrectly() {
+	void findUsingOrReturnsResultCorrectly() {
 
 		Person eddard = new Person("eddard", "stark");
 		Person robb = new Person("robb", "stark");
@@ -186,7 +186,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-547
-	public void shouldApplyFirstKeywordCorrectly() {
+	void shouldApplyFirstKeywordCorrectly() {
 
 		Person eddard = new Person("eddard", "stark");
 		Person robb = new Person("robb", "stark");
@@ -198,7 +198,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-547
-	public void shouldApplyPageableCorrectlyWhenUsingFindAll() {
+	void shouldApplyPageableCorrectlyWhenUsingFindAll() {
 
 		Person eddard = new Person("eddard", "stark");
 		Person robb = new Person("robb", "stark");
@@ -212,7 +212,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-551
-	public void shouldApplyPageableCorrectlyWhenUsingFindByWithoutCriteria() {
+	void shouldApplyPageableCorrectlyWhenUsingFindByWithoutCriteria() {
 
 		Person eddard = new Person("eddard", "stark");
 		Person robb = new Person("robb", "stark");
@@ -227,7 +227,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-771
-	public void shouldFindByBooleanIsTrue() {
+	void shouldFindByBooleanIsTrue() {
 
 		Person eddard = new Person("eddard", "stark");
 		eddard.setAlive(true);
@@ -246,7 +246,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-771
-	public void shouldFindByBooleanIsFalse() {
+	void shouldFindByBooleanIsFalse() {
 
 		Person eddard = new Person("eddard", "stark");
 		eddard.setAlive(true);
@@ -265,7 +265,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-547
-	public void shouldReturnEmptyListWhenPageableOutOfBoundsUsingFindAll() {
+	void shouldReturnEmptyListWhenPageableOutOfBoundsUsingFindAll() {
 
 		Person eddard = new Person("eddard", "stark");
 		Person robb = new Person("robb", "stark");
@@ -278,7 +278,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-547
-	public void shouldReturnEmptyListWhenPageableOutOfBoundsUsingQueryMethod() {
+	void shouldReturnEmptyListWhenPageableOutOfBoundsUsingQueryMethod() {
 
 		Person eddard = new Person("eddard", "stark");
 		Person robb = new Person("robb", "stark");
@@ -300,7 +300,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-547
-	public void shouldApplyTopKeywordCorrectly() {
+	void shouldApplyTopKeywordCorrectly() {
 
 		Person eddard = new Person("eddard", "stark");
 		Person robb = new Person("robb", "stark");
@@ -312,7 +312,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-547
-	public void shouldApplyTopKeywordCorrectlyWhenCriteriaPresent() {
+	void shouldApplyTopKeywordCorrectlyWhenCriteriaPresent() {
 
 		Person eddard = new Person("eddard", "stark");
 		Person tyrion = new Person("tyrion", "lannister");
@@ -331,7 +331,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-605
-	public void shouldFindByExample() {
+	void shouldFindByExample() {
 
 		Person eddard = new Person("eddard", "stark");
 		Person tyrion = new Person("tyrion", "lannister");
@@ -347,7 +347,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-533
-	public void nearQueryShouldReturnResultsCorrectly() {
+	void nearQueryShouldReturnResultsCorrectly() {
 
 		City palermo = new City();
 		palermo.location = new Point(13.361389D, 38.115556D);
@@ -365,7 +365,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-533
-	public void nearQueryShouldFindNothingIfOutOfRange() {
+	void nearQueryShouldFindNothingIfOutOfRange() {
 
 		City palermo = new City();
 		palermo.location = new Point(13.361389D, 38.115556D);
@@ -380,7 +380,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-533
-	public void nearQueryShouldReturnResultsCorrectlyOnNestedProperty() {
+	void nearQueryShouldReturnResultsCorrectlyOnNestedProperty() {
 
 		City palermo = new City();
 		palermo.location = new Point(13.361389D, 38.115556D);
@@ -404,7 +404,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-849
-	public void shouldReturnNewObjectInstanceOnImmutableSave() {
+	void shouldReturnNewObjectInstanceOnImmutableSave() {
 
 		Immutable object = new Immutable(null, "Walter", new Immutable("heisenberg", "White", null));
 		Immutable saved = immutableObjectRepo.save(object);
@@ -414,7 +414,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-849
-	public void shouldReturnNewObjectInstanceOnImmutableSaveAll() {
+	void shouldReturnNewObjectInstanceOnImmutableSaveAll() {
 
 		Immutable object = new Immutable(null, "Walter", new Immutable("heisenberg", "White", null));
 		List<Immutable> saved = (List) immutableObjectRepo.saveAll(Collections.singleton(object));
@@ -424,7 +424,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Test // DATAREDIS-849
-	public void shouldProperlyReadNestedImmutableObject() {
+	void shouldProperlyReadNestedImmutableObject() {
 
 		Immutable nested = new Immutable("heisenberg", "White", null);
 		Immutable object = new Immutable(null, "Walter", nested);
@@ -519,7 +519,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Data
-	public static class City {
+	static class City {
 
 		@Id String id;
 		String name;
@@ -528,8 +528,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@Value
-	@Wither
-	public static class Immutable {
+	@With
+	static class Immutable {
 
 		@Id String id;
 		String name;

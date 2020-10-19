@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.connection.lettuce;
+package org.springframework.data.redis.test.extension;
 
 import io.lettuce.core.resource.ClientResources;
 import io.lettuce.core.resource.DefaultClientResources;
@@ -21,8 +21,7 @@ import io.lettuce.core.resource.DefaultClientResources;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Client-Resources suitable for testing. Uses {@link TestEventLoopGroupProvider} to preserve the event loop groups
- * between tests. Every time a new {@link LettuceTestClientResources} instance is created, a
+ * Client-Resources suitable for testing. Every time a new {@link LettuceTestClientResources} instance is created, a
  * {@link Runtime#addShutdownHook(Thread) shutdown hook} is added to close the client resources.
  *
  * @author Mark Paluch
@@ -34,26 +33,12 @@ public class LettuceTestClientResources {
 
 	static {
 
-		SHARED_CLIENT_RESOURCES = DefaultClientResources.builder().eventLoopGroupProvider(new TestEventLoopGroupProvider())
+		SHARED_CLIENT_RESOURCES = DefaultClientResources.builder()
 				.build();
-		appendShutdownHook();
+		ShutdownQueue.INSTANCE.register(() -> SHARED_CLIENT_RESOURCES.shutdown(0, 0, TimeUnit.MILLISECONDS));
 	}
 
 	private LettuceTestClientResources() {}
-
-	private static void appendShutdownHook() {
-
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				try {
-					SHARED_CLIENT_RESOURCES.shutdown(0, 0, TimeUnit.MILLISECONDS).get(1, TimeUnit.SECONDS);
-				} catch (Exception o_O) {
-					// ignore
-				}
-			}
-		});
-	}
 
 	/**
 	 * @return the client resources.

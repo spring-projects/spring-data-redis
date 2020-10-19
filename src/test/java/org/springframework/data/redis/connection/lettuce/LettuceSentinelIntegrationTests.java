@@ -42,6 +42,9 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
+import org.springframework.data.redis.test.extension.RedisSentinel;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
 
@@ -76,7 +79,6 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	public LettuceSentinelIntegrationTests(LettuceConnectionFactory connectionFactory, String displayName) {
 
 		this.connectionFactory = connectionFactory;
-		ConnectionFactoryTracker.add(connectionFactory);
 	}
 
 	@Parameters(name = "{1}")
@@ -84,17 +86,10 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 
 		List<Object[]> parameters = new ArrayList<>();
 
-		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(SENTINEL_CONFIG);
-		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnectionFactory.setShareNativeConnection(false);
-		lettuceConnectionFactory.setShutdownTimeout(0);
-		lettuceConnectionFactory.afterPropertiesSet();
-
-		LettuceConnectionFactory pooledConnectionFactory = new LettuceConnectionFactory(SENTINEL_CONFIG,
-				LettucePoolingClientConfiguration.builder()
-						.clientResources(LettuceTestClientResources.getSharedClientResources()).build());
-		pooledConnectionFactory.setShareNativeConnection(false);
-		pooledConnectionFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnectionFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisSentinel.class, false);
+		LettuceConnectionFactory pooledConnectionFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisSentinel.class, true);
 
 		parameters.add(new Object[] { lettuceConnectionFactory, "Sentinel" });
 		parameters.add(new Object[] { pooledConnectionFactory, "Sentinel/Pooled" });
@@ -114,11 +109,6 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 			// tests
 		}
 		connection.close();
-	}
-
-	@AfterClass
-	public static void afterClass() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Test // DATAREDIS-348

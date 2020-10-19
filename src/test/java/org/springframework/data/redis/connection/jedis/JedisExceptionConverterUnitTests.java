@@ -22,8 +22,7 @@ import redis.clients.jedis.exceptions.JedisAskDataException;
 import redis.clients.jedis.exceptions.JedisClusterMaxAttemptsException;
 import redis.clients.jedis.exceptions.JedisMovedDataException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ClusterRedirectException;
@@ -32,17 +31,12 @@ import org.springframework.data.redis.TooManyClusterRedirectionsException;
 /**
  * @author Christoph Strobl
  */
-public class JedisExceptionConverterUnitTests {
+class JedisExceptionConverterUnitTests {
 
-	JedisExceptionConverter converter;
-
-	@Before
-	public void setUp() {
-		converter = new JedisExceptionConverter();
-	}
+	private JedisExceptionConverter converter = new JedisExceptionConverter();
 
 	@Test // DATAREDIS-315
-	public void shouldConvertMovedDataException() {
+	void shouldConvertMovedDataException() {
 
 		DataAccessException converted = converter.convert(new JedisMovedDataException("MOVED 3999 127.0.0.1:6381",
 				new HostAndPort("127.0.0.1", 6381), 3999));
@@ -54,7 +48,7 @@ public class JedisExceptionConverterUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldConvertAskDataException() {
+	void shouldConvertAskDataException() {
 
 		DataAccessException converted = converter.convert(new JedisAskDataException("ASK 3999 127.0.0.1:6381",
 				new HostAndPort("127.0.0.1", 6381), 3999));
@@ -66,7 +60,7 @@ public class JedisExceptionConverterUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldConvertMaxRedirectException() {
+	void shouldConvertMaxRedirectException() {
 
 		DataAccessException converted = converter
 				.convert(new JedisClusterMaxAttemptsException("Too many redirections?"));

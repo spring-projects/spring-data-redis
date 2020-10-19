@@ -23,14 +23,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
 
-import org.junit.After;
-import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -56,7 +55,6 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 
 	public RedisAtomicIntegerTests(RedisConnectionFactory factory) {
 
-		this.intCounter = new RedisAtomicInteger(getClass().getSimpleName() + ":int", factory);
 		this.factory = factory;
 
 		this.template = new RedisTemplate<>();
@@ -64,8 +62,6 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		this.template.setKeySerializer(StringRedisSerializer.UTF_8);
 		this.template.setValueSerializer(new GenericToStringSerializer<>(Integer.class));
 		this.template.afterPropertiesSet();
-
-		ConnectionFactoryTracker.add(factory);
 	}
 
 	@Parameters
@@ -73,17 +69,14 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		return AtomicCountersParam.testParams();
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
-	@After
-	public void tearDown() {
+	@Before
+	public void before() {
 
 		RedisConnection connection = factory.getConnection();
 		connection.flushDb();
 		connection.close();
+
+		this.intCounter = new RedisAtomicInteger(getClass().getSimpleName() + ":int", factory);
 	}
 
 	@Test

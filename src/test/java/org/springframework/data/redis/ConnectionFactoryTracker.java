@@ -35,10 +35,20 @@ public abstract class ConnectionFactoryTracker {
 	private static Set<Object> connFactories = new LinkedHashSet<>();
 
 	public static void add(RedisConnectionFactory factory) {
+
+		if (factory instanceof Managed) {
+			throw new UnsupportedOperationException("Cannot track managed resource");
+		}
+
 		connFactories.add(factory);
 	}
 
 	public static void add(Object factory) {
+
+		if (factory instanceof Managed) {
+			throw new UnsupportedOperationException("Cannot track managed resource");
+		}
+
 		connFactories.add(factory);
 	}
 
@@ -56,5 +66,9 @@ public abstract class ConnectionFactoryTracker {
 				}
 			}
 		}
+	}
+
+	public interface Managed {
+
 	}
 }

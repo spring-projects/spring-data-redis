@@ -22,16 +22,20 @@ import static org.springframework.data.redis.test.util.MockitoUtils.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -50,33 +54,33 @@ import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ClusterCommandExecutorUnitTests {
+@ExtendWith(MockitoExtension.class)
+class ClusterCommandExecutorUnitTests {
 
-	static final String CLUSTER_NODE_1_HOST = "127.0.0.1";
-	static final String CLUSTER_NODE_2_HOST = "127.0.0.1";
-	static final String CLUSTER_NODE_3_HOST = "127.0.0.1";
+	private static final String CLUSTER_NODE_1_HOST = "127.0.0.1";
+	private static final String CLUSTER_NODE_2_HOST = "127.0.0.1";
+	private static final String CLUSTER_NODE_3_HOST = "127.0.0.1";
 
-	static final int CLUSTER_NODE_1_PORT = 7379;
-	static final int CLUSTER_NODE_2_PORT = 7380;
-	static final int CLUSTER_NODE_3_PORT = 7381;
+	private static final int CLUSTER_NODE_1_PORT = 7379;
+	private static final int CLUSTER_NODE_2_PORT = 7380;
+	private static final int CLUSTER_NODE_3_PORT = 7381;
 
-	static final RedisClusterNode CLUSTER_NODE_1 = RedisClusterNode.newRedisClusterNode()
+	private static final RedisClusterNode CLUSTER_NODE_1 = RedisClusterNode.newRedisClusterNode()
 			.listeningAt(CLUSTER_NODE_1_HOST, CLUSTER_NODE_1_PORT).serving(new SlotRange(0, 5460))
 			.withId("ef570f86c7b1a953846668debc177a3a16733420").promotedAs(NodeType.MASTER).linkState(LinkState.CONNECTED)
 			.build();
-	static final RedisClusterNode CLUSTER_NODE_2 = RedisClusterNode.newRedisClusterNode()
+	private static final RedisClusterNode CLUSTER_NODE_2 = RedisClusterNode.newRedisClusterNode()
 			.listeningAt(CLUSTER_NODE_2_HOST, CLUSTER_NODE_2_PORT).serving(new SlotRange(5461, 10922))
 			.withId("0f2ee5df45d18c50aca07228cc18b1da96fd5e84").promotedAs(NodeType.MASTER).linkState(LinkState.CONNECTED)
 			.build();
-	static final RedisClusterNode CLUSTER_NODE_3 = RedisClusterNode.newRedisClusterNode()
+	private static final RedisClusterNode CLUSTER_NODE_3 = RedisClusterNode.newRedisClusterNode()
 			.listeningAt(CLUSTER_NODE_3_HOST, CLUSTER_NODE_3_PORT).serving(new SlotRange(10923, 16383))
 			.withId("3b9b8192a874fa8f1f09dbc0ee20afab5738eee7").promotedAs(NodeType.MASTER).linkState(LinkState.CONNECTED)
 			.build();
-	static final RedisClusterNode CLUSTER_NODE_2_LOOKUP = RedisClusterNode.newRedisClusterNode()
+	private static final RedisClusterNode CLUSTER_NODE_2_LOOKUP = RedisClusterNode.newRedisClusterNode()
 			.withId("0f2ee5df45d18c50aca07228cc18b1da96fd5e84").build();
 
-	static final RedisClusterNode UNKNOWN_CLUSTER_NODE = new RedisClusterNode("8.8.8.8", 7379, SlotRange.empty());
+	private static final RedisClusterNode UNKNOWN_CLUSTER_NODE = new RedisClusterNode("8.8.8.8", 7379, SlotRange.empty());
 
 	private ClusterCommandExecutor executor;
 
@@ -97,20 +101,20 @@ public class ClusterCommandExecutorUnitTests {
 	@Mock Connection con2;
 	@Mock Connection con3;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		this.executor = new ClusterCommandExecutor(new MockClusterNodeProvider(), new MockClusterResourceProvider(),
-				new PassThroughExceptionTranslationStrategy(exceptionConverter));
+				new PassThroughExceptionTranslationStrategy(exceptionConverter), new ImmediateExecutor());
 	}
 
-	@After
-	public void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 		this.executor.destroy();
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandOnSingleNodeShouldBeExecutedCorrectly() {
+	void executeCommandOnSingleNodeShouldBeExecutedCorrectly() {
 
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, CLUSTER_NODE_2);
 
@@ -118,7 +122,7 @@ public class ClusterCommandExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandOnSingleNodeByHostAndPortShouldBeExecutedCorrectly() {
+	void executeCommandOnSingleNodeByHostAndPortShouldBeExecutedCorrectly() {
 
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK,
 				new RedisClusterNode(CLUSTER_NODE_2_HOST, CLUSTER_NODE_2_PORT));
@@ -127,7 +131,7 @@ public class ClusterCommandExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandOnSingleNodeByNodeIdShouldBeExecutedCorrectly() {
+	void executeCommandOnSingleNodeByNodeIdShouldBeExecutedCorrectly() {
 
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, new RedisClusterNode(CLUSTER_NODE_2.id));
 
@@ -135,23 +139,23 @@ public class ClusterCommandExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsNull() {
+	void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> executor.executeCommandOnSingleNode(COMMAND_CALLBACK, null));
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandOnSingleNodeShouldThrowExceptionWhenCommandCallbackIsNull() {
+	void executeCommandOnSingleNodeShouldThrowExceptionWhenCommandCallbackIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> executor.executeCommandOnSingleNode(null, CLUSTER_NODE_1));
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsUnknown() {
+	void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsUnknown() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> executor.executeCommandOnSingleNode(COMMAND_CALLBACK, UNKNOWN_CLUSTER_NODE));
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodes() {
+	void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodes() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
 				new MockClusterResourceProvider(), new PassThroughExceptionTranslationStrategy(exceptionConverter),
@@ -165,7 +169,7 @@ public class ClusterCommandExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodesByHostAndPort() {
+	void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodesByHostAndPort() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
 				new MockClusterResourceProvider(), new PassThroughExceptionTranslationStrategy(exceptionConverter),
@@ -181,7 +185,7 @@ public class ClusterCommandExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodesByNodeId() {
+	void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodesByNodeId() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
 				new MockClusterResourceProvider(), new PassThroughExceptionTranslationStrategy(exceptionConverter),
@@ -195,19 +199,19 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con3, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
-	public void executeCommandAsyncOnNodesShouldFailOnGivenUnknownNodes() {
+	@Test // DATAREDIS-315
+	void executeCommandAsyncOnNodesShouldFailOnGivenUnknownNodes() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
 				new MockClusterResourceProvider(), new PassThroughExceptionTranslationStrategy(exceptionConverter),
 				new ConcurrentTaskExecutor(new SyncTaskExecutor()));
 
-		executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK,
-				Arrays.asList(new RedisClusterNode("unknown"), CLUSTER_NODE_2_LOOKUP));
+		assertThatIllegalArgumentException().isThrownBy(() -> executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK,
+				Arrays.asList(new RedisClusterNode("unknown"), CLUSTER_NODE_2_LOOKUP)));
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandOnAllNodesShouldExecuteCommandOnEveryKnownClusterNode() {
+	void executeCommandOnAllNodesShouldExecuteCommandOnEveryKnownClusterNode() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
 				new MockClusterResourceProvider(), new PassThroughExceptionTranslationStrategy(exceptionConverter),
@@ -221,7 +225,7 @@ public class ClusterCommandExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandAsyncOnNodesShouldCompleteAndCollectErrorsOfAllNodes() {
+	void executeCommandAsyncOnNodesShouldCompleteAndCollectErrorsOfAllNodes() {
 
 		when(con1.theWheelWeavesAsTheWheelWills()).thenReturn("rand");
 		when(con2.theWheelWeavesAsTheWheelWills()).thenThrow(new IllegalStateException("(error) mat lost the dagger..."));
@@ -241,7 +245,7 @@ public class ClusterCommandExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandAsyncOnNodesShouldCollectResultsCorrectly() {
+	void executeCommandAsyncOnNodesShouldCollectResultsCorrectly() {
 
 		when(con1.theWheelWeavesAsTheWheelWills()).thenReturn("rand");
 		when(con2.theWheelWeavesAsTheWheelWills()).thenReturn("mat");
@@ -253,7 +257,7 @@ public class ClusterCommandExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-315, DATAREDIS-467
-	public void executeMultikeyCommandShouldRunCommandAcrossCluster() {
+	void executeMultikeyCommandShouldRunCommandAcrossCluster() {
 
 		// key-1 and key-9 map both to node1
 		ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
@@ -273,7 +277,7 @@ public class ClusterCommandExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandOnSingleNodeAndFollowRedirect() {
+	void executeCommandOnSingleNodeAndFollowRedirect() {
 
 		when(con1.theWheelWeavesAsTheWheelWills()).thenThrow(new MovedException(CLUSTER_NODE_3_HOST, CLUSTER_NODE_3_PORT));
 
@@ -285,7 +289,7 @@ public class ClusterCommandExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandOnSingleNodeAndFollowRedirectButStopsAfterMaxRedirects() {
+	void executeCommandOnSingleNodeAndFollowRedirectButStopsAfterMaxRedirects() {
 
 		when(con1.theWheelWeavesAsTheWheelWills()).thenThrow(new MovedException(CLUSTER_NODE_3_HOST, CLUSTER_NODE_3_PORT));
 		when(con3.theWheelWeavesAsTheWheelWills()).thenThrow(new MovedException(CLUSTER_NODE_2_HOST, CLUSTER_NODE_2_PORT));
@@ -304,7 +308,7 @@ public class ClusterCommandExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void executeCommandOnArbitraryNodeShouldPickARandomNode() {
+	void executeCommandOnArbitraryNodeShouldPickARandomNode() {
 
 		executor.executeCommandOnArbitraryNode(COMMAND_CALLBACK);
 
@@ -366,11 +370,44 @@ public class ClusterCommandExecutorUnitTests {
 		String host;
 		int port;
 
-		public MovedException(String host, int port) {
+		MovedException(String host, int port) {
 			this.host = host;
 			this.port = port;
 		}
 
 	}
 
+	static class ImmediateExecutor implements AsyncTaskExecutor {
+
+		@Override
+		public void execute(Runnable runnable, long l) {
+			runnable.run();
+		}
+
+		@Override
+		public Future<?> submit(Runnable runnable) {
+			return submit(() -> {
+				runnable.run();
+
+				return null;
+			});
+		}
+
+		@Override
+		public <T> Future<T> submit(Callable<T> callable) {
+			try {
+				return CompletableFuture.completedFuture(callable.call());
+			} catch (Exception e) {
+
+				CompletableFuture<T> future = new CompletableFuture<>();
+				future.completeExceptionally(e);
+				return future;
+			}
+		}
+
+		@Override
+		public void execute(Runnable runnable) {
+			runnable.run();
+		}
+	}
 }

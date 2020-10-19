@@ -19,7 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.Optional;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 
@@ -28,12 +29,12 @@ import org.springframework.data.redis.connection.stream.ReadOffset;
  *
  * @author Mark Paluch
  */
-public class ReadOffsetStrategyUnitTests {
+class ReadOffsetStrategyUnitTests {
 
-	static Optional<Consumer> consumer = Optional.of(Consumer.from("foo", "bar"));
+	private static Optional<Consumer> consumer = Optional.of(Consumer.from("foo", "bar"));
 
 	@Test // DATAREDIS-864
-	public void nextMessageStandaloneShouldReturnLastSeenMessageId() {
+	void nextMessageStandaloneShouldReturnLastSeenMessageId() {
 
 		ReadOffset offset = ReadOffset.from("foo");
 
@@ -42,7 +43,7 @@ public class ReadOffsetStrategyUnitTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void lastConsumedStandaloneShouldReturnLastSeenMessageId() {
+	void lastConsumedStandaloneShouldReturnLastSeenMessageId() {
 
 		ReadOffset offset = ReadOffset.lastConsumed();
 
@@ -52,7 +53,7 @@ public class ReadOffsetStrategyUnitTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void latestStandaloneShouldReturnLatest() {
+	void latestStandaloneShouldReturnLatest() {
 
 		ReadOffset offset = ReadOffset.latest();
 
@@ -61,7 +62,7 @@ public class ReadOffsetStrategyUnitTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void nextMessageConsumerGroupShouldReturnLastSeenMessageId() {
+	void nextMessageConsumerGroupShouldReturnLastSeenMessageId() {
 
 		ReadOffset offset = ReadOffset.from("foo");
 
@@ -70,7 +71,7 @@ public class ReadOffsetStrategyUnitTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void lastConsumedConsumerGroupShouldReturnLastSeenMessageId() {
+	void lastConsumedConsumerGroupShouldReturnLastSeenMessageId() {
 
 		ReadOffset offset = ReadOffset.lastConsumed();
 
@@ -79,7 +80,7 @@ public class ReadOffsetStrategyUnitTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void latestConsumerGroupShouldReturnLatest() {
+	void latestConsumerGroupShouldReturnLatest() {
 
 		ReadOffset offset = ReadOffset.latest();
 
@@ -88,7 +89,7 @@ public class ReadOffsetStrategyUnitTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void getStrategyShouldReturnAppropriateStrategy() {
+	void getStrategyShouldReturnAppropriateStrategy() {
 
 		assertThat(ReadOffsetStrategy.getStrategy(ReadOffset.from("foo"))).isEqualTo(ReadOffsetStrategy.NextMessage);
 		assertThat(ReadOffsetStrategy.getStrategy(ReadOffset.lastConsumed())).isEqualTo(ReadOffsetStrategy.LastConsumed);

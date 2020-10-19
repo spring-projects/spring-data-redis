@@ -15,9 +15,10 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
 import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 
 /**
@@ -25,24 +26,24 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
  *
  * @author Mark Paluch
  */
-public class WeightsUnitTests {
+class WeightsUnitTests {
 
 	@Test // DATAREDIS-746
-	public void shouldCreateWeights() {
+	void shouldCreateWeights() {
 
 		assertThat(Weights.of(1, 2, 3).toArray()).contains(1, 2, 3);
 		assertThat(Weights.of(1, 2d, 3).toArray()).contains(1d, 2d, 3d);
 	}
 
 	@Test // DATAREDIS-746
-	public void shouldRejectCreationWithNull() {
+	void shouldRejectCreationWithNull() {
 
 		assertThatThrownBy(() -> Weights.of((int[]) null)).isInstanceOf(IllegalArgumentException.class);
 		assertThatThrownBy(() -> Weights.of((double[]) null)).isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test // DATAREDIS-746
-	public void shouldCreateEqualWeights() {
+	void shouldCreateEqualWeights() {
 
 		Weights weights = Weights.fromSetCount(3);
 		assertThat(weights.getWeight(0)).isOne();
@@ -51,14 +52,14 @@ public class WeightsUnitTests {
 	}
 
 	@Test // DATAREDIS-746
-	public void getShouldThrowIndexOutOfBoundsException() {
+	void getShouldThrowIndexOutOfBoundsException() {
 
 		assertThatThrownBy(() -> Weights.fromSetCount(1).getWeight(1)).isInstanceOf(IndexOutOfBoundsException.class);
 		assertThatThrownBy(() -> Weights.fromSetCount(1).getWeight(-1)).isInstanceOf(IndexOutOfBoundsException.class);
 	}
 
 	@Test // DATAREDIS-746
-	public void shouldMultiplyDouble() {
+	void shouldMultiplyDouble() {
 
 		Weights weights = Weights.of(1, 2, 3).multiply(2.5);
 		assertThat(weights.getWeight(0)).isEqualTo(2.5);
@@ -66,7 +67,7 @@ public class WeightsUnitTests {
 	}
 
 	@Test // DATAREDIS-746
-	public void shouldMultiplyInt() {
+	void shouldMultiplyInt() {
 
 		Weights weights = Weights.of(1, 2, 3).multiply(2);
 		assertThat(weights.getWeight(0)).isEqualTo(2);

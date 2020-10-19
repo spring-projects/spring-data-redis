@@ -22,15 +22,12 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +35,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
@@ -50,9 +46,6 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisClientRule;
-import org.springframework.data.redis.test.util.RedisDriver;
-import org.springframework.data.redis.test.util.WithRedisDriver;
-import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test for Redis Map.
@@ -91,12 +84,6 @@ public abstract class AbstractRedisMapTests<K, V> {
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
 		this.template = template;
-		ConnectionFactoryTracker.add(template.getConnectionFactory());
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	protected K getKey() {
@@ -113,12 +100,10 @@ public abstract class AbstractRedisMapTests<K, V> {
 	}
 
 	@SuppressWarnings("unchecked")
-	@After
-	public void tearDown() throws Exception {
-		// remove the collection entirely since clear() doesn't always work
-		map.getOperations().delete(Collections.singleton(map.getKey()));
+	@Before
+	public void before() throws Exception {
 		template.execute((RedisCallback<Object>) connection -> {
-			connection.flushDb();
+			connection.flushAll();
 			return null;
 		});
 	}
@@ -231,7 +216,6 @@ public abstract class AbstractRedisMapTests<K, V> {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testIncrementDouble() {
 		assumeTrue(valueFactory instanceof DoubleAsStringObjectFactory);
 		K k1 = getKey();
@@ -483,8 +467,6 @@ public abstract class AbstractRedisMapTests<K, V> {
 	}
 
 	@Test // DATAREDIS-314
-	@IfProfileValue(name = "redisVersion", value = "2.8+")
-	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void testScanWorksCorrectly() throws IOException {
 
 		K k1 = getKey();

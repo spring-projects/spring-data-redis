@@ -26,13 +26,15 @@ import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -53,17 +55,18 @@ import org.springframework.data.redis.listener.KeyExpirationEventMessageListener
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class RedisKeyValueAdapterUnitTests {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class RedisKeyValueAdapterUnitTests {
 
-	RedisKeyValueAdapter adapter;
-	RedisTemplate<?, ?> template;
-	RedisMappingContext context;
+	private RedisKeyValueAdapter adapter;
+	private RedisTemplate<?, ?> template;
+	private RedisMappingContext context;
 	@Mock JedisConnectionFactory jedisConnectionFactoryMock;
 	@Mock RedisConnection redisConnectionMock;
 
-	@Before
-	public void setUp() throws Exception {
+	@BeforeEach
+	void setUp() throws Exception {
 
 		template = new RedisTemplate<>();
 		template.setConnectionFactory(jedisConnectionFactoryMock);
@@ -83,13 +86,13 @@ public class RedisKeyValueAdapterUnitTests {
 		adapter.afterPropertiesSet();
 	}
 
-	@After
-	public void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 		adapter.destroy();
 	}
 
 	@Test // DATAREDIS-507
-	public void destroyShouldNotDestroyConnectionFactory() throws Exception {
+	void destroyShouldNotDestroyConnectionFactory() throws Exception {
 
 		adapter.destroy();
 
@@ -97,7 +100,7 @@ public class RedisKeyValueAdapterUnitTests {
 	}
 
 	@Test // DATAREDIS-512, DATAREDIS-530
-	public void putShouldRemoveExistingIndexValuesWhenUpdating() {
+	void putShouldRemoveExistingIndexValuesWhenUpdating() {
 
 		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
 		rd.addIndexedData(new SimpleIndexedPropertyValue("persons", "firstname", "rand"));
@@ -112,7 +115,7 @@ public class RedisKeyValueAdapterUnitTests {
 	}
 
 	@Test // DATAREDIS-512
-	public void putShouldNotTryToRemoveExistingIndexValuesWhenInsertingNew() {
+	void putShouldNotTryToRemoveExistingIndexValuesWhenInsertingNew() {
 
 		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
 		rd.addIndexedData(new SimpleIndexedPropertyValue("persons", "firstname", "rand"));
@@ -127,7 +130,7 @@ public class RedisKeyValueAdapterUnitTests {
 	}
 
 	@Test // DATAREDIS-491
-	public void shouldInitKeyExpirationListenerOnStartup() throws Exception {
+	void shouldInitKeyExpirationListenerOnStartup() throws Exception {
 
 		adapter.destroy();
 
@@ -141,7 +144,7 @@ public class RedisKeyValueAdapterUnitTests {
 	}
 
 	@Test // DATAREDIS-491
-	public void shouldInitKeyExpirationListenerOnFirstPutWithTtl() throws Exception {
+	void shouldInitKeyExpirationListenerOnFirstPutWithTtl() throws Exception {
 
 		adapter.destroy();
 
@@ -165,7 +168,7 @@ public class RedisKeyValueAdapterUnitTests {
 	}
 
 	@Test // DATAREDIS-491
-	public void shouldNeverInitKeyExpirationListener() throws Exception {
+	void shouldNeverInitKeyExpirationListener() throws Exception {
 
 		adapter.destroy();
 

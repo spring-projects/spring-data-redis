@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.reactivestreams.Publisher
 import org.springframework.data.domain.Range
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit

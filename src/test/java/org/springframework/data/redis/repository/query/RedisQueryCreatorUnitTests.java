@@ -19,10 +19,10 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.lang.reflect.Method;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.geo.Box;
@@ -46,14 +46,13 @@ import org.springframework.data.repository.query.parser.PartTree;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public class RedisQueryCreatorUnitTests {
-
-	public @Rule ExpectedException exception = ExpectedException.none();
+@ExtendWith(MockitoExtension.class)
+class RedisQueryCreatorUnitTests {
 
 	private @Mock RepositoryMetadata metadataMock;
 
 	@Test // DATAREDIS-425
-	public void findBySingleSimpleProperty() throws SecurityException, NoSuchMethodException {
+	void findBySingleSimpleProperty() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
 				SampleRepository.class.getMethod("findByFirstname", String.class), new Object[] { "eddard" });
@@ -65,7 +64,7 @@ public class RedisQueryCreatorUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void findByMultipleSimpleProperties() throws SecurityException, NoSuchMethodException {
+	void findByMultipleSimpleProperties() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
 				SampleRepository.class.getMethod("findByFirstnameAndAge", String.class, Integer.class),
@@ -79,7 +78,7 @@ public class RedisQueryCreatorUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void findByMultipleSimplePropertiesUsingOr() throws SecurityException, NoSuchMethodException {
+	void findByMultipleSimplePropertiesUsingOr() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
 				SampleRepository.class.getMethod("findByAgeOrFirstname", Integer.class, String.class),
@@ -93,7 +92,7 @@ public class RedisQueryCreatorUnitTests {
 	}
 
 	@Test // DATAREDIS-533
-	public void findWithinCircle() throws SecurityException, NoSuchMethodException {
+	void findWithinCircle() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
 				SampleRepository.class.getMethod("findByLocationWithin", Circle.class),
@@ -107,7 +106,7 @@ public class RedisQueryCreatorUnitTests {
 	}
 
 	@Test // DATAREDIS-533
-	public void findNearWithPointAndDistance() throws SecurityException, NoSuchMethodException {
+	void findNearWithPointAndDistance() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
 				SampleRepository.class.getMethod("findByLocationNear", Point.class, Distance.class),
@@ -121,7 +120,7 @@ public class RedisQueryCreatorUnitTests {
 	}
 
 	@Test // DATAREDIS-533
-	public void findNearWithPointAndNumericValueDefaultsToKilometers() throws SecurityException, NoSuchMethodException {
+	void findNearWithPointAndNumericValueDefaultsToKilometers() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
 				SampleRepository.class.getMethod("findByLocationNear", Shape.class, Object.class),
@@ -135,45 +134,39 @@ public class RedisQueryCreatorUnitTests {
 	}
 
 	@Test // DATAREDIS-533
-	public void findNearWithInvalidShapeParameter() throws SecurityException, NoSuchMethodException {
-
-		exception.expect(InvalidDataAccessApiUsageException.class);
-		exception.expectMessage("Expected to find a Circle or Point/Distance");
+	void findNearWithInvalidShapeParameter() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
 				SampleRepository.class.getMethod("findByLocationNear", Shape.class, Object.class),
 				new Object[] { new Box(new Point(0, 0), new Point(1, 1)), 200F });
 
-		creator.createQuery();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(creator::createQuery)
+				.withMessageContaining("Expected to find a Circle or Point/Distance");
 	}
 
 	@Test // DATAREDIS-533
-	public void findNearWithInvalidDistanceParameter() throws SecurityException, NoSuchMethodException {
-
-		exception.expect(InvalidDataAccessApiUsageException.class);
-		exception.expectMessage("Expected to find Distance or Numeric value");
+	void findNearWithInvalidDistanceParameter() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
 				SampleRepository.class.getMethod("findByLocationNear", Shape.class, Object.class),
 				new Object[] { new Point(0, 0), "200" });
 
-		creator.createQuery();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(creator::createQuery)
+				.withMessageContaining("Expected to find Distance or Numeric value");
 	}
 
 	@Test // DATAREDIS-533
-	public void findNearWithMissingDistanceParameter() throws SecurityException, NoSuchMethodException {
-
-		exception.expect(InvalidDataAccessApiUsageException.class);
-		exception.expectMessage("Are you missing a parameter?");
+	void findNearWithMissingDistanceParameter() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
 				SampleRepository.class.getMethod("findByLocationNear", Shape.class), new Object[] { new Point(0, 0) });
 
-		creator.createQuery();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(creator::createQuery)
+				.withMessageContaining("Are you missing a parameter?");
 	}
 
 	@Test // DATAREDIS-771
-	public void findByBooleanIsTrue() throws SecurityException, NoSuchMethodException {
+	void findByBooleanIsTrue() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
 				SampleRepository.class.getMethod("findByAliveIsTrue"), new Object[0]);
@@ -185,7 +178,7 @@ public class RedisQueryCreatorUnitTests {
 	}
 
 	@Test // DATAREDIS-771
-	public void findByBooleanIsFalse() throws SecurityException, NoSuchMethodException {
+	void findByBooleanIsFalse() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
 				SampleRepository.class.getMethod("findByAliveIsFalse"), new Object[0]);

@@ -30,18 +30,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.util.Collections;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTestSuite.LettuceConnectionUnitTests;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTestSuite.LettucePipelineConnectionUnitTests;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -49,21 +45,19 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(Suite.class)
-@Suite.SuiteClasses({ LettuceConnectionUnitTests.class, LettucePipelineConnectionUnitTests.class })
-public class LettuceConnectionUnitTestSuite {
+public class LettuceConnectionUnitTests {
 
 	@SuppressWarnings("rawtypes")
-	public static class LettuceConnectionUnitTests extends AbstractConnectionUnitTestBase<RedisAsyncCommands> {
+	public static class BasicUnitTests extends AbstractConnectionUnitTestBase<RedisAsyncCommands> {
 
 		protected LettuceConnection connection;
 		private RedisClient clientMock;
-		protected StatefulRedisConnection<byte[], byte[]> statefulConnectionMock;
-		protected RedisAsyncCommands<byte[], byte[]> asyncCommandsMock;
-		protected RedisCommands syncCommandsMock;
+		StatefulRedisConnection<byte[], byte[]> statefulConnectionMock;
+		RedisAsyncCommands<byte[], byte[]> asyncCommandsMock;
+		RedisCommands syncCommandsMock;
 
 		@SuppressWarnings({ "unchecked" })
-		@Before
+		@BeforeEach
 		public void setUp() throws InvocationTargetException, IllegalAccessException {
 
 			clientMock = mock(RedisClient.class);
@@ -115,7 +109,7 @@ public class LettuceConnectionUnitTestSuite {
 		}
 
 		@Test // DATAREDIS-277
-		public void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
+		void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
 			assertThatIllegalArgumentException().isThrownBy(() -> connection.slaveOf(null, 0));
 		}
 
@@ -134,22 +128,23 @@ public class LettuceConnectionUnitTestSuite {
 		}
 
 		@Test // DATAREDIS-348
-		public void shouldThrowExceptionWhenAccessingRedisSentinelsCommandsWhenNoSentinelsConfigured() {
+		void shouldThrowExceptionWhenAccessingRedisSentinelsCommandsWhenNoSentinelsConfigured() {
 			assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class)
 					.isThrownBy(() -> connection.getSentinelConnection());
 		}
 
 		@Test // DATAREDIS-431
-		public void dbIndexShouldBeSetWhenObtainingConnection() {
+		void dbIndexShouldBeSetWhenObtainingConnection() {
 
-			connection = new LettuceConnection(null, 0, clientMock, null, 1);
+			connection = new LettuceConnection(null, 0, clientMock, null, 0);
+			connection.select(1);
 			connection.getNativeConnection();
 
 			verify(syncCommandsMock, times(1)).select(1);
 		}
 
 		@Test // DATAREDIS-603
-		public void translatesUnknownExceptions() {
+		void translatesUnknownExceptions() {
 
 			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
 
@@ -161,7 +156,7 @@ public class LettuceConnectionUnitTestSuite {
 		}
 
 		@Test // DATAREDIS-603
-		public void translatesPipelineUnknownExceptions() throws Exception {
+		void translatesPipelineUnknownExceptions() throws Exception {
 
 			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
 
@@ -174,7 +169,7 @@ public class LettuceConnectionUnitTestSuite {
 		}
 
 		@Test // DATAREDIS-1122
-		public void xaddShouldHonorMaxlen() {
+		void xaddShouldHonorMaxlen() {
 
 			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
 
@@ -190,7 +185,7 @@ public class LettuceConnectionUnitTestSuite {
 		}
 
 		@Test // DATAREDIS-1226
-		public void xClaimShouldNotAddJustIdFlagToArgs() {
+		void xClaimShouldNotAddJustIdFlagToArgs() {
 
 			connection.streamCommands().xClaim("key".getBytes(), "group", "owner",
 					XClaimOptions.minIdle(Duration.ofMillis(100)).ids("1-1"));
@@ -207,7 +202,7 @@ public class LettuceConnectionUnitTestSuite {
 		}
 
 		@Test // DATAREDIS-1226
-		public void xClaimJustIdShouldAddJustIdFlagToArgs() {
+		void xClaimJustIdShouldAddJustIdFlagToArgs() {
 
 			connection.streamCommands().xClaimJustId("key".getBytes(), "group", "owner",
 					XClaimOptions.minIdle(Duration.ofMillis(100)).ids("1-1"));
@@ -223,10 +218,10 @@ public class LettuceConnectionUnitTestSuite {
 		}
 	}
 
-	public static class LettucePipelineConnectionUnitTests extends LettuceConnectionUnitTests {
+	public static class LettucePipelineConnectionUnitTests extends BasicUnitTests {
 
 		@Override
-		@Before
+		@BeforeEach
 		public void setUp() throws InvocationTargetException, IllegalAccessException {
 			super.setUp();
 			this.connection.openPipeline();

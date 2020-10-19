@@ -26,13 +26,16 @@ import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
@@ -62,13 +65,8 @@ public abstract class CollectionTestParams {
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
-		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setUsePool(true);
-
-		jedisConnFactory.setPort(SettingsUtils.getPort());
-		jedisConnFactory.setHostName(SettingsUtils.getHost());
-
-		jedisConnFactory.afterPropertiesSet();
+		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate(jedisConnFactory);
 		RedisTemplate<String, Person> personTemplate = new RedisTemplate<>();
@@ -98,11 +96,8 @@ public abstract class CollectionTestParams {
 		rawTemplate.afterPropertiesSet();
 
 		// Lettuce
-		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
-		lettuceConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnFactory.setPort(SettingsUtils.getPort());
-		lettuceConnFactory.setHostName(SettingsUtils.getHost());
-		lettuceConnFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		RedisTemplate<String, String> stringTemplateLtc = new StringRedisTemplate(lettuceConnFactory);
 		RedisTemplate<String, Person> personTemplateLtc = new RedisTemplate<>();

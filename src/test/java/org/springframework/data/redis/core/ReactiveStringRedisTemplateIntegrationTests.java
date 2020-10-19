@@ -17,39 +17,31 @@ package org.springframework.data.redis.core;
 
 import reactor.test.StepVerifier;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.springframework.data.redis.ConnectionFactoryTracker;
-import org.springframework.data.redis.SettingsUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 
 /**
  * Integration tests for {@link ReactiveStringRedisTemplate}.
  *
  * @author Mark Paluch
  */
+@ExtendWith(LettuceConnectionFactoryExtension.class)
 public class ReactiveStringRedisTemplateIntegrationTests {
 
-	private static ReactiveRedisConnectionFactory connectionFactory;
+	private ReactiveRedisConnectionFactory connectionFactory;
 
 	private ReactiveStringRedisTemplate template;
 
-	@BeforeClass
-	public static void beforeClass() {
-
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(SettingsUtils.standaloneConfiguration(),
-				LettuceTestClientConfiguration.create());
-		connectionFactory.afterPropertiesSet();
-		ConnectionFactoryTracker.add(connectionFactory);
-
-		ReactiveStringRedisTemplateIntegrationTests.connectionFactory = connectionFactory;
+	public ReactiveStringRedisTemplateIntegrationTests(ReactiveRedisConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
 	}
 
-	@Before
-	public void before() {
+	@BeforeEach
+	void before() {
 
 		template = new ReactiveStringRedisTemplate(connectionFactory);
 
@@ -58,7 +50,7 @@ public class ReactiveStringRedisTemplateIntegrationTests {
 	}
 
 	@Test // DATAREDIS-643
-	public void shouldSetAndGetKeys() {
+	void shouldSetAndGetKeys() {
 
 		template.opsForValue().set("key", "value").as(StepVerifier::create).expectNext(true).verifyComplete();
 		template.opsForValue().get("key").as(StepVerifier::create).expectNext("value").verifyComplete();

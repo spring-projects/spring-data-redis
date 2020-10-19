@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.util.ByteUtils.*;
 
-import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import reactor.core.Disposable;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;
@@ -30,16 +29,20 @@ import reactor.test.StepVerifier;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CancellationException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import org.springframework.data.redis.connection.ReactivePubSubCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
+import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
 
 /**
@@ -47,18 +50,19 @@ import org.springframework.data.redis.connection.ReactiveSubscription.PatternMes
  *
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ReactiveRedisMessageListenerContainerUnitTests {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ReactiveRedisMessageListenerContainerUnitTests {
 
-	ReactiveRedisMessageListenerContainer container;
+	private ReactiveRedisMessageListenerContainer container;
 
 	@Mock ReactiveRedisConnectionFactory connectionFactoryMock;
 	@Mock ReactiveRedisConnection connectionMock;
 	@Mock ReactivePubSubCommands commandsMock;
 	@Mock ReactiveSubscription subscriptionMock;
 
-	@Before
-	public void before() {
+	@BeforeEach
+	void before() {
 
 		when(connectionFactoryMock.getReactiveConnection()).thenReturn(connectionMock);
 		when(connectionMock.pubSubCommands()).thenReturn(commandsMock);
@@ -70,7 +74,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldSubscribeToPattern() {
+	void shouldSubscribeToPattern() {
 
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
 
@@ -82,7 +86,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldSubscribeToMultiplePatterns() {
+	void shouldSubscribeToMultiplePatterns() {
 
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
 		container = createContainer();
@@ -95,7 +99,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldSubscribeToChannel() {
+	void shouldSubscribeToChannel() {
 
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
 		container = createContainer();
@@ -106,7 +110,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldSubscribeToMultipleChannels() {
+	void shouldSubscribeToMultipleChannels() {
 
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
 		container = createContainer();
@@ -118,7 +122,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldEmitChannelMessage() {
+	void shouldEmitChannelMessage() {
 
 		DirectProcessor<Message<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
 
@@ -137,7 +141,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldEmitPatternMessage() {
+	void shouldEmitPatternMessage() {
 
 		DirectProcessor<Message<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
 
@@ -157,7 +161,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldRegisterSubscription() {
+	void shouldRegisterSubscription() {
 
 		MonoProcessor<Void> subscribeMono = MonoProcessor.create();
 
@@ -179,7 +183,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldRegisterSubscriptionMultipleSubscribers() {
+	void shouldRegisterSubscriptionMultipleSubscribers() {
 
 		reset(subscriptionMock);
 		when(subscriptionMock.subscribe(any())).thenReturn(Mono.empty());
@@ -204,7 +208,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldUnsubscribeOnCancel() {
+	void shouldUnsubscribeOnCancel() {
 
 		when(subscriptionMock.receive()).thenReturn(DirectProcessor.create());
 		container = createContainer();
@@ -221,7 +225,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldTerminateSubscriptionsOnShutdown() {
+	void shouldTerminateSubscriptionsOnShutdown() {
 
 		DirectProcessor<Message<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
 
@@ -241,7 +245,7 @@ public class ReactiveRedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldCleanupDownstream() {
+	void shouldCleanupDownstream() {
 
 		DirectProcessor<Message<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
 

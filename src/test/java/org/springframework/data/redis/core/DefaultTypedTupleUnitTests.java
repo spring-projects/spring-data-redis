@@ -15,16 +15,17 @@
  */
 package org.springframework.data.redis.core;
 
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
 
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
  * @author Christoph Strobl
  */
-public class DefaultTypedTupleUnitTests {
+class DefaultTypedTupleUnitTests {
 
 	private static final TypedTuple<String> WITH_SCORE_1 = new DefaultTypedTuple<>("foo", 1D);
 	private static final TypedTuple<String> ANOTHER_ONE_WITH_SCORE_1 = new DefaultTypedTuple<>("another", 1D);
@@ -32,24 +33,24 @@ public class DefaultTypedTupleUnitTests {
 	private static final TypedTuple<String> WITH_SCORE_NULL = new DefaultTypedTuple<>("foo", null);
 
 	@Test // DATAREDIS-294
-	public void compareToShouldUseScore() {
+	void compareToShouldUseScore() {
 
-		assertThat(WITH_SCORE_1.compareTo(WITH_SCORE_2)).isEqualTo(-1);
-		assertThat(WITH_SCORE_2.compareTo(WITH_SCORE_1)).isEqualTo(1);
-		assertThat(WITH_SCORE_1.compareTo(ANOTHER_ONE_WITH_SCORE_1)).isEqualTo(0);
+		assertThat(WITH_SCORE_1).isLessThan(WITH_SCORE_2);
+		assertThat(WITH_SCORE_2).isGreaterThan(WITH_SCORE_1);
+		assertThat(WITH_SCORE_1).isEqualByComparingTo(ANOTHER_ONE_WITH_SCORE_1);
 	}
 
 	@Test // DATAREDIS-294
-	public void compareToShouldConsiderGivenNullAsZeroScore() {
+	void compareToShouldConsiderGivenNullAsZeroScore() {
 
-		assertThat(WITH_SCORE_1.compareTo(null)).isEqualTo(1);
-		assertThat(WITH_SCORE_NULL.compareTo(null)).isEqualTo(0);
+		assertThat(WITH_SCORE_1).isGreaterThan(null);
+		assertThat(WITH_SCORE_NULL).isEqualByComparingTo(null);
 	}
 
 	@Test // DATAREDIS-294
-	public void compareToShouldConsiderNullScoreAsZeroScore() {
+	void compareToShouldConsiderNullScoreAsZeroScore() {
 
-		assertThat(WITH_SCORE_1.compareTo(WITH_SCORE_NULL)).isEqualTo(1);
-		assertThat(WITH_SCORE_NULL.compareTo(WITH_SCORE_1)).isEqualTo(-1);
+		assertThat(WITH_SCORE_1).isGreaterThan(WITH_SCORE_NULL);
+		assertThat(WITH_SCORE_NULL).isLessThan(WITH_SCORE_1);
 	}
 }

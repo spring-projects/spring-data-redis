@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -39,21 +39,21 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Christoph Strobl
  * @author Romain Beghi
  */
-public class StreamRecordsUnitTests {
+class StreamRecordsUnitTests {
 
-	static final String STRING_STREAM_KEY = "stream-key";
-	static final RecordId RECORD_ID = RecordId.of("1-0");
-	static final String STRING_MAP_KEY = "string-key";
-	static final String STRING_VAL = "string-val";
-	static final DummyObject OBJECT_VAL = new DummyObject();
+	private static final String STRING_STREAM_KEY = "stream-key";
+	private static final RecordId RECORD_ID = RecordId.of("1-0");
+	private static final String STRING_MAP_KEY = "string-key";
+	private static final String STRING_VAL = "string-val";
+	private static final DummyObject OBJECT_VAL = new DummyObject();
 
-	static final Jackson2JsonRedisSerializer<DummyObject> JSON_REDIS_SERIALIZER = new Jackson2JsonRedisSerializer<>(
+	private static final Jackson2JsonRedisSerializer<DummyObject> JSON_REDIS_SERIALIZER = new Jackson2JsonRedisSerializer<>(
 			DummyObject.class);
 
-	static final byte[] SERIALIZED_STRING_VAL = RedisSerializer.string().serialize(STRING_VAL);
-	static final byte[] SERIALIZED_STRING_MAP_KEY = RedisSerializer.string().serialize(STRING_MAP_KEY);
-	static final byte[] SERIALIZED_STRING_STREAM_KEY = RedisSerializer.string().serialize(STRING_STREAM_KEY);
-	static final byte[] SERIALIZED_JSON_OBJECT_VAL = JSON_REDIS_SERIALIZER.serialize(OBJECT_VAL);
+	private static final byte[] SERIALIZED_STRING_VAL = RedisSerializer.string().serialize(STRING_VAL);
+	private static final byte[] SERIALIZED_STRING_MAP_KEY = RedisSerializer.string().serialize(STRING_MAP_KEY);
+	private static final byte[] SERIALIZED_STRING_STREAM_KEY = RedisSerializer.string().serialize(STRING_STREAM_KEY);
+	private static final byte[] SERIALIZED_JSON_OBJECT_VAL = JSON_REDIS_SERIALIZER.serialize(OBJECT_VAL);
 
 	private static class DummyObject implements Serializable {
 		private final Integer dummyId = 1;
@@ -64,7 +64,7 @@ public class StreamRecordsUnitTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void objectRecordToMapRecordViaHashMapper() {
+	void objectRecordToMapRecordViaHashMapper() {
 
 		ObjectRecord<String, String> source = Record.of("some-string").withId(RECORD_ID).withStreamKey(STRING_STREAM_KEY);
 
@@ -77,7 +77,7 @@ public class StreamRecordsUnitTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void mapRecordToObjectRecordViaHashMapper() {
+	void mapRecordToObjectRecordViaHashMapper() {
 
 		MapRecord<String, String, String> source = Record.of(Collections.singletonMap(STRING_MAP_KEY, "some-string"))
 				.withId(RECORD_ID).withStreamKey(STRING_STREAM_KEY);
@@ -90,7 +90,7 @@ public class StreamRecordsUnitTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void serializeMapRecordStringAsHashValue() {
+	void serializeMapRecordStringAsHashValue() {
 
 		MapRecord<String, String, String> source = Record.of(Collections.singletonMap(STRING_MAP_KEY, STRING_VAL))
 				.withId(RECORD_ID).withStreamKey(STRING_STREAM_KEY);
@@ -104,7 +104,7 @@ public class StreamRecordsUnitTests {
 	}
 
 	@Test // DATAREDIS-993
-	public void serializeMapRecordObjectAsHashValue() {
+	void serializeMapRecordObjectAsHashValue() {
 
 		MapRecord<String, String, DummyObject> source = Record.of(Collections.singletonMap(STRING_MAP_KEY, OBJECT_VAL))
 				.withId(RECORD_ID).withStreamKey(STRING_STREAM_KEY);
@@ -118,7 +118,7 @@ public class StreamRecordsUnitTests {
 	}
 
 	@Test // DATAREDIS-864
-	public void deserializeByteMapRecord() {
+	void deserializeByteMapRecord() {
 
 		ByteRecord source = StreamRecords.newRecord().in(SERIALIZED_STRING_STREAM_KEY).withId(RECORD_ID)
 				.ofBytes(Collections.singletonMap(SERIALIZED_STRING_MAP_KEY, SERIALIZED_STRING_VAL));
@@ -144,7 +144,7 @@ public class StreamRecordsUnitTests {
 			this(Collections.emptyMap(), from);
 		}
 
-		public StubValueReturningHashMapper(Map<K, V> to, T from) {
+		StubValueReturningHashMapper(Map<K, V> to, T from) {
 			this.to = to;
 			this.from = from;
 		}

@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -32,13 +33,14 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration
 public class RedisRepositoryClusterIntegrationTests extends RedisRepositoryIntegrationTestBase {
 

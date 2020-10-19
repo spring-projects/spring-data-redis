@@ -26,12 +26,14 @@ import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
+import org.springframework.data.redis.test.extension.RedisCluster;
 import org.springframework.data.redis.test.util.RedisClusterRule;
 
 /**
@@ -89,18 +91,15 @@ public class PubSubTestParams {
 
 		if (clusterAvailable()) {
 
-			RedisClusterConfiguration configuration = new RedisClusterConfiguration().clusterNode("127.0.0.1", 7379);
-
 			// add Jedis
-			JedisConnectionFactory jedisClusterFactory = new JedisConnectionFactory(configuration);
-			jedisClusterFactory.afterPropertiesSet();
+			JedisConnectionFactory jedisClusterFactory = JedisConnectionFactoryExtension
+					.getConnectionFactory(RedisCluster.class);
 
 			RedisTemplate<String, String> jedisClusterStringTemplate = new StringRedisTemplate(jedisClusterFactory);
 
 			// add Lettuce
-			LettuceConnectionFactory lettuceClusterFactory = new LettuceConnectionFactory(configuration);
-			lettuceClusterFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-			lettuceClusterFactory.afterPropertiesSet();
+			LettuceConnectionFactory lettuceClusterFactory = LettuceConnectionFactoryExtension
+					.getConnectionFactory(RedisCluster.class);
 
 			RedisTemplate<String, String> lettuceClusterStringTemplate = new StringRedisTemplate(lettuceClusterFactory);
 

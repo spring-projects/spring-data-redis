@@ -59,18 +59,11 @@ public class CompareAndSetIntegrationTests {
 		this.template.afterPropertiesSet();
 
 		this.valueOps = this.template.opsForValue();
-
-		ConnectionFactoryTracker.add(factory);
 	}
 
 	@Parameters
 	public static Collection<Object[]> testParams() {
 		return AtomicCountersParam.testParams();
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@After

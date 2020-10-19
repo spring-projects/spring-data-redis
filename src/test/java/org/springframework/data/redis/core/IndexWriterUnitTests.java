@@ -23,12 +23,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -47,21 +49,22 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Rob Winch
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class IndexWriterUnitTests {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class IndexWriterUnitTests {
 
 	private static final Charset CHARSET = Charset.forName("UTF-8");
 	private static final String KEYSPACE = "persons";
 	private static final String KEY = "key-1";
 	private static final byte[] KEY_BIN = KEY.getBytes(CHARSET);
-	IndexWriter writer;
-	MappingRedisConverter converter;
+	private IndexWriter writer;
+	private MappingRedisConverter converter;
 
 	@Mock RedisConnection connectionMock;
 	@Mock ReferenceResolver referenceResolverMock;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		converter = new MappingRedisConverter(new RedisMappingContext(), new PathIndexResolver(), referenceResolverMock);
 		converter.afterPropertiesSet();
@@ -70,7 +73,7 @@ public class IndexWriterUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void addKeyToIndexShouldInvokeSaddCorrectly() {
+	void addKeyToIndexShouldInvokeSaddCorrectly() {
 
 		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", "Rand"));
 
@@ -80,12 +83,12 @@ public class IndexWriterUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void addKeyToIndexShouldThrowErrorWhenIndexedDataIsNull() {
+	void addKeyToIndexShouldThrowErrorWhenIndexedDataIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> writer.addKeyToIndex(KEY_BIN, null));
 	}
 
 	@Test // DATAREDIS-425
-	public void removeKeyFromExistingIndexesShouldCheckForExistingIndexesForPath() {
+	void removeKeyFromExistingIndexesShouldCheckForExistingIndexesForPath() {
 
 		writer.removeKeyFromExistingIndexes(KEY_BIN, new StubIndxedData());
 
@@ -94,7 +97,7 @@ public class IndexWriterUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void removeKeyFromExistingIndexesShouldRemoveKeyFromAllExistingIndexesForPath() {
+	void removeKeyFromExistingIndexesShouldRemoveKeyFromAllExistingIndexesForPath() {
 
 		byte[] indexKey1 = "persons:firstname:rand".getBytes(CHARSET);
 		byte[] indexKey2 = "persons:firstname:mat".getBytes(CHARSET);
@@ -109,12 +112,12 @@ public class IndexWriterUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void removeKeyFromExistingIndexesShouldThrowExecptionForNullIndexedData() {
+	void removeKeyFromExistingIndexesShouldThrowExecptionForNullIndexedData() {
 		assertThatIllegalArgumentException().isThrownBy(() -> writer.removeKeyFromExistingIndexes(KEY_BIN, null));
 	}
 
 	@Test // DATAREDIS-425
-	public void removeAllIndexesShouldDeleteAllIndexKeys() {
+	void removeAllIndexesShouldDeleteAllIndexKeys() {
 
 		byte[] indexKey1 = "persons:firstname:rand".getBytes(CHARSET);
 		byte[] indexKey2 = "persons:firstname:mat".getBytes(CHARSET);
@@ -131,13 +134,13 @@ public class IndexWriterUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void addToIndexShouldThrowDataAccessExceptionWhenAddingDataThatConnotBeConverted() {
+	void addToIndexShouldThrowDataAccessExceptionWhenAddingDataThatConnotBeConverted() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(
 				() -> writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", new DummyObject())));
 	}
 
 	@Test // DATAREDIS-425
-	public void addToIndexShouldUseRegisteredConverterWhenAddingData() {
+	void addToIndexShouldUseRegisteredConverterWhenAddingData() {
 
 		DummyObject value = new DummyObject();
 		final String identityHexString = ObjectUtils.getIdentityHexString(value);
@@ -156,7 +159,7 @@ public class IndexWriterUnitTests {
 	}
 
 	@Test // DATAREDIS-512
-	public void createIndexShouldNotTryToRemoveExistingValues() {
+	void createIndexShouldNotTryToRemoveExistingValues() {
 
 		when(connectionMock.keys(any(byte[].class)))
 				.thenReturn(new LinkedHashSet<>(Arrays.asList("persons:firstname:rand".getBytes(CHARSET))));
@@ -171,7 +174,7 @@ public class IndexWriterUnitTests {
 	}
 
 	@Test // DATAREDIS-512
-	public void updateIndexShouldRemoveExistingValues() {
+	void updateIndexShouldRemoveExistingValues() {
 
 		when(connectionMock.keys(any(byte[].class)))
 				.thenReturn(new LinkedHashSet<>(Arrays.asList("persons:firstname:rand".getBytes(CHARSET))));
@@ -186,7 +189,7 @@ public class IndexWriterUnitTests {
 	}
 
 	@Test // DATAREDIS-533
-	public void removeGeoIndexShouldCallGeoRemove() {
+	void removeGeoIndexShouldCallGeoRemove() {
 
 		byte[] indexKey1 = "persons:location".getBytes(CHARSET);
 
@@ -210,7 +213,7 @@ public class IndexWriterUnitTests {
 		}
 	}
 
-	static class DummyObject {
+	private static class DummyObject {
 
 	}
 }

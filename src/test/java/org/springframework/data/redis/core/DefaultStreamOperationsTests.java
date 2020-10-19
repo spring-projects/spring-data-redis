@@ -80,18 +80,11 @@ public class DefaultStreamOperationsTests<K, HK, HV> {
 		this.keyFactory = keyFactory;
 		this.hashKeyFactory = (ObjectFactory<HK>) keyFactory;
 		this.hashValueFactory = (ObjectFactory<HV>) objectFactory;
-
-		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Parameters
 	public static Collection<Object[]> testParams() {
 		return AbstractOperationsTestParams.testParams();
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Before

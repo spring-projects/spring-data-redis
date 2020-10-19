@@ -15,9 +15,10 @@
  */
 package org.springframework.data.redis.mapping;
 
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
 
 import org.springframework.data.redis.hash.BeanUtilsHashMapper;
 
@@ -25,7 +26,7 @@ import org.springframework.data.redis.hash.BeanUtilsHashMapper;
  * @author Costin Leau
  * @author Christoph Strobl
  */
-public class BeanUtilsHashMapperTest extends AbstractHashMapperTest {
+public class BeanUtilsHashMapperTests extends AbstractHashMapperTests {
 
 	protected <T> BeanUtilsHashMapper<T> mapperFor(Class<T> t) {
 		return new BeanUtilsHashMapper<>(t);

@@ -23,12 +23,13 @@ import org.junit.Test;
 
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 
 /**
  * @author Costin Leau
@@ -40,21 +41,10 @@ public class RedisCollectionFactoryBeanTests {
 	protected RedisStore col;
 
 	public RedisCollectionFactoryBeanTests() {
-		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setUsePool(true);
-
-		jedisConnFactory.setPort(SettingsUtils.getPort());
-		jedisConnFactory.setHostName(SettingsUtils.getHost());
-
-		jedisConnFactory.afterPropertiesSet();
+		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		this.template = new StringRedisTemplate(jedisConnFactory);
-		ConnectionFactoryTracker.add(jedisConnFactory);
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@After

@@ -15,12 +15,14 @@
  */
 package org.springframework.data.redis.repository.core;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 
@@ -28,16 +30,17 @@ import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
-public class MappingRedisEntityInformationUnitTests<T, ID> {
+@ExtendWith(MockitoExtension.class)
+class MappingRedisEntityInformationUnitTests<T, ID> {
 
 	@Mock RedisPersistentEntity<T> entity;
 
-	@Test(expected = MappingException.class) // DATAREDIS-425
-	public void throwsMappingExceptionWhenNoIdPropertyPresent() {
+	@Test // DATAREDIS-425
+	void throwsMappingExceptionWhenNoIdPropertyPresent() {
 
 		when(entity.hasIdProperty()).thenReturn(false);
 
-		new MappingRedisEntityInformation<T, ID>(entity);
+		assertThatExceptionOfType(MappingException.class)
+				.isThrownBy(() -> new MappingRedisEntityInformation<T, ID>(entity));
 	}
 }

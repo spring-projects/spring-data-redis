@@ -20,14 +20,14 @@ import javax.enterprise.inject.Disposes;
 import javax.enterprise.inject.Produces;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisKeyValueTemplate;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 
 /**
  * @author Mark Paluch
@@ -39,19 +39,7 @@ public class RedisCdiDependenciesProducer {
 	 */
 	@Produces
 	public RedisConnectionFactory redisConnectionFactory() {
-
-		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory();
-		jedisConnectionFactory.setHostName(SettingsUtils.getHost());
-		jedisConnectionFactory.setPort(SettingsUtils.getPort());
-		jedisConnectionFactory.afterPropertiesSet();
-		return jedisConnectionFactory;
-	}
-
-	public void closeRedisConnectionFactory(@Disposes RedisConnectionFactory redisConnectionFactory) throws Exception {
-
-		if (redisConnectionFactory instanceof DisposableBean) {
-			((DisposableBean) redisConnectionFactory).destroy();
-		}
+		return JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
 	}
 
 	/**

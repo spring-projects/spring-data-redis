@@ -22,22 +22,17 @@ import static org.junit.Assume.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-import org.springframework.beans.factory.InitializingBean;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
 import org.springframework.data.geo.Point;
@@ -46,8 +41,7 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.ShadowCopy;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
@@ -63,41 +57,19 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(Parameterized.class)
+@ExtendWith(LettuceConnectionFactoryExtension.class)
 public class RedisKeyValueAdapterTests {
 
-	private static Set<RedisConnectionFactory> initializedFactories = new HashSet<>();
-
-	RedisKeyValueAdapter adapter;
-	StringRedisTemplate template;
-	RedisConnectionFactory connectionFactory;
+	private RedisKeyValueAdapter adapter;
+	private StringRedisTemplate template;
+	private RedisConnectionFactory connectionFactory;
 
 	public RedisKeyValueAdapterTests(RedisConnectionFactory connectionFactory) throws Exception {
-
-		if (connectionFactory instanceof InitializingBean && initializedFactories.add(connectionFactory)) {
-			((InitializingBean) connectionFactory).afterPropertiesSet();
-		}
-
 		this.connectionFactory = connectionFactory;
-		ConnectionFactoryTracker.add(connectionFactory);
 	}
 
-	@Parameters
-	public static List<RedisConnectionFactory> params() {
-
-		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
-		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		return Collections.singletonList(lettuceConnectionFactory);
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		initializedFactories.clear();
-		ConnectionFactoryTracker.cleanUp();
-	}
-
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		template = new StringRedisTemplate(connectionFactory);
 		template.afterPropertiesSet();
@@ -124,8 +96,8 @@ public class RedisKeyValueAdapterTests {
 		}
 	}
 
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 
 		try {
 			adapter.destroy();
@@ -135,7 +107,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void putWritesDataCorrectly() {
+	void putWritesDataCorrectly() {
 
 		Person rand = new Person();
 		rand.age = 24;
@@ -149,7 +121,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-744
-	public void putWritesDataWithColonCorrectly() {
+	void putWritesDataWithColonCorrectly() {
 
 		Person rand = new Person();
 		rand.age = 24;
@@ -163,7 +135,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void putWritesSimpleIndexDataCorrectly() {
+	void putWritesSimpleIndexDataCorrectly() {
 
 		Person rand = new Person();
 		rand.firstname = "rand";
@@ -175,7 +147,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-744
-	public void putWritesSimpleIndexDataWithColonCorrectly() {
+	void putWritesSimpleIndexDataWithColonCorrectly() {
 
 		Person rand = new Person();
 		rand.firstname = "rand";
@@ -187,7 +159,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void putWritesNestedDataCorrectly() {
+	void putWritesNestedDataCorrectly() {
 
 		Person rand = new Person();
 		rand.address = new Address();
@@ -200,7 +172,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void putWritesSimpleNestedIndexValuesCorrectly() {
+	void putWritesSimpleNestedIndexValuesCorrectly() {
 
 		Person rand = new Person();
 		rand.address = new Address();
@@ -213,7 +185,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void getShouldReadSimpleObjectCorrectly() {
+	void getShouldReadSimpleObjectCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
@@ -227,7 +199,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-744
-	public void getShouldReadSimpleObjectWithColonInIdCorrectly() {
+	void getShouldReadSimpleObjectWithColonInIdCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("_class", Person.class.getName());
@@ -241,7 +213,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void getShouldReadNestedObjectCorrectly() {
+	void getShouldReadNestedObjectCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
@@ -255,7 +227,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void couldReadsKeyspaceSizeCorrectly() {
+	void couldReadsKeyspaceSizeCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
@@ -268,7 +240,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void deleteRemovesEntriesCorrectly() {
+	void deleteRemovesEntriesCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
@@ -283,7 +255,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void deleteCleansIndexedDataCorrectly() {
+	void deleteCleansIndexedDataCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
@@ -300,7 +272,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-1106
-	public void deleteRemovesExpireHelperStructures() {
+	void deleteRemovesExpireHelperStructures() {
 
 		WithExpiration source = new WithExpiration();
 		source.id = "1";
@@ -318,7 +290,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void keyExpiredEventShouldRemoveHelperStructures() throws Exception {
+	void keyExpiredEventShouldRemoveHelperStructures() throws Exception {
 
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 
@@ -346,7 +318,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-744
-	public void keyExpiredEventShouldRemoveHelperStructuresForObjectsWithColonInId() throws Exception {
+	void keyExpiredEventShouldRemoveHelperStructuresForObjectsWithColonInId() throws Exception {
 
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 
@@ -374,7 +346,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-589
-	public void keyExpiredEventWithoutKeyspaceShouldBeIgnored() throws Exception {
+	void keyExpiredEventWithoutKeyspaceShouldBeIgnored() throws Exception {
 
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 
@@ -401,7 +373,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-512
-	public void putWritesIndexDataCorrectly() {
+	void putWritesIndexDataCorrectly() {
 
 		Person rand = new Person();
 		rand.age = 24;
@@ -437,7 +409,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-471
-	public void updateShouldAlterIndexDataCorrectly() {
+	void updateShouldAlterIndexDataCorrectly() {
 
 		Person rand = new Person();
 		rand.firstname = "rand";
@@ -456,7 +428,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-744
-	public void updateShouldAlterIndexDataForObjectsWithColonInIdCorrectly() {
+	void updateShouldAlterIndexDataForObjectsWithColonInIdCorrectly() {
 
 		Person rand = new Person();
 		rand.firstname = "rand";
@@ -475,7 +447,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-471
-	public void updateShouldAlterIndexDataOnNestedObjectCorrectly() {
+	void updateShouldAlterIndexDataOnNestedObjectCorrectly() {
 
 		Person rand = new Person();
 		rand.address = new Address();
@@ -498,7 +470,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-471
-	public void updateShouldAlterIndexDataOnNestedObjectPathCorrectly() {
+	void updateShouldAlterIndexDataOnNestedObjectPathCorrectly() {
 
 		Person rand = new Person();
 		rand.address = new Address();
@@ -518,7 +490,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-471
-	public void updateShouldRemoveComplexObjectCorrectly() {
+	void updateShouldRemoveComplexObjectCorrectly() {
 
 		Person rand = new Person();
 		rand.address = new Address();
@@ -538,7 +510,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-471
-	public void updateShouldRemoveSimpleListValuesCorrectly() {
+	void updateShouldRemoveSimpleListValuesCorrectly() {
 
 		Person rand = new Person();
 		rand.nicknames = Arrays.asList("lews therin", "dragon reborn");
@@ -555,7 +527,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-471
-	public void updateShouldRemoveComplexListValuesCorrectly() {
+	void updateShouldRemoveComplexListValuesCorrectly() {
 
 		Person mat = new Person();
 		mat.firstname = "mat";
@@ -582,7 +554,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-471
-	public void updateShouldRemoveSimpleMapValuesCorrectly() {
+	void updateShouldRemoveSimpleMapValuesCorrectly() {
 
 		Person rand = new Person();
 		rand.physicalAttributes = Collections.singletonMap("eye-color", "grey");
@@ -598,7 +570,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-471
-	public void updateShouldRemoveComplexMapValuesCorrectly() {
+	void updateShouldRemoveComplexMapValuesCorrectly() {
 
 		Person tam = new Person();
 		tam.firstname = "tam";
@@ -617,7 +589,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-533
-	public void putShouldCreateGeoIndexCorrectly() {
+	void putShouldCreateGeoIndexCorrectly() {
 
 		Person tam = new Person();
 		tam.id = "1";
@@ -631,7 +603,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-533
-	public void deleteShouldRemoveGeoIndexCorrectly() {
+	void deleteShouldRemoveGeoIndexCorrectly() {
 
 		Person tam = new Person();
 		tam.id = "1";
@@ -647,7 +619,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-533
-	public void updateShouldAlterGeoIndexCorrectlyOnDelete() {
+	void updateShouldAlterGeoIndexCorrectlyOnDelete() {
 
 		Person tam = new Person();
 		tam.id = "1";
@@ -666,7 +638,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-533, DATAREDIS-614
-	public void updateShouldAlterGeoIndexCorrectlyOnUpdate() {
+	void updateShouldAlterGeoIndexCorrectlyOnUpdate() {
 
 		Person tam = new Person();
 		tam.id = "1";
@@ -689,7 +661,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-1091
-	public void phantomKeyNotInsertedOnPutWhenShadowCopyIsTurnedOff() {
+	void phantomKeyNotInsertedOnPutWhenShadowCopyIsTurnedOff() {
 
 		RedisMappingContext mappingContext = new RedisMappingContext(
 				new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration()));
@@ -708,7 +680,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-1091
-	public void phantomKeyInsertedOnPutWhenShadowCopyIsTurnedOn() {
+	void phantomKeyInsertedOnPutWhenShadowCopyIsTurnedOn() {
 
 		RedisMappingContext mappingContext = new RedisMappingContext(
 				new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration()));
@@ -727,7 +699,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-1091
-	public void phantomKeyInsertedOnPutWhenShadowCopyIsInDefaultAndKeyspaceNotificationEnabled() {
+	void phantomKeyInsertedOnPutWhenShadowCopyIsInDefaultAndKeyspaceNotificationEnabled() {
 
 		ExpiringPerson rand = new ExpiringPerson();
 		rand.age = 24;

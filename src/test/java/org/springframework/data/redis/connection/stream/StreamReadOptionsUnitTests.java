@@ -19,18 +19,18 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.time.Duration;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link StreamReadOptions}.
- * 
+ *
  * @author Mark Paluch
  * @author Kaizhou Zhang
  */
-public class StreamReadOptionsUnitTests {
+class StreamReadOptionsUnitTests {
 
 	@Test // DATAREDIS-1138
-	public void shouldConsiderBlocking() {
+	void shouldConsiderBlocking() {
 
 		assertThat(StreamReadOptions.empty().isBlocking()).isFalse();
 		assertThat(StreamReadOptions.empty().block(Duration.ofSeconds(1)).isBlocking()).isTrue();
@@ -38,9 +38,9 @@ public class StreamReadOptionsUnitTests {
 	}
 
 	@Test // DATAREDIS-1210
-	public void testToString() {
+	void testToString() {
 
-		assertThat(StreamReadOptions.empty().toString())
-				.isEqualTo("StreamReadOptions{block=null, count=null, noack=false, blocking=false}");
+		assertThat(StreamReadOptions.empty())
+				.hasToString("StreamReadOptions{block=null, count=null, noack=false, blocking=false}");
 	}
 }

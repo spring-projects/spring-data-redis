@@ -15,15 +15,15 @@
  */
 package org.springframework.data.redis.core.script.jedis;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
+import redis.clients.jedis.Jedis;
+
+import org.junit.jupiter.api.Disabled;
+
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.core.script.AbstractDefaultScriptExecutorTests;
 import org.springframework.data.redis.core.script.DefaultScriptExecutor;
-
-import redis.clients.jedis.Jedis;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 
 /**
  * Integration test of {@link DefaultScriptExecutor} with {@link Jedis}.
@@ -32,38 +32,18 @@ import redis.clients.jedis.Jedis;
  */
 public class JedisDefaultScriptExecutorTests extends AbstractDefaultScriptExecutorTests {
 
-	private static JedisConnectionFactory connectionFactory;
-
-	@Before
-	public void setup() {
-
-		connectionFactory = new JedisConnectionFactory();
-		connectionFactory.afterPropertiesSet();
-
-	}
-
-	@After
-	public void teardown() {
-
-		super.tearDown();
-
-		if (connectionFactory != null) {
-			connectionFactory.destroy();
-		}
-	}
-
 	@Override
 	protected RedisConnectionFactory getConnectionFactory() {
-		return connectionFactory;
+		return JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
 	}
 
-	@Ignore("transactional execution is currently not supported with Jedis")
+	@Disabled("transactional execution is currently not supported with Jedis")
 	@Override
 	public void testExecuteTx() {
 		// super.testExecuteTx();
 	}
 
-	@Ignore("pipelined execution is currently not supported with Jedis")
+	@Disabled("pipelined execution is currently not supported with Jedis")
 	@Override
 	public void testExecutePipelined() {
 		// super.testExecutePipelined();

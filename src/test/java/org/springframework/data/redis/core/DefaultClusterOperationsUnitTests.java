@@ -23,12 +23,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterConnection;
@@ -43,24 +45,25 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class DefaultClusterOperationsUnitTests {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class DefaultClusterOperationsUnitTests {
 
-	static final RedisClusterNode NODE_1 = RedisClusterNode.newRedisClusterNode().listeningAt("127.0.0.1", 6379)
+	private static final RedisClusterNode NODE_1 = RedisClusterNode.newRedisClusterNode().listeningAt("127.0.0.1", 6379)
 			.withId("d1861060fe6a534d42d8a19aeb36600e18785e04").build();
 
-	static final RedisClusterNode NODE_2 = RedisClusterNode.newRedisClusterNode().listeningAt("127.0.0.1", 6380)
+	private static final RedisClusterNode NODE_2 = RedisClusterNode.newRedisClusterNode().listeningAt("127.0.0.1", 6380)
 			.withId("0f2ee5df45d18c50aca07228cc18b1da96fd5e84").build();
 
 	@Mock RedisConnectionFactory connectionFactory;
 	@Mock RedisClusterConnection connection;
 
-	RedisSerializer<String> serializer;
+	private RedisSerializer<String> serializer;
 
-	DefaultClusterOperations<String, String> clusterOps;
+	private DefaultClusterOperations<String, String> clusterOps;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		when(connectionFactory.getConnection()).thenReturn(connection);
 		when(connectionFactory.getClusterConnection()).thenReturn(connection);
@@ -77,7 +80,7 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void keysShouldDelegateToConnectionCorrectly() {
+	void keysShouldDelegateToConnectionCorrectly() {
 
 		Set<byte[]> keys = new HashSet<>(Arrays.asList(serializer.serialize("key-1"), serializer.serialize("key-2")));
 		when(connection.keys(any(RedisClusterNode.class), any(byte[].class))).thenReturn(keys);
@@ -86,12 +89,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void keysShouldThrowExceptionWhenNodeIsNull() {
+	void keysShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.keys(null, "*"));
 	}
 
 	@Test // DATAREDIS-315
-	public void keysShouldReturnEmptySetWhenNoKeysAvailable() {
+	void keysShouldReturnEmptySetWhenNoKeysAvailable() {
 
 		when(connection.keys(any(RedisClusterNode.class), any(byte[].class))).thenReturn(null);
 
@@ -99,7 +102,7 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void randomKeyShouldDelegateToConnection() {
+	void randomKeyShouldDelegateToConnection() {
 
 		when(connection.randomKey(any(RedisClusterNode.class))).thenReturn(serializer.serialize("key-1"));
 
@@ -107,12 +110,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void randomKeyShouldThrowExceptionWhenNodeIsNull() {
+	void randomKeyShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.randomKey(null));
 	}
 
 	@Test // DATAREDIS-315
-	public void randomKeyShouldReturnNullWhenNoKeyAvailable() {
+	void randomKeyShouldReturnNullWhenNoKeyAvailable() {
 
 		when(connection.randomKey(any(RedisClusterNode.class))).thenReturn(null);
 
@@ -120,7 +123,7 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void pingShouldDelegateToConnection() {
+	void pingShouldDelegateToConnection() {
 
 		when(connection.ping(any(RedisClusterNode.class))).thenReturn("PONG");
 
@@ -128,12 +131,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void pingShouldThrowExceptionWhenNodeIsNull() {
+	void pingShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.ping(null));
 	}
 
 	@Test // DATAREDIS-315
-	public void addSlotsShouldDelegateToConnection() {
+	void addSlotsShouldDelegateToConnection() {
 
 		clusterOps.addSlots(NODE_1, 1, 2, 3);
 
@@ -141,12 +144,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void addSlotsShouldThrowExceptionWhenNodeIsNull() {
+	void addSlotsShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.addSlots(null));
 	}
 
 	@Test // DATAREDIS-315
-	public void addSlotsWithRangeShouldDelegateToConnection() {
+	void addSlotsWithRangeShouldDelegateToConnection() {
 
 		clusterOps.addSlots(NODE_1, new SlotRange(1, 3));
 
@@ -154,12 +157,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void addSlotsWithRangeShouldThrowExceptionWhenRangeIsNull() {
+	void addSlotsWithRangeShouldThrowExceptionWhenRangeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.addSlots(NODE_1, (SlotRange) null));
 	}
 
 	@Test // DATAREDIS-315
-	public void bgSaveShouldDelegateToConnection() {
+	void bgSaveShouldDelegateToConnection() {
 
 		clusterOps.bgSave(NODE_1);
 
@@ -167,12 +170,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void bgSaveShouldThrowExceptionWhenNodeIsNull() {
+	void bgSaveShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.bgSave(null));
 	}
 
 	@Test // DATAREDIS-315
-	public void meetShouldDelegateToConnection() {
+	void meetShouldDelegateToConnection() {
 
 		clusterOps.meet(NODE_1);
 
@@ -180,12 +183,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void meetShouldThrowExceptionWhenNodeIsNull() {
+	void meetShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.meet(null));
 	}
 
 	@Test // DATAREDIS-315
-	public void forgetShouldDelegateToConnection() {
+	void forgetShouldDelegateToConnection() {
 
 		clusterOps.forget(NODE_1);
 
@@ -193,12 +196,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void forgetShouldThrowExceptionWhenNodeIsNull() {
+	void forgetShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.forget(null));
 	}
 
 	@Test // DATAREDIS-315
-	public void flushDbShouldDelegateToConnection() {
+	void flushDbShouldDelegateToConnection() {
 
 		clusterOps.flushDb(NODE_1);
 
@@ -206,12 +209,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void flushDbShouldThrowExceptionWhenNodeIsNull() {
+	void flushDbShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.flushDb(null));
 	}
 
 	@Test // DATAREDIS-315
-	public void getSlavesShouldDelegateToConnection() {
+	void getSlavesShouldDelegateToConnection() {
 
 		clusterOps.getSlaves(NODE_1);
 
@@ -219,12 +222,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void getSlavesShouldThrowExceptionWhenNodeIsNull() {
+	void getSlavesShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.getSlaves(null));
 	}
 
 	@Test // DATAREDIS-315
-	public void saveShouldDelegateToConnection() {
+	void saveShouldDelegateToConnection() {
 
 		clusterOps.save(NODE_1);
 
@@ -232,12 +235,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void saveShouldThrowExceptionWhenNodeIsNull() {
+	void saveShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.save(null));
 	}
 
 	@Test // DATAREDIS-315
-	public void shutdownShouldDelegateToConnection() {
+	void shutdownShouldDelegateToConnection() {
 
 		clusterOps.shutdown(NODE_1);
 
@@ -245,12 +248,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void shutdownShouldThrowExceptionWhenNodeIsNull() {
+	void shutdownShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.shutdown(null));
 	}
 
 	@Test // DATAREDIS-315
-	public void executeShouldDelegateToConnection() {
+	void executeShouldDelegateToConnection() {
 
 		final byte[] key = serializer.serialize("foo");
 		clusterOps.execute(connection -> serializer.deserialize(connection.get(key)));
@@ -259,12 +262,12 @@ public class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void executeShouldThrowExceptionWhenCallbackIsNull() {
+	void executeShouldThrowExceptionWhenCallbackIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.execute(null));
 	}
 
 	@Test // DATAREDIS-315
-	public void reshardShouldExecuteCommandsCorrectly() {
+	void reshardShouldExecuteCommandsCorrectly() {
 
 		byte[] key = "foo".getBytes();
 		when(connection.clusterGetKeysInSlot(eq(100), anyInt())).thenReturn(Collections.singletonList(key));

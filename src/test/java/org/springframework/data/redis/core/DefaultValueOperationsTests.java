@@ -68,18 +68,11 @@ public class DefaultValueOperationsTests<K, V> {
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
-
-		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Parameters
 	public static Collection<Object[]> testParams() {
 		return AbstractOperationsTestParams.testParams();
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Before

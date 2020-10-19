@@ -15,13 +15,12 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 
-import io.lettuce.core.ConnectionFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import io.lettuce.core.cluster.RedisClusterClient;
@@ -33,11 +32,14 @@ import reactor.test.StepVerifier;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
 
@@ -46,7 +48,8 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvid
  *
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class LettuceReactiveRedisClusterConnectionUnitTests {
 
 	static final RedisClusterNode NODE1 = new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT);
@@ -59,7 +62,7 @@ public class LettuceReactiveRedisClusterConnectionUnitTests {
 	@Mock RedisReactiveCommands<ByteBuffer, ByteBuffer> reactiveNodeCommands;
 	@Mock(extraInterfaces = TargetAware.class) LettuceConnectionProvider connectionProvider;
 
-	@Before
+	@BeforeEach
 	public void before() {
 
 		when(connectionProvider.getConnectionAsync(any())).thenReturn(CompletableFuture.completedFuture(sharedConnection));

@@ -18,10 +18,9 @@ package org.springframework.data.redis.repository.configuration;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -33,19 +32,15 @@ import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.convert.ReferenceResolver;
-import org.springframework.data.redis.repository.configuration.RedisRepositoryConfigurationUnitTests.ContextWithCustomReferenceResolver;
-import org.springframework.data.redis.repository.configuration.RedisRepositoryConfigurationUnitTests.ContextWithoutCustomization;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Christoph Strobl
  */
-@RunWith(Suite.class)
-@SuiteClasses({ ContextWithCustomReferenceResolver.class, ContextWithoutCustomization.class })
 public class RedisRepositoryConfigurationUnitTests {
 
 	static RedisTemplate<?, ?> createTemplateMock() {
@@ -60,10 +55,10 @@ public class RedisRepositoryConfigurationUnitTests {
 		return template;
 	}
 
-	@RunWith(SpringJUnit4ClassRunner.class)
+	@ExtendWith(SpringExtension.class)
 	@DirtiesContext
-	@ContextConfiguration(classes = { ContextWithCustomReferenceResolver.Config.class })
-	public static class ContextWithCustomReferenceResolver {
+	@ContextConfiguration(classes = { ContextWithCustomReferenceResolverUnitTests.Config.class })
+	public static class ContextWithCustomReferenceResolverUnitTests {
 
 		@EnableRedisRepositories(considerNestedRepositories = true,
 				includeFilters = { @ComponentScan.Filter(type = FilterType.REGEX, pattern = { ".*ContextSampleRepository" }) })
@@ -95,10 +90,10 @@ public class RedisRepositoryConfigurationUnitTests {
 		}
 	}
 
-	@RunWith(SpringJUnit4ClassRunner.class)
+	@ExtendWith(SpringExtension.class)
 	@DirtiesContext
-	@ContextConfiguration(classes = { ContextWithoutCustomization.Config.class })
-	public static class ContextWithoutCustomization {
+	@ContextConfiguration(classes = { ContextWithoutCustomizationUnitTests.Config.class })
+	public static class ContextWithoutCustomizationUnitTests {
 
 		@EnableRedisRepositories(considerNestedRepositories = true,
 				includeFilters = { @ComponentScan.Filter(type = FilterType.REGEX, pattern = { ".*ContextSampleRepository" }) })

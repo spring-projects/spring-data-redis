@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.PoolException;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 
 /**
  * Unit test of {@link DefaultLettucePool}

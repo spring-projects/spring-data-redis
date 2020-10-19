@@ -18,12 +18,12 @@ package org.springframework.data.redis.listener;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -34,8 +34,8 @@ import org.springframework.data.redis.core.RedisKeyExpiredEvent;
 /**
  * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
-public class KeyExpirationEventMessageListenerUnitTests {
+@ExtendWith(MockitoExtension.class)
+class KeyExpirationEventMessageListenerUnitTests {
 
 	private static final String MESSAGE_CHANNEL = "channel";
 	private static final String MESSAGE_BODY = "body";
@@ -45,15 +45,15 @@ public class KeyExpirationEventMessageListenerUnitTests {
 	@Mock ApplicationEventPublisher publisherMock;
 	KeyExpirationEventMessageListener listener;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		listener = new KeyExpirationEventMessageListener(containerMock);
 		listener.setApplicationEventPublisher(publisherMock);
 	}
 
 	@Test // DATAREDIS-425
-	public void handleMessageShouldPublishKeyExpiredEvent() {
+	void handleMessageShouldPublishKeyExpiredEvent() {
 
 		listener.onMessage(MESSAGE, "*".getBytes());
 
@@ -65,10 +65,10 @@ public class KeyExpirationEventMessageListenerUnitTests {
 	}
 
 	@Test // DATAREDIS-425, DATAREDIS-692
-	public void handleMessageShouldNotRespondToEmptyMessage() {
+	void handleMessageShouldNotRespondToEmptyMessage() {
 
 		listener.onMessage(new DefaultMessage(new byte[] {}, new byte[] {}), "*".getBytes());
 
-		verifyZeroInteractions(publisherMock);
+		verifyNoInteractions(publisherMock);
 	}
 }

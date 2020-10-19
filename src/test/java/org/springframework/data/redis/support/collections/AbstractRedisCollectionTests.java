@@ -62,12 +62,6 @@ public abstract class AbstractRedisCollectionTests<T> {
 	public AbstractRedisCollectionTests(ObjectFactory<T> factory, RedisTemplate template) {
 		this.factory = factory;
 		this.template = template;
-		ConnectionFactoryTracker.add(template.getConnectionFactory());
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Parameters
