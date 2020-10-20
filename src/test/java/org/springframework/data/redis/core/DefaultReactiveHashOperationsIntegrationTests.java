@@ -16,7 +16,7 @@
 package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assume.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import reactor.test.StepVerifier;
 
@@ -27,13 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.junit.jupiter.api.BeforeEach;
+
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
@@ -41,9 +36,11 @@ import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.extension.LettuceTestClientResources;
+import org.springframework.data.redis.test.extension.parametrized.MethodSource;
+import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration tests for {@link DefaultReactiveHashOperations}.
@@ -51,7 +48,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-@RunWith(Parameterized.class)
+@MethodSource("testParams")
 @SuppressWarnings("unchecked")
 public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
@@ -62,7 +59,16 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	private final ObjectFactory<HK> hashKeyFactory;
 	private final ObjectFactory<HV> hashValueFactory;
 
-	@Parameters(name = "{4}")
+	public DefaultReactiveHashOperationsIntegrationTests(ReactiveRedisTemplate<K, ?> redisTemplate,
+			ObjectFactory<K> keyFactory, ObjectFactory<HK> hashKeyFactory, ObjectFactory<HV> hashValueFactory) {
+
+		this.redisTemplate = redisTemplate;
+		this.hashOperations = redisTemplate.opsForHash();
+		this.keyFactory = keyFactory;
+		this.hashKeyFactory = hashKeyFactory;
+		this.hashValueFactory = hashValueFactory;
+	}
+
 	public static Collection<Object[]> testParams() {
 
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
@@ -86,26 +92,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				{ rawTemplate, rawFactory, rawFactory, rawFactory, "raw" } });
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
-	public DefaultReactiveHashOperationsIntegrationTests(ReactiveRedisTemplate<K, ?> redisTemplate,
-			ObjectFactory<K> keyFactory, ObjectFactory<HK> hashKeyFactory, ObjectFactory<HV> hashValueFactory,
-			String testName) {
-
-		this.redisTemplate = redisTemplate;
-		this.hashOperations = redisTemplate.opsForHash();
-		this.keyFactory = keyFactory;
-		this.hashKeyFactory = hashKeyFactory;
-		this.hashValueFactory = hashValueFactory;
-
-		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
-	}
-
-	@Before
-	public void before() {
+	@BeforeEach
+	void before() {
 
 		RedisConnectionFactory connectionFactory = (RedisConnectionFactory) redisTemplate.getConnectionFactory();
 		RedisConnection connection = connectionFactory.getConnection();
@@ -113,8 +101,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		connection.close();
 	}
 
-	@Test // DATAREDIS-602
-	public void remove() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void remove() {
 
 		K key = keyFactory.instance();
 		HK hashkey1 = hashKeyFactory.instance();
@@ -131,8 +119,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void hasKey() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void hasKey() {
 
 		K key = keyFactory.instance();
 		HK hashkey = hashKeyFactory.instance();
@@ -154,8 +142,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void get() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void get() {
 
 		K key = keyFactory.instance();
 		HK hashkey = hashKeyFactory.instance();
@@ -172,17 +160,18 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-824
-	public void getAbsentKey() {
+	@ParameterizedRedisTest // DATAREDIS-824
+	void getAbsentKey() {
 
 		hashOperations.get(keyFactory.instance(), hashKeyFactory.instance()).as(StepVerifier::create) //
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void multiGet() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void multiGet() {
 
-		assumeTrue(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory);
+		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
+				.isTrue();
 
 		K key = keyFactory.instance();
 		HK hashkey1 = hashKeyFactory.instance();
@@ -200,10 +189,11 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-824
-	public void multiGetAbsentKeys() {
+	@ParameterizedRedisTest // DATAREDIS-824
+	void multiGetAbsentKeys() {
 
-		assumeTrue(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory);
+		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
+				.isTrue();
 
 		hashOperations.multiGet(keyFactory.instance(), Arrays.asList(hashKeyFactory.instance(), hashKeyFactory.instance()))
 				.as(StepVerifier::create) //
@@ -213,10 +203,10 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void increment() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void increment() {
 
-		assumeTrue(hashValueFactory instanceof StringObjectFactory);
+		assumeThat(hashValueFactory instanceof StringObjectFactory).isTrue();
 
 		K key = keyFactory.instance();
 		HK hashkey = hashKeyFactory.instance();
@@ -238,11 +228,11 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
+	@ParameterizedRedisTest // DATAREDIS-602
 	@SuppressWarnings("unchecked")
-	public void incrementDouble() {
+	void incrementDouble() {
 
-		assumeTrue(hashValueFactory instanceof StringObjectFactory);
+		assumeThat(hashValueFactory instanceof StringObjectFactory).isTrue();
 
 		K key = keyFactory.instance();
 		HK hashkey = hashKeyFactory.instance();
@@ -264,10 +254,10 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void keys() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void keys() {
 
-		assumeTrue(hashKeyFactory instanceof StringObjectFactory);
+		assumeThat(hashKeyFactory instanceof StringObjectFactory).isTrue();
 
 		K key = keyFactory.instance();
 		HK hashkey1 = hashKeyFactory.instance();
@@ -284,8 +274,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void size() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void size() {
 
 		K key = keyFactory.instance();
 		HK hashkey1 = hashKeyFactory.instance();
@@ -302,8 +292,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void putAll() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void putAll() {
 
 		K key = keyFactory.instance();
 		HK hashkey1 = hashKeyFactory.instance();
@@ -325,8 +315,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void put() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void put() {
 
 		K key = keyFactory.instance();
 		HK hashkey = hashKeyFactory.instance();
@@ -338,8 +328,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void putIfAbsent() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void putIfAbsent() {
 
 		K key = keyFactory.instance();
 		HK hashkey = hashKeyFactory.instance();
@@ -357,10 +347,10 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void values() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void values() {
 
-		assumeTrue(hashValueFactory instanceof StringObjectFactory);
+		assumeThat(hashValueFactory instanceof StringObjectFactory).isTrue();
 
 		K key = keyFactory.instance();
 		HK hashkey1 = hashKeyFactory.instance();
@@ -377,10 +367,11 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void entries() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void entries() {
 
-		assumeTrue(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory);
+		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
+				.isTrue();
 
 		K key = keyFactory.instance();
 		HK hashkey1 = hashKeyFactory.instance();
@@ -403,10 +394,11 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-743
-	public void scan() {
+	@ParameterizedRedisTest // DATAREDIS-743
+	void scan() {
 
-		assumeTrue(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory);
+		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
+				.isTrue();
 
 		K key = keyFactory.instance();
 		HK hashkey1 = hashKeyFactory.instance();
@@ -429,8 +421,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void delete() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void delete() {
 
 		K key = keyFactory.instance();
 		HK hashkey = hashKeyFactory.instance();

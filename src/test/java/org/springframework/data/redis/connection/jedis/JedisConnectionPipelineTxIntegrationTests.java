@@ -19,10 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
-import org.junit.Ignore;
-import org.junit.Test;
-
-import org.springframework.data.redis.connection.RedisPipelineException;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Jennifer Hickey
@@ -30,23 +28,16 @@ import org.springframework.data.redis.connection.RedisPipelineException;
  */
 public class JedisConnectionPipelineTxIntegrationTests extends JedisConnectionTransactionIntegrationTests {
 
-	@Ignore("Jedis issue: Pipeline tries to return String instead of List<String>")
+	@Disabled("Jedis issue: Pipeline tries to return String instead of List<String>")
 	@Test
 	public void testGetConfig() {}
 
-	@Test(expected = RedisPipelineException.class)
-	public void exceptionExecuteNative() throws Exception {
-		connection.execute("set", "foo");
-		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
-		getResults();
-	}
-
 	@Test
-	@Ignore
+	@Disabled
 	public void testRestoreBadData() {}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void testRestoreExistingKey() {}
 
 	protected void initConnection() {
@@ -66,6 +57,6 @@ public class JedisConnectionPipelineTxIntegrationTests extends JedisConnectionTr
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void testListClientsContainsAtLeastOneElement() {}
 }

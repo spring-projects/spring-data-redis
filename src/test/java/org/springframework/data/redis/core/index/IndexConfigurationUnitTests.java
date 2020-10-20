@@ -17,16 +17,16 @@ package org.springframework.data.redis.core.index;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Rob Winch
  * @author Christoph Strobl
  */
-public class IndexConfigurationUnitTests {
+class IndexConfigurationUnitTests {
 
 	@Test // DATAREDIS-425
-	public void redisIndexSettingIndexNameDefaulted() {
+	void redisIndexSettingIndexNameDefaulted() {
 
 		String path = "path";
 		SimpleIndexDefinition setting = new SimpleIndexDefinition("keyspace", path);
@@ -34,7 +34,7 @@ public class IndexConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void redisIndexSettingIndexNameExplicit() {
+	void redisIndexSettingIndexNameExplicit() {
 
 		String indexName = "indexName";
 		SimpleIndexDefinition setting = new SimpleIndexDefinition("keyspace", "index", indexName);
@@ -42,7 +42,7 @@ public class IndexConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void redisIndexSettingIndexNameUsedInEquals() {
+	void redisIndexSettingIndexNameUsedInEquals() {
 
 		SimpleIndexDefinition setting1 = new SimpleIndexDefinition("keyspace", "path", "indexName1");
 		SimpleIndexDefinition setting2 = new SimpleIndexDefinition(setting1.getKeyspace(), "path", setting1.getIndexName()
@@ -52,7 +52,7 @@ public class IndexConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void redisIndexSettingIndexNameUsedInHashCode() {
+	void redisIndexSettingIndexNameUsedInHashCode() {
 
 		SimpleIndexDefinition setting1 = new SimpleIndexDefinition("keyspace", "path", "indexName1");
 		SimpleIndexDefinition setting2 = new SimpleIndexDefinition(setting1.getKeyspace(), "path", setting1.getIndexName()

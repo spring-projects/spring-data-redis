@@ -20,15 +20,15 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Mark Paluch
  */
-public class ExpirationUnitTests {
+class ExpirationUnitTests {
 
 	@Test // DATAREDIS-316
-	public void fromDefault() throws Exception {
+	void fromDefault() {
 
 		Expiration expiration = Expiration.from(5, null);
 
@@ -37,7 +37,7 @@ public class ExpirationUnitTests {
 	}
 
 	@Test // DATAREDIS-316
-	public void fromNanos() throws Exception {
+	void fromNanos() {
 
 		Expiration expiration = Expiration.from(5L * 1000 * 1000, TimeUnit.NANOSECONDS);
 
@@ -46,7 +46,7 @@ public class ExpirationUnitTests {
 	}
 
 	@Test // DATAREDIS-316
-	public void fromMinutes() throws Exception {
+	void fromMinutes() {
 
 		Expiration expiration = Expiration.from(5, TimeUnit.MINUTES);
 

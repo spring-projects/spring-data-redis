@@ -16,12 +16,11 @@
 package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.data.Offset.offset;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.Wither;
+import lombok.With;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,25 +30,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.parametrized.MethodSource;
+import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -58,31 +52,29 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(Parameterized.class)
+@MethodSource("params")
 public class RedisKeyValueTemplateTests {
 
-	RedisConnectionFactory connectionFactory;
-	RedisKeyValueTemplate template;
-	RedisTemplate<Object, Object> nativeTemplate;
-	RedisMappingContext context;
-	RedisKeyValueAdapter adapter;
+	private RedisConnectionFactory connectionFactory;
+	private RedisKeyValueTemplate template;
+	private RedisTemplate<Object, Object> nativeTemplate;
+	private RedisMappingContext context;
+	private RedisKeyValueAdapter adapter;
 
 	public RedisKeyValueTemplateTests(RedisConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
 
-	@Parameters
 	public static List<RedisConnectionFactory> params() {
 
 		JedisConnectionFactory jedis = JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
-
 		LettuceConnectionFactory lettuce = LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
 
-		return Arrays.<RedisConnectionFactory> asList(jedis, lettuce);
+		return Arrays.asList(jedis, lettuce);
 	}
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		nativeTemplate = new RedisTemplate<>();
 		nativeTemplate.setConnectionFactory(connectionFactory);
@@ -91,23 +83,23 @@ public class RedisKeyValueTemplateTests {
 		context = new RedisMappingContext();
 		adapter = new RedisKeyValueAdapter(nativeTemplate, context);
 		template = new RedisKeyValueTemplate(adapter, context);
-	}
-
-	@After
-	public void tearDown() throws Exception {
 
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
 			connection.flushDb();
 			return null;
 		});
+	}
+
+	@AfterEach
+	void tearDown() throws Exception {
 
 		template.destroy();
 		adapter.destroy();
 	}
 
-	@Test // DATAREDIS-425
-	public void savesObjectCorrectly() {
+	@ParameterizedRedisTest // DATAREDIS-425
+	void savesObjectCorrectly() {
 
 		final Person rand = new Person();
 		rand.firstname = "rand";
@@ -121,8 +113,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-425
-	public void findProcessesCallbackReturningSingleIdCorrectly() {
+	@ParameterizedRedisTest // DATAREDIS-425
+	void findProcessesCallbackReturningSingleIdCorrectly() {
 
 		Person rand = new Person();
 		rand.firstname = "rand";
@@ -139,8 +131,8 @@ public class RedisKeyValueTemplateTests {
 		assertThat(result).contains(mat);
 	}
 
-	@Test // DATAREDIS-425
-	public void findProcessesCallbackReturningMultipleIdsCorrectly() {
+	@ParameterizedRedisTest // DATAREDIS-425
+	void findProcessesCallbackReturningMultipleIdsCorrectly() {
 
 		final Person rand = new Person();
 		rand.firstname = "rand";
@@ -158,8 +150,8 @@ public class RedisKeyValueTemplateTests {
 		assertThat(result).contains(rand, mat);
 	}
 
-	@Test // DATAREDIS-425
-	public void findProcessesCallbackReturningNullCorrectly() {
+	@ParameterizedRedisTest // DATAREDIS-425
+	void findProcessesCallbackReturningNullCorrectly() {
 
 		Person rand = new Person();
 		rand.firstname = "rand";
@@ -175,8 +167,8 @@ public class RedisKeyValueTemplateTests {
 		assertThat(result.size()).isEqualTo(0);
 	}
 
-	@Test // DATAREDIS-471
-	public void partialUpdate() {
+	@ParameterizedRedisTest // DATAREDIS-471
+	void partialUpdate() {
 
 		final Person rand = new Person();
 		rand.firstname = "rand";
@@ -250,8 +242,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-471
-	public void partialUpdateSimpleType() {
+	@ParameterizedRedisTest // DATAREDIS-471
+	void partialUpdateSimpleType() {
 
 		final VariousTypes source = new VariousTypes();
 		source.stringValue = "some-value";
@@ -273,8 +265,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-471
-	public void partialUpdateComplexType() {
+	@ParameterizedRedisTest // DATAREDIS-471
+	void partialUpdateComplexType() {
 
 		Item callandor = new Item();
 		callandor.name = "Callandor";
@@ -313,8 +305,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-471
-	public void partialUpdateObjectType() {
+	@ParameterizedRedisTest // DATAREDIS-471
+	void partialUpdateObjectType() {
 
 		Item callandor = new Item();
 		callandor.name = "Callandor";
@@ -355,8 +347,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-471
-	public void partialUpdateSimpleTypedMap() {
+	@ParameterizedRedisTest // DATAREDIS-471
+	void partialUpdateSimpleTypedMap() {
 
 		final VariousTypes source = new VariousTypes();
 		source.simpleTypedMap = new LinkedHashMap<>();
@@ -386,8 +378,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-471
-	public void partialUpdateComplexTypedMap() {
+	@ParameterizedRedisTest // DATAREDIS-471
+	void partialUpdateComplexTypedMap() {
 
 		final VariousTypes source = new VariousTypes();
 		source.complexTypedMap = new LinkedHashMap<>();
@@ -445,8 +437,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-471
-	public void partialUpdateObjectTypedMap() {
+	@ParameterizedRedisTest // DATAREDIS-471
+	void partialUpdateObjectTypedMap() {
 
 		final VariousTypes source = new VariousTypes();
 		source.untypedMap = new LinkedHashMap<>();
@@ -521,8 +513,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-471
-	public void partialUpdateSimpleTypedList() {
+	@ParameterizedRedisTest // DATAREDIS-471
+	void partialUpdateSimpleTypedList() {
 
 		final VariousTypes source = new VariousTypes();
 		source.simpleTypedList = new ArrayList<>();
@@ -555,8 +547,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-471
-	public void partialUpdateComplexTypedList() {
+	@ParameterizedRedisTest // DATAREDIS-471
+	void partialUpdateComplexTypedList() {
 
 		final VariousTypes source = new VariousTypes();
 		source.complexTypedList = new ArrayList<>();
@@ -607,8 +599,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-471
-	public void partialUpdateObjectTypedList() {
+	@ParameterizedRedisTest // DATAREDIS-471
+	void partialUpdateObjectTypedList() {
 
 		final VariousTypes source = new VariousTypes();
 		source.untypedList = new ArrayList<>();
@@ -672,8 +664,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-530
-	public void partialUpdateShouldLeaveIndexesNotInvolvedInUpdateUntouched() {
+	@ParameterizedRedisTest // DATAREDIS-530
+	void partialUpdateShouldLeaveIndexesNotInvolvedInUpdateUntouched() {
 
 		final Person rand = new Person();
 		rand.firstname = "rand";
@@ -700,8 +692,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-530
-	public void updateShouldAlterIndexesCorrectlyWhenValuesGetRemovedFromHash() {
+	@ParameterizedRedisTest // DATAREDIS-530
+	void updateShouldAlterIndexesCorrectlyWhenValuesGetRemovedFromHash() {
 
 		final Person rand = new Person();
 		rand.firstname = "rand";
@@ -729,8 +721,8 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	@Test // DATAREDIS-523
-	public void shouldReadBackExplicitTimeToLive() throws InterruptedException {
+	@ParameterizedRedisTest // DATAREDIS-523
+	void shouldReadBackExplicitTimeToLive() throws InterruptedException {
 
 		WithTtl source = new WithTtl();
 		source.id = "ttl-1";
@@ -739,15 +731,12 @@ public class RedisKeyValueTemplateTests {
 
 		template.insert(source);
 
-		Thread.sleep(1100);
-
 		Optional<WithTtl> target = template.findById(source.id, WithTtl.class);
-		assertThat(target.get().ttl).isNotNull();
-		assertThat(target.get().ttl.doubleValue()).isCloseTo(3D, offset(1D));
+		assertThat(target.get().ttl).isGreaterThan(0L);
 	}
 
-	@Test // DATAREDIS-523
-	public void shouldReadBackExplicitTimeToLiveToPrimitiveField() throws InterruptedException {
+	@ParameterizedRedisTest // DATAREDIS-523
+	void shouldReadBackExplicitTimeToLiveToPrimitiveField() throws InterruptedException {
 
 		WithPrimitiveTtl source = new WithPrimitiveTtl();
 		source.id = "ttl-1";
@@ -756,14 +745,12 @@ public class RedisKeyValueTemplateTests {
 
 		template.insert(source);
 
-		Thread.sleep(1100);
-
 		Optional<WithPrimitiveTtl> target = template.findById(source.id, WithPrimitiveTtl.class);
-		assertThat((double) target.get().ttl).isCloseTo(3D, offset(1D));
+		assertThat(target.get().ttl).isGreaterThan(0);
 	}
 
-	@Test // DATAREDIS-523
-	public void shouldReadBackExplicitTimeToLiveWhenFetchingList() throws InterruptedException {
+	@ParameterizedRedisTest // DATAREDIS-523
+	void shouldReadBackExplicitTimeToLiveWhenFetchingList() throws InterruptedException {
 
 		WithTtl source = new WithTtl();
 		source.id = "ttl-1";
@@ -772,16 +759,14 @@ public class RedisKeyValueTemplateTests {
 
 		template.insert(source);
 
-		Thread.sleep(1100);
-
 		WithTtl target = template.findAll(WithTtl.class).iterator().next();
 
 		assertThat(target.ttl).isNotNull();
-		assertThat(target.ttl.doubleValue()).isCloseTo(3D, offset(1D));
+		assertThat(target.ttl).isGreaterThan(0);
 	}
 
-	@Test // DATAREDIS-523
-	public void shouldReadBackExplicitTimeToLiveAndSetItToMinusOnelIfPersisted() throws InterruptedException {
+	@ParameterizedRedisTest // DATAREDIS-523
+	void shouldReadBackExplicitTimeToLiveAndSetItToMinusOnelIfPersisted() throws InterruptedException {
 
 		WithTtl source = new WithTtl();
 		source.id = "ttl-1";
@@ -797,8 +782,8 @@ public class RedisKeyValueTemplateTests {
 		assertThat(target.get().ttl).isEqualTo(-1L);
 	}
 
-	@Test // DATAREDIS-849
-	public void shouldWriteImmutableType() {
+	@ParameterizedRedisTest // DATAREDIS-849
+	void shouldWriteImmutableType() {
 
 		ImmutableObject source = new ImmutableObject().withValue("foo").withTtl(1234L);
 
@@ -808,8 +793,8 @@ public class RedisKeyValueTemplateTests {
 		assertThat(inserted.id).isNotNull();
 	}
 
-	@Test // DATAREDIS-849
-	public void shouldReadImmutableType() {
+	@ParameterizedRedisTest // DATAREDIS-849
+	void shouldReadImmutableType() {
 
 		ImmutableObject source = new ImmutableObject().withValue("foo").withTtl(1234L);
 		ImmutableObject inserted = template.insert(source);
@@ -866,17 +851,17 @@ public class RedisKeyValueTemplateTests {
 		Integer age;
 		List<String> nicknames;
 
-		public Person() {}
+		Person() {}
 
 		public Person(String firstname, String lastname) {
 			this(null, firstname, lastname, null);
 		}
 
-		public Person(String id, String firstname, String lastname) {
+		Person(String id, String firstname, String lastname) {
 			this(id, firstname, lastname, null);
 		}
 
-		public Person(String id, String firstname, String lastname, Integer age) {
+		Person(String id, String firstname, String lastname, Integer age) {
 
 			this.id = id;
 			this.firstname = firstname;
@@ -950,7 +935,7 @@ public class RedisKeyValueTemplateTests {
 	}
 
 	@Data
-	@Wither
+	@With
 	@AllArgsConstructor
 	static class ImmutableObject {
 

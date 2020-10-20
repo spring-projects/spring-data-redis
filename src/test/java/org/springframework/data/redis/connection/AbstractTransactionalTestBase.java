@@ -24,18 +24,18 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(RelaxedJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @Transactional(transactionManager = "transactionManager")
 public abstract class AbstractTransactionalTestBase {
 
@@ -88,7 +88,7 @@ public abstract class AbstractTransactionalTestBase {
 	private List<String> KEYS = Arrays.asList("spring", "data", "redis");
 	private boolean valuesShouldHaveBeenPersisted = false;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		valuesShouldHaveBeenPersisted = false;
 		cleanDataStore();

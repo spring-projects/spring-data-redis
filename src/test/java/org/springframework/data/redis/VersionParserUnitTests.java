@@ -17,40 +17,40 @@ package org.springframework.data.redis;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Christoph Strobl
  */
-public class VersionParserUnitTests {
+class VersionParserUnitTests {
 
 	@Test
-	public void shouldParseNullToUnknown() {
+	void shouldParseNullToUnknown() {
 		assertThat(VersionParser.parseVersion(null)).isEqualTo(Version.UNKNOWN);
 	}
 
 	@Test
-	public void shouldParseEmptyVersionStringToUnknown() {
+	void shouldParseEmptyVersionStringToUnknown() {
 		assertThat(VersionParser.parseVersion("")).isEqualTo(Version.UNKNOWN);
 	}
 
 	@Test
-	public void shouldParseInvalidVersionStringToUnknown() {
+	void shouldParseInvalidVersionStringToUnknown() {
 		assertThat(VersionParser.parseVersion("ThisIsNoValidVersion")).isEqualTo(Version.UNKNOWN);
 	}
 
 	@Test
-	public void shouldParseMajorMinorWithoutPatchCorrectly() {
+	void shouldParseMajorMinorWithoutPatchCorrectly() {
 		assertThat(VersionParser.parseVersion("1.2")).isEqualTo(new Version(1, 2, 0));
 	}
 
 	@Test
-	public void shouldParseMajorMinorPatchCorrectly() {
+	void shouldParseMajorMinorPatchCorrectly() {
 		assertThat(VersionParser.parseVersion("1.2.3")).isEqualTo(new Version(1, 2, 3));
 	}
 
 	@Test
-	public void shouldParseMajorWithoutMinorPatchCorrectly() {
+	void shouldParseMajorWithoutMinorPatchCorrectly() {
 		assertThat(VersionParser.parseVersion("1.2.3.a")).isEqualTo(new Version(1, 2, 3));
 	}
 }

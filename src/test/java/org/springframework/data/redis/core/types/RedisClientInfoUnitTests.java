@@ -17,15 +17,15 @@ package org.springframework.data.redis.core.types;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.core.types.RedisClientInfo.RedisClientInfoBuilder;
 
 /**
  * @author Christoph Strobl
  */
-public class RedisClientInfoUnitTests {
+class RedisClientInfoUnitTests {
 
 	private final String SOURCE_WITH_PLACEHOLDER = "addr=127.0.0.1:57013#fd=6#name=client-1#age=16#idle=0#flags=N#db=0#sub=0#psub=0#multi=-1#qbuf=0#qbuf-free=32768#obl=0#oll=0#omem=0#events=r#cmd=client";
 	private final String SINGLE_LINE = SOURCE_WITH_PLACEHOLDER.replace('#', ' ');
@@ -33,28 +33,28 @@ public class RedisClientInfoUnitTests {
 
 	private RedisClientInfo info;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 		info = RedisClientInfoBuilder.fromString(SINGLE_LINE);
 	}
 
 	@Test
-	public void testBuilderShouldReadsInfoCorrectlyFromSingleLineString() {
+	void testBuilderShouldReadsInfoCorrectlyFromSingleLineString() {
 		assertValues(info, VALUES);
 	}
 
 	@Test
-	public void testGetRequiresNonNullKey() {
+	void testGetRequiresNonNullKey() {
 		assertThatIllegalArgumentException().isThrownBy(() -> info.get((String) null));
 	}
 
 	@Test
-	public void testGetRequiresNonBlankKey() {
+	void testGetRequiresNonBlankKey() {
 		assertThatIllegalArgumentException().isThrownBy(() -> info.get(""));
 	}
 
 	@Test
-	public void testGetReturnsNullForPropertiesNotAvailable() {
+	void testGetReturnsNullForPropertiesNotAvailable() {
 		assertThat(info.get("foo-bar")).isEqualTo(null);
 	}
 

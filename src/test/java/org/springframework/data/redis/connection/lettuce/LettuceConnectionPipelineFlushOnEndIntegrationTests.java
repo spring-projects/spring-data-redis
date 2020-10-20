@@ -15,12 +15,12 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Integration test of {@link LettuceConnection} pipeline functionality with
@@ -28,12 +28,13 @@ import org.springframework.test.context.ContextConfiguration;
  *
  * @author Mark Paluch
  */
-@RunWith(RelaxedJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration("LettuceConnectionPipelineFlushOnEndIntegrationTests-context.xml")
 public class LettuceConnectionPipelineFlushOnEndIntegrationTests extends LettuceConnectionPipelineIntegrationTests {
 
 	@Test
-	@Ignore("WATCH command is flushed during EXEC therefore we're not run commands between WATCH and EXEC")
+	@Disabled("WATCH command is flushed during EXEC therefore we're not run commands between WATCH and EXEC")
+	@Override
 	public void testWatch() throws Exception {
 
 	}

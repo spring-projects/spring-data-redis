@@ -423,7 +423,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 
 				hashKeySerializer(SerializationPair.raw());
 				hashValueSerializer(SerializationPair.raw());
-				return (StreamReceiverOptionsBuilder) objectMapper(new ObjectHashMapper());
+				return (StreamReceiverOptionsBuilder) objectMapper(ObjectHashMapper.getSharedInstance());
 			}
 
 			return (StreamReceiverOptionsBuilder) this;

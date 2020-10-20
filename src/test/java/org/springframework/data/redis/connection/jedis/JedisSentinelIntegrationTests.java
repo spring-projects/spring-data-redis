@@ -17,26 +17,24 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.jupiter.api.extension.ExtendWith;
 import redis.clients.jedis.Jedis;
 
 import java.util.Collection;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.data.redis.test.extension.RedisSentinel;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -44,110 +42,47 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  */
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
+@ExtendWith(JedisConnectionFactoryExtension.class)
 @EnabledOnRedisSentinelAvailable
 public class JedisSentinelIntegrationTests extends AbstractConnectionIntegrationTests {
-
-	private static final String MASTER_NAME = "mymaster";
-	private static final RedisServer SENTINEL_0 = new RedisServer("127.0.0.1", 26379);
-	private static final RedisServer SENTINEL_1 = new RedisServer("127.0.0.1", 26380);
 
 	private static final RedisServer SLAVE_0 = new RedisServer("127.0.0.1", 6380);
 	private static final RedisServer SLAVE_1 = new RedisServer("127.0.0.1", 6381);
 
-	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration() //
-			.master(MASTER_NAME).sentinel(SENTINEL_0).sentinel(SENTINEL_1);
-
-
-	@Before
-	public void setUp() {
-		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(SENTINEL_CONFIG);
-		jedisConnectionFactory.setClientName("jedis-client");
-		jedisConnectionFactory.afterPropertiesSet();
-		connectionFactory = jedisConnectionFactory;
-		super.setUp();
-	}
-
-	@After
-	public void tearDown() {
-		super.tearDown();
-		((JedisConnectionFactory) connectionFactory).destroy();
-	}
-
-	@Test
-	@Ignore
-	public void testScriptKill() throws Exception {
-		super.testScriptKill();
-	}
-
-	@Test
-	public void testEvalReturnSingleError() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0));
+	public JedisSentinelIntegrationTests(@RedisSentinel JedisConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
 	}
 
 	@Test
 	public void testEvalArrayScriptError() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> super.testEvalArrayScriptError());
-	}
-
-	@Test
-	public void testEvalShaNotFound() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2"));
-	}
-
-	@Test
-	public void testEvalShaArrayError() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testEvalShaArrayError());
-	}
-
-	@Test
-	public void testRestoreBadData() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testRestoreBadData());
-	}
-
-	@Test
-	public void testRestoreExistingKey() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> super.testRestoreExistingKey());
-	}
-
-	@Test
-	public void testExecWithoutMulti() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testExecWithoutMulti());
-	}
-
-	@Test
-	public void testErrorInTx() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testErrorInTx());
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> {
+			// Syntax error
+			connection.eval("return {1,2", ReturnType.MULTI, 1, "foo", "bar");
+		});
 	}
 
 	@Test // DATAREDIS-330
-	public void shouldReadMastersCorrectly() {
+	void shouldReadMastersCorrectly() {
 
 		List<RedisServer> servers = (List<RedisServer>) connectionFactory.getSentinelConnection().masters();
-		assertThat(servers.size()).isEqualTo(1);
-		assertThat(servers.get(0).getName()).isEqualTo(MASTER_NAME);
+		assertThat(servers).hasSize(1);
+		assertThat(servers.get(0).getName()).isEqualTo(SettingsUtils.getSentinelMaster());
 	}
 
 	@Test // DATAREDIS-330
-	public void shouldReadSlavesOfMastersCorrectly() {
+	void shouldReadSlavesOfMastersCorrectly() {
 
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
 
 		List<RedisServer> servers = (List<RedisServer>) sentinelConnection.masters();
-		assertThat(servers.size()).isEqualTo(1);
+		assertThat(servers).hasSize(1);
 
 		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
-		assertThat(slaves.size()).isEqualTo(2);
-		assertThat(slaves).contains(SLAVE_0, SLAVE_1);
+		assertThat(slaves).hasSize(2).contains(SLAVE_0, SLAVE_1);
 	}
 
 	@Test // DATAREDIS-552
-	public void shouldSetClientName() {
+	void shouldSetClientName() {
 
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
 		Jedis jedis = (Jedis) ReflectionTestUtils.getField(sentinelConnection, "jedis");
@@ -155,4 +90,38 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 		assertThat(jedis.clientGetname()).isEqualTo("jedis-client");
 	}
 
+	@Test
+	@Disabled
+	@Override
+	public void testRestoreExistingKey() {}
+
+	@Test
+	@Disabled
+	@Override
+	public void testRestoreBadData() {}
+
+	@Test
+	@Disabled
+	@Override
+	public void testEvalShaArrayError() {}
+
+	@Test
+	@Disabled
+	@Override
+	public void testEvalReturnSingleError() {}
+
+	@Test
+	@Disabled
+	@Override
+	public void testEvalShaNotFound() {}
+
+	@Test
+	@Disabled
+	@Override
+	public void testErrorInTx() {}
+
+	@Test
+	@Disabled
+	@Override
+	public void testExecWithoutMulti() {}
 }

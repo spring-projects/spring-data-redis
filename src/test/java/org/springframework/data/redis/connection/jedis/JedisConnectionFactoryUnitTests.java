@@ -42,8 +42,6 @@ import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
-import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -107,6 +105,8 @@ class JedisConnectionFactoryUnitTests {
 		JedisCluster clusterMock = mock(JedisCluster.class);
 		JedisConnectionFactory factory = new JedisConnectionFactory();
 		ReflectionTestUtils.setField(factory, "cluster", clusterMock);
+
+		factory.destroy();
 
 		verify(clusterMock, times(1)).close();
 	}

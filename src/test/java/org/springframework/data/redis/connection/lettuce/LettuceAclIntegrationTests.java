@@ -23,19 +23,17 @@ import io.lettuce.core.protocol.ProtocolVersion;
 import java.io.IOException;
 import java.util.Collections;
 
-import org.junit.Assume;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
+import org.springframework.data.redis.test.condition.EnabledOnRedisAvailable;
+import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
-import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
-import org.springframework.data.redis.test.util.ServerAvailable;
 
 /**
  * Integration tests for Redis 6 ACL.
@@ -43,13 +41,12 @@ import org.springframework.data.redis.test.util.ServerAvailable;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-public class LettuceAclIntegrationTests {
-
-	@ClassRule public static RuleChain requirements = RuleChain.outerRule(ServerAvailable.runningAtLocalhost(6382))
-			.around(new MinimumRedisVersionRule());
+@EnabledOnRedisAvailable(6382)
+@EnabledOnCommand("HELLO")
+class LettuceAclIntegrationTests {
 
 	@Test // DATAREDIS-1046
-	public void shouldConnectWithDefaultAuthentication() {
+	void shouldConnectWithDefaultAuthentication() {
 
 		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration("localhost", 6382);
 		standaloneConfiguration.setPassword("foobared");
@@ -67,7 +64,7 @@ public class LettuceAclIntegrationTests {
 	}
 
 	@Test // DATAREDIS-1046
-	public void shouldConnectStandaloneWithAclAuthentication() {
+	void shouldConnectStandaloneWithAclAuthentication() {
 
 		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration("localhost", 6382);
 		standaloneConfiguration.setUsername("spring");
@@ -86,10 +83,8 @@ public class LettuceAclIntegrationTests {
 	}
 
 	@Test // DATAREDIS-1145
-	public void shouldConnectSentinelWithAuthentication() throws IOException {
-
-		Assume.assumeTrue("Redis Sentinel at localhost:26382 did not answer.",
-				ServerAvailable.runningAtLocalhost(26382).isAvailable());
+	@EnabledOnRedisSentinelAvailable(26382)
+	void shouldConnectSentinelWithAuthentication() throws IOException {
 
 		// Note: As per https://github.com/redis/redis/issues/7708, Sentinel does not support ACL authentication yet.
 
@@ -113,8 +108,7 @@ public class LettuceAclIntegrationTests {
 	}
 
 	@Test // DATAREDIS-1046
-	@Ignore("https://github.com/lettuce-io/lettuce-core/issues/1406")
-	public void shouldConnectMasterReplicaWithAclAuthentication() {
+	void shouldConnectMasterReplicaWithAclAuthentication() {
 
 		RedisStaticMasterReplicaConfiguration masterReplicaConfiguration = new RedisStaticMasterReplicaConfiguration(
 				"localhost", 6382);

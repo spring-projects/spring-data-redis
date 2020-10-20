@@ -16,7 +16,7 @@
 package org.springframework.data.redis.listener;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assume.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,17 +28,11 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -46,6 +40,9 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
+import org.springframework.data.redis.test.extension.parametrized.MethodSource;
+import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Base test class for PubSub integration tests
@@ -54,7 +51,7 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
  * @author Jennifer Hickey
  * @author Mark Paluch
  */
-@RunWith(Parameterized.class)
+@MethodSource("testParams")
 public class PubSubTests<T> {
 
 	private static final String CHANNEL = "pubsub::test";
@@ -74,8 +71,18 @@ public class PubSubTests<T> {
 
 	private final MessageListenerAdapter adapter = new MessageListenerAdapter(handler);
 
-	@Before
-	public void setUp() throws Exception {
+	@SuppressWarnings("rawtypes")
+	public PubSubTests(ObjectFactory<T> factory, RedisTemplate template) {
+		this.factory = factory;
+		this.template = template;
+	}
+
+	public static Collection<Object[]> testParams() {
+		return PubSubTestParams.testParams();
+	}
+
+	@BeforeEach
+	void setUp() throws Exception {
 		bag.clear();
 
 		adapter.setSerializer(template.getValueSerializer());
@@ -104,21 +111,9 @@ public class PubSubTests<T> {
 		Thread.sleep(50);
 	}
 
-	@After
-	public void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 		container.destroy();
-	}
-
-	@SuppressWarnings("rawtypes")
-	public PubSubTests(ObjectFactory<T> factory, RedisTemplate template) {
-		this.factory = factory;
-		this.template = template;
-		ConnectionFactoryTracker.add(template.getConnectionFactory());
-	}
-
-	@Parameters
-	public static Collection<Object[]> testParams() {
-		return PubSubTestParams.testParams();
 	}
 
 	/**
@@ -126,13 +121,13 @@ public class PubSubTests<T> {
 	 *
 	 * @return
 	 */
-	protected T getT() {
+	T getT() {
 		return factory.instance();
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test
-	public void testContainerSubscribe() throws Exception {
+	@ParameterizedRedisTest
+	void testContainerSubscribe() throws Exception {
 		T payload1 = getT();
 		T payload2 = getT();
 
@@ -146,8 +141,8 @@ public class PubSubTests<T> {
 		assertThat(set).contains(payload1, payload2);
 	}
 
-	@Test
-	public void testMessageBatch() throws Exception {
+	@ParameterizedRedisTest
+	void testMessageBatch() throws Exception {
 		int COUNT = 10;
 		for (int i = 0; i < COUNT; i++) {
 			template.convertAndSend(CHANNEL, getT());
@@ -158,8 +153,9 @@ public class PubSubTests<T> {
 		}
 	}
 
-	@Test
-	public void testContainerUnsubscribe() throws Exception {
+	@ParameterizedRedisTest
+	@EnabledIfLongRunningTest
+	void testContainerUnsubscribe() throws Exception {
 		T payload1 = getT();
 		T payload2 = getT();
 
@@ -170,8 +166,8 @@ public class PubSubTests<T> {
 		assertThat(bag.poll(200, TimeUnit.MILLISECONDS)).isNull();
 	}
 
-	@Test
-	public void testStartNoListeners() {
+	@ParameterizedRedisTest
+	void testStartNoListeners() {
 		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
 		container.stop();
 		// DATREDIS-207 This test previously took 5 seconds on start due to monitor wait
@@ -179,11 +175,11 @@ public class PubSubTests<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // DATAREDIS-251
-	public void testStartListenersToNoSpecificChannelTest() throws InterruptedException {
+	@ParameterizedRedisTest // DATAREDIS-251
+	void testStartListenersToNoSpecificChannelTest() throws InterruptedException {
 
-		assumeFalse(isClusterAware(template.getConnectionFactory()));
-		assumeTrue(ConnectionUtils.isJedis(template.getConnectionFactory()));
+		assumeThat(isClusterAware(template.getConnectionFactory())).isFalse();
+		assumeThat(ConnectionUtils.isJedis(template.getConnectionFactory())).isTrue();
 
 		PubSubAwaitUtil.runAndAwaitPatternSubscription(template.getRequiredConnectionFactory(), () -> {
 

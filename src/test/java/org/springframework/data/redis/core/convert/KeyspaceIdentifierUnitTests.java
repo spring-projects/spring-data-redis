@@ -17,7 +17,7 @@ package org.springframework.data.redis.core.convert;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.core.convert.MappingRedisConverter.KeyspaceIdentifier;
 
@@ -26,10 +26,10 @@ import org.springframework.data.redis.core.convert.MappingRedisConverter.Keyspac
  *
  * @author Mark Paluch
  */
-public class KeyspaceIdentifierUnitTests {
+class KeyspaceIdentifierUnitTests {
 
 	@Test // DATAREDIS-744
-	public void shouldReturnIfKeyIsValid() {
+	void shouldReturnIfKeyIsValid() {
 
 		assertThat(KeyspaceIdentifier.isValid(null)).isFalse();
 		assertThat(KeyspaceIdentifier.isValid("foo")).isFalse();
@@ -40,7 +40,7 @@ public class KeyspaceIdentifierUnitTests {
 	}
 
 	@Test // DATAREDIS-744
-	public void shouldReturnKeyspace() {
+	void shouldReturnKeyspace() {
 
 		assertThat(KeyspaceIdentifier.of("foo:bar").getKeyspace()).isEqualTo("foo");
 		assertThat(KeyspaceIdentifier.of("foo:bar:baz").getKeyspace()).isEqualTo("foo");
@@ -48,7 +48,7 @@ public class KeyspaceIdentifierUnitTests {
 	}
 
 	@Test // DATAREDIS-744
-	public void shouldReturnId() {
+	void shouldReturnId() {
 
 		assertThat(KeyspaceIdentifier.of("foo:bar").getId()).isEqualTo("bar");
 		assertThat(KeyspaceIdentifier.of("foo:bar:baz").getId()).isEqualTo("bar:baz");
@@ -56,7 +56,7 @@ public class KeyspaceIdentifierUnitTests {
 	}
 
 	@Test // DATAREDIS-744
-	public void shouldReturnPhantomKey() {
+	void shouldReturnPhantomKey() {
 
 		assertThat(KeyspaceIdentifier.of("foo:bar").isPhantomKey()).isFalse();
 		assertThat(KeyspaceIdentifier.of("foo:bar:baz").isPhantomKey()).isFalse();

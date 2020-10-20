@@ -16,7 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.util.ByteUtils.*;
 
@@ -31,11 +31,12 @@ import reactor.test.StepVerifier;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CancellationException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
@@ -46,20 +47,20 @@ import org.springframework.data.redis.connection.ReactiveSubscription.PatternMes
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
-public class LettuceReactiveSubscriptionUnitTests {
+@ExtendWith(MockitoExtension.class)
+class LettuceReactiveSubscriptionUnitTests {
 
-	LettuceReactiveSubscription subscription;
+	private LettuceReactiveSubscription subscription;
 
 	@Mock RedisPubSubReactiveCommands<ByteBuffer, ByteBuffer> commandsMock;
 
-	@Before
-	public void before() {
+	@BeforeEach
+	void before() {
 		subscription = new LettuceReactiveSubscription(commandsMock, e -> new RedisSystemException(e.getMessage(), e));
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldSubscribeChannels() {
+	void shouldSubscribeChannels() {
 
 		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
 
@@ -74,7 +75,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldSubscribeChannelsShouldFail() {
+	void shouldSubscribeChannelsShouldFail() {
 
 		when(commandsMock.subscribe(any())).thenReturn(Mono.error(new RedisConnectionException("Foo")));
 
@@ -84,7 +85,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldSubscribePatterns() {
+	void shouldSubscribePatterns() {
 
 		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
 
@@ -99,7 +100,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldUnsubscribeChannels() {
+	void shouldUnsubscribeChannels() {
 
 		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
 		when(commandsMock.unsubscribe(any())).thenReturn(Mono.empty());
@@ -112,7 +113,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldUnsubscribePatterns() {
+	void shouldUnsubscribePatterns() {
 
 		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
 		when(commandsMock.punsubscribe(any())).thenReturn(Mono.empty());
@@ -125,7 +126,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldEmitChannelMessage() {
+	void shouldEmitChannelMessage() {
 
 		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
 		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
@@ -145,7 +146,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldEmitPatternMessage() {
+	void shouldEmitPatternMessage() {
 
 		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
 		subscription.pSubscribe(getByteBuffer("foo*"), getByteBuffer("bar*")).as(StepVerifier::create).verifyComplete();
@@ -167,7 +168,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldEmitError() {
+	void shouldEmitError() {
 
 		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
 		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
@@ -184,7 +185,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void shouldTerminateActiveSubscriptions() {
+	void shouldTerminateActiveSubscriptions() {
 
 		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
 		when(commandsMock.punsubscribe(any())).thenReturn(Mono.empty());
@@ -201,7 +202,7 @@ public class LettuceReactiveSubscriptionUnitTests {
 	}
 
 	@Test // DATAREDIS-612
-	public void cancelledSubscriptionShouldUnregisterDownstream() {
+	void cancelledSubscriptionShouldUnregisterDownstream() {
 
 		DirectProcessor<io.lettuce.core.pubsub.api.reactive.PatternMessage<ByteBuffer, ByteBuffer>> emitter = DirectProcessor
 				.create();

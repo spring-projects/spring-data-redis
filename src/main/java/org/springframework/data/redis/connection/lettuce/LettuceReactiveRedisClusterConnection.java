@@ -492,7 +492,11 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 
 		if (StringUtils.hasText(node.getId())) {
 			return getConnection().cast(StatefulRedisClusterConnection.class)
-					.map(it -> it.getConnection(node.getId()).reactive());
+					.flatMap(it -> {
+						StatefulRedisClusterConnection<ByteBuffer, ByteBuffer> connection = it;
+						return Mono.fromCompletionStage(connection.getConnectionAsync(node.getId()))
+								.map(StatefulRedisConnection::reactive);
+					});
 		}
 
 		return getConnection().flatMap(it -> Mono.fromCompletionStage(it.getConnectionAsync(node.getHost(), node.getPort()))

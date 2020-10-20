@@ -20,11 +20,14 @@ import io.lettuce.core.RedisException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.springframework.data.redis.test.util.ServerAvailable;
+import java.util.concurrent.TimeUnit;
+
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import org.springframework.data.redis.test.condition.EnabledOnRedisAvailable;
 
 /**
  * Integration test of {@link AuthenticatingRedisClient}.
@@ -33,72 +36,72 @@ import org.springframework.data.redis.test.util.ServerAvailable;
  * @author Thomas Darimont
  * @author Christoph Strobl
  */
-public class AuthenticatingRedisClientTests {
+@EnabledOnRedisAvailable(6382)
+class AuthenticatingRedisClientTests {
 
 	private RedisClient client;
 
-	@ClassRule public static ServerAvailable serverAvailable = ServerAvailable.runningAtLocalhost(6382);
-
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 		client = new AuthenticatingRedisClient("localhost", 6382, "foobared");
 	}
 
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 		if (client != null) {
 			client.shutdown();
 		}
 	}
 
 	@Test
-	public void connect() {
+	void connect() {
 		StatefulRedisConnection<String, String> conn = client.connect();
 		conn.sync().ping();
 		conn.close();
 	}
 
-	@Test(expected = RedisException.class)
-	public void connectWithInvalidPassword() {
+	@Test
+	void connectWithInvalidPassword() {
 
 		if (client != null) {
 			client.shutdown();
 		}
 
 		RedisClient badClient = new AuthenticatingRedisClient("localhost", 6382, "notthepassword");
-		badClient.connect();
+		Assertions.assertThatExceptionOfType(RedisException.class).isThrownBy(badClient::connect);
+		badClient.shutdown(0, 0, TimeUnit.MILLISECONDS);
 	}
 
 	@Test
-	public void codecConnect() {
+	void codecConnect() {
 		StatefulRedisConnection<byte[], byte[]> conn = client.connect(LettuceConnection.CODEC);
 		conn.sync().ping();
 		conn.close();
 	}
 
 	@Test
-	public void connectAsync() {
+	void connectAsync() {
 		StatefulRedisConnection<String, String> conn = client.connect();
 		conn.sync().ping();
 		conn.close();
 	}
 
 	@Test
-	public void codecConnectAsync() {
+	void codecConnectAsync() {
 		StatefulRedisConnection<byte[], byte[]> conn = client.connect(LettuceConnection.CODEC);
 		conn.sync().ping();
 		conn.close();
 	}
 
 	@Test
-	public void connectPubSub() {
+	void connectPubSub() {
 		StatefulRedisPubSubConnection<String, String> conn = client.connectPubSub();
 		conn.sync().ping();
 		conn.close();
 	}
 
 	@Test
-	public void codecConnectPubSub() {
+	void codecConnectPubSub() {
 		StatefulRedisPubSubConnection<byte[], byte[]> conn = client.connectPubSub(LettuceConnection.CODEC);
 		conn.sync().ping();
 		conn.close();

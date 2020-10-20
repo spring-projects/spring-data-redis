@@ -32,19 +32,20 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.ClusterTopologyProvider;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConfiguration;
+import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
-import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.lang.Nullable;
 
 /**
@@ -52,23 +53,25 @@ import org.springframework.lang.Nullable;
  *
  * @author Mark Paluch
  */
-public class LettuceClusterKeyspaceNotificationsTests {
+@EnabledOnRedisClusterAvailable
+class LettuceClusterKeyspaceNotificationsTests {
 
-	@ClassRule public static RedisClusterRule clusterRule = new RedisClusterRule();
-
-	CustomLettuceConnectionFactory factory;
-	String keyspaceConfig;
+	private static CustomLettuceConnectionFactory factory;
+	private String keyspaceConfig;
 
 	// maps to 127.0.0.1:7381/slot hash 13477
-	String key = "10923";
+	private String key = "10923";
 
-	@Before
-	public void before() {
+	@BeforeAll
+	static void beforeAll() throws Exception {
 
-		factory = new CustomLettuceConnectionFactory(clusterRule.getConfiguration());
+		factory = new CustomLettuceConnectionFactory(SettingsUtils.clusterConfiguration());
 		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		ConnectionFactoryTracker.add(factory);
 		factory.afterPropertiesSet();
+	}
+
+	@BeforeEach
+	void before() {
 
 		// enable keyspace events on a specific node.
 		withConnection("127.0.0.1", 7381, commands -> {
@@ -80,8 +83,8 @@ public class LettuceClusterKeyspaceNotificationsTests {
 		assertThat(SlotHash.getSlot(key)).isEqualTo(13477);
 	}
 
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 
 		// Restore previous settings.
 		withConnection("127.0.0.1", 7381, commands -> {
@@ -89,8 +92,13 @@ public class LettuceClusterKeyspaceNotificationsTests {
 		});
 	}
 
+	@AfterAll
+	static void afterAll() {
+		factory.destroy();
+	}
+
 	@Test // DATAREDIS-976
-	public void shouldListenForKeyspaceNotifications() throws Exception {
+	void shouldListenForKeyspaceNotifications() throws Exception {
 
 		CompletableFuture<String> expiry = new CompletableFuture<>();
 

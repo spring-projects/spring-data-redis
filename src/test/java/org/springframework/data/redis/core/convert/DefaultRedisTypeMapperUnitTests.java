@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.ConfigurableTypeInformationMapper;
 import org.springframework.data.convert.SimpleTypeInformationMapper;
@@ -34,15 +34,15 @@ import org.springframework.lang.Nullable;
  *
  * @author Mark Paluch
  */
-public class DefaultRedisTypeMapperUnitTests {
+class DefaultRedisTypeMapperUnitTests {
 
-	GenericConversionService conversionService;
-	ConfigurableTypeInformationMapper configurableTypeInformationMapper;
-	SimpleTypeInformationMapper simpleTypeInformationMapper;
-	DefaultRedisTypeMapper typeMapper;
+	private GenericConversionService conversionService;
+	private ConfigurableTypeInformationMapper configurableTypeInformationMapper;
+	private SimpleTypeInformationMapper simpleTypeInformationMapper;
+	private DefaultRedisTypeMapper typeMapper;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		conversionService = new GenericConversionService();
 		new RedisCustomConversions().registerConvertersIn(conversionService);
@@ -54,12 +54,12 @@ public class DefaultRedisTypeMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-543
-	public void defaultInstanceWritesClasses() {
+	void defaultInstanceWritesClasses() {
 		writesTypeToField(new Bucket(), String.class, String.class.getName());
 	}
 
 	@Test // DATAREDIS-543
-	public void defaultInstanceReadsClasses() {
+	void defaultInstanceReadsClasses() {
 
 		Bucket bucket = Bucket
 				.newBucketFromStringMap(singletonMap(DefaultRedisTypeMapper.DEFAULT_TYPE_KEY, String.class.getName()));
@@ -67,7 +67,7 @@ public class DefaultRedisTypeMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-543
-	public void writesMapKeyForType() {
+	void writesMapKeyForType() {
 
 		typeMapper = new DefaultRedisTypeMapper(DefaultRedisTypeMapper.DEFAULT_TYPE_KEY,
 				Collections.singletonList(configurableTypeInformationMapper));
@@ -77,7 +77,7 @@ public class DefaultRedisTypeMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-543
-	public void writesClassNamesForUnmappedValuesIfConfigured() {
+	void writesClassNamesForUnmappedValuesIfConfigured() {
 
 		typeMapper = new DefaultRedisTypeMapper(DefaultRedisTypeMapper.DEFAULT_TYPE_KEY,
 				Arrays.asList(configurableTypeInformationMapper, simpleTypeInformationMapper));
@@ -87,7 +87,7 @@ public class DefaultRedisTypeMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-543
-	public void readsTypeForMapKey() {
+	void readsTypeForMapKey() {
 
 		typeMapper = new DefaultRedisTypeMapper(DefaultRedisTypeMapper.DEFAULT_TYPE_KEY,
 				Collections.singletonList(configurableTypeInformationMapper));
@@ -99,7 +99,7 @@ public class DefaultRedisTypeMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-543
-	public void readsTypeLoadingClassesForUnmappedTypesIfConfigured() {
+	void readsTypeLoadingClassesForUnmappedTypesIfConfigured() {
 
 		typeMapper = new DefaultRedisTypeMapper(DefaultRedisTypeMapper.DEFAULT_TYPE_KEY,
 				Arrays.asList(configurableTypeInformationMapper, simpleTypeInformationMapper));
@@ -111,57 +111,57 @@ public class DefaultRedisTypeMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-543
-	public void addsFullyQualifiedClassNameUnderDefaultKeyByDefault() {
+	void addsFullyQualifiedClassNameUnderDefaultKeyByDefault() {
 		writesTypeToField(DefaultRedisTypeMapper.DEFAULT_TYPE_KEY, new Bucket(), String.class);
 	}
 
 	@Test // DATAREDIS-543
-	public void writesTypeToCustomFieldIfConfigured() {
+	void writesTypeToCustomFieldIfConfigured() {
 		typeMapper = new DefaultRedisTypeMapper("_custom");
 		writesTypeToField("_custom", new Bucket(), String.class);
 	}
 
 	@Test // DATAREDIS-543
-	public void doesNotWriteTypeInformationInCaseKeyIsSetToNull() {
+	void doesNotWriteTypeInformationInCaseKeyIsSetToNull() {
 		typeMapper = new DefaultRedisTypeMapper(null);
 		writesTypeToField(null, new Bucket(), String.class);
 	}
 
 	@Test // DATAREDIS-543
-	public void readsTypeFromDefaultKeyByDefault() {
+	void readsTypeFromDefaultKeyByDefault() {
 		readsTypeFromField(
 				Bucket.newBucketFromStringMap(singletonMap(DefaultRedisTypeMapper.DEFAULT_TYPE_KEY, String.class.getName())),
 				String.class);
 	}
 
 	@Test // DATAREDIS-543
-	public void readsTypeFromCustomFieldConfigured() {
+	void readsTypeFromCustomFieldConfigured() {
 
 		typeMapper = new DefaultRedisTypeMapper("_custom");
 		readsTypeFromField(Bucket.newBucketFromStringMap(singletonMap("_custom", String.class.getName())), String.class);
 	}
 
 	@Test // DATAREDIS-543
-	public void returnsListForBasicDBLists() {
+	void returnsListForBasicDBLists() {
 		readsTypeFromField(new Bucket(), null);
 	}
 
 	@Test // DATAREDIS-543
-	public void returnsNullIfNoTypeInfoInBucket() {
+	void returnsNullIfNoTypeInfoInBucket() {
 
 		readsTypeFromField(new Bucket(), null);
 		readsTypeFromField(Bucket.newBucketFromStringMap(singletonMap(DefaultRedisTypeMapper.DEFAULT_TYPE_KEY, "")), null);
 	}
 
 	@Test // DATAREDIS-543
-	public void returnsNullIfClassCannotBeLoaded() {
+	void returnsNullIfClassCannotBeLoaded() {
 
 		readsTypeFromField(Bucket.newBucketFromStringMap(singletonMap(DefaultRedisTypeMapper.DEFAULT_TYPE_KEY, "fooBar")),
 				null);
 	}
 
 	@Test // DATAREDIS-543
-	public void returnsNullIfTypeKeySetToNull() {
+	void returnsNullIfTypeKeySetToNull() {
 
 		typeMapper = new DefaultRedisTypeMapper(null);
 		readsTypeFromField(
@@ -170,7 +170,7 @@ public class DefaultRedisTypeMapperUnitTests {
 	}
 
 	@Test // DATAREDIS-543
-	public void returnsCorrectTypeKey() {
+	void returnsCorrectTypeKey() {
 
 		assertThat(typeMapper.isTypeKey(DefaultRedisTypeMapper.DEFAULT_TYPE_KEY)).isTrue();
 

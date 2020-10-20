@@ -30,7 +30,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
@@ -43,24 +43,24 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 /**
  * @author Christoph Strobl
  */
-public class LettuceConvertersUnitTests {
+class LettuceConvertersUnitTests {
 
 	private static final String CLIENT_ALL_SINGLE_LINE_RESPONSE = "addr=127.0.0.1:60311 fd=6 name= age=4059 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=0 oll=0 omem=0 events=r cmd=client";
 
 	@Test // DATAREDIS-268
-	public void convertingEmptyStringToListOfRedisClientInfoShouldReturnEmptyList() {
+	void convertingEmptyStringToListOfRedisClientInfoShouldReturnEmptyList() {
 		assertThat(LettuceConverters.toListOfRedisClientInformation(""))
 				.isEqualTo(Collections.<RedisClientInfo> emptyList());
 	}
 
 	@Test // DATAREDIS-268
-	public void convertingNullToListOfRedisClientInfoShouldReturnEmptyList() {
+	void convertingNullToListOfRedisClientInfoShouldReturnEmptyList() {
 		assertThat(LettuceConverters.toListOfRedisClientInformation(null))
 				.isEqualTo(Collections.<RedisClientInfo> emptyList());
 	}
 
 	@Test // DATAREDIS-268
-	public void convertingMultipleLiesToListOfRedisClientInfoReturnsListCorrectly() {
+	void convertingMultipleLiesToListOfRedisClientInfoReturnsListCorrectly() {
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(CLIENT_ALL_SINGLE_LINE_RESPONSE);
@@ -71,12 +71,12 @@ public class LettuceConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void partitionsToClusterNodesShouldReturnEmptyCollectionWhenPartionsDoesNotContainElements() {
+	void partitionsToClusterNodesShouldReturnEmptyCollectionWhenPartionsDoesNotContainElements() {
 		assertThat(LettuceConverters.partitionsToClusterNodes(new Partitions())).isNotNull();
 	}
 
 	@Test // DATAREDIS-315
-	public void partitionsToClusterNodesShouldConvertPartitionCorrctly() {
+	void partitionsToClusterNodesShouldConvertPartitionCorrctly() {
 
 		Partitions partitions = new Partitions();
 
@@ -102,7 +102,7 @@ public class LettuceConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-316
-	public void toSetArgsShouldReturnEmptyArgsForNullValues() {
+	void toSetArgsShouldReturnEmptyArgsForNullValues() {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, null);
 
@@ -113,7 +113,7 @@ public class LettuceConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-316
-	public void toSetArgsShouldNotSetExOrPxForPersistent() {
+	void toSetArgsShouldNotSetExOrPxForPersistent() {
 
 		SetArgs args = LettuceConverters.toSetArgs(Expiration.persistent(), null);
 
@@ -124,7 +124,7 @@ public class LettuceConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-316
-	public void toSetArgsShouldSetExForSeconds() {
+	void toSetArgsShouldSetExForSeconds() {
 
 		SetArgs args = LettuceConverters.toSetArgs(Expiration.seconds(10), null);
 
@@ -135,7 +135,7 @@ public class LettuceConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-316
-	public void toSetArgsShouldSetPxForMilliseconds() {
+	void toSetArgsShouldSetPxForMilliseconds() {
 
 		SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(100), null);
 
@@ -146,7 +146,7 @@ public class LettuceConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-316
-	public void toSetArgsShouldSetNxForAbsent() {
+	void toSetArgsShouldSetNxForAbsent() {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifAbsent());
 
@@ -157,7 +157,7 @@ public class LettuceConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-316
-	public void toSetArgsShouldSetXxForPresent() {
+	void toSetArgsShouldSetXxForPresent() {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifPresent());
 
@@ -168,7 +168,7 @@ public class LettuceConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-316
-	public void toSetArgsShouldNotSetNxOrXxForUpsert() {
+	void toSetArgsShouldNotSetNxOrXxForUpsert() {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, SetOption.upsert());
 
@@ -179,7 +179,7 @@ public class LettuceConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-981
-	public void toLimit() {
+	void toLimit() {
 
 		Limit limit = LettuceConverters.toLimit(RedisZSetCommands.Limit.unlimited());
 		assertThat(limit.isLimited()).isFalse();

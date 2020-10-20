@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockPropertySource;
@@ -31,15 +31,15 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public class RedisClusterConfigurationUnitTests {
+class RedisClusterConfigurationUnitTests {
 
-	static final String HOST_AND_PORT_1 = "127.0.0.1:123";
-	static final String HOST_AND_PORT_2 = "localhost:456";
-	static final String HOST_AND_PORT_3 = "localhost:789";
-	static final String HOST_AND_NO_PORT = "localhost";
+	private static final String HOST_AND_PORT_1 = "127.0.0.1:123";
+	private static final String HOST_AND_PORT_2 = "localhost:456";
+	private static final String HOST_AND_PORT_3 = "localhost:789";
+	private static final String HOST_AND_NO_PORT = "localhost";
 
 	@Test // DATAREDIS-315
-	public void shouldCreateRedisClusterConfigurationCorrectly() {
+	void shouldCreateRedisClusterConfigurationCorrectly() {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(Collections.singleton(HOST_AND_PORT_1));
 
@@ -49,7 +49,7 @@ public class RedisClusterConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldCreateRedisClusterConfigurationCorrectlyGivenMultipleHostAndPortStrings() {
+	void shouldCreateRedisClusterConfigurationCorrectlyGivenMultipleHostAndPortStrings() {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(
 				new HashSet<>(Arrays.asList(HOST_AND_PORT_1,
@@ -61,19 +61,19 @@ public class RedisClusterConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldThrowExecptionOnInvalidHostAndPortString() {
+	void shouldThrowExecptionOnInvalidHostAndPortString() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new RedisClusterConfiguration(Collections.singleton(HOST_AND_NO_PORT)));
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldThrowExceptionWhenListOfHostAndPortIsNull() {
+	void shouldThrowExceptionWhenListOfHostAndPortIsNull() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new RedisClusterConfiguration(Collections.<String> singleton(null)));
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldNotFailWhenListOfHostAndPortIsEmpty() {
+	void shouldNotFailWhenListOfHostAndPortIsEmpty() {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(Collections.<String> emptySet());
 
@@ -81,12 +81,12 @@ public class RedisClusterConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldThrowExceptionGivenNullPropertySource() {
+	void shouldThrowExceptionGivenNullPropertySource() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new RedisClusterConfiguration((PropertySource<?>) null));
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldNotFailWhenGivenPropertySourceNotContainingRelevantProperties() {
+	void shouldNotFailWhenGivenPropertySourceNotContainingRelevantProperties() {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(new MockPropertySource());
 
@@ -95,7 +95,7 @@ public class RedisClusterConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldBeCreatedCorrecltyGivenValidPropertySourceWithSingleHostPort() {
+	void shouldBeCreatedCorrecltyGivenValidPropertySourceWithSingleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
 		propertySource.setProperty("spring.redis.cluster.nodes", HOST_AND_PORT_1);
@@ -108,7 +108,7 @@ public class RedisClusterConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldBeCreatedCorrecltyGivenValidPropertySourceWithMultipleHostPort() {
+	void shouldBeCreatedCorrecltyGivenValidPropertySourceWithMultipleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
 		propertySource.setProperty("spring.redis.cluster.nodes",

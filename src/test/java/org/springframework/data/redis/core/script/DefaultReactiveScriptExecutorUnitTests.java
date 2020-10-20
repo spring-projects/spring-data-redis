@@ -24,11 +24,12 @@ import reactor.test.StepVerifier;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
@@ -43,8 +44,8 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
-public class DefaultReactiveScriptExecutorUnitTests {
+@ExtendWith(MockitoExtension.class)
+class DefaultReactiveScriptExecutorUnitTests {
 
 	private final DefaultRedisScript<String> SCRIPT = new DefaultRedisScript<>("return KEYS[0]", String.class);
 
@@ -52,10 +53,10 @@ public class DefaultReactiveScriptExecutorUnitTests {
 	@Mock ReactiveRedisConnection connectionMock;
 	@Mock ReactiveScriptingCommands scriptingCommandsMock;
 
-	DefaultReactiveScriptExecutor<String> executor;
+	private DefaultReactiveScriptExecutor<String> executor;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		when(connectionFactoryMock.getReactiveConnection()).thenReturn(connectionMock);
 		when(connectionMock.scriptingCommands()).thenReturn(scriptingCommandsMock);
@@ -65,7 +66,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-683
-	public void executeCheckForPresenceOfScriptViaEvalSha1() {
+	void executeCheckForPresenceOfScriptViaEvalSha1() {
 
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.just(ByteBuffer.wrap("FOO".getBytes())));
@@ -77,7 +78,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-683
-	public void executeShouldUseEvalInCaseNoSha1PresentForGivenScript() {
+	void executeShouldUseEvalInCaseNoSha1PresentForGivenScript() {
 
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn(
 				Flux.error(new RedisSystemException("NOSCRIPT No matching script. Please use EVAL.", new Exception())));
@@ -92,7 +93,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-683
-	public void executeShouldThrowExceptionInCaseEvalShaFailsWithOtherThanRedisSystemException() {
+	void executeShouldThrowExceptionInCaseEvalShaFailsWithOtherThanRedisSystemException() {
 
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn(Flux
 				.error(new UnsupportedOperationException("NOSCRIPT No matching script. Please use EVAL.", new Exception())));
@@ -101,7 +102,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-683
-	public void releasesConnectionAfterExecution() {
+	void releasesConnectionAfterExecution() {
 
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.just(ByteBuffer.wrap("FOO".getBytes())));
@@ -117,7 +118,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-683
-	public void releasesConnectionOnError() {
+	void releasesConnectionOnError() {
 
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.error(new RuntimeException()));
@@ -129,7 +130,7 @@ public class DefaultReactiveScriptExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-683
-	public void doesNotConvertRawResult() {
+	void doesNotConvertRawResult() {
 
 		Person returnValue = new Person();
 

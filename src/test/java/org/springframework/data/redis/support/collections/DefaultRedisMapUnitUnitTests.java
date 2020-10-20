@@ -22,11 +22,12 @@ import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.data.redis.core.BoundHashOperations;
 
 /**
@@ -34,20 +35,20 @@ import org.springframework.data.redis.core.BoundHashOperations;
  *
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
-public class DefaultRedisMapUnitUnitTests {
+@ExtendWith(MockitoExtension.class)
+class DefaultRedisMapUnitUnitTests {
 
 	@Mock BoundHashOperations<String, String, String> operationsMock;
 
-	DefaultRedisMap<String, String> map;
+	private DefaultRedisMap<String, String> map;
 
-	@Before
-	public void before() {
+	@BeforeEach
+	void before() {
 		map = new DefaultRedisMap<>(operationsMock);
 	}
 
 	@Test // DATAREDIS-803
-	public void shouldGetEntrySet() {
+	void shouldGetEntrySet() {
 
 		when(operationsMock.entries()).thenReturn(Collections.singletonMap("foo", "bar"));
 

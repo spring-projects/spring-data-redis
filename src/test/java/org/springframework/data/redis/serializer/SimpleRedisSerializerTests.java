@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
+import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
-import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
  * @author Jennifer Hickey
@@ -97,10 +97,8 @@ class SimpleRedisSerializerTests {
 
 	@Test
 	void testOxmSerializer() throws Exception {
-		XStreamMarshaller xstream = new XStreamMarshaller();
-		xstream.afterPropertiesSet();
 
-		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
+		OxmSerializer serializer = XstreamOxmSerializerSingleton.getInstance();
 
 		String value = UUID.randomUUID().toString();
 		Person p1 = new Person(value, value, 1, new Address(value, 2));

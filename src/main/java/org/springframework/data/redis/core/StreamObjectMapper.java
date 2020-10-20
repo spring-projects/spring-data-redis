@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * This utility can use generic a {@link HashMapper} or adapt specifically to {@link ObjectHashMapper}'s requirement to
  * convert incoming data into byte arrays. This class can be subclassed to override template methods for specific object
  * mapping strategies.
- * 
+ *
  * @author Mark Paluch
  * @since 2.2
  * @see ObjectHashMapper
@@ -47,14 +47,21 @@ import org.springframework.util.Assert;
  */
 class StreamObjectMapper {
 
-	private final DefaultConversionService conversionService = new DefaultConversionService();
-	private final RedisCustomConversions customConversions = new RedisCustomConversions();
+	private final static RedisCustomConversions customConversions = new RedisCustomConversions();
+	private final static ConversionService conversionService;
+
 	private final HashMapper<Object, Object, Object> mapper;
 	private final @Nullable HashMapper<Object, Object, Object> objectHashMapper;
 
+	static {
+		DefaultConversionService cs = new DefaultConversionService();
+		customConversions.registerConvertersIn(cs);
+		conversionService = cs;
+	}
+
 	/**
 	 * Creates a new {@link StreamObjectMapper}.
-	 * 
+	 *
 	 * @param mapper the configured {@link HashMapper}.
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -62,7 +69,6 @@ class StreamObjectMapper {
 
 		Assert.notNull(mapper, "HashMapper must not be null");
 
-		this.customConversions.registerConvertersIn(conversionService);
 		this.mapper = (HashMapper) mapper;
 
 		if (mapper instanceof ObjectHashMapper) {
@@ -92,7 +98,7 @@ class StreamObjectMapper {
 
 	/**
 	 * Convert the given {@link Record} into a {@link MapRecord}.
-	 * 
+	 *
 	 * @param provider provider for {@link HashMapper} to apply mapping for {@link ObjectRecord}.
 	 * @param source the source value.
 	 * @return the converted {@link MapRecord}.
@@ -121,7 +127,7 @@ class StreamObjectMapper {
 
 	/**
 	 * Convert the given {@link Record} into an {@link ObjectRecord}.
-	 * 
+	 *
 	 * @param provider provider for {@link HashMapper} to apply mapping for {@link ObjectRecord}.
 	 * @param source the source value.
 	 * @param targetType the desired target type.
@@ -135,7 +141,7 @@ class StreamObjectMapper {
 	/**
 	 * Map a {@link List} of {@link MapRecord}s to a {@link List} of {@link ObjectRecord}. Optimizes for empty,
 	 * single-element and multi-element list transformation.l
-	 * 
+	 *
 	 * @param records the {@link MapRecord} that should be mapped.
 	 * @param hashMapperProvider the provider to obtain the actual {@link HashMapper} from. Must not be {@literal null}.
 	 * @param targetType the requested {@link Class target type}.
@@ -175,7 +181,7 @@ class StreamObjectMapper {
 
 	/**
 	 * Returns the actual {@link HashMapper}. Can be overridden by subclasses.
-	 * 
+	 *
 	 * @param conversionService the used {@link ConversionService}.
 	 * @param targetType the target type.
 	 * @return obtain the {@link HashMapper} for a certain type.
@@ -200,6 +206,6 @@ class StreamObjectMapper {
 	 * @return used {@link ConversionService}.
 	 */
 	ConversionService getConversionService() {
-		return this.conversionService;
+		return conversionService;
 	}
 }

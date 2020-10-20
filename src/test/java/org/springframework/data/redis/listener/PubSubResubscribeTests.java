@@ -31,30 +31,26 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.data.redis.ConnectionFactoryTracker;
-import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.SettingsUtils;
-import org.springframework.data.redis.connection.ClusterTestVariables;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.test.extension.LettuceTestClientResources;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.data.redis.test.util.RedisClusterRule;
+import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
+import org.springframework.data.redis.test.condition.RedisDetector;
+import org.springframework.data.redis.test.extension.RedisCluster;
+import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.parametrized.MethodSource;
+import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * @author Costin Leau
@@ -62,7 +58,8 @@ import org.springframework.data.redis.test.util.RedisClusterRule;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(Parameterized.class)
+@MethodSource("testParams")
+@EnabledIfLongRunningTest
 public class PubSubResubscribeTests {
 
 	private static final String CHANNEL = "pubsub::test";
@@ -78,21 +75,9 @@ public class PubSubResubscribeTests {
 	private RedisTemplate template;
 
 	public PubSubResubscribeTests(RedisConnectionFactory connectionFactory) {
-
 		this.factory = connectionFactory;
 	}
 
-	@BeforeClass
-	public static void shouldRun() {
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
-	@Parameters
 	public static Collection<Object[]> testParams() {
 
 		int port = SettingsUtils.getPort();
@@ -101,35 +86,21 @@ public class PubSubResubscribeTests {
 		List<RedisConnectionFactory> factories = new ArrayList<>(3);
 
 		// Jedis
-		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setUsePool(false);
-		jedisConnFactory.setPort(port);
-		jedisConnFactory.setHostName(host);
-		jedisConnFactory.setDatabase(2);
-		jedisConnFactory.afterPropertiesSet();
+		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		factories.add(jedisConnFactory);
 
 		// Lettuce
-		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
-		lettuceConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnFactory.setPort(port);
-		lettuceConnFactory.setHostName(host);
-		lettuceConnFactory.setDatabase(2);
-		lettuceConnFactory.setValidateConnection(true);
-		lettuceConnFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		factories.add(lettuceConnFactory);
 
 		if (clusterAvailable()) {
 
-			LettuceConnectionFactory lettuceClusterConnFactory = new LettuceConnectionFactory(
-					new RedisClusterConfiguration().clusterNode(ClusterTestVariables.CLUSTER_NODE_1));
-			lettuceClusterConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-			lettuceClusterConnFactory.setPort(port);
-			lettuceClusterConnFactory.setHostName(host);
-			lettuceClusterConnFactory.setValidateConnection(true);
-			lettuceClusterConnFactory.afterPropertiesSet();
+			LettuceConnectionFactory lettuceClusterConnFactory = LettuceConnectionFactoryExtension
+					.getConnectionFactory(RedisCluster.class);
 
 			factories.add(lettuceClusterConnFactory);
 		}
@@ -137,8 +108,8 @@ public class PubSubResubscribeTests {
 		return factories.stream().map(factory -> new Object[] { factory }).collect(Collectors.toList());
 	}
 
-	@Before
-	public void setUp() throws Exception {
+	@BeforeEach
+	void setUp() throws Exception {
 
 		template = new StringRedisTemplate(factory);
 
@@ -154,14 +125,15 @@ public class PubSubResubscribeTests {
 		container.start();
 	}
 
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 		container.stop();
 		bag.clear();
 	}
 
-	@Test
-	public void testContainerPatternResubscribe() throws Exception {
+	@ParameterizedRedisTest
+	@EnabledIfLongRunningTest
+	void testContainerPatternResubscribe() throws Exception {
 
 		String payload1 = "do";
 		String payload2 = "re mi";
@@ -190,8 +162,8 @@ public class PubSubResubscribeTests {
 		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
 
 		assertThat(msgs.size()).isEqualTo(2);
-		assertThat(msgs.contains(payload1)).isTrue();
-		assertThat(msgs.contains(payload2)).isTrue();
+		assertThat(msgs).contains(payload1);
+		assertThat(msgs).contains(payload2);
 		msgs.clear();
 
 		// unsubscribed adapter did not receive message
@@ -211,7 +183,7 @@ public class PubSubResubscribeTests {
 		msgs.add(bag.poll(500, TimeUnit.MILLISECONDS));
 		msgs.add(bag.poll(500, TimeUnit.MILLISECONDS));
 
-		assertThat(msgs.contains(payload2)).isTrue();
+		assertThat(msgs).contains(payload2);
 		assertThat(msgs.contains(null)).isTrue();
 
 		// another listener receives messages on both channels
@@ -219,12 +191,12 @@ public class PubSubResubscribeTests {
 		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
 		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
 		assertThat(msgs.size()).isEqualTo(2);
-		assertThat(msgs.contains(payload1)).isTrue();
-		assertThat(msgs.contains(payload2)).isTrue();
+		assertThat(msgs).contains(payload1);
+		assertThat(msgs).contains(payload2);
 	}
 
-	@Test
-	public void testContainerChannelResubscribe() throws Exception {
+	@ParameterizedRedisTest
+	void testContainerChannelResubscribe() throws Exception {
 
 		String payload1 = "do";
 		String payload2 = "re mi";
@@ -267,8 +239,8 @@ public class PubSubResubscribeTests {
 	 *
 	 * @throws Exception
 	 */
-	@Test
-	public void testInitializeContainerWithMultipleTopicsIncludingPattern() throws Exception {
+	@ParameterizedRedisTest
+	void testInitializeContainerWithMultipleTopicsIncludingPattern() throws Exception {
 
 		assumeFalse(isClusterAware(template.getConnectionFactory()));
 
@@ -301,7 +273,7 @@ public class PubSubResubscribeTests {
 		private final BlockingDeque<String> bag;
 		private final String name;
 
-		public MessageHandler(String name, BlockingDeque<String> bag) {
+		MessageHandler(String name, BlockingDeque<String> bag) {
 
 			this.bag = bag;
 			this.name = name;
@@ -314,7 +286,7 @@ public class PubSubResubscribeTests {
 	}
 
 	private static boolean clusterAvailable() {
-		return new RedisClusterRule().isAvailable();
+		return RedisDetector.isClusterAvailable();
 	}
 
 	private static boolean isClusterAware(RedisConnectionFactory connectionFactory) {

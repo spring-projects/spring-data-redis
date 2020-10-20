@@ -42,10 +42,11 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.ConnectionFactoryTracker;
@@ -72,22 +73,22 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Luis De Bello
  * @author Andrea Como
  */
-public class LettuceConnectionFactoryUnitTests {
+class LettuceConnectionFactoryUnitTests {
 
-	RedisClusterConfiguration clusterConfig;
+	private RedisClusterConfiguration clusterConfig;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 		clusterConfig = new RedisClusterConfiguration().clusterNode("127.0.0.1", 6379).clusterNode("127.0.0.1", 6380);
 	}
 
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldInitClientCorrectlyWhenClusterConfigPresent() {
+	void shouldInitClientCorrectlyWhenClusterConfigPresent() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
 		connectionFactory.setClientResources(getSharedClientResources());
@@ -99,7 +100,7 @@ public class LettuceConnectionFactoryUnitTests {
 
 	@Test // DATAREDIS-315
 	@SuppressWarnings("unchecked")
-	public void timeoutShouldBeSetCorrectlyOnClusterClient() {
+	void timeoutShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
 		connectionFactory.setClientResources(getSharedClientResources());
@@ -118,7 +119,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-930
-	public void portShouldBeReturnedProperlyBasedOnConfiguration() {
+	void portShouldBeReturnedProperlyBasedOnConfiguration() {
 
 		RedisConfiguration redisConfiguration = new RedisStandaloneConfiguration("localhost", 16379);
 
@@ -129,7 +130,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-930
-	public void portShouldBeReturnedProperlyBasedOnCustomRedisConfiguration() {
+	void portShouldBeReturnedProperlyBasedOnCustomRedisConfiguration() {
 
 		RedisConfiguration redisConfiguration = new CustomRedisConfiguration("localhost", 16379);
 
@@ -141,7 +142,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-930
-	public void hostNameShouldBeReturnedProperlyBasedOnConfiguration() {
+	void hostNameShouldBeReturnedProperlyBasedOnConfiguration() {
 
 		RedisConfiguration redisConfiguration = new RedisStandaloneConfiguration("external");
 
@@ -152,7 +153,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-930
-	public void hostNameShouldBeReturnedProperlyBasedOnCustomRedisConfiguration() {
+	void hostNameShouldBeReturnedProperlyBasedOnCustomRedisConfiguration() {
 
 		RedisConfiguration redisConfiguration = new CustomRedisConfiguration("external");
 
@@ -165,7 +166,7 @@ public class LettuceConnectionFactoryUnitTests {
 
 	@Test // DATAREDIS-315
 	@SuppressWarnings("unchecked")
-	public void passwordShouldBeSetCorrectlyOnClusterClient() {
+	void passwordShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
 		connectionFactory.setClientResources(getSharedClientResources());
@@ -184,7 +185,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-524, DATAREDIS-1045, DATAREDIS-1060
-	public void passwordShouldNotBeSetOnSentinelClient() {
+	void passwordShouldNotBeSetOnSentinelClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
 				new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234")));
@@ -206,7 +207,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-1060
-	public void sentinelPasswordShouldBeSetOnSentinelClient() {
+	void sentinelPasswordShouldBeSetOnSentinelClient() {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
 		config.setSentinelPassword("sentinel-pwd");
@@ -230,7 +231,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-1060
-	public void sentinelPasswordShouldNotLeakIntoDataNodeClient() {
+	void sentinelPasswordShouldNotLeakIntoDataNodeClient() {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
 		config.setSentinelPassword("sentinel-pwd");
@@ -253,7 +254,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-462
-	public void clusterClientShouldInitializeWithoutClientResources() {
+	void clusterClientShouldInitializeWithoutClientResources() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
 		connectionFactory.setShutdownTimeout(0);
@@ -265,7 +266,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-480
-	public void sslOptionsShouldBeDisabledByDefaultOnClient() {
+	void sslOptionsShouldBeDisabledByDefaultOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.setClientResources(getSharedClientResources());
@@ -286,7 +287,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-476
-	public void sslShouldBeSetCorrectlyOnClient() {
+	void sslShouldBeSetCorrectlyOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.setClientResources(getSharedClientResources());
@@ -306,7 +307,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-480
-	public void verifyPeerOptionShouldBeSetCorrectlyOnClient() {
+	void verifyPeerOptionShouldBeSetCorrectlyOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.setClientResources(getSharedClientResources());
@@ -324,7 +325,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-480
-	public void startTLSOptionShouldBeSetCorrectlyOnClient() {
+	void startTLSOptionShouldBeSetCorrectlyOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.setClientResources(getSharedClientResources());
@@ -342,7 +343,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-990
-	public void sslShouldBeSetCorrectlyOnSentinelClient() {
+	void sslShouldBeSetCorrectlyOnSentinelClient() {
 
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration("myMaster",
 				Collections.singleton("localhost:1234"));
@@ -364,7 +365,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-990
-	public void verifyPeerOptionShouldBeSetCorrectlyOnSentinelClient() {
+	void verifyPeerOptionShouldBeSetCorrectlyOnSentinelClient() {
 
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration("myMaster",
 				Collections.singleton("localhost:1234"));
@@ -384,7 +385,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-990
-	public void startTLSOptionShouldBeSetCorrectlyOnSentinelClient() {
+	void startTLSOptionShouldBeSetCorrectlyOnSentinelClient() {
 
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration("myMaster",
 				Collections.singleton("localhost:1234"));
@@ -404,7 +405,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-537
-	public void sslShouldBeSetCorrectlyOnClusterClient() {
+	void sslShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
 				new RedisClusterConfiguration().clusterNode(CLUSTER_NODE_1));
@@ -424,7 +425,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-537
-	public void startTLSOptionShouldBeSetCorrectlyOnClusterClient() {
+	void startTLSOptionShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
 				new RedisClusterConfiguration().clusterNode(CLUSTER_NODE_1));
@@ -444,7 +445,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-537
-	public void verifyPeerTLSOptionShouldBeSetCorrectlyOnClusterClient() {
+	void verifyPeerTLSOptionShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
 				new RedisClusterConfiguration().clusterNode(CLUSTER_NODE_1));
@@ -464,7 +465,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-682
-	public void socketShouldBeSetOnStandaloneClient() {
+	void socketShouldBeSetOnStandaloneClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisSocketConfiguration());
 		connectionFactory.afterPropertiesSet();
@@ -479,7 +480,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldReadStandalonePassword() {
+	void shouldReadStandalonePassword() {
 
 		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
@@ -491,7 +492,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldWriteStandalonePassword() {
+	void shouldWriteStandalonePassword() {
 
 		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
@@ -505,7 +506,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldReadSentinelPassword() {
+	void shouldReadSentinelPassword() {
 
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
@@ -517,7 +518,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldWriteSentinelPassword() {
+	void shouldWriteSentinelPassword() {
 
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
@@ -531,7 +532,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-682
-	public void shouldWriteSocketPassword() {
+	void shouldWriteSocketPassword() {
 
 		RedisSocketConfiguration envConfig = new RedisSocketConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
@@ -545,7 +546,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldReadClusterPassword() {
+	void shouldReadClusterPassword() {
 
 		RedisClusterConfiguration envConfig = new RedisClusterConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
@@ -557,7 +558,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldWriteClusterPassword() {
+	void shouldWriteClusterPassword() {
 
 		RedisClusterConfiguration envConfig = new RedisClusterConfiguration();
 		envConfig.setPassword(RedisPassword.of("foo"));
@@ -571,7 +572,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldReadStandaloneDatabaseIndex() {
+	void shouldReadStandaloneDatabaseIndex() {
 
 		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
 		envConfig.setDatabase(2);
@@ -583,7 +584,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldWriteStandaloneDatabaseIndex() {
+	void shouldWriteStandaloneDatabaseIndex() {
 
 		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
 		envConfig.setDatabase(2);
@@ -597,7 +598,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldReadSentinelDatabaseIndex() {
+	void shouldReadSentinelDatabaseIndex() {
 
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
 		envConfig.setDatabase(2);
@@ -609,7 +610,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldWriteSentinelDatabaseIndex() {
+	void shouldWriteSentinelDatabaseIndex() {
 
 		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
 		envConfig.setDatabase(2);
@@ -623,7 +624,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-682
-	public void shouldWriteSocketDatabaseIndex() {
+	void shouldWriteSocketDatabaseIndex() {
 
 		RedisSocketConfiguration envConfig = new RedisSocketConfiguration();
 		envConfig.setDatabase(2);
@@ -637,7 +638,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldApplyClientConfiguration() {
+	void shouldApplyClientConfiguration() {
 
 		ClientOptions clientOptions = ClientOptions.create();
 		ClientResources sharedClientResources = LettuceTestClientResources.getSharedClientResources();
@@ -666,7 +667,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldReturnStandaloneConfiguration() {
+	void shouldReturnStandaloneConfiguration() {
 
 		RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
@@ -678,7 +679,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-682
-	public void shouldReturnSocketConfiguration() {
+	void shouldReturnSocketConfiguration() {
 
 		RedisSocketConfiguration configuration = new RedisSocketConfiguration("/var/redis/socket");
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
@@ -691,7 +692,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldReturnSentinelConfiguration() {
+	void shouldReturnSentinelConfiguration() {
 
 		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration();
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
@@ -703,7 +704,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldReturnClusterConfiguration() {
+	void shouldReturnClusterConfiguration() {
 
 		RedisClusterConfiguration configuration = new RedisClusterConfiguration();
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
@@ -715,7 +716,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-574
-	public void shouldDenyChangesToImmutableClientConfiguration() {
+	void shouldDenyChangesToImmutableClientConfiguration() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
 				LettuceClientConfiguration.defaultConfiguration());
@@ -724,7 +725,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-676
-	public void timeoutShouldBePassedOnToClusterConnection() {
+	void timeoutShouldBePassedOnToClusterConnection() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
 		connectionFactory.setShutdownTimeout(0);
@@ -740,7 +741,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-676
-	public void timeoutSetOnClientConfigShouldBePassedOnToClusterConnection() {
+	void timeoutSetOnClientConfigShouldBePassedOnToClusterConnection() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig, LettuceClientConfiguration
 				.builder().commandTimeout(Duration.ofSeconds(2)).shutdownTimeout(Duration.ZERO).build());
@@ -756,7 +757,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-731
-	public void shouldShareNativeConnectionWithCluster() {
+	void shouldShareNativeConnectionWithCluster() {
 
 		RedisClusterClient clientMock = mock(RedisClusterClient.class);
 		StatefulRedisClusterConnection<byte[], byte[]> connectionMock = mock(StatefulRedisClusterConnection.class);
@@ -783,7 +784,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-950
-	public void shouldValidateSharedClusterConnection() {
+	void shouldValidateSharedClusterConnection() {
 
 		RedisClusterClient clientMock = mock(RedisClusterClient.class);
 		StatefulRedisClusterConnection<byte[], byte[]> connectionMock = mock(StatefulRedisClusterConnection.class);
@@ -813,7 +814,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-953
-	public void shouldReleaseSharedConnectionOnlyOnce() {
+	void shouldReleaseSharedConnectionOnlyOnce() {
 
 		RedisClusterClient clientMock = mock(RedisClusterClient.class);
 		StatefulRedisClusterConnection<byte[], byte[]> connectionMock = mock(StatefulRedisClusterConnection.class);
@@ -841,7 +842,7 @@ public class LettuceConnectionFactoryUnitTests {
 
 	@Test // DATAREDIS-721
 	@SuppressWarnings("unchecked")
-	public void shouldEagerlyInitializeSharedConnection() {
+	void shouldEagerlyInitializeSharedConnection() {
 
 		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class);
 		StatefulRedisConnection connectionMock = mock(StatefulRedisConnection.class);
@@ -865,7 +866,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-1189
-	public void shouldTranslateConnectionException() {
+	void shouldTranslateConnectionException() {
 
 		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class);
 
@@ -886,7 +887,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-1027
-	public void shouldDisposeConnectionProviders() throws Exception {
+	void shouldDisposeConnectionProviders() throws Exception {
 
 		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class,
 				withSettings().extraInterfaces(DisposableBean.class));
@@ -905,7 +906,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-842
-	public void databaseShouldBeSetCorrectlyOnSentinelClient() {
+	void databaseShouldBeSetCorrectlyOnSentinelClient() {
 
 		RedisSentinelConfiguration redisSentinelConfiguration = new RedisSentinelConfiguration("mymaster",
 				Collections.singleton("host:1234"));
@@ -925,7 +926,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-949
-	public void maxRedirectsShouldBeSetOnClientOptions() {
+	void maxRedirectsShouldBeSetOnClientOptions() {
 
 		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
 		clusterConfiguration.clusterNode("localhost", 1234).setMaxRedirects(42);
@@ -945,7 +946,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-949
-	public void maxRedirectsShouldBeSetOnClusterClientOptions() {
+	void maxRedirectsShouldBeSetOnClusterClientOptions() {
 
 		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
 		clusterConfiguration.clusterNode("localhost", 1234).setMaxRedirects(42);
@@ -968,7 +969,7 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-1142
-	public void shouldFallbackToReactiveRedisClusterConnectionWhenGetReactiveConnectionWithClusterConfig() {
+	void shouldFallbackToReactiveRedisClusterConnectionWhenGetReactiveConnectionWithClusterConfig() {
 
 		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class);
 		StatefulConnection<?, ?> statefulConnection = mock(StatefulConnection.class);

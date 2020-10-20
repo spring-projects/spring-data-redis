@@ -15,13 +15,15 @@
  */
 package org.springframework.data.redis.core.script;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -31,8 +33,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 /**
  * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
-public class DefaultScriptExecutorUnitTests {
+@ExtendWith(MockitoExtension.class)
+class DefaultScriptExecutorUnitTests {
 
 	private final DefaultRedisScript<String> SCRIPT = new DefaultRedisScript<>("return KEYS[0]", String.class);
 
@@ -42,8 +44,8 @@ public class DefaultScriptExecutorUnitTests {
 
 	private DefaultScriptExecutor<String> executor;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		when(connectionFactoryMock.getConnection()).thenReturn(redisConnectionMock);
 		template = spy(new StringRedisTemplate(connectionFactoryMock));
@@ -53,7 +55,7 @@ public class DefaultScriptExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-347
-	public void excuteCheckForPresenceOfScriptViaEvalSha1() {
+	void excuteCheckForPresenceOfScriptViaEvalSha1() {
 
 		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn("FOO".getBytes());
 
@@ -63,7 +65,7 @@ public class DefaultScriptExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-347
-	public void excuteShouldNotCallEvalWhenSha1Exists() {
+	void excuteShouldNotCallEvalWhenSha1Exists() {
 
 		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn("FOO".getBytes());
 
@@ -73,7 +75,7 @@ public class DefaultScriptExecutorUnitTests {
 	}
 
 	@Test // DATAREDIS-347
-	public void excuteShouldUseEvalInCaseNoSha1PresentForGivenScript() {
+	void excuteShouldUseEvalInCaseNoSha1PresentForGivenScript() {
 
 		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(
 				new RedisSystemException("NOSCRIPT No matching script. Please use EVAL.", new Exception()));
@@ -83,21 +85,21 @@ public class DefaultScriptExecutorUnitTests {
 		verify(redisConnectionMock, times(1)).eval(any(byte[].class), any(ReturnType.class), anyInt());
 	}
 
-	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-347
-	public void excuteShouldThrowExceptionInCaseEvalShaFailsWithOtherThanRedisSystemException() {
+	@Test // DATAREDIS-347
+	void excuteShouldThrowExceptionInCaseEvalShaFailsWithOtherThanRedisSystemException() {
 
 		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(
 				new UnsupportedOperationException("NOSCRIPT No matching script. Please use EVAL.", new Exception()));
 
-		executor.execute(SCRIPT, null);
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> executor.execute(SCRIPT, null));
 	}
 
-	@Test(expected = RedisSystemException.class) // DATAREDIS-347
-	public void excuteShouldThrowExceptionInCaseEvalShaFailsWithAlthoughTheScriptExists() {
+	@Test // DATAREDIS-347
+	void excuteShouldThrowExceptionInCaseEvalShaFailsWithAlthoughTheScriptExists() {
 
 		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(
 				new RedisSystemException("Found Script but could not execute it.", new Exception()));
 
-		executor.execute(SCRIPT, null);
+		assertThatExceptionOfType(RedisSystemException.class).isThrownBy(() -> executor.execute(SCRIPT, null));
 	}
 }

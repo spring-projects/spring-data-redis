@@ -23,28 +23,24 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import java.io.Serializable;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.function.Consumer;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.BeforeEach;
+
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.cache.support.NullValue;
-import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.test.extension.parametrized.MethodSource;
+import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Tests for {@link RedisCache} with {@link DefaultRedisCacheWriter} using different {@link RedisSerializer} and
@@ -53,38 +49,35 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(Parameterized.class)
+@MethodSource("testParams")
 public class RedisCacheTests {
 
-	String key = "key-1";
-	String cacheKey = "cache::" + key;
-	byte[] binaryCacheKey = cacheKey.getBytes(StandardCharsets.UTF_8);
+	private String key = "key-1";
+	private String cacheKey = "cache::" + key;
+	private byte[] binaryCacheKey = cacheKey.getBytes(StandardCharsets.UTF_8);
 
-	Person sample = new Person("calmity", new Date());
-	byte[] binarySample;
+	private Person sample = new Person("calmity", new Date());
+	private byte[] binarySample;
 
-	byte[] binaryNullValue = RedisSerializer.java().serialize(NullValue.INSTANCE);
+	private byte[] binaryNullValue = RedisSerializer.java().serialize(NullValue.INSTANCE);
 
-	RedisConnectionFactory connectionFactory;
-	RedisSerializer serializer;
-	RedisCache cache;
+	private RedisConnectionFactory connectionFactory;
+	private RedisSerializer serializer;
+	private RedisCache cache;
 
 	public RedisCacheTests(RedisConnectionFactory connectionFactory, RedisSerializer serializer) {
 
 		this.connectionFactory = connectionFactory;
 		this.serializer = serializer;
 		this.binarySample = serializer.serialize(sample);
-
-		ConnectionFactoryTracker.add(connectionFactory);
 	}
 
-	@Parameters(name = "{index}: {0} & {1}")
 	public static Collection<Object[]> testParams() {
 		return CacheTestParams.connectionFactoriesAndSerializers();
 	}
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		doWithConnection(RedisConnection::flushAll);
 
@@ -92,8 +85,8 @@ public class RedisCacheTests {
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer)));
 	}
 
-	@Test // DATAREDIS-481
-	public void putShouldAddEntry() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void putShouldAddEntry() {
 
 		cache.put("key-1", sample);
 
@@ -102,8 +95,8 @@ public class RedisCacheTests {
 		});
 	}
 
-	@Test // DATAREDIS-481
-	public void putNullShouldAddEntryForNullValue() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void putNullShouldAddEntryForNullValue() {
 
 		cache.put("key-1", null);
 
@@ -113,8 +106,8 @@ public class RedisCacheTests {
 		});
 	}
 
-	@Test // DATAREDIS-481
-	public void putIfAbsentShouldAddEntryIfNotExists() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void putIfAbsentShouldAddEntryIfNotExists() {
 
 		cache.putIfAbsent("key-1", sample);
 
@@ -124,8 +117,8 @@ public class RedisCacheTests {
 		});
 	}
 
-	@Test // DATAREDIS-481
-	public void putIfAbsentWithNullShouldAddNullValueEntryIfNotExists() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void putIfAbsentWithNullShouldAddNullValueEntryIfNotExists() {
 
 		assertThat(cache.putIfAbsent("key-1", null)).isNull();
 
@@ -135,8 +128,8 @@ public class RedisCacheTests {
 		});
 	}
 
-	@Test // DATAREDIS-481
-	public void putIfAbsentShouldReturnExistingIfExists() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void putIfAbsentShouldReturnExistingIfExists() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binarySample));
 
@@ -150,8 +143,8 @@ public class RedisCacheTests {
 		});
 	}
 
-	@Test // DATAREDIS-481
-	public void putIfAbsentShouldReturnExistingNullValueIfExists() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void putIfAbsentShouldReturnExistingNullValueIfExists() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
 
@@ -165,8 +158,8 @@ public class RedisCacheTests {
 		});
 	}
 
-	@Test // DATAREDIS-481
-	public void getShouldRetrieveEntry() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void getShouldRetrieveEntry() {
 
 		doWithConnection(connection -> {
 			connection.set(binaryCacheKey, binarySample);
@@ -177,8 +170,8 @@ public class RedisCacheTests {
 		assertThat(result.get()).isEqualTo(sample);
 	}
 
-	@Test // DATAREDIS-481
-	public void shouldReadAndWriteSimpleCacheKey() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void shouldReadAndWriteSimpleCacheKey() {
 
 		SimpleKey key = new SimpleKey("param-1", "param-2");
 
@@ -189,16 +182,16 @@ public class RedisCacheTests {
 		assertThat(result.get()).isEqualTo(sample);
 	}
 
-	@Test(expected = IllegalStateException.class) // DATAREDIS-481
-	public void shouldRejectNonInvalidKey() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void shouldRejectNonInvalidKey() {
 
 		InvalidKey key = new InvalidKey(sample.getFirstame(), sample.getBirthdate());
 
-		cache.put(key, sample);
+		assertThatIllegalStateException().isThrownBy(() -> cache.put(key, sample));
 	}
 
-	@Test // DATAREDIS-481
-	public void shouldAllowComplexKeyWithToStringMethod() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void shouldAllowComplexKeyWithToStringMethod() {
 
 		ComplexKey key = new ComplexKey(sample.getFirstame(), sample.getBirthdate());
 
@@ -209,13 +202,13 @@ public class RedisCacheTests {
 		assertThat(result.get()).isEqualTo(sample);
 	}
 
-	@Test // DATAREDIS-481
-	public void getShouldReturnNullWhenKeyDoesNotExist() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void getShouldReturnNullWhenKeyDoesNotExist() {
 		assertThat(cache.get(key)).isNull();
 	}
 
-	@Test // DATAREDIS-481
-	public void getShouldReturnValueWrapperHoldingNullIfNullValueStored() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void getShouldReturnValueWrapperHoldingNullIfNullValueStored() {
 
 		doWithConnection(connection -> {
 			connection.set(binaryCacheKey, binaryNullValue);
@@ -226,8 +219,8 @@ public class RedisCacheTests {
 		assertThat(result.get()).isEqualTo(null);
 	}
 
-	@Test // DATAREDIS-481
-	public void evictShouldRemoveKey() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void evictShouldRemoveKey() {
 
 		doWithConnection(connection -> {
 			connection.set(binaryCacheKey, binaryNullValue);
@@ -240,8 +233,8 @@ public class RedisCacheTests {
 		});
 	}
 
-	@Test // DATAREDIS-481
-	public void getWithCallableShouldResolveValueIfNotPresent() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void getWithCallableShouldResolveValueIfNotPresent() {
 
 		assertThat(cache.get(key, () -> sample)).isEqualTo(sample);
 
@@ -251,8 +244,8 @@ public class RedisCacheTests {
 		});
 	}
 
-	@Test // DATAREDIS-481
-	public void getWithCallableShouldNotResolveValueIfPresent() {
+	@ParameterizedRedisTest // DATAREDIS-481
+	void getWithCallableShouldNotResolveValueIfPresent() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
 
@@ -266,8 +259,8 @@ public class RedisCacheTests {
 		});
 	}
 
-	@Test // DATAREDIS-715
-	public void computePrefixCreatesCacheKeyCorrectly() {
+	@ParameterizedRedisTest // DATAREDIS-715
+	void computePrefixCreatesCacheKeyCorrectly() {
 
 		RedisCache cacheWithCustomPrefix = new RedisCache("cache", new DefaultRedisCacheWriter(connectionFactory),
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
@@ -282,8 +275,8 @@ public class RedisCacheTests {
 		});
 	}
 
-	@Test // DATAREDIS-1041
-	public void prefixCacheNameCreatesCacheKeyCorrectly() {
+	@ParameterizedRedisTest // DATAREDIS-1041
+	void prefixCacheNameCreatesCacheKeyCorrectly() {
 
 		RedisCache cacheWithCustomPrefix = new RedisCache("cache", new DefaultRedisCacheWriter(connectionFactory),
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
@@ -298,8 +291,8 @@ public class RedisCacheTests {
 		});
 	}
 
-	@Test // DATAREDIS-715
-	public void fetchKeyWithComputedPrefixReturnsExpectedResult() {
+	@ParameterizedRedisTest // DATAREDIS-715
+	void fetchKeyWithComputedPrefixReturnsExpectedResult() {
 
 		doWithConnection(connection -> connection.set("_cache_key-1".getBytes(StandardCharsets.UTF_8), binarySample));
 
@@ -313,8 +306,8 @@ public class RedisCacheTests {
 		assertThat(result.get()).isEqualTo(sample);
 	}
 
-	@Test // DATAREDIS-1032
-	public void cacheShouldAllowListKeyCacheKeysOfSimpleTypes() {
+	@ParameterizedRedisTest // DATAREDIS-1032
+	void cacheShouldAllowListKeyCacheKeysOfSimpleTypes() {
 
 		Object key = SimpleKeyGenerator.generateKey(Collections.singletonList("my-cache-key-in-a-list"));
 		cache.put(key, sample);
@@ -324,8 +317,8 @@ public class RedisCacheTests {
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
-	@Test // DATAREDIS-1032
-	public void cacheShouldAllowArrayKeyCacheKeysOfSimpleTypes() {
+	@ParameterizedRedisTest // DATAREDIS-1032
+	void cacheShouldAllowArrayKeyCacheKeysOfSimpleTypes() {
 
 		Object key = SimpleKeyGenerator.generateKey("my-cache-key-in-an-array");
 		cache.put(key, sample);
@@ -334,8 +327,8 @@ public class RedisCacheTests {
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
-	@Test // DATAREDIS-1032
-	public void cacheShouldAllowListCacheKeysOfComplexTypes() {
+	@ParameterizedRedisTest // DATAREDIS-1032
+	void cacheShouldAllowListCacheKeysOfComplexTypes() {
 
 		Object key = SimpleKeyGenerator
 				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstame(), sample.getBirthdate())));
@@ -346,8 +339,8 @@ public class RedisCacheTests {
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
-	@Test // DATAREDIS-1032
-	public void cacheShouldAllowMapCacheKeys() {
+	@ParameterizedRedisTest // DATAREDIS-1032
+	void cacheShouldAllowMapCacheKeys() {
 
 		Object key = SimpleKeyGenerator
 				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstame(), sample.getBirthdate())));
@@ -358,8 +351,8 @@ public class RedisCacheTests {
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
-	@Test // DATAREDIS-1032
-	public void cacheShouldFailOnNonConvertibleCacheKey() {
+	@ParameterizedRedisTest // DATAREDIS-1032
+	void cacheShouldFailOnNonConvertibleCacheKey() {
 
 		Object key = SimpleKeyGenerator
 				.generateKey(Collections.singletonList(new InvalidKey(sample.getFirstame(), sample.getBirthdate())));

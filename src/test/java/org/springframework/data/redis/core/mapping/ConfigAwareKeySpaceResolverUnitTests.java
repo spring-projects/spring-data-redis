@@ -17,8 +17,8 @@ package org.springframework.data.redis.core.mapping;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
@@ -27,36 +27,36 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext.ConfigAwa
 /**
  * @author Christoph Strobl
  */
-public class ConfigAwareKeySpaceResolverUnitTests {
+class ConfigAwareKeySpaceResolverUnitTests {
 
 	static final String CUSTOM_KEYSPACE = "car'a'carn";
-	KeyspaceConfiguration config = new KeyspaceConfiguration();
-	ConfigAwareKeySpaceResolver resolver;
+	private KeyspaceConfiguration config = new KeyspaceConfiguration();
+	private ConfigAwareKeySpaceResolver resolver;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 		this.resolver = new ConfigAwareKeySpaceResolver(config);
 	}
 
 	@Test // DATAREDIS-425
-	public void resolveShouldThrowExceptionWhenTypeIsNull() {
+	void resolveShouldThrowExceptionWhenTypeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> resolver.resolveKeySpace(null));
 	}
 
 	@Test // DATAREDIS-425
-	public void resolveShouldUseClassNameAsDefaultKeyspace() {
+	void resolveShouldUseClassNameAsDefaultKeyspace() {
 		assertThat(resolver.resolveKeySpace(TypeWithoutAnySettings.class))
 				.isEqualTo(TypeWithoutAnySettings.class.getName());
 	}
 
 	@Test // DATAREDIS-425
-	public void resolveShouldFavorConfiguredNameOverClassName() {
+	void resolveShouldFavorConfiguredNameOverClassName() {
 
 		config.addKeyspaceSettings(new KeyspaceSettings(TypeWithoutAnySettings.class, "ji'e'toh"));
 		assertThat(resolver.resolveKeySpace(TypeWithoutAnySettings.class)).isEqualTo("ji'e'toh");
 	}
 
-	static class TypeWithoutAnySettings {
+	private static class TypeWithoutAnySettings {
 
 	}
 

@@ -18,13 +18,11 @@ package org.springframework.data.redis.core.mapping;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
 import org.springframework.data.mapping.MappingException;
@@ -38,31 +36,26 @@ import org.springframework.data.util.TypeInformation;
  * @param <T>
  * @param <ID>
  */
-@RunWith(MockitoJUnitRunner.class)
-public class BasicRedisPersistentEntityUnitTests<T> {
-
-	public @Rule ExpectedException expectedException = ExpectedException.none();
+@ExtendWith(MockitoExtension.class)
+class BasicRedisPersistentEntityUnitTests<T> {
 
 	@Mock TypeInformation<T> entityInformation;
 	@Mock KeySpaceResolver keySpaceResolver;
 	@Mock TimeToLiveAccessor ttlAccessor;
 
-	BasicRedisPersistentEntity<T> entity;
+	private BasicRedisPersistentEntity<T> entity;
 
-	@Before
+	@BeforeEach
 	@SuppressWarnings("unchecked")
-	public void setUp() {
+	void setUp() {
 
 		when(entityInformation.getType()).thenReturn((Class<T>) ConversionTestEntities.Person.class);
 		entity = new BasicRedisPersistentEntity<>(entityInformation, keySpaceResolver, ttlAccessor);
 	}
 
 	@Test // DATAREDIS-425
-	public void addingMultipleIdPropertiesWithoutAnExplicitOneThrowsException() {
+	void addingMultipleIdPropertiesWithoutAnExplicitOneThrowsException() {
 
-		expectedException.expect(MappingException.class);
-		expectedException.expectMessage("Attempt to add id property");
-		expectedException.expectMessage("but already have an property");
 
 		RedisPersistentProperty property1 = mock(RedisPersistentProperty.class);
 		when(property1.isIdProperty()).thenReturn(true);
@@ -71,16 +64,14 @@ public class BasicRedisPersistentEntityUnitTests<T> {
 		when(property2.isIdProperty()).thenReturn(true);
 
 		entity.addPersistentProperty(property1);
-		entity.addPersistentProperty(property2);
+
+		assertThatExceptionOfType(MappingException.class).isThrownBy(() -> entity.addPersistentProperty(property2))
+				.withMessageContaining("Attempt to add id property").withMessageContaining("but already have an property");
 	}
 
 	@Test // DATAREDIS-425
 	@SuppressWarnings("unchecked")
-	public void addingMultipleExplicitIdPropertiesThrowsException() {
-
-		expectedException.expect(MappingException.class);
-		expectedException.expectMessage("Attempt to add explicit id property");
-		expectedException.expectMessage("but already have an property");
+	void addingMultipleExplicitIdPropertiesThrowsException() {
 
 		RedisPersistentProperty property1 = mock(RedisPersistentProperty.class);
 		when(property1.isIdProperty()).thenReturn(true);
@@ -91,12 +82,14 @@ public class BasicRedisPersistentEntityUnitTests<T> {
 		when(property2.isAnnotationPresent(any(Class.class))).thenReturn(true);
 
 		entity.addPersistentProperty(property1);
-		entity.addPersistentProperty(property2);
+		assertThatExceptionOfType(MappingException.class).isThrownBy(() -> entity.addPersistentProperty(property2))
+				.withMessageContaining("Attempt to add explicit id property")
+				.withMessageContaining("but already have an property");
 	}
 
 	@Test // DATAREDIS-425
 	@SuppressWarnings("unchecked")
-	public void explicitIdPropertiyShouldBeFavoredOverNonExplicit() {
+	void explicitIdPropertiyShouldBeFavoredOverNonExplicit() {
 
 		RedisPersistentProperty property1 = mock(RedisPersistentProperty.class);
 		when(property1.isIdProperty()).thenReturn(true);

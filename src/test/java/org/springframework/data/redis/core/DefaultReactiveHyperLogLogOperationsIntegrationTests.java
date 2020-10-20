@@ -21,18 +21,14 @@ import reactor.test.StepVerifier;
 
 import java.util.Collection;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.BeforeEach;
 
-import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
+import org.springframework.data.redis.test.extension.parametrized.MethodSource;
+import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration tests for {@link DefaultReactiveHyperLogLogOperations}.
@@ -40,7 +36,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-@RunWith(Parameterized.class)
+@MethodSource("testParams")
 @SuppressWarnings("unchecked")
 public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 
@@ -50,28 +46,20 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 	private final ObjectFactory<K> keyFactory;
 	private final ObjectFactory<V> valueFactory;
 
-	@Parameters(name = "{4}")
-	public static Collection<Object[]> testParams() {
+	public static Collection<Fixture<?, ?>> testParams() {
 		return ReactiveOperationsTestParams.testParams();
 	}
 
-	/**
-	 * @param redisTemplate
-	 * @param keyFactory
-	 * @param valueFactory
-	 * @param label parameterized test label, no further use besides that.
-	 */
-	public DefaultReactiveHyperLogLogOperationsIntegrationTests(ReactiveRedisTemplate<K, V> redisTemplate,
-			ObjectFactory<K> keyFactory, ObjectFactory<V> valueFactory, RedisSerializer serializer, String label) {
+	public DefaultReactiveHyperLogLogOperationsIntegrationTests(Fixture<K, V> fixture) {
 
-		this.redisTemplate = redisTemplate;
+		this.redisTemplate = fixture.getTemplate();
 		this.hyperLogLogOperations = redisTemplate.opsForHyperLogLog();
-		this.keyFactory = keyFactory;
-		this.valueFactory = valueFactory;
+		this.keyFactory = fixture.getKeyFactory();
+		this.valueFactory = fixture.getValueFactory();
 	}
 
-	@Before
-	public void before() {
+	@BeforeEach
+	void before() {
 
 		RedisConnectionFactory connectionFactory = (RedisConnectionFactory) redisTemplate.getConnectionFactory();
 		RedisConnection connection = connectionFactory.getConnection();
@@ -79,8 +67,8 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		connection.close();
 	}
 
-	@Test // DATAREDIS-602
-	public void add() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void add() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -91,8 +79,8 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		hyperLogLogOperations.size(key).as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void union() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void union() {
 
 		K mergedKey = keyFactory.instance();
 		V sharedValue = valueFactory.instance();
@@ -113,8 +101,8 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		}).verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	public void delete() {
+	@ParameterizedRedisTest // DATAREDIS-602
+	void delete() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();

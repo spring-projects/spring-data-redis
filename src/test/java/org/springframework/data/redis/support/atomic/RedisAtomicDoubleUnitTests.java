@@ -17,28 +17,29 @@ package org.springframework.data.redis.support.atomic;
 
 import static org.mockito.Mockito.*;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
  * Unit tests for {@link RedisAtomicDouble}.
- * 
+ *
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
-public class RedisAtomicDoubleUnitTests {
+@ExtendWith(MockitoExtension.class)
+class RedisAtomicDoubleUnitTests {
 
 	@Mock RedisOperations<String, Double> operationsMock;
 	@Mock ValueOperations<String, Double> valueOperationsMock;
 
 	@Test // DATAREDIS-872
 	@SuppressWarnings("unchecked")
-	public void shouldUseSetIfAbsentForInitialValue() {
+	void shouldUseSetIfAbsentForInitialValue() {
 
 		when(operationsMock.opsForValue()).thenReturn(valueOperationsMock);
 		when(operationsMock.getKeySerializer()).thenReturn(mock(RedisSerializer.class));

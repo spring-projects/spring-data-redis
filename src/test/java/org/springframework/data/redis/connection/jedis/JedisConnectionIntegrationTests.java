@@ -27,10 +27,10 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -44,12 +44,9 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
-import org.springframework.data.redis.test.util.RedisSentinelRule;
-import org.springframework.data.redis.test.util.RedisSentinelRule.SentinelsAvailable;
-import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
-import org.springframework.data.redis.test.util.RequiresRedisSentinel;
-import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Integration test of {@link JedisConnection}
@@ -61,13 +58,11 @@ import org.springframework.test.context.ContextConfiguration;
  * @author David Liu
  * @author Mark Paluch
  */
-@RunWith(RelaxedJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration
 public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
-	public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.withDefaultConfig().dynamicModeSelection();
-
-	@After
+	@AfterEach
 	public void tearDown() {
 		try {
 			connection.flushAll();
@@ -89,7 +84,6 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayBytes() {
 		getResults();
 		byte[] sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}").getBytes();
@@ -102,7 +96,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test
-	public void testCreateConnectionWithDb() {
+	void testCreateConnectionWithDb() {
 		JedisConnectionFactory factory2 = new JedisConnectionFactory();
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
@@ -111,22 +105,22 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		factory2.destroy();
 	}
 
-	@Test(expected = RedisConnectionFailureException.class) // DATAREDIS-714
-	public void testCreateConnectionWithDbFailure() {
+	@Test // DATAREDIS-714
+	void testCreateConnectionWithDbFailure() {
 
 		JedisConnectionFactory factory2 = new JedisConnectionFactory();
 		factory2.setDatabase(77);
 		factory2.afterPropertiesSet();
 
 		try {
-			factory2.getConnection();
+			assertThatExceptionOfType(RedisConnectionFailureException.class).isThrownBy(factory2::getConnection);
 		} finally {
 			factory2.destroy();
 		}
 	}
 
 	@Test
-	public void testClosePool() {
+	void testClosePool() {
 
 		JedisPoolConfig config = new JedisPoolConfig();
 		config.setMaxTotal(1);
@@ -144,7 +138,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test
-	public void testZAddSameScores() {
+	void testZAddSameScores() {
 		Set<StringTuple> strTuples = new HashSet<>();
 		strTuples.add(new DefaultStringTuple("Bob".getBytes(), "Bob", 2.0));
 		strTuples.add(new DefaultStringTuple("James".getBytes(), "James", 2.0));
@@ -153,53 +147,55 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleError() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalArrayScriptError() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> super.testEvalArrayScriptError());
+				.isThrownBy(() -> connection.eval("return {1,2", ReturnType.MULTI, 1, "foo", "bar"));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaNotFound() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2"));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayError() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testEvalShaArrayError());
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void testRestoreBadData() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testRestoreBadData());
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void testRestoreExistingKey() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> super.testRestoreExistingKey());
+				.isThrownBy(() -> connection.evalSha("notasha", ReturnType.MULTI, 1, "key1", "arg1"));
+	}
+
+	@Test
+	public void testRestoreBadData() {
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> connection.restore("testing".getBytes(), 0, "foo".getBytes()));
+	}
+
+	@Test
+	@Disabled
+	public void testRestoreExistingKey() {
 	}
 
 	@Test
 	public void testExecWithoutMulti() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testExecWithoutMulti());
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> connection.exec());
 	}
 
 	@Test
 	public void testErrorInTx() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testErrorInTx());
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> {
+			connection.multi();
+			connection.set("foo", "bar");
+			// Try to do a list op on a value
+			connection.lPop("foo");
+			connection.exec();
+			getResults();
+		});
 	}
 
 	/**
@@ -323,7 +319,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test
-	public void testPoolNPE() {
+	void testPoolNPE() {
 
 		JedisPoolConfig config = new JedisPoolConfig();
 		config.setMaxTotal(1);
@@ -346,7 +342,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 	@SuppressWarnings("unchecked")
 	@Test // DATAREDIS-285
-	public void testExecuteShouldConvertArrayReplyCorrectly() {
+	void testExecuteShouldConvertArrayReplyCorrectly() {
 		connection.set("spring", "awesome");
 		connection.set("data", "cool");
 		connection.set("redis", "supercalifragilisticexpialidocious");
@@ -358,7 +354,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test // DATAREDIS-286, DATAREDIS-564
-	public void expireShouldSupportExiprationForValuesLargerThanInteger() {
+	void expireShouldSupportExiprationForValuesLargerThanInteger() {
 
 		connection.set("expireKey", "foo");
 
@@ -370,7 +366,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test // DATAREDIS-286
-	public void pExpireShouldSupportExiprationForValuesLargerThanInteger() {
+	void pExpireShouldSupportExiprationForValuesLargerThanInteger() {
 
 		connection.set("pexpireKey", "foo");
 
@@ -385,8 +381,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test // DATAREDIS-330
-	@RequiresRedisSentinel(SentinelsAvailable.ONE_ACTIVE)
-	public void shouldReturnSentinelCommandsWhenWhenActiveSentinelFound() {
+	@EnabledOnRedisSentinelAvailable
+	void shouldReturnSentinelCommandsWhenWhenActiveSentinelFound() {
 
 		((JedisConnection) byteConnection).setSentinelConfiguration(
 				new RedisSentinelConfiguration().master("mymaster").sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
@@ -394,12 +390,12 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test // DATAREDIS-552
-	public void shouldSetClientName() {
+	void shouldSetClientName() {
 		assertThat(connection.getClientName()).isEqualTo("jedis-client");
 	}
 
 	@Test // DATAREDIS-106
-	public void zRangeByScoreTest() {
+	void zRangeByScoreTest() {
 
 		connection.zAdd("myzset", 1, "one");
 		connection.zAdd("myzset", 2, "two");

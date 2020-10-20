@@ -16,67 +16,73 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assume.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 
-import org.junit.Test;
+import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveCommandsTestsBase {
+public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveCommandsTestSupport {
 
-	@Test // DATAREDIS-525
-	public void pfAddShouldAddToNonExistingKeyCorrectly() {
+	public LettuceReactiveHyperLogLogCommandsTests(Fixture fixture) {
+		super(fixture);
+	}
+
+	@ParameterizedRedisTest // DATAREDIS-525
+	void pfAddShouldAddToNonExistingKeyCorrectly() {
 
 		assertThat(connection.hyperLogLogCommands()
 				.pfAdd(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER)).block()).isEqualTo(1L);
 	}
 
-	@Test // DATAREDIS-525
-	public void pfAddShouldReturnZeroWhenValueAlreadyExists() {
+	@ParameterizedRedisTest // DATAREDIS-525
+	void pfAddShouldReturnZeroWhenValueAlreadyExists() {
 
-		nativeCommands.pfadd(KEY_1, new String[] { VALUE_1, VALUE_2 });
-		nativeCommands.pfadd(KEY_1, new String[] { VALUE_3 });
+		nativeCommands.pfadd(KEY_1, VALUE_1, VALUE_2);
+		nativeCommands.pfadd(KEY_1, VALUE_3);
 
-		assertThat(connection.hyperLogLogCommands().pfAdd(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER)).block())
+		assertThat(
+				connection.hyperLogLogCommands().pfAdd(KEY_1_BBUFFER, Collections.singletonList(VALUE_1_BBUFFER)).block())
 				.isEqualTo(0L);
 	}
 
-	@Test // DATAREDIS-525
-	public void pfCountShouldReturnCorrectly() {
+	@ParameterizedRedisTest // DATAREDIS-525
+	void pfCountShouldReturnCorrectly() {
 
-		nativeCommands.pfadd(KEY_1, new String[] { VALUE_1, VALUE_2 });
+		nativeCommands.pfadd(KEY_1, VALUE_1, VALUE_2);
 
 		assertThat(connection.hyperLogLogCommands().pfCount(KEY_1_BBUFFER).block()).isEqualTo(2L);
 	}
 
-	@Test // DATAREDIS-525
-	public void pfCountWithMultipleKeysShouldReturnCorrectly() {
+	@ParameterizedRedisTest // DATAREDIS-525
+	void pfCountWithMultipleKeysShouldReturnCorrectly() {
 
-		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
+		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
 
-		nativeCommands.pfadd(KEY_1, new String[] { VALUE_1, VALUE_2 });
-		nativeCommands.pfadd(KEY_2, new String[] { VALUE_2, VALUE_3 });
+		nativeCommands.pfadd(KEY_1, VALUE_1, VALUE_2);
+		nativeCommands.pfadd(KEY_2, VALUE_2, VALUE_3);
 
 		assertThat(connection.hyperLogLogCommands().pfCount(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block())
 				.isEqualTo(3L);
 	}
 
-	@Test // DATAREDIS-525
-	public void pfMergeShouldWorkCorrectly() {
+	@ParameterizedRedisTest // DATAREDIS-525
+	void pfMergeShouldWorkCorrectly() {
 
-		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
+		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
 
-		nativeCommands.pfadd(KEY_1, new String[] { VALUE_1, VALUE_2 });
-		nativeCommands.pfadd(KEY_2, new String[] { VALUE_2, VALUE_3 });
+		nativeCommands.pfadd(KEY_1, VALUE_1, VALUE_2);
+		nativeCommands.pfadd(KEY_2, VALUE_2, VALUE_3);
 
 		assertThat(
 				connection.hyperLogLogCommands().pfMerge(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block())
 						.isTrue();
 
-		assertThat(nativeCommands.pfcount(new String[] { KEY_3 })).isEqualTo(3L);
+		assertThat(nativeCommands.pfcount(KEY_3)).isEqualTo(3L);
 	}
 }

@@ -749,7 +749,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 
 				hashKeySerializer(RedisSerializer.byteArray());
 				hashValueSerializer(RedisSerializer.byteArray());
-				return (StreamMessageListenerContainerOptionsBuilder) objectMapper(new ObjectHashMapper());
+				return (StreamMessageListenerContainerOptionsBuilder) objectMapper(ObjectHashMapper.getSharedInstance());
 			}
 
 			return (StreamMessageListenerContainerOptionsBuilder) this;

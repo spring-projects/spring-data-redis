@@ -168,12 +168,12 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 	static class ComplexObject {
 
-		String stringValue;
-		SimpleObject simpleObject;
+		public String stringValue;
+		public SimpleObject simpleObject;
 
 		public ComplexObject() {}
 
-		ComplexObject(String stringValue, SimpleObject simpleObject) {
+		public ComplexObject(String stringValue, SimpleObject simpleObject) {
 			this.stringValue = stringValue;
 			this.simpleObject = simpleObject;
 		}
@@ -203,11 +203,11 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 	static class SimpleObject {
 
-		Long longValue;
+		public Long longValue;
 
 		public SimpleObject() {}
 
-		SimpleObject(Long longValue) {
+		public SimpleObject(Long longValue) {
 			this.longValue = longValue;
 		}
 

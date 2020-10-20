@@ -22,18 +22,17 @@ import redis.clients.jedis.JedisPoolConfig;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
-import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Integration test of {@link JedisConnection} pipeline functionality
@@ -43,11 +42,11 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Thomas Darimont
  * @author Mark Paluch
  */
-@RunWith(RelaxedJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
 public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionPipelineIntegrationTests {
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		try {
 			connection.flushAll();
@@ -61,7 +60,7 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 		connection = null;
 	}
 
-	@Ignore("Jedis issue: Pipeline tries to return String instead of List<String>")
+	@Disabled("Jedis issue: Pipeline tries to return String instead of List<String>")
 	public void testGetConfig() {}
 
 	@Test
@@ -126,114 +125,98 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 
 	// Unsupported Ops
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptLoadEvalSha() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testScriptLoadEvalSha);
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayStrings() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalShaArrayStrings);
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayBytes() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalShaArrayBytes);
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void testEvalShaNotFound() {}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void testEvalShaArrayError() {}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnString() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnString);
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnNumber() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnNumber);
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleOK() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnSingleOK);
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void testEvalReturnSingleError() {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnFalse() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnFalse);
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnTrue() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnTrue);
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayStrings() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnArrayStrings);
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayNumbers() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnArrayNumbers);
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayOKs() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnArrayOKs);
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayFalses() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnArrayFalses);
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayTrues() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnArrayTrues);
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptExists() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testScriptExists);
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptKill() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> connection.scriptKill());
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void testScriptFlush() {}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testInfoBySection() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testInfoBySection);
 	}
@@ -252,6 +235,6 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	}
 
 	@Test // DATAREDIS-296
-	@Ignore
+	@Disabled
 	public void testExecWithoutMulti() {}
 }

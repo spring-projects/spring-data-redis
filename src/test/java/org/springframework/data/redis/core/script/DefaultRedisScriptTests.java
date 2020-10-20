@@ -17,7 +17,7 @@ package org.springframework.data.redis.core.script;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scripting.support.ResourceScriptSource;
@@ -30,10 +30,10 @@ import org.springframework.scripting.support.StaticScriptSource;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public class DefaultRedisScriptTests {
+class DefaultRedisScriptTests {
 
 	@Test
-	public void testGetSha1() {
+	void testGetSha1() {
 
 		StaticScriptSource script = new StaticScriptSource("return KEYS[1]");
 		DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
@@ -44,11 +44,11 @@ public class DefaultRedisScriptTests {
 		assertThat(redisScript.getSha1()).isEqualTo(sha1);
 		script.setScript("return KEYS[2]");
 		// Sha should now be different as script text has changed
-		assertThat(sha1.equals(redisScript.getSha1())).isFalse();
+		assertThat(sha1).isNotEqualTo(redisScript.getSha1());
 	}
 
 	@Test
-	public void testGetScriptAsString() {
+	void testGetScriptAsString() {
 
 		DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
 		redisScript.setScriptText("return ARGS[1]");
@@ -57,26 +57,27 @@ public class DefaultRedisScriptTests {
 	}
 
 	@Test // DATAREDIS-1030
-	public void testGetScriptAsStringFromResource() {
+	void testGetScriptAsStringFromResource() {
 
 		RedisScript<String> redisScript = RedisScript
 				.of(new ClassPathResource("org/springframework/data/redis/core/script/cas.lua"));
 		assertThat(redisScript.getScriptAsString()).startsWith("local current = redis.call('GET', KEYS[1])");
 	}
 
-	@Test(expected = ScriptingException.class)
-	public void testGetScriptAsStringError() {
+	@Test
+	void testGetScriptAsStringError() {
 
 		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
 		redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("nonexistent")));
 		redisScript.setResultType(Long.class);
-		redisScript.getScriptAsString();
+
+		assertThatExceptionOfType(ScriptingException.class).isThrownBy(redisScript::getScriptAsString);
 	}
 
-	@Test(expected = IllegalStateException.class)
-	public void initializeWithNoScript() throws Exception {
+	@Test
+	void initializeWithNoScript() throws Exception {
 
 		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
-		redisScript.afterPropertiesSet();
+		assertThatIllegalStateException().isThrownBy(redisScript::afterPropertiesSet);
 	}
 }

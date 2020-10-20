@@ -17,7 +17,6 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Offset.offset;
-import static org.junit.Assume.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,8 +36,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
 import org.springframework.data.geo.Point;
 import org.springframework.data.keyvalue.annotation.KeySpace;
-import org.springframework.data.redis.ConnectionFactoryTracker;
-import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
@@ -50,6 +47,7 @@ import org.springframework.data.redis.core.index.GeoIndexed;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 
 /**
  * Integration tests for {@link RedisKeyValueAdapter}.
@@ -290,9 +288,8 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-425
+	@EnabledIfLongRunningTest
 	void keyExpiredEventShouldRemoveHelperStructures() throws Exception {
-
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());
@@ -318,9 +315,8 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-744
+	@EnabledIfLongRunningTest
 	void keyExpiredEventShouldRemoveHelperStructuresForObjectsWithColonInId() throws Exception {
-
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("_class", Person.class.getName());
@@ -346,9 +342,8 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // DATAREDIS-589
+	@EnabledIfLongRunningTest
 	void keyExpiredEventWithoutKeyspaceShouldBeIgnored() throws Exception {
-
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", Person.class.getName());

@@ -21,11 +21,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -34,8 +37,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 /**
  * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
-public class AbstractRedisCollectionUnitTests {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class AbstractRedisCollectionUnitTests {
 
 	private AbstractRedisCollection<String> collection;
 
@@ -45,8 +49,8 @@ public class AbstractRedisCollectionUnitTests {
 	private @Mock RedisConnection connectionMock;
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		redisTemplateSpy = spy(new RedisTemplate() {
 
@@ -93,7 +97,7 @@ public class AbstractRedisCollectionUnitTests {
 
 	@SuppressWarnings("unchecked")
 	@Test // DATAREDIS-188
-	public void testRenameOfEmptyCollectionShouldNotTriggerRedisOperation() {
+	void testRenameOfEmptyCollectionShouldNotTriggerRedisOperation() {
 
 		collection.rename("new-key");
 		verify(redisTemplateSpy, never()).rename(eq("key"), eq("new-key"));
@@ -101,7 +105,7 @@ public class AbstractRedisCollectionUnitTests {
 
 	@SuppressWarnings("unchecked")
 	@Test // DATAREDIS-188
-	public void testRenameCollectionShouldTriggerRedisOperation() {
+	void testRenameCollectionShouldTriggerRedisOperation() {
 
 		when(redisTemplateSpy.hasKey(any())).thenReturn(Boolean.TRUE);
 

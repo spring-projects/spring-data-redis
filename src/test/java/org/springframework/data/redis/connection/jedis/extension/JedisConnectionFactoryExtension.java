@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis.extension;
 
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.JedisShardInfo;
-
+import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,38 +54,38 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 	private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace
 			.create(JedisConnectionFactoryExtension.class);
 
+	private static final JedisClientConfiguration CLIENT_CONFIGURATION = JedisClientConfiguration.builder()
+			.clientName("jedis-client").usePooling().build();
+
 	private static final Lazy<JedisConnectionFactory> STANDALONE = Lazy.of(() -> {
 
-		JedisClientConfiguration configuration = JedisClientConfiguration.builder().usePooling().build();
+		ManagedJedisConnectionFactory factory = new ManagedJedisConnectionFactory(SettingsUtils.standaloneConfiguration(),
+				CLIENT_CONFIGURATION);
 
-		JedisConnectionFactory factory = new ManagedJedisConnectionFactory(SettingsUtils.standaloneConfiguration(),
-				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(ShutdownQueue.toCloseable(factory));
+		ShutdownQueue.register(factory.toCloseable());
 
 		return factory;
 	});
 
 	private static final Lazy<JedisConnectionFactory> SENTINEL = Lazy.of(() -> {
 
-		JedisClientConfiguration configuration = JedisClientConfiguration.builder().usePooling().build();
+		ManagedJedisConnectionFactory factory = new ManagedJedisConnectionFactory(SettingsUtils.sentinelConfiguration(),
+				CLIENT_CONFIGURATION);
 
-		JedisConnectionFactory factory = new ManagedJedisConnectionFactory(SettingsUtils.sentinelConfiguration(),
-				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(ShutdownQueue.toCloseable(factory));
+		ShutdownQueue.register(factory.toCloseable());
 
 		return factory;
 	});
 
 	private static final Lazy<JedisConnectionFactory> CLUSTER = Lazy.of(() -> {
 
-		JedisClientConfiguration configuration = JedisClientConfiguration.builder().usePooling().build();
+		ManagedJedisConnectionFactory factory = new ManagedJedisConnectionFactory(SettingsUtils.clusterConfiguration(),
+				CLIENT_CONFIGURATION);
 
-		JedisConnectionFactory factory = new ManagedJedisConnectionFactory(SettingsUtils.clusterConfiguration(),
-				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(ShutdownQueue.toCloseable(factory));
+		ShutdownQueue.register(factory.toCloseable());
 
 		return factory;
 	});
@@ -146,51 +144,32 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 	static class ManagedJedisConnectionFactory extends JedisConnectionFactory
 			implements ConnectionFactoryTracker.Managed {
 
-		public ManagedJedisConnectionFactory() {
-			super();
-		}
+		private volatile boolean mayClose;
 
-		public ManagedJedisConnectionFactory(JedisShardInfo shardInfo) {
-			super(shardInfo);
-		}
-
-		public ManagedJedisConnectionFactory(JedisPoolConfig poolConfig) {
-			super(poolConfig);
-		}
-
-		public ManagedJedisConnectionFactory(RedisSentinelConfiguration sentinelConfig) {
-			super(sentinelConfig);
-		}
-
-		public ManagedJedisConnectionFactory(RedisSentinelConfiguration sentinelConfig, JedisPoolConfig poolConfig) {
-			super(sentinelConfig, poolConfig);
-		}
-
-		public ManagedJedisConnectionFactory(RedisClusterConfiguration clusterConfig) {
-			super(clusterConfig);
-		}
-
-		public ManagedJedisConnectionFactory(RedisClusterConfiguration clusterConfig, JedisPoolConfig poolConfig) {
-			super(clusterConfig, poolConfig);
-		}
-
-		public ManagedJedisConnectionFactory(RedisStandaloneConfiguration standaloneConfig) {
-			super(standaloneConfig);
-		}
-
-		public ManagedJedisConnectionFactory(RedisStandaloneConfiguration standaloneConfig,
+		ManagedJedisConnectionFactory(RedisStandaloneConfiguration standaloneConfig,
 				JedisClientConfiguration clientConfig) {
 			super(standaloneConfig, clientConfig);
 		}
 
-		public ManagedJedisConnectionFactory(RedisSentinelConfiguration sentinelConfig,
+		ManagedJedisConnectionFactory(RedisSentinelConfiguration sentinelConfig,
 				JedisClientConfiguration clientConfig) {
 			super(sentinelConfig, clientConfig);
 		}
 
-		public ManagedJedisConnectionFactory(RedisClusterConfiguration clusterConfig,
+		ManagedJedisConnectionFactory(RedisClusterConfiguration clusterConfig,
 				JedisClientConfiguration clientConfig) {
 			super(clusterConfig, clientConfig);
+		}
+
+		@Override
+		public void destroy() {
+
+			if (!mayClose) {
+				throw new IllegalStateException(
+						"Prematurely attempted to close ManagedJedisConnectionFactory. Shutdown hook didn't run yet which means that the test run isn't finished yet. Please fix the tests so that they don't close this connection factory.");
+			}
+
+			super.destroy();
 		}
 
 		@Override
@@ -211,6 +190,17 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 			}
 
 			return builder.toString();
+		}
+
+		Closeable toCloseable() {
+			return () -> {
+				try {
+					mayClose = true;
+					destroy();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			};
 		}
 	}
 }

@@ -27,11 +27,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder;
 import org.springframework.data.redis.connection.RedisServer;
@@ -40,10 +43,11 @@ import org.springframework.data.redis.connection.RedisServer;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
-public class LettuceSentinelConnectionUnitTests {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class LettuceSentinelConnectionUnitTests {
 
-	public static final String MASTER_ID = "mymaster";
+	private static final String MASTER_ID = "mymaster";
 
 	private @Mock RedisClient redisClientMock;
 
@@ -54,8 +58,8 @@ public class LettuceSentinelConnectionUnitTests {
 
 	private LettuceSentinelConnection connection;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		when(redisClientMock.connectSentinel()).thenReturn(connectionMock);
 		when(connectionMock.sync()).thenReturn(sentinelCommandsMock);
@@ -63,29 +67,29 @@ public class LettuceSentinelConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-348
-	public void shouldConnectAfterCreation() {
+	void shouldConnectAfterCreation() {
 		verify(redisClientMock, times(1)).connectSentinel();
 	}
 
 	@Test // DATAREDIS-348
-	public void failoverShouldBeSentCorrectly() {
+	void failoverShouldBeSentCorrectly() {
 
 		connection.failover(new RedisNodeBuilder().withName(MASTER_ID).build());
 		verify(sentinelCommandsMock, times(1)).failover(eq(MASTER_ID));
 	}
 
 	@Test // DATAREDIS-348
-	public void failoverShouldThrowExceptionIfMasterNodeIsNull() {
+	void failoverShouldThrowExceptionIfMasterNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.failover(null));
 	}
 
 	@Test // DATAREDIS-348
-	public void failoverShouldThrowExceptionIfMasterNodeNameIsEmpty() {
+	void failoverShouldThrowExceptionIfMasterNodeNameIsEmpty() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.failover(new RedisNodeBuilder().build()));
 	}
 
 	@Test // DATAREDIS-348
-	public void mastersShouldReadMastersCorrectly() {
+	void mastersShouldReadMastersCorrectly() {
 
 		when(sentinelCommandsMock.masters()).thenReturn(Collections.<Map<String, String>> emptyList());
 		connection.masters();
@@ -93,7 +97,7 @@ public class LettuceSentinelConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-348
-	public void shouldReadSlavesCorrectly() {
+	void shouldReadSlavesCorrectly() {
 
 		when(sentinelCommandsMock.slaves(MASTER_ID)).thenReturn(Collections.<Map<String, String>> emptyList());
 		connection.slaves(MASTER_ID);
@@ -101,7 +105,7 @@ public class LettuceSentinelConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-348
-	public void shouldReadSlavesCorrectlyWhenGivenNamedNode() {
+	void shouldReadSlavesCorrectlyWhenGivenNamedNode() {
 
 		when(sentinelCommandsMock.slaves(MASTER_ID)).thenReturn(Collections.<Map<String, String>> emptyList());
 		connection.slaves(new RedisNodeBuilder().withName(MASTER_ID).build());
@@ -109,44 +113,44 @@ public class LettuceSentinelConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-348
-	public void readSlavesShouldThrowExceptionWhenGivenEmptyMasterName() {
+	void readSlavesShouldThrowExceptionWhenGivenEmptyMasterName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.slaves(""));
 	}
 
 	@Test // DATAREDIS-348
-	public void readSlavesShouldThrowExceptionWhenGivenNull() {
+	void readSlavesShouldThrowExceptionWhenGivenNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.slaves((RedisNode) null));
 	}
 
 	@Test // DATAREDIS-348
-	public void readSlavesShouldThrowExceptionWhenNodeWithoutName() {
+	void readSlavesShouldThrowExceptionWhenNodeWithoutName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.slaves(new RedisNodeBuilder().build()));
 	}
 
 	@Test // DATAREDIS-348
-	public void shouldRemoveMasterCorrectlyWhenGivenNamedNode() {
+	void shouldRemoveMasterCorrectlyWhenGivenNamedNode() {
 
 		connection.remove(new RedisNodeBuilder().withName(MASTER_ID).build());
 		verify(sentinelCommandsMock, times(1)).remove(eq(MASTER_ID));
 	}
 
 	@Test // DATAREDIS-348
-	public void removeShouldThrowExceptionWhenGivenEmptyMasterName() {
+	void removeShouldThrowExceptionWhenGivenEmptyMasterName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.remove(""));
 	}
 
 	@Test // DATAREDIS-348
-	public void removeShouldThrowExceptionWhenGivenNull() {
+	void removeShouldThrowExceptionWhenGivenNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.remove((RedisNode) null));
 	}
 
 	@Test // DATAREDIS-348
-	public void removeShouldThrowExceptionWhenNodeWithoutName() {
+	void removeShouldThrowExceptionWhenNodeWithoutName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.remove(new RedisNodeBuilder().build()));
 	}
 
 	@Test // DATAREDIS-348
-	public void monitorShouldBeSentCorrectly() {
+	void monitorShouldBeSentCorrectly() {
 
 		RedisServer server = new RedisServer("127.0.0.1", 6382);
 		server.setName("anothermaster");

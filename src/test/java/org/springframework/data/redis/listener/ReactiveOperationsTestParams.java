@@ -22,14 +22,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.junit.runners.model.Statement;
-
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.data.redis.test.util.RedisClusterRule;
 
 /**
  * Parameters for testing implementations of {@link ReactiveRedisMessageListenerContainer}
@@ -66,18 +64,7 @@ class ReactiveOperationsTestParams {
 	}
 
 	private static boolean clusterAvailable() {
-
-		try {
-			new RedisClusterRule().apply(new Statement() {
-				@Override
-				public void evaluate() {
-
-				}
-			}, null).evaluate();
-		} catch (Throwable throwable) {
-			return false;
-		}
-		return true;
+		return RedisDetector.isClusterAvailable();
 	}
 
 }

@@ -21,8 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.core.index.IndexConfiguration;
@@ -38,26 +38,26 @@ import org.springframework.expression.spel.SpelEvaluationException;
  */
 public class SpelIndexResolverUnitTests {
 
-	String keyspace;
+	private String keyspace;
 
-	String indexName;
+	private String indexName;
 
-	String username;
+	private String username;
 
-	SpelIndexResolver resolver;
+	private SpelIndexResolver resolver;
 
-	Session session;
+	private Session session;
 
-	ClassTypeInformation<?> typeInformation;
+	private ClassTypeInformation<?> typeInformation;
 
-	String securityContextAttrName;
+	private String securityContextAttrName;
 
-	RedisMappingContext mappingContext;
+	private RedisMappingContext mappingContext;
 
 	RedisPersistentEntity<?> entity;
 
-	@Before
-	public void setup() {
+	@BeforeEach
+	void setup() {
 
 		username = "rob";
 		keyspace = "spring:session:sessions";
@@ -70,20 +70,20 @@ public class SpelIndexResolverUnitTests {
 		resolver = createWithExpression("getAttribute('" + securityContextAttrName + "')?.authentication?.name");
 	}
 
-	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
-	public void constructorNullRedisMappingContext() {
+	@Test // DATAREDIS-425
+	void constructorNullRedisMappingContext() {
 
 		mappingContext = null;
-		new SpelIndexResolver(mappingContext);
+		assertThatIllegalArgumentException().isThrownBy(() -> new SpelIndexResolver(mappingContext));
 	}
 
 	@Test // DATAREDIS-425
-	public void constructorNullSpelExpressionParser() {
+	void constructorNullSpelExpressionParser() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new SpelIndexResolver(mappingContext, null));
 	}
 
 	@Test // DATAREDIS-425
-	public void nullValue() {
+	void nullValue() {
 
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, null);
 
@@ -91,7 +91,7 @@ public class SpelIndexResolverUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void wrongKeyspace() {
+	void wrongKeyspace() {
 
 		typeInformation = ClassTypeInformation.from(String.class);
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, "");
@@ -100,7 +100,7 @@ public class SpelIndexResolverUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void sessionAttributeNull() {
+	void sessionAttributeNull() {
 
 		session = new Session();
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, session);
@@ -109,23 +109,24 @@ public class SpelIndexResolverUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	public void resolvePrincipalName() {
+	void resolvePrincipalName() {
 
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, session);
 
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(keyspace, indexName, username));
 	}
 
-	@Test(expected = SpelEvaluationException.class) // DATAREDIS-425
-	public void spelError() {
+	@Test // DATAREDIS-425
+	void spelError() {
 
 		session.setAttribute(securityContextAttrName, "");
 
-		resolver.resolveIndexesFor(typeInformation, session);
+		assertThatExceptionOfType(SpelEvaluationException.class)
+				.isThrownBy(() -> resolver.resolveIndexesFor(typeInformation, session));
 	}
 
 	@Test // DATAREDIS-425
-	public void withBeanAndThis() {
+	void withBeanAndThis() {
 
 		this.resolver = createWithExpression("@bean.run(#this)");
 		this.resolver.setBeanResolver((context, beanName) -> new Object() {
@@ -168,7 +169,7 @@ public class SpelIndexResolverUnitTests {
 
 		private Map<String, Object> sessionAttrs = new HashMap<>();
 
-		public void setAttribute(String attrName, Object attrValue) {
+		void setAttribute(String attrName, Object attrValue) {
 			this.sessionAttrs.put(attrName, attrValue);
 		}
 
@@ -180,7 +181,7 @@ public class SpelIndexResolverUnitTests {
 	static class SecurityContextImpl {
 		private final Authentication authentication;
 
-		public SecurityContextImpl(Authentication authentication) {
+		SecurityContextImpl(Authentication authentication) {
 			this.authentication = authentication;
 		}
 
@@ -192,7 +193,7 @@ public class SpelIndexResolverUnitTests {
 	public static class Authentication {
 		private final String principalName;
 
-		public Authentication(String principalName) {
+		Authentication(String principalName) {
 			this.principalName = principalName;
 		}
 

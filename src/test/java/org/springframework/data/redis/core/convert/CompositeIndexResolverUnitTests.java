@@ -21,36 +21,36 @@ import static org.mockito.Mockito.*;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.data.util.TypeInformation;
 
 /**
  * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
-public class CompositeIndexResolverUnitTests {
+@ExtendWith(MockitoExtension.class)
+class CompositeIndexResolverUnitTests {
 
 	@Mock IndexResolver resolver1;
 	@Mock IndexResolver resolver2;
 	@Mock TypeInformation<?> typeInfoMock;
 
 	@Test // DATAREDIS-425
-	public void shouldRejectNull() {
+	void shouldRejectNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new CompositeIndexResolver(null));
 	}
 
 	@Test // DATAREDIS-425
-	public void shouldRejectCollectionWithNullValues() {
+	void shouldRejectCollectionWithNullValues() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new CompositeIndexResolver(Arrays.asList(resolver1, null, resolver2)));
 	}
 
 	@Test // DATAREDIS-425
-	public void shouldCollectionIndexesFromResolvers() {
+	void shouldCollectionIndexesFromResolvers() {
 
 		when(resolver1.resolveIndexesFor(any(TypeInformation.class), any())).thenReturn(
 				Collections.<IndexedData> singleton(new SimpleIndexedPropertyValue("spring", "data", "redis")));

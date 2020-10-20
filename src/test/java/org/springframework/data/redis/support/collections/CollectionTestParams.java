@@ -23,20 +23,18 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
 import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
  * @author Costin Leau
@@ -48,14 +46,7 @@ public abstract class CollectionTestParams {
 
 	public static Collection<Object[]> testParams() {
 
-		// XStream serializer
-		XStreamMarshaller xstream = new XStreamMarshaller();
-		try {
-			xstream.afterPropertiesSet();
-		} catch (Exception ex) {
-			throw new RuntimeException("Cannot init XStream", ex);
-		}
-		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
+		OxmSerializer serializer = XstreamOxmSerializerSingleton.getInstance();
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 		StringRedisSerializer stringSerializer = StringRedisSerializer.UTF_8;
 

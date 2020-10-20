@@ -17,9 +17,6 @@ package org.springframework.data.redis.test.condition;
 
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.*;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.Optional;
 
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
@@ -48,15 +45,13 @@ class EnabledOnRedisClusterCondition implements ExecutionCondition {
 
 		if (optional.isPresent()) {
 
-			try (Socket socket = new Socket()) {
-				socket.connect(new InetSocketAddress(SettingsUtils.getHost(), SettingsUtils.getClusterPort()), 100);
-
+			if (RedisDetector.isClusterAvailable()) {
 				return enabled(String.format("Connection successful to Redis Cluster at %s:%d", SettingsUtils.getHost(),
 						SettingsUtils.getClusterPort()));
-			} catch (IOException e) {
-				return disabled(String.format("Cannot connect to Redis Cluster at %s:%d (%s)", SettingsUtils.getHost(),
-						SettingsUtils.getClusterPort(), e));
 			}
+
+			return disabled(String.format("Cannot connect to Redis Cluster at %s:%d", SettingsUtils.getHost(),
+					SettingsUtils.getClusterPort()));
 		}
 
 		return ENABLED_BY_DEFAULT;

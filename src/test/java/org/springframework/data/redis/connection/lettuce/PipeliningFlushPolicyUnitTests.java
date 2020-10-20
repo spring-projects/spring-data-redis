@@ -20,21 +20,21 @@ import static org.springframework.data.redis.connection.lettuce.LettuceConnectio
 
 import io.lettuce.core.api.StatefulRedisConnection;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit tests for {@link PipeliningFlushPolicy}.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class PipeliningFlushPolicyUnitTests {
+@ExtendWith(MockitoExtension.class)
+class PipeliningFlushPolicyUnitTests {
 
 	@Mock StatefulRedisConnection<?, ?> connection;
 
 	@Test // DATAREDIS-1011
-	public void shouldFlushEachCommand() {
+	void shouldFlushEachCommand() {
 
 		PipeliningFlushPolicy policy = PipeliningFlushPolicy.flushEachCommand();
 
@@ -48,7 +48,7 @@ public class PipeliningFlushPolicyUnitTests {
 	}
 
 	@Test // DATAREDIS-1011
-	public void shouldFlushOnClose() {
+	void shouldFlushOnClose() {
 
 		PipeliningFlushPolicy policy = PipeliningFlushPolicy.flushOnClose();
 
@@ -69,7 +69,7 @@ public class PipeliningFlushPolicyUnitTests {
 	}
 
 	@Test // DATAREDIS-1011
-	public void shouldFlushOnBuffer() {
+	void shouldFlushOnBuffer() {
 
 		PipeliningFlushPolicy policy = PipeliningFlushPolicy.buffered(2);
 

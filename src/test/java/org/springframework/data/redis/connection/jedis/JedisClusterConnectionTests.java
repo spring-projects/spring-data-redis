@@ -25,7 +25,6 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.Distanc
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
-import org.junit.jupiter.api.TestInstance;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
@@ -39,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.dao.DataAccessException;
@@ -72,7 +72,6 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
 import org.springframework.data.redis.test.extension.JedisExtension;
 import org.springframework.data.redis.test.util.HexStringUtils;
-import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * @author Christoph Strobl
@@ -468,19 +467,16 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoAddMultipleGeoLocations() {
 		assertThat(clusterConnection.geoAdd(KEY_1_BYTES, Arrays.asList(PALERMO, ARIGENTO, CATANIA, PALERMO))).isEqualTo(3L);
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoAddSingleGeoLocation() {
 		assertThat(clusterConnection.geoAdd(KEY_1_BYTES, PALERMO)).isEqualTo(1L);
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoDist() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -493,7 +489,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoDistWithMetric() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -507,7 +502,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoHash() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -518,7 +512,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoHashNonExisting() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -530,7 +523,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoPosition() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -546,7 +538,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoPositionNonExisting() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -565,7 +556,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoRadiusByMemberShouldApplyLimit() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -579,7 +569,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoRadiusByMemberShouldReturnDistanceCorrectly() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -595,7 +584,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoRadiusByMemberShouldReturnMembersCorrectly() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -610,7 +598,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoRadiusShouldApplyLimit() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -624,7 +611,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoRadiusShouldReturnDistanceCorrectly() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -640,7 +626,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoRadiusShouldReturnMembersCorrectly() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -653,7 +638,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-438
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	public void geoRemoveDeletesMembers() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -1043,7 +1027,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void lPushNXShoultNotAddValuesWhenKeyDoesNotExist() {
+	public void lPushNXShouldNotAddValuesWhenKeyDoesNotExist() {
 
 		clusterConnection.lPushX(KEY_1_BYTES, VALUE_1_BYTES);
 
@@ -1051,7 +1035,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void lPushShoultAddValuesCorrectly() {
+	public void lPushShouldAddValuesCorrectly() {
 
 		clusterConnection.lPush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
 
@@ -1373,7 +1357,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void rPushNXShoultNotAddValuesWhenKeyDoesNotExist() {
+	public void rPushNXShouldNotAddValuesWhenKeyDoesNotExist() {
 
 		clusterConnection.rPushX(KEY_1_BYTES, VALUE_1_BYTES);
 
@@ -1381,7 +1365,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void rPushShoultAddValuesCorrectly() {
+	public void rPushShouldAddValuesCorrectly() {
 
 		clusterConnection.rPush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
 
@@ -2313,7 +2297,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-697
-	@IfProfileValue(name = "redisVersion", value = "2.8.7+")
 	void bitPosShouldReturnPositionCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, HexStringUtils.hexToBytes("fff000"));
@@ -2322,7 +2305,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-697
-	@IfProfileValue(name = "redisVersion", value = "2.8.7+")
 	void bitPosShouldReturnPositionInRangeCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, HexStringUtils.hexToBytes("fff0f0"));
@@ -2372,7 +2354,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-562
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	void bitFieldSetShouldWorkCorrectly() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
@@ -2382,7 +2363,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-562
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	void bitFieldGetShouldWorkCorrectly() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
@@ -2390,7 +2370,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-562
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	void bitFieldIncrByShouldWorkCorrectly() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
@@ -2398,7 +2377,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-562
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
@@ -2417,7 +2395,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-562
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	void bitfieldShouldAllowMultipleSubcommands() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
@@ -2426,7 +2403,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-562
-	@IfProfileValue(name = "redisVersion", value = "3.2+")
 	void bitfieldShouldWorkUsingNonZeroBasedOffset() {
 
 		assertThat(
@@ -2443,7 +2419,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-1005
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	void evalShouldRunScript() {
 
 		byte[] keyAndArgs = JedisConverters.toBytes("FOO");
@@ -2456,7 +2431,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-1005
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	void scriptLoadShouldLoadScript() {
 
 		String luaScript = "return redis.call(\"INCR\", KEYS[1])";
@@ -2469,7 +2443,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-1005
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	void scriptFlushShouldRemoveScripts() {
 
 		byte[] keyAndArgs = JedisConverters.toBytes("FOO");
@@ -2488,7 +2461,6 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-1005
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	void evelShaShouldRunScript() {
 
 		byte[] keyAndArgs = JedisConverters.toBytes("FOO");

@@ -71,6 +71,8 @@ import org.springframework.util.Assert;
  */
 public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 
+	@Nullable private volatile static ObjectHashMapper sharedInstance;
+
 	private final RedisConverter converter;
 
 	/**
@@ -118,6 +120,31 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 		mappingConverter.afterPropertiesSet();
 
 		converter = mappingConverter;
+	}
+
+	/**
+	 * Return a shared default {@value ObjectHashMapper} instance, lazily building it once needed.
+	 * <p>
+	 * <b>NOTE:</b> We highly recommend constructing individual {@link ObjectHashMapper} instances for customization
+	 * purposes. This accessor is only meant as a fallback for code paths which need simple type coercion but cannot
+	 * access a longer-lived {@link ObjectHashMapper} instance any other way.
+	 *
+	 * @return the shared {@link ObjectHashMapper} instance (never {@literal null}).
+	 * @since 2.4
+	 */
+	public static ObjectHashMapper getSharedInstance() {
+
+		ObjectHashMapper cs = sharedInstance;
+		if (cs == null) {
+			synchronized (ObjectHashMapper.class) {
+				cs = sharedInstance;
+				if (cs == null) {
+					cs = new ObjectHashMapper();
+					sharedInstance = cs;
+				}
+			}
+		}
+		return cs;
 	}
 
 	/*

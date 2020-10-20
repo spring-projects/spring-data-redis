@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce.extension;
 
+import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,13 +29,11 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
-import org.springframework.data.redis.connection.RedisConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettucePool;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.extension.RedisCluster;
@@ -63,10 +62,11 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		LettuceClientConfiguration configuration = LettucePoolingClientConfiguration.builder()
 				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
-		LettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.standaloneConfiguration(),
+		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(
+				SettingsUtils.standaloneConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(ShutdownQueue.toCloseable(factory));
+		ShutdownQueue.register(factory.toCloseable());
 
 		return factory;
 	});
@@ -76,10 +76,10 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		LettuceClientConfiguration configuration = LettucePoolingClientConfiguration.builder()
 				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
-		LettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.sentinelConfiguration(),
+		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.sentinelConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(ShutdownQueue.toCloseable(factory));
+		ShutdownQueue.register(factory.toCloseable());
 
 		return factory;
 	});
@@ -89,10 +89,10 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		LettuceClientConfiguration configuration = LettucePoolingClientConfiguration.builder()
 				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
-		LettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.clusterConfiguration(),
+		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.clusterConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(ShutdownQueue.toCloseable(factory));
+		ShutdownQueue.register(factory.toCloseable());
 
 		return factory;
 	});
@@ -102,10 +102,11 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
 				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
-		LettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.standaloneConfiguration(),
+		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(
+				SettingsUtils.standaloneConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(ShutdownQueue.toCloseable(factory));
+		ShutdownQueue.register(factory.toCloseable());
 
 		return factory;
 	});
@@ -115,10 +116,10 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
 				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
-		LettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.sentinelConfiguration(),
+		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.sentinelConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(ShutdownQueue.toCloseable(factory));
+		ShutdownQueue.register(factory.toCloseable());
 
 		return factory;
 	});
@@ -128,10 +129,10 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
 				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
-		LettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.clusterConfiguration(),
+		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.clusterConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(ShutdownQueue.toCloseable(factory));
+		ShutdownQueue.register(factory.toCloseable());
 
 		return factory;
 	});
@@ -208,52 +209,32 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 	static class ManagedLettuceConnectionFactory extends LettuceConnectionFactory
 			implements ConnectionFactoryTracker.Managed {
 
-		public ManagedLettuceConnectionFactory() {
-			super();
-		}
+		private volatile boolean mayClose;
 
-		public ManagedLettuceConnectionFactory(RedisStandaloneConfiguration configuration) {
-			super(configuration);
-		}
-
-		public ManagedLettuceConnectionFactory(String host, int port) {
-			super(host, port);
-		}
-
-		public ManagedLettuceConnectionFactory(RedisConfiguration redisConfiguration) {
-			super(redisConfiguration);
-		}
-
-		public ManagedLettuceConnectionFactory(RedisSentinelConfiguration sentinelConfiguration) {
-			super(sentinelConfiguration);
-		}
-
-		public ManagedLettuceConnectionFactory(RedisClusterConfiguration clusterConfiguration) {
-			super(clusterConfiguration);
-		}
-
-		public ManagedLettuceConnectionFactory(LettucePool pool) {
-			super(pool);
-		}
-
-		public ManagedLettuceConnectionFactory(RedisStandaloneConfiguration standaloneConfig,
+		ManagedLettuceConnectionFactory(RedisStandaloneConfiguration standaloneConfig,
 				LettuceClientConfiguration clientConfig) {
 			super(standaloneConfig, clientConfig);
 		}
 
-		public ManagedLettuceConnectionFactory(RedisConfiguration redisConfiguration,
-				LettuceClientConfiguration clientConfig) {
-			super(redisConfiguration, clientConfig);
-		}
-
-		public ManagedLettuceConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
+		ManagedLettuceConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
 				LettuceClientConfiguration clientConfig) {
 			super(sentinelConfiguration, clientConfig);
 		}
 
-		public ManagedLettuceConnectionFactory(RedisClusterConfiguration clusterConfiguration,
+		ManagedLettuceConnectionFactory(RedisClusterConfiguration clusterConfiguration,
 				LettuceClientConfiguration clientConfig) {
 			super(clusterConfiguration, clientConfig);
+		}
+
+		@Override
+		public void destroy() {
+
+			if (!mayClose) {
+				throw new IllegalStateException(
+						"Prematurely attempted to close ManagedLettuceConnectionFactory. Shutdown hook didn't run yet which means that the test run isn't finished yet. Please fix the tests so that they don't close this connection factory.");
+			}
+
+			super.destroy();
 		}
 
 		@Override
@@ -274,6 +255,17 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 			}
 
 			return builder.toString();
+		}
+
+		Closeable toCloseable() {
+			return () -> {
+				try {
+					mayClose = true;
+					destroy();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			};
 		}
 	}
 }

@@ -20,8 +20,8 @@ import static org.mockito.Mockito.*;
 
 import java.util.concurrent.Executor;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -36,7 +36,7 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-public class RedisMessageListenerContainerUnitTests {
+class RedisMessageListenerContainerUnitTests {
 
 	private final Object handler = new Object() {
 
@@ -53,8 +53,8 @@ public class RedisMessageListenerContainerUnitTests {
 	private Subscription subscriptionMock;
 	private Executor executorMock;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		executorMock = mock(Executor.class);
 		connectionFactoryMock = mock(LettuceConnectionFactory.class);
@@ -71,7 +71,7 @@ public class RedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // DATAREDIS-840
-	public void containerShouldStopGracefullyOnUnsubscribeErrors() {
+	void containerShouldStopGracefullyOnUnsubscribeErrors() {
 
 		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);
 		doThrow(new IllegalStateException()).when(subscriptionMock).pUnsubscribe();

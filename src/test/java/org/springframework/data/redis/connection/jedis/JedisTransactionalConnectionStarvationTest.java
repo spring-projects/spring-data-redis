@@ -15,7 +15,10 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.junit.Test;
+import redis.clients.jedis.JedisPoolConfig;
+
+import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,8 +31,6 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
-import redis.clients.jedis.JedisPoolConfig;
-
 /**
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -37,11 +38,11 @@ import redis.clients.jedis.JedisPoolConfig;
 @ContextConfiguration(classes = { PooledJedisContextConfiguration.class })
 public class JedisTransactionalConnectionStarvationTest extends AbstractTransactionalTestBase {
 
-	protected static final int MAX_CONNECTIONS = 5;
+	private static final int MAX_CONNECTIONS = 5;
 
 	@Autowired StringRedisTemplate template;
 
-	protected void tryOperations(int numOperationsToTry) {
+	void tryOperations(int numOperationsToTry) {
 
 		ValueOperations<String, String> ops = template.opsForValue();
 
@@ -52,19 +53,19 @@ public class JedisTransactionalConnectionStarvationTest extends AbstractTransact
 
 	@Test // DATAREDIS-332
 	@Rollback
-	public void testNumberOfOperationsIsOne() {
+	void testNumberOfOperationsIsOne() {
 		tryOperations(1);
 	}
 
 	@Test // DATAREDIS-332
 	@Rollback
-	public void testNumberOfOperationsEqualToNumberOfConnections() {
+	void testNumberOfOperationsEqualToNumberOfConnections() {
 		tryOperations(MAX_CONNECTIONS);
 	}
 
 	@Test // DATAREDIS-332
 	@Rollback
-	public void testNumberOfOperationsGreaterThanNumberOfConnections() {
+	void testNumberOfOperationsGreaterThanNumberOfConnections() {
 		tryOperations(MAX_CONNECTIONS + 1);
 	}
 

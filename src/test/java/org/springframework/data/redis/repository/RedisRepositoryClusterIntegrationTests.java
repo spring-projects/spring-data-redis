@@ -20,9 +20,8 @@ import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.ClassRule;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -31,10 +30,9 @@ import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
-import org.springframework.data.redis.test.util.RedisClusterRule;
+import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Christoph Strobl
@@ -42,15 +40,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
-public class RedisRepositoryClusterIntegrationTests extends RedisRepositoryIntegrationTestBase {
+@EnabledOnRedisClusterAvailable
+class RedisRepositoryClusterIntegrationTests extends RedisRepositoryIntegrationTestBase {
 
 	static final List<String> CLUSTER_NODES = Arrays.asList(CLUSTER_NODE_1.asString(), CLUSTER_NODE_2.asString(),
 			CLUSTER_NODE_3.asString());
-
-	/**
-	 * ONLY RUN WHEN CLUSTER AVAILABLE
-	 */
-	public static @ClassRule RedisClusterRule clusterRule = new RedisClusterRule();
 
 	@Configuration
 	@EnableRedisRepositories(considerNestedRepositories = true, indexConfiguration = MyIndexConfiguration.class,

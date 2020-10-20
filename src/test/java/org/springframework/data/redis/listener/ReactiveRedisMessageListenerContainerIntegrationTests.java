@@ -28,15 +28,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import org.awaitility.Awaitility;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
-import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
 import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
@@ -44,6 +38,8 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.test.extension.parametrized.MethodSource;
+import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.lang.Nullable;
 
 /**
@@ -51,20 +47,15 @@ import org.springframework.lang.Nullable;
  *
  * @author Mark Paluch
  */
-@RunWith(Parameterized.class)
+@MethodSource("testParams")
 public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
-	static final String CHANNEL1 = "my-channel";
-	static final String PATTERN1 = "my-chan*";
-	static final String MESSAGE = "hello world";
+	private static final String CHANNEL1 = "my-channel";
+	private static final String PATTERN1 = "my-chan*";
+	private static final String MESSAGE = "hello world";
 
 	private final LettuceConnectionFactory connectionFactory;
 	private @Nullable RedisConnection connection;
-
-	@Parameters(name = "{1}")
-	public static Collection<Object[]> testParams() {
-		return ReactiveOperationsTestParams.testParams();
-	}
 
 	/**
 	 * @param connectionFactory
@@ -75,21 +66,25 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		this.connectionFactory = connectionFactory;
 	}
 
-	@Before
-	public void before() {
+	public static Collection<Object[]> testParams() {
+		return ReactiveOperationsTestParams.testParams();
+	}
+
+	@BeforeEach
+	void before() {
 		connection = connectionFactory.getConnection();
 	}
 
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 
 		if (connection != null) {
 			connection.close();
 		}
 	}
 
-	@Test // DATAREDIS-612
-	public void shouldReceiveChannelMessages() {
+	@ParameterizedRedisTest // DATAREDIS-612
+	void shouldReceiveChannelMessages() {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 
@@ -106,8 +101,8 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		container.destroy();
 	}
 
-	@Test // DATAREDIS-612
-	public void shouldReceivePatternMessages() {
+	@ParameterizedRedisTest // DATAREDIS-612
+	void shouldReceivePatternMessages() {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 
@@ -125,8 +120,8 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		container.destroy();
 	}
 
-	@Test // DATAREDIS-612
-	public void shouldPublishAndReceiveMessage() throws InterruptedException {
+	@ParameterizedRedisTest // DATAREDIS-612
+	void shouldPublishAndReceiveMessage() throws InterruptedException {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 		ReactiveRedisTemplate<String, String> template = new ReactiveRedisTemplate<>(connectionFactory,
@@ -151,8 +146,8 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		container.destroy();
 	}
 
-	@Test // DATAREDIS-612
-	public void listenToChannelShouldReceiveChannelMessagesCorrectly() throws InterruptedException {
+	@ParameterizedRedisTest // DATAREDIS-612
+	void listenToChannelShouldReceiveChannelMessagesCorrectly() throws InterruptedException {
 
 		ReactiveRedisTemplate<String, String> template = new ReactiveRedisTemplate<>(connectionFactory,
 				RedisSerializationContext.string());
@@ -170,8 +165,8 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 				.verify();
 	}
 
-	@Test // DATAREDIS-612
-	public void listenToPatternShouldReceiveMessagesCorrectly() {
+	@ParameterizedRedisTest // DATAREDIS-612
+	void listenToPatternShouldReceiveMessagesCorrectly() {
 
 		ReactiveRedisTemplate<String, String> template = new ReactiveRedisTemplate<>(connectionFactory,
 				RedisSerializationContext.string());

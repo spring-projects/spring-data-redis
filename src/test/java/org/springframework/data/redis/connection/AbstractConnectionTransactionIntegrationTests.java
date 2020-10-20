@@ -20,10 +20,8 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Ignore;
-import org.junit.Test;
-
-import org.springframework.test.annotation.IfProfileValue;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Jennifer Hickey
@@ -32,23 +30,33 @@ import org.springframework.test.annotation.IfProfileValue;
  */
 abstract public class AbstractConnectionTransactionIntegrationTests extends AbstractConnectionIntegrationTests {
 
-	@Ignore
+	@Test
+	@Override
+	@Disabled
 	public void testMultiDiscard() {}
 
-	@Ignore
+	@Test
+	@Override
+	@Disabled
 	public void testMultiExec() {}
 
-	@Ignore
+	@Test
+	@Override
+	@Disabled
 	public void testUnwatch() {}
 
-	@Ignore
+	@Test
+	@Override
+	@Disabled
 	public void testWatch() {}
 
-	@Ignore
+	@Override
+	@Disabled
 	@Test
 	public void testExecWithoutMulti() {}
 
-	@Ignore
+	@Override
+	@Disabled
 	@Test
 	public void testErrorInTx() {}
 
@@ -58,76 +66,103 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 	 * clients to perform a push operation. *
 	 */
 
-	@Ignore
+	@Test
+	@Override
+	@Disabled
 	public void testBLPop() {}
 
-	@Ignore
+	@Test
+	@Override
+	@Disabled
 	public void testBRPop() {}
 
-	@Ignore
+	@Test
+	@Override
+	@Disabled
 	public void testBRPopLPush() {}
 
-	@Ignore
+	@Test
+	@Override
+	@Disabled
 	public void testBLPopTimeout() {}
 
-	@Ignore
+	@Test
+	@Override
+	@Disabled
 	public void testBRPopTimeout() {}
 
-	@Ignore
+	@Test
+	@Override
+	@Disabled
 	public void testBRPopLPushTimeout() {}
 
-	@Ignore("Pub/Sub not supported with transactions")
+	@Test
+	@Override
+	@Disabled("Pub/Sub not supported with transactions")
 	public void testPubSubWithNamedChannels() throws Exception {}
 
-	@Ignore("Pub/Sub not supported with transactions")
+	@Test
+	@Override
+	@Disabled("Pub/Sub not supported with transactions")
 	public void testPubSubWithPatterns() throws Exception {}
 
-	@Ignore
-	public void testNullKey() throws Exception {}
+	@Test
+	@Override
+	@Disabled
+	public void testNullKey() {}
 
-	@Ignore
-	public void testNullValue() throws Exception {}
+	@Test
+	@Override
+	@Disabled
+	public void testNullValue() {}
 
-	@Ignore
-	public void testHashNullKey() throws Exception {}
+	@Test
+	@Override
+	@Disabled
+	public void testHashNullKey() {}
 
-	@Ignore
-	public void testHashNullValue() throws Exception {}
+	@Test
+	@Override
+	@Disabled
+	public void testHashNullValue() {}
 
 	@Test
 	public void testWatchWhileInTx() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> connection.watch("foo".getBytes()));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	@Test
 	public void testScriptKill() {
 		// Impossible to call script kill in a tx because you can't issue the
 		// exec command while Redis is running a script
-		connection.scriptKill();
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> connection.scriptKill());
 	}
 
 	@Test // DATAREDIS-417
-	@Ignore
+	@Disabled
 	@Override
 	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {
 		super.scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection();
 	}
 
+	@Override
 	@Test
-	@Ignore
+	@Disabled
 	public void xClaim() throws InterruptedException {
 		super.xClaim();
 	}
 
+	@Override
 	protected void initConnection() {
 		connection.multi();
 	}
 
+	@Override
 	protected List<Object> getResults() {
 		return connection.exec();
 	}
 
+	@Override
 	protected void verifyResults(List<Object> expected) {
 		List<Object> expectedTx = new ArrayList<>();
 		for (int i = 0; i < actual.size(); i++) {

@@ -18,8 +18,6 @@ package org.springframework.data.redis.test.extension;
 import java.io.Closeable;
 import java.util.LinkedList;
 
-import org.springframework.beans.factory.DisposableBean;
-
 /**
  * Shutdown queue allowing ordered resource shutdown (LIFO).
  *
@@ -52,15 +50,5 @@ public enum ShutdownQueue {
 
 	public static void register(Closeable closeable) {
 		INSTANCE.closeables.add(closeable);
-	}
-
-	public static Closeable toCloseable(DisposableBean closeable) {
-		return () -> {
-			try {
-				closeable.destroy();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		};
 	}
 }

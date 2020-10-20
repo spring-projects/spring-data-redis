@@ -106,7 +106,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private final ValueOperations<K, V> valueOps = new DefaultValueOperations<>(this);
 	private final ListOperations<K, V> listOps = new DefaultListOperations<>(this);
 	private final SetOperations<K, V> setOps = new DefaultSetOperations<>(this);
-	private final StreamOperations<K, ?, ?> streamOps = new DefaultStreamOperations<>(this, new ObjectHashMapper());
+	private final StreamOperations<K, ?, ?> streamOps = new DefaultStreamOperations<>(this,
+			ObjectHashMapper.getSharedInstance());
 	private final ZSetOperations<K, V> zSetOps = new DefaultZSetOperations<>(this);
 	private final GeoOperations<K, V> geoOps = new DefaultGeoOperations<>(this);
 	private final HyperLogLogOperations<K, V> hllOps = new DefaultHyperLogLogOperations<>(this);

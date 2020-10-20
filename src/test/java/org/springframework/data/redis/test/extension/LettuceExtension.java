@@ -51,7 +51,6 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 
 import org.springframework.core.ResolvableType;
 import org.springframework.data.redis.SettingsUtils;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.util.Lazy;
 
 /**
@@ -186,6 +185,10 @@ public class LettuceExtension implements ParameterResolver, AfterAllCallback, Af
 		}).findFirst().orElseThrow(() -> new NoSuchElementException("Cannot find a factory for " + type));
 
 		return (Supplier) supplier;
+	}
+
+	public <T> T getInstance(Class<T> resourceType) {
+		return (T) doGetInstance(resourceType);
 	}
 
 	private Object doGetInstance(Type parameterizedType) {

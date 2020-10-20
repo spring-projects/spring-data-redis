@@ -21,18 +21,13 @@ import io.lettuce.core.ReadFrom;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
@@ -43,10 +38,9 @@ import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.extension.RedisSentinel;
-import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
-import org.springframework.data.redis.test.util.RedisSentinelRule;
 
 /**
  * Integration tests for Lettuce and Redis Sentinel interaction.
@@ -54,7 +48,8 @@ import org.springframework.data.redis.test.util.RedisSentinelRule;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-@RunWith(Parameterized.class)
+@ExtendWith(LettuceConnectionFactoryExtension.class)
+@EnabledOnRedisSentinelAvailable
 public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrationTests {
 
 	private static final String MASTER_NAME = "mymaster";
@@ -73,31 +68,11 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		SENTINEL_CONFIG.setDatabase(5);
 	}
 
-	public static @ClassRule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();
-	public @Rule MinimumRedisVersionRule minimumVersionRule = new MinimumRedisVersionRule();
-
-	public LettuceSentinelIntegrationTests(LettuceConnectionFactory connectionFactory, String displayName) {
-
+	public LettuceSentinelIntegrationTests(@RedisSentinel LettuceConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
 
-	@Parameters(name = "{1}")
-	public static List<Object[]> parameters() {
-
-		List<Object[]> parameters = new ArrayList<>();
-
-		LettuceConnectionFactory lettuceConnectionFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisSentinel.class, false);
-		LettuceConnectionFactory pooledConnectionFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisSentinel.class, true);
-
-		parameters.add(new Object[] { lettuceConnectionFactory, "Sentinel" });
-		parameters.add(new Object[] { pooledConnectionFactory, "Sentinel/Pooled" });
-
-		return parameters;
-	}
-
-	@After
+	@AfterEach
 	public void tearDown() {
 
 		try {
@@ -111,8 +86,20 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		connection.close();
 	}
 
+	@Test
+	@Disabled("SELECT not allowed on shared connections")
+	@Override
+	public void testMove() {}
+
+	@Test
+	@Disabled("SELECT not allowed on shared connections")
+	@Override
+	public void testSelect() {
+		super.testSelect();
+	}
+
 	@Test // DATAREDIS-348
-	public void shouldReadMastersCorrectly() {
+	void shouldReadMastersCorrectly() {
 
 		List<RedisServer> servers = (List<RedisServer>) connectionFactory.getSentinelConnection().masters();
 		assertThat(servers.size()).isEqualTo(1);
@@ -120,7 +107,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test // DATAREDIS-842, DATAREDIS-973
-	public void shouldUseSpecifiedDatabase() {
+	void shouldUseSpecifiedDatabase() {
 
 		RedisConnection connection = connectionFactory.getConnection();
 
@@ -136,22 +123,21 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		connectionFactory.afterPropertiesSet();
 
 		RedisConnection directConnection = connectionFactory.getConnection();
-		assertThat(directConnection.exists("foo".getBytes())).isTrue();
+		assertThat(directConnection.exists("foo".getBytes())).isFalse();
 		directConnection.select(0);
 
-		assertThat(directConnection.exists("foo".getBytes())).isFalse();
+		assertThat(directConnection.exists("foo".getBytes())).isTrue();
 		directConnection.close();
 		connectionFactory.destroy();
 	}
 
 	@Test // DATAREDIS-973
-	public void reactiveShouldUseSpecifiedDatabase() {
+	void reactiveShouldUseSpecifiedDatabase() {
 
 		RedisConnection connection = connectionFactory.getConnection();
 
 		connection.flushAll();
 		connection.set("foo".getBytes(), "bar".getBytes());
-		connection.close();
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
@@ -164,15 +150,16 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 
 		reactiveConnection.keyCommands().exists(ByteBuffer.wrap("foo".getBytes())) //
 				.as(StepVerifier::create) //
-				.expectNext(true) //
+				.expectNext(false) //
 				.verifyComplete();
 
 		reactiveConnection.close();
 		connectionFactory.destroy();
 	}
 
-	@Test // DATAREDIS-348
-	public void shouldReadSlavesOfMastersCorrectly() {
+	@Test
+	// DATAREDIS-348
+	void shouldReadSlavesOfMastersCorrectly() {
 
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
 
@@ -180,12 +167,11 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		assertThat(servers.size()).isEqualTo(1);
 
 		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
-		assertThat(slaves.size()).isEqualTo(2);
-		assertThat(slaves).contains(SLAVE_0, SLAVE_1);
+		assertThat(slaves).containsAnyOf(SLAVE_0, SLAVE_1);
 	}
 
 	@Test // DATAREDIS-462
-	public void factoryWorksWithoutClientResources() {
+	void factoryWorksWithoutClientResources() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG);
 		factory.setShutdownTimeout(0);
@@ -203,7 +189,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test // DATAREDIS-576
-	public void connectionAppliesClientName() {
+	void connectionAppliesClientName() {
 
 		LettuceClientConfiguration clientName = LettuceClientConfiguration.builder()
 				.clientResources(LettuceTestClientResources.getSharedClientResources()).clientName("clientName").build();
@@ -223,7 +209,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test // DATAREDIS-580
-	public void factoryWithReadFromMasterSettings() {
+	void factoryWithReadFromMasterSettings() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG,
 				LettuceTestClientConfiguration.builder().readFrom(ReadFrom.MASTER).build());
@@ -242,7 +228,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test // DATAREDIS-580
-	public void factoryWithReadFromSlaveSettings() {
+	void factoryWithReadFromSlaveSettings() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG,
 				LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE).build());
@@ -261,7 +247,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test // DATAREDIS-580
-	public void factoryUsesMasterSlaveConnections() {
+	void factoryUsesMasterSlaveConnections() {
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
 				.build();

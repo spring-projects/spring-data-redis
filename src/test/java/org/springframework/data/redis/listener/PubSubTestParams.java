@@ -18,13 +18,10 @@ package org.springframework.data.redis.listener;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.junit.runners.model.Statement;
-
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
@@ -32,9 +29,9 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.test.extension.LettuceTestClientResources;
+import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.RedisCluster;
-import org.springframework.data.redis.test.util.RedisClusterRule;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 
 /**
  * @author Costin Leau
@@ -49,11 +46,8 @@ public class PubSubTestParams {
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
-		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setUsePool(true);
-		jedisConnFactory.setPort(SettingsUtils.getPort());
-		jedisConnFactory.setHostName(SettingsUtils.getHost());
-		jedisConnFactory.setDatabase(2);
+		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		jedisConnFactory.afterPropertiesSet();
 
@@ -67,11 +61,8 @@ public class PubSubTestParams {
 		rawTemplate.afterPropertiesSet();
 
 		// add Lettuce
-		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
-		lettuceConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnFactory.setPort(SettingsUtils.getPort());
-		lettuceConnFactory.setHostName(SettingsUtils.getHost());
-		lettuceConnFactory.afterPropertiesSet();
+		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
 
 		RedisTemplate<String, String> stringTemplateLtc = new StringRedisTemplate(lettuceConnFactory);
 		RedisTemplate<String, Person> personTemplateLtc = new RedisTemplate<>();
@@ -111,17 +102,6 @@ public class PubSubTestParams {
 	}
 
 	private static boolean clusterAvailable() {
-
-		try {
-			new RedisClusterRule().apply(new Statement() {
-				@Override
-				public void evaluate() {
-
-				}
-			}, null).evaluate();
-		} catch (Throwable throwable) {
-			return false;
-		}
-		return true;
+		return RedisDetector.isClusterAvailable();
 	}
 }

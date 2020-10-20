@@ -17,7 +17,7 @@ package org.springframework.data.redis.core.convert;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.core.convert.MappingRedisConverter.BinaryKeyspaceIdentifier;
 
@@ -26,10 +26,10 @@ import org.springframework.data.redis.core.convert.MappingRedisConverter.BinaryK
  *
  * @author Mark Paluch
  */
-public class BinaryKeyspaceIdentifierUnitTests {
+class BinaryKeyspaceIdentifierUnitTests {
 
 	@Test // DATAREDIS-744
-	public void shouldReturnIfKeyIsValid() {
+	void shouldReturnIfKeyIsValid() {
 
 		assertThat(BinaryKeyspaceIdentifier.isValid("foo".getBytes())).isFalse();
 		assertThat(BinaryKeyspaceIdentifier.isValid("".getBytes())).isFalse();
@@ -39,7 +39,7 @@ public class BinaryKeyspaceIdentifierUnitTests {
 	}
 
 	@Test // DATAREDIS-744
-	public void shouldReturnKeyspace() {
+	void shouldReturnKeyspace() {
 
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).getKeyspace()).isEqualTo("foo".getBytes());
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).getKeyspace()).isEqualTo("foo".getBytes());
@@ -47,7 +47,7 @@ public class BinaryKeyspaceIdentifierUnitTests {
 	}
 
 	@Test // DATAREDIS-744
-	public void shouldReturnId() {
+	void shouldReturnId() {
 
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).getId()).isEqualTo("bar".getBytes());
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).getId()).isEqualTo("bar:baz".getBytes());
@@ -55,7 +55,7 @@ public class BinaryKeyspaceIdentifierUnitTests {
 	}
 
 	@Test // DATAREDIS-744
-	public void shouldReturnPhantomKey() {
+	void shouldReturnPhantomKey() {
 
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).isPhantomKey()).isFalse();
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).isPhantomKey()).isFalse();

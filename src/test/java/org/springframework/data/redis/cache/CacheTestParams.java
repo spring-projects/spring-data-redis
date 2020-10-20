@@ -15,16 +15,11 @@
  */
 package org.springframework.data.redis.cache;
 
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.junit.runners.model.Statement;
 
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -37,14 +32,16 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
+import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.RedisCluster;
 import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.data.redis.test.util.RedisClusterRule;
-import org.springframework.oxm.xstream.XStreamMarshaller;
-import org.springframework.util.StringUtils;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class CacheTestParams {
 
@@ -59,27 +56,26 @@ class CacheTestParams {
 		// Jedis Standalone
 		JedisConnectionFactory jedisConnectionFactory = JedisConnectionFactoryExtension
 				.getConnectionFactory(RedisStanalone.class);
-		factoryList.add(new FixDamnedJunitParameterizedNameForConnectionFactory(jedisConnectionFactory, ""));
+		factoryList.add(jedisConnectionFactory);
 
 		// Lettuce Standalone
 		LettuceConnectionFactory lettuceConnectionFactory = LettuceConnectionFactoryExtension
 				.getConnectionFactory(RedisStanalone.class);
-		factoryList.add(new FixDamnedJunitParameterizedNameForConnectionFactory(lettuceConnectionFactory, ""));
+		factoryList.add(lettuceConnectionFactory);
 
 		if (clusterAvailable()) {
-
 
 			// Jedis Cluster
 			JedisConnectionFactory jedisClusterConnectionFactory = JedisConnectionFactoryExtension
 					.getConnectionFactory(RedisCluster.class);
 			factoryList
-					.add(new FixDamnedJunitParameterizedNameForConnectionFactory(jedisClusterConnectionFactory, "cluster"));
+					.add(jedisClusterConnectionFactory);
 
 			// Lettuce Cluster
 			LettuceConnectionFactory lettuceClusterConnectionFactory = LettuceConnectionFactoryExtension
 					.getConnectionFactory(RedisCluster.class);
 			factoryList
-					.add(new FixDamnedJunitParameterizedNameForConnectionFactory(lettuceClusterConnectionFactory, "cluster"));
+					.add(lettuceClusterConnectionFactory);
 		}
 
 		return factoryList;
@@ -91,11 +87,7 @@ class CacheTestParams {
 
 	static Collection<Object[]> connectionFactoriesAndSerializers() {
 
-		// XStream serializer
-		XStreamMarshaller xstream = new XStreamMarshaller();
-		xstream.afterPropertiesSet();
-
-		OxmSerializer oxmSerializer = new OxmSerializer(xstream, xstream);
+		OxmSerializer oxmSerializer = XstreamOxmSerializerSingleton.getInstance();
 		GenericJackson2JsonRedisSerializer jackson2Serializer = new GenericJackson2JsonRedisSerializer();
 		JdkSerializationRedisSerializer jdkSerializer = new JdkSerializationRedisSerializer();
 
@@ -106,22 +98,55 @@ class CacheTestParams {
 				.collect(Collectors.toList());
 	}
 
-	@RequiredArgsConstructor
-	static class FixDamnedJunitParameterizedNameForConnectionFactory/* ¯\_(ツ)_/¯ */ implements RedisConnectionFactory {
-
-		final @Delegate RedisConnectionFactory connectionFactory;
-		final String addon;
-
-		@Override // Why Junit? Why?
-		public String toString() {
-			return connectionFactory.getClass().getSimpleName() + (StringUtils.hasText(addon) ? " - [" + addon + "]" : "");
-		}
-	}
-
-	@RequiredArgsConstructor
 	static class FixDamnedJunitParameterizedNameForRedisSerializer/* ¯\_(ツ)_/¯ */ implements RedisSerializer {
 
-		final @Delegate RedisSerializer serializer;
+		final RedisSerializer serializer;
+
+		FixDamnedJunitParameterizedNameForRedisSerializer(RedisSerializer serializer) {
+			this.serializer = serializer;
+		}
+
+		@Override
+		@Nullable
+		public byte[] serialize(@Nullable Object o) throws SerializationException {
+			return serializer.serialize(o);
+		}
+
+		@Override
+		@Nullable
+		public Object deserialize(@Nullable byte[] bytes) throws SerializationException {
+			return serializer.deserialize(bytes);
+		}
+
+		public static RedisSerializer<Object> java() {
+			return RedisSerializer.java();
+		}
+
+		public static RedisSerializer<Object> java(@Nullable ClassLoader classLoader) {
+			return RedisSerializer.java(classLoader);
+		}
+
+		public static RedisSerializer<Object> json() {
+			return RedisSerializer.json();
+		}
+
+		public static RedisSerializer<String> string() {
+			return RedisSerializer.string();
+		}
+
+		public static RedisSerializer<byte[]> byteArray() {
+			return RedisSerializer.byteArray();
+		}
+
+		@Override
+		public boolean canSerialize(Class type) {
+			return serializer.canSerialize(type);
+		}
+
+		@Override
+		public Class<?> getTargetType() {
+			return serializer.getTargetType();
+		}
 
 		@Override // Why Junit? Why?
 		public String toString() {
@@ -130,17 +155,6 @@ class CacheTestParams {
 	}
 
 	private static boolean clusterAvailable() {
-
-		try {
-			new RedisClusterRule().apply(new Statement() {
-				@Override
-				public void evaluate() throws Throwable {
-
-				}
-			}, null).evaluate();
-		} catch (Throwable throwable) {
-			return false;
-		}
-		return true;
+		return RedisDetector.isClusterAvailable();
 	}
 }

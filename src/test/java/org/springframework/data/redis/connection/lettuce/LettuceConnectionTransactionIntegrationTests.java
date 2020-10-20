@@ -19,15 +19,15 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
-import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Integration test of {@link LettuceConnection} functionality within a transaction
@@ -37,7 +37,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(RelaxedJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")
 public class LettuceConnectionTransactionIntegrationTests extends AbstractConnectionTransactionIntegrationTests {
 
@@ -68,6 +68,6 @@ public class LettuceConnectionTransactionIntegrationTests extends AbstractConnec
 
 	@Test
 	public void testSelect() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> super.testSelect());
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testSelect);
 	}
 }

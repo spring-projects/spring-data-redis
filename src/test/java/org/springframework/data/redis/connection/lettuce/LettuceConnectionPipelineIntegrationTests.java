@@ -16,26 +16,18 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assume.*;
 
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.awaitility.Awaitility;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.RedisVersionUtils;
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
-import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
-import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
-import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Integration test of {@link LettuceConnection} pipeline functionality
@@ -45,43 +37,13 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(RelaxedJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")
 public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectionPipelineIntegrationTests {
 
 	@Test
 	public void testSelect() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> super.testSelect());
-	}
-
-	@Test
-	@IfProfileValue(name = "runLongTests", value = "true")
-	public void testScriptKill() throws Exception {
-		getResults();
-		assumeTrue(RedisVersionUtils.atLeast("2.6", byteConnection));
-		initConnection();
-		final AtomicBoolean scriptDead = new AtomicBoolean(false);
-		Thread th = new Thread(() -> {
-			// Use separate conn factory to avoid using the underlying shared native conn on blocking script
-			final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
-					SettingsUtils.getPort());
-			factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
-			factory2.afterPropertiesSet();
-			DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
-			try {
-				conn2.eval("local time=1 while time < 10000000000 do time=time+1 end", ReturnType.BOOLEAN, 0);
-			} catch (DataAccessException e) {
-				scriptDead.set(true);
-			}
-			conn2.close();
-			factory2.destroy();
-		});
-		th.start();
-		Thread.sleep(1000);
-		connection.scriptKill();
-		getResults();
-
-		Awaitility.await().untilTrue(scriptDead);
 	}
 
 	@Test

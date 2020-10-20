@@ -660,7 +660,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@SuppressWarnings("unchecked")
 	public <HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream(
 			RedisSerializationContext<K, ?> serializationContext) {
-		return opsForStream(serializationContext, (HashMapper) new ObjectHashMapper());
+		return opsForStream(serializationContext, (HashMapper) ObjectHashMapper.getSharedInstance());
 	}
 
 	protected <HK, HV> ReactiveStreamOperations<K, HK, HV> opsForStream(

@@ -24,19 +24,16 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
 import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
  * Parameters for testing implementations of {@link AbstractOperations}
@@ -56,14 +53,6 @@ abstract public class AbstractOperationsTestParams {
 		ObjectFactory<Double> doubleFactory = new DoubleObjectFactory();
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
-
-		// XStream serializer
-		XStreamMarshaller xstream = new XStreamMarshaller();
-		try {
-			xstream.afterPropertiesSet();
-		} catch (Exception ex) {
-			throw new RuntimeException("Cannot init XStream", ex);
-		}
 
 		LettuceConnectionFactory lettuceConnectionFactory = LettuceConnectionFactoryExtension
 				.getConnectionFactory(RedisStanalone.class);
@@ -93,7 +82,7 @@ abstract public class AbstractOperationsTestParams {
 		personTemplate.setConnectionFactory(lettuceConnectionFactory);
 		personTemplate.afterPropertiesSet();
 
-		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
+		OxmSerializer serializer = XstreamOxmSerializerSingleton.getInstance();
 		RedisTemplate<String, String> xstreamStringTemplate = new RedisTemplate<>();
 		xstreamStringTemplate.setConnectionFactory(lettuceConnectionFactory);
 		xstreamStringTemplate.setDefaultSerializer(serializer);

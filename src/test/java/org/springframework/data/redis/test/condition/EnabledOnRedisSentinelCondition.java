@@ -17,9 +17,6 @@ package org.springframework.data.redis.test.condition;
 
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.*;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.Optional;
 
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
@@ -50,15 +47,15 @@ class EnabledOnRedisSentinelCondition implements ExecutionCondition {
 		if (optional.isPresent()) {
 
 			EnabledOnRedisSentinelAvailable annotation = optional.get();
-			try (Socket socket = new Socket()) {
-				socket.connect(new InetSocketAddress(SettingsUtils.getHost(), annotation.value()), 100);
+
+			if (RedisDetector.canConnectToPort(annotation.value())) {
 
 				return enabled(String.format("Connection successful to Redis Sentinel at %s:%d", SettingsUtils.getHost(),
 						annotation.value()));
-			} catch (IOException e) {
-				return disabled(String.format("Cannot connect to Redis Sentinel at %s:%d (%s)", SettingsUtils.getHost(),
-						annotation.value(), e));
 			}
+
+			return disabled(
+					String.format("Cannot connect to Redis Sentinel at %s:%d", SettingsUtils.getHost(), annotation.value()));
 		}
 
 		return ENABLED_BY_DEFAULT;

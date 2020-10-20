@@ -26,9 +26,8 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.junit.After;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.PoolException;
@@ -43,12 +42,12 @@ import org.springframework.data.redis.test.extension.LettuceTestClientResources;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public class DefaultLettucePoolTests {
+class DefaultLettucePoolTests {
 
 	private DefaultLettucePool pool;
 
-	@After
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 
 		if (pool != null) {
 
@@ -61,7 +60,7 @@ public class DefaultLettucePoolTests {
 	}
 
 	@Test
-	public void testGetResource() {
+	void testGetResource() {
 
 		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
@@ -73,7 +72,7 @@ public class DefaultLettucePoolTests {
 	}
 
 	@Test
-	public void testGetResourcePoolExhausted() {
+	void testGetResourcePoolExhausted() {
 
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 		poolConfig.setMaxTotal(1);
@@ -92,7 +91,7 @@ public class DefaultLettucePoolTests {
 	}
 
 	@Test
-	public void testGetResourceValidate() {
+	void testGetResourceValidate() {
 
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 		poolConfig.setTestOnBorrow(true);
@@ -104,17 +103,17 @@ public class DefaultLettucePoolTests {
 		client.close();
 	}
 
-	@Test(expected = PoolException.class)
-	public void testGetResourceCreationUnsuccessful() throws Exception {
+	@Test
+	void testGetResourceCreationUnsuccessful() throws Exception {
 
 		pool = new DefaultLettucePool(SettingsUtils.getHost(), 3333);
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
-		pool.getResource();
+		assertThatExceptionOfType(PoolException.class).isThrownBy(() -> pool.getResource());
 	}
 
 	@Test
-	public void testReturnResource() {
+	void testReturnResource() {
 
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 		poolConfig.setMaxTotal(1);
@@ -130,7 +129,7 @@ public class DefaultLettucePoolTests {
 	}
 
 	@Test
-	public void testReturnBrokenResource() {
+	void testReturnBrokenResource() {
 
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 		poolConfig.setMaxTotal(1);
@@ -153,7 +152,7 @@ public class DefaultLettucePoolTests {
 	}
 
 	@Test
-	public void testCreateWithDbIndex() {
+	void testCreateWithDbIndex() {
 
 		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
@@ -162,42 +161,18 @@ public class DefaultLettucePoolTests {
 		assertThat(pool.getResource()).isNotNull();
 	}
 
-	@Test(expected = PoolException.class)
-	public void testCreateWithDbIndexInvalid() {
+	@Test
+	void testCreateWithDbIndexInvalid() {
 
 		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.setDatabase(17);
 		pool.afterPropertiesSet();
-		pool.getResource();
-	}
-
-	@Ignore("Redis must have requirepass set to run this test")
-	@Test
-	public void testCreatePassword() {
-
-		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		pool.setPassword("foo");
-		pool.afterPropertiesSet();
-		StatefulRedisConnection<byte[], byte[]> client = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
-		client.sync().ping();
-		client.sync().getStatefulConnection().close();
-	}
-
-	@Ignore("Redis must have requirepass set to run this test")
-	@Test(expected = PoolException.class)
-	public void testCreateInvalidPassword() {
-
-		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		pool.setPassword("bad");
-		pool.afterPropertiesSet();
-		pool.getResource();
+		assertThatExceptionOfType(PoolException.class).isThrownBy(() -> pool.getResource());
 	}
 
 	@Test // DATAREDIS-524
-	public void testCreateSentinelWithPassword() {
+	void testCreateSentinelWithPassword() {
 
 		pool = new DefaultLettucePool(new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234")));
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
@@ -210,7 +185,7 @@ public class DefaultLettucePoolTests {
 	}
 
 	@Test // DATAREDIS-462
-	public void poolWorksWithoutClientResources() {
+	void poolWorksWithoutClientResources() {
 
 		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.setDatabase(1);
