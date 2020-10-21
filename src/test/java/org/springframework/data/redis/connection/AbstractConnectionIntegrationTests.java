@@ -1501,9 +1501,9 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void lPos() {
 
 		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
-		actual.add(connection.lPos("mylist", "c"));
+		actual.add(connection.lPos("mylist", "c", null, null));
 
-		assertThat((Long) getResults().get(1)).isEqualTo(2);
+		assertThat((List<Long>) getResults().get(1)).containsOnly(2L);
 	}
 
 	@Test // DATAREDIS-1196

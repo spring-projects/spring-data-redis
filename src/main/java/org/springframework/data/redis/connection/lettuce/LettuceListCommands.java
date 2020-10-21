@@ -83,7 +83,8 @@ class LettuceListCommands implements RedisListCommands {
 				if (count != null) {
 					pipeline(connection.newLettuceResult(getAsyncConnection().lpos(key, element, count, args)));
 				} else {
-					pipeline(connection.newLettuceResult(getAsyncConnection().lpos(key, element, args)));
+					pipeline(
+							connection.newLettuceResult(getAsyncConnection().lpos(key, element, args), Collections::singletonList));
 				}
 				return null;
 			}
@@ -91,7 +92,8 @@ class LettuceListCommands implements RedisListCommands {
 				if (count != null) {
 					transaction(connection.newLettuceResult(getAsyncConnection().lpos(key, element, count, args)));
 				} else {
-					transaction(connection.newLettuceResult(getAsyncConnection().lpos(key, element, args)));
+					transaction(
+							connection.newLettuceResult(getAsyncConnection().lpos(key, element, args), Collections::singletonList));
 				}
 				return null;
 			}
