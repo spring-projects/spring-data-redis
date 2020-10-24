@@ -45,6 +45,7 @@ import org.springframework.data.redis.core.types.Expiration;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Joongsoo Park
  */
 @RunWith(Parameterized.class)
 public class DefaultRedisCacheWriterTests {
@@ -320,9 +321,9 @@ public class DefaultRedisCacheWriterTests {
 			DefaultRedisCacheWriter writer = new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(50)) {
 
 				@Override
-				boolean doCheckLock(String name, RedisConnection connection) {
+				boolean tryLock(String name, RedisConnection connection) {
 					beforeWrite.countDown();
-					return super.doCheckLock(name, connection);
+					return super.tryLock(name, connection);
 				}
 			};
 
@@ -342,7 +343,7 @@ public class DefaultRedisCacheWriterTests {
 
 		afterWrite.await();
 
-		assertThat(exceptionRef.get()).hasMessageContaining("Interrupted while waiting to unlock")
+		assertThat(exceptionRef.get()).hasMessageContaining("Interrupted while waiting to acquire lock cache")
 				.hasCauseInstanceOf(InterruptedException.class);
 	}
 

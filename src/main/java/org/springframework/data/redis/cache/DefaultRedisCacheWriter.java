@@ -150,32 +150,20 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 		return execute(name, connection -> {
 
-			if (isLockingCacheWriter()) {
-				doLock(name, connection);
+			boolean put;
+
+			if (shouldExpireWithin(ttl)) {
+				put = connection.set(key, value, Expiration.from(ttl), SetOption.ifAbsent());
+			} else {
+				put = connection.setNX(key, value);
 			}
 
-			try {
-
-				boolean put;
-
-				if (shouldExpireWithin(ttl)) {
-					put = connection.set(key, value, Expiration.from(ttl), SetOption.ifAbsent());
-				} else {
-					put = connection.setNX(key, value);
-				}
-
-				if (put) {
-					statistics.incPuts(name);
-					return null;
-				}
-
-				return connection.get(key);
-			} finally {
-
-				if (isLockingCacheWriter()) {
-					doUnlock(name, connection);
-				}
+			if (put) {
+				statistics.incPuts(name);
+				return null;
 			}
+
+			return connection.get(key);
 		});
 	}
 
@@ -205,24 +193,12 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 		execute(name, connection -> {
 
-			try {
+			byte[][] keys = Optional.ofNullable(connection.keys(pattern)).orElse(Collections.emptySet())
+					.toArray(new byte[0][]);
 
-				if (isLockingCacheWriter()) {
-					doLock(name, connection);
-				}
-
-				byte[][] keys = Optional.ofNullable(connection.keys(pattern)).orElse(Collections.emptySet())
-						.toArray(new byte[0][]);
-
-				if (keys.length > 0) {
-					statistics.incDeletesBy(name, keys.length);
-					connection.del(keys);
-				}
-			} finally {
-
-				if (isLockingCacheWriter()) {
-					doUnlock(name, connection);
-				}
+			if (keys.length > 0) {
+				statistics.incDeletesBy(name, keys.length);
+				connection.del(keys);
 			}
 
 			return "OK";
@@ -263,11 +239,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 */
 	void lock(String name) {
 
-		execute(name, connection -> {
-
-			doLock(name, connection);
-			return null;
-		});
+		executeLockFree(connection -> doLock(name, connection));
 	}
 
 	/**
@@ -279,15 +251,26 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		executeLockFree(connection -> doUnlock(name, connection));
 	}
 
+	/**
+	 * Explicitly try set a write lock on a cache.
+	 *
+	 * @param name the name of the cache to unlock.
+	 * @param connection must not be {@literal null}.
+	 */
+	boolean tryLock(String name, RedisConnection connection) {
+		return connection.setNX(createCacheLockKey(name), new byte[0]);
+	}
+
 	private void doLock(String name, RedisConnection connection) {
 
 		if (!isLockingCacheWriter()) {
 			return;
 		}
 
+		long lockWaitTimeNs = System.nanoTime();
 		try {
 
-			while (!connection.setNX(createCacheLockKey(name), new byte[0])) {
+			while (!tryLock(name, connection)) {
 				Thread.sleep(sleepTime.toMillis());
 			}
 		} catch (InterruptedException ex) {
@@ -297,15 +280,13 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 			throw new PessimisticLockingFailureException(String.format("Interrupted while waiting to acquire lock cache %s", name),
 					ex);
+		} finally {
+			statistics.incLockTime(name, System.nanoTime() - lockWaitTimeNs);
 		}
 	}
 
 	private Long doUnlock(String name, RedisConnection connection) {
 		return connection.del(createCacheLockKey(name));
-	}
-
-	boolean doCheckLock(String name, RedisConnection connection) {
-		return connection.exists(createCacheLockKey(name));
 	}
 
 	/**
@@ -320,8 +301,19 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		RedisConnection connection = connectionFactory.getConnection();
 		try {
 
-			checkAndPotentiallyWaitUntilUnlocked(name, connection);
-			return callback.apply(connection);
+			try {
+
+				if (isLockingCacheWriter()) {
+					doLock(name, connection);
+				}
+
+				return callback.apply(connection);
+			} finally {
+
+				if (isLockingCacheWriter()) {
+					doUnlock(name, connection);
+				}
+			}
 		} finally {
 			connection.close();
 		}
@@ -335,30 +327,6 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			callback.accept(connection);
 		} finally {
 			connection.close();
-		}
-	}
-
-	private void checkAndPotentiallyWaitUntilUnlocked(String name, RedisConnection connection) {
-
-		if (!isLockingCacheWriter()) {
-			return;
-		}
-
-		long lockWaitTimeNs = System.nanoTime();
-		try {
-
-			while (doCheckLock(name, connection)) {
-				Thread.sleep(sleepTime.toMillis());
-			}
-		} catch (InterruptedException ex) {
-
-			// Re-interrupt current thread, to allow other participants to react.
-			Thread.currentThread().interrupt();
-
-			throw new PessimisticLockingFailureException(String.format("Interrupted while waiting to unlock cache %s", name),
-					ex);
-		} finally {
-			statistics.incLockTime(name, System.nanoTime() - lockWaitTimeNs);
 		}
 	}
 
