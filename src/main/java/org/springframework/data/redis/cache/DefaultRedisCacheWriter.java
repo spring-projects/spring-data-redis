@@ -254,7 +254,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	/**
 	 * Explicitly try set a write lock on a cache.
 	 *
-	 * @param name the name of the cache to unlock.
+	 * @param name the name of the cache to lock.
 	 * @param connection must not be {@literal null}.
 	 */
 	boolean tryLock(String name, RedisConnection connection) {
