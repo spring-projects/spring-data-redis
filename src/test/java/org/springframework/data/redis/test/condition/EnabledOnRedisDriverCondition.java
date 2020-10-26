@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,13 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.function.Try;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.junit.platform.commons.util.ReflectionUtils;
-
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 /**
  * {@link ExecutionCondition} for {@link EnabledOnRedisDriverCondition @EnabledOnRedisDriver}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @see EnabledOnRedisDriver
  */
 class EnabledOnRedisDriverCondition implements ExecutionCondition {
@@ -47,43 +47,42 @@ class EnabledOnRedisDriverCondition implements ExecutionCondition {
 		Optional<EnabledOnRedisDriver> optional = AnnotationUtils.findAnnotation(context.getElement(),
 				EnabledOnRedisDriver.class);
 
-		if (optional.isPresent()) {
-
-			EnabledOnRedisDriver annotation = optional.get();
-			Class<?> testClass = context.getRequiredTestClass();
-
-			List<Field> annotatedFields = AnnotationUtils.findAnnotatedFields(testClass,
-					EnabledOnRedisDriver.DriverQualifier.class,
-					it -> RedisConnectionFactory.class.isAssignableFrom(it.getType()));
-
-			if (annotatedFields.isEmpty()) {
-				throw new IllegalStateException(
-						"@WithRedisDriver requires a field of type RedisConnectionFactory annotated with @DriverQualifier!");
-			}
-
-			for (Field field : annotatedFields) {
-				Try<Object> fieldValue = ReflectionUtils.tryToReadFieldValue(field, context.getRequiredTestInstance());
-
-				RedisConnectionFactory value = (RedisConnectionFactory) fieldValue
-						.getOrThrow(e -> new IllegalStateException("Cannot read field " + field, e));
-
-				boolean foundMatch = false;
-				for (RedisDriver redisDriver : annotation.value()) {
-					if (redisDriver.matches(value)) {
-						foundMatch = true;
-					}
-				}
-
-				if (!foundMatch) {
-					return disabled(String.format("Driver %s not supported. Supported driver(s): %s",
-							value, Arrays.toString(annotation.value())));
-				}
-			}
-
-			return enabled("Found enabled driver(s): " + Arrays.toString(annotation.value()));
+		if (!optional.isPresent()) {
+			return ENABLED_BY_DEFAULT;
 		}
 
-		return ENABLED_BY_DEFAULT;
+		EnabledOnRedisDriver annotation = optional.get();
+		Class<?> testClass = context.getRequiredTestClass();
+
+		List<Field> annotatedFields = AnnotationUtils.findAnnotatedFields(testClass,
+				EnabledOnRedisDriver.DriverQualifier.class, it -> RedisConnectionFactory.class.isAssignableFrom(it.getType()));
+
+		if (annotatedFields.isEmpty()) {
+			throw new IllegalStateException(
+					"@WithRedisDriver requires a field of type RedisConnectionFactory annotated with @DriverQualifier!");
+		}
+
+		for (Field field : annotatedFields) {
+			Try<Object> fieldValue = ReflectionUtils.tryToReadFieldValue(field, context.getRequiredTestInstance());
+
+			RedisConnectionFactory value = (RedisConnectionFactory) fieldValue
+					.getOrThrow(e -> new IllegalStateException("Cannot read field " + field, e));
+
+			boolean foundMatch = false;
+			for (RedisDriver redisDriver : annotation.value()) {
+				if (redisDriver.matches(value)) {
+					foundMatch = true;
+				}
+			}
+
+			if (!foundMatch) {
+				return disabled(String.format("Driver %s not supported. Supported driver(s): %s", value,
+						Arrays.toString(annotation.value())));
+			}
+		}
+
+		return enabled("Found enabled driver(s): " + Arrays.toString(annotation.value()));
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.AnnotationUtils;
-
 import org.springframework.data.redis.SettingsUtils;
 
 /**
  * {@link ExecutionCondition} for {@link EnabledOnRedisClusterCondition @EnabledOnRedisClusterAvailable}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @see EnabledOnRedisClusterCondition
  */
 class EnabledOnRedisClusterCondition implements ExecutionCondition {
@@ -43,18 +43,17 @@ class EnabledOnRedisClusterCondition implements ExecutionCondition {
 		Optional<EnabledOnRedisClusterAvailable> optional = AnnotationUtils.findAnnotation(context.getElement(),
 				EnabledOnRedisClusterAvailable.class);
 
-		if (optional.isPresent()) {
+		if (!optional.isPresent()) {
+			return ENABLED_BY_DEFAULT;
+		}
 
-			if (RedisDetector.isClusterAvailable()) {
-				return enabled(String.format("Connection successful to Redis Cluster at %s:%d", SettingsUtils.getHost(),
-						SettingsUtils.getClusterPort()));
-			}
-
-			return disabled(String.format("Cannot connect to Redis Cluster at %s:%d", SettingsUtils.getHost(),
+		if (RedisDetector.isClusterAvailable()) {
+			return enabled(String.format("Connection successful to Redis Cluster at %s:%d", SettingsUtils.getHost(),
 					SettingsUtils.getClusterPort()));
 		}
 
-		return ENABLED_BY_DEFAULT;
+		return disabled(String.format("Cannot connect to Redis Cluster at %s:%d", SettingsUtils.getHost(),
+				SettingsUtils.getClusterPort()));
 	}
 
 }

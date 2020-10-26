@@ -29,10 +29,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.api.Assumptions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection.ByteBufferCodec;
+import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.LettuceExtension;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 
@@ -151,11 +152,14 @@ public abstract class LettuceReactiveCommandsTestSupport {
 	public void setUp() {
 
 		if (nativeConnectionProvider instanceof StandaloneConnectionProvider) {
+
 			nativeCommands = nativeConnectionProvider.getConnection(StatefulRedisConnection.class).sync();
 			nativeBinaryCommands = nativeBinaryConnectionProvider.getConnection(StatefulRedisConnection.class).sync();
 			this.connection = new LettuceReactiveRedisConnection(connectionProvider);
-
 		} else {
+
+			Assumptions.assumeThat(RedisDetector.isClusterAvailable()).isTrue();
+
 			ClusterConnectionProvider clusterConnectionProvider = (ClusterConnectionProvider) nativeConnectionProvider;
 			nativeCommands = nativeConnectionProvider.getConnection(StatefulRedisClusterConnection.class).sync();
 			nativeBinaryCommands = nativeBinaryConnectionProvider.getConnection(StatefulRedisClusterConnection.class).sync();

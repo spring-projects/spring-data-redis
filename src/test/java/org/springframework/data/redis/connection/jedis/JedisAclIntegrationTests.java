@@ -26,6 +26,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.test.condition.EnabledOnRedisAvailable;
 import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 
@@ -35,6 +36,7 @@ import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
  * @author Mark Paluch
  */
 @EnabledOnRedisVersion("6.0")
+@EnabledOnRedisAvailable(6382)
 class JedisAclIntegrationTests {
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@ import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.AnnotationUtils;
-
 import org.springframework.data.redis.SettingsUtils;
 
 /**
  * {@link ExecutionCondition} for {@link EnabledOnRedisAvailableCondition @EnabledOnRedisAvailable}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @see EnabledOnRedisAvailableCondition
  */
 class EnabledOnRedisAvailableCondition implements ExecutionCondition {
@@ -47,22 +47,21 @@ class EnabledOnRedisAvailableCondition implements ExecutionCondition {
 		Optional<EnabledOnRedisAvailable> optional = AnnotationUtils.findAnnotation(context.getElement(),
 				EnabledOnRedisAvailable.class);
 
-		if (optional.isPresent()) {
-
-			EnabledOnRedisAvailable annotation = optional.get();
-
-			try (Socket socket = new Socket()) {
-				socket.connect(new InetSocketAddress(SettingsUtils.getHost(), annotation.value()), 100);
-
-				return enabled(
-						String.format("Connection successful to Redis at %s:%d", SettingsUtils.getHost(), annotation.value()));
-			} catch (IOException e) {
-				return disabled(
-						String.format("Cannot connect to Redis at %s:%d (%s)", SettingsUtils.getHost(), annotation.value(), e));
-			}
+		if (!optional.isPresent()) {
+			return ENABLED_BY_DEFAULT;
 		}
 
-		return ENABLED_BY_DEFAULT;
+		EnabledOnRedisAvailable annotation = optional.get();
+
+		try (Socket socket = new Socket()) {
+			socket.connect(new InetSocketAddress(SettingsUtils.getHost(), annotation.value()), 100);
+
+			return enabled(
+					String.format("Connection successful to Redis at %s:%d", SettingsUtils.getHost(), annotation.value()));
+		} catch (IOException e) {
+			return disabled(
+					String.format("Cannot connect to Redis at %s:%d (%s)", SettingsUtils.getHost(), annotation.value(), e));
+		}
 	}
 
 }
