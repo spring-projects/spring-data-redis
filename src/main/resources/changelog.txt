@@ -1,6 +1,11 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.1.21.RELEASE (2020-10-28)
+----------------------------------------------
+* DATAREDIS-1236 - Release 2.1.21 (Lovelace SR21).
+
+
 Changes in version 2.4.0-RC2 (2020-10-14)
 -----------------------------------------
 * DATAREDIS-1231 - Use Jedis command routing if multiple BRPOP keys map to a single slot.
@@ -2111,6 +2116,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
