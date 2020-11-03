@@ -52,6 +52,25 @@ pipeline {
 						}
 					}
 				}
+				stage('Publish OpenJDK 15 + Redis 6.0 docker image') {
+					when {
+						anyOf {
+							changeset "ci/openjdk15-redis-6.0/**"
+							changeset "Makefile"
+						}
+					}
+					agent { label 'data' }
+					options { timeout(time: 20, unit: 'MINUTES') }
+
+					steps {
+						script {
+							def image = docker.build("springci/spring-data-openjdk15-with-redis-6.0", "-f ci/openjdk15-redis-6.0/Dockerfile .")
+							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+								image.push()
+							}
+						}
+					}
+				}
 			}
 		}
 
