@@ -25,6 +25,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public enum ReturnType {
 
@@ -62,15 +63,19 @@ public enum ReturnType {
 		if (javaType == null) {
 			return ReturnType.STATUS;
 		}
-		if (javaType.isAssignableFrom(List.class)) {
+
+		if (List.class.isAssignableFrom(javaType)) {
 			return ReturnType.MULTI;
 		}
+
 		if (javaType.isAssignableFrom(Boolean.class)) {
 			return ReturnType.BOOLEAN;
 		}
+
 		if (javaType.isAssignableFrom(Long.class)) {
 			return ReturnType.INTEGER;
 		}
+
 		return ReturnType.VALUE;
 	}
 }
