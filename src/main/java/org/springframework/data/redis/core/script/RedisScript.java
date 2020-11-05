@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @param <T> The script result type. Should be one of Long, Boolean, List, or deserialized value type. Can be
- *          {@litearl null} if the script returns a throw-away status (i.e "OK")
+ *          {@literal null} if the script returns a throw-away status (i.e "OK")
  */
 public interface RedisScript<T> {
 
@@ -57,7 +57,7 @@ public interface RedisScript<T> {
 	}
 
 	/**
-	 * Creates new {@link RedisScript} from {@link String}.
+	 * Creates new {@link RedisScript} from {@code script} as {@link String}.
 	 *
 	 * @param script must not be {@literal null}.
 	 * @return new instance of {@link RedisScript}.
@@ -68,19 +68,19 @@ public interface RedisScript<T> {
 	}
 
 	/**
-	 * Creates new {@link RedisScript} from {@link String}.
+	 * Creates new {@link RedisScript} from {@code script} as {@link String}.
 	 *
 	 * @param script must not be {@literal null}.
 	 * @param resultType must not be {@literal null}.
 	 * @return new instance of {@link RedisScript}.
 	 * @since 2.0
 	 */
-	static <T> RedisScript of(String script, Class<T> resultType) {
+	static <T> RedisScript<T> of(String script, Class<T> resultType) {
 
 		Assert.notNull(script, "Script must not be null!");
 		Assert.notNull(resultType, "ResultType must not be null!");
 
-		return new DefaultRedisScript(script, resultType);
+		return new DefaultRedisScript<>(script, resultType);
 	}
 
 	/**
