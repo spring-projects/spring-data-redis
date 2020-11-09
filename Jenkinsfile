@@ -85,7 +85,7 @@ pipeline {
 				docker {
 					image 'springci/spring-data-openjdk8-with-redis-6.0:latest'
 					label 'data'
-					args '-u root -v $HOME/.m2:/tmp/jenkins-home/.m2'
+					args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
 				}
 			}
 			options { timeout(time: 30, unit: 'MINUTES') }
@@ -107,7 +107,7 @@ pipeline {
 						docker {
 							image 'springci/spring-data-openjdk11-with-redis-6.0:latest'
 							label 'data'
-							args '-u root -v $HOME/.m2:/tmp/jenkins-home/.m2'
+							args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
 						}
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
@@ -120,7 +120,7 @@ pipeline {
 						docker {
 							image 'springci/spring-data-openjdk15-with-redis-6.0:latest'
 							label 'data'
-							args '-u root -v $HOME/.m2:/tmp/jenkins-home/.m2'
+							args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
 						}
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }

@@ -8,16 +8,16 @@ rm -f work
 cwd=$(pwd)
 
 # Launch Redis in proper configuration
-pushd / && make -f $cwd/Makefile start && popd
+pushd /tmp && ln -s /work && make -f $cwd/Makefile start && popd
 
 # Execute maven test
-MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean test -P${PROFILE} -DrunLongTests=${LONG_TESTS:-false} -U -B  -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-redis
+MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean test -P${PROFILE} -DrunLongTests=${LONG_TESTS:-false} -B
 
 # Capture resulting exit code from maven (pass/fail)
 RESULT=$?
 
 # Shutdown Redis
-pushd / && make -f $cwd/Makefile stop && popd
+pushd /tmp && make -f $cwd/Makefile stop && popd
 
 # Return maven results
 exit $RESULT
