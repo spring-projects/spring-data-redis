@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiNodeResult;
@@ -313,7 +314,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	@Override
 	public Long time() {
 		Long time = microseconds();
-		return  time == null ? null : time / 1000;
+		return  time == null ? null : TimeUnit.MICROSECONDS.toMillis(time);
 	}
 
 	/*

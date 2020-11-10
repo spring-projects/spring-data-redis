@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiNodeResult;
@@ -528,8 +529,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	}
 
 	private Long convertListOfStringToTime(List<String> serverTimeInformation) {
-
-		return convertListOfStringToMicros(serverTimeInformation) / 1000;
+		return TimeUnit.MICROSECONDS.toMillis(convertListOfStringToMicros(serverTimeInformation));
 	}
 
 	private Long convertListOfStringToMicros(List<String> serverTimeInformation) {

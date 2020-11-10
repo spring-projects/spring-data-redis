@@ -315,6 +315,17 @@ abstract public class Converters {
 	}
 
 	/**
+	 * Returns the timestamp constructed from the given {@code seconds} and {@code microseconds}.
+	 *
+	 * @param seconds server time in seconds
+	 * @param microseconds elapsed microseconds in current second
+	 * @return
+	 */
+	public static Long toTimeMillis(String seconds, String microseconds) {
+		return NumberUtils.parseNumber(seconds, Long.class) * 1000L
+				+ NumberUtils.parseNumber(microseconds, Long.class) / 1000L;
+	}
+	/**
 	 * Converts {@code seconds} to the given {@link TimeUnit}.
 	 *
 	 * @param seconds
