@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import java.util.List;
 
 import org.springframework.lang.Nullable;
+import org.springframework.util.ClassUtils;
 
 /**
  * Represents a data type returned from Redis, currently used to denote the expected return type of Redis scripting
@@ -64,15 +65,15 @@ public enum ReturnType {
 			return ReturnType.STATUS;
 		}
 
-		if (List.class.isAssignableFrom(javaType)) {
+		if (ClassUtils.isAssignable(List.class, javaType)) {
 			return ReturnType.MULTI;
 		}
 
-		if (javaType.isAssignableFrom(Boolean.class)) {
+		if (ClassUtils.isAssignable(Boolean.class, javaType)) {
 			return ReturnType.BOOLEAN;
 		}
 
-		if (javaType.isAssignableFrom(Long.class)) {
+		if (ClassUtils.isAssignable(Long.class, javaType)) {
 			return ReturnType.INTEGER;
 		}
 
