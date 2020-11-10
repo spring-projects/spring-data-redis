@@ -310,7 +310,7 @@ abstract public class Converters {
 	 * @return
 	 */
 	public static Long toTimeMicros(String seconds, String microseconds) {
-		return NumberUtils.parseNumber(seconds, Long.class) * 1000 * 1000L
+		return TimeUnit.SECONDS.toMicros(NumberUtils.parseNumber(seconds, Long.class))
 				+ NumberUtils.parseNumber(microseconds, Long.class);
 	}
 
