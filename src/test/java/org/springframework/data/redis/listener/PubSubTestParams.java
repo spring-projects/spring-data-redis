@@ -47,7 +47,7 @@ public class PubSubTestParams {
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getNewConnectionFactory(RedisStanalone.class);
 
 		jedisConnFactory.afterPropertiesSet();
 
@@ -84,7 +84,7 @@ public class PubSubTestParams {
 
 			// add Jedis
 			JedisConnectionFactory jedisClusterFactory = JedisConnectionFactoryExtension
-					.getConnectionFactory(RedisCluster.class);
+					.getNewConnectionFactory(RedisCluster.class);
 
 			RedisTemplate<String, String> jedisClusterStringTemplate = new StringRedisTemplate(jedisClusterFactory);
 

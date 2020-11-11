@@ -19,6 +19,7 @@ import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -57,7 +58,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 	private static final JedisClientConfiguration CLIENT_CONFIGURATION = JedisClientConfiguration.builder()
 			.clientName("jedis-client").usePooling().build();
 
-	private static final Lazy<JedisConnectionFactory> STANDALONE = Lazy.of(() -> {
+	private static final NewableLazy<JedisConnectionFactory> STANDALONE = NewableLazy.of(() -> {
 
 		ManagedJedisConnectionFactory factory = new ManagedJedisConnectionFactory(SettingsUtils.standaloneConfiguration(),
 				CLIENT_CONFIGURATION);
@@ -68,7 +69,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 		return factory;
 	});
 
-	private static final Lazy<JedisConnectionFactory> SENTINEL = Lazy.of(() -> {
+	private static final NewableLazy<JedisConnectionFactory> SENTINEL = NewableLazy.of(() -> {
 
 		ManagedJedisConnectionFactory factory = new ManagedJedisConnectionFactory(SettingsUtils.sentinelConfiguration(),
 				CLIENT_CONFIGURATION);
@@ -79,7 +80,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 		return factory;
 	});
 
-	private static final Lazy<JedisConnectionFactory> CLUSTER = Lazy.of(() -> {
+	private static final NewableLazy<JedisConnectionFactory> CLUSTER = NewableLazy.of(() -> {
 
 		ManagedJedisConnectionFactory factory = new ManagedJedisConnectionFactory(SettingsUtils.clusterConfiguration(),
 				CLIENT_CONFIGURATION);
@@ -90,7 +91,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 		return factory;
 	});
 
-	private static final Map<Class<?>, Lazy<JedisConnectionFactory>> factories;
+	private static final Map<Class<?>, NewableLazy<JedisConnectionFactory>> factories;
 
 	static {
 
@@ -101,14 +102,25 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 	}
 
 	/**
-	 * Obtain a {@link JedisConnectionFactory} described by {@code qualifier}. Instances are managed by this extension and
-	 * will be shut down on JVM shutdown.
+	 * Obtain a cached {@link JedisConnectionFactory} described by {@code qualifier}. Instances are managed by this
+	 * extension and will be shut down on JVM shutdown.
 	 *
 	 * @param qualifier an be any of {@link RedisStanalone}, {@link RedisSentinel}, {@link RedisCluster}.
 	 * @return the managed {@link JedisConnectionFactory}.
 	 */
 	public static JedisConnectionFactory getConnectionFactory(Class<? extends Annotation> qualifier) {
 		return factories.get(qualifier).get();
+	}
+
+	/**
+	 * Obtain a new {@link JedisConnectionFactory} described by {@code qualifier}. Instances are managed by this extension
+	 * and will be shut down on JVM shutdown.
+	 *
+	 * @param qualifier an be any of {@link RedisStanalone}, {@link RedisSentinel}, {@link RedisCluster}.
+	 * @return the managed {@link JedisConnectionFactory}.
+	 */
+	public static JedisConnectionFactory getNewConnectionFactory(Class<? extends Annotation> qualifier) {
+		return factories.get(qualifier).getNew();
 	}
 
 	@Override
@@ -139,6 +151,24 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 		}
 
 		return RedisStanalone.class;
+	}
+
+	static class NewableLazy<T> extends Lazy<T> {
+
+		private final Supplier<? extends T> supplier;
+
+		private NewableLazy(Supplier<? extends T> supplier) {
+			super(supplier);
+			this.supplier = supplier;
+		}
+
+		public static <T> NewableLazy<T> of(Supplier<? extends T> supplier) {
+			return new NewableLazy<>(supplier);
+		}
+
+		public T getNew() {
+			return supplier.get();
+		}
 	}
 
 	static class ManagedJedisConnectionFactory extends JedisConnectionFactory
