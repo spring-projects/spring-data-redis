@@ -357,7 +357,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 						if (logger.isDebugEnabled()) {
 							logger.debug(String.format("[stream: %s] onStreamMessage(%s): Buffering overflow", key, message));
 						}
-						overflow.add(message);
+						overflow.offer(message);
 					}
 				}
 
