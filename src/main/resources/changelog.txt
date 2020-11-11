@@ -1,6 +1,14 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.4.1 (2020-11-11)
+-------------------------------------
+* DATAREDIS-1248 - Use fresh JedisConnectionFactory in PubSubTests.
+* DATAREDIS-1246 - DefaultStreamReceiver.StreamSubscription's onStreamMessage() uses unimplemented method.
+* DATAREDIS-1245 - RedisScript<ArrayList> return type interpreted as VALUE.
+* DATAREDIS-1241 - Release 2.4.1 (2020.0.1).
+
+
 Changes in version 2.4.0 (2020-10-28)
 -------------------------------------
 * DATAREDIS-1237 - Upgrade to Lettuce 6.0.1.RELEASE.
@@ -2157,6 +2165,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
