@@ -69,7 +69,7 @@ class ConnectionSplittingInterceptorUnitTests {
 	@Test // DATAREDIS-73
 	void interceptorShouldRequestFreshConnectionForReadonlyCommand() throws Throwable {
 
-		interceptor.intercept(boundConnectionMock, READONLY_METHOD, new Object[] { new byte[] {} }, null);
+		interceptor.intercept(boundConnectionMock, READONLY_METHOD, new Object[] { new byte[] {} });
 		verify(connectionFactoryMock, times(1)).getConnection();
 		verifyZeroInteractions(boundConnectionMock);
 	}
@@ -77,7 +77,7 @@ class ConnectionSplittingInterceptorUnitTests {
 	@Test // DATAREDIS-73
 	void interceptorShouldUseBoundConnectionForWriteOperations() throws Throwable {
 
-		interceptor.intercept(boundConnectionMock, WRITE_METHOD, new Object[] { new byte[] {}, 0L }, null);
+		interceptor.intercept(boundConnectionMock, WRITE_METHOD, new Object[] { new byte[] {}, 0L });
 		verify(boundConnectionMock, times(1)).expire(any(byte[].class), anyLong());
 		verifyZeroInteractions(connectionFactoryMock);
 	}
@@ -90,7 +90,7 @@ class ConnectionSplittingInterceptorUnitTests {
 				InvalidDataAccessApiUsageException.class);
 
 		Assertions.assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(
-				() -> interceptor.intercept(boundConnectionMock, READONLY_METHOD, new Object[] { new byte[] {} }, null));
+				() -> interceptor.intercept(boundConnectionMock, READONLY_METHOD, new Object[] { new byte[] {} }));
 	}
 
 }
