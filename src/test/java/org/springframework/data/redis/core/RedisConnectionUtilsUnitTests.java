@@ -15,12 +15,21 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.support.AbstractPlatformTransactionManager;
+import org.springframework.transaction.support.DefaultTransactionStatus;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Unit tests for {@link RedisConnectionUtils}.
@@ -29,16 +38,188 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
  */
 class RedisConnectionUtilsUnitTests {
 
+	RedisConnection connectionMock1 = mock(RedisConnection.class);
+	RedisConnection connectionMock2 = mock(RedisConnection.class);
+	RedisConnectionFactory factoryMock = mock(RedisConnectionFactory.class);
+
+	@BeforeEach
+	void setUp() {
+
+		// cleanup to avoid lingering resources
+		TransactionSynchronizationManager.clear();
+
+		if (TransactionSynchronizationManager.isSynchronizationActive()) {
+			TransactionSynchronizationManager.clearSynchronization();
+		}
+
+		when(factoryMock.getConnection()).thenReturn(connectionMock1, connectionMock2);
+	}
+
 	@Test // DATAREDIS-1104
 	void shouldSilentlyCloseRedisConnection() {
 
-		RedisConnection connectionMock = mock(RedisConnection.class);
-		RedisConnectionFactory factoryMock = mock(RedisConnectionFactory.class);
+		Mockito.reset(connectionMock1);
+		doThrow(new IllegalStateException()).when(connectionMock1).close();
+		RedisConnectionUtils.releaseConnection(connectionMock1, factoryMock, false);
 
-		doThrow(new IllegalStateException()).when(connectionMock).close();
+		verify(connectionMock1).close();
+	}
 
-		RedisConnectionUtils.releaseConnection(connectionMock, factoryMock, false);
+	@Test // DATAREDIS-891
+	void bindConnectionShouldBindConnectionToClosureScope() {
 
-		verify(connectionMock).close();
+		assertThat(RedisConnectionUtils.bindConnection(factoryMock)).isSameAs(connectionMock1);
+		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isTrue();
+
+		assertThat(RedisConnectionUtils.getConnection(factoryMock)).isSameAs(connectionMock1);
+
+		RedisConnectionUtils.unbindConnection(factoryMock);
+		verifyNoInteractions(connectionMock1);
+
+		RedisConnectionUtils.unbindConnection(factoryMock);
+		verify(connectionMock1).close();
+
+		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
+	}
+
+	@Test // DATAREDIS-891
+	void getConnectionShouldBindConnectionToTransactionScopeWithReadOnlyTransaction() {
+
+		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
+		template.setReadOnly(true);
+
+		template.executeWithoutResult(status -> {
+
+			assertThat(RedisConnectionUtils.getConnection(factoryMock, true)).isSameAs(connectionMock1);
+			assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isTrue();
+			assertThat(RedisConnectionUtils.getConnection(factoryMock)).isSameAs(connectionMock1);
+
+			RedisConnectionUtils.releaseConnection(connectionMock1, factoryMock);
+			RedisConnectionUtils.releaseConnection(connectionMock1, factoryMock);
+
+			verifyNoInteractions(connectionMock1);
+		});
+
+		verify(connectionMock1).close();
+		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
+	}
+
+	@Test // DATAREDIS-891
+	void bindConnectionShouldBindConnectionToOngoingTransactionScope() {
+
+		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
+
+		template.executeWithoutResult(status -> {
+
+			assertThat(RedisConnectionUtils.bindConnection(factoryMock, true)).isNotNull();
+			assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isTrue();
+			assertThat(RedisConnectionUtils.getConnection(factoryMock)).isNotNull();
+
+			RedisConnectionUtils.releaseConnection(connectionMock1, factoryMock);
+			RedisConnectionUtils.releaseConnection(connectionMock1, factoryMock);
+
+			verify(connectionMock1).multi();
+			verifyNoMoreInteractions(connectionMock1);
+		});
+
+		verify(connectionMock1).close();
+		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
+	}
+
+	@Test // DATAREDIS-891
+	void bindConnectionShouldNotBindConnectionToTransactionWithoutTransaction() {
+
+		assertThat(RedisConnectionUtils.bindConnection(factoryMock, true)).isNotNull();
+		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isTrue();
+		assertThat(RedisConnectionUtils.getConnection(factoryMock)).isNotNull();
+
+		RedisConnectionUtils.releaseConnection(connectionMock1, factoryMock);
+		RedisConnectionUtils.releaseConnection(connectionMock1, factoryMock);
+
+		verify(connectionMock1).close();
+		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
+	}
+
+	@Test // DATAREDIS-891
+	void getConnectionShouldBindConnectionToTransactionScopeWithReadWriteTransaction() {
+
+		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
+
+		template.executeWithoutResult(status -> {
+
+			assertThat(RedisConnectionUtils.getConnection(factoryMock, true)).isNotNull();
+			assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isTrue();
+
+			RedisConnectionUtils.releaseConnection(connectionMock1, factoryMock);
+
+			verify(connectionMock1).multi();
+			verify(factoryMock, times(1)).getConnection();
+		});
+
+		verify(connectionMock1).close();
+		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
+	}
+
+	@Test // DATAREDIS-891
+	void getConnectionShouldNotBindConnectionToTransaction() {
+
+		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
+
+		template.executeWithoutResult(status -> {
+
+			assertThat(RedisConnectionUtils.getConnection(factoryMock)).isSameAs(connectionMock1);
+			assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
+
+			RedisConnectionUtils.releaseConnection(connectionMock1, factoryMock);
+
+			verify(factoryMock).getConnection();
+			verify(connectionMock1).close();
+		});
+
+		verifyNoMoreInteractions(factoryMock);
+		verifyNoMoreInteractions(connectionMock1);
+	}
+
+	@Test // DATAREDIS-891
+	void bindConnectionShouldNotBindConnectionToTransaction() {
+
+		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
+
+		template.executeWithoutResult(status -> {
+
+			assertThat(RedisConnectionUtils.bindConnection(factoryMock)).isSameAs(connectionMock1);
+			assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isTrue();
+
+			RedisConnectionUtils.unbindConnection(factoryMock);
+
+			verify(connectionMock1).close();
+			verify(factoryMock, times(1)).getConnection();
+		});
+
+		verifyNoMoreInteractions(factoryMock);
+		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
+	}
+
+	static class DummyTransactionManager extends AbstractPlatformTransactionManager {
+
+		@Override
+		protected Object doGetTransaction() throws TransactionException {
+			return new Object();
+		}
+
+		@Override
+		protected void doBegin(Object transaction, TransactionDefinition definition) throws TransactionException {
+
+		}
+
+		@Override
+		protected void doCommit(DefaultTransactionStatus status) throws TransactionException {
+
+		}
+
+		@Override
+		protected void doRollback(DefaultTransactionStatus status) throws TransactionException {
+
+		}
 	}
 }
