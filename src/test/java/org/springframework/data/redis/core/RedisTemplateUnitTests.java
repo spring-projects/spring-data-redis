@@ -122,8 +122,6 @@ class RedisTemplateUnitTests {
 	@Test // DATAREDIS-988
 	void executeSessionInTransactionShouldReuseConnection() {
 
-		TransactionSynchronizationManager.setCurrentTransactionReadOnly(true);
-
 		template.execute(new SessionCallback<Object>() {
 			@Override
 			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
@@ -142,12 +140,11 @@ class RedisTemplateUnitTests {
 	void transactionAwareTemplateShouldReleaseConnection() {
 
 		template.setEnableTransactionSupport(true);
-		TransactionSynchronizationManager.setCurrentTransactionReadOnly(true);
 
-		template.execute(new SessionCallback<Object>() {
-
+		template.execute(new RedisCallback<Object>() {
+			@Nullable
 			@Override
-			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 
 				template.multi();
 				template.multi();
@@ -155,8 +152,8 @@ class RedisTemplateUnitTests {
 			}
 		});
 
-		verify(connectionFactoryMock, times(2)).getConnection();
-		verify(redisConnectionMock, times(2)).close();
+		verify(connectionFactoryMock, times(3)).getConnection();
+		verify(redisConnectionMock, times(3)).close();
 	}
 
 	private static class SomeArbitrarySerializableObject implements Serializable {

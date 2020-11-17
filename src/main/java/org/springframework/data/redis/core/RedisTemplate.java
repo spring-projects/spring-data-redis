@@ -206,18 +206,11 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		Assert.notNull(action, "Callback object must not be null");
 
 		RedisConnectionFactory factory = getRequiredConnectionFactory();
-		RedisConnection conn = null;
+		RedisConnection conn = RedisConnectionUtils.getConnection(factory, enableTransactionSupport);
+
 		try {
 
-			if (enableTransactionSupport) {
-				// only bind resources in case of potential transaction synchronization
-				conn = RedisConnectionUtils.bindConnection(factory, enableTransactionSupport);
-			} else {
-				conn = RedisConnectionUtils.getConnection(factory);
-			}
-
 			boolean existingConnection = TransactionSynchronizationManager.hasResource(factory);
-
 			RedisConnection connToUse = preProcessConnection(conn, existingConnection);
 
 			boolean pipelineStatus = connToUse.isPipelined();
@@ -233,7 +226,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				connToUse.closePipeline();
 			}
 
-			// TODO: any other connection processing?
 			return postProcessResult(result, connToUse, existingConnection);
 		} finally {
 			RedisConnectionUtils.releaseConnection(conn, factory, enableTransactionSupport);
@@ -383,10 +375,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return session.execute(this);
 	}
 
-	protected RedisConnection createRedisConnectionProxy(RedisConnection pm) {
-		Class<?>[] ifcs = ClassUtils.getAllInterfacesForClass(pm.getClass(), getClass().getClassLoader());
-		return (RedisConnection) Proxy.newProxyInstance(pm.getClass().getClassLoader(), ifcs,
-				new CloseSuppressingInvocationHandler(pm));
+	protected RedisConnection createRedisConnectionProxy(RedisConnection connection) {
+
+		Class<?>[] ifcs = ClassUtils.getAllInterfacesForClass(connection.getClass(), getClass().getClassLoader());
+
+		return (RedisConnection) Proxy.newProxyInstance(connection.getClass().getClassLoader(), ifcs,
+				new CloseSuppressingInvocationHandler(connection));
 	}
 
 	/**
@@ -1354,10 +1348,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * If set to {@code true} {@link RedisTemplate} will use {@literal MULTI...EXEC|DISCARD} to keep track of operations.
+	 * If set to {@code true} {@link RedisTemplate} will participate in ongoing transactions using
+	 * {@literal MULTI...EXEC|DISCARD} to keep track of operations.
 	 *
-	 * @param enableTransactionSupport
+	 * @param enableTransactionSupport whether to participate in ongoing transactions.
 	 * @since 1.3
+	 * @see RedisConnectionUtils#getConnection(RedisConnectionFactory, boolean)
+	 * @see TransactionSynchronizationManager#isActualTransactionActive()
 	 */
 	public void setEnableTransactionSupport(boolean enableTransactionSupport) {
 		this.enableTransactionSupport = enableTransactionSupport;
