@@ -54,6 +54,7 @@ import org.springframework.data.redis.listener.KeyExpirationEventMessageListener
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Takahiro Shigemoto
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -107,7 +108,7 @@ class RedisKeyValueAdapterUnitTests {
 
 		when(redisConnectionMock.sMembers(Mockito.any(byte[].class)))
 				.thenReturn(new LinkedHashSet<>(Arrays.asList("persons:firstname:rand".getBytes())));
-		when(redisConnectionMock.del((byte[][]) any())).thenReturn(1L);
+		when(redisConnectionMock.exists((byte[]) any())).thenReturn(true);
 
 		adapter.put("1", rd, "persons");
 
@@ -122,7 +123,7 @@ class RedisKeyValueAdapterUnitTests {
 
 		when(redisConnectionMock.sMembers(Mockito.any(byte[].class)))
 				.thenReturn(new LinkedHashSet<>(Arrays.asList("persons:firstname:rand".getBytes())));
-		when(redisConnectionMock.del((byte[][]) any())).thenReturn(0L);
+		when(redisConnectionMock.exists((byte[]) any())).thenReturn(false);
 
 		adapter.put("1", rd, "persons");
 

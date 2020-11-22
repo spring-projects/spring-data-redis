@@ -20,6 +20,11 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,6 +52,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Takahiro Shigemoto
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
@@ -113,5 +119,56 @@ public class RedisRepositoryIntegrationTests extends RedisRepositoryIntegrationT
 		Map<String, String> entries = operations.<String, String> opsForHash().entries("persons:rand");
 
 		assertThat(entries.get("_class")).isEqualTo("person");
+	}
+
+	@Test // DATAREDIS-1253
+	public void shouldNotDeleteKeyRegistryPut() throws Exception {
+		// Save the record in advance.
+		Person rand = new Person();
+		rand.id = "rand";
+		rand.firstname = "rand";
+		rand.lastname = "al'thor";
+
+		repo.save(rand);
+
+		ExecutorService executorService = Executors.newCachedThreadPool();
+
+		// Put thread
+		Callable<String> callablePut = () -> {
+			try {
+				for (int i = 0; i < 100; i++) {
+					repo.save(rand);
+					Thread.sleep(1);
+				}
+				return "OK";
+			} catch(InterruptedException e) {
+				return "ERROR";
+			}
+		};
+
+		// Get thread
+		Callable<String> callableGet = () -> {
+			try {
+				for (int i = 0; i < 100; i++) {
+					Optional<Person> person = repo.findById("rand");
+					if (!person.isPresent()) {
+						return "EMPTY";
+					}
+					Thread.sleep(1);
+				}
+				return "OK";
+			} catch(InterruptedException e) {
+				return "ERROR";
+			}
+		};
+
+		// Run threads at the same time.
+		Future<String> futurePut = executorService.submit(callablePut);
+		Future<String> futureGet = executorService.submit(callableGet);
+
+		assertThat(futurePut.get()).isEqualTo("OK");
+		assertThat(futureGet.get()).isEqualTo("OK");
+
+		executorService.shutdown();
 	}
 }

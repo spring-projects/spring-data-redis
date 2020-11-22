@@ -99,6 +99,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Takahiro Shigemoto
  * @since 1.7
  */
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
@@ -231,7 +232,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			byte[] key = toBytes(rdo.getId());
 			byte[] objectKey = createKey(rdo.getKeyspace(), rdo.getId());
 
-			boolean isNew = connection.del(objectKey) == 0;
+			boolean isNew = !connection.exists(objectKey);
 
 			connection.hMSet(objectKey, rdo.getBucket().rawMap());
 
