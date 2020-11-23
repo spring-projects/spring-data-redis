@@ -237,7 +237,7 @@ public class AddressToMapConverter implements Converter<Address, Map<String,byte
 }
 
 @ReadingConverter
-public class MapToAddressConverter implements Converter<Address, Map<String, byte[]>> {
+public class MapToAddressConverter implements Converter<Map<String, byte[]>, Address> {
 
   @Override
   public Address convert(Map<String,byte[]> source) {
