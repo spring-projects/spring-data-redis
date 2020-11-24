@@ -347,6 +347,11 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return objectMapper.getHashMapper(targetType);
 	}
 
+	@Override
+	public MapRecord<K, HK, HV> deserializeRecord(ByteRecord record) {
+		return record.deserialize(keySerializer(), hashKeySerializer(), hashValueSerializer());
+	}
+
 	protected byte[] serializeHashValueIfRequires(HV value) {
 		return hashValueSerializerPresent() ? serialize(value, hashValueSerializer())
 				: objectMapper.getConversionService().convert(value, byte[].class);
@@ -386,7 +391,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 
 			List<MapRecord<K, HK, HV>> result = new ArrayList<>();
 			for (ByteRecord record : raw) {
-				result.add(record.deserialize(keySerializer(), hashKeySerializer(), hashValueSerializer()));
+				result.add(deserializeRecord(record));
 			}
 
 			return result;

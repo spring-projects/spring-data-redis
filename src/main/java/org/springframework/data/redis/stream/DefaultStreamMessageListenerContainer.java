@@ -19,19 +19,25 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StreamOperations;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.ObjectUtils;
@@ -79,8 +85,8 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		this.template = createRedisTemplate(connectionFactory, containerOptions);
 		this.containerOptions = containerOptions;
 
-		if (containerOptions.getHashMapper() != null) {
-			this.streamOperations = this.template.opsForStream(containerOptions.getHashMapper());
+		if (containerOptions.hasHashMapper()) {
+			this.streamOperations = this.template.opsForStream(containerOptions.getRequiredHashMapper());
 		} else {
 			this.streamOperations = this.template.opsForStream();
 		}
@@ -207,16 +213,39 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		return doRegister(getReadTask(streamRequest, listener));
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private StreamPollTask<K, V> getReadTask(StreamReadRequest<K> streamRequest, StreamListener<K, V> listener) {
 
-		BiFunction<K, ReadOffset, List<? extends Record<?, ?>>> readFunction = getReadFunction(streamRequest);
+		Function<ReadOffset, List<ByteRecord>> readFunction = getReadFunction(streamRequest);
+		Function<ByteRecord, V> deserializerToUse = getDeserializer();
 
-		return new StreamPollTask<>(streamRequest, listener, errorHandler, (BiFunction) readFunction);
+		TypeDescriptor targetType = TypeDescriptor
+				.valueOf(containerOptions.hasHashMapper() ? containerOptions.getTargetType() : MapRecord.class);
+
+		return new StreamPollTask<>(streamRequest, listener, errorHandler, targetType, readFunction, deserializerToUse);
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Function<ByteRecord, V> getDeserializer() {
+
+		Function<ByteRecord, MapRecord<K, Object, Object>> deserializer = streamOperations::deserializeRecord;
+
+		if (containerOptions.getHashMapper() == null) {
+			return (Function) deserializer;
+		}
+
+		return source -> {
+
+			MapRecord<K, Object, Object> intermediate = deserializer.apply(source);
+			return (V) streamOperations.map(intermediate, this.containerOptions.getTargetType());
+		};
 	}
 
 	@SuppressWarnings("unchecked")
-	private BiFunction<K, ReadOffset, List<? extends Record<?, ?>>> getReadFunction(StreamReadRequest<K> streamRequest) {
+	private Function<ReadOffset, List<ByteRecord>> getReadFunction(StreamReadRequest<K> streamRequest) {
+
+		byte[] rawKey = ((RedisSerializer<K>) template.getKeySerializer())
+				.serialize(streamRequest.getStreamOffset().getKey());
 
 		if (streamRequest instanceof StreamMessageListenerContainer.ConsumerStreamReadRequest) {
 
@@ -226,20 +255,12 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 					: this.readOptions;
 			Consumer consumer = consumerStreamRequest.getConsumer();
 
-			if (this.containerOptions.getHashMapper() != null) {
-				return (key, offset) -> streamOperations.read(this.containerOptions.getTargetType(), consumer, readOptions,
-						StreamOffset.create(key, offset));
-			}
-
-			return (key, offset) -> streamOperations.read(consumer, readOptions, StreamOffset.create(key, offset));
+			return (offset) -> template.execute((RedisCallback<List<ByteRecord>>) connection -> connection.streamCommands()
+					.xReadGroup(consumer, readOptions, StreamOffset.create(rawKey, offset)));
 		}
 
-		if (this.containerOptions.getHashMapper() != null) {
-			return (key, offset) -> streamOperations.read(this.containerOptions.getTargetType(), readOptions,
-					StreamOffset.create(key, offset));
-		}
-
-		return (key, offset) -> streamOperations.read(readOptions, StreamOffset.create(key, offset));
+		return (offset) -> template.execute((RedisCallback<List<ByteRecord>>) connection -> connection.streamCommands()
+				.xRead(readOptions, StreamOffset.create(rawKey, offset)));
 	}
 
 	private Subscription doRegister(Task task) {

@@ -128,13 +128,13 @@ class StreamObjectMapper {
 	/**
 	 * Convert the given {@link Record} into an {@link ObjectRecord}.
 	 *
-	 * @param provider provider for {@link HashMapper} to apply mapping for {@link ObjectRecord}.
 	 * @param source the source value.
+	 * @param provider provider for {@link HashMapper} to apply mapping for {@link ObjectRecord}.
 	 * @param targetType the desired target type.
 	 * @return the converted {@link ObjectRecord}.
 	 */
-	static <K, V, HK, HV> ObjectRecord<K, V> toObjectRecord(HashMapperProvider<HK, HV> provider,
-			MapRecord<K, HK, HV> source, Class<V> targetType) {
+	static <K, V, HK, HV> ObjectRecord<K, V> toObjectRecord(MapRecord<K, HK, HV> source,
+			HashMapperProvider<HK, HV> provider, Class<V> targetType) {
 		return source.toObjectRecord(provider.getHashMapper(targetType));
 	}
 
@@ -149,7 +149,7 @@ class StreamObjectMapper {
 	 *         {@literal null}.
 	 */
 	@Nullable
-	static <K, V, HK, HV> List<ObjectRecord<K, V>> map(@Nullable List<MapRecord<K, HK, HV>> records,
+	static <K, V, HK, HV> List<ObjectRecord<K, V>> toObjectRecords(@Nullable List<MapRecord<K, HK, HV>> records,
 			HashMapperProvider<HK, HV> hashMapperProvider, Class<V> targetType) {
 
 		if (records == null) {
@@ -161,7 +161,7 @@ class StreamObjectMapper {
 		}
 
 		if (records.size() == 1) {
-			return Collections.singletonList(toObjectRecord(hashMapperProvider, records.get(0), targetType));
+			return Collections.singletonList(toObjectRecord(records.get(0), hashMapperProvider, targetType));
 		}
 
 		List<ObjectRecord<K, V>> transformed = new ArrayList<>(records.size());
