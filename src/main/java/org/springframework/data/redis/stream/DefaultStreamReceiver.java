@@ -22,18 +22,25 @@ import reactor.core.publisher.Operators;
 import reactor.util.concurrent.Queues;
 import reactor.util.context.Context;
 
+import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
+
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.StreamOffset;
@@ -66,6 +73,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 	 */
 	@SuppressWarnings("unchecked")
 	DefaultStreamReceiver(ReactiveRedisConnectionFactory connectionFactory, StreamReceiverOptions<K, V> options) {
+
 		receiverOptions = options;
 
 		RedisSerializationContext<K, Object> serializationContext = RedisSerializationContext
@@ -85,8 +93,8 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		this.readOptions = readOptions;
 		this.template = new ReactiveRedisTemplate(connectionFactory, serializationContext);
 
-		if (options.getHashMapper() != null) {
-			this.streamOperations = this.template.opsForStream(options.getHashMapper());
+		if (options.hasHashMapper()) {
+			this.streamOperations = this.template.opsForStream(options.getRequiredHashMapper());
 		} else {
 			this.streamOperations = this.template.opsForStream();
 		}
@@ -104,20 +112,19 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 			logger.debug(String.format("receive(%s)", streamOffset));
 		}
 
-		BiFunction<K, ReadOffset, Flux<? extends Record<?, ?>>> readFunction;
+		RedisSerializationContext.SerializationPair<K> keySerializer = template.getSerializationContext()
+				.getKeySerializationPair();
+		ByteBuffer rawKey = keySerializer.write(streamOffset.getKey());
 
-		if (receiverOptions.getHashMapper() != null) {
-			readFunction = (key, readOffset) -> streamOperations.read(receiverOptions.getTargetType(), readOptions,
-					StreamOffset.create(key, readOffset));
-		} else {
-			readFunction = (key, readOffset) -> streamOperations.read(readOptions, StreamOffset.create(key, readOffset));
-		}
+		Function<ReadOffset, Flux<ByteBufferRecord>> readFunction = readOffset -> template.execute(connection -> connection
+				.streamCommands().xRead(readOptions, StreamOffset.create(rawKey.asReadOnlyBuffer(), readOffset)));
 
 		return Flux.defer(() -> {
 
 			PollState pollState = PollState.standalone(streamOffset.getOffset());
 			return Flux.create(
-					sink -> new StreamSubscription(sink, streamOffset.getKey(), pollState, (BiFunction) readFunction).arm());
+					sink -> new StreamSubscription(sink, streamOffset.getKey(), pollState, readFunction,
+							receiverOptions.getResumeFunction()).arm());
 		});
 	}
 
@@ -133,14 +140,16 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 			logger.debug(String.format("receiveAutoAck(%s, %s)", consumer, streamOffset));
 		}
 
-		BiFunction<K, ReadOffset, Flux<? extends Record<?, ?>>> readFunction = getConsumeReadFunction(consumer,
+		Function<ReadOffset, Flux<ByteBufferRecord>> readFunction = getConsumeReadFunction(streamOffset.getKey(), consumer,
 				this.readOptions.autoAcknowledge());
+
 
 		return Flux.defer(() -> {
 
 			PollState pollState = PollState.consumer(consumer, streamOffset.getOffset());
 			return Flux.create(
-					sink -> new StreamSubscription(sink, streamOffset.getKey(), pollState, (BiFunction) readFunction).arm());
+					sink -> new StreamSubscription(sink, streamOffset.getKey(), pollState, readFunction,
+							receiverOptions.getResumeFunction()).arm());
 		});
 	}
 
@@ -156,26 +165,43 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 			logger.debug(String.format("receive(%s, %s)", consumer, streamOffset));
 		}
 
-		BiFunction<K, ReadOffset, Flux<? extends Record<?, ?>>> readFunction = getConsumeReadFunction(consumer,
+		Function<ReadOffset, Flux<ByteBufferRecord>> readFunction = getConsumeReadFunction(streamOffset.getKey(), consumer,
 				this.readOptions);
 
 		return Flux.defer(() -> {
 			PollState pollState = PollState.consumer(consumer, streamOffset.getOffset());
 			return Flux.create(
-					sink -> new StreamSubscription(sink, streamOffset.getKey(), pollState, (BiFunction) readFunction).arm());
+					sink -> new StreamSubscription(sink, streamOffset.getKey(), pollState, readFunction,
+							receiverOptions.getResumeFunction()).arm());
 		});
 	}
 
 	@SuppressWarnings("unchecked")
-	private BiFunction<K, ReadOffset, Flux<? extends Record<?, ?>>> getConsumeReadFunction(Consumer consumer,
+	private Function<ReadOffset, Flux<ByteBufferRecord>> getConsumeReadFunction(K key, Consumer consumer,
 			StreamReadOptions readOptions) {
 
-		if (receiverOptions.getHashMapper() != null) {
-			return (key, readOffset) -> streamOperations.read(receiverOptions.getTargetType(), consumer, readOptions,
-					StreamOffset.create(key, readOffset));
+		RedisSerializationContext.SerializationPair<K> keySerializer = template.getSerializationContext()
+				.getKeySerializationPair();
+		ByteBuffer rawKey = keySerializer.write(key);
+
+		return readOffset -> template.execute(connection -> connection.streamCommands().xReadGroup(consumer, readOptions,
+				StreamOffset.create(rawKey.asReadOnlyBuffer(), readOffset)));
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Function<ByteBufferRecord, V> getDeserializer() {
+
+		Function<ByteBufferRecord, MapRecord<K, Object, Object>> deserializer = streamOperations::deserializeRecord;
+
+		if (receiverOptions.getHashMapper() == null) {
+			return (Function) deserializer;
 		}
 
-		return (key, readOffset) -> streamOperations.read(consumer, readOptions, StreamOffset.create(key, readOffset));
+		return source -> {
+
+			MapRecord<K, Object, Object> intermediate = deserializer.apply(source);
+			return (V) streamOperations.map(intermediate, this.receiverOptions.getTargetType());
+		};
 	}
 
 	/**
@@ -188,15 +214,23 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		private final FluxSink<V> sink;
 		private final K key;
 		private final PollState pollState;
-		private final BiFunction<K, ReadOffset, Flux<V>> readFunction;
+		private final Function<ReadOffset, Flux<ByteBufferRecord>> readFunction;
+		private final Function<? super Throwable, ? extends Publisher<Void>> resumeFunction;
+		private final Function<ByteBufferRecord, V> deserializer;
+		private final TypeDescriptor targetType;
 
 		protected StreamSubscription(FluxSink<V> sink, K key, PollState pollState,
-				BiFunction<K, ReadOffset, Flux<V>> readFunction) {
+				Function<ReadOffset, Flux<ByteBufferRecord>> readFunction,
+				Function<? super Throwable, ? extends Publisher<Void>> resumeFunction) {
 
 			this.sink = sink;
 			this.key = key;
 			this.pollState = pollState;
 			this.readFunction = readFunction;
+			this.resumeFunction = resumeFunction;
+			this.deserializer = getDeserializer();
+			this.targetType = TypeDescriptor
+					.valueOf(receiverOptions.hasHashMapper() ? receiverOptions.getTargetType() : MapRecord.class);
 		}
 
 		/**
@@ -237,6 +271,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 			sink.onCancel(pollState::cancel);
 		}
 
+		@SuppressWarnings({ "unchecked", "ConstantConditions" })
 		private void scheduleIfRequired() {
 
 			if (logger.isDebugEnabled()) {
@@ -290,9 +325,24 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 							String.format("[stream: %s] scheduleIfRequired(): Activating subscription, offset %s", key, readOffset));
 				}
 
-				Flux<V> poll = readFunction.apply(key, readOffset);
+				Flux<ByteBufferRecord> poll = readFunction.apply(readOffset)
+						.onErrorResume(throwable -> Flux.from(resumeFunction.apply(throwable)).then().cast(ByteBufferRecord.class));
 
-				poll.subscribe(getSubscriber());
+				poll.map(it -> {
+
+					if (logger.isDebugEnabled()) {
+						logger.debug(String.format("[stream: %s] onStreamMessage(%s)", key, it));
+					}
+
+					pollState.updateReadOffset(it.getId().getValue());
+
+					try {
+						return deserializer.apply(it);
+					} catch (RuntimeException e) {
+						throw new ConversionFailedException(TypeDescriptor.forObject(it), targetType, it, e);
+					}
+				}).onErrorResume(throwable -> Flux.from(resumeFunction.apply(throwable)).then().map(it -> (V) new Object())) //
+						.subscribe(getSubscriber());
 			}
 		}
 
@@ -335,12 +385,6 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		}
 
 		private void onStreamMessage(V message) {
-
-			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("[stream: %s] onStreamMessage(%s)", key, message));
-			}
-
-			pollState.updateReadOffset(message.getId().getValue());
 
 			long requested = pollState.getRequested();
 

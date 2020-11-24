@@ -345,7 +345,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 
 		Assert.notNull(targetType, "Target type must not be null");
 
-		return StreamObjectMapper.map(range(key, range, limit), this, targetType);
+		return map(range(key, range, limit), targetType);
 	}
 
 	/**
@@ -398,7 +398,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 
 		Assert.notNull(targetType, "Target type must not be null");
 
-		return StreamObjectMapper.map(read(readOptions, streams), this, targetType);
+		return map(read(readOptions, streams), targetType);
 	}
 
 	/**
@@ -456,7 +456,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 
 		Assert.notNull(targetType, "Target type must not be null");
 
-		return StreamObjectMapper.map(read(consumer, readOptions, streams), this, targetType);
+		return map(read(consumer, readOptions, streams), targetType);
 	}
 
 	/**
@@ -512,7 +512,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 
 		Assert.notNull(targetType, "Target type must not be null");
 
-		return StreamObjectMapper.map(reverseRange(key, range, limit), this, targetType);
+		return map(reverseRange(key, range, limit), targetType);
 	}
 
 	/**
@@ -549,4 +549,45 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	@Override
 	<V> HashMapper<V, HK, HV> getHashMapper(Class<V> targetType);
 
+	/**
+	 * Map record from {@link MapRecord} to {@link ObjectRecord}.
+	 *
+	 * @param record the stream record to map.
+	 * @param targetType the target type of the payload.
+	 * @return the mapped {@link ObjectRecord}.
+	 * @since 2.x
+	 */
+	default <V> ObjectRecord<K, V> map(MapRecord<K, HK, HV> record, Class<V> targetType) {
+
+		Assert.notNull(record, "Record must not be null");
+		Assert.notNull(targetType, "Target type must not be null");
+
+		return StreamObjectMapper.toObjectRecord(record, this, targetType);
+	}
+
+	/**
+	 * Map records from {@link MapRecord} to {@link ObjectRecord}s.
+	 *
+	 * @param records the stream records to map.
+	 * @param targetType the target type of the payload.
+	 * @return the mapped {@link ObjectRecord object records}.
+	 * @since 2.x
+	 */
+	@Nullable
+	default <V> List<ObjectRecord<K, V>> map(@Nullable List<MapRecord<K, HK, HV>> records, Class<V> targetType) {
+
+		Assert.notNull(records, "Records must not be null");
+		Assert.notNull(targetType, "Target type must not be null");
+
+		return StreamObjectMapper.toObjectRecords(records, this, targetType);
+	}
+
+	/**
+	 * Deserialize a {@link ByteRecord} using the configured serializers into a {@link MapRecord}.
+	 *
+	 * @param record the stream record to map.
+	 * @return deserialized {@link MapRecord}.
+	 * @since 2.x
+	 */
+	MapRecord<K, HK, HV> deserializeRecord(ByteRecord record);
 }

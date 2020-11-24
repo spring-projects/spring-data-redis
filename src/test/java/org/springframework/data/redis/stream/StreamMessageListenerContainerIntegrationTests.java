@@ -35,12 +35,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
@@ -276,7 +278,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 
 		StreamReadRequest<String> readRequest = StreamReadRequest
 				.builder(StreamOffset.create("my-stream", ReadOffset.lastConsumed())) //
-				.errorHandler(failures::add) // //
+				.errorHandler(failures::add) //
 				.cancelOnError(t -> false) //
 				.consumer(Consumer.from("my-group", "my-consumer")) //
 				.build();
@@ -293,6 +295,52 @@ public class StreamMessageListenerContainerIntegrationTests {
 
 		assertThat(failures.poll(1, TimeUnit.SECONDS)).isNotNull();
 		assertThat(failures.poll(1, TimeUnit.SECONDS)).isNotNull();
+		assertThat(subscription.isActive()).isTrue();
+
+		cancelAwait(subscription);
+	}
+
+	@Test // DATAREDIS-1230
+	void deserializationShouldContinueStreamRead() throws InterruptedException {
+
+		StreamMessageListenerContainerOptions<String, ObjectRecord<String, Long>> containerOptions = StreamMessageListenerContainerOptions
+				.builder().batchSize(1).pollTimeout(Duration.ofMillis(100)).targetType(Long.class).build();
+
+		BlockingQueue<ObjectRecord<String, Long>> records = new LinkedBlockingQueue<>();
+		BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
+
+		StreamMessageListenerContainer<String, ObjectRecord<String, Long>> container = StreamMessageListenerContainer
+				.create(connectionFactory, containerOptions);
+
+		StreamReadRequest<String> readRequest = StreamReadRequest
+				.builder(StreamOffset.create("my-stream", ReadOffset.from("0-0"))) //
+				.errorHandler(failures::add) //
+				.cancelOnError(t -> false) //
+				.build();
+
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("payload", "1"));
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("payload", "foo"));
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("payload", "3"));
+
+		container.start();
+		Subscription subscription = container.register(readRequest, records::add);
+
+		subscription.await(DEFAULT_TIMEOUT);
+
+		ObjectRecord<String, Long> first = records.poll(1, TimeUnit.SECONDS);
+		Throwable conversionFailure = failures.poll(1, TimeUnit.SECONDS);
+		ObjectRecord<String, Long> third = records.poll(1, TimeUnit.SECONDS);
+
+		assertThat(first).isNotNull();
+		assertThat(first.getValue()).isEqualTo(1L);
+
+		assertThat(conversionFailure).isInstanceOf(ConversionFailedException.class)
+				.hasCauseInstanceOf(ConversionFailedException.class).hasRootCauseInstanceOf(NumberFormatException.class);
+		assertThat(((ConversionFailedException) conversionFailure).getValue()).isInstanceOf(ByteRecord.class);
+
+		assertThat(third).isNotNull();
+		assertThat(third.getValue()).isEqualTo(3L);
+
 		assertThat(subscription.isActive()).isTrue();
 
 		cancelAwait(subscription);
