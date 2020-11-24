@@ -16,10 +16,14 @@
 package org.springframework.data.redis.stream;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.OptionalInt;
+import java.util.function.Function;
+
+import org.reactivestreams.Publisher;
 
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -74,8 +78,12 @@ import org.springframework.util.Assert;
  * ({@code $}) for subsequent reads.</li>
  * </ul>
  * <strong>Note: Using {@link ReadOffset#latest()} bears the chance of dropped records as records can arrive in the time
- * during polling is suspended. Use recorddId's as offset or {@link ReadOffset#lastConsumed()} to minimize the chance of
+ * during polling is suspended. Use recordId's as offset or {@link ReadOffset#lastConsumed()} to minimize the chance of
  * record loss.</strong>
+ * <p>
+ * {@link StreamReceiver} propagates errors during stream reads and deserialization as terminal error signal by default.
+ * Configuring a {@link StreamReceiverOptions#getResumeFunction() resume function} allows conditional resumption by
+ * dropping the record or by propagating the error to terminate the subscription.
  * <p/>
  * See the following example code how to use {@link StreamReceiver}:
  *
@@ -189,6 +197,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 
 		private final Duration pollTimeout;
 		private final @Nullable Integer batchSize;
+		private final Function<? super Throwable, ? extends Publisher<Void>> resumeFunction;
 		private final SerializationPair<K> keySerializer;
 		private final SerializationPair<Object> hashKeySerializer;
 		private final SerializationPair<Object> hashValueSerializer;
@@ -196,12 +205,14 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		private final @Nullable HashMapper<Object, Object, Object> hashMapper;
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		private StreamReceiverOptions(Duration pollTimeout, @Nullable Integer batchSize, SerializationPair<K> keySerializer,
+		private StreamReceiverOptions(Duration pollTimeout, @Nullable Integer batchSize,
+				Function<? super Throwable, ? extends Publisher<Void>> resumeFunction, SerializationPair<K> keySerializer,
 				SerializationPair<Object> hashKeySerializer, SerializationPair<Object> hashValueSerializer,
 				@Nullable Class<?> targetType, @Nullable HashMapper<V, ?, ?> hashMapper) {
 
 			this.pollTimeout = pollTimeout;
 			this.batchSize = batchSize;
+			this.resumeFunction = resumeFunction;
 			this.keySerializer = keySerializer;
 			this.hashKeySerializer = hashKeySerializer;
 			this.hashValueSerializer = hashValueSerializer;
@@ -249,6 +260,10 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 			return batchSize != null ? OptionalInt.of(batchSize) : OptionalInt.empty();
 		}
 
+		public Function<? super Throwable, ? extends Publisher<Void>> getResumeFunction() {
+			return resumeFunction;
+		}
+
 		public SerializationPair<K> getKeySerializer() {
 			return keySerializer;
 		}
@@ -266,6 +281,19 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 			return hashMapper;
 		}
 
+		public HashMapper<Object, Object, Object> getRequiredHashMapper() {
+
+			if (!hasHashMapper()) {
+				throw new IllegalStateException("No HashMapper configured");
+			}
+
+			return hashMapper;
+		}
+
+		public boolean hasHashMapper() {
+			return this.hashMapper != null;
+		}
+
 		public Class<Object> getTargetType() {
 
 			if (this.targetType != null) {
@@ -274,6 +302,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 
 			return Object.class;
 		}
+
 	}
 
 	/**
@@ -288,6 +317,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		private SerializationPair<K> keySerializer;
 		private SerializationPair<Object> hashKeySerializer;
 		private SerializationPair<Object> hashValueSerializer;
+		private Function<? super Throwable, ? extends Publisher<Void>> resumeFunction = Mono::error;
 		private @Nullable HashMapper<V, ?, ?> hashMapper;
 		private @Nullable Class<?> targetType;
 
@@ -311,7 +341,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		/**
 		 * Configure a batch size for the {@code COUNT} option during reading.
 		 *
-		 * @param recordsPerPoll must not be greater zero.
+		 * @param recordsPerPoll must be greater zero.
 		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
 		 */
 		public StreamReceiverOptionsBuilder<K, V> batchSize(int recordsPerPoll) {
@@ -319,6 +349,25 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 			Assert.isTrue(recordsPerPoll > 0, "Batch size must be greater zero!");
 
 			this.batchSize = recordsPerPoll;
+			return this;
+		}
+
+		/**
+		 * Configure a resume {@link Function} to resume the main sequence when polling the stream fails. The function can
+		 * either resume by suppressing the error or fail the main sequence by emitting the error to stop receiving. Receive
+		 * errors (Redis errors, Serialization failures) stop receiving by default.
+		 *
+		 * @param resumeFunction must not be {@literal null}.
+		 * @return {@code this} {@link StreamReceiverOptionsBuilder}.
+		 * @since 2.x
+		 * @see Flux#onErrorResume(Function)
+		 */
+		public StreamReceiverOptionsBuilder<K, V> onErrorResume(
+				Function<? super Throwable, ? extends Publisher<Void>> resumeFunction) {
+
+			Assert.notNull(resumeFunction, "Resume function must not be null");
+
+			this.resumeFunction = resumeFunction;
 			return this;
 		}
 
@@ -450,7 +499,8 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 * @return new {@link StreamReceiverOptions}.
 		 */
 		public StreamReceiverOptions<K, V> build() {
-			return new StreamReceiverOptions<>(pollTimeout, batchSize, keySerializer, hashKeySerializer, hashValueSerializer,
+			return new StreamReceiverOptions<>(pollTimeout, batchSize, resumeFunction, keySerializer, hashKeySerializer,
+					hashValueSerializer,
 					targetType, hashMapper);
 		}
 	}

@@ -416,7 +416,8 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return (HV) serializationContext.getHashValueSerializationPair().read(buffer);
 	}
 
-	private MapRecord<K, HK, HV> deserializeRecord(ByteBufferRecord record) {
+	@Override
+	public MapRecord<K, HK, HV> deserializeRecord(ByteBufferRecord record) {
 		return record.map(it -> it.mapEntries(this::deserializeRecordFields).withStreamKey(readKey(record.getStream())));
 	}
 

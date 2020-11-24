@@ -22,24 +22,29 @@ import static org.mockito.Mockito.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -252,6 +257,37 @@ public class StreamReceiverIntegrationTests {
 				.then(() -> reactiveRedisTemplate.delete("my-stream").subscribe()) //
 				.expectError(RedisSystemException.class) //
 				.verify(Duration.ofSeconds(5));
+	}
+
+	@Test // DATAREDIS-864
+	void shouldResumeFromError() {
+
+		AtomicReference<Throwable> ref = new AtomicReference<>();
+		StreamReceiverOptions<String, ObjectRecord<String, Long>> options = StreamReceiverOptions.builder()
+				.pollTimeout(Duration.ofMillis(100)).targetType(Long.class).onErrorResume(throwable -> {
+
+					ref.set(throwable);
+					return Mono.empty();
+				}).build();
+
+		StreamReceiver<String, ObjectRecord<String, Long>> receiver = StreamReceiver.create(connectionFactory, options);
+
+		Flux<ObjectRecord<String, Long>> messages = receiver.receive(StreamOffset.fromStart("my-stream"));
+
+		redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from("0-0"), "my-group");
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("payload", "1"));
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("payload", "foo"));
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("payload", "3"));
+
+		messages.map(Record::getValue).as(StepVerifier::create) //
+				.expectNext(1L) //
+				.expectNext(3L) //
+				.thenCancel() //
+				.verify();
+
+		assertThat(ref.get()).isInstanceOf(ConversionFailedException.class)
+				.hasCauseInstanceOf(ConversionFailedException.class).hasRootCauseInstanceOf(NumberFormatException.class);
+		assertThat(((ConversionFailedException) ref.get()).getValue()).isInstanceOf(ByteBufferRecord.class);
 	}
 
 	@Data

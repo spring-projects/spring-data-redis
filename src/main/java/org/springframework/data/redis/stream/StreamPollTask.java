@@ -21,9 +21,13 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.Record;
@@ -31,6 +35,7 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.ConsumerStreamReadRequest;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamReadRequest;
 import org.springframework.util.ErrorHandler;
+
 
 /**
  * {@link Task} that invokes a {@link BiFunction read function} to poll on a Redis Stream.
@@ -40,24 +45,28 @@ import org.springframework.util.ErrorHandler;
  */
 class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 
-	private final StreamReadRequest<K> request;
 	private final StreamListener<K, V> listener;
 	private final ErrorHandler errorHandler;
 	private final Predicate<Throwable> cancelSubscriptionOnError;
-	private final BiFunction<K, ReadOffset, List<V>> readFunction;
+	private final Function<ReadOffset, List<ByteRecord>> readFunction;
+	private final Function<ByteRecord, V> deserializer;
 
 	private final PollState pollState;
+	private final TypeDescriptor targetType;
+
 	private volatile boolean isInEventLoop = false;
 
 	StreamPollTask(StreamReadRequest<K> streamRequest, StreamListener<K, V> listener, ErrorHandler errorHandler,
-			BiFunction<K, ReadOffset, List<V>> readFunction) {
+			TypeDescriptor targetType, Function<ReadOffset, List<ByteRecord>> readFunction,
+			Function<ByteRecord, V> deserializer) {
 
-		this.request = streamRequest;
 		this.listener = listener;
 		this.errorHandler = Optional.ofNullable(streamRequest.getErrorHandler()).orElse(errorHandler);
 		this.cancelSubscriptionOnError = streamRequest.getCancelSubscriptionOnError();
 		this.readFunction = readFunction;
+		this.deserializer = deserializer;
 		this.pollState = createPollState(streamRequest);
+		this.targetType = targetType;
 	}
 
 	private static PollState createPollState(StreamReadRequest<?> streamRequest) {
@@ -120,13 +129,13 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 
 			isInEventLoop = true;
 			pollState.running();
-			doLoop(request.getStreamOffset().getKey());
+			doLoop();
 		} finally {
 			isInEventLoop = false;
 		}
 	}
 
-	private void doLoop(K key) {
+	private void doLoop() {
 
 		do {
 
@@ -135,13 +144,9 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 				// allow interruption
 				Thread.sleep(0);
 
-				List<V> read = readFunction.apply(key, pollState.getCurrentReadOffset());
+				List<ByteRecord> raw = readRecords();
+				deserializeAndEmitRecords(raw);
 
-				for (V message : read) {
-
-					listener.onMessage(message);
-					pollState.updateReadOffset(message.getId().getValue());
-				}
 			} catch (InterruptedException e) {
 
 				cancel();
@@ -155,6 +160,43 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 				errorHandler.handleError(e);
 			}
 		} while (pollState.isSubscriptionActive());
+	}
+
+	private List<ByteRecord> readRecords() {
+		return readFunction.apply(pollState.getCurrentReadOffset());
+	}
+
+	private void deserializeAndEmitRecords(List<ByteRecord> records) {
+
+		for (ByteRecord raw : records) {
+
+			try {
+
+				pollState.updateReadOffset(raw.getId().getValue());
+				V record = convertRecord(raw);
+				listener.onMessage(record);
+			} catch (RuntimeException e) {
+
+				if (cancelSubscriptionOnError.test(e)) {
+
+					cancel();
+					errorHandler.handleError(e);
+
+					return;
+				}
+
+				errorHandler.handleError(e);
+			}
+		}
+	}
+
+	private V convertRecord(ByteRecord record) {
+
+		try {
+			return deserializer.apply(record);
+		} catch (RuntimeException e) {
+			throw new ConversionFailedException(TypeDescriptor.forObject(record), targetType, record, e);
+		}
 	}
 
 	@Override

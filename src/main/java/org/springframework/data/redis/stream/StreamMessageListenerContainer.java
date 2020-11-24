@@ -417,7 +417,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		}
 
 		/**
-		 * Configure a {@link ErrorHandler} to be notified on {@link Throwable errors}.
+		 * Configure a {@link ErrorHandler} to be notified on {@link Throwable read, deserialization, and listener errors}.
 		 *
 		 * @param errorHandler must not be null.
 		 * @return {@code this} {@link ConsumerStreamReadRequestBuilder}.
@@ -429,8 +429,9 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		}
 
 		/**
-		 * Configure a cancellation {@link Predicate} to be notified on {@link Throwable errors}. The outcome of the
-		 * {@link Predicate} decides whether to cancel the subscription by returning {@literal true}.
+		 * Configure a cancellation {@link Predicate} to be notified on {@link Throwable read, deserialization, and listener
+		 * errors}. The outcome of the {@link Predicate} decides whether to cancel the subscription by returning
+		 * {@literal true}.
 		 *
 		 * @param cancelSubscriptionOnError must not be null.
 		 * @return {@code this} {@link ConsumerStreamReadRequestBuilder}.
@@ -568,6 +569,19 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			return hashMapper;
 		}
 
+		public HashMapper<Object, Object, Object> getRequiredHashMapper() {
+
+			if (!hasHashMapper()) {
+				throw new IllegalStateException("No HashMapper configured");
+			}
+
+			return hashMapper;
+		}
+
+		public boolean hasHashMapper() {
+			return hashMapper != null;
+		}
+
 		public Class<Object> getTargetType() {
 
 			if (this.targetType != null) {
@@ -590,6 +604,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		public Executor getExecutor() {
 			return executor;
 		}
+
 	}
 
 	/**
