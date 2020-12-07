@@ -136,7 +136,7 @@ class RedisTemplateUnitTests {
 		verify(redisConnectionMock).close();
 	}
 
-	@Test // DATAREDIS-988
+	@Test // DATAREDIS-988, DATAREDIS-891
 	void transactionAwareTemplateShouldReleaseConnection() {
 
 		template.setEnableTransactionSupport(true);

@@ -275,7 +275,7 @@ public abstract class RedisConnectionUtils {
 	 * @param factory the Redis factory that the connection was created with.
 	 * @param transactionSupport whether transaction support is enabled.
 	 * @since 2.1.9
-	 * @deprecated since 2.4.0, use {@link #releaseConnection(RedisConnection, RedisConnectionFactory)}
+	 * @deprecated since 2.4.2, use {@link #releaseConnection(RedisConnection, RedisConnectionFactory)}
 	 */
 	@Deprecated
 	public static void releaseConnection(@Nullable RedisConnection conn, RedisConnectionFactory factory,
@@ -623,7 +623,7 @@ public abstract class RedisConnectionUtils {
 	 * Subinterface of {@link RedisConnection} to be implemented by {@link RedisConnection} proxies. Allows access to the
 	 * underlying target {@link RedisConnection}.
 	 *
-	 * @since 2.4
+	 * @since 2.4.2
 	 * @see RedisConnectionUtils#getTargetConnection(RedisConnection)
 	 */
 	interface RedisConnectionProxy extends RedisConnection, RawTargetAccess {
