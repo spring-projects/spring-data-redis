@@ -1,7 +1,9 @@
 [[tx]]
 = Redis Transactions
 
-Redis provides support for https://redis.io/topics/transactions[transactions] through the `multi`, `exec`, and `discard` commands.These operations are available on `RedisTemplate`.However, `RedisTemplate` is not guaranteed to run all the operations in the transaction with the same connection.
+Redis provides support for https://redis.io/topics/transactions[transactions] through the `multi`, `exec`, and `discard` commands.
+These operations are available on `RedisTemplate`.
+However, `RedisTemplate` is not guaranteed to run all the operations in the transaction with the same connection.
 
 Spring Data Redis provides the `SessionCallback` interface for use when multiple operations need to be performed with the same `connection`, such as when using Redis transactions.The following example uses the `multi` method:
 
@@ -20,7 +22,8 @@ List<Object> txResults = redisTemplate.execute(new SessionCallback<List<Object>>
 System.out.println("Number of items added to set: " + txResults.get(0));
 ----
 
-`RedisTemplate` uses its value, hash key, and hash value serializers to deserialize all results of `exec` before returning.There is an additional `exec` method that lets you pass a custom serializer for transaction results.
+`RedisTemplate` uses its value, hash key, and hash value serializers to deserialize all results of `exec` before returning.
+There is an additional `exec` method that lets you pass a custom serializer for transaction results.
 
 include::version-note.adoc[]
 
@@ -74,7 +77,9 @@ public class RedisTxContextConfiguration {
 ----
 <1> Configures a Spring Context to enable https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#transaction-declarative[declarative transaction management].
 <2> Configures `RedisTemplate` to participate in transactions by binding connections to the current thread.
-<3> Transaction management requires a `PlatformTransactionManager`.Spring Data Redis does not ship with a `PlatformTransactionManager` implementation.Assuming your application uses JDBC, Spring Data Redis can participate in transactions by using existing transaction managers.
+<3> Transaction management requires a `PlatformTransactionManager`.
+Spring Data Redis does not ship with a `PlatformTransactionManager` implementation.
+Assuming your application uses JDBC, Spring Data Redis can participate in transactions by using existing transaction managers.
 ====
 
 The following examples each demonstrate a usage constraint:
