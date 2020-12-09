@@ -20,7 +20,7 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.asPublisher
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.domain.Range
-import org.springframework.data.redis.connection.RedisZSetCommands.*
+import org.springframework.data.redis.connection.RedisZSetCommands.Limit
 import org.springframework.data.redis.connection.stream.*
 
 /**

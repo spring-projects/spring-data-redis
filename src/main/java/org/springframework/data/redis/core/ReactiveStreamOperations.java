@@ -22,13 +22,24 @@ import java.util.Arrays;
 import java.util.Map;
 
 import org.reactivestreams.Publisher;
-
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
-import org.springframework.data.redis.connection.stream.*;
+import org.springframework.data.redis.connection.stream.ByteBufferRecord;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.ObjectRecord;
+import org.springframework.data.redis.connection.stream.PendingMessage;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.Record;
+import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumer;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroup;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
