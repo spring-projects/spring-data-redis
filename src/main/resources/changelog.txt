@@ -1,6 +1,15 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.12.RELEASE (2020-12-09)
+----------------------------------------------
+* DATAREDIS-1257 - Fix converter documentation for repository support.
+* DATAREDIS-1254 - Upgrade to Xstream 1.4.14.
+* DATAREDIS-1246 - DefaultStreamReceiver.StreamSubscription's onStreamMessage() uses unimplemented method.
+* DATAREDIS-1245 - RedisScript<ArrayList> return type interpreted as VALUE.
+* DATAREDIS-1239 - Release 2.2.12 (Moore SR12).
+
+
 Changes in version 2.4.1 (2020-11-11)
 -------------------------------------
 * DATAREDIS-1248 - Use fresh JedisConnectionFactory in PubSubTests.
@@ -2165,6 +2174,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
