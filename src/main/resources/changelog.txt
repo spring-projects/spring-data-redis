@@ -1,6 +1,15 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.4.2 (2020-12-09)
+-------------------------------------
+* DATAREDIS-1257 - Fix converter documentation for repository support.
+* DATAREDIS-1254 - Upgrade to Xstream 1.4.14.
+* DATAREDIS-1249 - Release 2.4.2 (2020.0.2).
+* DATAREDIS-1230 - Reactive StreamReceiver fails on serialization exception and does not process subsequent messages.
+* DATAREDIS-891 - Enabling transactional support in RedisTemplate binds connection to TransactionSynchronizationManager even without transaction.
+
+
 Changes in version 2.5.0-M1 (2020-12-09)
 ----------------------------------------
 * DATAREDIS-1257 - Fix converter documentation for repository support.
@@ -2195,6 +2204,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
