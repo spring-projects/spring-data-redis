@@ -74,7 +74,7 @@ pipeline {
 			}
 		}
 
-		stage("test: baseline") {
+		stage("test: baseline (jdk8)") {
 			when {
 				anyOf {
 					branch 'master'
@@ -82,15 +82,17 @@ pipeline {
 				}
 			}
 			agent {
-				docker {
-					image 'springci/spring-data-openjdk8-with-redis-6.0:latest'
-					label 'data'
-					args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
-				}
+				label 'data'
 			}
 			options { timeout(time: 30, unit: 'MINUTES') }
 			steps {
-				sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
+				script {
+					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+						docker.image('springci/spring-data-openjdk8-with-redis-6.0:latest').inside('-v $HOME:/tmp/jenkins-home') {
+							sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
+						}
+					}
+				}
 			}
 		}
 
@@ -104,28 +106,32 @@ pipeline {
 			parallel {
 				stage("test: baseline (jdk11)") {
 					agent {
-						docker {
-							image 'springci/spring-data-openjdk11-with-redis-6.0:latest'
-							label 'data'
-							args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
-						}
+						label 'data'
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
 					steps {
-						sh 'PROFILE=java11 ci/test.sh'
+						script {
+							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+								docker.image('springci/spring-data-openjdk11-with-redis-6.0:latest').inside('-v $HOME:/tmp/jenkins-home') {
+									sh 'PROFILE=java11 ci/test.sh'
+								}
+							}
+						}
 					}
 				}
 				stage("test: baseline (jdk15)") {
 					agent {
-						docker {
-							image 'springci/spring-data-openjdk15-with-redis-6.0:latest'
-							label 'data'
-							args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
-						}
+						label 'data'
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
 					steps {
-						sh 'PROFILE=java11 ci/test.sh'
+						script {
+							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+								docker.image('springci/spring-data-openjdk15-with-redis-6.0:latest').inside('-v $HOME:/tmp/jenkins-home') {
+									sh 'PROFILE=java11 ci/test.sh'
+								}
+							}
+						}
 					}
 				}
 			}
@@ -139,11 +145,7 @@ pipeline {
 				}
 			}
 			agent {
-				docker {
-					image 'adoptopenjdk/openjdk8:latest'
-					label 'data'
-					args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
-				}
+				label 'data'
 			}
 			options { timeout(time: 20, unit: 'MINUTES') }
 
@@ -152,14 +154,20 @@ pipeline {
 			}
 
 			steps {
-				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,artifactory ' +
-						'-Dartifactory.server=https://repo.spring.io ' +
-						"-Dartifactory.username=${ARTIFACTORY_USR} " +
-						"-Dartifactory.password=${ARTIFACTORY_PSW} " +
-						"-Dartifactory.staging-repository=libs-snapshot-local " +
-						"-Dartifactory.build-name=spring-data-redis " +
-						"-Dartifactory.build-number=${BUILD_NUMBER} " +
-						'-Dmaven.test.skip=true clean deploy -U -B'
+				script {
+					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
+							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,artifactory ' +
+									'-Dartifactory.server=https://repo.spring.io ' +
+									"-Dartifactory.username=${ARTIFACTORY_USR} " +
+									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
+									"-Dartifactory.staging-repository=libs-snapshot-local " +
+									"-Dartifactory.build-name=spring-data-redis " +
+									"-Dartifactory.build-number=${BUILD_NUMBER} " +
+									'-Dmaven.test.skip=true clean deploy -U -B'
+						}
+					}
+				}
 			}
 		}
 
@@ -168,11 +176,7 @@ pipeline {
 				branch 'master'
 			}
 			agent {
-				docker {
-					image 'adoptopenjdk/openjdk8:latest'
-					label 'data'
-					args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
-				}
+				label 'data'
 			}
 			options { timeout(time: 20, unit: 'MINUTES') }
 
@@ -181,12 +185,18 @@ pipeline {
 			}
 
 			steps {
-				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,distribute ' +
-						'-Dartifactory.server=https://repo.spring.io ' +
-						"-Dartifactory.username=${ARTIFACTORY_USR} " +
-						"-Dartifactory.password=${ARTIFACTORY_PSW} " +
-						"-Dartifactory.distribution-repository=temp-private-local " +
-						'-Dmaven.test.skip=true clean deploy -U -B'
+				script {
+					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
+							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,distribute ' +
+									'-Dartifactory.server=https://repo.spring.io ' +
+									"-Dartifactory.username=${ARTIFACTORY_USR} " +
+									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
+									"-Dartifactory.distribution-repository=temp-private-local " +
+									'-Dmaven.test.skip=true clean deploy -U -B'
+						}
+					}
+				}
 			}
 		}
 	}
