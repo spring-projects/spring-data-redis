@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.springframework.util.ObjectUtils;
  * A reactive Redis connection can have multiple subscriptions. If two or more subscriptions subscribe to the same
  * target (channel/pattern) and one unsubscribes, then the other one will no longer receive messages for the target due
  * to how Redis handled Pub/Sub subscription.
- * 
+ *
  * @author Mark Paluch
  * @author Christoph Strobl
  * @since 2.1
@@ -237,7 +237,7 @@ public interface ReactiveSubscription {
 
 		/**
 		 * Create a new {@link PatternMessage}.
-		 * 
+		 *
 		 * @param pattern must not be {@literal null}.
 		 * @param channel must not be {@literal null}.
 		 * @param message must not be {@literal null}.

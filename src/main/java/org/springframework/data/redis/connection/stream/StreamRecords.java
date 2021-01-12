@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@ public class StreamRecords {
 
 	/**
 	 * Builder for {@link Record}.
-	 * 
+	 *
 	 * @param <S> stream keyy type.
 	 */
 	public static class RecordBuilder<S> {
@@ -119,7 +119,7 @@ public class StreamRecords {
 
 		/**
 		 * Configure a stream key.
-		 * 
+		 *
 		 * @param stream the stream key, must not be null.
 		 * @param <STREAM_KEY>
 		 * @return {@literal this} {@link RecordBuilder}.
@@ -134,7 +134,7 @@ public class StreamRecords {
 		/**
 		 * Configure a record Id given a {@link String}. Associates a user-supplied record id instead of using
 		 * server-generated record Id's.
-		 * 
+		 *
 		 * @param id the record id.
 		 * @return {@literal this} {@link RecordBuilder}.
 		 * @see RecordId
@@ -145,7 +145,7 @@ public class StreamRecords {
 
 		/**
 		 * Configure a {@link RecordId}. Associates a user-supplied record id instead of using server-generated record Id's.
-		 * 
+		 *
 		 * @param id the record id.
 		 * @return {@literal this} {@link RecordBuilder}.
 		 */
@@ -159,7 +159,7 @@ public class StreamRecords {
 
 		/**
 		 * Create a {@link MapRecord}.
-		 * 
+		 *
 		 * @param map
 		 * @param <K>
 		 * @param <V>
@@ -171,7 +171,7 @@ public class StreamRecords {
 
 		/**
 		 * Create a {@link StringRecord}.
-		 * 
+		 *
 		 * @param map
 		 * @return new instance of {@link StringRecord}.
 		 * @see MapRecord
@@ -182,7 +182,7 @@ public class StreamRecords {
 
 		/**
 		 * Create an {@link ObjectRecord}.
-		 * 
+		 *
 		 * @param value
 		 * @param <V>
 		 * @return new instance of {@link ObjectRecord}.

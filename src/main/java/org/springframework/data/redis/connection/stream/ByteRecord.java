@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public interface ByteRecord extends MapRecord<byte[], byte[], byte[]> {
 
 	/**
 	 * Create a new {@link ByteRecord} with the associated stream {@literal key}.
-	 * 
+	 *
 	 * @param key the binary stream key.
 	 * @return a new {@link ByteRecord}.
 	 */
@@ -59,7 +59,7 @@ public interface ByteRecord extends MapRecord<byte[], byte[], byte[]> {
 	 * Deserialize {@link #getStream() key} with the {@literal streamSerializer}, field names with the
 	 * {@literal fieldSerializer} and values with the {@literal valueSerializer}. An already assigned {@link RecordId id}
 	 * is carried over to the new instance.
-	 * 
+	 *
 	 * @param streamSerializer can be {@literal null} if the key suites already the target format.
 	 * @param fieldSerializer can be {@literal null} if the fields suite already the target format.
 	 * @param valueSerializer can be {@literal null} if the values suite already the target format.
