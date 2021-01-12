@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -353,7 +353,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 				.map(it -> StreamRecords.newRecord().in(it.getStream()).withId(it.getId()).ofBuffer(it.getBody()));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xInfo(org.reactivestreams.Publisher)
 	 */
@@ -370,7 +370,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xInfoGroups(org.reactivestreams.Publisher)
 	 */
@@ -386,7 +386,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xInfoConsumers(org.reactivestreams.Publisher)
 	 */

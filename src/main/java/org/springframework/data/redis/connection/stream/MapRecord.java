@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public interface MapRecord<S, K, V> extends Record<S, Map<K, V>>, Iterable<Map.E
 
 	/**
 	 * Creates a new {@link MapRecord} associated with the {@code stream} key and {@link Map value}.
-	 * 
+	 *
 	 * @param stream the stream key.
 	 * @param map the value.
 	 * @return the {@link ObjectRecord} holding the {@code stream} key and {@code value}.
@@ -91,7 +91,7 @@ public interface MapRecord<S, K, V> extends Record<S, Map<K, V>>, Iterable<Map.E
 
 	/**
 	 * Map this {@link MapRecord} by applying the mapping {@link Function}.
-	 * 
+	 *
 	 * @param mapFunction function to apply to this {@link MapRecord} element.
 	 * @return the mapped {@link MapRecord}.
 	 */
@@ -115,7 +115,7 @@ public interface MapRecord<S, K, V> extends Record<S, Map<K, V>>, Iterable<Map.E
 	 * Serialize {@link #getStream() key} with the {@literal streamSerializer}, field names with the
 	 * {@literal fieldSerializer} and values with the {@literal valueSerializer}. An already assigned {@link RecordId id}
 	 * is carried over to the new instance.
-	 * 
+	 *
 	 * @param streamSerializer can be {@literal null} if the key is binary.
 	 * @param fieldSerializer can be {@literal null} if the fields are binary.
 	 * @param valueSerializer can be {@literal null} if the values are binary.

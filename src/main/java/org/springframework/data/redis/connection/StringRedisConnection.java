@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2020 the original author or authors.
+ * Copyright 2011-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2028,7 +2028,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * Append the given {@link StringRecord} to the stream stored at {@link StringRecord#getStream()}.
-	 * 
+	 *
 	 * @param record must not be {@literal null}.
 	 * @param options must not be {@literal null}, use {@link XAddOptions#none()} instead.
 	 * @return the record Id. {@literal null} when used in pipeline / transaction.

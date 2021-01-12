@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2020 the original author or authors.
+ * Copyright 2011-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1404,7 +1404,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * State object associated with flushing of the currently ongoing pipeline.
-	 * 
+	 *
 	 * @author Mark Paluch
 	 * @since 2.3
 	 */

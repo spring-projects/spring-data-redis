@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public interface ByteBufferRecord extends MapRecord<ByteBuffer, ByteBuffer, Byte
 
 	/**
 	 * Create a new {@link ByteBufferRecord} with the associated stream {@literal key}.
-	 * 
+	 *
 	 * @param key the binary stream key.
 	 * @return a new {@link ByteBufferRecord}.
 	 */

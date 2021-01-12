@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * This utility can use generic a {@link HashMapper} or adapt specifically to {@link ObjectHashMapper}'s requirement to
  * convert incoming data into byte arrays. This class can be subclassed to override template methods for specific object
  * mapping strategies.
- * 
+ *
  * @author Mark Paluch
  * @since 2.2
  * @see ObjectHashMapper
@@ -54,7 +54,7 @@ class StreamObjectMapper {
 
 	/**
 	 * Creates a new {@link StreamObjectMapper}.
-	 * 
+	 *
 	 * @param mapper the configured {@link HashMapper}.
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -92,7 +92,7 @@ class StreamObjectMapper {
 
 	/**
 	 * Convert the given {@link Record} into a {@link MapRecord}.
-	 * 
+	 *
 	 * @param provider provider for {@link HashMapper} to apply mapping for {@link ObjectRecord}.
 	 * @param source the source value.
 	 * @return the converted {@link MapRecord}.
@@ -121,7 +121,7 @@ class StreamObjectMapper {
 
 	/**
 	 * Convert the given {@link Record} into an {@link ObjectRecord}.
-	 * 
+	 *
 	 * @param provider provider for {@link HashMapper} to apply mapping for {@link ObjectRecord}.
 	 * @param source the source value.
 	 * @param targetType the desired target type.
@@ -135,7 +135,7 @@ class StreamObjectMapper {
 	/**
 	 * Map a {@link List} of {@link MapRecord}s to a {@link List} of {@link ObjectRecord}. Optimizes for empty,
 	 * single-element and multi-element list transformation.l
-	 * 
+	 *
 	 * @param records the {@link MapRecord} that should be mapped.
 	 * @param hashMapperProvider the provider to obtain the actual {@link HashMapper} from. Must not be {@literal null}.
 	 * @param targetType the requested {@link Class target type}.
@@ -175,7 +175,7 @@ class StreamObjectMapper {
 
 	/**
 	 * Returns the actual {@link HashMapper}. Can be overridden by subclasses.
-	 * 
+	 *
 	 * @param conversionService the used {@link ConversionService}.
 	 * @param targetType the target type.
 	 * @return obtain the {@link HashMapper} for a certain type.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,13 +218,13 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.hasKey(key1).as(StepVerifier::create).expectNext(false).verifyComplete();
 		redisTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
-	
+
 	@Test // DATAREDIS-913
 	public void unlinkManyPublisher() {
 
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
-		
+
 		assumeTrue(key1 instanceof String && valueFactory instanceof StringObjectFactory);
 
 		redisTemplate.opsForValue().set(key1, valueFactory.instance()).as(StepVerifier::create).expectNext(true)
@@ -237,13 +237,13 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.hasKey(key1).as(StepVerifier::create).expectNext(false).verifyComplete();
 		redisTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
-	
+
 	@Test // DATAREDIS-913
 	public void deleteManyPublisher() {
 
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
-		
+
 		assumeTrue(key1 instanceof String && valueFactory instanceof StringObjectFactory);
 
 		redisTemplate.opsForValue().set(key1, valueFactory.instance()).as(StepVerifier::create).expectNext(true)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Utility methods for stream serialization.
- * 
+ *
  * @author Mark Paluch
  * @since 2.2
  */
@@ -29,7 +29,7 @@ class StreamSerialization {
 	/**
 	 * Serialize the {@code value} using the optional {@link RedisSerializer}. If no conversion is possible, {@code value}
 	 * is assumed to be a byte array.
-	 * 
+	 *
 	 * @param serializer the serializer. Can be {@literal null}.
 	 * @param value the value to serialize.
 	 * @return the serialized (binary) representation of {@code value}.
