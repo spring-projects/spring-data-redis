@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2020 the original author or authors.
+ * Copyright 2011-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -574,7 +574,7 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Returns the operations performed on hash values bound to the given key. * @param <HK> hash key (or field) type
-	 * 
+	 *
 	 * @param <HV> hash value type
 	 * @param key Redis key
 	 * @return hash operations bound to the given key.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2020 the original author or authors.
+ * Copyright 2011-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ class JedisSubscription extends AbstractSubscription {
 		this.jedisPubSub = jedisPubSub;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doClose()
 	 */
@@ -50,7 +50,7 @@ class JedisSubscription extends AbstractSubscription {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPsubscribe(byte[][])
 	 */
@@ -59,7 +59,7 @@ class JedisSubscription extends AbstractSubscription {
 		jedisPubSub.psubscribe(patterns);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPUnsubscribe(boolean, byte[][])
 	 */
@@ -72,7 +72,7 @@ class JedisSubscription extends AbstractSubscription {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doSubscribe(byte[][])
 	 */
@@ -81,7 +81,7 @@ class JedisSubscription extends AbstractSubscription {
 		jedisPubSub.subscribe(channels);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doUnsubscribe(boolean, byte[][])
 	 */

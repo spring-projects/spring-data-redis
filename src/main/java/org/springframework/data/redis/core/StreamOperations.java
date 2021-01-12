@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -280,7 +280,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 
 	/**
 	 * Read records from one or more {@link StreamOffset}s as {@link ObjectRecord}.
-	 * 
+	 *
 	 * @param targetType the target type of the payload.
 	 * @param streams the streams to read from.
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		this.ops = operations.opsForStream();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundStreamOperations#acknowledge(java.lang.String, java.lang.String[])
 	 */
@@ -63,7 +63,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		return ops.acknowledge(getKey(), group, recordIds);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundStreamOperations#add(java.util.Map)
 	 */
@@ -73,7 +73,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		return ops.add(getKey(), body);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundStreamOperations#delete(java.lang.String[])
 	 */
@@ -83,7 +83,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		return ops.delete(getKey(), recordIds);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundStreamOperations#createGroup(org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String)
 	 */
@@ -93,7 +93,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		return ops.createGroup(getKey(), readOffset, group);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundStreamOperations#deleteConsumer(org.springframework.data.redis.connection.RedisStreamCommands.Consumer)
 	 */
@@ -103,7 +103,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		return ops.deleteConsumer(getKey(), consumer);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundStreamOperations#destroyGroup(java.lang.String)
 	 */
@@ -113,7 +113,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		return ops.destroyGroup(getKey(), group);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundStreamOperations#size()
 	 */
@@ -123,7 +123,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		return ops.size(getKey());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundStreamOperations#range(org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
@@ -133,7 +133,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		return ops.range(getKey(), range, limit);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundStreamOperations#read(org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset)
 	 */
@@ -143,7 +143,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		return ops.read(readOptions, StreamOffset.create(getKey(), readOffset));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundStreamOperations#read(org.springframework.data.redis.connection.RedisStreamCommands.Consumer, org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset)
 	 */
@@ -153,7 +153,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		return ops.read(consumer, readOptions, StreamOffset.create(getKey(), readOffset));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundStreamOperations#reverseRange(org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
@@ -163,7 +163,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		return ops.reverseRange(getKey(), range, limit);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundStreamOperations#trim(long)
 	 */
@@ -173,7 +173,7 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		return ops.trim(getKey(), count);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundKeyOperations#getType()
 	 */
