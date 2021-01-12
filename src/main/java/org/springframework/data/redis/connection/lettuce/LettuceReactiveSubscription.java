@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -182,7 +182,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 
 	/**
 	 * Subscription state holder.
-	 * 
+	 *
 	 * @author Mark Paluch
 	 */
 	static class State {
@@ -200,7 +200,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 
 		/**
 		 * Subscribe to {@code targets} using subscribe {@link Function} and register {@code targets} after subscription.
-		 * 
+		 *
 		 * @param targets
 		 * @param subscribeFunction
 		 * @return
@@ -214,7 +214,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		/**
 		 * Unsubscribe from to {@code targets} using unsubscribe {@link Function} and register {@code targets} after
 		 * subscription.
-		 * 
+		 *
 		 * @param targets
 		 * @param unsubscribeFunction
 		 * @return

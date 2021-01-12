@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -446,7 +446,7 @@ abstract public class Converters {
 	/**
 	 * Parse a rather generic Redis response, such as a list of something into a meaningful structure applying best effort
 	 * conversion of {@code byte[]} and {@link ByteBuffer}.
-	 * 
+	 *
 	 * @param source the source to parse
 	 * @param targetType eg. {@link Map}, {@link String},...
 	 * @param <T>

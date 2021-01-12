@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ public class StreamInfo {
 
 	/**
 	 * Value object holding general information about a {@literal Redis Stream}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 */
 	public static class XInfoStream extends XInfoObject {
@@ -111,7 +111,7 @@ public class StreamInfo {
 
 		/**
 		 * Factory method to create a new instance of {@link XInfoStream}.
-		 * 
+		 *
 		 * @param source the raw value source.
 		 * @return
 		 */
@@ -121,7 +121,7 @@ public class StreamInfo {
 
 		/**
 		 * Total number of element in the stream. Corresponds to {@literal length}.
-		 * 
+		 *
 		 * @return
 		 */
 		public Long streamLength() {
@@ -130,7 +130,7 @@ public class StreamInfo {
 
 		/**
 		 * The streams radix tree key size. Corresponds to {@literal radix-tree-keys}.
-		 * 
+		 *
 		 * @return
 		 */
 		public Long radixTreeKeySize() {
@@ -139,7 +139,7 @@ public class StreamInfo {
 
 		/**
 		 * Total number of element radix tree nodes. Corresponds to {@literal radix-tree-nodes}.
-		 * 
+		 *
 		 * @return
 		 */
 		public Long radixTreeNodesSize() {
@@ -148,7 +148,7 @@ public class StreamInfo {
 
 		/**
 		 * The number of associated {@literal consumer groups}. Corresponds to {@literal groups}.
-		 * 
+		 *
 		 * @return
 		 */
 		public Long groupCount() {
@@ -158,7 +158,7 @@ public class StreamInfo {
 		/**
 		 * The last generated id. May not be the same as {@link #lastEntryId()}. Corresponds to
 		 * {@literal last-generated-id}.
-		 * 
+		 *
 		 * @return
 		 */
 		public String lastGeneratedId() {
@@ -167,7 +167,7 @@ public class StreamInfo {
 
 		/**
 		 * The id of the streams first entry. Corresponds to {@literal first-entry 1)}.
-		 * 
+		 *
 		 * @return
 		 */
 		public String firstEntryId() {
@@ -176,7 +176,7 @@ public class StreamInfo {
 
 		/**
 		 * The streams first entry. Corresponds to {@literal first-entry}.
-		 * 
+		 *
 		 * @return
 		 */
 		public Map<Object, Object> getFirstEntry() {
@@ -185,7 +185,7 @@ public class StreamInfo {
 
 		/**
 		 * The id of the streams last entry. Corresponds to {@literal last-entry 1)}.
-		 * 
+		 *
 		 * @return
 		 */
 		public String lastEntryId() {
@@ -194,7 +194,7 @@ public class StreamInfo {
 
 		/**
 		 * The streams first entry. Corresponds to {@literal last-entry}.
-		 * 
+		 *
 		 * @return
 		 */
 		public Map<Object, Object> getLastEntry() {
@@ -259,7 +259,7 @@ public class StreamInfo {
 
 		/**
 		 * Returns an iterator over the {@link XInfoGroup} elements.
-		 * 
+		 *
 		 * @return
 		 */
 		public Iterator<XInfoGroup> iterator() {
@@ -278,7 +278,7 @@ public class StreamInfo {
 
 		/**
 		 * Returns a sequential {@code Stream} of {@link XInfoGroup}.
-		 * 
+		 *
 		 * @return
 		 */
 		public Stream<XInfoGroup> stream() {
@@ -287,7 +287,7 @@ public class StreamInfo {
 
 		/**
 		 * Performs the given {@literal action} on every available {@link XInfoGroup} of this {@link XInfoGroups}.
-		 * 
+		 *
 		 * @param action
 		 */
 		public void forEach(Consumer<? super XInfoGroup> action) {
@@ -340,7 +340,7 @@ public class StreamInfo {
 
 		/**
 		 * The id of the last delivered message. Corresponds to {@literal last-delivered-id}.
-		 * 
+		 *
 		 * @return
 		 */
 		public String lastDeliveredId() {
