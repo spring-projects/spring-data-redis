@@ -46,7 +46,7 @@ For information on the Spring Data source code repository, nightly builds, and s
 You can help make Spring Data best serve the needs of the Spring community by interacting with developers on Stack Overflow at either
 https://stackoverflow.com/questions/tagged/spring-data[spring-data] or https://stackoverflow.com/questions/tagged/spring-data-redis[spring-data-redis].
 
-If you encounter a bug or want to suggest an improvement (including to this documentation), please create a ticket on the Spring Data issue https://jira.spring.io/browse/DATAREDIS[tracker].
+If you encounter a bug or want to suggest an improvement (including to this documentation), please create a ticket on https://github.com/spring-projects/spring-data-redis/issues/new[Github].
 
 To stay up to date with the latest news and announcements in the Spring eco system, subscribe to the Spring Community https://spring.io/[Portal].
 
