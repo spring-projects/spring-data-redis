@@ -47,7 +47,7 @@ NOTE: Docker containers can eat up disk space fast! From time to time, run `dock
 Here are some ways for you to get involved in the community:
 
 * Get involved with the Spring community on the Stackoverflow. Please help out on the https://stackoverflow.com/questions/tagged/spring-data-redis[spring-data-redis] tag by responding to questions and joining the debate.
-* Create https://jira.spring.io/browse/DATAREDIS[JIRA] tickets for bugs and new features and comment and vote on the ones that you are interested in.
+* Create https://github.com/spring-projects/spring-data-redis/issues/new[Github] issues for bugs and new features and comment and vote on the ones that you are interested in.
 * Watch for upcoming articles on Spring by https://spring.io/blog[subscribing] to spring.io.
 
 Before we accept a non-trivial patch or pull request we will need you to https://cla.pivotal.io/sign/spring[sign the Contributor License Agreement]. Signing the contributor’s agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. If you forget to do so, you'll be reminded when you submit a pull request.
