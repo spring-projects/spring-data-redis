@@ -15,14 +15,12 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
-import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import io.lettuce.core.api.async.RedisScriptingAsyncCommands;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisScriptingCommands;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.util.Assert;
@@ -45,20 +43,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	 */
 	@Override
 	public void scriptFlush() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().scriptFlush()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceStatusResult(getAsyncConnection().scriptFlush()));
-				return;
-			}
-			getConnection().scriptFlush();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		connection.invoke().just(RedisScriptingAsyncCommands::scriptFlush);
 	}
 
 	/*
@@ -68,19 +53,11 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	@Override
 	public void scriptKill() {
 
-		if (isQueueing()) {
+		if (connection.isQueueing()) {
 			throw new UnsupportedOperationException("Script kill not permitted in a transaction");
 		}
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().scriptKill()));
-				return;
-			}
-			getConnection().scriptKill();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		connection.invoke().just(RedisScriptingAsyncCommands::scriptKill);
 	}
 
 	/*
@@ -92,19 +69,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 
 		Assert.notNull(script, "Script must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().scriptLoad(script)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().scriptLoad(script)));
-				return null;
-			}
-			return getConnection().scriptLoad(script);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisScriptingAsyncCommands::scriptLoad, script);
 	}
 
 	/*
@@ -117,19 +82,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		Assert.notNull(scriptSha1, "Script digests must not be null!");
 		Assert.noNullElements(scriptSha1, "Script digests must not contain null elements!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().scriptExists(scriptSha1)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().scriptExists(scriptSha1)));
-				return null;
-			}
-			return getConnection().scriptExists(scriptSha1);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisScriptingAsyncCommands::scriptExists, scriptSha1);
 	}
 
 	/*
@@ -141,27 +94,14 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 
 		Assert.notNull(script, "Script must not be null!");
 
-		try {
-			byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
-			byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
-			String convertedScript = LettuceConverters.toString(script);
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(
-						getAsyncConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType), keys, args),
-						new LettuceEvalResultsConverter<T>(returnType)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(
-						getAsyncConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType), keys, args),
-						new LettuceEvalResultsConverter<T>(returnType)));
-				return null;
-			}
-			return new LettuceEvalResultsConverter<T>(returnType)
-					.convert(getConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType), keys, args));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
+		byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
+		String convertedScript = LettuceConverters.toString(script);
+
+		return connection
+				.invoke().from(RedisScriptingAsyncCommands::eval, convertedScript,
+						LettuceConverters.toScriptOutputType(returnType), keys, args)
+				.get(new LettuceEvalResultsConverter<T>(returnType));
 	}
 
 	/*
@@ -173,27 +113,13 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 
 		Assert.notNull(scriptSha1, "Script digest must not be null!");
 
-		try {
-			byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
-			byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
+		byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
+		byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
 
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(
-						getAsyncConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType), keys, args),
-						new LettuceEvalResultsConverter<T>(returnType)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(
-						getAsyncConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType), keys, args),
-						new LettuceEvalResultsConverter<T>(returnType)));
-				return null;
-			}
-			return new LettuceEvalResultsConverter<T>(returnType)
-					.convert(getConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType), keys, args));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection
+				.invoke().from(RedisScriptingAsyncCommands::evalsha, scriptSha1,
+						LettuceConverters.toScriptOutputType(returnType), keys, args)
+				.get(new LettuceEvalResultsConverter<T>(returnType));
 	}
 
 	/*
@@ -206,34 +132,6 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		Assert.notNull(scriptSha1, "Script digest must not be null!");
 
 		return evalSha(LettuceConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
-	}
-
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
-	}
-
-	private void pipeline(LettuceResult result) {
-		connection.pipeline(result);
-	}
-
-	private void transaction(LettuceResult result) {
-		connection.transaction(result);
-	}
-
-	private RedisClusterAsyncCommands<byte[], byte[]> getAsyncConnection() {
-		return connection.getAsyncConnection();
-	}
-
-	public RedisClusterCommands<byte[], byte[]> getConnection() {
-		return connection.getConnection();
-	}
-
-	private DataAccessException convertLettuceAccessException(Exception ex) {
-		return connection.convertLettuceAccessException(ex);
 	}
 
 	private static byte[][] extractScriptKeys(int numKeys, byte[]... keysAndArgs) {
@@ -251,7 +149,8 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	}
 
 	private class LettuceEvalResultsConverter<T> implements Converter<Object, T> {
-		private ReturnType returnType;
+
+		private final ReturnType returnType;
 
 		public LettuceEvalResultsConverter(ReturnType returnType) {
 			this.returnType = returnType;
@@ -263,7 +162,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 				List resultList = (List) source;
 				for (Object obj : resultList) {
 					if (obj instanceof Exception) {
-						throw convertLettuceAccessException((Exception) obj);
+						throw connection.convertLettuceAccessException((Exception) obj);
 					}
 				}
 			}

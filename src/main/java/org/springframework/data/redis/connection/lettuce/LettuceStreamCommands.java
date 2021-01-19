@@ -19,15 +19,14 @@ import io.lettuce.core.XAddArgs;
 import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.XGroupCreateArgs;
 import io.lettuce.core.XReadArgs;
+import io.lettuce.core.api.async.RedisStreamAsyncCommands;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
-import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
@@ -73,19 +72,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 		String[] ids = entryIdsToString(recordIds);
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xack(key, LettuceConverters.toBytes(group), ids)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xack(key, LettuceConverters.toBytes(group), ids)));
-				return null;
-			}
-			return getConnection().xack(key, LettuceConverters.toBytes(group), ids);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisStreamAsyncCommands::xack, key, LettuceConverters.toBytes(group), ids);
 	}
 
 	/*
@@ -104,25 +91,8 @@ class LettuceStreamCommands implements RedisStreamCommands {
 			args.maxlen(options.getMaxlen());
 		}
 
-		try {
-			if (isPipelined()) {
-
-				pipeline(connection.newLettuceResult(getAsyncConnection().xadd(record.getStream(), args, record.getValue()),
-						RecordId::of));
-				return null;
-			}
-			if (isQueueing()) {
-
-				transaction(connection.newLettuceResult(getAsyncConnection().xadd(record.getStream(), args, record.getValue()),
-						RecordId::of));
-				return null;
-			}
-
-			return RecordId.of(getConnection().xadd(record.getStream(), args, record.getValue()));
-
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().from(RedisStreamAsyncCommands::xadd, record.getStream(), args, record.getValue())
+				.get(RecordId::of);
 	}
 
 	/*
@@ -137,25 +107,8 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				LettuceConverters.toBytes(newOwner));
 		XClaimArgs args = StreamConverters.toXClaimArgs(options).justid();
 
-		try {
-			if (isPipelined()) {
-
-				pipeline(connection.newLettuceResult(getAsyncConnection().xclaim(key, from, args, ids),
-						StreamConverters.messagesToIds()));
-				return null;
-			}
-			if (isQueueing()) {
-
-				transaction(connection.newLettuceResult(getAsyncConnection().xclaim(key, from, args, ids),
-						StreamConverters.messagesToIds()));
-				return null;
-			}
-
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-
-		return StreamConverters.messagesToIds().convert(getConnection().xclaim(key, from, args, ids));
+		return connection.invoke().fromMany(RedisStreamAsyncCommands::xclaim, key, from, args, ids)
+				.toList(it -> RecordId.of(it.getId()));
 	}
 
 	/*
@@ -170,21 +123,8 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				LettuceConverters.toBytes(newOwner));
 		XClaimArgs args = StreamConverters.toXClaimArgs(options);
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xclaim(key, from, args, ids),
-						StreamConverters.byteRecordListConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xclaim(key, from, args, ids),
-						StreamConverters.byteRecordListConverter()));
-				return null;
-			}
-			return StreamConverters.byteRecordListConverter().convert(getConnection().xclaim(key, from, args, ids));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().fromMany(RedisStreamAsyncCommands::xclaim, key, from, args, ids)
+				.toList(StreamConverters.byteRecordConverter());
 	}
 
 	/*
@@ -197,19 +137,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(recordIds, "recordIds must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xdel(key, entryIdsToString(recordIds))));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xdel(key, entryIdsToString(recordIds))));
-				return null;
-			}
-			return getConnection().xdel(key, entryIdsToString(recordIds));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisStreamAsyncCommands::xdel, key, entryIdsToString(recordIds));
 	}
 
 	/*
@@ -232,24 +160,10 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		Assert.hasText(groupName, "Group name must not be null or empty!");
 		Assert.notNull(readOffset, "ReadOffset must not be null!");
 
-		try {
-			XReadArgs.StreamOffset<byte[]> streamOffset = XReadArgs.StreamOffset.from(key, readOffset.getOffset());
+		XReadArgs.StreamOffset<byte[]> streamOffset = XReadArgs.StreamOffset.from(key, readOffset.getOffset());
 
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset,
-						LettuceConverters.toBytes(groupName), XGroupCreateArgs.Builder.mkstream(mkSteam))));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xgroupCreate(streamOffset,
-						LettuceConverters.toBytes(groupName), XGroupCreateArgs.Builder.mkstream(mkSteam))));
-				return null;
-			}
-			return getConnection().xgroupCreate(streamOffset, LettuceConverters.toBytes(groupName),
-					XGroupCreateArgs.Builder.mkstream(mkSteam));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisStreamAsyncCommands::xgroupCreate, streamOffset,
+				LettuceConverters.toBytes(groupName), XGroupCreateArgs.Builder.mkstream(mkSteam));
 	}
 
 	/*
@@ -262,23 +176,10 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(consumer, "Consumer must not be null!");
 
-		try {
-			io.lettuce.core.Consumer<byte[]> lettuceConsumer = toConsumer(consumer);
+		io.lettuce.core.Consumer<byte[]> lettuceConsumer = toConsumer(consumer);
 
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xgroupDelconsumer(key, lettuceConsumer),
-						Objects::nonNull));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xgroupDelconsumer(key, lettuceConsumer),
-						Objects::nonNull));
-				return null;
-			}
-			return Objects.nonNull(getConnection().xgroupDelconsumer(key, lettuceConsumer));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().from(RedisStreamAsyncCommands::xgroupDelconsumer, key, lettuceConsumer)
+				.get(Objects::nonNull);
 	}
 
 	/*
@@ -291,21 +192,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.hasText(groupName, "Group name must not be null or empty!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(
-						connection.newLettuceResult(getAsyncConnection().xgroupDestroy(key, LettuceConverters.toBytes(groupName))));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(
-						connection.newLettuceResult(getAsyncConnection().xgroupDestroy(key, LettuceConverters.toBytes(groupName))));
-				return null;
-			}
-			return getConnection().xgroupDestroy(key, LettuceConverters.toBytes(groupName));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisStreamAsyncCommands::xgroupDestroy, key, LettuceConverters.toBytes(groupName));
 	}
 
 	/*
@@ -317,19 +204,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xinfoStream(key), XInfoStream::fromList));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xinfoStream(key), XInfoStream::fromList));
-				return null;
-			}
-			return XInfoStream.fromList(getConnection().xinfoStream(key));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().from(RedisStreamAsyncCommands::xinfoStream, key).get(XInfoStream::fromList);
 	}
 
 	/*
@@ -341,19 +216,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xinfoGroups(key), XInfoGroups::fromList));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xinfoGroups(key), XInfoGroups::fromList));
-				return null;
-			}
-			return XInfoGroups.fromList(getConnection().xinfoGroups(key));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().from(RedisStreamAsyncCommands::xinfoGroups, key).get(XInfoGroups::fromList);
 	}
 
 	/*
@@ -366,23 +229,8 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(groupName, "GroupName must not be null!");
 
-		byte[] binaryGroupName = LettuceConverters.toBytes(groupName);
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xinfoConsumers(key, binaryGroupName),
-						it -> XInfoConsumers.fromList(groupName, it)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xinfoConsumers(key, binaryGroupName),
-						it -> XInfoConsumers.fromList(groupName, it)));
-				return null;
-			}
-			return XInfoConsumers.fromList(groupName, getConnection().xinfoConsumers(key, binaryGroupName));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().from(RedisStreamAsyncCommands::xinfoConsumers, key, LettuceConverters.toBytes(groupName))
+				.get(it -> XInfoConsumers.fromList(groupName, it));
 	}
 
 	/*
@@ -394,19 +242,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xlen(key)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xlen(key)));
-				return null;
-			}
-			return getConnection().xlen(key);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisStreamAsyncCommands::xlen, key);
 	}
 
 	/*
@@ -417,21 +253,9 @@ class LettuceStreamCommands implements RedisStreamCommands {
 	public PendingMessagesSummary xPending(byte[] key, String groupName) {
 
 		byte[] group = LettuceConverters.toBytes(groupName);
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xpending(key, group),
-						it -> StreamConverters.toPendingMessagesInfo(groupName, it)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xpending(key, group),
-						it -> StreamConverters.toPendingMessagesInfo(groupName, it)));
-				return null;
-			}
-			return StreamConverters.toPendingMessagesInfo(groupName, getConnection().xpending(key, group));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+
+		return connection.invoke().from(RedisStreamAsyncCommands::xpending, key, group)
+				.get(it -> StreamConverters.toPendingMessagesInfo(groupName, it));
 	}
 
 	/*
@@ -442,46 +266,21 @@ class LettuceStreamCommands implements RedisStreamCommands {
 	public PendingMessages xPending(byte[] key, String groupName, XPendingOptions options) {
 
 		byte[] group = LettuceConverters.toBytes(groupName);
-		io.lettuce.core.Range<String> range = RangeConverter.toRangeWithDefault(options.getRange(), "-", "+", Function.identity());
+		io.lettuce.core.Range<String> range = RangeConverter.toRangeWithDefault(options.getRange(), "-", "+",
+				Function.identity());
 		io.lettuce.core.Limit limit = options.isLimited() ? io.lettuce.core.Limit.from(options.getCount())
 				: io.lettuce.core.Limit.unlimited();
 
-		try {
-			if (options.hasConsumer()) {
+		if (options.hasConsumer()) {
 
-				if (isPipelined()) {
-					pipeline(connection.newLettuceResult(getAsyncConnection().xpending(key,
-							io.lettuce.core.Consumer.from(group, LettuceConverters.toBytes(options.getConsumerName())), range, limit),
-							it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it)));
-					return null;
-				}
-				if (isQueueing()) {
-					transaction(connection.newLettuceResult(getAsyncConnection().xpending(key,
-							io.lettuce.core.Consumer.from(group, LettuceConverters.toBytes(options.getConsumerName())), range, limit),
-							it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it)));
-					return null;
-				}
-				return StreamConverters.toPendingMessages(groupName, options.getRange(), getConnection().xpending(key,
-						io.lettuce.core.Consumer.from(group, LettuceConverters.toBytes(options.getConsumerName())), range, limit));
-
-			} else {
-
-				if (isPipelined()) {
-					pipeline(connection.newLettuceResult(getAsyncConnection().xpending(key, group, range, limit),
-							it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it)));
-					return null;
-				}
-				if (isQueueing()) {
-					transaction(connection.newLettuceResult(getAsyncConnection().xpending(key, group, range, limit),
-							it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it)));
-					return null;
-				}
-				return StreamConverters.toPendingMessages(groupName, options.getRange(),
-						getConnection().xpending(key, group, range, limit));
-			}
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
+			return connection.invoke()
+					.from(RedisStreamAsyncCommands::xpending, key,
+							io.lettuce.core.Consumer.from(group, LettuceConverters.toBytes(options.getConsumerName())), range, limit)
+					.get(it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it));
 		}
+
+		return connection.invoke().from(RedisStreamAsyncCommands::xpending, key, group, range, limit)
+				.get(it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it));
 	}
 
 	/*
@@ -497,24 +296,9 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 		io.lettuce.core.Range<String> lettuceRange = RangeConverter.toRange(range, Function.identity());
 		io.lettuce.core.Limit lettuceLimit = LettuceConverters.toLimit(limit);
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xrange(key, lettuceRange, lettuceLimit),
-						StreamConverters.byteRecordListConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xrange(key, lettuceRange, lettuceLimit),
-						StreamConverters.byteRecordListConverter()));
-				return null;
-			}
 
-			return StreamConverters.byteRecordListConverter()
-					.convert(getConnection().xrange(key, lettuceRange, lettuceLimit));
-
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().fromMany(RedisStreamAsyncCommands::xrange, key, lettuceRange, lettuceLimit)
+				.toList(StreamConverters.byteRecordConverter());
 	}
 
 	/*
@@ -532,38 +316,13 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 		if (readOptions.isBlocking()) {
 
-			try {
-				if (isPipelined()) {
-					pipeline(connection.newLettuceResult(getAsyncDedicatedConnection().xread(args, streamOffsets),
-							StreamConverters.byteRecordListConverter()));
-					return null;
-				}
-				if (isQueueing()) {
-					transaction(connection.newLettuceResult(getAsyncDedicatedConnection().xread(args, streamOffsets),
-							StreamConverters.byteRecordListConverter()));
-					return null;
-				}
-				return StreamConverters.byteRecordListConverter().convert(getDedicatedConnection().xread(args, streamOffsets));
-			} catch (Exception ex) {
-				throw convertLettuceAccessException(ex);
-			}
+			return connection.invoke(getAsyncDedicatedConnection())
+					.fromMany(RedisStreamAsyncCommands::xread, args, streamOffsets)
+					.toList(StreamConverters.byteRecordConverter());
 		}
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xread(args, streamOffsets),
-						StreamConverters.byteRecordListConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xread(args, streamOffsets),
-						StreamConverters.byteRecordListConverter()));
-				return null;
-			}
-			return StreamConverters.byteRecordListConverter().convert(getConnection().xread(args, streamOffsets));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().fromMany(RedisStreamAsyncCommands::xread, args, streamOffsets)
+				.toList(StreamConverters.byteRecordConverter());
 	}
 
 	/*
@@ -584,42 +343,13 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 		if (readOptions.isBlocking()) {
 
-			try {
-				if (isPipelined()) {
-					pipeline(connection.newLettuceResult(
-							getAsyncDedicatedConnection().xreadgroup(lettuceConsumer, args, streamOffsets),
-							StreamConverters.byteRecordListConverter()));
-					return null;
-				}
-				if (isQueueing()) {
-					transaction(connection.newLettuceResult(
-							getAsyncDedicatedConnection().xreadgroup(lettuceConsumer, args, streamOffsets),
-							StreamConverters.byteRecordListConverter()));
-					return null;
-				}
-				return StreamConverters.byteRecordListConverter()
-						.convert(getDedicatedConnection().xreadgroup(lettuceConsumer, args, streamOffsets));
-			} catch (Exception ex) {
-				throw convertLettuceAccessException(ex);
-			}
+			return connection.invoke(getAsyncDedicatedConnection())
+					.fromMany(RedisStreamAsyncCommands::xreadgroup, lettuceConsumer, args, streamOffsets)
+					.toList(StreamConverters.byteRecordConverter());
 		}
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xreadgroup(lettuceConsumer, args, streamOffsets),
-						StreamConverters.byteRecordListConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xreadgroup(lettuceConsumer, args, streamOffsets),
-						StreamConverters.byteRecordListConverter()));
-				return null;
-			}
-			return StreamConverters.byteRecordListConverter()
-					.convert(getConnection().xreadgroup(lettuceConsumer, args, streamOffsets));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().fromMany(RedisStreamAsyncCommands::xreadgroup, lettuceConsumer, args, streamOffsets)
+				.toList(StreamConverters.byteRecordConverter());
 	}
 
 	/*
@@ -635,22 +365,10 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 		io.lettuce.core.Range<String> lettuceRange = RangeConverter.toRange(range, Function.identity());
 		io.lettuce.core.Limit lettuceLimit = LettuceConverters.toLimit(limit);
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xrevrange(key, lettuceRange, lettuceLimit),
-						StreamConverters.byteRecordListConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xrevrange(key, lettuceRange, lettuceLimit),
-						StreamConverters.byteRecordListConverter()));
-				return null;
-			}
-			return StreamConverters.byteRecordListConverter()
-					.convert(getConnection().xrevrange(key, lettuceRange, lettuceLimit));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+
+		return connection.invoke(getAsyncDedicatedConnection())
+				.fromMany(RedisStreamAsyncCommands::xrevrange, key, lettuceRange, lettuceLimit)
+				.toList(StreamConverters.byteRecordConverter());
 	}
 
 	/*
@@ -670,55 +388,11 @@ class LettuceStreamCommands implements RedisStreamCommands {
 	public Long xTrim(byte[] key, long count, boolean approximateTrimming) {
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().xtrim(key, approximateTrimming, count)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().xtrim(key, approximateTrimming, count)));
-				return null;
-			}
-			return getConnection().xtrim(key, approximateTrimming, count);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
-	}
-
-	private void pipeline(LettuceResult result) {
-		connection.pipeline(result);
-	}
-
-	private void transaction(LettuceResult result) {
-		connection.transaction(result);
-	}
-
-	RedisClusterAsyncCommands<byte[], byte[]> getAsyncConnection() {
-		return connection.getAsyncConnection();
-	}
-
-	RedisClusterCommands<byte[], byte[]> getConnection() {
-		return connection.getConnection();
+		return connection.invoke().just(RedisStreamAsyncCommands::xtrim, key, approximateTrimming, count);
 	}
 
 	RedisClusterAsyncCommands<byte[], byte[]> getAsyncDedicatedConnection() {
 		return connection.getAsyncDedicatedConnection();
-	}
-
-	RedisClusterCommands<byte[], byte[]> getDedicatedConnection() {
-		return connection.getDedicatedConnection();
-	}
-
-	private DataAccessException convertLettuceAccessException(Exception ex) {
-		return connection.convertLettuceAccessException(ex);
 	}
 
 	@SuppressWarnings("unchecked")

@@ -38,14 +38,9 @@ class LettuceClusterHyperLogLogCommands extends LettuceHyperLogLogCommands {
 	public Long pfCount(byte[]... keys) {
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
-
-			try {
-				return super.pfCount(keys);
-			} catch (Exception ex) {
-				throw convertLettuceAccessException(ex);
-			}
-
+			return super.pfCount(keys);
 		}
+
 		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfcount in cluster mode.");
 	}
 
@@ -59,14 +54,10 @@ class LettuceClusterHyperLogLogCommands extends LettuceHyperLogLogCommands {
 		byte[][] allKeys = ByteUtils.mergeArrays(destinationKey, sourceKeys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
-			try {
-				super.pfMerge(destinationKey, sourceKeys);
-				return;
-			} catch (Exception ex) {
-				throw convertLettuceAccessException(ex);
-			}
-
+			super.pfMerge(destinationKey, sourceKeys);
+			return;
 		}
+
 		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfmerge in cluster mode.");
 	}
 }

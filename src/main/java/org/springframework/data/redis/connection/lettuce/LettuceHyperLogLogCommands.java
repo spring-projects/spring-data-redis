@@ -15,11 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import io.lettuce.core.api.sync.RedisHLLCommands;
-import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
-import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
+import io.lettuce.core.api.async.RedisHLLAsyncCommands;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
 import org.springframework.util.Assert;
 
@@ -46,22 +43,7 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 		Assert.notEmpty(values, "PFADD requires at least one non 'null' value.");
 		Assert.noNullElements(values, "Values for PFADD must not contain 'null'.");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().pfadd(key, values)));
-				return null;
-			}
-
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().pfadd(key, values)));
-				return null;
-			}
-
-			RedisHLLCommands<byte[], byte[]> connection = getConnection();
-			return connection.pfadd(key, values);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisHLLAsyncCommands::pfadd, key, values);
 	}
 
 	/*
@@ -74,22 +56,7 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key.");
 		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'.");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().pfcount(keys)));
-				return null;
-			}
-
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().pfcount(keys)));
-				return null;
-			}
-
-			RedisHLLCommands<byte[], byte[]> connection = getConnection();
-			return connection.pfcount(keys);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisHLLAsyncCommands::pfcount, keys);
 	}
 
 	/*
@@ -103,49 +70,6 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 		Assert.notNull(sourceKeys, "Source keys must not be null");
 		Assert.noNullElements(sourceKeys, "Keys for PFMERGE must not contain 'null'.");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().pfmerge(destinationKey, sourceKeys)));
-				return;
-			}
-
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().pfmerge(destinationKey, sourceKeys)));
-				return;
-			}
-
-			RedisHLLCommands<byte[], byte[]> connection = getConnection();
-			connection.pfmerge(destinationKey, sourceKeys);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
-	}
-
-	private void pipeline(LettuceResult result) {
-		connection.pipeline(result);
-	}
-
-	private void transaction(LettuceResult result) {
-		connection.transaction(result);
-	}
-
-	private RedisClusterAsyncCommands<byte[], byte[]> getAsyncConnection() {
-		return connection.getAsyncConnection();
-	}
-
-	public RedisClusterCommands<byte[], byte[]> getConnection() {
-		return connection.getConnection();
-	}
-
-	protected DataAccessException convertLettuceAccessException(Exception ex) {
-		return connection.convertLettuceAccessException(ex);
+		connection.invoke().just(RedisHLLAsyncCommands::pfmerge, destinationKey, sourceKeys);
 	}
 }
