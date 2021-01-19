@@ -491,7 +491,6 @@ class LettuceConnectionFactoryTests {
 			connection.ping();
 			fail("Expected RedisException: Master is currently unknown");
 		} catch (RedisSystemException e) {
-
 			assertThat(e.getCause()).isInstanceOf(RedisException.class);
 			assertThat(e.getCause().getMessage()).contains("Master is currently unknown");
 		} finally {

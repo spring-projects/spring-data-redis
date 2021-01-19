@@ -75,6 +75,7 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 * @since 2.4
 	 */
+	@Nullable
 	List<Long> lPos(byte[] key, byte[] element, @Nullable Integer rank, @Nullable Integer count);
 
 	/**

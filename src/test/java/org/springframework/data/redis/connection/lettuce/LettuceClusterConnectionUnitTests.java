@@ -20,14 +20,15 @@ import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.test.util.MockitoUtils.*;
 
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.async.RedisAdvancedClusterAsyncCommands;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
-import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
@@ -361,34 +362,36 @@ class LettuceClusterConnectionUnitTests {
 	@Test // DATAREDIS-731, DATAREDIS-545
 	void shouldExecuteOnSharedConnection() {
 
-		RedisAdvancedClusterCommands<byte[], byte[]> sync = mock(RedisAdvancedClusterCommands.class);
+		RedisAdvancedClusterAsyncCommands<byte[], byte[]> async = mock(RedisAdvancedClusterAsyncCommands.class);
 
-		when(sharedConnectionMock.sync()).thenReturn(sync);
+		when(sharedConnectionMock.async()).thenReturn(async);
+		when(async.del(any())).thenReturn(mock(RedisFuture.class));
 
 		LettuceClusterConnection connection = new LettuceClusterConnection(sharedConnectionMock, connectionProviderMock,
 				topologyProviderMock, executorMock, Duration.ZERO);
 
 		connection.keyCommands().del(KEY_1_BYTES);
 
-		verify(sync).del(KEY_1_BYTES);
+		verify(async).del(KEY_1_BYTES);
 		verifyNoMoreInteractions(connectionProviderMock);
 	}
 
 	@Test // DATAREDIS-731, DATAREDIS-545
 	void shouldExecuteOnDedicatedConnection() {
 
-		RedisCommands<byte[], byte[]> sync = mock(RedisCommands.class);
+		RedisAsyncCommands<byte[], byte[]> async = mock(RedisAsyncCommands.class);
 		StatefulRedisConnection<byte[], byte[]> dedicatedConnection = mock(StatefulRedisConnection.class);
 
 		when(connectionProviderMock.getConnection(StatefulConnection.class)).thenReturn(dedicatedConnection);
-		when(dedicatedConnection.sync()).thenReturn(sync);
+		when(dedicatedConnection.async()).thenReturn(async);
+		when(async.blpop(anyLong(), any())).thenReturn(mock(RedisFuture.class));
 
 		LettuceClusterConnection connection = new LettuceClusterConnection(sharedConnectionMock, connectionProviderMock,
 				topologyProviderMock, executorMock, Duration.ZERO);
 
 		connection.listCommands().bLPop(1, KEY_1_BYTES);
 
-		verify(sync).blpop(1, KEY_1_BYTES);
+		verify(async).blpop(1, KEY_1_BYTES);
 		verify(connectionProviderMock).getConnection(StatefulConnection.class);
 		verifyNoMoreInteractions(connectionProviderMock);
 		verifyZeroInteractions(sharedConnectionMock);

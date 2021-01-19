@@ -19,13 +19,12 @@ import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScoredValue;
 import io.lettuce.core.ScoredValueScanCursor;
 import io.lettuce.core.ZStoreArgs;
-import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
+import io.lettuce.core.api.async.RedisSortedSetAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
@@ -58,21 +57,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zadd(key, score, value),
-						LettuceConverters.longToBoolean()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zadd(key, score, value),
-						LettuceConverters.longToBoolean()));
-				return null;
-			}
-			return LettuceConverters.toBoolean(getConnection().zadd(key, score, value));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().from(RedisSortedSetAsyncCommands::zadd, key, score, value)
+				.get(LettuceConverters.longToBoolean());
 	}
 
 	/*
@@ -85,21 +71,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(tuples, "Tuples must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(
-						connection.newLettuceResult(getAsyncConnection().zadd(key, LettuceConverters.toObjects(tuples).toArray())));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(
-						connection.newLettuceResult(getAsyncConnection().zadd(key, LettuceConverters.toObjects(tuples).toArray())));
-				return null;
-			}
-			return getConnection().zadd(key, LettuceConverters.toObjects(tuples).toArray());
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zadd, key,
+				LettuceConverters.toObjects(tuples).toArray());
 	}
 
 	/*
@@ -113,19 +86,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(values, "Values must not be null!");
 		Assert.noNullElements(values, "Values must not contain null elements!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrem(key, values)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zrem(key, values)));
-				return null;
-			}
-			return getConnection().zrem(key, values);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zrem, key, values);
 	}
 
 	/*
@@ -138,19 +99,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zincrby(key, increment, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zincrby(key, increment, value)));
-				return null;
-			}
-			return getConnection().zincrby(key, increment, value);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zincrby, key, increment, value);
 	}
 
 	/*
@@ -163,19 +112,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrank(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zrank(key, value)));
-				return null;
-			}
-			return getConnection().zrank(key, value);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zrank, key, value);
 	}
 
 	/*
@@ -187,19 +124,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrevrank(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zrevrank(key, value)));
-				return null;
-			}
-			return getConnection().zrevrank(key, value);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zrevrank, key, value);
 	}
 
 	/*
@@ -211,21 +136,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrange(key, start, end),
-						LettuceConverters.bytesListToBytesSet()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zrange(key, start, end),
-						LettuceConverters.bytesListToBytesSet()));
-				return null;
-			}
-			return LettuceConverters.toBytesSet(getConnection().zrange(key, start, end));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrange, key, start, end).toSet();
 	}
 
 	/*
@@ -237,21 +148,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrangeWithScores(key, start, end),
-						LettuceConverters.scoredValuesToTupleSet()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zrangeWithScores(key, start, end),
-						LettuceConverters.scoredValuesToTupleSet()));
-				return null;
-			}
-			return LettuceConverters.toTupleSet(getConnection().zrangeWithScores(key, start, end));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangeWithScores, key, start, end)
+				.toSet(LettuceConverters::toTuple);
 	}
 
 	/*
@@ -265,40 +163,16 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(range, "Range for ZRANGEBYSCOREWITHSCORES must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		try {
-			if (isPipelined()) {
 				if (limit.isUnlimited()) {
-					pipeline(connection.newLettuceResult(
-							getAsyncConnection().zrangebyscoreWithScores(key, LettuceConverters.toRange(range)),
-							LettuceConverters.scoredValuesToTupleSet()));
-				} else {
-					pipeline(connection.newLettuceResult(getAsyncConnection().zrangebyscoreWithScores(key,
-							LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
-							LettuceConverters.scoredValuesToTupleSet()));
+					return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebyscoreWithScores, key,
+							LettuceConverters.<Number> toRange(range)).toSet(LettuceConverters::toTuple);
 				}
-				return null;
-			}
-			if (isQueueing()) {
-				if (limit.isUnlimited()) {
-					transaction(connection.newLettuceResult(
-							getAsyncConnection().zrangebyscoreWithScores(key, LettuceConverters.toRange(range)),
-							LettuceConverters.scoredValuesToTupleSet()));
-				} else {
-					transaction(connection.newLettuceResult(getAsyncConnection().zrangebyscoreWithScores(key,
-							LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
-							LettuceConverters.scoredValuesToTupleSet()));
-				}
-				return null;
-			}
-			if (limit.isUnlimited()) {
-				return LettuceConverters
-						.toTupleSet(getConnection().zrangebyscoreWithScores(key, LettuceConverters.toRange(range)));
-			}
-			return LettuceConverters.toTupleSet(getConnection().zrangebyscoreWithScores(key, LettuceConverters.toRange(range),
-					LettuceConverters.toLimit(limit)));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+
+				return connection.invoke()
+						.fromMany(RedisSortedSetAsyncCommands::zrangebyscoreWithScores, key,
+								LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit))
+						.toSet(LettuceConverters::toTuple);
+
 	}
 
 	/*
@@ -310,21 +184,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrevrange(key, start, end),
-						LettuceConverters.bytesListToBytesSet()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zrevrange(key, start, end),
-						LettuceConverters.bytesListToBytesSet()));
-				return null;
-			}
-			return LettuceConverters.toBytesSet(getConnection().zrevrange(key, start, end));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrange, key, start, end)
+				.toSet(LettuceInvoker.identityConverter());
 	}
 
 	/*
@@ -336,21 +197,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrevrangeWithScores(key, start, end),
-						LettuceConverters.scoredValuesToTupleSet()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zrevrangeWithScores(key, start, end),
-						LettuceConverters.scoredValuesToTupleSet()));
-				return null;
-			}
-			return LettuceConverters.toTupleSet(getConnection().zrevrangeWithScores(key, start, end));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangeWithScores, key, start, end)
+				.toSet(LettuceConverters::toTuple);
 	}
 
 	/*
@@ -364,39 +212,16 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(range, "Range for ZREVRANGEBYSCORE must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		try {
-			if (isPipelined()) {
 				if (limit.isUnlimited()) {
-					pipeline(
-							connection.newLettuceResult(getAsyncConnection().zrevrangebyscore(key, LettuceConverters.toRange(range)),
-									LettuceConverters.bytesListToBytesSet()));
-				} else {
-					pipeline(
-							connection.newLettuceResult(getAsyncConnection().zrevrangebyscore(key, LettuceConverters.toRange(range),
-									LettuceConverters.toLimit(limit)), LettuceConverters.bytesListToBytesSet()));
+
+					return connection.invoke()
+							.fromMany(RedisSortedSetAsyncCommands::zrevrangebyscore, key, LettuceConverters.<Number> toRange(range))
+							.toSet();
 				}
-				return null;
-			}
-			if (isQueueing()) {
-				if (limit.isUnlimited()) {
-					transaction(
-							connection.newLettuceResult(getAsyncConnection().zrevrangebyscore(key, LettuceConverters.toRange(range)),
-									LettuceConverters.bytesListToBytesSet()));
-				} else {
-					transaction(
-							connection.newLettuceResult(getAsyncConnection().zrevrangebyscore(key, LettuceConverters.toRange(range),
-									LettuceConverters.toLimit(limit)), LettuceConverters.bytesListToBytesSet()));
-				}
-				return null;
-			}
-			if (limit.isUnlimited()) {
-				return LettuceConverters.toBytesSet(getConnection().zrevrangebyscore(key, LettuceConverters.toRange(range)));
-			}
-			return LettuceConverters.toBytesSet(
-					getConnection().zrevrangebyscore(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+
+				return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangebyscore, key,
+						LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit)).toSet();
+
 	}
 
 	/*
@@ -410,41 +235,16 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(range, "Range for ZREVRANGEBYSCOREWITHSCORES must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		try {
-			if (isPipelined()) {
 				if (limit.isUnlimited()) {
-					pipeline(connection.newLettuceResult(
-							getAsyncConnection().zrevrangebyscoreWithScores(key, LettuceConverters.toRange(range)),
-							LettuceConverters.scoredValuesToTupleSet()));
-				} else {
-					pipeline(connection.newLettuceResult(getAsyncConnection().zrevrangebyscoreWithScores(key,
-							LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
-							LettuceConverters.scoredValuesToTupleSet()));
+					return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangebyscoreWithScores, key,
+							LettuceConverters.<Number> toRange(range)).toSet(LettuceConverters::toTuple);
 				}
-				return null;
-			}
 
-			if (isQueueing()) {
-				if (limit.isUnlimited()) {
-					transaction(connection.newLettuceResult(
-							getAsyncConnection().zrevrangebyscoreWithScores(key, LettuceConverters.toRange(range)),
-							LettuceConverters.scoredValuesToTupleSet()));
-				} else {
-					transaction(connection.newLettuceResult(getAsyncConnection().zrevrangebyscoreWithScores(key,
-							LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)),
-							LettuceConverters.scoredValuesToTupleSet()));
-				}
-				return null;
-			}
-			if (limit.isUnlimited()) {
-				return LettuceConverters
-						.toTupleSet(getConnection().zrevrangebyscoreWithScores(key, LettuceConverters.toRange(range)));
-			}
-			return LettuceConverters.toTupleSet(getConnection().zrevrangebyscoreWithScores(key,
-					LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+				return connection.invoke()
+						.fromMany(RedisSortedSetAsyncCommands::zrevrangebyscoreWithScores, key,
+								LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit))
+						.toSet(LettuceConverters::toTuple);
+
 	}
 
 	/*
@@ -456,19 +256,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zcount(key, LettuceConverters.toRange(range))));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zcount(key, LettuceConverters.toRange(range))));
-				return null;
-			}
-			return getConnection().zcount(key, LettuceConverters.toRange(range));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zcount, key,
+				LettuceConverters.<Number> toRange(range));
 	}
 
 	/*
@@ -481,19 +270,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zlexcount(key, LettuceConverters.toRange(range))));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zlexcount(key, LettuceConverters.toRange(range))));
-				return null;
-			}
-			return getConnection().zlexcount(key, LettuceConverters.toRange(range, true));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zlexcount, key,
+				LettuceConverters.<byte[]> toRange(range, true));
 	}
 
 	/*
@@ -505,19 +283,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zcard(key)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zcard(key)));
-				return null;
-			}
-			return getConnection().zcard(key);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zcard, key);
 	}
 
 	/*
@@ -530,19 +296,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zscore(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zscore(key, value)));
-				return null;
-			}
-			return getConnection().zscore(key, value);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zscore, key, value);
 	}
 
 	/*
@@ -554,19 +308,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zremrangebyrank(key, start, end)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zremrangebyrank(key, start, end)));
-				return null;
-			}
-			return getConnection().zremrangebyrank(key, start, end);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zremrangebyrank, key, start, end);
 	}
 
 	/*
@@ -579,21 +321,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range for ZREMRANGEBYSCORE must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(
-						connection.newLettuceResult(getAsyncConnection().zremrangebyscore(key, LettuceConverters.toRange(range))));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(
-						connection.newLettuceResult(getAsyncConnection().zremrangebyscore(key, LettuceConverters.toRange(range))));
-				return null;
-			}
-			return getConnection().zremrangebyscore(key, LettuceConverters.toRange(range));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zremrangebyscore, key,
+				LettuceConverters.<Number> toRange(range));
 	}
 
 	/*
@@ -611,19 +340,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		ZStoreArgs storeArgs = zStoreArgs(aggregate, weights);
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zunionstore(destKey, storeArgs, sets)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zunionstore(destKey, storeArgs, sets)));
-				return null;
-			}
-			return getConnection().zunionstore(destKey, storeArgs, sets);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zunionstore, destKey, storeArgs, sets);
 	}
 
 	/*
@@ -637,19 +354,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(sets, "Source sets must not be null!");
 		Assert.noNullElements(sets, "Source sets must not contain null elements!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zunionstore(destKey, sets)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zunionstore(destKey, sets)));
-				return null;
-			}
-			return getConnection().zunionstore(destKey, sets);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zunionstore, destKey, sets);
 	}
 
 	/*
@@ -667,19 +372,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		ZStoreArgs storeArgs = zStoreArgs(aggregate, weights);
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zinterstore(destKey, storeArgs, sets)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zinterstore(destKey, storeArgs, sets)));
-				return null;
-			}
-			return getConnection().zinterstore(destKey, storeArgs, sets);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zinterstore, destKey, storeArgs, sets);
 	}
 
 	/*
@@ -693,19 +386,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(sets, "Source sets must not be null!");
 		Assert.noNullElements(sets, "Source sets must not contain null elements!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zinterstore(destKey, sets)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zinterstore(destKey, sets)));
-				return null;
-			}
-			return getConnection().zinterstore(destKey, sets);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zinterstore, destKey, sets);
 	}
 
 	/*
@@ -733,14 +414,15 @@ class LettuceZSetCommands implements RedisZSetCommands {
 			@Override
 			protected ScanIteration<Tuple> doScan(byte[] key, long cursorId, ScanOptions options) {
 
-				if (isQueueing() || isPipelined()) {
+				if (connection.isQueueing() || connection.isPipelined()) {
 					throw new UnsupportedOperationException("'ZSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
 				io.lettuce.core.ScanCursor scanCursor = connection.getScanCursor(cursorId);
 				ScanArgs scanArgs = LettuceConverters.toScanArgs(options);
 
-				ScoredValueScanCursor<byte[]> scoredValueScanCursor = getConnection().zscan(key, scanCursor, scanArgs);
+				ScoredValueScanCursor<byte[]> scoredValueScanCursor = connection.invoke()
+						.just(RedisSortedSetAsyncCommands::zscan, key, scanCursor, scanArgs);
 				String nextCursorId = scoredValueScanCursor.getCursor();
 
 				List<ScoredValue<byte[]>> result = scoredValueScanCursor.getValues();
@@ -766,21 +448,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, min, max),
-						LettuceConverters.bytesListToBytesSet()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, min, max),
-						LettuceConverters.bytesListToBytesSet()));
-				return null;
-			}
-			return LettuceConverters.toBytesSet(getConnection().zrangebyscore(key, min, max));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebyscore, key, min, max).toSet();
 	}
 
 	/*
@@ -792,21 +460,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, min, max, offset, count),
-						LettuceConverters.bytesListToBytesSet()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, min, max, offset, count),
-						LettuceConverters.bytesListToBytesSet()));
-				return null;
-			}
-			return LettuceConverters.toBytesSet(getConnection().zrangebyscore(key, min, max, offset, count));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebyscore, key, min, max, offset, count)
+				.toSet();
 	}
 
 	/*
@@ -820,38 +475,13 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(range, "Range for ZRANGEBYSCORE must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		try {
-			if (isPipelined()) {
-				if (limit.isUnlimited()) {
-					pipeline(
-							connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, LettuceConverters.toRange(range)),
-									LettuceConverters.bytesListToBytesSet()));
-				} else {
-					pipeline(connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, LettuceConverters.toRange(range),
-							LettuceConverters.toLimit(limit)), LettuceConverters.bytesListToBytesSet()));
-				}
-				return null;
-			}
-			if (isQueueing()) {
-				if (limit.isUnlimited()) {
-					transaction(
-							connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, LettuceConverters.toRange(range)),
-									LettuceConverters.bytesListToBytesSet()));
-				} else {
-					transaction(
-							connection.newLettuceResult(getAsyncConnection().zrangebyscore(key, LettuceConverters.toRange(range),
-									LettuceConverters.toLimit(limit)), LettuceConverters.bytesListToBytesSet()));
-				}
-				return null;
-			}
-			if (limit.isUnlimited()) {
-				return LettuceConverters.toBytesSet(getConnection().zrangebyscore(key, LettuceConverters.toRange(range)));
-			}
-			return LettuceConverters.toBytesSet(
-					getConnection().zrangebyscore(key, LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
+		if (limit.isUnlimited()) {
+			return connection.invoke()
+					.fromMany(RedisSortedSetAsyncCommands::zrangebyscore, key, LettuceConverters.<Number> toRange(range)).toSet();
 		}
+
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebyscore, key,
+				LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit)).toSet();
 	}
 
 	/*
@@ -865,42 +495,14 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(range, "Range for ZRANGEBYLEX must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		try {
-			if (isPipelined()) {
-				if (limit.isUnlimited()) {
-					pipeline(
-							connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true)),
-									LettuceConverters.bytesListToBytesSet()));
-				} else {
-					pipeline(
-							connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true),
-									LettuceConverters.toLimit(limit)), LettuceConverters.bytesListToBytesSet()));
-				}
-				return null;
-			}
-			if (isQueueing()) {
-				if (limit.isUnlimited()) {
-					transaction(
-							connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true)),
-									LettuceConverters.bytesListToBytesSet()));
-				} else {
-					transaction(
-							connection.newLettuceResult(getAsyncConnection().zrangebylex(key, LettuceConverters.toRange(range, true),
-									LettuceConverters.toLimit(limit)), LettuceConverters.bytesListToBytesSet()));
-				}
-				return null;
-			}
-
-			if (limit.isUnlimited()) {
-				return LettuceConverters.bytesListToBytesSet()
-						.convert(getConnection().zrangebylex(key, LettuceConverters.toRange(range, true)));
-			}
-			return LettuceConverters.bytesListToBytesSet().convert(
-					getConnection().zrangebylex(key, LettuceConverters.toRange(range, true), LettuceConverters.toLimit(limit)));
-
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
+		if (limit.isUnlimited()) {
+			return connection.invoke()
+					.fromMany(RedisSortedSetAsyncCommands::zrangebylex, key, LettuceConverters.<byte[]> toRange(range, true))
+					.toSet();
 		}
+
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebylex, key,
+				LettuceConverters.<byte[]> toRange(range, true), LettuceConverters.toLimit(limit)).toSet();
 	}
 
 	/*
@@ -914,70 +516,18 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(range, "Range for ZREVRANGEBYLEX must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		try {
-			if (isPipelined()) {
-				if (limit.isUnlimited()) {
-					pipeline(connection.newLettuceResult(
-							getAsyncConnection().zrevrangebylex(key, LettuceConverters.toRange(range, true)),
-							LettuceConverters.bytesListToBytesSet()));
-				} else {
-					pipeline(connection.newLettuceResult(getAsyncConnection().zrevrangebylex(key,
-							LettuceConverters.toRange(range, true), LettuceConverters.toLimit(limit)),
-							LettuceConverters.bytesListToBytesSet()));
-				}
-				return null;
-			}
-			if (isQueueing()) {
-				if (limit.isUnlimited()) {
-					transaction(connection.newLettuceResult(
-							getAsyncConnection().zrevrangebylex(key, LettuceConverters.toRange(range, true)),
-							LettuceConverters.bytesListToBytesSet()));
-				} else {
-					transaction(connection.newLettuceResult(getAsyncConnection().zrevrangebylex(key,
-							LettuceConverters.toRange(range, true), LettuceConverters.toLimit(limit)),
-							LettuceConverters.bytesListToBytesSet()));
-				}
-				return null;
-			}
-
-			if (limit.isUnlimited()) {
-				return LettuceConverters.bytesListToBytesSet()
-						.convert(getConnection().zrevrangebylex(key, LettuceConverters.toRange(range, true)));
-			}
-			return LettuceConverters.bytesListToBytesSet().convert(getConnection().zrevrangebylex(key,
-					LettuceConverters.toRange(range, true), LettuceConverters.toLimit(limit)));
-
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
+		if (limit.isUnlimited()) {
+			return connection.invoke()
+					.fromMany(RedisSortedSetAsyncCommands::zrevrangebylex, key, LettuceConverters.<byte[]> toRange(range, true))
+					.toSet();
 		}
-	}
 
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
-	}
-
-	private void pipeline(LettuceResult result) {
-		connection.pipeline(result);
-	}
-
-	private void transaction(LettuceResult result) {
-		connection.transaction(result);
-	}
-
-	RedisClusterAsyncCommands<byte[], byte[]> getAsyncConnection() {
-		return connection.getAsyncConnection();
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangebylex, key,
+				LettuceConverters.<byte[]> toRange(range, true), LettuceConverters.toLimit(limit)).toSet();
 	}
 
 	public RedisClusterCommands<byte[], byte[]> getConnection() {
 		return connection.getConnection();
-	}
-
-	private DataAccessException convertLettuceAccessException(Exception ex) {
-		return connection.convertLettuceAccessException(ex);
 	}
 
 	private static ZStoreArgs zStoreArgs(@Nullable Aggregate aggregate, Weights weights) {

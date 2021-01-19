@@ -15,16 +15,19 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
+import io.lettuce.core.LettuceFutures;
+import io.lettuce.core.RedisFuture;
+import io.lettuce.core.api.async.RedisKeyAsyncCommands;
+import io.lettuce.core.api.async.RedisServerAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands;
-import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -47,20 +50,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void bgReWriteAof() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().bgrewriteaof()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceStatusResult(getAsyncConnection().bgrewriteaof()));
-				return;
-			}
-			getConnection().bgrewriteaof();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		connection.invokeStatus().just(RedisServerAsyncCommands::bgrewriteaof);
 	}
 
 	/*
@@ -69,20 +59,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void bgSave() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().bgsave()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceStatusResult(getAsyncConnection().bgsave()));
-				return;
-			}
-			getConnection().bgsave();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		connection.invokeStatus().just(RedisServerAsyncCommands::bgsave);
 	}
 
 	/*
@@ -91,20 +68,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Long lastSave() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().lastsave(), LettuceConverters.dateToLong()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().lastsave(), LettuceConverters.dateToLong()));
-				return null;
-			}
-			return LettuceConverters.toLong(getConnection().lastsave());
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().from(RedisServerAsyncCommands::lastsave).get(LettuceConverters.dateToLong());
 	}
 
 	/*
@@ -113,20 +77,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void save() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().save()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceStatusResult(getAsyncConnection().save()));
-				return;
-			}
-			getConnection().save();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		connection.invokeStatus().just(RedisServerAsyncCommands::save);
 	}
 
 	/*
@@ -135,20 +86,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Long dbSize() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().dbsize()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().dbsize()));
-				return null;
-			}
-			return getConnection().dbsize();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().just(RedisServerAsyncCommands::dbsize);
 	}
 
 	/*
@@ -157,20 +95,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void flushDb() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().flushdb()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceStatusResult(getAsyncConnection().flushdb()));
-				return;
-			}
-			getConnection().flushdb();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		connection.invokeStatus().just(RedisServerAsyncCommands::flushdb);
 	}
 
 	/*
@@ -179,20 +104,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void flushAll() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().flushall()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().flushall()));
-				return;
-			}
-			getConnection().flushall();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		connection.invokeStatus().just(RedisServerAsyncCommands::flushall);
 	}
 
 	/*
@@ -201,20 +113,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Properties info() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().info(), LettuceConverters.stringToProps()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().info(), LettuceConverters.stringToProps()));
-				return null;
-			}
-			return LettuceConverters.toProperties(getConnection().info());
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().from(RedisServerAsyncCommands::info).get(LettuceConverters.stringToProps());
 	}
 
 	/*
@@ -226,19 +125,7 @@ class LettuceServerCommands implements RedisServerCommands {
 
 		Assert.hasText(section, "Section must not be null or empty!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().info(section), LettuceConverters.stringToProps()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().info(section), LettuceConverters.stringToProps()));
-				return null;
-			}
-			return LettuceConverters.toProperties(getConnection().info(section));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().from(RedisServerAsyncCommands::info, section).get(LettuceConverters.stringToProps());
 	}
 
 	/*
@@ -247,16 +134,12 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void shutdown() {
+		connection.invokeStatus().just(it -> {
 
-		try {
-			if (isPipelined()) {
-				getAsyncConnection().shutdown(true);
-				return;
-			}
-			getConnection().shutdown(true);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+			it.shutdown(true);
+
+			return new CompletedRedisFuture<>(null);
+		});
 	}
 
 	/*
@@ -272,15 +155,13 @@ class LettuceServerCommands implements RedisServerCommands {
 		}
 
 		boolean save = ShutdownOption.SAVE.equals(option);
-		try {
-			if (isPipelined()) {
-				getAsyncConnection().shutdown(save);
-				return;
-			}
-			getConnection().shutdown(save);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+
+		connection.invokeStatus().just(it -> {
+
+			it.shutdown(save);
+
+			return new CompletedRedisFuture<>(null);
+		});
 	}
 
 	/*
@@ -292,21 +173,8 @@ class LettuceServerCommands implements RedisServerCommands {
 
 		Assert.hasText(pattern, "Pattern must not be null or empty!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().configGet(pattern),
-						Converters.mapToPropertiesConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().configGet(pattern),
-						Converters.mapToPropertiesConverter()));
-				return null;
-			}
-			return Converters.toProperties(getConnection().configGet(pattern));
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().from(RedisServerAsyncCommands::configGet, pattern)
+				.get(LettuceConverters.mapToPropertiesConverter());
 	}
 
 	/*
@@ -319,19 +187,8 @@ class LettuceServerCommands implements RedisServerCommands {
 		Assert.hasText(param, "Parameter must not be null or empty!");
 		Assert.hasText(value, "Value must not be null or empty!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().configSet(param, value)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceStatusResult(getAsyncConnection().configSet(param, value)));
-				return;
-			}
-			getConnection().configSet(param, value);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		connection.invokeStatus().just(RedisServerAsyncCommands::configSet, param, value);
+
 	}
 
 	/*
@@ -340,20 +197,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void resetConfigStats() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().configResetstat()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceStatusResult(getAsyncConnection().configResetstat()));
-				return;
-			}
-			getConnection().configResetstat();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		connection.invokeStatus().just(RedisServerAsyncCommands::configResetstat);
 	}
 
 	/*
@@ -362,20 +206,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Long time() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().time(), LettuceConverters.toTimeConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().time(), LettuceConverters.toTimeConverter()));
-				return null;
-			}
-			return LettuceConverters.toTimeConverter().convert(getConnection().time());
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().from(RedisServerAsyncCommands::time).get(LettuceConverters.toTimeConverter());
 	}
 
 	/*
@@ -388,15 +219,8 @@ class LettuceServerCommands implements RedisServerCommands {
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'.");
 
 		String client = String.format("%s:%s", host, port);
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().clientKill(client)));
-				return;
-			}
-			getConnection().clientKill(client);
-		} catch (Exception e) {
-			throw convertLettuceAccessException(e);
-		}
+
+		connection.invoke().just(RedisServerAsyncCommands::clientKill, client);
 	}
 
 	/*
@@ -408,16 +232,7 @@ class LettuceServerCommands implements RedisServerCommands {
 
 		Assert.notNull(name, "Name must not be null!");
 
-		if (isQueueing()) {
-			pipeline(connection.newLettuceStatusResult(getAsyncConnection().clientSetname(name)));
-			return;
-		}
-		if (isQueueing()) {
-			transaction(connection.newLettuceStatusResult(getAsyncConnection().clientSetname(name)));
-			return;
-		}
-
-		getAsyncConnection().clientSetname(name);
+		connection.invoke().just(RedisServerAsyncCommands::clientSetname, name);
 	}
 
 	/*
@@ -426,21 +241,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public String getClientName() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceResult(getAsyncConnection().clientGetname(), LettuceConverters.bytesToString()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(
-						connection.newLettuceResult(getAsyncConnection().clientGetname(), LettuceConverters.bytesToString()));
-				return null;
-			}
-			return LettuceConverters.toString(getConnection().clientGetname());
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		return connection.invoke().from(RedisServerAsyncCommands::clientGetname).get(LettuceConverters.bytesToString());
 	}
 
 	/*
@@ -450,16 +251,12 @@ class LettuceServerCommands implements RedisServerCommands {
 	@Override
 	public List<RedisClientInfo> getClientList() {
 
-		if (isPipelined()) {
+		if (connection.isPipelined()) {
 			throw new UnsupportedOperationException("Cannot be called in pipeline mode.");
 		}
-		if (isQueueing()) {
-			transaction(connection.newLettuceResult(getAsyncConnection().clientList(),
-					LettuceConverters.stringToRedisClientListConverter()));
-			return null;
-		}
 
-		return LettuceConverters.toListOfRedisClientInformation(getConnection().clientList());
+		return connection.invoke().from(RedisServerAsyncCommands::clientList)
+				.get(LettuceConverters.stringToRedisClientListConverter());
 	}
 
 	/*
@@ -471,19 +268,7 @@ class LettuceServerCommands implements RedisServerCommands {
 
 		Assert.hasText(host, "Host must not be null for 'SLAVEOF' command.");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().slaveof(host, port)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().slaveof(host, port)));
-				return;
-			}
-			getConnection().slaveof(host, port);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		connection.invoke().just(RedisServerAsyncCommands::slaveof, host, port);
 	}
 
 	/*
@@ -492,20 +277,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void slaveOfNoOne() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newLettuceStatusResult(getAsyncConnection().slaveofNoOne()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newLettuceResult(getAsyncConnection().slaveofNoOne()));
-				return;
-			}
-			getConnection().slaveofNoOne();
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		connection.invoke().just(RedisServerAsyncCommands::slaveofNoOne);
 	}
 
 	/*
@@ -527,48 +299,27 @@ class LettuceServerCommands implements RedisServerCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(target, "Target node must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection
-						.newLettuceResult(getAsyncConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection
-						.newLettuceResult(getAsyncConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout)));
-				return;
-			}
-			getConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
-	}
-
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
-	}
-
-	private void pipeline(LettuceResult<?, ?> result) {
-		connection.pipeline(result);
-	}
-
-	private void transaction(LettuceResult<?, ?> result) {
-		connection.transaction(result);
-	}
-
-	private RedisClusterAsyncCommands<byte[], byte[]> getAsyncConnection() {
-		return connection.getAsyncConnection();
+		connection.invoke().just(RedisKeyAsyncCommands::migrate, target.getHost(), target.getPort(), key, dbIndex, timeout);
 	}
 
 	public RedisClusterCommands<byte[], byte[]> getConnection() {
 		return connection.getConnection();
 	}
 
-	private DataAccessException convertLettuceAccessException(Exception ex) {
-		return connection.convertLettuceAccessException(ex);
+	static class CompletedRedisFuture<T> extends CompletableFuture<T> implements RedisFuture<T> {
+
+		public CompletedRedisFuture(T value) {
+			complete(value);
+		}
+
+		@Override
+		public String getError() {
+			return "";
+		}
+
+		@Override
+		public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+			return LettuceFutures.awaitAll(timeout, unit, this);
+		}
 	}
 }
