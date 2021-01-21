@@ -165,7 +165,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 		Assert.noNullElements(members, "Members must not contain null!");
 
 		return connection.invoke().fromMany(RedisGeoAsyncCommands::geopos, key, members)
-				.toList(LettuceConverters.GEO_COORDINATE_TO_POINT_CONVERTER);
+				.toList(LettuceConverters::geoCoordinatesToPoint);
 	}
 
 	/*

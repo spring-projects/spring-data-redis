@@ -598,21 +598,23 @@ public class LettuceConnection extends AbstractRedisConnection {
 		isMulti = false;
 
 		try {
+			Converter<Exception, DataAccessException> exceptionConverter = this::convertLettuceAccessException;
+
 			if (isPipelined()) {
 				RedisFuture<TransactionResult> exec = getAsyncDedicatedRedisCommands().exec();
 
 				LettuceTransactionResultConverter resultConverter = new LettuceTransactionResultConverter(
-						new LinkedList<>(txResults), LettuceConverters.exceptionConverter());
+						new LinkedList<>(txResults), exceptionConverter);
 
 				pipeline(newLettuceResult(exec, source -> resultConverter
-						.convert(LettuceConverters.transactionResultUnwrapper().convert((TransactionResult) source))));
+						.convert(LettuceConverters.transactionResultUnwrapper().convert(source))));
 				return null;
 			}
 
-			TransactionResult transactionResult = (getDedicatedRedisCommands()).exec();
+			TransactionResult transactionResult = getDedicatedRedisCommands().exec();
 			List<Object> results = LettuceConverters.transactionResultUnwrapper().convert(transactionResult);
 			return convertPipelineAndTxResults
-					? new LettuceTransactionResultConverter(txResults, LettuceConverters.exceptionConverter()).convert(results)
+					? new LettuceTransactionResultConverter(txResults, exceptionConverter).convert(results)
 					: results;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);

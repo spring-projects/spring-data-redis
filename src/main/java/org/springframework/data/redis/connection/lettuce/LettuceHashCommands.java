@@ -159,7 +159,7 @@ class LettuceHashCommands implements RedisHashCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().from(RedisHashAsyncCommands::hkeys, key).get(LettuceConverters.bytesListToBytesSet());
+		return connection.invoke().fromMany(RedisHashAsyncCommands::hkeys, key).toSet();
 	}
 
 	/*

@@ -135,7 +135,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(pattern, "Pattern must not be null!");
 
-		return connection.invoke().from(RedisKeyAsyncCommands::keys, pattern).get(LettuceConverters.bytesListToBytesSet());
+		return connection.invoke().fromMany(RedisKeyAsyncCommands::keys, pattern).toSet();
 	}
 
 	/**
@@ -406,7 +406,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invokeStatus().from(RedisKeyAsyncCommands::objectEncoding, key).getOrElse(ValueEncoding::of,
+		return connection.invoke().from(RedisKeyAsyncCommands::objectEncoding, key).getOrElse(ValueEncoding::of,
 				() -> RedisValueEncoding.VACANT);
 	}
 
