@@ -68,7 +68,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Long lastSave() {
-		return connection.invoke().from(RedisServerAsyncCommands::lastsave).get(LettuceConverters.dateToLong());
+		return connection.invoke().from(RedisServerAsyncCommands::lastsave).get(LettuceConverters::toLong);
 	}
 
 	/*
@@ -241,7 +241,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public String getClientName() {
-		return connection.invoke().from(RedisServerAsyncCommands::clientGetname).get(LettuceConverters.bytesToString());
+		return connection.invoke().from(RedisServerAsyncCommands::clientGetname).get(LettuceConverters::toString);
 	}
 
 	/*

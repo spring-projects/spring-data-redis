@@ -35,6 +35,8 @@ import org.springframework.data.redis.core.types.RedisClientInfo.RedisClientInfo
  */
 public class StringToRedisClientInfoConverter implements Converter<String[], List<RedisClientInfo>> {
 
+	public static final StringToRedisClientInfoConverter INSTANCE = new StringToRedisClientInfoConverter();
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.core.convert.converter.Converter#convert(Object)

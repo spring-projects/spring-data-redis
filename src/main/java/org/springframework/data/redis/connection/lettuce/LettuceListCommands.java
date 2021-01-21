@@ -15,9 +15,11 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.KeyValue;
 import io.lettuce.core.LPosArgs;
 import io.lettuce.core.api.async.RedisListAsyncCommands;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -234,7 +236,16 @@ class LettuceListCommands implements RedisListCommands {
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		return connection.invoke(connection.getAsyncDedicatedConnection())
-				.from(RedisListAsyncCommands::blpop, timeout, keys).get(LettuceConverters.keyValueToBytesList());
+				.from(RedisListAsyncCommands::blpop, timeout, keys).get(LettuceListCommands::toBytesList);
+	}
+
+	private static List<byte[]> toBytesList(KeyValue<byte[], byte[]> source) {
+
+		List<byte[]> list = new ArrayList<>(2);
+		list.add(source.getKey());
+		list.add(source.getValue());
+
+		return list;
 	}
 
 	/*
@@ -248,7 +259,7 @@ class LettuceListCommands implements RedisListCommands {
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		return connection.invoke(connection.getAsyncDedicatedConnection())
-				.from(RedisListAsyncCommands::brpop, timeout, keys).get(LettuceConverters.keyValueToBytesList());
+				.from(RedisListAsyncCommands::brpop, timeout, keys).get(LettuceListCommands::toBytesList);
 	}
 
 	/*

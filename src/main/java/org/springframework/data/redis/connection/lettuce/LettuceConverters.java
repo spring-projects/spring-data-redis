@@ -84,31 +84,11 @@ import org.springframework.util.StringUtils;
  * @author Ninad Divadkar
  * @author dengliming
  */
-abstract public class LettuceConverters extends Converters {
+public abstract class LettuceConverters extends Converters {
 
-	private static final Converter<Date, Long> DATE_TO_LONG;
-	private static final Converter<List<byte[]>, Set<byte[]>> BYTES_LIST_TO_BYTES_SET;
-	private static final Converter<byte[], String> BYTES_TO_STRING;
-	private static final Converter<String, byte[]> STRING_TO_BYTES;
-	private static final Converter<Set<byte[]>, List<byte[]>> BYTES_SET_TO_BYTES_LIST;
-	private static final Converter<Collection<byte[]>, List<byte[]>> BYTES_COLLECTION_TO_BYTES_LIST;
-	private static final Converter<KeyValue<byte[], byte[]>, List<byte[]>> KEY_VALUE_TO_BYTES_LIST;
-	private static final Converter<List<ScoredValue<byte[]>>, Set<Tuple>> SCORED_VALUES_TO_TUPLE_SET;
-	private static final Converter<List<ScoredValue<byte[]>>, List<Tuple>> SCORED_VALUES_TO_TUPLE_LIST;
-	private static final Converter<ScoredValue<byte[]>, Tuple> SCORED_VALUE_TO_TUPLE;
 	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new LettuceExceptionConverter();
-	private static final Converter<Long, Boolean> LONG_TO_BOOLEAN = new LongToBooleanConverter();
-	private static final Converter<List<byte[]>, Map<byte[], byte[]>> BYTES_LIST_TO_MAP;
-	private static final Converter<List<byte[]>, List<Tuple>> BYTES_LIST_TO_TUPLE_LIST_CONVERTER;
-	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_LIST_OF_CLIENT_INFO = new StringToRedisClientInfoConverter();
-	private static final Converter<Partitions, List<RedisClusterNode>> PARTITIONS_TO_CLUSTER_NODES;
-	private static Converter<io.lettuce.core.cluster.models.partitions.RedisClusterNode, RedisClusterNode> CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER;
-	private static final Converter<List<byte[]>, Long> BYTES_LIST_TO_TIME_CONVERTER;
-	public static final Converter<GeoCoordinates, Point> GEO_COORDINATE_TO_POINT_CONVERTER;
 	private static final ListConverter<GeoCoordinates, Point> GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER;
-	private static final Converter<KeyValue<Object, Object>, Object> KEY_VALUE_UNWRAPPER;
 	private static final ListConverter<KeyValue<Object, Object>, Object> KEY_VALUE_LIST_UNWRAPPER;
-	private static final Converter<TransactionResult, List<Object>> TRANSACTION_RESULT_UNWRAPPER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -120,74 +100,83 @@ abstract public class LettuceConverters extends Converters {
 
 	static {
 
-		DATE_TO_LONG = source -> source != null ? source.getTime() : null;
+		PLUS_BYTES = toBytes("+");
+		MINUS_BYTES = toBytes("-");
+		POSITIVE_INFINITY_BYTES = toBytes("+inf");
+		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
 
-		BYTES_LIST_TO_BYTES_SET = results -> results != null ? new LinkedHashSet<>(results) : null;
+		GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER = new ListConverter<>(LettuceConverters::geoCoordinatesToPoint);
 
-		BYTES_TO_STRING = source -> {
-			if (source == null || Arrays.equals(source, new byte[0])) {
-				return null;
-			}
-			return new String(source);
-		};
+		KEY_VALUE_LIST_UNWRAPPER = new ListConverter<>(source -> source.getValueOrElse(null));
+	}
 
-		STRING_TO_BYTES = source -> {
-			if (source == null) {
-				return null;
-			}
-			return source.getBytes();
-		};
+	@Deprecated
+	public static List<Tuple> toTuple(List<byte[]> source) {
 
-		BYTES_SET_TO_BYTES_LIST = results -> results != null ? new ArrayList<>(results) : null;
+		if (CollectionUtils.isEmpty(source)) {
+			return Collections.emptyList();
+		}
 
-		BYTES_COLLECTION_TO_BYTES_LIST = results -> {
+		List<Tuple> tuples = new ArrayList<>();
+		Iterator<byte[]> it = source.iterator();
+		while (it.hasNext()) {
+			tuples.add(new DefaultTuple(it.next(), it.hasNext() ? Double.valueOf(toString(it.next())) : null));
+		}
 
-			if (results instanceof List) {
-				return (List<byte[]>) results;
-			}
-			return results != null ? new ArrayList<>(results) : null;
-		};
+		return tuples;
+	}
 
-		KEY_VALUE_TO_BYTES_LIST = source -> {
+	@Deprecated
+	public static Converter<List<byte[]>, List<Tuple>> bytesListToTupleListConverter() {
+		return LettuceConverters::toTuple;
+	}
 
-			if (source == null) {
-				return null;
-			}
-			List<byte[]> list = new ArrayList<>(2);
-			list.add(source.getKey());
-			list.add(source.getValue());
+	public static Point geoCoordinatesToPoint(@Nullable GeoCoordinates geoCoordinate) {
+		return geoCoordinate != null ? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue())
+				: null;
+	}
 
-			return list;
-		};
-		BYTES_LIST_TO_MAP = source -> {
+	public static Converter<String, List<RedisClientInfo>> stringToRedisClientListConverter() {
+		return LettuceConverters::toListOfRedisClientInformation;
+	}
 
-			if (CollectionUtils.isEmpty(source)) {
-				return Collections.emptyMap();
-			}
+	@Deprecated
+	public static Converter<Date, Long> dateToLong() {
+		return LettuceConverters::toLong;
+	}
 
-			Map<byte[], byte[]> target = new LinkedHashMap<>();
+	@Deprecated
+	public static Converter<List<byte[]>, Set<byte[]>> bytesListToBytesSet() {
+		return LettuceConverters::toBytesSet;
+	}
 
-			Iterator<byte[]> kv = source.iterator();
-			while (kv.hasNext()) {
-				target.put(kv.next(), kv.hasNext() ? kv.next() : null);
-			}
+	@Deprecated
+	public static Converter<byte[], String> bytesToString() {
+		return LettuceConverters::toString;
+	}
 
-			return target;
-		};
+	@Deprecated
+	public static Converter<KeyValue<byte[], byte[]>, List<byte[]>> keyValueToBytesList() {
+		return LettuceConverters::toBytesList;
+	}
 
-		SCORED_VALUES_TO_TUPLE_SET = source -> {
+	@Deprecated
+	public static Converter<Collection<byte[]>, List<byte[]>> bytesSetToBytesList() {
+		return LettuceConverters::toBytesList;
+	}
 
-			if (source == null) {
-				return null;
-			}
-			Set<Tuple> tuples = new LinkedHashSet<>(source.size());
-			for (ScoredValue<byte[]> value : source) {
-				tuples.add(LettuceConverters.toTuple(value));
-			}
-			return tuples;
-		};
+	@Deprecated
+	public static Converter<Collection<byte[]>, List<byte[]>> bytesCollectionToBytesList() {
+		return LettuceConverters::toBytesList;
+	}
 
-		SCORED_VALUES_TO_TUPLE_LIST = source -> {
+	@Deprecated
+	public static Converter<List<ScoredValue<byte[]>>, Set<Tuple>> scoredValuesToTupleSet() {
+		return LettuceConverters::toTupleSet;
+	}
+
+	public static Converter<List<ScoredValue<byte[]>>, List<Tuple>> scoredValuesToTupleList() {
+		return source -> {
 
 			if (source == null) {
 				return null;
@@ -198,180 +187,14 @@ abstract public class LettuceConverters extends Converters {
 			}
 			return tuples;
 		};
-
-		SCORED_VALUE_TO_TUPLE = source -> source != null
-				? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore()))
-				: null;
-
-		BYTES_LIST_TO_TUPLE_LIST_CONVERTER = source -> {
-
-			if (CollectionUtils.isEmpty(source)) {
-				return Collections.emptyList();
-			}
-
-			List<Tuple> tuples = new ArrayList<>();
-			Iterator<byte[]> it = source.iterator();
-			while (it.hasNext()) {
-				tuples.add(new DefaultTuple(it.next(), it.hasNext() ? Double.valueOf(toString(it.next())) : null));
-			}
-			return tuples;
-		};
-
-		PARTITIONS_TO_CLUSTER_NODES = new Converter<Partitions, List<RedisClusterNode>>() {
-
-			@Override
-			public List<RedisClusterNode> convert(Partitions source) {
-
-				if (source == null) {
-					return Collections.emptyList();
-				}
-				List<RedisClusterNode> nodes = new ArrayList<>();
-				for (io.lettuce.core.cluster.models.partitions.RedisClusterNode node : source) {
-					nodes.add(CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER.convert(node));
-				}
-
-				return nodes;
-			};
-
-		};
-
-		CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER = new Converter<io.lettuce.core.cluster.models.partitions.RedisClusterNode, RedisClusterNode>() {
-
-			@Override
-			public RedisClusterNode convert(io.lettuce.core.cluster.models.partitions.RedisClusterNode source) {
-
-				Set<Flag> flags = parseFlags(source.getFlags());
-
-				return RedisClusterNode.newRedisClusterNode().listeningAt(source.getUri().getHost(), source.getUri().getPort())
-						.withId(source.getNodeId()).promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.SLAVE)
-						.serving(new SlotRange(source.getSlots())).withFlags(flags)
-						.linkState(source.isConnected() ? LinkState.CONNECTED : LinkState.DISCONNECTED).slaveOf(source.getSlaveOf())
-						.build();
-			}
-
-			private Set<Flag> parseFlags(Set<NodeFlag> source) {
-
-				Set<Flag> flags = new LinkedHashSet<>(source != null ? source.size() : 8, 1);
-				for (NodeFlag flag : source) {
-					switch (flag) {
-						case NOFLAGS:
-							flags.add(Flag.NOFLAGS);
-							break;
-						case EVENTUAL_FAIL:
-							flags.add(Flag.PFAIL);
-							break;
-						case FAIL:
-							flags.add(Flag.FAIL);
-							break;
-						case HANDSHAKE:
-							flags.add(Flag.HANDSHAKE);
-							break;
-						case MASTER:
-							flags.add(Flag.MASTER);
-							break;
-						case MYSELF:
-							flags.add(Flag.MYSELF);
-							break;
-						case NOADDR:
-							flags.add(Flag.NOADDR);
-							break;
-						case SLAVE:
-							flags.add(Flag.SLAVE);
-							break;
-					}
-				}
-				return flags;
-			}
-
-		};
-
-		PLUS_BYTES = toBytes("+");
-		MINUS_BYTES = toBytes("-");
-		POSITIVE_INFINITY_BYTES = toBytes("+inf");
-		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
-
-		BYTES_LIST_TO_TIME_CONVERTER = source -> {
-
-			Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
-			Assert.isTrue(source.size() == 2,
-					"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
-
-			return toTimeMillis(toString(source.get(0)), toString(source.get(1)));
-		};
-
-		GEO_COORDINATE_TO_POINT_CONVERTER = geoCoordinate -> geoCoordinate != null
-				? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue())
-				: null;
-		GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER = new ListConverter<>(GEO_COORDINATE_TO_POINT_CONVERTER);
-
-		KEY_VALUE_UNWRAPPER = source -> source.getValueOrElse(null);
-
-		KEY_VALUE_LIST_UNWRAPPER = new ListConverter<>(KEY_VALUE_UNWRAPPER);
-
-		TRANSACTION_RESULT_UNWRAPPER = transactionResult -> transactionResult.stream().collect(Collectors.toList());
-
 	}
 
-	public static List<Tuple> toTuple(List<byte[]> list) {
-		return BYTES_LIST_TO_TUPLE_LIST_CONVERTER.convert(list);
-	}
-
-	public static Converter<List<byte[]>, List<Tuple>> bytesListToTupleListConverter() {
-		return BYTES_LIST_TO_TUPLE_LIST_CONVERTER;
-	}
-
-	public static Point geoCoordinatesToPoint(GeoCoordinates geoCoordinates) {
-		return GEO_COORDINATE_TO_POINT_CONVERTER.convert(geoCoordinates);
-	}
-
-	public static Converter<String, List<RedisClientInfo>> stringToRedisClientListConverter() {
-
-		return source -> {
-
-			if (!StringUtils.hasText(source)) {
-				return Collections.emptyList();
-			}
-
-			return STRING_TO_LIST_OF_CLIENT_INFO.convert(source.split("\\r?\\n"));
-		};
-	}
-
-	public static Converter<Date, Long> dateToLong() {
-		return DATE_TO_LONG;
-	}
-
-	public static Converter<List<byte[]>, Set<byte[]>> bytesListToBytesSet() {
-		return BYTES_LIST_TO_BYTES_SET;
-	}
-
-	public static Converter<byte[], String> bytesToString() {
-		return BYTES_TO_STRING;
-	}
-
-	public static Converter<KeyValue<byte[], byte[]>, List<byte[]>> keyValueToBytesList() {
-		return KEY_VALUE_TO_BYTES_LIST;
-	}
-
-	public static Converter<Collection<byte[]>, List<byte[]>> bytesSetToBytesList() {
-		return BYTES_COLLECTION_TO_BYTES_LIST;
-	}
-
-	public static Converter<Collection<byte[]>, List<byte[]>> bytesCollectionToBytesList() {
-		return BYTES_COLLECTION_TO_BYTES_LIST;
-	}
-
-	public static Converter<List<ScoredValue<byte[]>>, Set<Tuple>> scoredValuesToTupleSet() {
-		return SCORED_VALUES_TO_TUPLE_SET;
-	}
-
-	public static Converter<List<ScoredValue<byte[]>>, List<Tuple>> scoredValuesToTupleList() {
-		return SCORED_VALUES_TO_TUPLE_LIST;
-	}
-
+	@Deprecated
 	public static Converter<ScoredValue<byte[]>, Tuple> scoredValueToTuple() {
-		return SCORED_VALUE_TO_TUPLE;
+		return LettuceConverters::toTuple;
 	}
 
+	@Deprecated
 	public static Converter<Exception, DataAccessException> exceptionConverter() {
 		return EXCEPTION_CONVERTER;
 	}
@@ -381,35 +204,57 @@ abstract public class LettuceConverters extends Converters {
 	 * @sice 1.3
 	 */
 	public static Converter<Long, Boolean> longToBooleanConverter() {
-		return LONG_TO_BOOLEAN;
+		return LongToBooleanConverter.INSTANCE;
 	}
 
-	public static Long toLong(Date source) {
-		return DATE_TO_LONG.convert(source);
+	public static Long toLong(@Nullable Date source) {
+		return source != null ? source.getTime() : null;
 	}
 
-	public static Set<byte[]> toBytesSet(List<byte[]> source) {
-		return BYTES_LIST_TO_BYTES_SET.convert(source);
+	public static Set<byte[]> toBytesSet(@Nullable List<byte[]> source) {
+		return source != null ? new LinkedHashSet<>(source) : null;
 	}
 
 	public static List<byte[]> toBytesList(KeyValue<byte[], byte[]> source) {
-		return KEY_VALUE_TO_BYTES_LIST.convert(source);
+
+		if (source == null) {
+			return null;
+		}
+		List<byte[]> list = new ArrayList<>(2);
+		list.add(source.getKey());
+		list.add(source.getValue());
+
+		return list;
 	}
 
 	public static List<byte[]> toBytesList(Collection<byte[]> source) {
-		return BYTES_COLLECTION_TO_BYTES_LIST.convert(source);
+		if (source instanceof List) {
+			return (List<byte[]>) source;
+		}
+		return source != null ? new ArrayList<>(source) : null;
 	}
 
-	public static Set<Tuple> toTupleSet(List<ScoredValue<byte[]>> source) {
-		return SCORED_VALUES_TO_TUPLE_SET.convert(source);
+	@Deprecated
+	public static Set<Tuple> toTupleSet(@Nullable List<ScoredValue<byte[]>> source) {
+		if (source == null) {
+			return null;
+		}
+		Set<Tuple> tuples = new LinkedHashSet<>(source.size());
+		for (ScoredValue<byte[]> value : source) {
+			tuples.add(LettuceConverters.toTuple(value));
+		}
+		return tuples;
 	}
 
-	public static Tuple toTuple(ScoredValue<byte[]> source) {
-		return SCORED_VALUE_TO_TUPLE.convert(source);
+	public static Tuple toTuple(@Nullable ScoredValue<byte[]> source) {
+		return source != null ? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore())) : null;
 	}
 
-	public static String toString(byte[] source) {
-		return BYTES_TO_STRING.convert(source);
+	public static String toString(@Nullable byte[] source) {
+		if (source == null || Arrays.equals(source, new byte[0])) {
+			return null;
+		}
+		return new String(source);
 	}
 
 	public static ScriptOutputType toScriptOutputType(ReturnType returnType) {
@@ -440,11 +285,23 @@ abstract public class LettuceConverters extends Converters {
 	}
 
 	public static Map<byte[], byte[]> toMap(List<byte[]> source) {
-		return BYTES_LIST_TO_MAP.convert(source);
+		if (CollectionUtils.isEmpty(source)) {
+			return Collections.emptyMap();
+		}
+
+		Map<byte[], byte[]> target = new LinkedHashMap<>();
+
+		Iterator<byte[]> kv = source.iterator();
+		while (kv.hasNext()) {
+			target.put(kv.next(), kv.hasNext() ? kv.next() : null);
+		}
+
+		return target;
 	}
 
+	@Deprecated
 	public static Converter<List<byte[]>, Map<byte[], byte[]>> bytesListToMapConverter() {
-		return BYTES_LIST_TO_MAP;
+		return LettuceConverters::toMap;
 	}
 
 	public static SortArgs toSortArgs(SortParameters params) {
@@ -480,9 +337,15 @@ abstract public class LettuceConverters extends Converters {
 	}
 
 	public static List<RedisClientInfo> toListOfRedisClientInformation(String clientList) {
-		return stringToRedisClientListConverter().convert(clientList);
+
+		if (!StringUtils.hasText(clientList)) {
+			return Collections.emptyList();
+		}
+
+		return StringToRedisClientInfoConverter.INSTANCE.convert(clientList.split("\\r?\\n"));
 	}
 
+	@Deprecated
 	public static byte[][] subarray(byte[][] input, int index) {
 
 		if (input.length > index) {
@@ -494,6 +357,7 @@ abstract public class LettuceConverters extends Converters {
 		return null;
 	}
 
+	@Deprecated
 	public static String boundaryToStringForZRange(Boundary boundary, String defaultValue) {
 
 		if (boundary == null || boundary.getValue() == null) {
@@ -668,8 +532,11 @@ abstract public class LettuceConverters extends Converters {
 		return builder.build();
 	}
 
-	public static byte[] toBytes(String source) {
-		return STRING_TO_BYTES.convert(source);
+	public static byte[] toBytes(@Nullable String source) {
+		if (source == null) {
+			return null;
+		}
+		return source.getBytes();
 	}
 
 	public static byte[] toBytes(Integer source) {
@@ -698,6 +565,7 @@ abstract public class LettuceConverters extends Converters {
 	 * @return
 	 * @since 1.6
 	 */
+	@Deprecated
 	public static String boundaryToBytesForZRange(Boundary boundary, byte[] defaultValue) {
 
 		if (boundary == null || boundary.getValue() == null) {
@@ -714,6 +582,7 @@ abstract public class LettuceConverters extends Converters {
 	 * @return
 	 * @since 1.6
 	 */
+	@Deprecated
 	public static String boundaryToBytesForZRangeByLex(Boundary boundary, byte[] defaultValue) {
 
 		if (boundary == null || boundary.getValue() == null) {
@@ -747,8 +616,19 @@ abstract public class LettuceConverters extends Converters {
 		return toString(ByteUtils.getBytes(buffer));
 	}
 
-	public static List<RedisClusterNode> partitionsToClusterNodes(Partitions partitions) {
-		return PARTITIONS_TO_CLUSTER_NODES.convert(partitions);
+	public static List<RedisClusterNode> partitionsToClusterNodes(@Nullable Partitions source) {
+
+		if (source == null) {
+			return Collections.emptyList();
+		}
+
+		List<RedisClusterNode> nodes = new ArrayList<>();
+
+		for (io.lettuce.core.cluster.models.partitions.RedisClusterNode node : source) {
+			nodes.add(toRedisClusterNode(node));
+		}
+
+		return nodes;
 	}
 
 	/**
@@ -757,7 +637,48 @@ abstract public class LettuceConverters extends Converters {
 	 * @since 1.7
 	 */
 	public static RedisClusterNode toRedisClusterNode(io.lettuce.core.cluster.models.partitions.RedisClusterNode source) {
-		return CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER.convert(source);
+
+		Set<Flag> flags = parseFlags(source.getFlags());
+
+		return RedisClusterNode.newRedisClusterNode().listeningAt(source.getUri().getHost(), source.getUri().getPort())
+				.withId(source.getNodeId()).promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.SLAVE)
+				.serving(new SlotRange(source.getSlots())).withFlags(flags)
+				.linkState(source.isConnected() ? LinkState.CONNECTED : LinkState.DISCONNECTED).slaveOf(source.getSlaveOf())
+				.build();
+	}
+
+	private static Set<Flag> parseFlags(@Nullable Set<NodeFlag> source) {
+
+		Set<Flag> flags = new LinkedHashSet<>(source != null ? source.size() : 8, 1);
+		for (NodeFlag flag : source) {
+			switch (flag) {
+				case NOFLAGS:
+					flags.add(Flag.NOFLAGS);
+					break;
+				case EVENTUAL_FAIL:
+					flags.add(Flag.PFAIL);
+					break;
+				case FAIL:
+					flags.add(Flag.FAIL);
+					break;
+				case HANDSHAKE:
+					flags.add(Flag.HANDSHAKE);
+					break;
+				case MASTER:
+					flags.add(Flag.MASTER);
+					break;
+				case MYSELF:
+					flags.add(Flag.MYSELF);
+					break;
+				case NOADDR:
+					flags.add(Flag.NOADDR);
+					break;
+				case SLAVE:
+					flags.add(Flag.SLAVE);
+					break;
+			}
+		}
+		return flags;
 	}
 
 	/**
@@ -805,7 +726,15 @@ abstract public class LettuceConverters extends Converters {
 	}
 
 	static Converter<List<byte[]>, Long> toTimeConverter() {
-		return BYTES_LIST_TO_TIME_CONVERTER;
+
+		return source -> {
+
+			Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
+			Assert.isTrue(source.size() == 2,
+					"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
+
+			return toTimeMillis(toString(source.get(0)), toString(source.get(1)));
+		};
 	}
 
 	/**
@@ -989,6 +918,7 @@ abstract public class LettuceConverters extends Converters {
 	 * @return
 	 * @since 1.8
 	 */
+	@Deprecated
 	public static ListConverter<io.lettuce.core.GeoCoordinates, Point> geoCoordinatesToPointConverter() {
 		return GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER;
 	}
@@ -998,12 +928,13 @@ abstract public class LettuceConverters extends Converters {
 	 * @since 2.0
 	 */
 	@SuppressWarnings("unchecked")
+	@Deprecated
 	public static <K, V> ListConverter<KeyValue<K, V>, V> keyValueListUnwrapper() {
 		return (ListConverter) KEY_VALUE_LIST_UNWRAPPER;
 	}
 
 	public static Converter<TransactionResult, List<Object>> transactionResultUnwrapper() {
-		return TRANSACTION_RESULT_UNWRAPPER;
+		return transactionResult -> transactionResult.stream().collect(Collectors.toList());
 	}
 
 	/**
@@ -1115,7 +1046,7 @@ abstract public class LettuceConverters extends Converters {
 			@Override
 			public GeoResult<GeoLocation<byte[]>> convert(GeoWithin<byte[]> source) {
 
-				Point point = GEO_COORDINATE_TO_POINT_CONVERTER.convert(source.getCoordinates());
+				Point point = geoCoordinatesToPoint(source.getCoordinates());
 
 				return new GeoResult<>(new GeoLocation<>(source.getMember(), point),
 						new Distance(source.getDistance() != null ? source.getDistance() : 0D, metric));
