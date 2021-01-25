@@ -110,7 +110,7 @@ class LettuceStringCommands implements RedisStringCommands {
 
 		return connection.invoke()
 				.from(RedisStringAsyncCommands::set, key, value, LettuceConverters.toSetArgs(expiration, option))
-				.getOrElse(LettuceConverters.stringToBooleanConverter(), () -> false);
+				.orElse(LettuceConverters.stringToBooleanConverter(), false);
 	}
 
 	/*

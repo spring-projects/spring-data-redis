@@ -188,7 +188,6 @@ class LettuceServerCommands implements RedisServerCommands {
 		Assert.hasText(value, "Value must not be null or empty!");
 
 		connection.invokeStatus().just(RedisServerAsyncCommands::configSet, param, value);
-
 	}
 
 	/*

@@ -52,6 +52,7 @@ import org.springframework.util.Assert;
  * completion or record the future along {@link Converter} for further processing.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.5
  */
 class LettuceInvoker {
@@ -60,6 +61,7 @@ class LettuceInvoker {
 	private final Synchronizer synchronizer;
 
 	LettuceInvoker(RedisClusterAsyncCommands<byte[], byte[]> connection, Synchronizer synchronizer) {
+
 		this.connection = connection;
 		this.synchronizer = synchronizer;
 	}
@@ -82,7 +84,7 @@ class LettuceInvoker {
 	@Nullable
 	<R> R just(ConnectionFunction0<R> function) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return synchronizer.invoke(() -> function.apply(connection), identityConverter(), () -> null);
 	}
@@ -91,11 +93,12 @@ class LettuceInvoker {
 	 * Invoke the {@link ConnectionFunction1} and return its result.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
 	 */
 	@Nullable
 	<R, T1> R just(ConnectionFunction1<T1, R> function, T1 t1) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return synchronizer.invoke(() -> function.apply(connection, t1));
 	}
@@ -104,11 +107,13 @@ class LettuceInvoker {
 	 * Invoke the {@link ConnectionFunction2} and return its result.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
+	 * @param t2 second argument.
 	 */
 	@Nullable
 	<R, T1, T2> R just(ConnectionFunction2<T1, T2, R> function, T1 t1, T2 t2) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return synchronizer.invoke(() -> function.apply(connection, t1, t2));
 	}
@@ -117,11 +122,14 @@ class LettuceInvoker {
 	 * Invoke the {@link ConnectionFunction3} and return its result.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
+	 * @param t2 second argument.
+	 * @param t3 third argument.
 	 */
 	@Nullable
 	<R, T1, T2, T3> R just(ConnectionFunction3<T1, T2, T3, R> function, T1 t1, T2 t2, T3 t3) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return synchronizer.invoke(() -> function.apply(connection, t1, t2, t3));
 	}
@@ -130,11 +138,15 @@ class LettuceInvoker {
 	 * Invoke the {@link ConnectionFunction4} and return its result.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
+	 * @param t2 second argument.
+	 * @param t3 third argument.
+	 * @param t4 fourth argument.
 	 */
 	@Nullable
 	<R, T1, T2, T3, T4> R just(ConnectionFunction4<T1, T2, T3, T4, R> function, T1 t1, T2 t2, T3 t3, T4 t4) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return synchronizer.invoke(() -> function.apply(connection, t1, t2, t3, t4));
 	}
@@ -143,11 +155,17 @@ class LettuceInvoker {
 	 * Invoke the {@link ConnectionFunction5} and return its result.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
+	 * @param t2 second argument.
+	 * @param t3 third argument.
+	 * @param t4 fourth argument.
+	 * @param t5 fifth argument.
 	 */
 	@Nullable
 	<R, T1, T2, T3, T4, T5> R just(ConnectionFunction5<T1, T2, T3, T4, T5, R> function, T1 t1, T2 t2, T3 t3, T4 t4,
 			T5 t5) {
-		Assert.notNull(function, "ConnectionFunction must not be null");
+
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return synchronizer.invoke(() -> function.apply(connection, t1, t2, t3, t4, t5));
 	}
@@ -160,7 +178,7 @@ class LettuceInvoker {
 	 */
 	<R> SingleInvocationSpec<R> from(ConnectionFunction0<R> function) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return new DefaultSingleInvocationSpec<>(() -> function.apply(connection), synchronizer);
 	}
@@ -170,10 +188,11 @@ class LettuceInvoker {
 	 * further composition.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
 	 */
 	<R, T1> SingleInvocationSpec<R> from(ConnectionFunction1<T1, R> function, T1 t1) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return from(it -> function.apply(it, t1));
 	}
@@ -183,10 +202,12 @@ class LettuceInvoker {
 	 * further composition.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
+	 * @param t2 second argument.
 	 */
 	<R, T1, T2> SingleInvocationSpec<R> from(ConnectionFunction2<T1, T2, R> function, T1 t1, T2 t2) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return from(it -> function.apply(it, t1, t2));
 	}
@@ -196,10 +217,13 @@ class LettuceInvoker {
 	 * further composition.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
+	 * @param t2 second argument.
+	 * @param t3 third argument.
 	 */
 	<R, T1, T2, T3> SingleInvocationSpec<R> from(ConnectionFunction3<T1, T2, T3, R> function, T1 t1, T2 t2, T3 t3) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return from(it -> function.apply(it, t1, t2, t3));
 	}
@@ -209,11 +233,15 @@ class LettuceInvoker {
 	 * further composition.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
+	 * @param t2 second argument.
+	 * @param t3 third argument.
+	 * @param t4 fourth argument.
 	 */
 	<R, T1, T2, T3, T4> SingleInvocationSpec<R> from(ConnectionFunction4<T1, T2, T3, T4, R> function, T1 t1, T2 t2, T3 t3,
 			T4 t4) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return from(it -> function.apply(it, t1, t2, t3, t4));
 	}
@@ -223,11 +251,16 @@ class LettuceInvoker {
 	 * further composition.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
+	 * @param t2 second argument.
+	 * @param t3 third argument.
+	 * @param t4 fourth argument.
+	 * @param t5 fifth argument.
 	 */
 	<R, T1, T2, T3, T4, T5> SingleInvocationSpec<R> from(ConnectionFunction5<T1, T2, T3, T4, T5, R> function, T1 t1,
 			T2 t2, T3 t3, T4 t4, T5 t5) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return from(it -> function.apply(it, t1, t2, t3, t4, t5));
 	}
@@ -240,7 +273,7 @@ class LettuceInvoker {
 	 */
 	<R extends Collection<E>, E> ManyInvocationSpec<E> fromMany(ConnectionFunction0<R> function) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return new DefaultManyInvocationSpec<>(() -> function.apply(connection), synchronizer);
 	}
@@ -250,10 +283,11 @@ class LettuceInvoker {
 	 * and return a {@link ManyInvocationSpec} for further composition.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
 	 */
 	<R extends Collection<E>, E, T1> ManyInvocationSpec<E> fromMany(ConnectionFunction1<T1, R> function, T1 t1) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return fromMany(it -> function.apply(it, t1));
 	}
@@ -263,11 +297,13 @@ class LettuceInvoker {
 	 * and return a {@link ManyInvocationSpec} for further composition.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
+	 * @param t2 second argument.
 	 */
 	<R extends Collection<E>, E, T1, T2> ManyInvocationSpec<E> fromMany(ConnectionFunction2<T1, T2, R> function, T1 t1,
 			T2 t2) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return fromMany(it -> function.apply(it, t1, t2));
 	}
@@ -277,11 +313,14 @@ class LettuceInvoker {
 	 * and return a {@link ManyInvocationSpec} for further composition.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
+	 * @param t2 second argument.
+	 * @param t3 third argument.
 	 */
 	<R extends Collection<E>, E, T1, T2, T3> ManyInvocationSpec<E> fromMany(ConnectionFunction3<T1, T2, T3, R> function,
 			T1 t1, T2 t2, T3 t3) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return fromMany(it -> function.apply(it, t1, t2, t3));
 	}
@@ -291,11 +330,15 @@ class LettuceInvoker {
 	 * and return a {@link ManyInvocationSpec} for further composition.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
+	 * @param t2 second argument.
+	 * @param t3 third argument.
+	 * @param t4 fourth argument.
 	 */
 	<R extends Collection<E>, E, T1, T2, T3, T4> ManyInvocationSpec<E> fromMany(
 			ConnectionFunction4<T1, T2, T3, T4, R> function, T1 t1, T2 t2, T3 t3, T4 t4) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return fromMany(it -> function.apply(it, t1, t2, t3, t4));
 	}
@@ -305,11 +348,16 @@ class LettuceInvoker {
 	 * and return a {@link ManyInvocationSpec} for further composition.
 	 *
 	 * @param function must not be {@literal null}.
+	 * @param t1 first argument.
+	 * @param t2 second argument.
+	 * @param t3 third argument.
+	 * @param t4 fourth argument.
+	 * @param t5 fifth argument.
 	 */
 	<R extends Collection<E>, E, T1, T2, T3, T4, T5> ManyInvocationSpec<E> fromMany(
 			ConnectionFunction5<T1, T2, T3, T4, T5, R> function, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return fromMany(it -> function.apply(it, t1, t2, t3, t4, t5));
 	}
@@ -319,7 +367,7 @@ class LettuceInvoker {
 	 *
 	 * @param <S>
 	 */
-	public interface SingleInvocationSpec<S> {
+	interface SingleInvocationSpec<S> {
 
 		/**
 		 * Materialize the pipeline by invoking the {@code ConnectionFunction} and returning the result after applying
@@ -334,7 +382,21 @@ class LettuceInvoker {
 
 		/**
 		 * Materialize the pipeline by invoking the {@code ConnectionFunction} and returning the result after applying
-		 * {@link Converter}.
+		 * {@link Converter} or return the {@literal nullDefault} value if not present.
+		 *
+		 * @param converter must not be {@literal null}.
+		 * @param nullDefault can be {@literal null}.
+		 * @param <T> target type.
+		 * @return the converted result, can be {@literal null}.
+		 */
+		@Nullable
+		default <T> T orElse(Converter<S, T> converter, @Nullable T nullDefault) {
+			return getOrElse(converter, () -> nullDefault);
+		}
+
+		/**
+		 * Materialize the pipeline by invoking the {@code ConnectionFunction} and returning the result after applying
+		 * {@link Converter} or return the {@literal nullDefault} value if not present.
 		 *
 		 * @param converter must not be {@literal null}.
 		 * @param nullDefault must not be {@literal null}.
@@ -351,7 +413,7 @@ class LettuceInvoker {
 	 *
 	 * @param <S>
 	 */
-	public interface ManyInvocationSpec<S> {
+	interface ManyInvocationSpec<S> {
 
 		/**
 		 * Materialize the pipeline by invoking the {@code ConnectionFunction} and returning the result.
@@ -398,10 +460,12 @@ class LettuceInvoker {
 	 * @param <R>
 	 */
 	@FunctionalInterface
-	public interface ConnectionFunction0<R> {
+	interface ConnectionFunction0<R> {
 
 		/**
 		 * Apply this function to the arguments and return a {@link RedisFuture}.
+		 *
+		 * @param connection the connection in use. Never {@literal null}.
 		 */
 		RedisFuture<R> apply(RedisClusterAsyncCommands<byte[], byte[]> connection);
 	}
@@ -413,10 +477,13 @@ class LettuceInvoker {
 	 * @param <R>
 	 */
 	@FunctionalInterface
-	public interface ConnectionFunction1<T1, R> {
+	interface ConnectionFunction1<T1, R> {
 
 		/**
 		 * Apply this function to the arguments and return a {@link RedisFuture}.
+		 *
+		 * @param connection the connection in use. Never {@literal null}.
+		 * @param t1 first argument.
 		 */
 		RedisFuture<R> apply(RedisClusterAsyncCommands<byte[], byte[]> connection, T1 t1);
 	}
@@ -429,10 +496,14 @@ class LettuceInvoker {
 	 * @param <R>
 	 */
 	@FunctionalInterface
-	public interface ConnectionFunction2<T1, T2, R> {
+	interface ConnectionFunction2<T1, T2, R> {
 
 		/**
 		 * Apply this function to the arguments and return a {@link RedisFuture}.
+		 *
+		 * @param connection the connection in use. Never {@literal null}.
+		 * @param t1 first argument.
+		 * @param t2 second argument.
 		 */
 		RedisFuture<R> apply(RedisClusterAsyncCommands<byte[], byte[]> connection, T1 t1, T2 t2);
 	}
@@ -446,10 +517,15 @@ class LettuceInvoker {
 	 * @param <R>
 	 */
 	@FunctionalInterface
-	public interface ConnectionFunction3<T1, T2, T3, R> {
+	interface ConnectionFunction3<T1, T2, T3, R> {
 
 		/**
 		 * Apply this function to the arguments and return a {@link RedisFuture}.
+		 *
+		 * @param connection the connection in use. Never {@literal null}.
+		 * @param t1 first argument.
+		 * @param t2 second argument.
+		 * @param t3 third argument.
 		 */
 		RedisFuture<R> apply(RedisClusterAsyncCommands<byte[], byte[]> connection, T1 t1, T2 t2, T3 t3);
 	}
@@ -464,10 +540,16 @@ class LettuceInvoker {
 	 * @param <R>
 	 */
 	@FunctionalInterface
-	public interface ConnectionFunction4<T1, T2, T3, T4, R> {
+	interface ConnectionFunction4<T1, T2, T3, T4, R> {
 
 		/**
 		 * Apply this function to the arguments and return a {@link RedisFuture}.
+		 *
+		 * @param connection the connection in use. Never {@literal null}.
+		 * @param t1 first argument.
+		 * @param t2 second argument.
+		 * @param t3 third argument.
+		 * @param t4 fourth argument.
 		 */
 		RedisFuture<R> apply(RedisClusterAsyncCommands<byte[], byte[]> connection, T1 t1, T2 t2, T3 t3, T4 t4);
 	}
@@ -483,78 +565,19 @@ class LettuceInvoker {
 	 * @param <R>
 	 */
 	@FunctionalInterface
-	public interface ConnectionFunction5<T1, T2, T3, T4, T5, R> {
+	interface ConnectionFunction5<T1, T2, T3, T4, T5, R> {
 
 		/**
 		 * Apply this function to the arguments and return a {@link RedisFuture}.
+		 *
+		 * @param connection the connection in use. Never {@literal null}.
+		 * @param t1 first argument.
+		 * @param t2 second argument.
+		 * @param t3 third argument.
+		 * @param t4 fourth argument.
+		 * @param t5 fifth argument.
 		 */
 		RedisFuture<R> apply(RedisClusterAsyncCommands<byte[], byte[]> connection, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5);
-	}
-
-	/**
-	 * A function accepting {@link RedisClusterAsyncCommands} with 6 arguments.
-	 *
-	 * @param <T1>
-	 * @param <T2>
-	 * @param <T3>
-	 * @param <T4>
-	 * @param <T5>
-	 * @param <T6>
-	 * @param <R>
-	 */
-	@FunctionalInterface
-	public interface ConnectionFunction6<T1, T2, T3, T4, T5, T6, R> {
-
-		/**
-		 * Apply this function to the arguments and return a {@link RedisFuture}.
-		 */
-		RedisFuture<R> apply(RedisClusterAsyncCommands<byte[], byte[]> connection, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5,
-				T6 t6);
-	}
-
-	/**
-	 * A function accepting {@link RedisClusterAsyncCommands} with 7 arguments.
-	 *
-	 * @param <T1>
-	 * @param <T2>
-	 * @param <T3>
-	 * @param <T4>
-	 * @param <T5>
-	 * @param <T6>
-	 * @param <T7>
-	 * @param <R>
-	 */
-	@FunctionalInterface
-	public interface ConnectionFunction7<T1, T2, T3, T4, T5, T6, T7, R> {
-
-		/**
-		 * Apply this function to the arguments and return a {@link RedisFuture}.
-		 */
-		RedisFuture<R> apply(RedisClusterAsyncCommands<byte[], byte[]> connection, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6,
-				T7 t7);
-	}
-
-	/**
-	 * A function accepting {@link RedisClusterAsyncCommands} with 8 arguments.
-	 *
-	 * @param <T1>
-	 * @param <T2>
-	 * @param <T3>
-	 * @param <T4>
-	 * @param <T5>
-	 * @param <T6>
-	 * @param <T7>
-	 * @param <T8>
-	 * @param <R>
-	 */
-	@FunctionalInterface
-	public interface ConnectionFunction8<T1, T2, T3, T4, T5, T6, T7, T8, R> {
-
-		/**
-		 * Apply this function to the arguments and return a {@link RedisFuture}.
-		 */
-		RedisFuture<R> apply(RedisClusterAsyncCommands<byte[], byte[]> connection, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6,
-				T7 t7, T8 t8);
 	}
 
 	static class DefaultSingleInvocationSpec<S> implements SingleInvocationSpec<S> {
@@ -579,7 +602,7 @@ class LettuceInvoker {
 		@Override
 		public <T> T getOrElse(Converter<S, T> converter, Supplier<T> nullDefault) {
 
-			Assert.notNull(converter, "Converter must not be null");
+			Assert.notNull(converter, "Converter must not be null!");
 
 			return synchronizer.invoke(parent, converter, nullDefault);
 		}
@@ -591,6 +614,7 @@ class LettuceInvoker {
 		private final Synchronizer synchronizer;
 
 		public DefaultManyInvocationSpec(Supplier<RedisFuture<? extends Collection<S>>> parent, Synchronizer synchronizer) {
+
 			this.parent = (Supplier) parent;
 			this.synchronizer = synchronizer;
 		}
@@ -598,7 +622,7 @@ class LettuceInvoker {
 		@Override
 		public <T> List<T> toList(Converter<S, T> converter) {
 
-			Assert.notNull(converter, "Converter must not be null");
+			Assert.notNull(converter, "Converter must not be null!");
 
 			return synchronizer.invoke(parent, source -> {
 
@@ -619,7 +643,7 @@ class LettuceInvoker {
 		@Override
 		public <T> Set<T> toSet(Converter<S, T> converter) {
 
-			Assert.notNull(converter, "Converter must not be null");
+			Assert.notNull(converter, "Converter must not be null!");
 
 			return synchronizer.invoke(parent, source -> {
 
@@ -653,6 +677,7 @@ class LettuceInvoker {
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		default <I, T> T invoke(Supplier<RedisFuture<I>> futureSupplier, Converter<I, T> converter,
 				Supplier<T> nullDefault) {
+
 			return (T) doInvoke((Supplier) futureSupplier, (Converter<Object, Object>) converter,
 					(Supplier<Object>) nullDefault);
 		}
@@ -660,6 +685,5 @@ class LettuceInvoker {
 		@Nullable
 		Object doInvoke(Supplier<RedisFuture<Object>> futureSupplier, Converter<Object, Object> converter,
 				Supplier<Object> nullDefault);
-
 	}
 }

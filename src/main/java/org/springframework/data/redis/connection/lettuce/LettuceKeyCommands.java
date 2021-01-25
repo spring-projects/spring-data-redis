@@ -406,8 +406,8 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().from(RedisKeyAsyncCommands::objectEncoding, key).getOrElse(ValueEncoding::of,
-				() -> RedisValueEncoding.VACANT);
+		return connection.invoke().from(RedisKeyAsyncCommands::objectEncoding, key).orElse(ValueEncoding::of,
+				RedisValueEncoding.VACANT);
 	}
 
 	/*

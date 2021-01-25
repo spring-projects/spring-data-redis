@@ -239,15 +239,6 @@ class LettuceListCommands implements RedisListCommands {
 				.from(RedisListAsyncCommands::blpop, timeout, keys).get(LettuceListCommands::toBytesList);
 	}
 
-	private static List<byte[]> toBytesList(KeyValue<byte[], byte[]> source) {
-
-		List<byte[]> list = new ArrayList<>(2);
-		list.add(source.getKey());
-		list.add(source.getValue());
-
-		return list;
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisListCommands#bRPop(int, byte[][])
@@ -289,4 +280,12 @@ class LettuceListCommands implements RedisListCommands {
 				srcKey, dstKey);
 	}
 
+	private static List<byte[]> toBytesList(KeyValue<byte[], byte[]> source) {
+
+		List<byte[]> list = new ArrayList<>(2);
+		list.add(source.getKey());
+		list.add(source.getValue());
+
+		return list;
+	}
 }
