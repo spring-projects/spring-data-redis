@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.MultiKeyPipelineBase;
+
 import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
 import org.springframework.util.Assert;
 
@@ -41,19 +44,7 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 		Assert.notEmpty(values, "PFADD requires at least one non 'null' value.");
 		Assert.noNullElements(values, "Values for PFADD must not contain 'null'.");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().pfadd(key, values)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().pfadd(key, values)));
-				return null;
-			}
-			return connection.getJedis().pfadd(key, values);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::pfadd, MultiKeyPipelineBase::pfadd, key, values);
 	}
 
 	/*
@@ -66,19 +57,7 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key.");
 		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'.");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().pfcount(keys)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().pfcount(keys)));
-				return null;
-			}
-			return connection.getJedis().pfcount(keys);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::pfcount, MultiKeyPipelineBase::pfcount, keys);
 	}
 
 	/*
@@ -92,39 +71,7 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 		Assert.notNull(sourceKeys, "Source keys must not be null");
 		Assert.noNullElements(sourceKeys, "Keys for PFMERGE must not contain 'null'.");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().pfmerge(destinationKey, sourceKeys)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().pfmerge(destinationKey, sourceKeys)));
-				return;
-			}
-			connection.getJedis().pfmerge(destinationKey, sourceKeys);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private void pipeline(JedisResult result) {
-		connection.pipeline(result);
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
-	}
-
-	private void transaction(JedisResult result) {
-		connection.transaction(result);
-	}
-
-	private RuntimeException convertJedisAccessException(Exception ex) {
-		return connection.convertJedisAccessException(ex);
+		connection.invoke().just(BinaryJedis::pfmerge, MultiKeyPipelineBase::pfmerge, destinationKey, sourceKeys);
 	}
 
 }

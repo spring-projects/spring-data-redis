@@ -540,51 +540,59 @@ public class JedisConnection extends AbstractRedisConnection {
 		return jedis;
 	}
 
+	/**
+	 * Obtain a {@link JedisInvoker} to call Jedis methods on the current {@link Jedis} instance.
+	 *
+	 * @return the {@link JedisInvoker}.
+	 * @since 2.5
+	 */
 	JedisInvoker invoke() {
 		return doInvoke(jedis, false);
 	}
 
+	/**
+	 * Obtain a {@link JedisInvoker} to call Jedis methods returning a status response on the current {@link Jedis}
+	 * instance. Status responses are not included in transactional and pipeline results.
+	 *
+	 * @return the {@link JedisInvoker}.
+	 * @since 2.5
+	 */
+	JedisInvoker invokeStatus() {
+		return doInvoke(jedis, true);
+	}
+
 	private JedisInvoker doInvoke(Jedis connection, boolean statusCommand) {
 
-		if (isPipelined()) {
+		return new JedisInvoker((directFunction, pipelineFunction, converter, nullDefault) -> {
 
-			return new JedisInvoker((directFunction, pipelineFunction, converter, nullDefault) -> {
+			try {
 
-				try {
+				if (isPipelined()) {
+
 					Response<Object> response = pipelineFunction.apply(getRequiredPipeline());
+
 					if (statusCommand) {
 						pipeline(newStatusResult(response));
 					} else {
 						pipeline(newJedisResult(response, converter, nullDefault));
 					}
-				} catch (Exception ex) {
-					throw convertJedisAccessException(ex);
+
+					return null;
 				}
-				return null;
-			});
-		}
 
-		if (isQueueing()) {
+				if (isQueueing()) {
 
-			return new JedisInvoker((directFunction, pipelineFunction, converter, nullDefault) -> {
-
-				try {
 					Response<Object> response = pipelineFunction.apply(getRequiredTransaction());
+
 					if (statusCommand) {
 						transaction(newStatusResult(response));
 					} else {
 						transaction(newJedisResult(response, converter, nullDefault));
 					}
-				} catch (Exception ex) {
-					throw convertJedisAccessException(ex);
+
+					return null;
 				}
-				return null;
-			});
-		}
 
-		return new JedisInvoker((directFunction, pipelineFunction, converter, nullDefault) -> {
-
-			try {
 				Object result = directFunction.apply(connection);
 
 				if (result == null) {
