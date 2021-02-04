@@ -15,8 +15,10 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.GeoUnit;
+import redis.clients.jedis.MultiKeyPipelineBase;
 
 import java.util.HashMap;
 import java.util.List;
@@ -56,22 +58,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.notNull(point, "Point must not be null!");
 		Assert.notNull(member, "Member must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection
-						.newJedisResult(connection.getRequiredPipeline().geoadd(key, point.getX(), point.getY(), member)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection
-						.newJedisResult(connection.getRequiredTransaction().geoadd(key, point.getX(), point.getY(), member)));
-				return null;
-			}
-
-			return connection.getJedis().geoadd(key, point.getX(), point.getY(), member);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::geoadd, MultiKeyPipelineBase::geoadd, key, point.getX(), point.getY(),
+				member);
 	}
 
 	/*
@@ -90,20 +78,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 			redisGeoCoordinateMap.put(mapKey, JedisConverters.toGeoCoordinate(memberCoordinateMap.get(mapKey)));
 		}
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().geoadd(key, redisGeoCoordinateMap)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().geoadd(key, redisGeoCoordinateMap)));
-				return null;
-			}
-
-			return connection.getJedis().geoadd(key, redisGeoCoordinateMap);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::geoadd, MultiKeyPipelineBase::geoadd, key, redisGeoCoordinateMap);
 	}
 
 	/*
@@ -122,20 +97,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 			redisGeoCoordinateMap.put(location.getName(), JedisConverters.toGeoCoordinate(location.getPoint()));
 		}
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().geoadd(key, redisGeoCoordinateMap)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().geoadd(key, redisGeoCoordinateMap)));
-				return null;
-			}
-
-			return connection.getJedis().geoadd(key, redisGeoCoordinateMap);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::geoadd, MultiKeyPipelineBase::geoadd, key, redisGeoCoordinateMap);
 	}
 
 	/*
@@ -151,23 +113,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 		Converter<Double, Distance> distanceConverter = JedisConverters.distanceConverterForMetric(DistanceUnit.METERS);
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().geodist(key, member1, member2),
-						distanceConverter));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().geodist(key, member1, member2),
-						distanceConverter));
-				return null;
-			}
-
-			Double distance = connection.getJedis().geodist(key, member1, member2);
-			return distance != null ? distanceConverter.convert(distance) : null;
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::geodist, MultiKeyPipelineBase::geodist, key, member1, member2)
+				.get(distanceConverter);
 	}
 
 	/*
@@ -185,23 +132,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 		GeoUnit geoUnit = JedisConverters.toGeoUnit(metric);
 		Converter<Double, Distance> distanceConverter = JedisConverters.distanceConverterForMetric(metric);
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().geodist(key, member1, member2, geoUnit),
-						distanceConverter));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(
-						connection.getRequiredTransaction().geodist(key, member1, member2, geoUnit), distanceConverter));
-				return null;
-			}
-
-			Double distance = connection.getJedis().geodist(key, member1, member2, geoUnit);
-			return distance != null ? distanceConverter.convert(distance) : null;
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::geodist, MultiKeyPipelineBase::geodist, key, member1, member2, geoUnit)
+				.get(distanceConverter);
 	}
 
 	/*
@@ -215,22 +147,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.notNull(members, "Members must not be null!");
 		Assert.noNullElements(members, "Members must not contain null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().geohash(key, members),
-						JedisConverters.bytesListToStringListConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().geohash(key, members),
-						JedisConverters.bytesListToStringListConverter()));
-				return null;
-			}
-
-			return JedisConverters.bytesListToStringListConverter().convert(connection.getJedis().geohash(key, members));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::geohash, MultiKeyPipelineBase::geohash, key, members)
+				.get(JedisConverters.bytesListToStringListConverter());
 	}
 
 	/*
@@ -245,19 +163,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.noNullElements(members, "Members must not contain null!");
 
 		ListConverter<GeoCoordinate, Point> converter = JedisConverters.geoCoordinateToPointConverter();
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().geopos(key, members), converter));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().geopos(key, members), converter));
-				return null;
-			}
-			return converter.convert(connection.getJedis().geopos(key, members));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+
+		return connection.invoke().from(BinaryJedis::geopos, MultiKeyPipelineBase::geopos, key, members).get(converter);
 	}
 
 	/*
@@ -272,30 +179,12 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 		Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
 				.geoRadiusResponseToGeoResultsConverter(within.getRadius().getMetric());
-		try {
-			if (isPipelined()) {
-				pipeline(
-						connection.newJedisResult(
-								connection.getRequiredPipeline().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
-										within.getRadius().getValue(), JedisConverters.toGeoUnit(within.getRadius().getMetric())),
-								converter));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(
-						connection.newJedisResult(
-								connection.getRequiredTransaction().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
-										within.getRadius().getValue(), JedisConverters.toGeoUnit(within.getRadius().getMetric())),
-								converter));
-				return null;
-			}
 
-			return converter
-					.convert(connection.getJedis().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
-							within.getRadius().getValue(), JedisConverters.toGeoUnit(within.getRadius().getMetric())));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke()
+				.from(BinaryJedis::georadius, MultiKeyPipelineBase::georadius, key, within.getCenter().getX(),
+						within.getCenter().getY(), within.getRadius().getValue(),
+						JedisConverters.toGeoUnit(within.getRadius().getMetric()))
+				.get(converter);
 	}
 
 	/*
@@ -313,26 +202,11 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
 				.geoRadiusResponseToGeoResultsConverter(within.getRadius().getMetric());
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().georadius(key, within.getCenter().getX(),
+		return connection.invoke().from(BinaryJedis::georadius, MultiKeyPipelineBase::georadius, key,
+				within.getCenter().getX(),
 						within.getCenter().getY(), within.getRadius().getValue(),
-						JedisConverters.toGeoUnit(within.getRadius().getMetric()), geoRadiusParam), converter));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().georadius(key,
-						within.getCenter().getX(), within.getCenter().getY(), within.getRadius().getValue(),
-						JedisConverters.toGeoUnit(within.getRadius().getMetric()), geoRadiusParam), converter));
-				return null;
-			}
-
-			return converter.convert(connection.getJedis().georadius(key, within.getCenter().getX(),
-					within.getCenter().getY(), within.getRadius().getValue(),
-					JedisConverters.toGeoUnit(within.getRadius().getMetric()), geoRadiusParam));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+						JedisConverters.toGeoUnit(within.getRadius().getMetric()), geoRadiusParam)
+				.get(converter);
 	}
 
 	/*
@@ -350,22 +224,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
 				.geoRadiusResponseToGeoResultsConverter(radius.getMetric());
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(
-						connection.getRequiredPipeline().georadiusByMember(key, member, radius.getValue(), geoUnit), converter));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(
-						connection.getRequiredTransaction().georadiusByMember(key, member, radius.getValue(), geoUnit), converter));
-				return null;
-			}
-
-			return converter.convert(connection.getJedis().georadiusByMember(key, member, radius.getValue(), geoUnit));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::georadiusByMember, MultiKeyPipelineBase::georadiusByMember, key,
+				member, radius.getValue(), geoUnit).get(converter);
 	}
 
 	/*
@@ -386,23 +246,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 				.geoRadiusResponseToGeoResultsConverter(radius.getMetric());
 		redis.clients.jedis.params.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(args);
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(
-						connection.getRequiredPipeline().georadiusByMember(key, member, radius.getValue(), geoUnit, geoRadiusParam),
-						converter));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().georadiusByMember(key, member,
-						radius.getValue(), geoUnit, geoRadiusParam), converter));
-				return null;
-			}
-			return converter
-					.convert(connection.getJedis().georadiusByMember(key, member, radius.getValue(), geoUnit, geoRadiusParam));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::georadiusByMember, MultiKeyPipelineBase::georadiusByMember, key,
+				member, radius.getValue(), geoUnit, geoRadiusParam).get(converter);
 	}
 
 	/*
@@ -412,25 +257,5 @@ class JedisGeoCommands implements RedisGeoCommands {
 	@Override
 	public Long geoRemove(byte[] key, byte[]... members) {
 		return connection.zSetCommands().zRem(key, members);
-	}
-
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private void pipeline(JedisResult result) {
-		connection.pipeline(result);
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
-	}
-
-	private void transaction(JedisResult result) {
-		connection.transaction(result);
-	}
-
-	private RuntimeException convertJedisAccessException(Exception ex) {
-		return connection.convertJedisAccessException(ex);
 	}
 }

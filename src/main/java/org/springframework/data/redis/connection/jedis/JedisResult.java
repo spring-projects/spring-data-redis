@@ -159,7 +159,7 @@ class JedisResult<T, R> extends FutureResult<Response<?>> {
 		/**
 		 * @return a new {@link JedisStatusResult} wrapper for status results with configuration applied from this builder.
 		 */
-		JedisStatusResult buildStatusResult() {
+		JedisStatusResult<T, R> buildStatusResult() {
 			return new JedisStatusResult<>(response, converter);
 		}
 	}

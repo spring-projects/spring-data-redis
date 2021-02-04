@@ -540,24 +540,82 @@ public class JedisConnection extends AbstractRedisConnection {
 		return jedis;
 	}
 
-	JedisResult newJedisResult(Response<?> response) {
-		return JedisResultBuilder.forResponse(response).build();
+	JedisInvoker invoke() {
+		return doInvoke(jedis, false);
 	}
 
-	<T, R> JedisResult newJedisResult(Response<T> response, Converter<T, R> converter) {
+	private JedisInvoker doInvoke(Jedis connection, boolean statusCommand) {
+
+		if (isPipelined()) {
+
+			return new JedisInvoker((directFunction, pipelineFunction, converter, nullDefault) -> {
+
+				try {
+					Response<Object> response = pipelineFunction.apply(getRequiredPipeline());
+					if (statusCommand) {
+						pipeline(newStatusResult(response));
+					} else {
+						pipeline(newJedisResult(response, converter, nullDefault));
+					}
+				} catch (Exception ex) {
+					throw convertJedisAccessException(ex);
+				}
+				return null;
+			});
+		}
+
+		if (isQueueing()) {
+
+			return new JedisInvoker((directFunction, pipelineFunction, converter, nullDefault) -> {
+
+				try {
+					Response<Object> response = pipelineFunction.apply(getRequiredTransaction());
+					if (statusCommand) {
+						transaction(newStatusResult(response));
+					} else {
+						transaction(newJedisResult(response, converter, nullDefault));
+					}
+				} catch (Exception ex) {
+					throw convertJedisAccessException(ex);
+				}
+				return null;
+			});
+		}
+
+		return new JedisInvoker((directFunction, pipelineFunction, converter, nullDefault) -> {
+
+			try {
+				Object result = directFunction.apply(connection);
+
+				if (result == null) {
+					return nullDefault.get();
+				}
+
+				return converter.convert(result);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		});
+	}
+
+	<T> JedisResult<T, T> newJedisResult(Response<T> response) {
+		return JedisResultBuilder.<T, T> forResponse(response).build();
+	}
+
+	<T, R> JedisResult<T, R> newJedisResult(Response<T> response, Converter<T, R> converter) {
 
 		return JedisResultBuilder.<T, R> forResponse(response).mappedWith(converter)
 				.convertPipelineAndTxResults(convertPipelineAndTxResults).build();
 	}
 
-	<T, R> JedisResult newJedisResult(Response<T> response, Converter<T, R> converter, Supplier<R> defaultValue) {
+	<T, R> JedisResult<T, R> newJedisResult(Response<T> response, Converter<T, R> converter, Supplier<R> defaultValue) {
 
 		return JedisResultBuilder.<T, R> forResponse(response).mappedWith(converter)
 				.convertPipelineAndTxResults(convertPipelineAndTxResults).mapNullTo(defaultValue).build();
 	}
 
-	JedisStatusResult newStatusResult(Response<?> response) {
-		return JedisResultBuilder.forResponse(response).buildStatusResult();
+	<T> JedisStatusResult<T, T> newStatusResult(Response<T> response) {
+		return JedisResultBuilder.<T, T> forResponse(response).buildStatusResult();
 	}
 
 	/*
