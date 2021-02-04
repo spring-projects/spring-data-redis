@@ -15,8 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.BitPosParams;
-import redis.clients.jedis.Client;
+import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.params.SetParams;
 
 import java.util.List;
@@ -27,7 +28,6 @@ import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -54,20 +54,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().get(key)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().get(key)));
-				return null;
-			}
-
-			return connection.getJedis().get(key);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::get, MultiKeyPipelineBase::get, key);
 	}
 
 	/*
@@ -80,19 +67,7 @@ class JedisStringCommands implements RedisStringCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().getSet(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().getSet(key, value)));
-				return null;
-			}
-			return connection.getJedis().getSet(key, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::getSet, MultiKeyPipelineBase::getSet, key, value);
 	}
 
 	/*
@@ -105,19 +80,7 @@ class JedisStringCommands implements RedisStringCommands {
 		Assert.notNull(keys, "Keys must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().mget(keys)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().mget(keys)));
-				return null;
-			}
-			return connection.getJedis().mget(keys);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::mget, MultiKeyPipelineBase::mget, keys);
 	}
 
 	/*
@@ -130,21 +93,8 @@ class JedisStringCommands implements RedisStringCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().set(key, value),
-						Converters.stringToBooleanConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().set(key, value),
-						Converters.stringToBooleanConverter()));
-				return null;
-			}
-			return Converters.stringToBoolean(connection.getJedis().set(key, value));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::set, MultiKeyPipelineBase::set, key, value)
+				.get(Converters.stringToBooleanConverter());
 	}
 
 	/*
@@ -162,25 +112,8 @@ class JedisStringCommands implements RedisStringCommands {
 		SetParams params = JedisConverters.toSetCommandExPxArgument(expiration,
 				JedisConverters.toSetCommandNxXxArgument(option));
 
-		try {
-			if (isPipelined()) {
-
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().set(key, value, params),
-						Converters.stringToBooleanConverter(), () -> false));
-				return null;
-			}
-			if (isQueueing()) {
-
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().set(key, value, params),
-						Converters.stringToBooleanConverter(), () -> false));
-				return null;
-			}
-
-			return Converters.stringToBoolean(connection.getJedis().set(key, value, params));
-
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::set, MultiKeyPipelineBase::set, key, value, params)
+				.getOrElse(Converters.stringToBooleanConverter(), () -> false);
 	}
 
 	/*
@@ -193,22 +126,8 @@ class JedisStringCommands implements RedisStringCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().setnx(key, value),
-						JedisConverters.longToBoolean()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().setnx(key, value),
-						JedisConverters.longToBoolean()));
-				return null;
-			}
-			return JedisConverters.toBoolean(connection.getJedis().setnx(key, value));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-
+		return connection.invoke().from(BinaryJedis::setnx, MultiKeyPipelineBase::setnx, key, value)
+				.get(Converters.longToBoolean());
 	}
 
 	/*
@@ -225,21 +144,8 @@ class JedisStringCommands implements RedisStringCommands {
 			throw new IllegalArgumentException("Time must be less than Integer.MAX_VALUE for setEx in Jedis.");
 		}
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().setex(key, (int) seconds, value),
-						Converters.stringToBooleanConverter(), () -> false));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().setex(key, (int) seconds, value),
-						Converters.stringToBooleanConverter(), () -> false));
-				return null;
-			}
-			return Converters.stringToBoolean(connection.getJedis().setex(key, (int) seconds, value));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::setex, MultiKeyPipelineBase::setex, key, (int) seconds, value)
+				.getOrElse(Converters.stringToBooleanConverter(), () -> false);
 	}
 
 	/*
@@ -252,21 +158,8 @@ class JedisStringCommands implements RedisStringCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().psetex(key, milliseconds, value),
-						Converters.stringToBooleanConverter(), () -> false));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().psetex(key, milliseconds, value),
-						Converters.stringToBooleanConverter(), () -> false));
-				return null;
-			}
-			return Converters.stringToBoolean(connection.getJedis().psetex(key, milliseconds, value));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::psetex, MultiKeyPipelineBase::psetex, key, milliseconds, value)
+				.getOrElse(Converters.stringToBooleanConverter(), () -> false);
 	}
 
 	/*
@@ -278,22 +171,8 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(tuples, "Tuples must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().mset(JedisConverters.toByteArrays(tuples)),
-						Converters.stringToBooleanConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(
-						connection.newJedisResult(connection.getRequiredTransaction().mset(JedisConverters.toByteArrays(tuples)),
-								Converters.stringToBooleanConverter()));
-				return null;
-			}
-			return Converters.stringToBoolean(connection.getJedis().mset(JedisConverters.toByteArrays(tuples)));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::mset, MultiKeyPipelineBase::mset, JedisConverters.toByteArrays(tuples))
+				.get(Converters.stringToBooleanConverter());
 	}
 
 	/*
@@ -305,23 +184,9 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(tuples, "Tuples must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(
-						connection.newJedisResult(connection.getRequiredPipeline().msetnx(JedisConverters.toByteArrays(tuples)),
-								JedisConverters.longToBoolean()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(
-						connection.newJedisResult(connection.getRequiredTransaction().msetnx(JedisConverters.toByteArrays(tuples)),
-								JedisConverters.longToBoolean()));
-				return null;
-			}
-			return JedisConverters.toBoolean(connection.getJedis().msetnx(JedisConverters.toByteArrays(tuples)));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke()
+				.from(BinaryJedis::msetnx, MultiKeyPipelineBase::msetnx, JedisConverters.toByteArrays(tuples))
+				.get(Converters.longToBoolean());
 	}
 
 	/*
@@ -333,19 +198,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().incr(key)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().incr(key)));
-				return null;
-			}
-			return connection.getJedis().incr(key);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::incr, MultiKeyPipelineBase::incr, key);
 	}
 
 	/*
@@ -357,20 +210,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().incrBy(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().incrBy(key, value)));
-				return null;
-			}
-			return connection.getJedis().incrBy(key, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-
+		return connection.invoke().just(BinaryJedis::incrBy, MultiKeyPipelineBase::incrBy, key, value);
 	}
 
 	/*
@@ -382,19 +222,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().incrByFloat(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().incrByFloat(key, value)));
-				return null;
-			}
-			return connection.getJedis().incrByFloat(key, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::incrByFloat, MultiKeyPipelineBase::incrByFloat, key, value);
 	}
 
 	/*
@@ -406,20 +234,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().decr(key)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().decr(key)));
-				return null;
-			}
-			return connection.getJedis().decr(key);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-
+		return connection.invoke().just(BinaryJedis::decr, MultiKeyPipelineBase::decr, key);
 	}
 
 	/*
@@ -431,19 +246,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().decrBy(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().decrBy(key, value)));
-				return null;
-			}
-			return connection.getJedis().decrBy(key, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::decrBy, MultiKeyPipelineBase::decrBy, key, value);
 	}
 
 	/*
@@ -456,19 +259,7 @@ class JedisStringCommands implements RedisStringCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().append(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().append(key, value)));
-				return null;
-			}
-			return connection.getJedis().append(key, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::append, MultiKeyPipelineBase::append, key, value);
 	}
 
 	/*
@@ -480,19 +271,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().getrange(key, start, end)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().getrange(key, start, end)));
-				return null;
-			}
-			return connection.getJedis().getrange(key, start, end);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::getrange, MultiKeyPipelineBase::getrange, key, start, end);
 	}
 
 	/*
@@ -505,19 +284,7 @@ class JedisStringCommands implements RedisStringCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().setrange(key, offset, value)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().setrange(key, offset, value)));
-				return;
-			}
-			connection.getJedis().setrange(key, offset, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		connection.invokeStatus().just(BinaryJedis::setrange, MultiKeyPipelineBase::setrange, key, offset, value);
 	}
 
 	/*
@@ -529,26 +296,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().getbit(key, offset)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().getbit(key, offset)));
-				return null;
-			}
-			// compatibility check for Jedis 2.0.0
-			Object getBit = connection.getJedis().getbit(key, offset);
-			// Jedis 2.0
-			if (getBit instanceof Long) {
-				return (((Long) getBit) == 0 ? Boolean.FALSE : Boolean.TRUE);
-			}
-			// Jedis 2.1
-			return ((Boolean) getBit);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::getbit, MultiKeyPipelineBase::getbit, key, offset);
 	}
 
 	/*
@@ -560,23 +308,8 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-
-				pipeline(connection
-						.newJedisResult(connection.getRequiredPipeline().setbit(key, offset, JedisConverters.toBit(value))));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection
-						.newJedisResult(connection.getRequiredTransaction().setbit(key, offset, JedisConverters.toBit(value))));
-				return null;
-			}
-			return connection.getJedis().setbit(key, offset, JedisConverters.toBit(value));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-
+		return connection.invoke().just(BinaryJedis::setbit, MultiKeyPipelineBase::setbit, key, offset,
+				JedisConverters.toBit(value));
 	}
 
 	/*
@@ -588,19 +321,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().bitcount(key)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().bitcount(key)));
-				return null;
-			}
-			return connection.getJedis().bitcount(key);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::bitcount, MultiKeyPipelineBase::bitcount, key);
 	}
 
 	/*
@@ -612,19 +333,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().bitcount(key, start, end)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().bitcount(key, start, end)));
-				return null;
-			}
-			return connection.getJedis().bitcount(key, start, end);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::bitcount, MultiKeyPipelineBase::bitcount, key, start, end);
 	}
 
 	/*
@@ -637,9 +346,8 @@ class JedisStringCommands implements RedisStringCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(subCommands, "Command must not be null!");
 
-		byte[][] args = ByteUtils.mergeArrays(key, JedisConverters.toBitfieldCommandArguments(subCommands));
-
-		return connection.execute("BITFIELD", args, Client::getIntegerMultiBulkReply, JedisClientUtils::getResponse);
+		return connection.invoke().just(BinaryJedis::bitfield, MultiKeyPipelineBase::bitfield, key,
+				JedisConverters.toBitfieldCommandArguments(subCommands));
 	}
 
 	/*
@@ -656,21 +364,8 @@ class JedisStringCommands implements RedisStringCommands {
 			throw new UnsupportedOperationException("Bitop NOT should only be performed against one key");
 		}
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection
-						.newJedisResult(connection.getRequiredPipeline().bitop(JedisConverters.toBitOp(op), destination, keys)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection
-						.newJedisResult(connection.getRequiredTransaction().bitop(JedisConverters.toBitOp(op), destination, keys)));
-				return null;
-			}
-			return connection.getJedis().bitop(JedisConverters.toBitOp(op), destination, keys);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::bitop, MultiKeyPipelineBase::bitop, JedisConverters.toBitOp(op),
+				destination, keys);
 	}
 
 	/*
@@ -684,30 +379,16 @@ class JedisStringCommands implements RedisStringCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null! Use Range.unbounded() instead.");
 
-		BitPosParams params = null;
 		if (range.getLowerBound().isBounded()) {
-			params = range.getUpperBound().isBounded()
+
+			BitPosParams params = range.getUpperBound().isBounded()
 					? new BitPosParams(range.getLowerBound().getValue().get(), range.getUpperBound().getValue().get())
 					: new BitPosParams(range.getLowerBound().getValue().get());
+
+			return connection.invoke().just(BinaryJedis::bitpos, MultiKeyPipelineBase::bitpos, key, bit, params);
 		}
 
-		try {
-			if (isPipelined()) {
-
-				pipeline(connection.newJedisResult(params != null ? connection.getRequiredPipeline().bitpos(key, bit, params)
-						: connection.getRequiredPipeline().bitpos(key, bit)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(
-						connection.newJedisResult(params != null ? connection.getRequiredTransaction().bitpos(key, bit, params)
-								: connection.getRequiredTransaction().bitpos(key, bit)));
-				return null;
-			}
-			return params != null ? connection.getJedis().bitpos(key, bit, params) : connection.getJedis().bitpos(key, bit);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::bitpos, MultiKeyPipelineBase::bitpos, key, bit);
 	}
 
 	/*
@@ -719,38 +400,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().strlen(key)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().strlen(key)));
-				return null;
-			}
-			return connection.getJedis().strlen(key);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::strlen, MultiKeyPipelineBase::strlen, key);
 	}
 
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private void pipeline(JedisResult result) {
-		connection.pipeline(result);
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
-	}
-
-	private void transaction(JedisResult result) {
-		connection.transaction(result);
-	}
-
-	private RuntimeException convertJedisAccessException(Exception ex) {
-		return connection.convertJedisAccessException(ex);
-	}
 }

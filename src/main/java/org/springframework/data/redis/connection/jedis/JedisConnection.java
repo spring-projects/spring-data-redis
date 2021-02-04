@@ -15,10 +15,12 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
@@ -30,6 +32,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -69,18 +72,24 @@ public class JedisConnection extends AbstractRedisConnection {
 			JedisConverters.exceptionConverter());
 
 	private final Jedis jedis;
-	private @Nullable Transaction transaction;
+
+	private final JedisInvoker invoker = new JedisInvoker((directFunction, pipelineFunction, converter,
+			nullDefault) -> doInvoke(false, directFunction, pipelineFunction, converter, nullDefault));
+	private final JedisInvoker statusInvoker = new JedisInvoker((directFunction, pipelineFunction, converter,
+			nullDefault) -> doInvoke(true, directFunction, pipelineFunction, converter, nullDefault));
+
 	private final @Nullable Pool<Jedis> pool;
-	/**
-	 * flag indicating whether the connection needs to be dropped or not
-	 */
-	private volatile @Nullable JedisSubscription subscription;
-	private volatile @Nullable Pipeline pipeline;
 	private final int dbIndex;
 	private final String clientName;
-	private boolean convertPipelineAndTxResults = true;
+
 	private List<JedisResult> pipelinedResults = new ArrayList<>();
 	private Queue<FutureResult<Response<?>>> txResults = new LinkedList<>();
+
+	private volatile @Nullable JedisSubscription subscription;
+	private volatile @Nullable Transaction transaction;
+	private volatile @Nullable Pipeline pipeline;
+
+	private boolean convertPipelineAndTxResults = true;
 
 	/**
 	 * Constructs a new <code>JedisConnection</code> instance.
@@ -129,6 +138,37 @@ public class JedisConnection extends AbstractRedisConnection {
 				throw ex;
 			}
 		}
+	}
+
+	@Nullable
+	private Object doInvoke(boolean status, Function<Jedis, Object> directFunction,
+			Function<MultiKeyPipelineBase, Response<Object>> pipelineFunction, Converter<Object, Object> converter,
+			Supplier<Object> nullDefault) {
+
+		return doWithJedis(it -> {
+
+			if (isPipelined()) {
+
+				Response<Object> response = pipelineFunction.apply(getRequiredPipeline());
+				pipeline(status ? newStatusResult(response) : newJedisResult(response, converter, nullDefault));
+				return null;
+			}
+
+			if (isQueueing()) {
+
+				Response<Object> response = pipelineFunction.apply(getRequiredTransaction());
+				transaction(status ? newStatusResult(response) : newJedisResult(response, converter, nullDefault));
+				return null;
+			}
+
+			Object result = directFunction.apply(getJedis());
+
+			if (result == null) {
+				return nullDefault.get();
+			}
+
+			return converter.convert(result);
+		});
 	}
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
@@ -244,15 +284,16 @@ public class JedisConnection extends AbstractRedisConnection {
 		return execute(command, args, Connection::getOne, JedisClientUtils::getResponse);
 	}
 
+	@Nullable
 	<T> T execute(String command, byte[][] args, Function<Client, T> resultMapper,
 			Function<Object, Response<?>> pipelineResponseMapper) {
 
 		Assert.hasText(command, "A valid command needs to be specified!");
 		Assert.notNull(args, "Arguments must not be null!");
 
-		try {
+		return doWithJedis(it -> {
 
-			Client client = JedisClientUtils.sendCommand(command, args, this.jedis);
+			Client client = JedisClientUtils.sendCommand(command, args, it);
 
 			if (isQueueing() || isPipelined()) {
 
@@ -266,9 +307,7 @@ public class JedisConnection extends AbstractRedisConnection {
 				return null;
 			}
 			return resultMapper.apply(client);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		});
 	}
 
 	/*
@@ -316,11 +355,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public boolean isClosed() {
-		try {
-			return !jedis.isConnected();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return doWithJedis(it -> !it.isConnected());
 	}
 
 	/*
@@ -418,19 +453,10 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public byte[] echo(byte[] message) {
-		try {
-			if (isPipelined()) {
-				pipeline(newJedisResult(getRequiredPipeline().echo(message)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(newJedisResult(getRequiredTransaction().echo(message)));
-				return null;
-			}
-			return jedis.echo(message);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+
+		Assert.notNull(message, "Message must not be null");
+
+		return invoke().just(BinaryJedis::echo, MultiKeyPipelineBase::echo, message);
 	}
 
 	/*
@@ -439,19 +465,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public String ping() {
-		try {
-			if (isPipelined()) {
-				pipeline(newJedisResult(getRequiredPipeline().ping()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(newJedisResult(getRequiredTransaction().ping()));
-				return null;
-			}
-			return jedis.ping();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return invoke().just(BinaryJedis::ping, MultiKeyPipelineBase::ping);
 	}
 
 	/*
@@ -540,24 +554,45 @@ public class JedisConnection extends AbstractRedisConnection {
 		return jedis;
 	}
 
-	JedisResult newJedisResult(Response<?> response) {
-		return JedisResultBuilder.forResponse(response).build();
+	/**
+	 * Obtain a {@link JedisInvoker} to call Jedis methods on the current {@link Jedis} instance.
+	 *
+	 * @return the {@link JedisInvoker}.
+	 * @since 2.5
+	 */
+	JedisInvoker invoke() {
+		return invoker;
 	}
 
-	<T, R> JedisResult newJedisResult(Response<T> response, Converter<T, R> converter) {
+	/**
+	 * Obtain a {@link JedisInvoker} to call Jedis methods returning a status response on the current {@link Jedis}
+	 * instance. Status responses are not included in transactional and pipeline results.
+	 *
+	 * @return the {@link JedisInvoker}.
+	 * @since 2.5
+	 */
+	JedisInvoker invokeStatus() {
+		return statusInvoker;
+	}
+
+	<T> JedisResult<T, T> newJedisResult(Response<T> response) {
+		return JedisResultBuilder.<T, T> forResponse(response).build();
+	}
+
+	<T, R> JedisResult<T, R> newJedisResult(Response<T> response, Converter<T, R> converter) {
 
 		return JedisResultBuilder.<T, R> forResponse(response).mappedWith(converter)
 				.convertPipelineAndTxResults(convertPipelineAndTxResults).build();
 	}
 
-	<T, R> JedisResult newJedisResult(Response<T> response, Converter<T, R> converter, Supplier<R> defaultValue) {
+	<T, R> JedisResult<T, R> newJedisResult(Response<T> response, Converter<T, R> converter, Supplier<R> defaultValue) {
 
 		return JedisResultBuilder.<T, R> forResponse(response).mappedWith(converter)
 				.convertPipelineAndTxResults(convertPipelineAndTxResults).mapNullTo(defaultValue).build();
 	}
 
-	JedisStatusResult newStatusResult(Response<?> response) {
-		return JedisResultBuilder.forResponse(response).buildStatusResult();
+	<T> JedisStatusResult<T, T> newStatusResult(Response<T> response) {
+		return JedisResultBuilder.<T, T> forResponse(response).buildStatusResult();
 	}
 
 	/*
@@ -569,15 +604,15 @@ public class JedisConnection extends AbstractRedisConnection {
 		if (isQueueing()) {
 			return;
 		}
-		try {
+
+		doWithJedis(it -> {
+
 			if (isPipelined()) {
 				getRequiredPipeline().multi();
 				return;
 			}
-			this.transaction = jedis.multi();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+			this.transaction = it.multi();
+		});
 	}
 
 	/*
@@ -586,19 +621,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public void select(int dbIndex) {
-		try {
-			if (isPipelined()) {
-				pipeline(newStatusResult(getRequiredPipeline().select(dbIndex)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(newStatusResult(getRequiredTransaction().select(dbIndex)));
-				return;
-			}
-			jedis.select(dbIndex);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		invokeStatus().just(BinaryJedis::select, MultiKeyPipelineBase::select, dbIndex);
 	}
 
 	/*
@@ -607,11 +630,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public void unwatch() {
-		try {
-			jedis.unwatch();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		doWithJedis((Consumer<Jedis>) BinaryJedis::unwatch);
 	}
 
 	/*
@@ -623,17 +642,16 @@ public class JedisConnection extends AbstractRedisConnection {
 		if (isQueueing()) {
 			throw new UnsupportedOperationException();
 		}
-		try {
+		doWithJedis(it -> {
+
 			for (byte[] key : keys) {
 				if (isPipelined()) {
 					pipeline(newStatusResult(getRequiredPipeline().watch(key)));
 				} else {
-					jedis.watch(key);
+					it.watch(key);
 				}
 			}
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		});
 	}
 
 	//
@@ -646,19 +664,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public Long publish(byte[] channel, byte[] message) {
-		try {
-			if (isPipelined()) {
-				pipeline(newJedisResult(getRequiredPipeline().publish(channel, message)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(newJedisResult(getRequiredTransaction().publish(channel, message)));
-				return null;
-			}
-			return jedis.publish(channel, message);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return invoke().just(BinaryJedis::publish, MultiKeyPipelineBase::publish, channel, message);
 	}
 
 	/*
@@ -685,26 +691,23 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
+
 		if (isSubscribed()) {
 			throw new RedisSubscribedConnectionException(
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
 		}
-		if (isQueueing()) {
-			throw new UnsupportedOperationException();
-		}
-		if (isPipelined()) {
+
+		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException();
 		}
 
-		try {
+		doWithJedis(it -> {
+
 			BinaryJedisPubSub jedisPubSub = new JedisMessageListener(listener);
 
 			subscription = new JedisSubscription(listener, jedisPubSub, null, patterns);
-			jedis.psubscribe(jedisPubSub, patterns);
-
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+			it.psubscribe(jedisPubSub, patterns);
+		});
 	}
 
 	/*
@@ -713,27 +716,23 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
+
 		if (isSubscribed()) {
 			throw new RedisSubscribedConnectionException(
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
 		}
 
-		if (isQueueing()) {
-			throw new UnsupportedOperationException();
-		}
-		if (isPipelined()) {
+		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException();
 		}
 
-		try {
+		doWithJedis(it -> {
+
 			BinaryJedisPubSub jedisPubSub = new JedisMessageListener(listener);
 
 			subscription = new JedisSubscription(listener, jedisPubSub, channels, null);
-			jedis.subscribe(jedisPubSub, channels);
-
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+			it.subscribe(jedisPubSub, channels);
+		});
 	}
 
 	/**
@@ -753,17 +752,17 @@ public class JedisConnection extends AbstractRedisConnection {
 	@Override
 	protected boolean isActive(RedisNode node) {
 
-		Jedis temp = null;
+		Jedis verification = null;
 		try {
-			temp = getJedis(node);
-			temp.connect();
-			return temp.ping().equalsIgnoreCase("pong");
+			verification = getJedis(node);
+			verification.connect();
+			return verification.ping().equalsIgnoreCase("pong");
 		} catch (Exception e) {
 			return false;
 		} finally {
-			if (temp != null) {
-				temp.disconnect();
-				temp.close();
+			if (verification != null) {
+				verification.disconnect();
+				verification.close();
 			}
 		}
 	}
@@ -786,6 +785,26 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 
 		return jedis;
+	}
+
+	@Nullable
+	private <T> T doWithJedis(Function<Jedis, T> callback) {
+
+		try {
+			return callback.apply(getJedis());
+
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	private void doWithJedis(Consumer<Jedis> callback) {
+
+		try {
+			callback.accept(getJedis());
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 }

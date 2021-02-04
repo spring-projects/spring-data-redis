@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.ZParams;
@@ -55,21 +58,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zadd(key, score, value),
-						JedisConverters.longToBoolean()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zadd(key, score, value),
-						JedisConverters.longToBoolean()));
-				return null;
-			}
-			return JedisConverters.toBoolean(connection.getJedis().zadd(key, score, value));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::zadd, MultiKeyPipelineBase::zadd, key, score, value)
+				.get(JedisConverters::toBoolean);
 	}
 
 	/*
@@ -82,21 +72,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(tuples, "Tuples must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(
-						connection.newJedisResult(connection.getRequiredPipeline().zadd(key, JedisConverters.toTupleMap(tuples))));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection
-						.newJedisResult(connection.getRequiredTransaction().zadd(key, JedisConverters.toTupleMap(tuples))));
-				return null;
-			}
-			return connection.getJedis().zadd(key, JedisConverters.toTupleMap(tuples));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zadd, MultiKeyPipelineBase::zadd, key,
+				JedisConverters.toTupleMap(tuples));
 	}
 
 	/*
@@ -110,19 +87,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(values, "Values must not be null!");
 		Assert.noNullElements(values, "Values must not contain null elements!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrem(key, values)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zrem(key, values)));
-				return null;
-			}
-			return connection.getJedis().zrem(key, values);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zrem, MultiKeyPipelineBase::zrem, key, values);
 	}
 
 	/*
@@ -135,19 +100,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zincrby(key, increment, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zincrby(key, increment, value)));
-				return null;
-			}
-			return connection.getJedis().zincrby(key, increment, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zincrby, MultiKeyPipelineBase::zincrby, key, increment, value);
 	}
 
 	/*
@@ -160,19 +113,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrank(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zrank(key, value)));
-				return null;
-			}
-			return connection.getJedis().zrank(key, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zrank, MultiKeyPipelineBase::zrank, key, value);
 	}
 
 	/*
@@ -184,19 +125,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrevrank(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zrevrank(key, value)));
-				return null;
-			}
-			return connection.getJedis().zrevrank(key, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zrevrank, MultiKeyPipelineBase::zrevrank, key, value);
 	}
 
 	/*
@@ -208,19 +137,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrange(key, start, end)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zrange(key, start, end)));
-				return null;
-			}
-			return connection.getJedis().zrange(key, start, end);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zrange, MultiKeyPipelineBase::zrange, key, start, end);
 	}
 
 	/*
@@ -232,21 +149,9 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrangeWithScores(key, start, end),
-						JedisConverters.tupleSetToTupleSet()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zrangeWithScores(key, start, end),
-						JedisConverters.tupleSetToTupleSet()));
-				return null;
-			}
-			return JedisConverters.toTupleSet(connection.getJedis().zrangeWithScores(key, start, end));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke()
+				.from(BinaryJedis::zrangeWithScores, MultiKeyPipelineBase::zrangeWithScores, key, start, end)
+				.get(JedisConverters.tupleSetToTupleSet());
 	}
 
 	/*
@@ -263,38 +168,15 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getMin(), JedisConverters.NEGATIVE_INFINITY_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
-		try {
-			if (isPipelined()) {
-				if (!limit.isUnlimited()) {
-					pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrangeByScoreWithScores(key, min, max,
-							limit.getOffset(), limit.getCount()), JedisConverters.tupleSetToTupleSet()));
-				} else {
-					pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrangeByScoreWithScores(key, min, max),
-							JedisConverters.tupleSetToTupleSet()));
-				}
-				return null;
-			}
-
-			if (isQueueing()) {
-				if (!limit.isUnlimited()) {
-					transaction(connection.newJedisResult(connection.getRequiredTransaction().zrangeByScoreWithScores(key, min,
-							max, limit.getOffset(), limit.getCount()), JedisConverters.tupleSetToTupleSet()));
-				} else {
-					transaction(
-							connection.newJedisResult(connection.getRequiredTransaction().zrangeByScoreWithScores(key, min, max),
-									JedisConverters.tupleSetToTupleSet()));
-				}
-				return null;
-			}
-
-			if (!limit.isUnlimited()) {
-				return JedisConverters.toTupleSet(
-						connection.getJedis().zrangeByScoreWithScores(key, min, max, limit.getOffset(), limit.getCount()));
-			}
-			return JedisConverters.toTupleSet(connection.getJedis().zrangeByScoreWithScores(key, min, max));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+		if (!limit.isUnlimited()) {
+			return connection.invoke().from(BinaryJedis::zrangeByScoreWithScores,
+					MultiKeyPipelineBase::zrangeByScoreWithScores, key, min, max, limit.getOffset(), limit.getCount())
+					.get(JedisConverters.tupleSetToTupleSet());
 		}
+
+		return connection.invoke()
+				.from(BinaryJedis::zrangeByScoreWithScores, MultiKeyPipelineBase::zrangeByScoreWithScores, key, min, max)
+				.get(JedisConverters.tupleSetToTupleSet());
 	}
 
 	/*
@@ -306,19 +188,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrevrange(key, start, end)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zrevrange(key, start, end)));
-				return null;
-			}
-			return connection.getJedis().zrevrange(key, start, end);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zrevrange, MultiKeyPipelineBase::zrevrange, key, start, end);
 	}
 
 	/*
@@ -330,21 +200,9 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrevrangeWithScores(key, start, end),
-						JedisConverters.tupleSetToTupleSet()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zrevrangeWithScores(key, start, end),
-						JedisConverters.tupleSetToTupleSet()));
-				return null;
-			}
-			return JedisConverters.toTupleSet(connection.getJedis().zrevrangeWithScores(key, start, end));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke()
+				.from(BinaryJedis::zrevrangeWithScores, MultiKeyPipelineBase::zrevrangeWithScores, key, start, end)
+				.get(JedisConverters.tupleSetToTupleSet());
 	}
 
 	/*
@@ -361,34 +219,13 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getMin(), JedisConverters.NEGATIVE_INFINITY_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
-		try {
-			if (isPipelined()) {
-				if (!limit.isUnlimited()) {
-					pipeline(connection.newJedisResult(
-							connection.getRequiredPipeline().zrevrangeByScore(key, max, min, limit.getOffset(), limit.getCount())));
-				} else {
-					pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrevrangeByScore(key, max, min)));
-				}
-				return null;
-			}
-
-			if (isQueueing()) {
-				if (!limit.isUnlimited()) {
-					transaction(connection.newJedisResult(connection.getRequiredTransaction().zrevrangeByScore(key, max, min,
-							limit.getOffset(), limit.getCount())));
-				} else {
-					transaction(connection.newJedisResult(connection.getRequiredTransaction().zrevrangeByScore(key, max, min)));
-				}
-				return null;
-			}
-
-			if (!limit.isUnlimited()) {
-				return connection.getJedis().zrevrangeByScore(key, max, min, limit.getOffset(), limit.getCount());
-			}
-			return connection.getJedis().zrevrangeByScore(key, max, min);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+		if (!limit.isUnlimited()) {
+			return connection.invoke().just(BinaryJedis::zrevrangeByScore, MultiKeyPipelineBase::zrevrangeByScore, key, max,
+					min, limit.getOffset(), limit.getCount());
 		}
+
+		return connection.invoke().just(BinaryJedis::zrevrangeByScore, MultiKeyPipelineBase::zrevrangeByScore, key, max,
+				min);
 	}
 
 	/*
@@ -405,38 +242,15 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getMin(), JedisConverters.NEGATIVE_INFINITY_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
-		try {
-			if (isPipelined()) {
-				if (!limit.isUnlimited()) {
-					pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrevrangeByScoreWithScores(key, max, min,
-							limit.getOffset(), limit.getCount()), JedisConverters.tupleSetToTupleSet()));
-				} else {
-					pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrevrangeByScoreWithScores(key, max, min),
-							JedisConverters.tupleSetToTupleSet()));
-				}
-				return null;
-			}
-
-			if (isQueueing()) {
-				if (!limit.isUnlimited()) {
-					transaction(connection.newJedisResult(connection.getRequiredTransaction().zrevrangeByScoreWithScores(key, max,
-							min, limit.getOffset(), limit.getCount()), JedisConverters.tupleSetToTupleSet()));
-				} else {
-					transaction(
-							connection.newJedisResult(connection.getRequiredTransaction().zrevrangeByScoreWithScores(key, max, min),
-									JedisConverters.tupleSetToTupleSet()));
-				}
-				return null;
-			}
-
-			if (!limit.isUnlimited()) {
-				return JedisConverters.toTupleSet(
-						connection.getJedis().zrevrangeByScoreWithScores(key, max, min, limit.getOffset(), limit.getCount()));
-			}
-			return JedisConverters.toTupleSet(connection.getJedis().zrevrangeByScoreWithScores(key, max, min));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+		if (!limit.isUnlimited()) {
+			return connection.invoke().from(BinaryJedis::zrevrangeByScoreWithScores,
+					MultiKeyPipelineBase::zrevrangeByScoreWithScores, key, max, min, limit.getOffset(), limit.getCount())
+					.get(JedisConverters.tupleSetToTupleSet());
 		}
+
+		return connection.invoke()
+				.from(BinaryJedis::zrevrangeByScoreWithScores, MultiKeyPipelineBase::zrevrangeByScoreWithScores, key, max, min)
+				.get(JedisConverters.tupleSetToTupleSet());
 	}
 
 	/*
@@ -448,19 +262,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zcount(key, min, max)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zcount(key, min, max)));
-				return null;
-			}
-			return connection.getJedis().zcount(key, min, max);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zcount, MultiKeyPipelineBase::zcount, key, min, max);
 	}
 
 	/*
@@ -476,19 +278,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getMin(), JedisConverters.NEGATIVE_INFINITY_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zcount(key, min, max)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zcount(key, min, max)));
-				return null;
-			}
-			return connection.getJedis().zcount(key, min, max);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zcount, MultiKeyPipelineBase::zcount, key, min, max);
 	}
 
 	/*
@@ -504,19 +294,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zlexcount(key, min, max)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zlexcount(key, min, max)));
-				return null;
-			}
-			return connection.getJedis().zlexcount(key, min, max);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zlexcount, MultiKeyPipelineBase::zlexcount, key, min, max);
 	}
 
 	/*
@@ -528,19 +306,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zcard(key)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zcard(key)));
-				return null;
-			}
-			return connection.getJedis().zcard(key);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zcard, MultiKeyPipelineBase::zcard, key);
 	}
 
 	/*
@@ -553,19 +319,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zscore(key, value)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zscore(key, value)));
-				return null;
-			}
-			return connection.getJedis().zscore(key, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zscore, MultiKeyPipelineBase::zscore, key, value);
 	}
 
 	/*
@@ -577,19 +331,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zremrangeByRank(key, start, end)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zremrangeByRank(key, start, end)));
-				return null;
-			}
-			return connection.getJedis().zremrangeByRank(key, start, end);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zremrangeByRank, MultiKeyPipelineBase::zremrangeByRank, key, start,
+				end);
 	}
 
 	/*
@@ -605,19 +348,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getMin(), JedisConverters.NEGATIVE_INFINITY_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zremrangeByScore(key, min, max)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zremrangeByScore(key, min, max)));
-				return null;
-			}
-			return connection.getJedis().zremrangeByScore(key, min, max);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zremrangeByScore, MultiKeyPipelineBase::zremrangeByScore, key, min,
+				max);
 	}
 
 	/*
@@ -634,21 +366,10 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.isTrue(weights.size() == sets.length, () -> String
 				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
 
-		try {
-			ZParams zparams = new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+		ZParams zparams = new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zunionstore(destKey, zparams, sets)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zunionstore(destKey, zparams, sets)));
-				return null;
-			}
-			return connection.getJedis().zunionstore(destKey, zparams, sets);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zunionstore, MultiKeyPipelineBase::zunionstore, destKey, zparams,
+				sets);
 	}
 
 	/*
@@ -662,19 +383,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(sets, "Source sets must not be null!");
 		Assert.noNullElements(sets, "Source sets must not contain null elements!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zunionstore(destKey, sets)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zunionstore(destKey, sets)));
-				return null;
-			}
-			return connection.getJedis().zunionstore(destKey, sets);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zunionstore, MultiKeyPipelineBase::zunionstore, destKey, sets);
 	}
 
 	/*
@@ -690,21 +399,10 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.isTrue(weights.size() == sets.length, () -> String
 				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
 
-		try {
-			ZParams zparams = new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+		ZParams zparams = new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zinterstore(destKey, zparams, sets)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zinterstore(destKey, zparams, sets)));
-				return null;
-			}
-			return connection.getJedis().zinterstore(destKey, zparams, sets);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zinterstore, MultiKeyPipelineBase::zinterstore, destKey, zparams,
+				sets);
 	}
 
 	/*
@@ -718,19 +416,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(sets, "Source sets must not be null!");
 		Assert.noNullElements(sets, "Source sets must not contain null elements!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zinterstore(destKey, sets)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zinterstore(destKey, sets)));
-				return null;
-			}
-			return connection.getJedis().zinterstore(destKey, sets);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::zinterstore, MultiKeyPipelineBase::zinterstore, destKey, sets);
 	}
 
 	/*
@@ -787,20 +473,9 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		try {
-			String keyStr = new String(key, StandardCharsets.UTF_8);
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrangeByScore(keyStr, min, max)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().zrangeByScore(keyStr, min, max)));
-				return null;
-			}
-			return JedisConverters.stringSetToByteSet().convert(connection.getJedis().zrangeByScore(keyStr, min, max));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		String keyStr = new String(key, StandardCharsets.UTF_8);
+		return connection.invoke().from(Jedis::zrangeByScore, MultiKeyPipelineBase::zrangeByScore, keyStr, min, max)
+				.get(JedisConverters.stringSetToByteSet());
 	}
 
 	/*
@@ -817,24 +492,11 @@ class JedisZSetCommands implements RedisZSetCommands {
 			throw new IllegalArgumentException(
 					"Offset and count must be less than Integer.MAX_VALUE for zRangeByScore in Jedis.");
 		}
+		String keyStr = new String(key, StandardCharsets.UTF_8);
 
-		try {
-			String keyStr = new String(key, StandardCharsets.UTF_8);
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(
-						connection.getRequiredPipeline().zrangeByScore(keyStr, min, max, (int) offset, (int) count)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(
-						connection.getRequiredTransaction().zrangeByScore(keyStr, min, max, (int) offset, (int) count)));
-				return null;
-			}
-			return JedisConverters.stringSetToByteSet()
-					.convert(connection.getJedis().zrangeByScore(keyStr, min, max, (int) offset, (int) count));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke()
+				.from(Jedis::zrangeByScore, MultiKeyPipelineBase::zrangeByScore, keyStr, min, max, (int) offset, (int) count)
+				.get(JedisConverters.stringSetToByteSet());
 	}
 
 	/*
@@ -851,34 +513,12 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getMin(), JedisConverters.NEGATIVE_INFINITY_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
-		try {
-			if (isPipelined()) {
-				if (!limit.isUnlimited()) {
-					pipeline(connection.newJedisResult(
-							connection.getRequiredPipeline().zrangeByScore(key, min, max, limit.getOffset(), limit.getCount())));
-				} else {
-					pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrangeByScore(key, min, max)));
-				}
-				return null;
-			}
-
-			if (isQueueing()) {
-				if (!limit.isUnlimited()) {
-					transaction(connection.newJedisResult(
-							connection.getRequiredTransaction().zrangeByScore(key, min, max, limit.getOffset(), limit.getCount())));
-				} else {
-					transaction(connection.newJedisResult(connection.getRequiredTransaction().zrangeByScore(key, min, max)));
-				}
-				return null;
-			}
-
-			if (!limit.isUnlimited()) {
-				return connection.getJedis().zrangeByScore(key, min, max, limit.getOffset(), limit.getCount());
-			}
-			return connection.getJedis().zrangeByScore(key, min, max);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+		if (!limit.isUnlimited()) {
+			return connection.invoke().just(BinaryJedis::zrangeByScore, MultiKeyPipelineBase::zrangeByScore, key, min, max,
+					limit.getOffset(), limit.getCount());
 		}
+
+		return connection.invoke().just(BinaryJedis::zrangeByScore, MultiKeyPipelineBase::zrangeByScore, key, min, max);
 	}
 
 	/*
@@ -895,34 +535,12 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
 
-		try {
-			if (isPipelined()) {
-				if (!limit.isUnlimited()) {
-					pipeline(connection.newJedisResult(
-							connection.getRequiredPipeline().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount())));
-				} else {
-					pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrangeByLex(key, min, max)));
-				}
-				return null;
-			}
-
-			if (isQueueing()) {
-				if (!limit.isUnlimited()) {
-					transaction(connection.newJedisResult(
-							connection.getRequiredTransaction().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount())));
-				} else {
-					transaction(connection.newJedisResult(connection.getRequiredTransaction().zrangeByLex(key, min, max)));
-				}
-				return null;
-			}
-
-			if (!limit.isUnlimited()) {
-				return connection.getJedis().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount());
-			}
-			return connection.getJedis().zrangeByLex(key, min, max);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+		if (!limit.isUnlimited()) {
+			return connection.invoke().just(BinaryJedis::zrangeByLex, MultiKeyPipelineBase::zrangeByLex, key, min, max,
+					limit.getOffset(), limit.getCount());
 		}
+
+		return connection.invoke().just(BinaryJedis::zrangeByLex, MultiKeyPipelineBase::zrangeByLex, key, min, max);
 	}
 
 	/*
@@ -939,54 +557,22 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
 
-		try {
-			if (isPipelined()) {
-				if (!limit.isUnlimited()) {
-					pipeline(connection.newJedisResult(
-							connection.getRequiredPipeline().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount())));
-				} else {
-					pipeline(connection.newJedisResult(connection.getRequiredPipeline().zrevrangeByLex(key, max, min)));
-				}
-				return null;
-			}
 
-			if (isQueueing()) {
-				if (!limit.isUnlimited()) {
-					transaction(connection.newJedisResult(
-							connection.getRequiredTransaction().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount())));
-				} else {
-					transaction(connection.newJedisResult(connection.getRequiredTransaction().zrevrangeByLex(key, max, min)));
-				}
-				return null;
-			}
-
-			if (!limit.isUnlimited()) {
-				return new LinkedHashSet<>(
-						connection.getJedis().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount()));
-			}
-			return new LinkedHashSet<>(connection.getJedis().zrevrangeByLex(key, max, min));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+		if (!limit.isUnlimited()) {
+			return connection.invoke().from(BinaryJedis::zrevrangeByLex, MultiKeyPipelineBase::zrevrangeByLex, key, max, min,
+					limit.getOffset(), limit.getCount()).get(LinkedHashSet::new);
 		}
+
+		return connection.invoke().from(BinaryJedis::zrevrangeByLex, MultiKeyPipelineBase::zrevrangeByLex, key, max, min)
+				.get(LinkedHashSet::new);
 	}
 
 	private boolean isPipelined() {
 		return connection.isPipelined();
 	}
 
-	private void pipeline(JedisResult result) {
-		connection.pipeline(result);
-	}
-
 	private boolean isQueueing() {
 		return connection.isQueueing();
 	}
 
-	private void transaction(JedisResult result) {
-		connection.transaction(result);
-	}
-
-	private RuntimeException convertJedisAccessException(Exception ex) {
-		return connection.convertJedisAccessException(ex);
-	}
 }

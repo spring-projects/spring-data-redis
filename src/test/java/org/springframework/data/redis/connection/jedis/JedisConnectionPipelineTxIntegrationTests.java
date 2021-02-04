@@ -28,10 +28,6 @@ import org.junit.jupiter.api.Test;
  */
 public class JedisConnectionPipelineTxIntegrationTests extends JedisConnectionTransactionIntegrationTests {
 
-	@Disabled("Jedis issue: Pipeline tries to return String instead of List<String>")
-	@Test
-	public void testGetConfig() {}
-
 	@Test
 	@Disabled
 	public void testRestoreBadData() {}

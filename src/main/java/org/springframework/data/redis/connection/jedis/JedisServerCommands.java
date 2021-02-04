@@ -15,6 +15,10 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.MultiKeyPipelineBase;
+
 import java.util.List;
 import java.util.Properties;
 
@@ -46,20 +50,7 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void bgReWriteAof() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().bgrewriteaof()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().bgrewriteaof()));
-				return;
-			}
-			connection.getJedis().bgrewriteaof();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		connection.invoke().just(BinaryJedis::bgrewriteaof, MultiKeyPipelineBase::bgrewriteaof);
 	}
 
 	/*
@@ -68,20 +59,7 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void bgSave() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().bgsave()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().bgsave()));
-				return;
-			}
-			connection.getJedis().bgsave();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		connection.invokeStatus().just(BinaryJedis::bgsave, MultiKeyPipelineBase::bgsave);
 	}
 
 	/*
@@ -90,20 +68,7 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Long lastSave() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().lastsave()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().lastsave()));
-				return null;
-			}
-			return connection.getJedis().lastsave();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::lastsave, MultiKeyPipelineBase::lastsave);
 	}
 
 	/*
@@ -112,20 +77,7 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void save() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().save()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().save()));
-				return;
-			}
-			connection.getJedis().save();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		connection.invokeStatus().just(BinaryJedis::save, MultiKeyPipelineBase::save);
 	}
 
 	/*
@@ -134,20 +86,7 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Long dbSize() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().dbSize()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().dbSize()));
-				return null;
-			}
-			return connection.getJedis().dbSize();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(BinaryJedis::dbSize, MultiKeyPipelineBase::dbSize);
 	}
 
 	/*
@@ -156,20 +95,7 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void flushDb() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().flushDB()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().flushDB()));
-				return;
-			}
-			connection.getJedis().flushDB();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		connection.invokeStatus().just(BinaryJedis::flushDB, MultiKeyPipelineBase::flushDB);
 	}
 
 	/*
@@ -178,20 +104,7 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void flushAll() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().flushAll()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().flushAll()));
-				return;
-			}
-			connection.getJedis().flushAll();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		connection.invokeStatus().just(BinaryJedis::flushAll, MultiKeyPipelineBase::flushAll);
 	}
 
 	/*
@@ -200,21 +113,7 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Properties info() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().info(), JedisConverters.stringToProps()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(
-						connection.newJedisResult(connection.getRequiredTransaction().info(), JedisConverters.stringToProps()));
-				return null;
-			}
-			return JedisConverters.toProperties(connection.getJedis().info());
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::info, MultiKeyPipelineBase::info).get(JedisConverters::toProperties);
 	}
 
 	/*
@@ -226,15 +125,8 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(section, "Section must not be null!");
 
-		if (isPipelined() || isQueueing()) {
-			throw new UnsupportedOperationException();
-		}
-
-		try {
-			return JedisConverters.toProperties(connection.getJedis().info(section));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::info, MultiKeyPipelineBase::info, section)
+				.get(JedisConverters::toProperties);
 	}
 
 	/*
@@ -243,20 +135,7 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void shutdown() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().shutdown()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().shutdown()));
-				return;
-			}
-			connection.getJedis().shutdown();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		connection.invokeStatus().just(BinaryJedis::shutdown, MultiKeyPipelineBase::shutdown);
 	}
 
 	/*
@@ -283,21 +162,8 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(pattern, "Pattern must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().configGet(pattern),
-						Converters.listToPropertiesConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().configGet(pattern),
-						Converters.listToPropertiesConverter()));
-				return null;
-			}
-			return Converters.toProperties(connection.getJedis().configGet(pattern));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(Jedis::configGet, MultiKeyPipelineBase::configGet, pattern)
+				.get(Converters::toProperties);
 	}
 
 	/*
@@ -310,19 +176,7 @@ class JedisServerCommands implements RedisServerCommands {
 		Assert.notNull(param, "Parameter must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().configSet(param, value)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().configSet(param, value)));
-				return;
-			}
-			connection.getJedis().configSet(param, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		connection.invokeStatus().just(Jedis::configSet, MultiKeyPipelineBase::configSet, param, value);
 	}
 
 	/*
@@ -331,20 +185,7 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public void resetConfigStats() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newStatusResult(connection.getRequiredPipeline().configResetStat()));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newStatusResult(connection.getRequiredTransaction().configResetStat()));
-				return;
-			}
-			connection.getJedis().configResetStat();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		connection.invokeStatus().just(BinaryJedis::configResetStat, MultiKeyPipelineBase::configResetStat);
 	}
 
 	/*
@@ -353,21 +194,8 @@ class JedisServerCommands implements RedisServerCommands {
 	 */
 	@Override
 	public Long time() {
-
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().time(), JedisConverters.toTimeConverter()));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(
-						connection.newJedisResult(connection.getRequiredTransaction().time(), JedisConverters.toTimeConverter()));
-				return null;
-			}
-			return JedisConverters.toTimeConverter().convert(connection.getJedis().time());
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(BinaryJedis::time, MultiKeyPipelineBase::time)
+				.get(JedisConverters.toTimeConverter());
 	}
 
 	/*
@@ -383,11 +211,7 @@ class JedisServerCommands implements RedisServerCommands {
 			throw new UnsupportedOperationException("'CLIENT KILL' is not supported in transaction / pipline mode.");
 		}
 
-		try {
-			this.connection.getJedis().clientKill(String.format("%s:%s", host, port));
-		} catch (Exception e) {
-			throw convertJedisAccessException(e);
-		}
+		connection.invokeStatus().just(it -> it.clientKill(String.format("%s:%s", host, port)));
 	}
 
 	/*
@@ -403,7 +227,7 @@ class JedisServerCommands implements RedisServerCommands {
 			throw new UnsupportedOperationException("'CLIENT SETNAME' is not suppored in transacton / pipeline mode.");
 		}
 
-		connection.getJedis().clientSetname(name);
+		connection.invokeStatus().just(it -> it.clientSetname(name));
 	}
 
 	/*
@@ -417,7 +241,7 @@ class JedisServerCommands implements RedisServerCommands {
 			throw new UnsupportedOperationException();
 		}
 
-		return connection.getJedis().clientGetname();
+		return connection.invokeStatus().just(Jedis::clientGetname);
 	}
 
 	/*
@@ -430,7 +254,8 @@ class JedisServerCommands implements RedisServerCommands {
 		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException("'CLIENT LIST' is not supported in in pipeline / multi mode.");
 		}
-		return JedisConverters.toListOfRedisClientInformation(this.connection.getJedis().clientList());
+
+		return connection.invokeStatus().from(Jedis::clientList).get(JedisConverters::toListOfRedisClientInformation);
 	}
 
 	/*
@@ -445,11 +270,8 @@ class JedisServerCommands implements RedisServerCommands {
 		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException("'SLAVEOF' cannot be called in pipline / transaction mode.");
 		}
-		try {
-			this.connection.getJedis().slaveof(host, port);
-		} catch (Exception e) {
-			throw convertJedisAccessException(e);
-		}
+
+		connection.invokeStatus().just(it -> it.slaveof(host, port));
 	}
 
 	/*
@@ -463,11 +285,7 @@ class JedisServerCommands implements RedisServerCommands {
 			throw new UnsupportedOperationException("'SLAVEOF' cannot be called in pipline / transaction mode.");
 		}
 
-		try {
-			this.connection.getJedis().slaveofNoOne();
-		} catch (Exception e) {
-			throw convertJedisAccessException(e);
-		}
+		connection.invokeStatus().just(BinaryJedis::slaveofNoOne);
 	}
 
 	/*
@@ -491,42 +309,16 @@ class JedisServerCommands implements RedisServerCommands {
 
 		int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 
-		try {
-			if (isPipelined()) {
-
-				pipeline(connection.newJedisResult(
-						connection.getRequiredPipeline().migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse)));
-				return;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().migrate(target.getHost(),
-						target.getPort(), key, dbIndex, timeoutToUse)));
-				return;
-			}
-			connection.getJedis().migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-
+		connection.invokeStatus().just(BinaryJedis::migrate, MultiKeyPipelineBase::migrate, target.getHost(),
+				target.getPort(), key, dbIndex, timeoutToUse);
 	}
 
 	private boolean isPipelined() {
 		return connection.isPipelined();
 	}
 
-	private void pipeline(JedisResult result) {
-		connection.pipeline(result);
-	}
-
 	private boolean isQueueing() {
 		return connection.isQueueing();
 	}
 
-	private void transaction(JedisResult result) {
-		connection.transaction(result);
-	}
-
-	private RuntimeException convertJedisAccessException(Exception ex) {
-		return connection.convertJedisAccessException(ex);
-	}
 }

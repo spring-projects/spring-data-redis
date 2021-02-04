@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.lang.Nullable;
 
 /**
  * Converts the value returned by Jedis script eval to the expected {@link ReturnType}
@@ -37,7 +38,7 @@ public class JedisScriptReturnConverter implements Converter<Object, Object> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Object convert(Object result) {
+	public Object convert(@Nullable Object result) {
 		if (result instanceof String) {
 			// evalsha converts byte[] to String. Convert back for consistency
 			return SafeEncoder.encode((String) result);
