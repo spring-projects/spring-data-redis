@@ -99,6 +99,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Andrey Muchnik
  * @since 1.7
  */
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
@@ -246,6 +247,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
 					connection.expire(phantomKey, rdo.getTimeToLive() + PHANTOM_KEY_TTL);
 				}
+			}
+
+			boolean isNoExpire = rdo.getTimeToLive() == null || rdo.getTimeToLive() != null && rdo.getTimeToLive() < 0;
+			if (isNoExpire && !isNew && keepShadowCopy()){
+				connection.del(ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
 			}
 
 			connection.sAdd(toBytes(rdo.getKeyspace()), key);
@@ -492,7 +498,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				} else {
 
 					connection.persist(redisKey);
-					connection.persist(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
+					connection.del(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
 				}
 			}
 
