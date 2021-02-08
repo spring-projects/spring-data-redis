@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BinaryJedis;
+
 import java.util.List;
 
 import org.springframework.data.redis.connection.RedisScriptingCommands;
@@ -40,15 +42,9 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	@Override
 	public void scriptFlush() {
 
-		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
+		assertDirectMode();
 
-		try {
-			connection.getJedis().scriptFlush();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		connection.invoke().just(BinaryJedis::scriptFlush);
 	}
 
 	/*
@@ -58,15 +54,9 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	@Override
 	public void scriptKill() {
 
-		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
+		assertDirectMode();
 
-		try {
-			connection.getJedis().scriptKill();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		connection.invoke().just(BinaryJedis::scriptKill);
 	}
 
 	/*
@@ -77,16 +67,9 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	public String scriptLoad(byte[] script) {
 
 		Assert.notNull(script, "Script must not be null!");
+		assertDirectMode();
 
-		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
-
-		try {
-			return JedisConverters.toString(connection.getJedis().scriptLoad(script));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from(it -> it.scriptLoad(script)).get(JedisConverters::toString);
 	}
 
 	/*
@@ -98,16 +81,9 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 
 		Assert.notNull(scriptSha1, "Script digests must not be null!");
 		Assert.noNullElements(scriptSha1, "Script digests must not contain null elements!");
+		assertDirectMode();
 
-		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
-
-		try {
-			return connection.getJedis().scriptExists(scriptSha1);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().just(it -> it.scriptExists(scriptSha1));
 	}
 
 	/*
@@ -119,17 +95,11 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
 		Assert.notNull(script, "Script must not be null!");
+		assertDirectMode();
 
-		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException();
-		}
-
-		try {
-			return (T) new JedisScriptReturnConverter(returnType)
-					.convert(connection.getJedis().eval(script, JedisConverters.toBytes(numKeys), keysAndArgs));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		JedisScriptReturnConverter converter = new JedisScriptReturnConverter(returnType);
+		return (T) connection.invoke().from(it -> it.eval(script, JedisConverters.toBytes(numKeys), keysAndArgs))
+				.getOrElse(converter, () -> converter.convert(null));
 	}
 
 	/*
@@ -150,28 +120,17 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
 		Assert.notNull(scriptSha, "Script digest must not be null!");
+		assertDirectMode();
 
-		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException();
+		JedisScriptReturnConverter converter = new JedisScriptReturnConverter(returnType);
+		return (T) connection.invoke().from(it -> it.evalsha(scriptSha, numKeys, keysAndArgs)).getOrElse(converter,
+				() -> converter.convert(null));
+	}
+
+	private void assertDirectMode() {
+		if (connection.isQueueing() || connection.isPipelined()) {
+			throw new UnsupportedOperationException("Scripting commands not supported in pipelining/transaction mode");
 		}
-
-		try {
-			return (T) new JedisScriptReturnConverter(returnType)
-					.convert(connection.getJedis().evalsha(scriptSha, numKeys, keysAndArgs));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
 	}
 
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
-	}
-
-	private RuntimeException convertJedisAccessException(Exception ex) {
-		return connection.convertJedisAccessException(ex);
-	}
 }

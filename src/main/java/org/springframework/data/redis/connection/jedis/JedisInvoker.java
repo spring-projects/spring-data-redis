@@ -46,12 +46,12 @@ import org.springframework.util.Assert;
  *
  * Long result = invoker.just(BinaryJedisCommands::geoadd, RedisPipeline::geoadd, key, point.getX(), point.getY(), member);
  *
- * List&lt;byte[]&gt; result = invoker.fromMany(BinaryJedisCommands::geohash, RedisPipeline::geohash, key, members)
- * 				.toList(it -> it.getValueOrElse(null));
+ * List&lt;byte[]&gt; result = invoker.from(BinaryJedisCommands::geohash, RedisPipeline::geohash, key, members)
+ * 				.get(JedisConverters.bytesListToStringListConverter());
  * </pre>
  * <p>
  * The actual translation from {@link Response} is delegated to {@link Synchronizer} which can either await completion
- * or record the future along {@link Converter} for further processing.
+ * or record the response along {@link Converter} for further processing.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
@@ -73,6 +73,21 @@ class JedisInvoker {
 	 */
 	static <T> Converter<T, T> identityConverter() {
 		return t -> t;
+	}
+
+	/**
+	 * Invoke the {@link ConnectionFunction0} and return its result.
+	 *
+	 * @param function must not be {@literal null}.
+	 */
+	@Nullable
+	<R> R just(ConnectionFunction0<R> function) {
+
+		Assert.notNull(function, "ConnectionFunction must not be null!");
+
+		return synchronizer.invoke(function::apply, it -> {
+			throw new UnsupportedOperationException("Operation not supported in pipelining/transaction mode");
+		}, identityConverter(), () -> null);
 	}
 
 	/**
@@ -207,6 +222,21 @@ class JedisInvoker {
 
 		return synchronizer.invoke(it -> function.apply(it, t1, t2, t3, t4, t5, t6),
 				it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5, t6));
+	}
+
+	/**
+	 * Compose a invocation pipeline from the {@link ConnectionFunction0} and return a {@link SingleInvocationSpec} for
+	 * further composition.
+	 *
+	 * @param function must not be {@literal null}.
+	 */
+	<R> SingleInvocationSpec<R> from(ConnectionFunction0<R> function) {
+
+		Assert.notNull(function, "ConnectionFunction must not be null!");
+
+		return from(function, connection -> {
+			throw new UnsupportedOperationException("Operation not supported in pipelining/transaction mode");
+		});
 	}
 
 	/**
@@ -971,6 +1001,7 @@ class JedisInvoker {
 	/**
 	 * Interface to define a synchronization function to evaluate the actual call.
 	 */
+	@FunctionalInterface
 	interface Synchronizer {
 
 		@Nullable

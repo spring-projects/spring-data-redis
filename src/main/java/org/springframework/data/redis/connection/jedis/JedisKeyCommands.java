@@ -75,7 +75,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		return connection.invoke().just(BinaryJedis::exists, MultiKeyPipelineBase::exists, keys);
-
 	}
 
 	/*

@@ -216,11 +216,6 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	@Disabled
 	public void testScriptFlush() {}
 
-	@Test
-	public void testInfoBySection() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testInfoBySection);
-	}
-
 	@Test // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::clientSetNameWorksCorrectly);
