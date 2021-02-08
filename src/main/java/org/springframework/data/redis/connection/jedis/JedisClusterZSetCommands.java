@@ -24,6 +24,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
@@ -40,6 +41,8 @@ import org.springframework.util.Assert;
  */
 class JedisClusterZSetCommands implements RedisZSetCommands {
 
+	private static final SetConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_SET_CONVERTER = new SetConverter<>(
+			JedisConverters::toTuple);
 	private final JedisClusterConnection connection;
 
 	JedisClusterZSetCommands(JedisClusterConnection connection) {
@@ -181,9 +184,9 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			if (limit.isUnlimited()) {
-				return JedisConverters.toTupleSet(connection.getCluster().zrangeByScoreWithScores(key, min, max));
+				return toTupleSet(connection.getCluster().zrangeByScoreWithScores(key, min, max));
 			}
-			return JedisConverters.toTupleSet(
+			return toTupleSet(
 					connection.getCluster().zrangeByScoreWithScores(key, min, max, limit.getOffset(), limit.getCount()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
@@ -228,9 +231,9 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			if (limit.isUnlimited()) {
-				return JedisConverters.toTupleSet(connection.getCluster().zrevrangeByScoreWithScores(key, max, min));
+				return toTupleSet(connection.getCluster().zrevrangeByScoreWithScores(key, max, min));
 			}
-			return JedisConverters.toTupleSet(
+			return toTupleSet(
 					connection.getCluster().zrevrangeByScoreWithScores(key, max, min, limit.getOffset(), limit.getCount()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
@@ -379,7 +382,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			return JedisConverters.toTupleSet(connection.getCluster().zrangeWithScores(key, start, end));
+			return toTupleSet(connection.getCluster().zrangeWithScores(key, start, end));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -411,7 +414,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			return JedisConverters.toTupleSet(connection.getCluster().zrangeByScoreWithScores(key, min, max));
+			return toTupleSet(connection.getCluster().zrangeByScoreWithScores(key, min, max));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -452,7 +455,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		}
 
 		try {
-			return JedisConverters.toTupleSet(connection.getCluster().zrangeByScoreWithScores(key, min, max,
+			return toTupleSet(connection.getCluster().zrangeByScoreWithScores(key, min, max,
 					Long.valueOf(offset).intValue(), Long.valueOf(count).intValue()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
@@ -485,7 +488,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			return JedisConverters.toTupleSet(connection.getCluster().zrevrangeWithScores(key, start, end));
+			return toTupleSet(connection.getCluster().zrevrangeWithScores(key, start, end));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -517,7 +520,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			return JedisConverters.toTupleSet(connection.getCluster().zrevrangeByScoreWithScores(key, max, min));
+			return toTupleSet(connection.getCluster().zrevrangeByScoreWithScores(key, max, min));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -558,7 +561,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		}
 
 		try {
-			return JedisConverters.toTupleSet(connection.getCluster().zrevrangeByScoreWithScores(key, max, min,
+			return toTupleSet(connection.getCluster().zrevrangeByScoreWithScores(key, max, min,
 					Long.valueOf(offset).intValue(), Long.valueOf(count).intValue()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
@@ -817,6 +820,10 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 	private DataAccessException convertJedisAccessException(Exception ex) {
 		return connection.convertJedisAccessException(ex);
+	}
+
+	private static Set<Tuple> toTupleSet(Set<redis.clients.jedis.Tuple> source) {
+		return TUPLE_SET_CONVERTER.convert(source);
 	}
 
 }

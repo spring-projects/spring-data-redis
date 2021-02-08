@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.convert;
 
+import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
@@ -73,168 +75,50 @@ abstract public class Converters {
 	private static final byte[] ONE = new byte[] { '1' };
 	private static final byte[] ZERO = new byte[] { '0' };
 	private static final String CLUSTER_NODES_LINE_SEPARATOR = "\n";
-	private static final Converter<String, Properties> STRING_TO_PROPS = new StringToPropertiesConverter();
-	private static final Converter<Long, Boolean> LONG_TO_BOOLEAN = new LongToBooleanConverter();
-	private static final Converter<String, DataType> STRING_TO_DATA_TYPE = new StringToDataTypeConverter();
-	private static final Converter<Map<?, ?>, Properties> MAP_TO_PROPERTIES = MapToPropertiesConverter.INSTANCE;
-	private static final Converter<String, RedisClusterNode> STRING_TO_CLUSTER_NODE_CONVERTER;
-	private static final Converter<List<String>, Properties> STRING_LIST_TO_PROPERTIES_CONVERTER;
-	private static final Map<String, Flag> flagLookupMap;
 
-	static {
-
-		flagLookupMap = new LinkedHashMap<>(Flag.values().length, 1);
-		for (Flag flag : Flag.values()) {
-			flagLookupMap.put(flag.getRaw(), flag);
-		}
-
-		STRING_TO_CLUSTER_NODE_CONVERTER = new Converter<String, RedisClusterNode>() {
-
-			static final int ID_INDEX = 0;
-			static final int HOST_PORT_INDEX = 1;
-			static final int FLAGS_INDEX = 2;
-			static final int MASTER_ID_INDEX = 3;
-			static final int LINK_STATE_INDEX = 7;
-			static final int SLOTS_INDEX = 8;
-
-			@Override
-			public RedisClusterNode convert(String source) {
-
-				String[] args = source.split(" ");
-				String[] hostAndPort = StringUtils.split(args[HOST_PORT_INDEX], ":");
-
-				Assert.notNull(hostAndPort, "CusterNode information does not define host and port!");
-
-				SlotRange range = parseSlotRange(args);
-				Set<Flag> flags = parseFlags(args);
-
-				String portPart = hostAndPort[1];
-				if (portPart.contains("@")) {
-					portPart = portPart.substring(0, portPart.indexOf('@'));
-				}
-
-				RedisClusterNodeBuilder nodeBuilder = RedisClusterNode.newRedisClusterNode()
-						.listeningAt(hostAndPort[0], Integer.valueOf(portPart)) //
-						.withId(args[ID_INDEX]) //
-						.promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.SLAVE) //
-						.serving(range) //
-						.withFlags(flags) //
-						.linkState(parseLinkState(args));
-
-				if (!args[MASTER_ID_INDEX].isEmpty() && !args[MASTER_ID_INDEX].startsWith("-")) {
-					nodeBuilder.slaveOf(args[MASTER_ID_INDEX]);
-				}
-
-				return nodeBuilder.build();
-			}
-
-			private Set<Flag> parseFlags(String[] args) {
-
-				String raw = args[FLAGS_INDEX];
-
-				Set<Flag> flags = new LinkedHashSet<>(8, 1);
-				if (StringUtils.hasText(raw)) {
-					for (String flag : raw.split(",")) {
-						flags.add(flagLookupMap.get(flag));
-					}
-				}
-				return flags;
-			}
-
-			private LinkState parseLinkState(String[] args) {
-
-				String raw = args[LINK_STATE_INDEX];
-
-				if (StringUtils.hasText(raw)) {
-					return LinkState.valueOf(raw.toUpperCase());
-				}
-				return LinkState.DISCONNECTED;
-			}
-
-			private SlotRange parseSlotRange(String[] args) {
-
-				Set<Integer> slots = new LinkedHashSet<>();
-
-				for (int i = SLOTS_INDEX; i < args.length; i++) {
-
-					String raw = args[i];
-
-					if (raw.startsWith("[")) {
-						continue;
-					}
-
-					if (raw.contains("-")) {
-						String[] slotRange = StringUtils.split(raw, "-");
-
-						if (slotRange != null) {
-							int from = Integer.valueOf(slotRange[0]);
-							int to = Integer.valueOf(slotRange[1]);
-							for (int slot = from; slot <= to; slot++) {
-								slots.add(slot);
-							}
-						}
-					} else {
-						slots.add(Integer.valueOf(raw));
-					}
-				}
-
-				return new SlotRange(slots);
-			}
-
-		};
-
-		STRING_LIST_TO_PROPERTIES_CONVERTER = input -> {
-
-			Assert.notNull(input, "Input list must not be null!");
-			Assert.isTrue(input.size() % 2 == 0, "Input list must contain an even number of entries!");
-
-			Properties properties = new Properties();
-
-			for (int i = 0; i < input.size(); i += 2) {
-
-				properties.setProperty(input.get(i), input.get(i + 1));
-			}
-
-			return properties;
-		};
-	}
-
-	public static Boolean stringToBoolean(String s) {
-		return stringToBooleanConverter().convert(s);
+	public static Boolean stringToBoolean(String source) {
+		return ObjectUtils.nullSafeEquals("OK", source);
 	}
 
 	public static Converter<String, Boolean> stringToBooleanConverter() {
-		return (source) -> ObjectUtils.nullSafeEquals("OK", source);
+		return Converters::stringToBoolean;
 	}
 
 	public static Converter<String, Properties> stringToProps() {
-		return STRING_TO_PROPS;
+		return Converters::toProperties;
 	}
 
 	public static Converter<Long, Boolean> longToBoolean() {
-		return LONG_TO_BOOLEAN;
+		return Converters::toBoolean;
 	}
 
 	public static Converter<String, DataType> stringToDataType() {
-		return STRING_TO_DATA_TYPE;
+		return Converters::toDataType;
 	}
 
 	public static Properties toProperties(String source) {
-		return STRING_TO_PROPS.convert(source);
+		Properties info = new Properties();
+		try (StringReader stringReader = new StringReader(source)) {
+			info.load(stringReader);
+		} catch (Exception ex) {
+			throw new RedisSystemException("Cannot read Redis info", ex);
+		}
+		return info;
 	}
 
 	public static Properties toProperties(Map<?, ?> source) {
 
-		Properties properties = MAP_TO_PROPERTIES.convert(source);
-		return properties != null ? properties : new Properties();
+		Properties target = new Properties();
+		target.putAll(source);
+		return target;
 	}
 
-	public static Boolean toBoolean(Long source) {
-		return LONG_TO_BOOLEAN.convert(source);
+	public static Boolean toBoolean(@Nullable Long source) {
+		return source != null && source == 1L;
 	}
 
 	public static DataType toDataType(String source) {
-		return STRING_TO_DATA_TYPE.convert(source);
+		return DataType.fromCode(source);
 	}
 
 	public static byte[] toBit(Boolean source) {
@@ -249,7 +133,7 @@ abstract public class Converters {
 	 * @since 1.7
 	 */
 	protected static RedisClusterNode toClusterNode(String clusterNodesLine) {
-		return STRING_TO_CLUSTER_NODE_CONVERTER.convert(clusterNodesLine);
+		return ClusterNodesConverter.INSTANCE.convert(clusterNodesLine);
 	}
 
 	/**
@@ -338,8 +222,7 @@ abstract public class Converters {
 	 * @return
 	 * @since 1.8
 	 */
-	public static Converter<Long, Long> secondsToTimeUnit(final TimeUnit timeUnit) {
-
+	public static Converter<Long, Long> secondsToTimeUnit(TimeUnit timeUnit) {
 		return seconds -> secondsToTimeUnit(seconds, timeUnit);
 	}
 
@@ -365,12 +248,11 @@ abstract public class Converters {
 	/**
 	 * Creates a new {@link Converter} to convert from milliseconds to the given {@link TimeUnit}.
 	 *
-	 * @param timeUnit muist not be {@literal null}.
+	 * @param timeUnit must not be {@literal null}.
 	 * @return
 	 * @since 1.8
 	 */
-	public static Converter<Long, Long> millisecondsToTimeUnit(final TimeUnit timeUnit) {
-
+	public static Converter<Long, Long> millisecondsToTimeUnit(TimeUnit timeUnit) {
 		return seconds -> millisecondsToTimeUnit(seconds, timeUnit);
 	}
 
@@ -406,7 +288,18 @@ abstract public class Converters {
 	 * @since 2.0
 	 */
 	public static Properties toProperties(List<String> input) {
-		return STRING_LIST_TO_PROPERTIES_CONVERTER.convert(input);
+
+		Assert.notNull(input, "Input list must not be null!");
+		Assert.isTrue(input.size() % 2 == 0, "Input list must contain an even number of entries!");
+
+		Properties properties = new Properties();
+
+		for (int i = 0; i < input.size(); i += 2) {
+
+			properties.setProperty(input.get(i), input.get(i + 1));
+		}
+
+		return properties;
 	}
 
 	/**
@@ -417,7 +310,7 @@ abstract public class Converters {
 	 * @since 2.0
 	 */
 	public static Converter<List<String>, Properties> listToPropertiesConverter() {
-		return STRING_LIST_TO_PROPERTIES_CONVERTER;
+		return Converters::toProperties;
 	}
 
 	/**
@@ -428,7 +321,7 @@ abstract public class Converters {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <K, V> Converter<Map<K, V>, Properties> mapToPropertiesConverter() {
-		return (Converter) MAP_TO_PROPERTIES;
+		return (Converter) MapToPropertiesConverter.INSTANCE;
 	}
 
 	/**
@@ -553,21 +446,19 @@ abstract public class Converters {
 		 * @return never {@literal null}.
 		 */
 		DistanceConverter forMetric(@Nullable Metric metric) {
-			return new DistanceConverter(
-					metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
+			return new DistanceConverter(ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
 		}
 
 		static class DistanceConverter implements Converter<Double, Distance> {
 
-			private Metric metric;
+			private final Metric metric;
 
 			/**
 			 * @param metric can be {@literal null}. Defaults to {@link DistanceUnit#METERS}.
 			 * @return never {@literal null}.
 			 */
-			DistanceConverter(@Nullable Metric metric) {
-				this.metric = metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS
-						: metric;
+			DistanceConverter(Metric metric) {
+				this.metric = ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric;
 			}
 
 			/*
@@ -612,5 +503,111 @@ abstract public class Converters {
 
 			return new GeoResults<>(values, source.getAverageDistance().getMetric());
 		}
+	}
+
+	enum ClusterNodesConverter implements Converter<String, RedisClusterNode> {
+
+		INSTANCE;
+
+		private static final Map<String, Flag> flagLookupMap;
+
+		static {
+
+			flagLookupMap = new LinkedHashMap<>(Flag.values().length, 1);
+			for (Flag flag : Flag.values()) {
+				flagLookupMap.put(flag.getRaw(), flag);
+			}
+		}
+
+		static final int ID_INDEX = 0;
+		static final int HOST_PORT_INDEX = 1;
+		static final int FLAGS_INDEX = 2;
+		static final int MASTER_ID_INDEX = 3;
+		static final int LINK_STATE_INDEX = 7;
+		static final int SLOTS_INDEX = 8;
+
+		public RedisClusterNode convert(String source) {
+
+			String[] args = source.split(" ");
+			String[] hostAndPort = StringUtils.split(args[HOST_PORT_INDEX], ":");
+
+			Assert.notNull(hostAndPort, "ClusterNode information does not define host and port!");
+
+			SlotRange range = parseSlotRange(args);
+			Set<Flag> flags = parseFlags(args);
+
+			String portPart = hostAndPort[1];
+			if (portPart.contains("@")) {
+				portPart = portPart.substring(0, portPart.indexOf('@'));
+			}
+
+			RedisClusterNodeBuilder nodeBuilder = RedisClusterNode.newRedisClusterNode()
+					.listeningAt(hostAndPort[0], Integer.valueOf(portPart)) //
+					.withId(args[ID_INDEX]) //
+					.promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.SLAVE) //
+					.serving(range) //
+					.withFlags(flags) //
+					.linkState(parseLinkState(args));
+
+			if (!args[MASTER_ID_INDEX].isEmpty() && !args[MASTER_ID_INDEX].startsWith("-")) {
+				nodeBuilder.slaveOf(args[MASTER_ID_INDEX]);
+			}
+
+			return nodeBuilder.build();
+		}
+
+		private Set<Flag> parseFlags(String[] args) {
+
+			String raw = args[FLAGS_INDEX];
+
+			Set<Flag> flags = new LinkedHashSet<>(8, 1);
+			if (StringUtils.hasText(raw)) {
+				for (String flag : raw.split(",")) {
+					flags.add(flagLookupMap.get(flag));
+				}
+			}
+			return flags;
+		}
+
+		private LinkState parseLinkState(String[] args) {
+
+			String raw = args[LINK_STATE_INDEX];
+
+			if (StringUtils.hasText(raw)) {
+				return LinkState.valueOf(raw.toUpperCase());
+			}
+			return LinkState.DISCONNECTED;
+		}
+
+		private SlotRange parseSlotRange(String[] args) {
+
+			Set<Integer> slots = new LinkedHashSet<>();
+
+			for (int i = SLOTS_INDEX; i < args.length; i++) {
+
+				String raw = args[i];
+
+				if (raw.startsWith("[")) {
+					continue;
+				}
+
+				if (raw.contains("-")) {
+					String[] slotRange = StringUtils.split(raw, "-");
+
+					if (slotRange != null) {
+						int from = Integer.valueOf(slotRange[0]);
+						int to = Integer.valueOf(slotRange[1]);
+						for (int slot = from; slot <= to; slot++) {
+							slots.add(slot);
+						}
+					}
+				} else {
+					slots.add(Integer.valueOf(raw));
+				}
+			}
+
+			return new SlotRange(slots);
+		}
+
 	}
 }

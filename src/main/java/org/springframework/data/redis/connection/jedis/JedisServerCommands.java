@@ -195,7 +195,7 @@ class JedisServerCommands implements RedisServerCommands {
 	@Override
 	public Long time() {
 		return connection.invoke().from(BinaryJedis::time, MultiKeyPipelineBase::time)
-				.get(JedisConverters.toTimeConverter());
+				.get(JedisConverters::toTime);
 	}
 
 	/*

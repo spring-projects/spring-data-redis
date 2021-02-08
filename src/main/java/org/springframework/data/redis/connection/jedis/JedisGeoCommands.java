@@ -31,7 +31,6 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
-import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -147,8 +146,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.notNull(members, "Members must not be null!");
 		Assert.noNullElements(members, "Members must not contain null!");
 
-		return connection.invoke().from(BinaryJedis::geohash, MultiKeyPipelineBase::geohash, key, members)
-				.get(JedisConverters.bytesListToStringListConverter());
+		return connection.invoke().fromMany(BinaryJedis::geohash, MultiKeyPipelineBase::geohash, key, members)
+				.toList(JedisConverters::toString);
 	}
 
 	/*
@@ -162,9 +161,9 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.notNull(members, "Members must not be null!");
 		Assert.noNullElements(members, "Members must not contain null!");
 
-		ListConverter<GeoCoordinate, Point> converter = JedisConverters.geoCoordinateToPointConverter();
 
-		return connection.invoke().from(BinaryJedis::geopos, MultiKeyPipelineBase::geopos, key, members).get(converter);
+		return connection.invoke().fromMany(BinaryJedis::geopos, MultiKeyPipelineBase::geopos, key, members)
+				.toList(JedisConverters::toPoint);
 	}
 
 	/*
