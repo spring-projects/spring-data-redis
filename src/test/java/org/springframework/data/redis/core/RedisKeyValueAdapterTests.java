@@ -60,6 +60,7 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Andrey Muchnik
  */
 @RunWith(Parameterized.class)
 public class RedisKeyValueAdapterTests {
@@ -687,6 +688,41 @@ public class RedisKeyValueAdapterTests {
 		assertThat(updatedLocation.getY()).isCloseTo(18D, offset(0.005));
 	}
 
+	@Test // DATAREDIS-1955
+	public void phantomKeyIsDeletedWhenPutWithNegativeTimeToLiveAndOldEntryTimeToLiveWasPositiveAndWhenShadowCopyIsTurnedOn() {
+		ExpiringPerson rand = new ExpiringPerson();
+		rand.id = "1";
+		rand.ttl = 3000L;
+
+		adapter.put("1", rand, "persons");
+
+		assertThat(template.getExpire("persons:1:phantom")).isPositive();
+
+		rand.ttl = -1L;
+
+		adapter.put("1", rand, "persons");
+
+		assertThat(template.hasKey("persons:1:phantom")).isFalse();
+	}
+
+	@Test // DATAREDIS-1955
+	public void updateWithRefreshTtlAndWithoutPositiveTtlShouldDeletePhantomKey() {
+		ExpiringPerson person = new ExpiringPerson();
+		person.id = "1";
+		person.ttl = 100L;
+
+		adapter.put("1", person, "persons");
+
+		assertThat(template.getExpire("persons:1:phantom")).isPositive();
+
+		PartialUpdate<ExpiringPerson> update = new PartialUpdate<>("1", ExpiringPerson.class) //
+				.refreshTtl(true);
+
+		adapter.update(update);
+
+		assertThat(template.hasKey("persons:1:phantom")).isFalse();
+	}
+
 	/**
 	 * Wait up to 5 seconds until {@code key} is no longer available in Redis.
 	 *
@@ -774,6 +810,11 @@ public class RedisKeyValueAdapterTests {
 
 	static class TaVeren extends Person {
 
+	}
+
+	static class ExpiringPerson extends Person {
+
+		@TimeToLive Long ttl;
 	}
 
 	@KeySpace("locations")

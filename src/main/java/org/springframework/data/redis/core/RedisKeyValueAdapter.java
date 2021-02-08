@@ -99,6 +99,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Andrey Muchnik
  * @since 1.7
  */
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
@@ -243,6 +244,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				connection.del(phantomKey);
 				connection.hMSet(phantomKey, rdo.getBucket().rawMap());
 				connection.expire(phantomKey, rdo.getTimeToLive() + PHANTOM_KEY_TTL);
+			}
+
+			boolean isNoExpire = rdo.getTimeToLive() == null || rdo.getTimeToLive() != null && rdo.getTimeToLive() < 0;
+			if (isNoExpire && !isNew && keepShadowCopy()) {
+				connection.del(ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
 			}
 
 			connection.sAdd(toBytes(rdo.getKeyspace()), key);
@@ -487,7 +493,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				} else {
 
 					connection.persist(redisKey);
-					connection.persist(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
+					connection.del(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
 				}
 			}
 
@@ -736,6 +742,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 	}
 
+	private boolean keepShadowCopy() {
+		return this.expirationListener.get() != null;
+	}
+
 	/**
 	 * {@link MessageListener} implementation used to capture Redis keyspace notifications. Tries to read a previously
 	 * created phantom key {@code keyspace:id:phantom} to provide the expired object as part of the published
@@ -777,7 +787,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			byte[] key = message.getBody();
 
-			byte[] phantomKey = ByteUtils.concat(key, converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
+			byte[] phantomKey = ByteUtils.concat(key,
+					converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
 
 			Map<byte[], byte[]> hash = ops.execute((RedisCallback<Map<byte[], byte[]>>) connection -> {
 
@@ -794,7 +805,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			byte[] channelAsBytes = message.getChannel();
 			String channel = !ObjectUtils.isEmpty(channelAsBytes)
-					? converter.getConversionService().convert(channelAsBytes, String.class) : null;
+					? converter.getConversionService().convert(channelAsBytes, String.class)
+					: null;
 
 			RedisKeyExpiredEvent event = new RedisKeyExpiredEvent(channel, key, value);
 
