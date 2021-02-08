@@ -28,6 +28,7 @@ import redis.clients.jedis.util.SafeEncoder;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -56,7 +57,6 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisServer;
-import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
@@ -75,7 +75,6 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -90,163 +89,25 @@ import org.springframework.util.StringUtils;
  * @author Ninad Divadkar
  * @author Guy Korland
  */
-abstract public class JedisConverters extends Converters {
+public abstract class JedisConverters extends Converters {
 
-	private static final Converter<String, byte[]> STRING_TO_BYTES;
-	private static final ListConverter<String, byte[]> STRING_LIST_TO_BYTE_LIST;
-	private static final SetConverter<String, byte[]> STRING_SET_TO_BYTE_SET;
-	private static final MapConverter<String, byte[]> STRING_MAP_TO_BYTE_MAP;
-	private static final SetConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_SET_TO_TUPLE_SET;
 	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new JedisExceptionConverter();
-	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_CLIENT_INFO_CONVERTER = new StringToRedisClientInfoConverter();
-	private static final Converter<redis.clients.jedis.Tuple, Tuple> TUPLE_CONVERTER;
-	private static final ListConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_LIST_TO_TUPLE_LIST_CONVERTER;
-	private static final Converter<Object, RedisClusterNode> OBJECT_TO_CLUSTER_NODE_CONVERTER;
-	private static final Converter<Expiration, byte[]> EXPIRATION_TO_COMMAND_OPTION_CONVERTER;
-	private static final Converter<SetOption, byte[]> SET_OPTION_TO_COMMAND_OPTION_CONVERTER;
-	private static final Converter<List<String>, Long> STRING_LIST_TO_TIME_CONVERTER;
-	private static final Converter<redis.clients.jedis.GeoCoordinate, Point> GEO_COORDINATE_TO_POINT_CONVERTER;
-	private static final ListConverter<redis.clients.jedis.GeoCoordinate, Point> LIST_GEO_COORDINATE_TO_POINT_CONVERTER;
-	private static final Converter<byte[], String> BYTES_TO_STRING_CONVERTER;
-	private static final ListConverter<byte[], String> BYTES_LIST_TO_STRING_LIST_CONVERTER;
-	private static final ListConverter<byte[], Long> BYTES_LIST_TO_LONG_LIST_CONVERTER;
-	private static final Converter<BitFieldSubCommands, List<byte[]>> BITFIELD_COMMAND_ARGUMENT_CONVERTER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
 	public static final byte[] POSITIVE_INFINITY_BYTES;
 	public static final byte[] NEGATIVE_INFINITY_BYTES;
-	private static final byte[] EX;
-	private static final byte[] PX;
-	private static final byte[] NX;
-	private static final byte[] XX;
 
 	static {
 
-		BYTES_TO_STRING_CONVERTER = source -> source == null ? null : SafeEncoder.encode(source);
-		BYTES_LIST_TO_STRING_LIST_CONVERTER = new ListConverter<>(BYTES_TO_STRING_CONVERTER);
-
-		STRING_TO_BYTES = source -> source == null ? null : SafeEncoder.encode(source);
-		STRING_LIST_TO_BYTE_LIST = new ListConverter<>(STRING_TO_BYTES);
-		STRING_SET_TO_BYTE_SET = new SetConverter<>(STRING_TO_BYTES);
-		STRING_MAP_TO_BYTE_MAP = new MapConverter<>(STRING_TO_BYTES);
-		TUPLE_CONVERTER = source -> source != null ? new DefaultTuple(source.getBinaryElement(), source.getScore()) : null;
-		TUPLE_SET_TO_TUPLE_SET = new SetConverter<>(TUPLE_CONVERTER);
-		TUPLE_LIST_TO_TUPLE_LIST_CONVERTER = new ListConverter<>(TUPLE_CONVERTER);
 		PLUS_BYTES = toBytes("+");
 		MINUS_BYTES = toBytes("-");
 		POSITIVE_INFINITY_BYTES = toBytes("+inf");
 		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
-
-		OBJECT_TO_CLUSTER_NODE_CONVERTER = infos -> {
-
-			List<Object> values = (List<Object>) infos;
-			RedisClusterNode.SlotRange range = new RedisClusterNode.SlotRange(((Number) values.get(0)).intValue(),
-					((Number) values.get(1)).intValue());
-			List<Object> nodeInfo = (List<Object>) values.get(2);
-			return new RedisClusterNode(toString((byte[]) nodeInfo.get(0)), ((Number) nodeInfo.get(1)).intValue(), range);
-		};
-
-		EX = toBytes("EX");
-		PX = toBytes("PX");
-		EXPIRATION_TO_COMMAND_OPTION_CONVERTER = new Converter<Expiration, byte[]>() {
-
-			@Override
-			public byte[] convert(Expiration source) {
-
-				if (source == null || source.isPersistent()) {
-					return new byte[0];
-				}
-
-				if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, source.getTimeUnit())) {
-					return PX;
-				}
-
-				return EX;
-			}
-		};
-
-		NX = toBytes("NX");
-		XX = toBytes("XX");
-		SET_OPTION_TO_COMMAND_OPTION_CONVERTER = new Converter<RedisStringCommands.SetOption, byte[]>() {
-
-			@Override
-			public byte[] convert(SetOption source) {
-
-				switch (source) {
-					case UPSERT:
-						return new byte[0];
-					case SET_IF_ABSENT:
-						return NX;
-					case SET_IF_PRESENT:
-						return XX;
-				}
-
-				throw new IllegalArgumentException(String.format("Invalid argument %s for SetOption.", source));
-			}
-
-		};
-
-		STRING_LIST_TO_TIME_CONVERTER = source -> {
-
-			Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
-			Assert.isTrue(source.size() == 2,
-					"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
-
-			return toTimeMillis(source.get(0), source.get(1));
-		};
-
-		GEO_COORDINATE_TO_POINT_CONVERTER = geoCoordinate -> geoCoordinate != null
-				? new Point(geoCoordinate.getLongitude(), geoCoordinate.getLatitude())
-				: null;
-		LIST_GEO_COORDINATE_TO_POINT_CONVERTER = new ListConverter<>(GEO_COORDINATE_TO_POINT_CONVERTER);
-
-		BYTES_LIST_TO_LONG_LIST_CONVERTER = new ListConverter<byte[], Long>(new Converter<byte[], Long>() {
-			@Override
-			public Long convert(byte[] source) {
-				return Long.valueOf(JedisConverters.toString(source));
-			}
-		});
-
-		BITFIELD_COMMAND_ARGUMENT_CONVERTER = new Converter<BitFieldSubCommands, List<byte[]>>() {
-			@Override
-			public List<byte[]> convert(BitFieldSubCommands source) {
-
-				if (source == null) {
-					return Collections.emptyList();
-				}
-
-				List<byte[]> args = new ArrayList<byte[]>(source.getSubCommands().size() * 4);
-
-				for (BitFieldSubCommand command : source.getSubCommands()) {
-
-					if (command instanceof BitFieldIncrBy) {
-
-						BitFieldIncrBy.Overflow overflow = ((BitFieldIncrBy) command).getOverflow();
-						if (overflow != null) {
-							args.add(JedisConverters.toBytes("OVERFLOW"));
-							args.add(JedisConverters.toBytes(overflow.name()));
-						}
-					}
-
-					args.add(JedisConverters.toBytes(command.getCommand()));
-					args.add(JedisConverters.toBytes(command.getType().asString()));
-					args.add(JedisConverters.toBytes(command.getOffset().asString()));
-
-					if (command instanceof BitFieldSet) {
-						args.add(JedisConverters.toBytes(((BitFieldSet) command).getValue()));
-					} else if (command instanceof BitFieldIncrBy) {
-						args.add(JedisConverters.toBytes(((BitFieldIncrBy) command).getValue()));
-					}
-				}
-
-				return args;
-			}
-		};
 	}
 
 	public static Converter<String, byte[]> stringToBytes() {
-		return STRING_TO_BYTES;
+		return JedisConverters::toBytes;
 	}
 
 	/**
@@ -256,23 +117,35 @@ abstract public class JedisConverters extends Converters {
 	 * @since 1.4
 	 */
 	public static ListConverter<redis.clients.jedis.Tuple, Tuple> tuplesToTuples() {
-		return TUPLE_LIST_TO_TUPLE_LIST_CONVERTER;
+		return new ListConverter<>(JedisConverters::toTuple);
 	}
 
 	public static ListConverter<String, byte[]> stringListToByteList() {
-		return STRING_LIST_TO_BYTE_LIST;
+		return new ListConverter<>(stringToBytes());
 	}
 
+	/**
+	 * @deprecated since 2.5
+	 */
+	@Deprecated
 	public static SetConverter<String, byte[]> stringSetToByteSet() {
-		return STRING_SET_TO_BYTE_SET;
+		return new SetConverter<>(stringToBytes());
 	}
 
+	/**
+	 * @deprecated since 2.5
+	 */
+	@Deprecated
 	public static MapConverter<String, byte[]> stringMapToByteMap() {
-		return STRING_MAP_TO_BYTE_MAP;
+		return new MapConverter<>(stringToBytes());
 	}
 
+	/**
+	 * @deprecated since 2.5
+	 */
+	@Deprecated
 	public static SetConverter<redis.clients.jedis.Tuple, Tuple> tupleSetToTupleSet() {
-		return TUPLE_SET_TO_TUPLE_SET;
+		return new SetConverter<>(JedisConverters::toTuple);
 	}
 
 	public static Converter<Exception, DataAccessException> exceptionConverter() {
@@ -287,8 +160,16 @@ abstract public class JedisConverters extends Converters {
 		return result;
 	}
 
+	/**
+	 * @deprecated since 2.5
+	 */
+	@Deprecated
 	public static Set<Tuple> toTupleSet(Set<redis.clients.jedis.Tuple> source) {
-		return TUPLE_SET_TO_TUPLE_SET.convert(source);
+		return tupleSetToTupleSet().convert(source);
+	}
+
+	public static Tuple toTuple(redis.clients.jedis.Tuple source) {
+		return new DefaultTuple(source.getBinaryElement(), source.getScore());
 	}
 
 	/**
@@ -340,13 +221,18 @@ abstract public class JedisConverters extends Converters {
 		return toBytes(String.valueOf(source));
 	}
 
-	public static byte[] toBytes(String source) {
-		return STRING_TO_BYTES.convert(source);
+	@Nullable
+	public static byte[] toBytes(@Nullable String source) {
+		return source == null ? null : SafeEncoder.encode(source);
 	}
 
 	@Nullable
 	public static String toString(@Nullable byte[] source) {
 		return source == null ? null : SafeEncoder.encode(source);
+	}
+
+	public static Long toLong(byte[] source) {
+		return Long.valueOf(toString(source));
 	}
 
 	/**
@@ -356,7 +242,7 @@ abstract public class JedisConverters extends Converters {
 	 * @return the {@link ValueEncoding} for given {@code source}. Never {@literal null}.
 	 * @since 2.1
 	 */
-	public static ValueEncoding toEncoding(@Nullable byte[] source) {
+	public static ValueEncoding toEncoding(byte[] source) {
 		return ValueEncoding.of(toString(source));
 	}
 
@@ -365,8 +251,15 @@ abstract public class JedisConverters extends Converters {
 	 * @return
 	 * @since 1.7
 	 */
+	@SuppressWarnings("unchecked")
 	public static RedisClusterNode toNode(Object source) {
-		return OBJECT_TO_CLUSTER_NODE_CONVERTER.convert(source);
+
+		List<Object> values = (List<Object>) source;
+		RedisClusterNode.SlotRange range = new RedisClusterNode.SlotRange(((Number) values.get(0)).intValue(),
+				((Number) values.get(1)).intValue());
+		List<Object> nodeInfo = (List<Object>) values.get(2);
+		return new RedisClusterNode(toString((byte[]) nodeInfo.get(0)), ((Number) nodeInfo.get(1)).intValue(), range);
+
 	}
 
 	/**
@@ -379,7 +272,8 @@ abstract public class JedisConverters extends Converters {
 		if (!StringUtils.hasText(source)) {
 			return Collections.emptyList();
 		}
-		return STRING_TO_CLIENT_INFO_CONVERTER.convert(source.split("\\r?\\n"));
+
+		return StringToRedisClientInfoConverter.INSTANCE.convert(source.split("\\r?\\n"));
 	}
 
 	/**
@@ -389,17 +283,13 @@ abstract public class JedisConverters extends Converters {
 	 */
 	public static List<RedisServer> toListOfRedisServer(List<Map<String, String>> source) {
 
-		if (CollectionUtils.isEmpty(source)) {
-			return Collections.emptyList();
-		}
-
-		List<RedisServer> sentinels = new ArrayList<>();
-		for (Map<String, String> info : source) {
-			sentinels.add(RedisServer.newServerFrom(Converters.toProperties(info)));
-		}
-		return sentinels;
+		return toList(it -> RedisServer.newServerFrom(Converters.toProperties(it)), source);
 	}
 
+	/**
+	 * @deprecated since 2.5
+	 */
+	@Deprecated
 	public static DataAccessException toDataAccessException(Exception ex) {
 		return EXCEPTION_CONVERTER.convert(ex);
 	}
@@ -657,8 +547,13 @@ abstract public class JedisConverters extends Converters {
 		return sp;
 	}
 
-	static Converter<List<String>, Long> toTimeConverter() {
-		return STRING_LIST_TO_TIME_CONVERTER;
+	static Long toTime(List<String> source) {
+
+		Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
+		Assert.isTrue(source.size() == 2,
+				"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
+
+		return toTimeMillis(source.get(0), source.get(1));
 	}
 
 	/**
@@ -667,26 +562,67 @@ abstract public class JedisConverters extends Converters {
 	 * @since 1.8
 	 */
 	public static List<String> toStrings(List<byte[]> source) {
-		return BYTES_LIST_TO_STRING_LIST_CONVERTER.convert(source);
+		return toList(JedisConverters::toString, source);
+	}
+
+	private static <S, T> List<T> toList(Converter<S, T> converter, @Nullable Collection<S> source) {
+
+		if (source == null || source.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		List<T> target = new ArrayList<>(source.size());
+
+		for (S s : source) {
+			target.add(converter.convert(s));
+		}
+
+		return target;
 	}
 
 	/**
-	 * @return
+	 * @deprecated since 2.5
 	 */
+	@Deprecated
 	public static ListConverter<byte[], String> bytesListToStringListConverter() {
-		return BYTES_LIST_TO_STRING_LIST_CONVERTER;
+		return new ListConverter<>(JedisConverters::toString);
 	}
 
+	/**
+	 * @deprecated since 2.5
+	 */
+	@Deprecated
 	public static ListConverter<byte[], Long> getBytesListToLongListConverter() {
-		return BYTES_LIST_TO_LONG_LIST_CONVERTER;
+		return new ListConverter<>(JedisConverters::toLong);
 	}
 
 	/**
 	 * @return
 	 * @since 1.8
+	 * @deprecated since 2.5
 	 */
 	public static ListConverter<redis.clients.jedis.GeoCoordinate, Point> geoCoordinateToPointConverter() {
-		return LIST_GEO_COORDINATE_TO_POINT_CONVERTER;
+		return new ListConverter<>(JedisConverters::toPoint);
+	}
+
+	/**
+	 * @return
+	 * @since 2.5
+	 */
+	@Nullable
+	static Point toPoint(@Nullable redis.clients.jedis.GeoCoordinate geoCoordinate) {
+		return geoCoordinate == null ? null : new Point(geoCoordinate.getLongitude(), geoCoordinate.getLatitude());
+	}
+
+	/**
+	 * Convert {@link Point} into {@link GeoCoordinate}.
+	 *
+	 * @param source
+	 * @return
+	 * @since 1.8
+	 */
+	public static GeoCoordinate toGeoCoordinate(Point source) {
+		return new redis.clients.jedis.GeoCoordinate(source.getX(), source.getY());
 	}
 
 	/**
@@ -715,16 +651,6 @@ abstract public class JedisConverters extends Converters {
 		return ObjectUtils.caseInsensitiveValueOf(GeoUnit.values(), metricToUse.getAbbreviation());
 	}
 
-	/**
-	 * Convert {@link Point} into {@link GeoCoordinate}.
-	 *
-	 * @param source
-	 * @return
-	 * @since 1.8
-	 */
-	public static GeoCoordinate toGeoCoordinate(Point source) {
-		return source == null ? null : new redis.clients.jedis.GeoCoordinate(source.getX(), source.getY());
-	}
 
 	/**
 	 * Convert {@link GeoRadiusCommandArgs} into {@link GeoRadiusParam}.
@@ -778,10 +704,33 @@ abstract public class JedisConverters extends Converters {
 	 * @return never {@literal null}.
 	 * @since 1.8
 	 */
-	public static byte[][] toBitfieldCommandArguments(BitFieldSubCommands bitfieldOperation) {
+	public static byte[][] toBitfieldCommandArguments(BitFieldSubCommands source) {
 
-		List<byte[]> tmp = BITFIELD_COMMAND_ARGUMENT_CONVERTER.convert(bitfieldOperation);
-		return tmp.toArray(new byte[tmp.size()][]);
+		List<byte[]> args = new ArrayList<>(source.getSubCommands().size() * 4);
+
+		for (BitFieldSubCommand command : source.getSubCommands()) {
+
+			if (command instanceof BitFieldIncrBy) {
+
+				BitFieldIncrBy.Overflow overflow = ((BitFieldIncrBy) command).getOverflow();
+				if (overflow != null) {
+					args.add(JedisConverters.toBytes("OVERFLOW"));
+					args.add(JedisConverters.toBytes(overflow.name()));
+				}
+			}
+
+			args.add(JedisConverters.toBytes(command.getCommand()));
+			args.add(JedisConverters.toBytes(command.getType().asString()));
+			args.add(JedisConverters.toBytes(command.getOffset().asString()));
+
+			if (command instanceof BitFieldSet) {
+				args.add(JedisConverters.toBytes(((BitFieldSet) command).getValue()));
+			} else if (command instanceof BitFieldIncrBy) {
+				args.add(JedisConverters.toBytes(((BitFieldIncrBy) command).getValue()));
+			}
+		}
+
+		return args.toArray(new byte[0][0]);
 	}
 
 	/**
@@ -794,13 +743,13 @@ abstract public class JedisConverters extends Converters {
 
 		Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> forMetric(Metric metric) {
 			return new GeoResultsConverter(
-					metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
+					ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
 		}
 
 		private static class GeoResultsConverter
 				implements Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> {
 
-			private Metric metric;
+			private final Metric metric;
 
 			public GeoResultsConverter(Metric metric) {
 				this.metric = metric;
@@ -837,7 +786,7 @@ abstract public class JedisConverters extends Converters {
 		private static class GeoResultConverter
 				implements Converter<redis.clients.jedis.GeoRadiusResponse, GeoResult<GeoLocation<byte[]>>> {
 
-			private Metric metric;
+			private final Metric metric;
 
 			public GeoResultConverter(Metric metric) {
 				this.metric = metric;
@@ -846,7 +795,7 @@ abstract public class JedisConverters extends Converters {
 			@Override
 			public GeoResult<GeoLocation<byte[]>> convert(redis.clients.jedis.GeoRadiusResponse source) {
 
-				Point point = GEO_COORDINATE_TO_POINT_CONVERTER.convert(source.getCoordinate());
+				Point point = JedisConverters.toPoint(source.getCoordinate());
 
 				return new GeoResult<>(new GeoLocation<>(source.getMember(), point),
 						new Distance(source.getDistance(), metric));

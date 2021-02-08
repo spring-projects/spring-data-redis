@@ -150,8 +150,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		return connection.invoke()
-				.from(BinaryJedis::zrangeWithScores, MultiKeyPipelineBase::zrangeWithScores, key, start, end)
-				.get(JedisConverters.tupleSetToTupleSet());
+				.fromMany(BinaryJedis::zrangeWithScores, MultiKeyPipelineBase::zrangeWithScores, key, start, end)
+				.toSet(JedisConverters::toTuple);
 	}
 
 	/*
@@ -169,14 +169,14 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
 		if (!limit.isUnlimited()) {
-			return connection.invoke().from(BinaryJedis::zrangeByScoreWithScores,
+			return connection.invoke().fromMany(BinaryJedis::zrangeByScoreWithScores,
 					MultiKeyPipelineBase::zrangeByScoreWithScores, key, min, max, limit.getOffset(), limit.getCount())
-					.get(JedisConverters.tupleSetToTupleSet());
+					.toSet(JedisConverters::toTuple);
 		}
 
 		return connection.invoke()
-				.from(BinaryJedis::zrangeByScoreWithScores, MultiKeyPipelineBase::zrangeByScoreWithScores, key, min, max)
-				.get(JedisConverters.tupleSetToTupleSet());
+				.fromMany(BinaryJedis::zrangeByScoreWithScores, MultiKeyPipelineBase::zrangeByScoreWithScores, key, min, max)
+				.toSet(JedisConverters::toTuple);
 	}
 
 	/*
@@ -201,8 +201,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		return connection.invoke()
-				.from(BinaryJedis::zrevrangeWithScores, MultiKeyPipelineBase::zrevrangeWithScores, key, start, end)
-				.get(JedisConverters.tupleSetToTupleSet());
+				.fromMany(BinaryJedis::zrevrangeWithScores, MultiKeyPipelineBase::zrevrangeWithScores, key, start, end)
+				.toSet(JedisConverters::toTuple);
 	}
 
 	/*
@@ -243,14 +243,15 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
 		if (!limit.isUnlimited()) {
-			return connection.invoke().from(BinaryJedis::zrevrangeByScoreWithScores,
+			return connection.invoke().fromMany(BinaryJedis::zrevrangeByScoreWithScores,
 					MultiKeyPipelineBase::zrevrangeByScoreWithScores, key, max, min, limit.getOffset(), limit.getCount())
-					.get(JedisConverters.tupleSetToTupleSet());
+					.toSet(JedisConverters::toTuple);
 		}
 
 		return connection.invoke()
-				.from(BinaryJedis::zrevrangeByScoreWithScores, MultiKeyPipelineBase::zrevrangeByScoreWithScores, key, max, min)
-				.get(JedisConverters.tupleSetToTupleSet());
+				.fromMany(BinaryJedis::zrevrangeByScoreWithScores, MultiKeyPipelineBase::zrevrangeByScoreWithScores, key, max,
+						min)
+				.toSet(JedisConverters::toTuple);
 	}
 
 	/*
@@ -474,8 +475,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		String keyStr = new String(key, StandardCharsets.UTF_8);
-		return connection.invoke().from(Jedis::zrangeByScore, MultiKeyPipelineBase::zrangeByScore, keyStr, min, max)
-				.get(JedisConverters.stringSetToByteSet());
+		return connection.invoke().fromMany(Jedis::zrangeByScore, MultiKeyPipelineBase::zrangeByScore, keyStr, min, max)
+				.toSet(JedisConverters::toBytes);
 	}
 
 	/*
@@ -495,8 +496,9 @@ class JedisZSetCommands implements RedisZSetCommands {
 		String keyStr = new String(key, StandardCharsets.UTF_8);
 
 		return connection.invoke()
-				.from(Jedis::zrangeByScore, MultiKeyPipelineBase::zrangeByScore, keyStr, min, max, (int) offset, (int) count)
-				.get(JedisConverters.stringSetToByteSet());
+				.fromMany(Jedis::zrangeByScore, MultiKeyPipelineBase::zrangeByScore, keyStr, min, max, (int) offset,
+						(int) count)
+				.toSet(JedisConverters::toBytes);
 	}
 
 	/*
