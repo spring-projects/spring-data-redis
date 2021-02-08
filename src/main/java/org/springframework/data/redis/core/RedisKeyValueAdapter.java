@@ -99,6 +99,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Andrey Muchnik
  * @since 1.7
  */
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter

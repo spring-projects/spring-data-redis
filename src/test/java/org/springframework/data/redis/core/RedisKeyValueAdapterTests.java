@@ -54,6 +54,7 @@ import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Andrey Muchnik
  */
 @ExtendWith(LettuceConnectionFactoryExtension.class)
 public class RedisKeyValueAdapterTests {
