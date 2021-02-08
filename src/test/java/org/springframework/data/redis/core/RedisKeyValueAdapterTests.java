@@ -705,6 +705,22 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:1:phantom")).isTrue();
 	}
 
+	@Test // DATAREDIS-1955
+	void phantomKeyNotPersistedWhenPutWithNegativeTimeToLiveAndOldEntryTimeToLiveWasPositiveAndWhenShadowCopyIsTurnedOn() {
+		ExpiringPerson rand = new ExpiringPerson();
+		rand.ttl = 3000L;
+
+		adapter.put("1", rand, "persons");
+
+		assertThat(template.getExpire("persons:1:phantom")).isPositive();
+
+		rand.ttl = -1L;
+
+		adapter.put("1", rand, "persons");
+
+		assertThat(template.getExpire("persons:1:phantom")).isEqualTo(-1L);
+	}
+
 	/**
 	 * Wait up to 5 seconds until {@code key} is no longer available in Redis.
 	 *

@@ -248,6 +248,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				}
 			}
 
+			boolean isNoExpire = rdo.getTimeToLive() == null || rdo.getTimeToLive() != null && rdo.getTimeToLive() < 0;
+			if (isNoExpire && !isNew && keepShadowCopy()){
+				connection.persist(ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
+			}
+
 			connection.sAdd(toBytes(rdo.getKeyspace()), key);
 
 			IndexWriter indexWriter = new IndexWriter(connection, converter);
