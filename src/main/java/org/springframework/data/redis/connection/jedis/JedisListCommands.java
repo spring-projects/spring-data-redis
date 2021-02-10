@@ -72,7 +72,7 @@ class JedisListCommands implements RedisListCommands {
 			return connection.invoke().just(BinaryJedis::lpos, MultiKeyPipelineBase::lpos, key, element, params, count);
 		}
 
-		return connection.invoke().from(BinaryJedis::lpos, MultiKeyPipelineBase::lpos, key, element, params).get(Collections::singletonList);
+		return connection.invoke().from(BinaryJedis::lpos, MultiKeyPipelineBase::lpos, key, element, params).getOrElse(Collections::singletonList, Collections::emptyList);
 	}
 
 	/*
