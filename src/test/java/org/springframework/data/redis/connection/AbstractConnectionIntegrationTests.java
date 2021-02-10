@@ -1404,9 +1404,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(2L, Arrays.asList("baz", "bar")));
 	}
 
-	@Test // DATAREDIS-1196
+	@Test // DATAREDIS-1196, GH-1957
 	@EnabledOnCommand("LPOS")
-	@EnabledOnRedisDriver({ RedisDriver.LETTUCE })
 	void lPos() {
 
 		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
@@ -1415,9 +1414,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) getResults().get(1)).containsOnly(2L);
 	}
 
-	@Test // DATAREDIS-1196
+	@Test // DATAREDIS-1196, GH-1957
 	@EnabledOnCommand("LPOS")
-	@EnabledOnRedisDriver({ RedisDriver.LETTUCE })
 	void lPosRank() {
 
 		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
@@ -1426,9 +1424,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) getResults().get(1)).containsExactly(6L);
 	}
 
-	@Test // DATAREDIS-1196
+	@Test // DATAREDIS-1196, GH-1957
 	@EnabledOnCommand("LPOS")
-	@EnabledOnRedisDriver({ RedisDriver.LETTUCE })
 	void lPosNegativeRank() {
 
 		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
@@ -1437,9 +1434,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) getResults().get(1)).containsExactly(7L);
 	}
 
-	@Test // DATAREDIS-1196
+	@Test // DATAREDIS-1196, GH-1957
 	@EnabledOnCommand("LPOS")
-	@EnabledOnRedisDriver({ RedisDriver.LETTUCE })
 	void lPosCount() {
 
 		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
@@ -1448,9 +1444,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) getResults().get(1)).containsExactly(2L, 6L);
 	}
 
-	@Test // DATAREDIS-1196
+	@Test // DATAREDIS-1196, GH-1957
 	@EnabledOnCommand("LPOS")
-	@EnabledOnRedisDriver({ RedisDriver.LETTUCE })
 	void lPosRankCount() {
 
 		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
@@ -1459,9 +1454,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) getResults().get(1)).containsExactly(7L, 6L);
 	}
 
-	@Test // DATAREDIS-1196
+	@Test // DATAREDIS-1196, GH-1957
 	@EnabledOnCommand("LPOS")
-	@EnabledOnRedisDriver({ RedisDriver.LETTUCE })
 	void lPosCountZero() {
 
 		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));

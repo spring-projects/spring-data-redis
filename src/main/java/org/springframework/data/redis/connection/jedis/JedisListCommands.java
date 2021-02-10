@@ -19,12 +19,14 @@ import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.Protocol;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import redis.clients.jedis.params.LPosParams;
 
 /**
  * @author Christoph Strobl
@@ -61,7 +63,16 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(element, "Element must not be null!");
 
-		throw new InvalidDataAccessApiUsageException("LPOS is not supported by jedis.");
+		LPosParams params = new LPosParams();
+		if(rank != null) {
+			params.rank(rank);
+		}
+
+		if(count != null) {
+			return connection.invoke().just(BinaryJedis::lpos, MultiKeyPipelineBase::lpos, key, element, params, count);
+		}
+
+		return connection.invoke().from(BinaryJedis::lpos, MultiKeyPipelineBase::lpos, key, element, params).get(Collections::singletonList);
 	}
 
 	/*

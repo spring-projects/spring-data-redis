@@ -25,6 +25,7 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.Distanc
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
@@ -32,6 +33,7 @@ import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -2471,5 +2473,65 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		Long result = clusterConnection.scriptingCommands().evalSha(digest, ReturnType.VALUE, 1, keyAndArgs);
 		assertThat(result).isEqualTo(1L);
+	}
+
+	@Test // GH-1957
+	@EnabledOnCommand("LPOS")
+	void lPos() {
+
+		nativeConnection.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+		List<Long> result = clusterConnection.listCommands().lPos(KEY_1_BYTES, "c".getBytes(StandardCharsets.UTF_8), null, null);
+
+		assertThat(result).containsOnly(2L);
+	}
+
+	@Test // GH-1957
+	@EnabledOnCommand("LPOS")
+	void lPosRank() {
+
+		nativeConnection.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+		List<Long> result = clusterConnection.listCommands().lPos(KEY_1_BYTES, "c".getBytes(StandardCharsets.UTF_8), 2, null);
+
+		assertThat(result).containsExactly(6L);
+	}
+
+	@Test // GH-1957
+	@EnabledOnCommand("LPOS")
+	void lPosNegativeRank() {
+
+		nativeConnection.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+		List<Long> result = clusterConnection.listCommands().lPos(KEY_1_BYTES, "c".getBytes(StandardCharsets.UTF_8), -1, null);
+
+		assertThat(result).containsExactly(7L);
+	}
+
+	@Test // GH-1957
+	@EnabledOnCommand("LPOS")
+	void lPosCount() {
+
+		nativeConnection.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+		List<Long> result = clusterConnection.listCommands().lPos(KEY_1_BYTES, "c".getBytes(StandardCharsets.UTF_8), null, 2);
+
+		assertThat(result).containsExactly(2L, 6L);
+	}
+
+	@Test // GH-1957
+	@EnabledOnCommand("LPOS")
+	void lPosRankCount() {
+
+		nativeConnection.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+		List<Long> result = clusterConnection.listCommands().lPos(KEY_1_BYTES, "c".getBytes(StandardCharsets.UTF_8), -1, 2);
+
+		assertThat(result).containsExactly(7L, 6L);
+	}
+
+	@Test // GH-1957
+	@EnabledOnCommand("LPOS")
+	void lPosCountZero() {
+
+		nativeConnection.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+		List<Long> result = clusterConnection.listCommands().lPos(KEY_1_BYTES, "c".getBytes(StandardCharsets.UTF_8), null, 0);
+
+		assertThat(result).containsExactly(2L, 6L, 7L);
 	}
 }
