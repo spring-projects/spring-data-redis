@@ -15,12 +15,13 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.params.LPosParams;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
@@ -68,7 +69,22 @@ class JedisClusterListCommands implements RedisListCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(element, "Element must not be null!");
 
-		throw new InvalidDataAccessApiUsageException("LPOS is not supported by jedis.");
+		LPosParams params = new LPosParams();
+		if (rank != null) {
+			params.rank(rank);
+		}
+
+		try {
+
+			if (count != null) {
+				return connection.getCluster().lpos(key, element, params, count);
+			}
+
+			Long value = connection.getCluster().lpos(key, element, params);
+			return value != null ? Collections.singletonList(value) : Collections.emptyList();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	/*
