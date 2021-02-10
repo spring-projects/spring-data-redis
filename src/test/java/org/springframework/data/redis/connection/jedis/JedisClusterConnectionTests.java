@@ -2534,4 +2534,14 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(result).containsExactly(2L, 6L, 7L);
 	}
+
+	@Test // GH-1957
+	@EnabledOnCommand("LPOS")
+	void lPosNonExisting() {
+
+		nativeConnection.rpush(KEY_1, "a", "b", "c", "1", "2", "3", "c", "c");
+		List<Long> result = clusterConnection.listCommands().lPos(KEY_1_BYTES, "x".getBytes(StandardCharsets.UTF_8), null, null);
+
+		assertThat(result).isEmpty();
+	}
 }

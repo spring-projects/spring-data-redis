@@ -1464,6 +1464,16 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) getResults().get(1)).containsExactly(2L, 6L, 7L);
 	}
 
+	@Test // GH-1957
+	@EnabledOnCommand("LPOS")
+	void lPosNonExisting() {
+
+		actual.add(connection.rPush("mylist", "a", "b", "c", "1", "2", "3", "c", "c"));
+		actual.add(connection.lPos("mylist", "x", null, null));
+
+		assertThat((List<Long>) getResults().get(1)).isEmpty();
+	}
+
 	// Set operations
 
 	@Test

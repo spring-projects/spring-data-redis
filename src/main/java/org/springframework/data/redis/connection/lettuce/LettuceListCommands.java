@@ -71,7 +71,7 @@ class LettuceListCommands implements RedisListCommands {
 			return connection.invoke().just(RedisListAsyncCommands::lpos, key, element, count, args);
 		}
 
-		return connection.invoke().from(RedisListAsyncCommands::lpos, key, element, args).get(Collections::singletonList);
+		return connection.invoke().from(RedisListAsyncCommands::lpos, key, element, args).getOrElse(Collections::singletonList, Collections::emptyList);
 	}
 
 	/*
