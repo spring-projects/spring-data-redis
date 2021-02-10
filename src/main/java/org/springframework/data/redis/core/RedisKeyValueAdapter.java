@@ -251,7 +251,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			boolean isNoExpire = rdo.getTimeToLive() == null || rdo.getTimeToLive() != null && rdo.getTimeToLive() < 0;
 			if (isNoExpire && !isNew && keepShadowCopy()){
-				connection.persist(ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
+				connection.del(ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
 			}
 
 			connection.sAdd(toBytes(rdo.getKeyspace()), key);
@@ -498,7 +498,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				} else {
 
 					connection.persist(redisKey);
-					connection.persist(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
+					connection.del(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
 				}
 			}
 
