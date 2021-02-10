@@ -236,25 +236,27 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			connection.hMSet(objectKey, rdo.getBucket().rawMap());
 
-			if (rdo.getTimeToLive() != null && rdo.getTimeToLive() > 0) {
+			if(isNew) {
+				connection.sAdd(toBytes(rdo.getKeyspace()), key);
+			}
 
+			if (expires(rdo)) {
 				connection.expire(objectKey, rdo.getTimeToLive());
+			}
 
-				if (keepShadowCopy()) { // add phantom key so values can be restored
+			if (keepShadowCopy()) { // add phantom key so values can be restored
 
-					byte[] phantomKey = ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
+				byte[] phantomKey = ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
+
+				if (expires(rdo)) {
+
 					connection.del(phantomKey);
 					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
 					connection.expire(phantomKey, rdo.getTimeToLive() + PHANTOM_KEY_TTL);
+				} else if (!isNew) {
+					connection.del(phantomKey);
 				}
 			}
-
-			boolean isNoExpire = rdo.getTimeToLive() == null || rdo.getTimeToLive() != null && rdo.getTimeToLive() < 0;
-			if (isNoExpire && !isNew && keepShadowCopy()){
-				connection.del(ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
-			}
-
-			connection.sAdd(toBytes(rdo.getKeyspace()), key);
 
 			IndexWriter indexWriter = new IndexWriter(connection, converter);
 			if (isNew) {
@@ -349,11 +351,14 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				connection.sRem(binKeyspace, binId);
 				new IndexWriter(connection, converter).removeKeyFromIndexes(asString(keyspace), binId);
 
-				RedisPersistentEntity<?> persistentEntity = converter.getMappingContext().getPersistentEntity(type);
-				if (persistentEntity != null && persistentEntity.isExpiring()) {
+				if(RedisKeyValueAdapter.this.keepShadowCopy()) {
 
-					byte[] phantomKey = ByteUtils.concat(keyToDelete, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
-					connection.del(phantomKey);
+					RedisPersistentEntity<?> persistentEntity = converter.getMappingContext().getPersistentEntity(type);
+					if (persistentEntity != null && persistentEntity.isExpiring()) {
+
+						byte[] phantomKey = ByteUtils.concat(keyToDelete, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
+						connection.del(phantomKey);
+					}
 				}
 				return null;
 			});
@@ -484,7 +489,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			if (update.isRefreshTtl()) {
 
-				if (rdo.getTimeToLive() != null && rdo.getTimeToLive() > 0) {
+				if (expires(rdo)) {
 
 					connection.expire(redisKey, rdo.getTimeToLive());
 
@@ -498,7 +503,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				} else {
 
 					connection.persist(redisKey);
-					connection.del(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
+
+					if(keepShadowCopy()) {
+						connection.del(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
+					}
 				}
 			}
 
@@ -653,6 +661,16 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 
 		return target;
+	}
+
+	/**
+	 * @return {@literal true} if {@link RedisData#getTimeToLive()} has a positive value.
+	 *
+	 * @param data must not be {@literal null}.
+	 * @since 2.3.7
+	 */
+	private boolean expires(RedisData data) {
+		return data.getTimeToLive() != null && data.getTimeToLive() > 0;
 	}
 
 	/**
