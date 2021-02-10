@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -67,16 +68,6 @@ class LettuceInvoker {
 	}
 
 	/**
-	 * Returns a {@link Converter} that always returns its input argument.
-	 *
-	 * @param <T> the type of the input and output objects to the function
-	 * @return a function that always returns its input argument
-	 */
-	static <T> Converter<T, T> identityConverter() {
-		return t -> t;
-	}
-
-	/**
 	 * Invoke the {@link ConnectionFunction0} and return its result.
 	 *
 	 * @param function must not be {@literal null}.
@@ -86,7 +77,7 @@ class LettuceInvoker {
 
 		Assert.notNull(function, "ConnectionFunction must not be null!");
 
-		return synchronizer.invoke(() -> function.apply(connection), identityConverter(), () -> null);
+		return synchronizer.invoke(() -> function.apply(connection), Converters.identityConverter(), () -> null);
 	}
 
 	/**
@@ -421,7 +412,7 @@ class LettuceInvoker {
 		 * @return the result as {@link List}.
 		 */
 		default List<S> toList() {
-			return toList(identityConverter());
+			return toList(Converters.identityConverter());
 		}
 
 		/**
@@ -440,7 +431,7 @@ class LettuceInvoker {
 		 * @return the result as {@link Set}.
 		 */
 		default Set<S> toSet() {
-			return toSet(identityConverter());
+			return toSet(Converters.identityConverter());
 		}
 
 		/**
@@ -665,12 +656,13 @@ class LettuceInvoker {
 	/**
 	 * Interface to define a synchronization function to evaluate {@link RedisFuture}.
 	 */
+	@FunctionalInterface
 	interface Synchronizer {
 
 		@Nullable
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		default <I, T> T invoke(Supplier<RedisFuture<I>> futureSupplier) {
-			return (T) doInvoke((Supplier) futureSupplier, identityConverter(), () -> null);
+			return (T) doInvoke((Supplier) futureSupplier, Converters.identityConverter(), () -> null);
 		}
 
 		@Nullable

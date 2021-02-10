@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
@@ -185,7 +186,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrange, key, start, end)
-				.toSet(LettuceInvoker.identityConverter());
+				.toSet(Converters.identityConverter());
 	}
 
 	/*

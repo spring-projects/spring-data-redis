@@ -102,7 +102,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@SuppressWarnings("rawtypes") private Queue<Converter> pipelineConverters = new LinkedList<>();
 	@SuppressWarnings("rawtypes") private Queue<Converter> txConverters = new LinkedList<>();
 	private boolean deserializePipelineAndTxResults = false;
-	private IdentityConverter<Object, ?> identityConverter = new IdentityConverter<>();
 
 	private class DeserializingConverter implements Converter<byte[], String> {
 		public String convert(byte[] source) {
@@ -128,12 +127,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	private class StringTupleConverter implements Converter<StringTuple, Tuple> {
 		public Tuple convert(StringTuple source) {
 			return new DefaultTuple(source.getValue(), source.getScore());
-		}
-	}
-
-	private class IdentityConverter<S, T> implements Converter<S, T> {
-		public Object convert(Object source) {
-			return source;
 		}
 	}
 
@@ -182,7 +175,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long append(byte[] key, byte[] value) {
-		return convertAndReturn(delegate.append(key, value), identityConverter);
+		return convertAndReturn(delegate.append(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -217,7 +210,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
-		return convertAndReturn(delegate.bLPop(timeout, keys), identityConverter);
+		return convertAndReturn(delegate.bLPop(timeout, keys), Converters.identityConverter());
 	}
 
 	/*
@@ -226,7 +219,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
-		return convertAndReturn(delegate.bRPop(timeout, keys), identityConverter);
+		return convertAndReturn(delegate.bRPop(timeout, keys), Converters.identityConverter());
 	}
 
 	/*
@@ -235,7 +228,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
-		return convertAndReturn(delegate.bRPopLPush(timeout, srcKey, dstKey), identityConverter);
+		return convertAndReturn(delegate.bRPopLPush(timeout, srcKey, dstKey), Converters.identityConverter());
 	}
 
 	/*
@@ -253,7 +246,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long dbSize() {
-		return convertAndReturn(delegate.dbSize(), identityConverter);
+		return convertAndReturn(delegate.dbSize(), Converters.identityConverter());
 	}
 
 	/*
@@ -262,7 +255,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long decr(byte[] key) {
-		return convertAndReturn(delegate.decr(key), identityConverter);
+		return convertAndReturn(delegate.decr(key), Converters.identityConverter());
 	}
 
 	/*
@@ -271,7 +264,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long decrBy(byte[] key, long value) {
-		return convertAndReturn(delegate.decrBy(key, value), identityConverter);
+		return convertAndReturn(delegate.decrBy(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -280,7 +273,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long del(byte[]... keys) {
-		return convertAndReturn(delegate.del(keys), identityConverter);
+		return convertAndReturn(delegate.del(keys), Converters.identityConverter());
 	}
 
 	/*
@@ -289,7 +282,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long unlink(byte[]... keys) {
-		return convertAndReturn(delegate.unlink(keys), identityConverter);
+		return convertAndReturn(delegate.unlink(keys), Converters.identityConverter());
 	}
 
 	/*
@@ -311,7 +304,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] echo(byte[] message) {
-		return convertAndReturn(delegate.echo(message), identityConverter);
+		return convertAndReturn(delegate.echo(message), Converters.identityConverter());
 	}
 
 	/*
@@ -340,7 +333,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean exists(byte[] key) {
-		return convertAndReturn(delegate.exists(key), identityConverter);
+		return convertAndReturn(delegate.exists(key), Converters.identityConverter());
 	}
 
 	/*
@@ -349,7 +342,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long exists(String... keys) {
-		return convertAndReturn(delegate.exists(serializeMulti(keys)), identityConverter);
+		return convertAndReturn(delegate.exists(serializeMulti(keys)), Converters.identityConverter());
 	}
 
 	/*
@@ -358,7 +351,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long exists(byte[]... keys) {
-		return convertAndReturn(delegate.exists(keys), identityConverter);
+		return convertAndReturn(delegate.exists(keys), Converters.identityConverter());
 	}
 
 	/*
@@ -367,7 +360,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean expire(byte[] key, long seconds) {
-		return convertAndReturn(delegate.expire(key, seconds), identityConverter);
+		return convertAndReturn(delegate.expire(key, seconds), Converters.identityConverter());
 	}
 
 	/*
@@ -376,7 +369,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean expireAt(byte[] key, long unixTime) {
-		return convertAndReturn(delegate.expireAt(key, unixTime), identityConverter);
+		return convertAndReturn(delegate.expireAt(key, unixTime), Converters.identityConverter());
 	}
 
 	/*
@@ -403,7 +396,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] get(byte[] key) {
-		return convertAndReturn(delegate.get(key), identityConverter);
+		return convertAndReturn(delegate.get(key), Converters.identityConverter());
 	}
 
 	/*
@@ -412,7 +405,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean getBit(byte[] key, long offset) {
-		return convertAndReturn(delegate.getBit(key, offset), identityConverter);
+		return convertAndReturn(delegate.getBit(key, offset), Converters.identityConverter());
 	}
 
 	/*
@@ -421,7 +414,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Properties getConfig(String pattern) {
-		return convertAndReturn(delegate.getConfig(pattern), identityConverter);
+		return convertAndReturn(delegate.getConfig(pattern), Converters.identityConverter());
 	}
 
 	/*
@@ -430,7 +423,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Object getNativeConnection() {
-		return convertAndReturn(delegate.getNativeConnection(), identityConverter);
+		return convertAndReturn(delegate.getNativeConnection(), Converters.identityConverter());
 	}
 
 	/*
@@ -439,7 +432,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] getRange(byte[] key, long start, long end) {
-		return convertAndReturn(delegate.getRange(key, start, end), identityConverter);
+		return convertAndReturn(delegate.getRange(key, start, end), Converters.identityConverter());
 	}
 
 	/*
@@ -448,7 +441,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] getSet(byte[] key, byte[] value) {
-		return convertAndReturn(delegate.getSet(key, value), identityConverter);
+		return convertAndReturn(delegate.getSet(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -466,7 +459,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long hDel(byte[] key, byte[]... fields) {
-		return convertAndReturn(delegate.hDel(key, fields), identityConverter);
+		return convertAndReturn(delegate.hDel(key, fields), Converters.identityConverter());
 	}
 
 	/*
@@ -475,7 +468,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean hExists(byte[] key, byte[] field) {
-		return convertAndReturn(delegate.hExists(key, field), identityConverter);
+		return convertAndReturn(delegate.hExists(key, field), Converters.identityConverter());
 	}
 
 	/*
@@ -484,7 +477,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] hGet(byte[] key, byte[] field) {
-		return convertAndReturn(delegate.hGet(key, field), identityConverter);
+		return convertAndReturn(delegate.hGet(key, field), Converters.identityConverter());
 	}
 
 	/*
@@ -493,7 +486,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
-		return convertAndReturn(delegate.hGetAll(key), identityConverter);
+		return convertAndReturn(delegate.hGetAll(key), Converters.identityConverter());
 	}
 
 	/*
@@ -502,7 +495,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
-		return convertAndReturn(delegate.hIncrBy(key, field, delta), identityConverter);
+		return convertAndReturn(delegate.hIncrBy(key, field, delta), Converters.identityConverter());
 	}
 
 	/*
@@ -511,7 +504,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Double hIncrBy(byte[] key, byte[] field, double delta) {
-		return convertAndReturn(delegate.hIncrBy(key, field, delta), identityConverter);
+		return convertAndReturn(delegate.hIncrBy(key, field, delta), Converters.identityConverter());
 	}
 
 	/*
@@ -520,7 +513,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> hKeys(byte[] key) {
-		return convertAndReturn(delegate.hKeys(key), identityConverter);
+		return convertAndReturn(delegate.hKeys(key), Converters.identityConverter());
 	}
 
 	/*
@@ -529,7 +522,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long hLen(byte[] key) {
-		return convertAndReturn(delegate.hLen(key), identityConverter);
+		return convertAndReturn(delegate.hLen(key), Converters.identityConverter());
 	}
 
 	/*
@@ -538,7 +531,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
-		return convertAndReturn(delegate.hMGet(key, fields), identityConverter);
+		return convertAndReturn(delegate.hMGet(key, fields), Converters.identityConverter());
 	}
 
 	/*
@@ -556,7 +549,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
-		return convertAndReturn(delegate.hSet(key, field, value), identityConverter);
+		return convertAndReturn(delegate.hSet(key, field, value), Converters.identityConverter());
 	}
 
 	/*
@@ -565,7 +558,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
-		return convertAndReturn(delegate.hSetNX(key, field, value), identityConverter);
+		return convertAndReturn(delegate.hSetNX(key, field, value), Converters.identityConverter());
 	}
 
 	/*
@@ -574,7 +567,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<byte[]> hVals(byte[] key) {
-		return convertAndReturn(delegate.hVals(key), identityConverter);
+		return convertAndReturn(delegate.hVals(key), Converters.identityConverter());
 	}
 
 	/*
@@ -583,7 +576,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long incr(byte[] key) {
-		return convertAndReturn(delegate.incr(key), identityConverter);
+		return convertAndReturn(delegate.incr(key), Converters.identityConverter());
 	}
 
 	/*
@@ -593,7 +586,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long incrBy(byte[] key, long value) {
 
-		return convertAndReturn(delegate.incrBy(key, value), identityConverter);
+		return convertAndReturn(delegate.incrBy(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -602,7 +595,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Double incrBy(byte[] key, double value) {
-		return convertAndReturn(delegate.incrBy(key, value), identityConverter);
+		return convertAndReturn(delegate.incrBy(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -611,7 +604,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Properties info() {
-		return convertAndReturn(delegate.info(), identityConverter);
+		return convertAndReturn(delegate.info(), Converters.identityConverter());
 	}
 
 	/*
@@ -620,7 +613,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Properties info(String section) {
-		return convertAndReturn(delegate.info(section), identityConverter);
+		return convertAndReturn(delegate.info(section), Converters.identityConverter());
 	}
 
 	/*
@@ -656,7 +649,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> keys(byte[] pattern) {
-		return convertAndReturn(delegate.keys(pattern), identityConverter);
+		return convertAndReturn(delegate.keys(pattern), Converters.identityConverter());
 	}
 
 	/*
@@ -665,7 +658,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long lastSave() {
-		return convertAndReturn(delegate.lastSave(), identityConverter);
+		return convertAndReturn(delegate.lastSave(), Converters.identityConverter());
 	}
 
 	/*
@@ -674,7 +667,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] lIndex(byte[] key, long index) {
-		return convertAndReturn(delegate.lIndex(key, index), identityConverter);
+		return convertAndReturn(delegate.lIndex(key, index), Converters.identityConverter());
 	}
 
 	/*
@@ -683,7 +676,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
-		return convertAndReturn(delegate.lInsert(key, where, pivot, value), identityConverter);
+		return convertAndReturn(delegate.lInsert(key, where, pivot, value), Converters.identityConverter());
 	}
 
 	/*
@@ -692,7 +685,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long lLen(byte[] key) {
-		return convertAndReturn(delegate.lLen(key), identityConverter);
+		return convertAndReturn(delegate.lLen(key), Converters.identityConverter());
 	}
 
 	/*
@@ -701,7 +694,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] lPop(byte[] key) {
-		return convertAndReturn(delegate.lPop(key), identityConverter);
+		return convertAndReturn(delegate.lPop(key), Converters.identityConverter());
 	}
 
 	/*
@@ -710,7 +703,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<Long> lPos(byte[] key, byte[] element, @Nullable Integer rank, @Nullable Integer count) {
-		return convertAndReturn(delegate.lPos(key, element, rank, count), identityConverter);
+		return convertAndReturn(delegate.lPos(key, element, rank, count), Converters.identityConverter());
 	}
 
 	/*
@@ -719,7 +712,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long lPush(byte[] key, byte[]... values) {
-		return convertAndReturn(delegate.lPush(key, values), identityConverter);
+		return convertAndReturn(delegate.lPush(key, values), Converters.identityConverter());
 	}
 
 	/*
@@ -728,7 +721,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long lPushX(byte[] key, byte[] value) {
-		return convertAndReturn(delegate.lPushX(key, value), identityConverter);
+		return convertAndReturn(delegate.lPushX(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -737,7 +730,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<byte[]> lRange(byte[] key, long start, long end) {
-		return convertAndReturn(delegate.lRange(key, start, end), identityConverter);
+		return convertAndReturn(delegate.lRange(key, start, end), Converters.identityConverter());
 	}
 
 	/*
@@ -747,7 +740,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long lRem(byte[] key, long count, byte[] value) {
 
-		return convertAndReturn(delegate.lRem(key, count, value), identityConverter);
+		return convertAndReturn(delegate.lRem(key, count, value), Converters.identityConverter());
 	}
 
 	/*
@@ -774,7 +767,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<byte[]> mGet(byte[]... keys) {
-		return convertAndReturn(delegate.mGet(keys), identityConverter);
+		return convertAndReturn(delegate.mGet(keys), Converters.identityConverter());
 	}
 
 	/*
@@ -783,7 +776,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean mSet(Map<byte[], byte[]> tuple) {
-		return convertAndReturn(delegate.mSet(tuple), identityConverter);
+		return convertAndReturn(delegate.mSet(tuple), Converters.identityConverter());
 	}
 
 	/*
@@ -792,7 +785,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean mSetNX(Map<byte[], byte[]> tuple) {
-		return convertAndReturn(delegate.mSetNX(tuple), identityConverter);
+		return convertAndReturn(delegate.mSetNX(tuple), Converters.identityConverter());
 	}
 
 	/*
@@ -810,7 +803,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean persist(byte[] key) {
-		return convertAndReturn(delegate.persist(key), identityConverter);
+		return convertAndReturn(delegate.persist(key), Converters.identityConverter());
 	}
 
 	/*
@@ -819,7 +812,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
-		return convertAndReturn(delegate.move(key, dbIndex), identityConverter);
+		return convertAndReturn(delegate.move(key, dbIndex), Converters.identityConverter());
 	}
 
 	/*
@@ -828,7 +821,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public String ping() {
-		return convertAndReturn(delegate.ping(), identityConverter);
+		return convertAndReturn(delegate.ping(), Converters.identityConverter());
 	}
 
 	/*
@@ -846,7 +839,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long publish(byte[] channel, byte[] message) {
-		return convertAndReturn(delegate.publish(channel, message), identityConverter);
+		return convertAndReturn(delegate.publish(channel, message), Converters.identityConverter());
 	}
 
 	/*
@@ -855,7 +848,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] randomKey() {
-		return convertAndReturn(delegate.randomKey(), identityConverter);
+		return convertAndReturn(delegate.randomKey(), Converters.identityConverter());
 	}
 
 	/*
@@ -873,7 +866,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
-		return convertAndReturn(delegate.renameNX(sourceKey, targetKey), identityConverter);
+		return convertAndReturn(delegate.renameNX(sourceKey, targetKey), Converters.identityConverter());
 	}
 
 	/*
@@ -891,7 +884,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] rPop(byte[] key) {
-		return convertAndReturn(delegate.rPop(key), identityConverter);
+		return convertAndReturn(delegate.rPop(key), Converters.identityConverter());
 	}
 
 	/*
@@ -900,7 +893,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
-		return convertAndReturn(delegate.rPopLPush(srcKey, dstKey), identityConverter);
+		return convertAndReturn(delegate.rPopLPush(srcKey, dstKey), Converters.identityConverter());
 	}
 
 	/*
@@ -909,7 +902,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long rPush(byte[] key, byte[]... values) {
-		return convertAndReturn(delegate.rPush(key, values), identityConverter);
+		return convertAndReturn(delegate.rPush(key, values), Converters.identityConverter());
 	}
 
 	/*
@@ -918,7 +911,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long rPushX(byte[] key, byte[] value) {
-		return convertAndReturn(delegate.rPushX(key, value), identityConverter);
+		return convertAndReturn(delegate.rPushX(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -927,7 +920,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long sAdd(byte[] key, byte[]... values) {
-		return convertAndReturn(delegate.sAdd(key, values), identityConverter);
+		return convertAndReturn(delegate.sAdd(key, values), Converters.identityConverter());
 	}
 
 	/*
@@ -945,7 +938,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long sCard(byte[] key) {
-		return convertAndReturn(delegate.sCard(key), identityConverter);
+		return convertAndReturn(delegate.sCard(key), Converters.identityConverter());
 	}
 
 	/*
@@ -954,7 +947,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
-		return convertAndReturn(delegate.sDiff(keys), identityConverter);
+		return convertAndReturn(delegate.sDiff(keys), Converters.identityConverter());
 	}
 
 	/*
@@ -963,7 +956,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
-		return convertAndReturn(delegate.sDiffStore(destKey, keys), identityConverter);
+		return convertAndReturn(delegate.sDiffStore(destKey, keys), Converters.identityConverter());
 	}
 
 	/*
@@ -981,7 +974,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean set(byte[] key, byte[] value) {
-		return convertAndReturn(delegate.set(key, value), identityConverter);
+		return convertAndReturn(delegate.set(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -990,7 +983,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
-		return convertAndReturn(delegate.set(key, value, expiration, option), identityConverter);
+		return convertAndReturn(delegate.set(key, value, expiration, option), Converters.identityConverter());
 	}
 
 	/*
@@ -999,7 +992,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean setBit(byte[] key, long offset, boolean value) {
-		return convertAndReturn(delegate.setBit(key, offset, value), identityConverter);
+		return convertAndReturn(delegate.setBit(key, offset, value), Converters.identityConverter());
 	}
 
 	/*
@@ -1017,7 +1010,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean setEx(byte[] key, long seconds, byte[] value) {
-		return convertAndReturn(delegate.setEx(key, seconds, value), identityConverter);
+		return convertAndReturn(delegate.setEx(key, seconds, value), Converters.identityConverter());
 	}
 
 	/*
@@ -1026,7 +1019,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean pSetEx(byte[] key, long milliseconds, byte[] value) {
-		return convertAndReturn(delegate.pSetEx(key, milliseconds, value), identityConverter);
+		return convertAndReturn(delegate.pSetEx(key, milliseconds, value), Converters.identityConverter());
 	}
 
 	/*
@@ -1035,7 +1028,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean setNX(byte[] key, byte[] value) {
-		return convertAndReturn(delegate.setNX(key, value), identityConverter);
+		return convertAndReturn(delegate.setNX(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -1071,7 +1064,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
-		return convertAndReturn(delegate.sInter(keys), identityConverter);
+		return convertAndReturn(delegate.sInter(keys), Converters.identityConverter());
 	}
 
 	/*
@@ -1080,7 +1073,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
-		return convertAndReturn(delegate.sInterStore(destKey, keys), identityConverter);
+		return convertAndReturn(delegate.sInterStore(destKey, keys), Converters.identityConverter());
 	}
 
 	/*
@@ -1089,7 +1082,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean sIsMember(byte[] key, byte[] value) {
-		return convertAndReturn(delegate.sIsMember(key, value), identityConverter);
+		return convertAndReturn(delegate.sIsMember(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -1098,7 +1091,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> sMembers(byte[] key) {
-		return convertAndReturn(delegate.sMembers(key), identityConverter);
+		return convertAndReturn(delegate.sMembers(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1107,7 +1100,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
-		return convertAndReturn(delegate.sMove(srcKey, destKey, value), identityConverter);
+		return convertAndReturn(delegate.sMove(srcKey, destKey, value), Converters.identityConverter());
 	}
 
 	/*
@@ -1116,7 +1109,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
-		return convertAndReturn(delegate.sort(key, params, storeKey), identityConverter);
+		return convertAndReturn(delegate.sort(key, params, storeKey), Converters.identityConverter());
 	}
 
 	/*
@@ -1125,7 +1118,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<byte[]> sort(byte[] key, SortParameters params) {
-		return convertAndReturn(delegate.sort(key, params), identityConverter);
+		return convertAndReturn(delegate.sort(key, params), Converters.identityConverter());
 	}
 
 	/*
@@ -1134,7 +1127,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public ValueEncoding encodingOf(byte[] key) {
-		return convertAndReturn(delegate.encodingOf(key), identityConverter);
+		return convertAndReturn(delegate.encodingOf(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1143,7 +1136,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Duration idletime(byte[] key) {
-		return convertAndReturn(delegate.idletime(key), identityConverter);
+		return convertAndReturn(delegate.idletime(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1152,7 +1145,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long refcount(byte[] key) {
-		return convertAndReturn(delegate.refcount(key), identityConverter);
+		return convertAndReturn(delegate.refcount(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1161,7 +1154,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] sPop(byte[] key) {
-		return convertAndReturn(delegate.sPop(key), identityConverter);
+		return convertAndReturn(delegate.sPop(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1170,7 +1163,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<byte[]> sPop(byte[] key, long count) {
-		return convertAndReturn(delegate.sPop(key, count), identityConverter);
+		return convertAndReturn(delegate.sPop(key, count), Converters.identityConverter());
 	}
 
 	/*
@@ -1179,7 +1172,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] sRandMember(byte[] key) {
-		return convertAndReturn(delegate.sRandMember(key), identityConverter);
+		return convertAndReturn(delegate.sRandMember(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1188,7 +1181,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<byte[]> sRandMember(byte[] key, long count) {
-		return convertAndReturn(delegate.sRandMember(key, count), identityConverter);
+		return convertAndReturn(delegate.sRandMember(key, count), Converters.identityConverter());
 	}
 
 	/*
@@ -1197,7 +1190,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long sRem(byte[] key, byte[]... values) {
-		return convertAndReturn(delegate.sRem(key, values), identityConverter);
+		return convertAndReturn(delegate.sRem(key, values), Converters.identityConverter());
 	}
 
 	/*
@@ -1206,7 +1199,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long strLen(byte[] key) {
-		return convertAndReturn(delegate.strLen(key), identityConverter);
+		return convertAndReturn(delegate.strLen(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1215,7 +1208,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long bitCount(byte[] key) {
-		return convertAndReturn(delegate.bitCount(key), identityConverter);
+		return convertAndReturn(delegate.bitCount(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1224,7 +1217,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long bitCount(byte[] key, long start, long end) {
-		return convertAndReturn(delegate.bitCount(key, start, end), identityConverter);
+		return convertAndReturn(delegate.bitCount(key, start, end), Converters.identityConverter());
 	}
 
 	/*
@@ -1233,7 +1226,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
-		return convertAndReturn(delegate.bitOp(op, destination, keys), identityConverter);
+		return convertAndReturn(delegate.bitOp(op, destination, keys), Converters.identityConverter());
 	}
 
 	/*
@@ -1243,7 +1236,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Nullable
 	@Override
 	public Long bitPos(byte[] key, boolean bit, org.springframework.data.domain.Range<Long> range) {
-		return convertAndReturn(delegate.bitPos(key, bit, range), identityConverter);
+		return convertAndReturn(delegate.bitPos(key, bit, range), Converters.identityConverter());
 	}
 
 	/*
@@ -1261,7 +1254,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
-		return convertAndReturn(delegate.sUnion(keys), identityConverter);
+		return convertAndReturn(delegate.sUnion(keys), Converters.identityConverter());
 	}
 
 	/*
@@ -1270,7 +1263,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
-		return convertAndReturn(delegate.sUnionStore(destKey, keys), identityConverter);
+		return convertAndReturn(delegate.sUnionStore(destKey, keys), Converters.identityConverter());
 	}
 
 	/*
@@ -1279,7 +1272,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long ttl(byte[] key) {
-		return convertAndReturn(delegate.ttl(key), identityConverter);
+		return convertAndReturn(delegate.ttl(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1288,7 +1281,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long ttl(byte[] key, TimeUnit timeUnit) {
-		return convertAndReturn(delegate.ttl(key, timeUnit), identityConverter);
+		return convertAndReturn(delegate.ttl(key, timeUnit), Converters.identityConverter());
 	}
 
 	/*
@@ -1297,7 +1290,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public DataType type(byte[] key) {
-		return convertAndReturn(delegate.type(key), identityConverter);
+		return convertAndReturn(delegate.type(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1306,7 +1299,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long touch(byte[]... keys) {
-		return convertAndReturn(delegate.touch(keys), identityConverter);
+		return convertAndReturn(delegate.touch(keys), Converters.identityConverter());
 	}
 
 	/*
@@ -1333,7 +1326,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
-		return convertAndReturn(delegate.zAdd(key, score, value), identityConverter);
+		return convertAndReturn(delegate.zAdd(key, score, value), Converters.identityConverter());
 	}
 
 	/*
@@ -1342,7 +1335,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zAdd(byte[] key, Set<Tuple> tuples) {
-		return convertAndReturn(delegate.zAdd(key, tuples), identityConverter);
+		return convertAndReturn(delegate.zAdd(key, tuples), Converters.identityConverter());
 	}
 
 	/*
@@ -1351,7 +1344,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zCard(byte[] key) {
-		return convertAndReturn(delegate.zCard(key), identityConverter);
+		return convertAndReturn(delegate.zCard(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1360,7 +1353,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zCount(byte[] key, double min, double max) {
-		return convertAndReturn(delegate.zCount(key, min, max), identityConverter);
+		return convertAndReturn(delegate.zCount(key, min, max), Converters.identityConverter());
 	}
 
 	/*
@@ -1369,7 +1362,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zCount(byte[] key, Range range) {
-		return convertAndReturn(delegate.zCount(key, range), identityConverter);
+		return convertAndReturn(delegate.zCount(key, range), Converters.identityConverter());
 	}
 
 	/*
@@ -1378,7 +1371,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
-		return convertAndReturn(delegate.zIncrBy(key, increment, value), identityConverter);
+		return convertAndReturn(delegate.zIncrBy(key, increment, value), Converters.identityConverter());
 	}
 
 	/*
@@ -1387,7 +1380,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
-		return convertAndReturn(delegate.zInterStore(destKey, aggregate, weights, sets), identityConverter);
+		return convertAndReturn(delegate.zInterStore(destKey, aggregate, weights, sets), Converters.identityConverter());
 	}
 
 	/*
@@ -1396,7 +1389,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
-		return convertAndReturn(delegate.zInterStore(destKey, sets), identityConverter);
+		return convertAndReturn(delegate.zInterStore(destKey, sets), Converters.identityConverter());
 	}
 
 	/*
@@ -1405,7 +1398,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
-		return convertAndReturn(delegate.zRange(key, start, end), identityConverter);
+		return convertAndReturn(delegate.zRange(key, start, end), Converters.identityConverter());
 	}
 
 	/*
@@ -1414,7 +1407,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
-		return convertAndReturn(delegate.zRangeByScore(key, min, max, offset, count), identityConverter);
+		return convertAndReturn(delegate.zRangeByScore(key, min, max, offset, count), Converters.identityConverter());
 	}
 
 	/*
@@ -1423,7 +1416,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, Range range) {
-		return convertAndReturn(delegate.zRangeByScore(key, range), identityConverter);
+		return convertAndReturn(delegate.zRangeByScore(key, range), Converters.identityConverter());
 	}
 
 	/*
@@ -1432,7 +1425,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
-		return convertAndReturn(delegate.zRangeByScore(key, range, limit), identityConverter);
+		return convertAndReturn(delegate.zRangeByScore(key, range, limit), Converters.identityConverter());
 	}
 
 	/*
@@ -1441,7 +1434,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range) {
-		return convertAndReturn(delegate.zRangeByScoreWithScores(key, range), identityConverter);
+		return convertAndReturn(delegate.zRangeByScoreWithScores(key, range), Converters.identityConverter());
 	}
 
 	/*
@@ -1450,7 +1443,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
-		return convertAndReturn(delegate.zRangeByScore(key, min, max), identityConverter);
+		return convertAndReturn(delegate.zRangeByScore(key, min, max), Converters.identityConverter());
 	}
 
 	/*
@@ -1459,7 +1452,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
-		return convertAndReturn(delegate.zRangeByScoreWithScores(key, min, max, offset, count), identityConverter);
+		return convertAndReturn(delegate.zRangeByScoreWithScores(key, min, max, offset, count), Converters.identityConverter());
 	}
 
 	/*
@@ -1468,7 +1461,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
-		return convertAndReturn(delegate.zRangeByScoreWithScores(key, range, limit), identityConverter);
+		return convertAndReturn(delegate.zRangeByScoreWithScores(key, range, limit), Converters.identityConverter());
 	}
 
 	/*
@@ -1477,7 +1470,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
-		return convertAndReturn(delegate.zRangeByScoreWithScores(key, min, max), identityConverter);
+		return convertAndReturn(delegate.zRangeByScoreWithScores(key, min, max), Converters.identityConverter());
 	}
 
 	/*
@@ -1486,7 +1479,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
-		return convertAndReturn(delegate.zRangeWithScores(key, start, end), identityConverter);
+		return convertAndReturn(delegate.zRangeWithScores(key, start, end), Converters.identityConverter());
 	}
 
 	/*
@@ -1495,7 +1488,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
-		return convertAndReturn(delegate.zRevRangeByScore(key, min, max, offset, count), identityConverter);
+		return convertAndReturn(delegate.zRevRangeByScore(key, min, max, offset, count), Converters.identityConverter());
 	}
 
 	/*
@@ -1504,7 +1497,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, Range range) {
-		return convertAndReturn(delegate.zRevRangeByScore(key, range), identityConverter);
+		return convertAndReturn(delegate.zRevRangeByScore(key, range), Converters.identityConverter());
 	}
 
 	/*
@@ -1513,7 +1506,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
-		return convertAndReturn(delegate.zRevRangeByScore(key, min, max), identityConverter);
+		return convertAndReturn(delegate.zRevRangeByScore(key, min, max), Converters.identityConverter());
 	}
 
 	/*
@@ -1522,7 +1515,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
-		return convertAndReturn(delegate.zRevRangeByScore(key, range, limit), identityConverter);
+		return convertAndReturn(delegate.zRevRangeByScore(key, range, limit), Converters.identityConverter());
 	}
 
 	/*
@@ -1531,7 +1524,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
-		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, min, max, offset, count), identityConverter);
+		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, min, max, offset, count), Converters.identityConverter());
 	}
 
 	/*
@@ -1540,7 +1533,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range) {
-		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, range), identityConverter);
+		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, range), Converters.identityConverter());
 	}
 
 	/*
@@ -1549,7 +1542,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
-		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, range, limit), identityConverter);
+		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, range, limit), Converters.identityConverter());
 	}
 
 	/*
@@ -1558,7 +1551,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
-		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, min, max), identityConverter);
+		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, min, max), Converters.identityConverter());
 	}
 
 	/*
@@ -1567,7 +1560,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zRank(byte[] key, byte[] value) {
-		return convertAndReturn(delegate.zRank(key, value), identityConverter);
+		return convertAndReturn(delegate.zRank(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -1576,7 +1569,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zRem(byte[] key, byte[]... values) {
-		return convertAndReturn(delegate.zRem(key, values), identityConverter);
+		return convertAndReturn(delegate.zRem(key, values), Converters.identityConverter());
 	}
 
 	/*
@@ -1585,7 +1578,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zRemRange(byte[] key, long start, long end) {
-		return convertAndReturn(delegate.zRemRange(key, start, end), identityConverter);
+		return convertAndReturn(delegate.zRemRange(key, start, end), Converters.identityConverter());
 	}
 
 	/*
@@ -1594,7 +1587,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
-		return convertAndReturn(delegate.zRemRangeByScore(key, min, max), identityConverter);
+		return convertAndReturn(delegate.zRemRangeByScore(key, min, max), Converters.identityConverter());
 	}
 
 	/*
@@ -1603,7 +1596,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zRemRangeByScore(byte[] key, Range range) {
-		return convertAndReturn(delegate.zRemRangeByScore(key, range), identityConverter);
+		return convertAndReturn(delegate.zRemRangeByScore(key, range), Converters.identityConverter());
 	}
 
 	/*
@@ -1612,7 +1605,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
-		return convertAndReturn(delegate.zRevRange(key, start, end), identityConverter);
+		return convertAndReturn(delegate.zRevRange(key, start, end), Converters.identityConverter());
 	}
 
 	/*
@@ -1621,7 +1614,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
-		return convertAndReturn(delegate.zRevRangeWithScores(key, start, end), identityConverter);
+		return convertAndReturn(delegate.zRevRangeWithScores(key, start, end), Converters.identityConverter());
 	}
 
 	/*
@@ -1630,7 +1623,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zRevRank(byte[] key, byte[] value) {
-		return convertAndReturn(delegate.zRevRank(key, value), identityConverter);
+		return convertAndReturn(delegate.zRevRank(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -1639,7 +1632,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Double zScore(byte[] key, byte[] value) {
-		return convertAndReturn(delegate.zScore(key, value), identityConverter);
+		return convertAndReturn(delegate.zScore(key, value), Converters.identityConverter());
 	}
 
 	/*
@@ -1648,7 +1641,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
-		return convertAndReturn(delegate.zUnionStore(destKey, aggregate, weights, sets), identityConverter);
+		return convertAndReturn(delegate.zUnionStore(destKey, aggregate, weights, sets), Converters.identityConverter());
 	}
 
 	/*
@@ -1656,7 +1649,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], byte[][])
 	 */
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
-		return convertAndReturn(delegate.zUnionStore(destKey, sets), identityConverter);
+		return convertAndReturn(delegate.zUnionStore(destKey, sets), Converters.identityConverter());
 	}
 
 	/*
@@ -1674,7 +1667,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean pExpire(byte[] key, long millis) {
-		return convertAndReturn(delegate.pExpire(key, millis), identityConverter);
+		return convertAndReturn(delegate.pExpire(key, millis), Converters.identityConverter());
 	}
 
 	/*
@@ -1683,7 +1676,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
-		return convertAndReturn(delegate.pExpireAt(key, unixTimeInMillis), identityConverter);
+		return convertAndReturn(delegate.pExpireAt(key, unixTimeInMillis), Converters.identityConverter());
 	}
 
 	/*
@@ -1692,7 +1685,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long pTtl(byte[] key) {
-		return convertAndReturn(delegate.pTtl(key), identityConverter);
+		return convertAndReturn(delegate.pTtl(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1701,7 +1694,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long pTtl(byte[] key, TimeUnit timeUnit) {
-		return convertAndReturn(delegate.pTtl(key, timeUnit), identityConverter);
+		return convertAndReturn(delegate.pTtl(key, timeUnit), Converters.identityConverter());
 	}
 
 	/*
@@ -1710,7 +1703,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public byte[] dump(byte[] key) {
-		return convertAndReturn(delegate.dump(key), identityConverter);
+		return convertAndReturn(delegate.dump(key), Converters.identityConverter());
 	}
 
 	/*
@@ -1746,7 +1739,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public String scriptLoad(byte[] script) {
-		return convertAndReturn(delegate.scriptLoad(script), identityConverter);
+		return convertAndReturn(delegate.scriptLoad(script), Converters.identityConverter());
 	}
 
 	/*
@@ -1755,7 +1748,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<Boolean> scriptExists(String... scriptSha1) {
-		return convertAndReturn(delegate.scriptExists(scriptSha1), identityConverter);
+		return convertAndReturn(delegate.scriptExists(scriptSha1), Converters.identityConverter());
 	}
 
 	/*
@@ -1764,7 +1757,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		return convertAndReturn(delegate.eval(script, returnType, numKeys, keysAndArgs), identityConverter);
+		return convertAndReturn(delegate.eval(script, returnType, numKeys, keysAndArgs), Converters.identityConverter());
 	}
 
 	/*
@@ -1773,7 +1766,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		return convertAndReturn(delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs), identityConverter);
+		return convertAndReturn(delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs), Converters.identityConverter());
 	}
 
 	/*
@@ -1782,7 +1775,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		return convertAndReturn(delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs), identityConverter);
+		return convertAndReturn(delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs), Converters.identityConverter());
 	}
 
 	//
@@ -2943,7 +2936,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long geoAdd(byte[] key, Point point, byte[] member) {
 
-		return convertAndReturn(delegate.geoAdd(key, point, member), identityConverter);
+		return convertAndReturn(delegate.geoAdd(key, point, member), Converters.identityConverter());
 	}
 
 	/*
@@ -2951,7 +2944,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
 	 */
 	public Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
-		return convertAndReturn(delegate.geoAdd(key, location), identityConverter);
+		return convertAndReturn(delegate.geoAdd(key, location), Converters.identityConverter());
 	}
 
 	/*
@@ -2980,7 +2973,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap) {
-		return convertAndReturn(delegate.geoAdd(key, memberCoordinateMap), identityConverter);
+		return convertAndReturn(delegate.geoAdd(key, memberCoordinateMap), Converters.identityConverter());
 	}
 
 	/*
@@ -2989,7 +2982,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations) {
-		return convertAndReturn(delegate.geoAdd(key, locations), identityConverter);
+		return convertAndReturn(delegate.geoAdd(key, locations), Converters.identityConverter());
 	}
 
 	/*
@@ -3032,7 +3025,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Distance geoDist(byte[] key, byte[] member1, byte[] member2) {
-		return convertAndReturn(delegate.geoDist(key, member1, member2), identityConverter);
+		return convertAndReturn(delegate.geoDist(key, member1, member2), Converters.identityConverter());
 	}
 
 	/*
@@ -3050,7 +3043,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric) {
-		return convertAndReturn(delegate.geoDist(key, member1, member2, metric), identityConverter);
+		return convertAndReturn(delegate.geoDist(key, member1, member2, metric), Converters.identityConverter());
 	}
 
 	/*
@@ -3068,7 +3061,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<String> geoHash(byte[] key, byte[]... members) {
-		return convertAndReturn(delegate.geoHash(key, members), identityConverter);
+		return convertAndReturn(delegate.geoHash(key, members), Converters.identityConverter());
 	}
 
 	/*
@@ -3077,7 +3070,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<String> geoHash(String key, String... members) {
-		return convertAndReturn(delegate.geoHash(serialize(key), serializeMulti(members)), identityConverter);
+		return convertAndReturn(delegate.geoHash(serialize(key), serializeMulti(members)), Converters.identityConverter());
 	}
 
 	/*
@@ -3086,7 +3079,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<Point> geoPos(byte[] key, byte[]... members) {
-		return convertAndReturn(delegate.geoPos(key, members), identityConverter);
+		return convertAndReturn(delegate.geoPos(key, members), Converters.identityConverter());
 	}
 
 	/*
@@ -3154,7 +3147,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
-		return convertAndReturn(delegate.geoRadius(key, within), identityConverter);
+		return convertAndReturn(delegate.geoRadius(key, within), Converters.identityConverter());
 	}
 
 	/*
@@ -3163,7 +3156,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args) {
-		return convertAndReturn(delegate.geoRadius(key, within, args), identityConverter);
+		return convertAndReturn(delegate.geoRadius(key, within, args), Converters.identityConverter());
 	}
 
 	/*
@@ -3181,7 +3174,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
-		return convertAndReturn(delegate.geoRadiusByMember(key, member, radius), identityConverter);
+		return convertAndReturn(delegate.geoRadiusByMember(key, member, radius), Converters.identityConverter());
 	}
 
 	/*
@@ -3192,7 +3185,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
 			GeoRadiusCommandArgs args) {
 
-		return convertAndReturn(delegate.geoRadiusByMember(key, member, radius, args), identityConverter);
+		return convertAndReturn(delegate.geoRadiusByMember(key, member, radius, args), Converters.identityConverter());
 	}
 
 	/*
@@ -3260,7 +3253,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Object execute(String command, byte[]... args) {
-		return convertAndReturn(delegate.execute(command, args), identityConverter);
+		return convertAndReturn(delegate.execute(command, args), Converters.identityConverter());
 	}
 
 	/*
@@ -3339,7 +3332,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long time() {
-		return convertAndReturn(this.delegate.time(), identityConverter);
+		return convertAndReturn(this.delegate.time(), Converters.identityConverter());
 	}
 
 	/*
@@ -3348,7 +3341,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<RedisClientInfo> getClientList() {
-		return convertAndReturn(this.delegate.getClientList(), identityConverter);
+		return convertAndReturn(this.delegate.getClientList(), Converters.identityConverter());
 	}
 
 	/*
@@ -3412,7 +3405,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Nullable
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {
-		return convertAndReturn(delegate.hStrLen(key, field), identityConverter);
+		return convertAndReturn(delegate.hStrLen(key, field), Converters.identityConverter());
 	}
 
 	/*
@@ -3447,7 +3440,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public String getClientName() {
-		return convertAndReturn(this.delegate.getClientName(), identityConverter);
+		return convertAndReturn(this.delegate.getClientName(), Converters.identityConverter());
 	}
 
 	/*
@@ -3537,7 +3530,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
-		return convertAndReturn(delegate.zRangeByScore(key, min, max), identityConverter);
+		return convertAndReturn(delegate.zRangeByScore(key, min, max), Converters.identityConverter());
 	}
 
 	/*
@@ -3546,7 +3539,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
-		return convertAndReturn(delegate.zRangeByScore(key, min, max, offset, count), identityConverter);
+		return convertAndReturn(delegate.zRangeByScore(key, min, max, offset, count), Converters.identityConverter());
 	}
 
 	/*
@@ -3555,7 +3548,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long pfAdd(byte[] key, byte[]... values) {
-		return convertAndReturn(delegate.pfAdd(key, values), identityConverter);
+		return convertAndReturn(delegate.pfAdd(key, values), Converters.identityConverter());
 	}
 
 	/*
@@ -3573,7 +3566,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long pfCount(byte[]... keys) {
-		return convertAndReturn(delegate.pfCount(keys), identityConverter);
+		return convertAndReturn(delegate.pfCount(keys), Converters.identityConverter());
 	}
 
 	/*
@@ -3609,7 +3602,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByLex(byte[] key) {
-		return convertAndReturn(delegate.zRangeByLex(key), identityConverter);
+		return convertAndReturn(delegate.zRangeByLex(key), Converters.identityConverter());
 	}
 
 	/*
@@ -3618,7 +3611,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByLex(byte[] key, Range range) {
-		return convertAndReturn(delegate.zRangeByLex(key, range), identityConverter);
+		return convertAndReturn(delegate.zRangeByLex(key, range), Converters.identityConverter());
 	}
 
 	/*
@@ -3627,7 +3620,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
-		return convertAndReturn(delegate.zRangeByLex(key, range, limit), identityConverter);
+		return convertAndReturn(delegate.zRangeByLex(key, range, limit), Converters.identityConverter());
 	}
 
 	/*
@@ -3663,7 +3656,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit) {
-		return convertAndReturn(delegate.zRevRangeByLex(key, range, limit), identityConverter);
+		return convertAndReturn(delegate.zRevRangeByLex(key, range, limit), Converters.identityConverter());
 	}
 
 	/*
@@ -3699,7 +3692,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long xAck(String key, String group, RecordId... recordIds) {
-		return convertAndReturn(delegate.xAck(this.serialize(key), group, recordIds), identityConverter);
+		return convertAndReturn(delegate.xAck(this.serialize(key), group, recordIds), Converters.identityConverter());
 	}
 
 	/*
@@ -3708,7 +3701,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public RecordId xAdd(StringRecord record, XAddOptions options) {
-		return convertAndReturn(delegate.xAdd(record.serialize(serializer), options), identityConverter);
+		return convertAndReturn(delegate.xAdd(record.serialize(serializer), options), Converters.identityConverter());
 	}
 
 	/*
@@ -3717,7 +3710,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<RecordId> xClaimJustId(String key, String group, String consumer, XClaimOptions options) {
-		return convertAndReturn(delegate.xClaimJustId(serialize(key), group, consumer, options), identityConverter);
+		return convertAndReturn(delegate.xClaimJustId(serialize(key), group, consumer, options), Converters.identityConverter());
 	}
 
 	/*
@@ -3736,7 +3729,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long xDel(String key, RecordId... recordIds) {
-		return convertAndReturn(delegate.xDel(serialize(key), recordIds), identityConverter);
+		return convertAndReturn(delegate.xDel(serialize(key), recordIds), Converters.identityConverter());
 	}
 
 	/*
@@ -3745,7 +3738,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public String xGroupCreate(String key, ReadOffset readOffset, String group) {
-		return convertAndReturn(delegate.xGroupCreate(serialize(key), group, readOffset), identityConverter);
+		return convertAndReturn(delegate.xGroupCreate(serialize(key), group, readOffset), Converters.identityConverter());
 	}
 
 	/*
@@ -3754,7 +3747,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public String xGroupCreate(String key, ReadOffset readOffset, String group, boolean mkStream) {
-		return convertAndReturn(delegate.xGroupCreate(serialize(key), group, readOffset, mkStream), identityConverter);
+		return convertAndReturn(delegate.xGroupCreate(serialize(key), group, readOffset, mkStream), Converters.identityConverter());
 	}
 
 	/*
@@ -3763,7 +3756,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean xGroupDelConsumer(String key, Consumer consumer) {
-		return convertAndReturn(delegate.xGroupDelConsumer(serialize(key), consumer), identityConverter);
+		return convertAndReturn(delegate.xGroupDelConsumer(serialize(key), consumer), Converters.identityConverter());
 	}
 
 	/*
@@ -3772,7 +3765,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Boolean xGroupDestroy(String key, String group) {
-		return convertAndReturn(delegate.xGroupDestroy(serialize(key), group), identityConverter);
+		return convertAndReturn(delegate.xGroupDestroy(serialize(key), group), Converters.identityConverter());
 	}
 
 	/*
@@ -3781,7 +3774,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public XInfoStream xInfo(String key) {
-		return convertAndReturn(delegate.xInfo(serialize(key)), identityConverter);
+		return convertAndReturn(delegate.xInfo(serialize(key)), Converters.identityConverter());
 	}
 
 	/*
@@ -3790,7 +3783,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public XInfoGroups xInfoGroups(String key) {
-		return convertAndReturn(delegate.xInfoGroups(serialize(key)), identityConverter);
+		return convertAndReturn(delegate.xInfoGroups(serialize(key)), Converters.identityConverter());
 	}
 
 	/*
@@ -3799,7 +3792,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public XInfoConsumers xInfoConsumers(String key, String groupName) {
-		return convertAndReturn(delegate.xInfoConsumers(serialize(key), groupName), identityConverter);
+		return convertAndReturn(delegate.xInfoConsumers(serialize(key), groupName), Converters.identityConverter());
 	}
 
 	/*
@@ -3808,7 +3801,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long xLen(String key) {
-		return convertAndReturn(delegate.xLen(serialize(key)), identityConverter);
+		return convertAndReturn(delegate.xLen(serialize(key)), Converters.identityConverter());
 	}
 
 	/*
@@ -3817,7 +3810,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public PendingMessagesSummary xPending(String key, String groupName) {
-		return convertAndReturn(delegate.xPending(serialize(key), groupName), identityConverter);
+		return convertAndReturn(delegate.xPending(serialize(key), groupName), Converters.identityConverter());
 	}
 
 	/*
@@ -3827,7 +3820,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public PendingMessages xPending(String key, String groupName, String consumer,
 			org.springframework.data.domain.Range<String> range, Long count) {
-		return convertAndReturn(delegate.xPending(serialize(key), groupName, consumer, range, count), identityConverter);
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, consumer, range, count), Converters.identityConverter());
 	}
 
 	/*
@@ -3837,7 +3830,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public PendingMessages xPending(String key, String groupName, org.springframework.data.domain.Range<String> range,
 			Long count) {
-		return convertAndReturn(delegate.xPending(serialize(key), groupName, range, count), identityConverter);
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, range, count), Converters.identityConverter());
 	}
 
 	/*
@@ -3846,7 +3839,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public PendingMessages xPending(String key, String groupName, XPendingOptions options) {
-		return convertAndReturn(delegate.xPending(serialize(key), groupName, options), identityConverter);
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, options), Converters.identityConverter());
 	}
 
 	/*
@@ -3906,7 +3899,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Long xTrim(String key, long count, boolean approximateTrimming) {
-		return convertAndReturn(delegate.xTrim(serialize(key), count, approximateTrimming), identityConverter);
+		return convertAndReturn(delegate.xTrim(serialize(key), count, approximateTrimming), Converters.identityConverter());
 	}
 
 	/*
@@ -4124,7 +4117,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		}
 
 		return value == null ? null
-				: ObjectUtils.nullSafeEquals(converter, identityConverter) ? (T) value : (T) converter.convert(value);
+				: ObjectUtils.nullSafeEquals(converter, Converters.identityConverter()) ? (T) value : (T) converter.convert(value);
 	}
 
 	private void addResultConverter(Converter<?, ?> converter) {
@@ -4176,7 +4169,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 		List<Long> results = delegate.bitField(serialize(key), operation);
 		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
+			addResultConverter(Converters.identityConverter());
 		}
 		return results;
 	}

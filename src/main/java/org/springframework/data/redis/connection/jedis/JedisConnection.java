@@ -79,7 +79,6 @@ public class JedisConnection extends AbstractRedisConnection {
 			nullDefault) -> doInvoke(true, directFunction, pipelineFunction, converter, nullDefault));
 
 	private final @Nullable Pool<Jedis> pool;
-	private final int dbIndex;
 	private final String clientName;
 
 	private List<JedisResult> pipelinedResults = new ArrayList<>();
@@ -124,7 +123,6 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		this.jedis = jedis;
 		this.pool = pool;
-		this.dbIndex = dbIndex;
 		this.clientName = clientName;
 
 		// select the db

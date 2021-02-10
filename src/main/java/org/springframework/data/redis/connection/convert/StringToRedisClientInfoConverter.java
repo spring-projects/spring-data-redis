@@ -21,7 +21,6 @@ import java.util.List;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.core.types.RedisClientInfo.RedisClientInfoBuilder;
-import org.springframework.lang.NonNull;
 
 /**
  * {@link Converter} implementation to create one {@link RedisClientInfo} per line entry in given {@link String} array.
@@ -43,7 +42,6 @@ public class StringToRedisClientInfoConverter implements Converter<String[], Lis
 	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
 	 */
 	@Override
-	@NonNull
 	public List<RedisClientInfo> convert(String[] lines) {
 
 		List<RedisClientInfo> clientInfoList = new ArrayList<>(lines.length);

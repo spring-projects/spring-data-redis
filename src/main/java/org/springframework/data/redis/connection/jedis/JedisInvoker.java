@@ -29,6 +29,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -66,16 +67,6 @@ class JedisInvoker {
 	}
 
 	/**
-	 * Returns a {@link Converter} that always returns its input argument.
-	 *
-	 * @param <T> the type of the input and output objects to the function
-	 * @return a function that always returns its input argument
-	 */
-	static <T> Converter<T, T> identityConverter() {
-		return t -> t;
-	}
-
-	/**
 	 * Invoke the {@link ConnectionFunction0} and return its result.
 	 *
 	 * @param function must not be {@literal null}.
@@ -87,7 +78,7 @@ class JedisInvoker {
 
 		return synchronizer.invoke(function::apply, it -> {
 			throw new UnsupportedOperationException("Operation not supported in pipelining/transaction mode");
-		}, identityConverter(), () -> null);
+		}, Converters.identityConverter(), () -> null);
 	}
 
 	/**
@@ -102,7 +93,7 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null!");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
 
-		return synchronizer.invoke(function::apply, pipelineFunction::apply, identityConverter(), () -> null);
+		return synchronizer.invoke(function::apply, pipelineFunction::apply, Converters.identityConverter(), () -> null);
 	}
 
 	/**
@@ -568,7 +559,7 @@ class JedisInvoker {
 		 * @return the result as {@link List}.
 		 */
 		default List<S> toList() {
-			return toList(identityConverter());
+			return toList(Converters.identityConverter());
 		}
 
 		/**
@@ -587,7 +578,7 @@ class JedisInvoker {
 		 * @return the result as {@link Set}.
 		 */
 		default Set<S> toSet() {
-			return toSet(identityConverter());
+			return toSet(Converters.identityConverter());
 		}
 
 		/**
@@ -915,8 +906,9 @@ class JedisInvoker {
 		private final Function<MultiKeyPipelineBase, Response<S>> parentPipelineFunction;
 		private final Synchronizer synchronizer;
 
-		public DefaultSingleInvocationSpec(Function<Jedis, S> parentFunction,
+		DefaultSingleInvocationSpec(Function<Jedis, S> parentFunction,
 				Function<MultiKeyPipelineBase, Response<S>> parentPipelineFunction, Synchronizer synchronizer) {
+
 			this.parentFunction = parentFunction;
 			this.parentPipelineFunction = parentPipelineFunction;
 			this.synchronizer = synchronizer;
@@ -946,7 +938,7 @@ class JedisInvoker {
 		private final Function<MultiKeyPipelineBase, Response<Collection<S>>> parentPipelineFunction;
 		private final Synchronizer synchronizer;
 
-		public DefaultManyInvocationSpec(Function<Jedis, ? extends Collection<S>> parentFunction,
+		DefaultManyInvocationSpec(Function<Jedis, ? extends Collection<S>> parentFunction,
 				Function<MultiKeyPipelineBase, Response<? extends Collection<S>>> parentPipelineFunction,
 				Synchronizer synchronizer) {
 
@@ -1008,7 +1000,7 @@ class JedisInvoker {
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		default <I, T> T invoke(Function<Jedis, I> callFunction,
 				Function<MultiKeyPipelineBase, Response<I>> pipelineFunction) {
-			return (T) doInvoke((Function) callFunction, (Function) pipelineFunction, identityConverter(), () -> null);
+			return (T) doInvoke((Function) callFunction, (Function) pipelineFunction, Converters.identityConverter(), () -> null);
 		}
 
 		@Nullable

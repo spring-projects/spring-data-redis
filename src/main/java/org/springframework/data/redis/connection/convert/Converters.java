@@ -76,6 +76,17 @@ abstract public class Converters {
 	private static final byte[] ZERO = new byte[] { '0' };
 	private static final String CLUSTER_NODES_LINE_SEPARATOR = "\n";
 
+	/**
+	 * Returns a {@link Converter} that always returns its input argument.
+	 *
+	 * @param <T> the type of the input and output objects to the function
+	 * @return a function that always returns its input argument
+	 * @since 2.5
+	 */
+	public static <T> Converter<T, T> identityConverter() {
+		return t -> t;
+	}
+
 	public static Boolean stringToBoolean(String source) {
 		return ObjectUtils.nullSafeEquals("OK", source);
 	}

@@ -176,9 +176,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 			protected void doClose() {
 				JedisKeyCommands.this.connection.close();
 			}
-
-			;
-
 		}.open();
 	}
 
