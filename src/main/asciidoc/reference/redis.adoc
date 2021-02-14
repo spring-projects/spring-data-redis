@@ -268,7 +268,7 @@ class WriteToMasterReadFromReplicaConfiguration {
   public LettuceConnectionFactory redisConnectionFactory() {
 
     LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
-      .readFrom(SLAVE_PREFERRED)
+      .readFrom(REPLICA_PREFERRED)
       .build();
 
     RedisStandaloneConfiguration serverConfig = new RedisStandaloneConfiguration("server", 6379);
