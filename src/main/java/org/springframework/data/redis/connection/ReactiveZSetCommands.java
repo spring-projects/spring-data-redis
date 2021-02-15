@@ -1445,6 +1445,82 @@ public interface ReactiveZSetCommands {
 	Flux<NumericResponse<ZRemRangeByScoreCommand, Long>> zRemRangeByScore(Publisher<ZRemRangeByScoreCommand> commands);
 
 	/**
+	 * {@code ZREMRANGEBYLEX} command parameters.
+	 *
+	 * @author Christoph Strobl
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
+	 */
+	class ZRemRangeByLexCommand extends KeyCommand {
+
+		private final Range<String> range;
+
+		private ZRemRangeByLexCommand(@Nullable ByteBuffer key, Range<String> range) {
+
+			super(key);
+			this.range = range;
+		}
+
+		/**
+		 * Creates a new {@link ZRemRangeByLexCommand} given a {@link Range}.
+		 *
+		 * @param range must not be {@literal null}.
+		 * @return a new {@link ZRemRangeByScoreCommand} for {@link Range}.
+		 */
+		public static ZRemRangeByLexCommand lexWithin(Range<String> range) {
+			return new ZRemRangeByLexCommand(null, range);
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ZRemRangeByLexCommand} with {@literal key} applied.
+		 */
+		public ZRemRangeByLexCommand from(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new ZRemRangeByLexCommand(key, range);
+		}
+
+		/**
+		 * @return
+		 */
+		public Range<String> getRange() {
+			return range;
+		}
+	}
+
+	/**
+	 * Remove elements in {@link Range} from sorted set with {@literal key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return a {@link Mono} emitting the number of removed elements.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
+	 */
+	default Mono<Long> zRemRangeByLex(ByteBuffer key, Range<String> range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null!");
+
+		return zRemRangeByLex(Mono.just(ZRemRangeByLexCommand.lexWithin(range).from(key))).next()
+				.map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Remove elements in {@link Range} from sorted set with {@link ZRemRangeByLexCommand#getKey()}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
+	 */
+	Flux<NumericResponse<ZRemRangeByLexCommand, Long>> zRemRangeByLex(Publisher<ZRemRangeByLexCommand> commands);
+
+	/**
 	 * {@code ZUNIONSTORE} command parameters.
 	 *
 	 * @author Christoph Strobl

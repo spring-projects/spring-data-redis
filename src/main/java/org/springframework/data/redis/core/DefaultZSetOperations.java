@@ -355,6 +355,17 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#removeRangeByLex(java.lang.Object, Range)
+	 */
+	@Override
+	public Long removeRangeByLex(K key, Range range) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.zRemRangeByLex(rawKey, range), true);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ZSetOperations#removeRangeByScore(java.lang.Object, double, double)
 	 */
 	@Override

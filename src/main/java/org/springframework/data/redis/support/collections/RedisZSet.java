@@ -118,6 +118,15 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
 	RedisZSet<E> remove(long start, long end);
 
+	/**
+	 * Remove all elements in range.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.5
+	 */
+	Set<E> removeByLex(Range range);
+
 	RedisZSet<E> removeByScore(double min, double max);
 
 	/**

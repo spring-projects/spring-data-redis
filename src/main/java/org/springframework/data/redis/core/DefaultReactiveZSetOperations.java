@@ -385,6 +385,19 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#removeRangebyLex(java.lang.Object, org.springframework.data.domain.Range)
+	 */
+	@Override
+	public Mono<Long> removeRangeByLex(K key, Range<String> range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null!");
+
+		return createMono(connection -> connection.zRemRangeByLex(rawKey(key), range));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#removeRangeByScore(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override

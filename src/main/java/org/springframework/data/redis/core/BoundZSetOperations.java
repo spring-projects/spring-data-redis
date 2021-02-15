@@ -253,6 +253,17 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Long removeRange(long start, long end);
 
 	/**
+	 * Remove elements in {@link Range} from sorted set with the bound key.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
+	 */
+	@Nullable
+	Long removeRangeByLex(Range range);
+
+	/**
 	 * Remove elements with scores between {@code min} and {@code max} from sorted set with the bound key.
 	 *
 	 * @param min

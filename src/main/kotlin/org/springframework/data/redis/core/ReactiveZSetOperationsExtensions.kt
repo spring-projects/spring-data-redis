@@ -187,6 +187,15 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.removeRangeAndAwait(
 		removeRange(key, range).awaitSingle()
 
 /**
+ * Coroutines variant of [ReactiveZSetOperations.removeRangeByLex].
+ *
+ * @author Christoph Strobl
+ * @since 2.5
+ */
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.removeRangeByLexAndAwait(key: K, range: Range<String>): Long =
+		removeRangeByLex(key, range).awaitSingle()
+
+/**
  * Coroutines variant of [ReactiveZSetOperations.removeRangeByScore].
  *
  * @author Mark Paluch
