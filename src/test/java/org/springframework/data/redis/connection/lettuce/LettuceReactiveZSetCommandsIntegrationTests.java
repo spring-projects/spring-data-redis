@@ -412,6 +412,26 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 		assertThat(connection.zSetCommands().zRemRangeByRank(KEY_1_BBUFFER, ONE_TO_TWO).block()).isEqualTo(2L);
 	}
 
+	@ParameterizedRedisTest // GH-1816
+	void zRemRangeByLexRemovesValuesCorrectly() {
+
+		nativeCommands.zadd(KEY_1, 0D, "aaaa");
+		nativeCommands.zadd(KEY_1, 0D, "b");
+		nativeCommands.zadd(KEY_1, 0D, "c");
+		nativeCommands.zadd(KEY_1, 0D, "d");
+		nativeCommands.zadd(KEY_1, 0D, "e");
+		nativeCommands.zadd(KEY_1, 0D, "foo");
+		nativeCommands.zadd(KEY_1, 0D, "zap");
+		nativeCommands.zadd(KEY_1, 0D, "zip");
+		nativeCommands.zadd(KEY_1, 0D, "ALPHA");
+		nativeCommands.zadd(KEY_1, 0D, "alpha");
+
+		connection.zSetCommands().zRemRangeByLex(KEY_1_BBUFFER, Range.closed("alpha", "omega")) //
+				.as(StepVerifier::create) //
+				.expectNext(6L) //
+				.verifyComplete();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-525
 	void zRemRangeByScoreShouldRemoveValuesCorrectly() {
 
