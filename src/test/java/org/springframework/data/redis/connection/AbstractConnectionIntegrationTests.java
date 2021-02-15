@@ -1905,6 +1905,25 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { true, true, 2L, new LinkedHashSet<String>(0) }));
 	}
 
+	@Test // GH-1816
+	void testZRemRangeByLex() {
+
+		actual.add(connection.zAdd("myset", 0, "aaaa"));
+		actual.add(connection.zAdd("myset", 0, "b"));
+		actual.add(connection.zAdd("myset", 0, "c"));
+		actual.add(connection.zAdd("myset", 0, "d"));
+		actual.add(connection.zAdd("myset", 0, "e"));
+		actual.add(connection.zAdd("myset", 0, "foo"));
+		actual.add(connection.zAdd("myset", 0, "zap"));
+		actual.add(connection.zAdd("myset", 0, "zip"));
+		actual.add(connection.zAdd("myset", 0, "ALPHA"));
+		actual.add(connection.zAdd("myset", 0, "alpha"));
+		actual.add(connection.zRemRangeByLex("myset", Range.range().gte("alpha").lte("omega")));
+
+		actual.add(connection.zRange("myset", 0L, -1L));
+		verifyResults(Arrays.asList(new Object[] { true, true, true,true, true, true,true, true, true,true, 6L, new LinkedHashSet<String>(Arrays.asList("ALPHA", "aaaa", "zap", "zip")) }));
+	}
+
 	@Test
 	void testZRemRangeByScore() {
 		actual.add(connection.zAdd("myset", 2, "Bob"));

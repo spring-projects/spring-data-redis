@@ -949,6 +949,11 @@ class RedisConnectionUnitTests {
 		}
 
 		@Override
+		public Long zRemRangeByLex(byte[] key, Range range) {
+			return delegate.zRemRangeByLex(key, range);
+		}
+
+		@Override
 		public Set<byte[]> zRangeByScore(byte[] key, Range range) {
 			return delegate.zRangeByScore(key, range);
 		}

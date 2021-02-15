@@ -314,6 +314,20 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long zRemRangeByLex(byte[] key, Range range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null for ZREMRANGEBYLEX!");
+
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zremrangebylex, key,
+				LettuceConverters.<byte[]> toRange(range, true));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
 	 */
 	@Override

@@ -350,6 +350,26 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long zRemRangeByLex(byte[] key, Range range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null for ZREMRANGEBYLEX!");
+
+		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);
+		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
+
+		try {
+			return connection.getCluster().zremrangeByLex(key, min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override

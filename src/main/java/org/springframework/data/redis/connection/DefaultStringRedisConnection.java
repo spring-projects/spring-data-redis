@@ -1583,6 +1583,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long zRemRangeByLex(byte[] key, Range range) {
+		return convertAndReturn(delegate.zRemRangeByLex(key, range), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRangeByScore(byte[], double, double)
 	 */
 	@Override
@@ -2827,6 +2836,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long zRemRange(String key, long start, long end) {
 		return zRemRange(serialize(key), start, end);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRemRange(java.lang.String, org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long zRemRangeByLex(String key, Range range) {
+		return zRemRangeByLex(serialize(key), range);
 	}
 
 	/*
