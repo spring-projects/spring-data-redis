@@ -21,11 +21,13 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
+ * Test extension to {@link RedisTemplate} to use a Mockito mocked {@link RedisConnection}.
+ *
  * @author Christoph Strobl
  */
 public class ConnectionMockingRedisTemplate<K, V> extends RedisTemplate<K, V> {
 
-	private RedisConnection connectionMock;
+	private final RedisConnection connectionMock;
 
 	private ConnectionMockingRedisTemplate() {
 

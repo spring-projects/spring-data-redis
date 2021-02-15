@@ -248,10 +248,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 					.toSet(JedisConverters::toTuple);
 		}
 
-		return connection.invoke()
-				.fromMany(BinaryJedis::zrevrangeByScoreWithScores, MultiKeyPipelineBase::zrevrangeByScoreWithScores, key, max,
-						min)
-				.toSet(JedisConverters::toTuple);
+		return connection.invoke().fromMany(BinaryJedis::zrevrangeByScoreWithScores,
+				MultiKeyPipelineBase::zrevrangeByScoreWithScores, key, max, min).toSet(JedisConverters::toTuple);
 	}
 
 	/*
@@ -511,10 +509,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 		}
 		String keyStr = new String(key, StandardCharsets.UTF_8);
 
-		return connection.invoke()
-				.fromMany(Jedis::zrangeByScore, MultiKeyPipelineBase::zrangeByScore, keyStr, min, max, (int) offset,
-						(int) count)
-				.toSet(JedisConverters::toBytes);
+		return connection.invoke().fromMany(Jedis::zrangeByScore, MultiKeyPipelineBase::zrangeByScore, keyStr, min, max,
+				(int) offset, (int) count).toSet(JedisConverters::toBytes);
 	}
 
 	/*
@@ -574,7 +570,6 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.MINUS_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
-
 
 		if (!limit.isUnlimited()) {
 			return connection.invoke().from(BinaryJedis::zrevrangeByLex, MultiKeyPipelineBase::zrevrangeByLex, key, max, min,

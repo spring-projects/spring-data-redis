@@ -1925,7 +1925,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zRemRangeByLex("myset", Range.range().gte("alpha").lte("omega")));
 
 		actual.add(connection.zRange("myset", 0L, -1L));
-		verifyResults(Arrays.asList(new Object[] { true, true, true,true, true, true,true, true, true,true, 6L, new LinkedHashSet<String>(Arrays.asList("ALPHA", "aaaa", "zap", "zip")) }));
+		verifyResults(Arrays.asList( true, true, true, true, true, true, true, true, true, true, 6L, new LinkedHashSet<>(Arrays.asList("ALPHA", "aaaa", "zap", "zip"))));
 	}
 
 	@Test
@@ -1935,7 +1935,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zRemRangeByScore("myset", 0d, 1d));
 		actual.add(connection.zRange("myset", 0L, -1L));
 		verifyResults(
-				Arrays.asList(new Object[] { true, true, 1L, new LinkedHashSet<>(Arrays.asList("Bob")) }));
+				Arrays.asList(new Object[] { true, true, 1L, new LinkedHashSet<>(Collections
+						.singletonList("Bob")) }));
 	}
 
 	@Test

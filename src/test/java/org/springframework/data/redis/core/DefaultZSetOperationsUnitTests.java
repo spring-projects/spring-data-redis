@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 
 /**
+ * Unit tests for {@link DefaultZSetOperations}.
+ *
  * @author Christoph Strobl
  */
 class DefaultZSetOperationsUnitTests {

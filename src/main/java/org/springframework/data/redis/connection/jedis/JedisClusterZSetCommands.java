@@ -475,8 +475,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		}
 
 		try {
-			return toTupleSet(connection.getCluster().zrangeByScoreWithScores(key, min, max,
-					Long.valueOf(offset).intValue(), Long.valueOf(count).intValue()));
+			return toTupleSet(connection.getCluster().zrangeByScoreWithScores(key, min, max, Long.valueOf(offset).intValue(),
+					Long.valueOf(count).intValue()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
