@@ -322,7 +322,7 @@ class JedisClusterListCommands implements RedisListCommands {
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
-				return connection.getCluster().brpop(timeout,keys);
+				return connection.getCluster().brpop(timeout, keys);
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
