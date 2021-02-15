@@ -366,6 +366,21 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test // GH-1816
+	fun removeRangeByLex() {
+
+		val operations = mockk<ReactiveZSetOperations<String, String>>()
+		every { operations.removeRangeByLex(any(), any()) } returns Mono.just(1)
+
+		runBlocking {
+			assertThat(operations.removeRangeByLexAndAwait("foo", Range.unbounded())).isEqualTo(1)
+		}
+
+		verify {
+			operations.removeRangeByLex("foo", Range.unbounded())
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun removeRangeByScore() {
 

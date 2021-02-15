@@ -311,6 +311,17 @@ public interface ReactiveZSetOperations<K, V> {
 	Mono<Long> removeRange(K key, Range<Long> range);
 
 	/**
+	 * Remove elements in range from sorted set with {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return a {@link Mono} emitting the number or removed elements.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zremrangebyrank">Redis Documentation: ZREMRANGEBYRANK</a>
+	 */
+	Mono<Long> removeRangeByLex(K key, Range<String> range);
+
+	/**
 	 * Remove elements with scores between {@code min} and {@code max} from sorted set with {@code key}.
 	 *
 	 * @param key must not be {@literal null}.

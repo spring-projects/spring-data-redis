@@ -345,6 +345,18 @@ public interface ZSetOperations<K, V> {
 	Long removeRange(K key, long start, long end);
 
 	/**
+	 * Remove elements in {@link Range} from sorted set with {@literal key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
+	 */
+	@Nullable
+	Long removeRangeByLex(K key, Range range);
+
+	/**
 	 * Remove elements with scores between {@code min} and {@code max} from sorted set with {@code key}.
 	 *
 	 * @param key must not be {@literal null}.

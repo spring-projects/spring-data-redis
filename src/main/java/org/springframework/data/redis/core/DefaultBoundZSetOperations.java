@@ -251,6 +251,15 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#removeRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long removeRangeByLex(Range range) {
+		return ops.removeRangeByLex(getKey(), range);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#removeRangeByScore(double, double)
 	 */
 	@Override

@@ -228,6 +228,16 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisZSet#removeRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<E> removeByLex(Range range) {
+		boundZSetOps.removeRangeByLex(range);
+		return this;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.support.collections.RedisZSet#removeByScore(double, double)
 	 */
 	@Override
