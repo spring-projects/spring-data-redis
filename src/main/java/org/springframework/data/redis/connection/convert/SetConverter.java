@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.convert;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,7 +23,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
 
 /**
- * Converts a Set of values of one type to a Set of values of another type
+ * Converts a Set of values of one type to a Set of values of another type preserving item order.
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
@@ -50,9 +49,7 @@ public class SetConverter<S, T> implements Converter<Set<S>, Set<T>> {
 	 */
 	@Override
 	public Set<T> convert(Set<S> source) {
-
-		return source.stream().map(itemConverter::convert)
-				.collect(Collectors.toCollection(source instanceof LinkedHashSet ? LinkedHashSet::new : HashSet::new));
+		return source.stream().map(itemConverter::convert).collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
 }
