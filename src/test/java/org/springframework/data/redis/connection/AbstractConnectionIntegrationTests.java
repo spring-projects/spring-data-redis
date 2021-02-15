@@ -3202,7 +3202,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
 				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
-		actual.add(connection.xPending(KEY_1, "my-group", org.springframework.data.domain.Range.open("0-0", "+"), 10L));
+		actual.add(connection.xPending(KEY_1, "my-group", org.springframework.data.domain.Range.closed("0-0", "+"), 10L));
 
 		List<Object> results = getResults();
 		assertThat(results).hasSize(4);
