@@ -1,6 +1,14 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.2.13.RELEASE (2021-02-17)
+----------------------------------------------
+* #1970 - Include Bintray plugin repository.
+* #1942 - Update copyright year to 2021.
+* #1939 - Upgrade to xstream 1.4.15.
+* #1779 - Update repository after GitHub issues migration.
+
+
 Changes in version 2.5.0-M2 (2021-01-13)
 ----------------------------------------
 * DATAREDIS-1263 - Kotlin code fails to compile on JDK 15.
@@ -2224,6 +2232,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
