@@ -1,6 +1,23 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.5.0-M3 (2021-02-17)
+----------------------------------------
+* #1969 - Preserve order in SetConverter.
+* #1967 - Upgrade to Lettuce 6.1.0 M1.
+* #1961 - DATAREDIS-1955 - Phantom copy is not persisted when entity ttl is changed from positive to negative, causing phantom copy not updated to no expire and counting down, then RedisKeyExpiredEvent publishing.
+* #1960 - Remove superfluous try catch blocks from Jedis*Commands.
+* #1957 - Add support for LPOS using Jedis.
+* #1955 - RedisKeyExpiredEvent is published when entity expiring was changed from positive to -1, resulting in dropping meta information (indexes etc).
+* #1954 - Upgrade to Commons Pool 2.9.0.
+* #1951 - Remove superfluous try catch blocks from Jedis*Commands.
+* #1950 - Upgrade to Jedis 3.5.1.
+* #1948 - Introduce LettuceInvoker.
+* #1816 - Add support for removeRangeByLex in ZSetOperations [DATAREDIS-1244].
+* #1797 - Remove superfluous try catch blocks from Lettuce*Commands [DATAREDIS-1224].
+* #1779 - Update repository after GitHub issues migration.
+
+
 Changes in version 2.4.4 (2021-02-17)
 -------------------------------------
 * #1969 - Preserve order in SetConverter.
@@ -2241,6 +2258,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
