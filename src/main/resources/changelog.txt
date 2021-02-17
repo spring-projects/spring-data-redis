@@ -1,6 +1,19 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.3.7.RELEASE (2021-02-17)
+---------------------------------------------
+* DATAREDIS-1263 - Kotlin code fails to compile on JDK 15.
+* #1970 - Include Bintray plugin repository.
+* #1969 - Preserve order in SetConverter.
+* #1961 - DATAREDIS-1955 - Phantom copy is not persisted when entity ttl is changed from positive to negative, causing phantom copy not updated to no expire and counting down, then RedisKeyExpiredEvent publishing.
+* #1955 - RedisKeyExpiredEvent is published when entity expiring was changed from positive to -1, resulting in dropping meta information (indexes etc).
+* #1942 - Update copyright year to 2021.
+* #1941 - Upgrade to Lettuce 5.3.6.RELEASE.
+* #1939 - Upgrade to xstream 1.4.15.
+* #1779 - Update repository after GitHub issues migration.
+
+
 Changes in version 2.2.13.RELEASE (2021-02-17)
 ----------------------------------------------
 * #1970 - Include Bintray plugin repository.
@@ -2221,6 +2234,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
