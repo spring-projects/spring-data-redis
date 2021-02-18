@@ -15,20 +15,17 @@
  */
 package org.springframework.data.redis.listener;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.awaitility.Awaitility.*;
 import static org.junit.Assume.*;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
@@ -156,18 +153,7 @@ public class PubSubResubscribeTests {
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(ANOTHER_CHANNEL, payload2);
 
-		// anotherListener receives both messages
-		List<String> msgs = new ArrayList<>();
-		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
-		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
-
-		assertThat(msgs.size()).isEqualTo(2);
-		assertThat(msgs).contains(payload1);
-		assertThat(msgs).contains(payload2);
-		msgs.clear();
-
-		// unsubscribed adapter did not receive message
-		assertThat(bag.poll(500, TimeUnit.MILLISECONDS)).isNull();
+		await().atMost(Duration.ofSeconds(2)).until(() -> bag2.contains(payload1) && bag2.contains(payload2));
 
 		// bind original listener on another channel
 		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
@@ -178,21 +164,10 @@ public class PubSubResubscribeTests {
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(ANOTHER_CHANNEL, payload2);
 
-		// original listener received only one message on another channel
-		msgs.clear();
-		msgs.add(bag.poll(500, TimeUnit.MILLISECONDS));
-		msgs.add(bag.poll(500, TimeUnit.MILLISECONDS));
-
-		assertThat(msgs).contains(payload2);
-		assertThat(msgs.contains(null)).isTrue();
+		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(payload2));
 
 		// another listener receives messages on both channels
-		msgs.clear();
-		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
-		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
-		assertThat(msgs.size()).isEqualTo(2);
-		assertThat(msgs).contains(payload1);
-		assertThat(msgs).contains(payload2);
+		await().atMost(Duration.ofSeconds(2)).until(() -> bag2.contains(payload1) && bag2.contains(payload2));
 	}
 
 	@ParameterizedRedisTest
@@ -222,15 +197,7 @@ public class PubSubResubscribeTests {
 		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1);
 		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2);
 
-		Set<String> set = new LinkedHashSet<>();
-		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
-		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
-
-		assertThat(set.contains(payload1)).isFalse();
-		assertThat(set.contains(payload2)).isFalse();
-
-		assertThat(set.contains(anotherPayload1)).isTrue();
-		assertThat(set.contains(anotherPayload2)).isTrue();
+		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(anotherPayload1) && bag.contains(anotherPayload2));
 	}
 
 	/**
@@ -246,8 +213,8 @@ public class PubSubResubscribeTests {
 
 		container.stop();
 
-		String uniqueChannel = "random-" + UUID.randomUUID().toString();
-		PubSubAwaitUtil.runAndAwaitChannelSubscription(template.getConnectionFactory(), uniqueChannel, () -> {
+		String uniqueChannel = "random-" + UUID.randomUUID();
+		PubSubAwaitUtil.runAndAwaitPatternSubscription(template.getConnectionFactory(), () -> {
 
 			container.addMessageListener(adapter,
 					Arrays.asList(new Topic[] { new ChannelTopic(uniqueChannel), new PatternTopic("s*") }));
@@ -256,16 +223,12 @@ public class PubSubResubscribeTests {
 
 		// timing: There's currently no other way to synchronize
 		// than to hope the subscribe/unsubscribe are executed within the time.
-		Thread.sleep(50);
+		Thread.sleep(250);
 
 		template.convertAndSend("somechannel", "HELLO");
 		template.convertAndSend(uniqueChannel, "WORLD");
 
-		Set<String> set = new LinkedHashSet<>();
-		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
-		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
-
-		assertThat(set).isEqualTo(new HashSet<>(Arrays.asList(new String[] { "HELLO", "WORLD" })));
+		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains("HELLO") && bag.contains("WORLD"));
 	}
 
 	private class MessageHandler {
