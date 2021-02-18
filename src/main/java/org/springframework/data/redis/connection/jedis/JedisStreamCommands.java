@@ -15,6 +15,14 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import static org.springframework.data.redis.connection.jedis.StreamConverters.convertToByteRecord;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands;
@@ -29,18 +37,12 @@ import org.springframework.data.redis.connection.stream.StreamInfo;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.util.Assert;
+
 import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.StreamConsumersInfo;
 import redis.clients.jedis.StreamGroupInfo;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.springframework.data.redis.connection.jedis.StreamConverters.convertToByteRecord;
 
 /**
  * @author Dengliming
@@ -106,38 +108,17 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(group, "Group must not be null!");
 		Assert.notNull(newOwner, "NewOwner must not be null!");
 
-		long minIdleTime = -1L;
-		if (options.getMinIdleTime() != null) {
-			minIdleTime = options.getMinIdleTime().toMillis();
-		}
-		int retryCount = -1;
-		if (options.getRetryCount() != null) {
-			retryCount = options.getRetryCount().intValue();
-		}
-		long unixTime = -1L;
-		if (options.getUnixTime() != null) {
-			unixTime = options.getUnixTime().toEpochMilli();
-		}
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().xclaim(key, JedisConverters.toBytes(group),
-						JedisConverters.toBytes(newOwner), minIdleTime, unixTime, retryCount, options.isForce(),
-						entryIdsToBytes(options.getIds()))));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().xclaim(key,
-						JedisConverters.toBytes(group), JedisConverters.toBytes(newOwner), minIdleTime, unixTime, retryCount,
-						options.isForce(), entryIdsToBytes(options.getIds()))));
-				return null;
-			}
+		final long minIdleTime = options.getMinIdleTime() == null ? -1L : options.getMinIdleTime().toMillis();
+		final int retryCount = options.getRetryCount() == null ? -1 : options.getRetryCount().intValue();
+		final long unixTime = options.getUnixTime() == null ? -1L : options.getUnixTime().toEpochMilli();
 
-			return convertToByteRecord(key,
-					connection.getJedis().xclaim(key, JedisConverters.toBytes(group), JedisConverters.toBytes(newOwner),
-							minIdleTime, unixTime, retryCount, options.isForce(), entryIdsToBytes(options.getIds())));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke()
+				.from(
+						it -> it.xclaim(key, JedisConverters.toBytes(group), JedisConverters.toBytes(newOwner), minIdleTime,
+								unixTime, retryCount, options.isForce(), entryIdsToBytes(options.getIds())),
+						it -> it.xclaim(key, JedisConverters.toBytes(group), JedisConverters.toBytes(newOwner), minIdleTime,
+								unixTime, retryCount, options.isForce(), entryIdsToBytes(options.getIds())))
+				.get(r -> convertToByteRecord(key, r));
 	}
 
 	/*
@@ -293,27 +274,14 @@ class JedisStreamCommands implements RedisStreamCommands {
 
 		Range<String> range = (Range<String>) options.getRange();
 		byte[] group = JedisConverters.toBytes(groupName);
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().xpending(key, group,
-						JedisConverters.toBytes(getLowerValue(range)), JedisConverters.toBytes(getUpperValue(range)),
-						options.getCount().intValue(), JedisConverters.toBytes(options.getConsumerName()))));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().xpending(key, group,
-						JedisConverters.toBytes(getLowerValue(range)), JedisConverters.toBytes(getUpperValue(range)),
-						options.getCount().intValue(), JedisConverters.toBytes(options.getConsumerName()))));
-				return null;
-			}
 
-			return StreamConverters.toPendingMessages(groupName, range,
-					connection.getJedis().xpending(key, group, JedisConverters.toBytes(getLowerValue(range)),
-							JedisConverters.toBytes(getUpperValue(range)), options.getCount().intValue(),
-							JedisConverters.toBytes(options.getConsumerName())));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke().from((it, t1, t2, t3, t4, t5, t6) -> {
+			Object r = it.xpending(t1, t2, t3, t4, t5, t6);
+			return BuilderFactory.STREAM_PENDING_ENTRY_LIST.build(r);
+		}, MultiKeyPipelineBase::xpending, key, group, JedisConverters.toBytes(getLowerValue(range)),
+				JedisConverters.toBytes(getUpperValue(range)), options.getCount().intValue(),
+				JedisConverters.toBytes(options.getConsumerName()))
+				.get(r -> StreamConverters.toPendingMessages(groupName, range, r));
 	}
 
 	/*
@@ -327,25 +295,14 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(limit, "Limit must not be null!");
 
 		int count = limit.isUnlimited() ? Integer.MAX_VALUE : limit.getCount();
-		try {
-			if (isPipelined()) {
-				pipeline(connection.newJedisResult(connection.getRequiredPipeline().xrange(key,
-						JedisConverters.toBytes(range.getLowerBound().getValue().get()),
-						JedisConverters.toBytes(range.getUpperBound().getValue().get()), count)));
-				return null;
-			}
-			if (isQueueing()) {
-				transaction(connection.newJedisResult(connection.getRequiredTransaction().xrange(key,
-						JedisConverters.toBytes(range.getLowerBound().getValue().get()),
-						JedisConverters.toBytes(range.getUpperBound().getValue().get()), count)));
-				return null;
-			}
 
-			return convertToByteRecord(key, connection.getJedis().xrange(key, JedisConverters.toBytes(getLowerValue(range)),
-					JedisConverters.toBytes(getUpperValue(range)), count));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		return connection.invoke()
+				.from(
+						it -> it.xrange(key, JedisConverters.toBytes(getLowerValue(range)),
+								JedisConverters.toBytes(getUpperValue(range)), count),
+						it -> it.xrange(key, JedisConverters.toBytes(getLowerValue(range)),
+								JedisConverters.toBytes(getUpperValue(range)), count))
+				.get(r -> convertToByteRecord(key, r));
 	}
 
 	/*
@@ -436,20 +393,8 @@ class JedisStreamCommands implements RedisStreamCommands {
 		return connection.isPipelined();
 	}
 
-	private void pipeline(JedisResult result) {
-		connection.pipeline(result);
-	}
-
 	private boolean isQueueing() {
 		return connection.isQueueing();
-	}
-
-	private void transaction(JedisResult result) {
-		connection.transaction(result);
-	}
-
-	private RuntimeException convertJedisAccessException(Exception ex) {
-		return connection.convertJedisAccessException(ex);
 	}
 
 	private byte[][] entryIdsToBytes(RecordId[] recordIds) {

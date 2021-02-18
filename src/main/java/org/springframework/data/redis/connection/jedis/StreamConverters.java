@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -30,7 +31,7 @@ import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 
-import redis.clients.jedis.BuilderFactory;
+import redis.clients.jedis.StreamPendingEntry;
 import redis.clients.jedis.util.SafeEncoder;
 
 /**
@@ -91,27 +92,22 @@ class StreamConverters {
 	 *
 	 * @param groupName the group name
 	 * @param range the range of messages requested
-	 * @param source the raw jedis response.
+	 * @param response the raw jedis response.
 	 * @return
 	 */
 	static org.springframework.data.redis.connection.stream.PendingMessages toPendingMessages(String groupName,
-			org.springframework.data.domain.Range<?> range, Object source) {
+			org.springframework.data.domain.Range<?> range, List<StreamPendingEntry> response) {
 
-		if (null == source) {
+		if (null == response) {
 			return null;
 		}
 
-		List<Object> streamsEntries = (List<Object>) source;
-		List<PendingMessage> messages = new ArrayList<>(streamsEntries.size());
-		for (Object streamObj : streamsEntries) {
-			List<Object> stream = (List<Object>) streamObj;
-			String id = SafeEncoder.encode((byte[]) stream.get(0));
-			String consumerName = SafeEncoder.encode((byte[]) stream.get(1));
-			long idleTime = BuilderFactory.LONG.build(stream.get(2));
-			long deliveredTimes = BuilderFactory.LONG.build(stream.get(3));
-			messages.add(new PendingMessage(RecordId.of(id), Consumer.from(groupName, consumerName),
-					Duration.ofMillis(idleTime), deliveredTimes));
-		}
+		List<PendingMessage> messages = response.stream()
+				.map(streamPendingEntry -> new PendingMessage(RecordId.of(streamPendingEntry.getID().toString()),
+						Consumer.from(groupName, streamPendingEntry.getConsumerName()),
+						Duration.ofMillis(streamPendingEntry.getIdleTime()), streamPendingEntry.getDeliveredTimes()))
+				.collect(Collectors.toList());
+
 		return new PendingMessages(groupName, messages).withinRange(range);
 	}
 }
