@@ -15,15 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.data.redis.connection.stream.ByteRecord;
-import org.springframework.data.redis.connection.stream.Consumer;
-import org.springframework.data.redis.connection.stream.PendingMessage;
-import org.springframework.data.redis.connection.stream.PendingMessages;
-import org.springframework.data.redis.connection.stream.RecordId;
-import org.springframework.data.redis.connection.stream.StreamRecords;
-import redis.clients.jedis.BuilderFactory;
-import redis.clients.jedis.util.SafeEncoder;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,7 +22,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
+
+import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.PendingMessage;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamRecords;
+
+import redis.clients.jedis.BuilderFactory;
+import redis.clients.jedis.util.SafeEncoder;
 
 /**
  * Converters for Redis Stream-specific types.
@@ -45,28 +45,7 @@ import java.util.function.BiFunction;
 @SuppressWarnings({ "rawtypes" })
 class StreamConverters {
 
-	private static final BiFunction<Object, String, org.springframework.data.redis.connection.stream.PendingMessages> PENDING_MESSAGES_CONVERTER = (
-			source, groupName) -> {
-
-		if (null == source) {
-			return null;
-		}
-
-		List<Object> streamsEntries = (List<Object>) source;
-		List<PendingMessage> messages = new ArrayList<>(streamsEntries.size());
-		for (Object streamObj : streamsEntries) {
-			List<Object> stream = (List<Object>) streamObj;
-			String id = SafeEncoder.encode((byte[]) stream.get(0));
-			String consumerName = SafeEncoder.encode((byte[]) stream.get(1));
-			long idleTime = BuilderFactory.LONG.build(stream.get(2));
-			long deliveredTimes = BuilderFactory.LONG.build(stream.get(3));
-			messages.add(new PendingMessage(RecordId.of(id), Consumer.from(groupName, consumerName),
-					Duration.ofMillis(idleTime), deliveredTimes));
-		}
-		return new PendingMessages(groupName, messages);
-	};
-
-	private static final BiFunction<Object, byte[], List<ByteRecord>> BYTE_RECORD_CONVERTER = (source, key) -> {
+	static final List<ByteRecord> convertToByteRecord(byte[] key, Object source) {
 		if (null == source) {
 			return Collections.emptyList();
 		}
@@ -93,10 +72,6 @@ class StreamConverters {
 			result.add(StreamRecords.newRecord().in(key).withId(entryIdString).ofBytes(fields));
 		}
 		return result;
-	};
-
-	static final List<ByteRecord> convertToByteRecord(byte[] key, Object source) {
-		return BYTE_RECORD_CONVERTER.apply(source, key);
 	}
 
 	static final List<ByteRecord> convertToByteRecord(List<byte[]> sources) {
@@ -121,6 +96,22 @@ class StreamConverters {
 	 */
 	static org.springframework.data.redis.connection.stream.PendingMessages toPendingMessages(String groupName,
 			org.springframework.data.domain.Range<?> range, Object source) {
-		return PENDING_MESSAGES_CONVERTER.apply(source, groupName).withinRange(range);
+
+		if (null == source) {
+			return null;
+		}
+
+		List<Object> streamsEntries = (List<Object>) source;
+		List<PendingMessage> messages = new ArrayList<>(streamsEntries.size());
+		for (Object streamObj : streamsEntries) {
+			List<Object> stream = (List<Object>) streamObj;
+			String id = SafeEncoder.encode((byte[]) stream.get(0));
+			String consumerName = SafeEncoder.encode((byte[]) stream.get(1));
+			long idleTime = BuilderFactory.LONG.build(stream.get(2));
+			long deliveredTimes = BuilderFactory.LONG.build(stream.get(3));
+			messages.add(new PendingMessage(RecordId.of(id), Consumer.from(groupName, consumerName),
+					Duration.ofMillis(idleTime), deliveredTimes));
+		}
+		return new PendingMessages(groupName, messages).withinRange(range);
 	}
 }
