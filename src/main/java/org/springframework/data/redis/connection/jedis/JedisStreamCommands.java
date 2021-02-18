@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection.jedis;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands;
-import org.springframework.data.redis.connection.lettuce.LettuceConverters;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -32,6 +31,8 @@ import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.util.Assert;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.MultiKeyPipelineBase;
+import redis.clients.jedis.StreamConsumersInfo;
+import redis.clients.jedis.StreamGroupInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -209,9 +210,14 @@ class JedisStreamCommands implements RedisStreamCommands {
 	public StreamInfo.XInfoStream xInfo(byte[] key) {
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().from(BinaryJedis::xinfoStream, (k, r) -> {
+		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException("'XINFO' cannot be called in pipeline / transaction mode.");
-		}, key).get(streamInfo -> StreamInfo.XInfoStream.fromList(mapToList(streamInfo.getStreamInfo())));
+		}
+
+		return connection.invoke().just(it -> {
+			redis.clients.jedis.StreamInfo streamInfo = it.xinfoStream(key);
+			return StreamInfo.XInfoStream.fromList(mapToList(streamInfo.getStreamInfo()));
+		});
 	}
 
 	/*
@@ -222,9 +228,12 @@ class JedisStreamCommands implements RedisStreamCommands {
 	public StreamInfo.XInfoGroups xInfoGroups(byte[] key) {
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().from(BinaryJedis::xinfoGroup, (k, r) -> {
+		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException("'XINFO GROUPS' cannot be called in pipeline / transaction mode.");
-		}, key).get(streamGroupInfos -> {
+		}
+
+		return connection.invoke().just(it -> {
+			List<StreamGroupInfo> streamGroupInfos = it.xinfoGroup(key);
 			List<Object> sources = new ArrayList<>();
 			streamGroupInfos.forEach(streamGroupInfo -> sources.add(mapToList(streamGroupInfo.getGroupInfo())));
 			return StreamInfo.XInfoGroups.fromList(sources);
@@ -240,9 +249,12 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.hasText(groupName, "Group name must not be null or empty!");
 
-		return connection.invoke().from(BinaryJedis::xinfoConsumers, (k, v, r) -> {
+		if (isQueueing() || isPipelined()) {
 			throw new UnsupportedOperationException("'XINFO CONSUMERS' cannot be called in pipeline / transaction mode.");
-		}, key, JedisConverters.toBytes(groupName)).get(streamConsumersInfos -> {
+		}
+
+		return connection.invoke().just(it -> {
+			List<StreamConsumersInfo> streamConsumersInfos = it.xinfoConsumers(key, JedisConverters.toBytes(groupName));
 			List<Object> sources = new ArrayList<>();
 			streamConsumersInfos
 					.forEach(streamConsumersInfo -> sources.add(mapToList(streamConsumersInfo.getConsumerInfo())));
@@ -280,7 +292,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(groupName, "GroupName must not be null!");
 
 		Range<String> range = (Range<String>) options.getRange();
-		byte[] group = LettuceConverters.toBytes(groupName);
+		byte[] group = JedisConverters.toBytes(groupName);
 		try {
 			if (isPipelined()) {
 				pipeline(connection.newJedisResult(connection.getRequiredPipeline().xpending(key, group,
@@ -345,17 +357,17 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(readOptions, "StreamReadOptions must not be null!");
 		Assert.notNull(streams, "StreamOffsets must not be null!");
 
-		Long block = readOptions.getBlock();
-		if (block == null) {
-			block = -1L;
+		if (isQueueing() || isPipelined()) {
+			throw new UnsupportedOperationException("'XREAD' cannot be called in pipeline / transaction mode.");
 		}
-		int count = Integer.MAX_VALUE;
-		if (readOptions.getCount() != null) {
-			count = readOptions.getCount().intValue();
-		}
-		return connection.invoke().from(BinaryJedis::xread, (t1, t2, t3, r) -> {
-			throw new UnsupportedOperationException("Operation not supported in pipelining/transaction mode");
-		}, count, block, toStreamOffsets(streams)).get(streamsEntries -> convertToByteRecord(streamsEntries));
+
+		final long block = readOptions.getBlock() == null ? -1L : readOptions.getBlock();
+		final int count = readOptions.getCount() != null ? readOptions.getCount().intValue() : Integer.MAX_VALUE;
+
+		return connection.invoke().just(it -> {
+			List<byte[]> streamsEntries = it.xread(count, block, toStreamOffsets(streams));
+			return convertToByteRecord(streamsEntries);
+		});
 	}
 
 	/*
@@ -369,18 +381,18 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(readOptions, "StreamReadOptions must not be null!");
 		Assert.notNull(streams, "StreamOffsets must not be null!");
 
-		long block = -1L;
-		if (readOptions.getBlock() != null) {
-			block = readOptions.getBlock();
+		if (isQueueing() || isPipelined()) {
+			throw new UnsupportedOperationException("'XREADGROUP' cannot be called in pipeline / transaction mode.");
 		}
-		int count = -1;
-		if (readOptions.getCount() != null) {
-			count = readOptions.getCount().intValue();
-		}
-		return connection.invoke().from(BinaryJedis::xreadGroup, (t1, t2, t3, t4, t5, t6, r) -> {
-			throw new UnsupportedOperationException("Operation not supported in pipelining/transaction mode");
-		}, JedisConverters.toBytes(consumer.getGroup()), JedisConverters.toBytes(consumer.getName()), count, block,
-				readOptions.isNoack(), toStreamOffsets(streams)).get(streamsEntries -> convertToByteRecord(streamsEntries));
+
+		final long block = readOptions.getBlock() == null ? -1L : readOptions.getBlock();
+		final int count = readOptions.getCount() == null ? -1 : readOptions.getCount().intValue();
+
+		return connection.invoke().just(it -> {
+			List<byte[]> streamsEntries = it.xreadGroup(JedisConverters.toBytes(consumer.getGroup()),
+					JedisConverters.toBytes(consumer.getName()), count, block, readOptions.isNoack(), toStreamOffsets(streams));
+			return convertToByteRecord(streamsEntries);
+		});
 	}
 
 	/*
