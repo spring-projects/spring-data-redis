@@ -17,12 +17,12 @@ package org.springframework.data.redis.listener;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
+import static org.awaitility.Awaitility.*;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Phaser;
@@ -108,7 +108,7 @@ public class PubSubTests<T> {
 		container.start();
 
 		phaser.arriveAndAwaitAdvance();
-		Thread.sleep(50);
+		Thread.sleep(250);
 	}
 
 	@AfterEach
@@ -134,11 +134,7 @@ public class PubSubTests<T> {
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(CHANNEL, payload2);
 
-		Set<T> set = new LinkedHashSet<>();
-		set.add((T) bag.poll(1, TimeUnit.SECONDS));
-		set.add((T) bag.poll(1, TimeUnit.SECONDS));
-
-		assertThat(set).contains(payload1, payload2);
+		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(payload1) && bag.contains(payload2));
 	}
 
 	@ParameterizedRedisTest
@@ -192,10 +188,7 @@ public class PubSubTests<T> {
 
 		template.convertAndSend(CHANNEL, payload);
 
-		Set<T> set = new LinkedHashSet<>();
-		set.add((T) bag.poll(3, TimeUnit.SECONDS));
-
-		assertThat(set).contains(payload);
+		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(payload));
 	}
 
 	private static boolean isClusterAware(RedisConnectionFactory connectionFactory) {

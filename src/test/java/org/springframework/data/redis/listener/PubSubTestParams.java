@@ -21,7 +21,6 @@ import java.util.Collection;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
-import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
@@ -44,7 +43,6 @@ public class PubSubTestParams {
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
-		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
 				.getNewConnectionFactory(RedisStanalone.class);
@@ -78,7 +76,6 @@ public class PubSubTestParams {
 		parameters.add(new Object[] { personFactory, personTemplate });
 		parameters.add(new Object[] { stringFactory, stringTemplateLtc });
 		parameters.add(new Object[] { personFactory, personTemplateLtc });
-		parameters.add(new Object[] { rawFactory, rawTemplateLtc });
 
 		if (clusterAvailable()) {
 
