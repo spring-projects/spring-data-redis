@@ -1,6 +1,10 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.5.0-M4 (2021-02-18)
+----------------------------------------
+
+
 Changes in version 2.4.5 (2021-02-18)
 -------------------------------------
 
@@ -2273,6 +2277,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
