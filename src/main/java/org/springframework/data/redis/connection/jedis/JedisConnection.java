@@ -189,7 +189,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public RedisStreamCommands streamCommands() {
-		throw new UnsupportedOperationException("Streams not supported using Jedis!");
+		return new JedisStreamCommands(this);
 	}
 
 	/*
