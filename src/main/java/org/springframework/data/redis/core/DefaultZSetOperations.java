@@ -24,6 +24,8 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
+import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
+import org.springframework.lang.Nullable;
 
 /**
  * Default implementation of {@link ZSetOperations}.
@@ -48,10 +50,31 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 */
 	@Override
 	public Boolean add(K key, V value, double score) {
+		return add(key, value, score, ZAddArgs.none());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#addIfAbsent(java.lang.Object, java.lang.Object, double)
+	 */
+	@Override
+	public Boolean addIfAbsent(K key, V value, double score) {
+		return add(key, value, score, ZAddArgs.ifNotExists());
+	}
+
+	/**
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param args never {@literal null}.
+	 * @return can be {@literal null}.
+	 * @since 2.5
+	 */
+	@Nullable
+	protected Boolean add(K key, V value, double score, ZAddArgs args) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.zAdd(rawKey, score, rawValue), true);
+		return execute(connection -> connection.zAdd(rawKey, score, rawValue, args), true);
 	}
 
 	/*
@@ -60,10 +83,31 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 */
 	@Override
 	public Long add(K key, Set<TypedTuple<V>> tuples) {
+		return add(key, tuples, ZAddArgs.none());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#addIfAbsent(java.lang.Object, java.util.Set)
+	 */
+	@Override
+	public Long addIfAbsent(K key, Set<TypedTuple<V>> tuples) {
+		return add(key, tuples, ZAddArgs.ifNotExists());
+	}
+
+	/**
+	 * @param key must not be {@literal null}.
+	 * @param tuples must not be {@literal null}.
+	 * @param args never {@literal null}.
+	 * @return can be {@literal null}.
+	 * @since 2.5
+	 */
+	@Nullable
+	protected Long add(K key, Set<TypedTuple<V>> tuples, ZAddArgs args) {
 
 		byte[] rawKey = rawKey(key);
 		Set<Tuple> rawValues = rawTupleValues(tuples);
-		return execute(connection -> connection.zAdd(rawKey, rawValues), true);
+		return execute(connection -> connection.zAdd(rawKey, rawValues, args), true);
 	}
 
 	/*

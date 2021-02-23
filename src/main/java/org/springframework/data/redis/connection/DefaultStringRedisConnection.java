@@ -1322,20 +1322,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], double, byte[])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], double, byte[], org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs)
 	 */
 	@Override
-	public Boolean zAdd(byte[] key, double score, byte[] value) {
-		return convertAndReturn(delegate.zAdd(key, score, value), Converters.identityConverter());
+	public Boolean zAdd(byte[] key, double score, byte[] value, ZAddArgs args) {
+		return convertAndReturn(delegate.zAdd(key, score, value, args), Converters.identityConverter());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], java.util.Set)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], java.util.Set, org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs)
 	 */
 	@Override
-	public Long zAdd(byte[] key, Set<Tuple> tuples) {
-		return convertAndReturn(delegate.zAdd(key, tuples), Converters.identityConverter());
+	public Long zAdd(byte[] key, Set<Tuple> tuples, ZAddArgs args) {
+		return convertAndReturn(delegate.zAdd(key, tuples, args), Converters.identityConverter());
 	}
 
 	/*
@@ -2686,20 +2686,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#zAdd(java.lang.String, double, java.lang.String)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zAdd(java.lang.String, double, java.lang.String, org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs)
 	 */
 	@Override
-	public Boolean zAdd(String key, double score, String value) {
-		return zAdd(serialize(key), score, serialize(value));
+	public Boolean zAdd(String key, double score, String value, ZAddArgs args) {
+		return zAdd(serialize(key), score, serialize(value), args);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#zAdd(java.lang.String, java.util.Set)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zAdd(java.lang.String, java.util.Set, org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs)
 	 */
 	@Override
-	public Long zAdd(String key, Set<StringTuple> tuples) {
-		return zAdd(serialize(key), stringTupleToTuple.convert(tuples));
+	public Long zAdd(String key, Set<StringTuple> tuples, ZAddArgs args) {
+		return zAdd(serialize(key), stringTupleToTuple.convert(tuples), args);
 	}
 
 	/*

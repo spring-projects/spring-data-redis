@@ -39,7 +39,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range.Bound;
@@ -59,6 +58,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
@@ -1314,8 +1314,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.rPush("PopList", "world"));
 		connection.lSet("PopList", 1, "cruel");
 		actual.add(connection.lRange("PopList", 0, -1));
-		verifyResults(
-				Arrays.asList(1L, 2L, 3L, Arrays.asList("hello", "cruel", "world")));
+		verifyResults(Arrays.asList(1L, 2L, 3L, Arrays.asList("hello", "cruel", "world")));
 	}
 
 	@Test
@@ -1491,8 +1490,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo", "bar"));
 		actual.add(connection.sAdd("myset", "baz"));
 		actual.add(connection.sMembers("myset"));
-		verifyResults(
-				Arrays.asList(new Object[] { 2L, 1L, new HashSet<>(Arrays.asList("foo", "bar", "baz")) }));
+		verifyResults(Arrays.asList(new Object[] { 2L, 1L, new HashSet<>(Arrays.asList("foo", "bar", "baz")) }));
 	}
 
 	@Test
@@ -1564,8 +1562,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sPop("myset"));
-		assertThat(new HashSet<>(Arrays.asList("foo", "bar")).contains((String) getResults().get(2)))
-				.isTrue();
+		assertThat(new HashSet<>(Arrays.asList("foo", "bar")).contains((String) getResults().get(2))).isTrue();
 	}
 
 	@Test // DATAREDIS-688
@@ -1645,8 +1642,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("otherset", "bar"));
 		actual.add(connection.sAdd("otherset", "baz"));
 		actual.add(connection.sUnion("myset", "otherset"));
-		verifyResults(Arrays
-				.asList(new Object[] { 1L, 1L, 1L, 1L, new HashSet<>(Arrays.asList("foo", "bar", "baz")) }));
+		verifyResults(Arrays.asList(new Object[] { 1L, 1L, 1L, 1L, new HashSet<>(Arrays.asList("foo", "bar", "baz")) }));
 	}
 
 	@Test
@@ -1657,8 +1653,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("otherset", "baz"));
 		actual.add(connection.sUnionStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
-		verifyResults(Arrays.asList(
-				new Object[] { 1L, 1L, 1L, 1L, 3L, new HashSet<>(Arrays.asList("foo", "bar", "baz")) }));
+		verifyResults(
+				Arrays.asList(new Object[] { 1L, 1L, 1L, 1L, 3L, new HashSet<>(Arrays.asList("foo", "bar", "baz")) }));
 	}
 
 	// ZSet
@@ -1668,8 +1664,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRange("myset", 0, -1));
-		verifyResults(Arrays
-				.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("James", "Bob")) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("James", "Bob")) }));
 	}
 
 	@Test
@@ -1682,8 +1677,52 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", strTuples));
 		actual.add(connection.zAdd("myset".getBytes(), tuples));
 		actual.add(connection.zRange("myset", 0, -1));
-		verifyResults(Arrays
-				.asList(new Object[] { 2L, 1L, new LinkedHashSet<>(Arrays.asList("James", "Bob", "Joe")) }));
+		verifyResults(Arrays.asList(new Object[] { 2L, 1L, new LinkedHashSet<>(Arrays.asList("James", "Bob", "Joe")) }));
+	}
+
+	@Test // GH-1794
+	void zAddNX() {
+
+		actual.add(connection.zAdd("myset", 1, "Bob", ZAddArgs.ifNotExists()));
+		actual.add(connection.zAdd("myset", 2, "Bob", ZAddArgs.ifNotExists()));
+
+		verifyResults(Arrays.asList(true, false));
+	}
+
+	@Test // GH-1794
+	void zAddXX() {
+
+		actual.add(connection.zAdd("myset", 1, "Bob", ZAddArgs.ifExists()));
+		actual.add(connection.zAdd("myset", 1, "Bob"));
+		actual.add(connection.zAdd("myset", 2, "Bob", ZAddArgs.ifExists()));
+
+		verifyResults(Arrays.asList(false, true, false));
+	}
+
+	@Test // GH-1794
+	void testZAddMultipleNX() {
+
+		actual.add(connection.zAdd("myset", 1, "James"));
+
+		Set<StringTuple> strTuples = new HashSet<>();
+		strTuples.add(new DefaultStringTuple("Bob".getBytes(), "Bob", 2.0));
+		strTuples.add(new DefaultStringTuple("James".getBytes(), "James", 1.0));
+
+		actual.add(connection.zAdd("myset", strTuples, ZAddArgs.ifNotExists()));
+		verifyResults(Arrays.asList(true, 1L));
+	}
+
+	@Test // GH-1794
+	void testZAddMultipleXX() {
+
+		actual.add(connection.zAdd("myset", 1, "James"));
+
+		Set<StringTuple> strTuples = new HashSet<>();
+		strTuples.add(new DefaultStringTuple("Bob".getBytes(), "Bob", 2.0));
+		strTuples.add(new DefaultStringTuple("James".getBytes(), "James", 2.0));
+
+		actual.add(connection.zAdd("myset", strTuples, ZAddArgs.ifNotExists()));
+		verifyResults(Arrays.asList(true, 1L));
 	}
 
 	@Test
@@ -1783,8 +1822,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRangeByScore("myset", 1, 1));
-		verifyResults(
-				Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("James")) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("James")) }));
 	}
 
 	@Test
@@ -1792,8 +1830,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRangeByScore("myset", 1d, 3d, 1, -1));
-		verifyResults(
-				Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("Bob")) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("Bob")) }));
 	}
 
 	@Test
@@ -1801,8 +1838,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRangeByScoreWithScores("myset", 2d, 5d));
-		verifyResults(Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(
-				Arrays.asList(new DefaultStringTuple("Bob".getBytes(), "Bob", 2d))) }));
+		verifyResults(Arrays.asList(new Object[] { true, true,
+				new LinkedHashSet<>(Arrays.asList(new DefaultStringTuple("Bob".getBytes(), "Bob", 2d))) }));
 	}
 
 	@Test
@@ -1810,8 +1847,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRangeByScoreWithScores("myset", 1d, 5d, 0, 1));
-		verifyResults(Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(
-				Arrays.asList(new DefaultStringTuple("James".getBytes(), "James", 1d))) }));
+		verifyResults(Arrays.asList(new Object[] { true, true,
+				new LinkedHashSet<>(Arrays.asList(new DefaultStringTuple("James".getBytes(), "James", 1d))) }));
 	}
 
 	@Test
@@ -1819,8 +1856,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRevRange("myset", 0, -1));
-		verifyResults(Arrays
-				.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("Bob", "James")) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("Bob", "James")) }));
 	}
 
 	@Test
@@ -1838,8 +1874,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
 		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
 		actual.add(connection.zRevRangeByScore("myset", 0d, 3d, 0, 5));
-		verifyResults(Arrays
-				.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("Bob", "James")) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("Bob", "James")) }));
 	}
 
 	@Test
@@ -1847,8 +1882,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
 		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
 		actual.add(connection.zRevRangeByScore("myset", 0d, 3d));
-		verifyResults(Arrays
-				.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("Bob", "James")) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("Bob", "James")) }));
 	}
 
 	@Test
@@ -1856,8 +1890,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
 		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
 		actual.add(connection.zRevRangeByScoreWithScores("myset", 0d, 3d, 0, 1));
-		verifyResults(Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(
-				Arrays.asList(new DefaultStringTuple("Bob".getBytes(), "Bob", 2d))) }));
+		verifyResults(Arrays.asList(new Object[] { true, true,
+				new LinkedHashSet<>(Arrays.asList(new DefaultStringTuple("Bob".getBytes(), "Bob", 2d))) }));
 	}
 
 	@Test
@@ -1886,8 +1920,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRem("myset", "James"));
 		actual.add(connection.zRange("myset", 0L, -1L));
-		verifyResults(
-				Arrays.asList(new Object[] { true, true, 1L, new LinkedHashSet<>(Arrays.asList("Bob")) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, 1L, new LinkedHashSet<>(Arrays.asList("Bob")) }));
 	}
 
 	@Test
@@ -1927,7 +1960,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zRemRangeByLex("myset", Range.range().gte("alpha").lte("omega")));
 
 		actual.add(connection.zRange("myset", 0L, -1L));
-		verifyResults(Arrays.asList( true, true, true, true, true, true, true, true, true, true, 6L, new LinkedHashSet<>(Arrays.asList("ALPHA", "aaaa", "zap", "zip"))));
+		verifyResults(Arrays.asList(true, true, true, true, true, true, true, true, true, true, 6L,
+				new LinkedHashSet<>(Arrays.asList("ALPHA", "aaaa", "zap", "zip"))));
 	}
 
 	@Test
@@ -1937,8 +1971,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zRemRangeByScore("myset", 0d, 1d));
 		actual.add(connection.zRange("myset", 0L, -1L));
 		verifyResults(
-				Arrays.asList(new Object[] { true, true, 1L, new LinkedHashSet<>(Collections
-						.singletonList("Bob")) }));
+				Arrays.asList(new Object[] { true, true, 1L, new LinkedHashSet<>(Collections.singletonList("Bob")) }));
 	}
 
 	@Test
@@ -1981,8 +2014,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("otherset", 4, "James"));
 		actual.add(connection.zUnionStore("thirdset", Aggregate.MAX, new int[] { 2, 3 }, "myset", "otherset"));
 		actual.add(connection.zRangeWithScores("thirdset", 0, -1));
-		verifyResults(Arrays.asList(new Object[] { true, true, true, true, true, 3L, new LinkedHashSet<>(Arrays.asList(
-				new DefaultStringTuple("Bob".getBytes(), "Bob", 4d),
+		verifyResults(Arrays.asList(new Object[] { true, true, true, true, true, 3L,
+				new LinkedHashSet<>(Arrays.asList(new DefaultStringTuple("Bob".getBytes(), "Bob", 4d),
 						new DefaultStringTuple("Joe".getBytes(), "Joe", 8d),
 						new DefaultStringTuple("James".getBytes(), "James", 12d))) }));
 	}
@@ -2054,8 +2087,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.hSet("test", "key", "2"));
 		actual.add(connection.hSet("test", "key2", "2"));
 		actual.add(connection.hKeys("test"));
-		verifyResults(
-				Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("key", "key2")) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, new LinkedHashSet<>(Arrays.asList("key", "key2")) }));
 	}
 
 	@Test

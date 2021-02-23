@@ -255,8 +255,8 @@ class RedisConnectionUnitTests {
 			return delegate.getNativeConnection();
 		}
 
-		public Long zAdd(byte[] key, Set<Tuple> tuples) {
-			return delegate.zAdd(key, tuples);
+		public Long zAdd(byte[] key, Set<Tuple> tuples, ZAddArgs args) {
+			return delegate.zAdd(key, tuples, args);
 		}
 
 		public void subscribe(MessageListener listener, byte[]... channels) {

@@ -145,6 +145,27 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	boolean add(E e);
 
 	/**
+	 * Adds an element to the set using the {@link #getDefaultScore() default score} if the element does not already exists.
+	 *
+	 * @param e element to add
+	 * @return true if a new element was added, false otherwise (only the score has been updated)
+	 * @since 2.5
+	 */
+	default boolean addIfAbsent(E e) {
+		return addIfAbsent(e, getDefaultScore());
+	}
+
+	/**
+	 * Adds an element to the set with the given score if the element does not already exists.
+	 *
+	 * @param e element to add
+	 * @param score element score
+	 * @return true if a new element was added, false otherwise (only the score has been updated)
+	 * @since 2.5
+	 */
+	boolean addIfAbsent(E e, double score);
+
+	/**
 	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
 	 * lexicographical ordering.
 	 *

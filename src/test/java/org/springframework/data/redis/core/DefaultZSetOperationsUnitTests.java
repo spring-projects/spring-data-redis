@@ -17,9 +17,14 @@ package org.springframework.data.redis.core;
 
 import static org.mockito.ArgumentMatchers.*;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
+import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
  * Unit tests for {@link DefaultZSetOperations}.
@@ -45,5 +50,22 @@ class DefaultZSetOperationsUnitTests {
 		zSetOperations.removeRangeByLex("key", range);
 
 		template.verify().zRemRangeByLex(eq(template.serializeKey("key")), eq(range));
+	}
+
+	@Test // GH-1794
+	void delegatesAddIfAbsent() {
+
+		zSetOperations.addIfAbsent("key", "value", 1D);
+
+		template.verify().zAdd(eq(template.serializeKey("key")), eq(1D), eq(template.serializeKey("value")),
+				eq(ZAddArgs.ifNotExists()));
+	}
+
+	@Test // GH-1794
+	void delegatesAddIfAbsentForTuples() {
+
+		zSetOperations.addIfAbsent("key", Collections.singleton(TypedTuple.of("value", 1D)));
+
+		template.verify().zAdd(eq(template.serializeKey("key")), any(Set.class), eq(ZAddArgs.ifNotExists()));
 	}
 }

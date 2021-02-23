@@ -290,6 +290,18 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisZSet#addIfAbsent(java.lang.Object, double)
+	 */
+	@Override
+	public boolean addIfAbsent(E e, double score) {
+
+		Boolean result = boundZSetOps.addIfAbsent(e, score);
+		checkResult(result);
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see java.util.AbstractCollection#clear()
 	 */
 	@Override

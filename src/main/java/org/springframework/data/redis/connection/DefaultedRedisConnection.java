@@ -873,15 +873,15 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Boolean zAdd(byte[] key, double score, byte[] value) {
-		return zSetCommands().zAdd(key, score, value);
+	default Boolean zAdd(byte[] key, double score, byte[] value, ZAddArgs args) {
+		return zSetCommands().zAdd(key, score, value, args);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Long zAdd(byte[] key, Set<Tuple> tuples) {
-		return zSetCommands().zAdd(key, tuples);
+	default Long zAdd(byte[] key, Set<Tuple> tuples, ZAddArgs args) {
+		return zSetCommands().zAdd(key, tuples, args);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */

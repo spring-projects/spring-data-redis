@@ -102,6 +102,12 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				} else {
 					args = ZAddArgs.Builder.xx();
 				}
+				if(command.isGt()) {
+					args = args == null ? ZAddArgs.Builder.gt() : args.gt();
+				}
+				if(command.isLt()) {
+					args = args == null ? ZAddArgs.Builder.lt() : args.lt();
+				}
 			}
 
 			ScoredValue<ByteBuffer>[] values = (ScoredValue<ByteBuffer>[]) command.getTuples().stream()

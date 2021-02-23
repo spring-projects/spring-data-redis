@@ -62,11 +62,29 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#addIfAbsent(java.lang.Object, double)
+	 */
+	@Override
+	public Boolean addIfAbsent(V value, double score) {
+		return ops.addIfAbsent(getKey(), value, score);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#add(java.util.Set)
 	 */
 	@Override
 	public Long add(Set<TypedTuple<V>> tuples) {
 		return ops.add(getKey(), tuples);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#addIfAbsent(java.util.Set)
+	 */
+	@Override
+	public Long addIfAbsent(Set<TypedTuple<V>> tuples) {
+		return ops.addIfAbsent(getKey(), tuples);
 	}
 
 	/*

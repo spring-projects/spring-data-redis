@@ -24,6 +24,7 @@ import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.params.GeoRadiusParam;
 import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.util.SafeEncoder;
 
 import java.nio.ByteBuffer;
@@ -61,6 +62,7 @@ import org.springframework.data.redis.connection.RedisStringCommands.BitOperatio
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
@@ -652,6 +654,42 @@ public abstract class JedisConverters extends Converters {
 		return ObjectUtils.caseInsensitiveValueOf(GeoUnit.values(), metricToUse.getAbbreviation());
 	}
 
+	/**
+	 * Convert {@link ZAddArgs} to {@link ZAddParams}.
+	 *
+	 * @param source must not be {@literal null}.
+	 * @return new instance of {@link ZAddParams}.
+	 * @since 2.5
+	 */
+	static ZAddParams toZAddParams(ZAddArgs source) {
+
+		if (!source.isEmpty()) {
+			return new ZAddParams();
+		}
+
+		ZAddParams target = new ZAddParams() {
+
+			{
+				if (source.contains(ZAddArgs.Flag.GT)) {
+					addParam("gt");
+				}
+				if (source.contains(ZAddArgs.Flag.LT)) {
+					addParam("lt");
+				}
+			}
+		};
+
+		if (source.contains(ZAddArgs.Flag.XX)) {
+			target.xx();
+		}
+		if (source.contains(ZAddArgs.Flag.NX)) {
+			target.nx();
+		}
+		if (source.contains(ZAddArgs.Flag.CH)) {
+			target.ch();
+		}
+		return target;
+	}
 
 	/**
 	 * Convert {@link GeoRadiusCommandArgs} into {@link GeoRadiusParam}.

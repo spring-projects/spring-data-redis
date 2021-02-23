@@ -21,12 +21,14 @@ import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.ZParams;
+import redis.clients.jedis.params.ZAddParams;
 
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs.Flag;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
@@ -53,27 +55,27 @@ class JedisZSetCommands implements RedisZSetCommands {
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], double, byte[])
 	 */
 	@Override
-	public Boolean zAdd(byte[] key, double score, byte[] value) {
+	public Boolean zAdd(byte[] key, double score, byte[] value, ZAddArgs args) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return connection.invoke().from(BinaryJedis::zadd, MultiKeyPipelineBase::zadd, key, score, value)
+		return connection.invoke().from(BinaryJedis::zadd, MultiKeyPipelineBase::zadd, key, score, value, JedisConverters.toZAddParams(args))
 				.get(JedisConverters::toBoolean);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], java.util.Set)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], java.util.Set, org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs)
 	 */
 	@Override
-	public Long zAdd(byte[] key, Set<Tuple> tuples) {
+	public Long zAdd(byte[] key, Set<Tuple> tuples, ZAddArgs args) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(tuples, "Tuples must not be null!");
 
 		return connection.invoke().just(BinaryJedis::zadd, MultiKeyPipelineBase::zadd, key,
-				JedisConverters.toTupleMap(tuples));
+				JedisConverters.toTupleMap(tuples), JedisConverters.toZAddParams(args));
 	}
 
 	/*

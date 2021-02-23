@@ -1102,7 +1102,24 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 * @see RedisZSetCommands#zAdd(byte[], double, byte[])
 	 */
-	Boolean zAdd(String key, double score, String value);
+	default Boolean zAdd(String key, double score, String value) {
+		return zAdd(key, score, value, ZAddArgs.none());
+	}
+
+	/**
+	 * Add the {@code value} to a sorted set at {@code key}, or update its {@code score} depending on the given
+	 * {@link ZAddArgs args}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param score must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param args must not be {@literal null} use {@link ZAddArgs#none()} instead.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
+	 * @see RedisZSetCommands#zAdd(byte[], double, byte[], ZAddArgs)
+	 */
+	Boolean zAdd(String key, double score, String value, ZAddArgs args);
 
 	/**
 	 * Add {@code tuples} to a sorted set at {@code key}, or update its {@code score} if it already exists.
@@ -1113,7 +1130,24 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 * @see RedisZSetCommands#zAdd(byte[], Set)
 	 */
-	Long zAdd(String key, Set<StringTuple> tuples);
+	default Long zAdd(String key, Set<StringTuple> tuples) {
+		return zAdd(key, tuples, ZAddArgs.none());
+	}
+
+	/**
+	 * Add {@code tuples} to a sorted set at {@code key}, or update its {@code score} depending on the given
+	 * {@link ZAddArgs args}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param tuples must not be {@literal null}.
+	 * @param args must not be {@literal null} use {@link ZAddArgs#none()} instead.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
+	 * @see RedisZSetCommands#zAdd(byte[], Set, ZAddArgs)
+	 */
+	@Nullable
+	Long zAdd(String key, Set<StringTuple> tuples, ZAddArgs args);
 
 	/**
 	 * Remove {@code values} from sorted set. Return number of removed elements.
