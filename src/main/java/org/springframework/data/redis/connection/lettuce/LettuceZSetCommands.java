@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs.Flag;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
@@ -50,29 +51,29 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], double, byte[])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], double, byte[], org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs)
 	 */
 	@Override
-	public Boolean zAdd(byte[] key, double score, byte[] value) {
+	public Boolean zAdd(byte[] key, double score, byte[] value, ZAddArgs args) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return connection.invoke().from(RedisSortedSetAsyncCommands::zadd, key, score, value)
+		return connection.invoke().from(RedisSortedSetAsyncCommands::zadd, key, LettuceZSetCommands.toZAddArgs(args), score, value)
 				.get(LettuceConverters.longToBoolean());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], java.util.Set)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], java.util.Set, org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs)
 	 */
 	@Override
-	public Long zAdd(byte[] key, Set<Tuple> tuples) {
+	public Long zAdd(byte[] key, Set<Tuple> tuples, ZAddArgs args) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(tuples, "Tuples must not be null!");
 
-		return connection.invoke().just(RedisSortedSetAsyncCommands::zadd, key,
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zadd, key, LettuceZSetCommands.toZAddArgs(args),
 				LettuceConverters.toObjects(tuples).toArray());
 	}
 
@@ -566,6 +567,39 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		args.weights(weights.toArray());
 
 		return args;
+	}
+
+	/**
+	 * Convert {@link ZAddArgs} to {@link io.lettuce.core.ZAddArgs}.
+	 *
+	 * @param source must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.5
+	 */
+	private static io.lettuce.core.ZAddArgs toZAddArgs(ZAddArgs source) {
+
+		io.lettuce.core.ZAddArgs target = new io.lettuce.core.ZAddArgs();
+
+		if(!source.isEmpty()) {
+			return target;
+		}
+
+		if(source.contains(Flag.XX)) {
+			target.xx();
+		}
+		if(source.contains(Flag.NX)) {
+			target.nx();
+		}
+		if(source.contains(Flag.GT)) {
+			target.gt();
+		}
+		if(source.contains(Flag.LT)) {
+			target.lt();
+		}
+		if(source.contains(Flag.CH)) {
+			target.ch();
+		}
+		return target;
 	}
 
 }

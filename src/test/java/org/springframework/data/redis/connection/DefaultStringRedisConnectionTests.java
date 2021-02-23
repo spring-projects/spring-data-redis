@@ -1233,14 +1233,14 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testZAddBytes() {
-		doReturn(true).when(nativeConnection).zAdd(fooBytes, 3d, barBytes);
+		doReturn(true).when(nativeConnection).zAdd(eq(fooBytes), eq(3d), eq(barBytes), any());
 		actual.add(connection.zAdd(fooBytes, 3d, barBytes));
 		verifyResults(Collections.singletonList(true));
 	}
 
 	@Test
 	public void testZAdd() {
-		doReturn(true).when(nativeConnection).zAdd(fooBytes, 3d, barBytes);
+		doReturn(true).when(nativeConnection).zAdd(eq(fooBytes), eq(3d), eq(barBytes), any());
 		actual.add(connection.zAdd(foo, 3d, bar));
 		verifyResults(Collections.singletonList(true));
 	}
@@ -1249,7 +1249,7 @@ public class DefaultStringRedisConnectionTests {
 	public void testZAddMultipleBytes() {
 		Set<Tuple> tuples = new HashSet<>();
 		tuples.add(new DefaultTuple(barBytes, 3.0));
-		doReturn(1L).when(nativeConnection).zAdd(fooBytes, tuples);
+		doReturn(1L).when(nativeConnection).zAdd(eq(fooBytes), eq(tuples), any());
 		actual.add(connection.zAdd(fooBytes, tuples));
 		verifyResults(Collections.singletonList(1L));
 	}
@@ -1260,7 +1260,7 @@ public class DefaultStringRedisConnectionTests {
 		tuples.add(new DefaultTuple(barBytes, 3.0));
 		Set<StringTuple> strTuples = new HashSet<>();
 		strTuples.add(new DefaultStringTuple(barBytes, bar, 3.0));
-		doReturn(1L).when(nativeConnection).zAdd(fooBytes, tuples);
+		doReturn(1L).when(nativeConnection).zAdd(eq(fooBytes), eq(tuples), any());
 		actual.add(connection.zAdd(foo, strTuples));
 		verifyResults(Collections.singletonList(1L));
 	}

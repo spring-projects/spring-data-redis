@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.DoubleUnaryOperator;
@@ -397,6 +398,151 @@ public interface RedisZSetCommands {
 	}
 
 	/**
+	 * {@code ZADD} specific arguments. <br />
+	 * Looking of the {@code INCR} flag? Use the {@code ZINCRBY} operation instead.
+	 * 
+	 * @since 2.3
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
+	 */
+	class ZAddArgs {
+
+		private static final ZAddArgs NONE = new ZAddArgs(Collections.emptySet());
+
+		private final Set<Flag> flags;
+
+		private ZAddArgs(Set<Flag> flags) {
+			this.flags = flags;
+		}
+
+		/**
+		 * @return immutable {@link ZAddArgs}.
+		 */
+		public static ZAddArgs none() {
+			return NONE;
+		}
+
+		/**
+		 * @return new instance of {@link ZAddArgs} without any flags set.
+		 */
+		public static ZAddArgs empty() {
+			return new ZAddArgs(new LinkedHashSet<>(5));
+		}
+
+		/**
+		 * @return new instance of {@link ZAddArgs} without {@link Flag#NX} set.
+		 */
+		public static ZAddArgs ifNotExists() {
+			return empty().nx();
+		}
+
+		/**
+		 * @return new instance of {@link ZAddArgs} without {@link Flag#NX} set.
+		 */
+		public static ZAddArgs ifExists() {
+			return empty().xx();
+		}
+
+		/**
+		 * Only update elements that already exist.
+		 *
+		 * @return this.
+		 */
+		public ZAddArgs nx() {
+
+			flags.add(Flag.NX);
+			return this;
+		}
+
+		/**
+		 * Don't update already existing elements.
+		 *
+		 * @return this.
+		 */
+		public ZAddArgs xx() {
+
+			flags.add(Flag.XX);
+			return this;
+		}
+
+		/**
+		 * Only update existing elements if the new score is less than the current score.
+		 *
+		 * @return this.
+		 */
+		public ZAddArgs lt() {
+
+			flags.add(Flag.LT);
+			return this;
+		}
+
+		/**
+		 * Only update existing elements if the new score is greater than the current score.
+		 *
+		 * @return this.
+		 */
+		public ZAddArgs gt() {
+
+			flags.add(Flag.GT);
+			return this;
+		}
+
+		/**
+		 * Only update elements that already exist.
+		 *
+		 * @return this.
+		 */
+		public ZAddArgs ch() {
+
+			flags.add(Flag.CH);
+			return this;
+		}
+
+		/**
+		 * Only update elements that already exist.
+		 *
+		 * @return this.
+		 */
+		public boolean contains(Flag flag) {
+			return flags.contains(flag);
+		}
+
+		/**
+		 * @return {@literal true} if no flags set.
+		 */
+		public boolean isEmpty() {
+			return !flags.isEmpty();
+		}
+
+		public enum Flag {
+
+			/**
+			 * Only update elements that already exist.
+			 */
+			XX,
+
+			/**
+			 * Don't update already existing elements.
+			 */
+			NX,
+
+			/**
+			 * Only update existing elements if the new score is greater than the current score.
+			 */
+			GT,
+
+			/**
+			 * Only update existing elements if the new score is less than the current score.
+			 */
+			LT,
+
+			/**
+			 * Modify the return value from the number of new elements added, to the total number of elements changed.
+			 */
+			CH
+		}
+	}
+
+	/**
 	 * Add {@code value} to a sorted set at {@code key}, or update its {@code score} if it already exists.
 	 *
 	 * @param key must not be {@literal null}.
@@ -406,7 +552,24 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
 	@Nullable
-	Boolean zAdd(byte[] key, double score, byte[] value);
+	default Boolean zAdd(byte[] key, double score, byte[] value) {
+		return zAdd(key, score, value, ZAddArgs.none());
+	}
+
+	/**
+	 * Add {@code value} to a sorted set at {@code key}, or update its {@code score} depending on the given
+	 * {@link ZAddArgs args}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param score the score.
+	 * @param value the value.
+	 * @param args must not be {@literal null} use {@link ZAddArgs#none()} instead.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
+	 */
+	@Nullable
+	Boolean zAdd(byte[] key, double score, byte[] value, ZAddArgs args);
 
 	/**
 	 * Add {@code tuples} to a sorted set at {@code key}, or update its {@code score} if it already exists.
@@ -417,7 +580,22 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
 	@Nullable
-	Long zAdd(byte[] key, Set<Tuple> tuples);
+	default Long zAdd(byte[] key, Set<Tuple> tuples) {
+		return zAdd(key, tuples, ZAddArgs.none());
+	}
+
+	/**
+	 * Add {@code tuples} to a sorted set at {@code key}, or update its {@code score} depending on the given
+	 * {@link ZAddArgs args}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param tuples must not be {@literal null}.
+	 * @param args must not be {@literal null} use {@link ZAddArgs#none()} instead.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
+	 */
+	Long zAdd(byte[] key, Set<Tuple> tuples, ZAddArgs args);
 
 	/**
 	 * Remove {@code values} from sorted set. Return number of removed elements.

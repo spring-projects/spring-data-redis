@@ -54,13 +54,13 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], double, byte[])
 	 */
 	@Override
-	public Boolean zAdd(byte[] key, double score, byte[] value) {
+	public Boolean zAdd(byte[] key, double score, byte[] value, ZAddArgs args) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
 		try {
-			return JedisConverters.toBoolean(connection.getCluster().zadd(key, score, value));
+			return JedisConverters.toBoolean(connection.getCluster().zadd(key, score, value, JedisConverters.toZAddParams(args)));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -68,16 +68,16 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], java.util.Set)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], java.util.Set, org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs)
 	 */
 	@Override
-	public Long zAdd(byte[] key, Set<Tuple> tuples) {
+	public Long zAdd(byte[] key, Set<Tuple> tuples, ZAddArgs args) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(tuples, "Tuples must not be null!");
 
 		try {
-			return connection.getCluster().zadd(key, JedisConverters.toTupleMap(tuples));
+			return connection.getCluster().zadd(key, JedisConverters.toTupleMap(tuples), JedisConverters.toZAddParams(args));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

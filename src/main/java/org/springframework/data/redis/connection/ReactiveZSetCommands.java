@@ -63,9 +63,11 @@ public interface ReactiveZSetCommands {
 		private final boolean upsert;
 		private final boolean returnTotalChanged;
 		private final boolean incr;
+		private final boolean gt;
+		private final boolean lt;
 
 		private ZAddCommand(@Nullable ByteBuffer key, List<Tuple> tuples, boolean upsert, boolean returnTotalChanged,
-				boolean incr) {
+				boolean incr, boolean gt, boolean lt) {
 
 			super(key);
 
@@ -73,6 +75,8 @@ public interface ReactiveZSetCommands {
 			this.upsert = upsert;
 			this.returnTotalChanged = returnTotalChanged;
 			this.incr = incr;
+			this.gt = gt;
+			this.lt = lt;
 		}
 
 		/**
@@ -98,7 +102,7 @@ public interface ReactiveZSetCommands {
 
 			Assert.notNull(tuples, "Tuples must not be null!");
 
-			return new ZAddCommand(null, new ArrayList<>(tuples), false, false, false);
+			return new ZAddCommand(null, new ArrayList<>(tuples), false, false, false, false, false);
 		}
 
 		/**
@@ -111,7 +115,7 @@ public interface ReactiveZSetCommands {
 
 			Assert.notNull(key, "Key must not be null!");
 
-			return new ZAddCommand(key, tuples, upsert, returnTotalChanged, incr);
+			return new ZAddCommand(key, tuples, upsert, returnTotalChanged, incr, gt, lt);
 		}
 
 		/**
@@ -121,7 +125,7 @@ public interface ReactiveZSetCommands {
 		 * @return a new {@link ZAddCommand} with {@literal xx} applied.
 		 */
 		public ZAddCommand xx() {
-			return new ZAddCommand(getKey(), tuples, false, returnTotalChanged, incr);
+			return new ZAddCommand(getKey(), tuples, false, returnTotalChanged, incr, gt, lt);
 		}
 
 		/**
@@ -131,7 +135,7 @@ public interface ReactiveZSetCommands {
 		 * @return a new {@link ZAddCommand} with {@literal nx} applied.
 		 */
 		public ZAddCommand nx() {
-			return new ZAddCommand(getKey(), tuples, true, returnTotalChanged, incr);
+			return new ZAddCommand(getKey(), tuples, true, returnTotalChanged, incr, gt, lt);
 		}
 
 		/**
@@ -141,7 +145,7 @@ public interface ReactiveZSetCommands {
 		 * @return a new {@link ZAddCommand} with {@literal ch} applied.
 		 */
 		public ZAddCommand ch() {
-			return new ZAddCommand(getKey(), tuples, upsert, true, incr);
+			return new ZAddCommand(getKey(), tuples, upsert, true, incr, gt, lt);
 		}
 
 		/**
@@ -151,7 +155,29 @@ public interface ReactiveZSetCommands {
 		 * @return a new {@link ZAddCommand} with {@literal incr} applied.
 		 */
 		public ZAddCommand incr() {
-			return new ZAddCommand(getKey(), tuples, upsert, upsert, true);
+			return new ZAddCommand(getKey(), tuples, upsert, upsert, true, gt, lt);
+		}
+
+		/**
+		 * Applies {@literal GT} mode. Constructs a new command
+		 * instance with all previously configured properties.
+		 *
+		 * @return a new {@link ZAddCommand} with {@literal incr} applied.
+		 * @since 2.5
+		 */
+		public ZAddCommand gt() {
+			return new ZAddCommand(getKey(), tuples, upsert, upsert, incr, true, lt);
+		}
+
+		/**
+		 * Applies {@literal LT} mode. Constructs a new command
+		 * instance with all previously configured properties.
+		 *
+		 * @return a new {@link ZAddCommand} with {@literal incr} applied.
+		 * @since 2.5
+		 */
+		public ZAddCommand lt() {
+			return new ZAddCommand(getKey(), tuples, upsert, upsert, incr, gt, true);
 		}
 
 		/**
@@ -173,6 +199,23 @@ public interface ReactiveZSetCommands {
 		 */
 		public boolean isIncr() {
 			return incr;
+		}
+
+		/**
+		 *
+		 * @return {@literal true} if {@literal GT} is set.
+		 * @since 2.5
+		 */
+		public boolean isGt() {
+			return gt;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal LT} is set.
+		 * @since 2.5
+		 */
+		public boolean isLt() {
+			return lt;
 		}
 
 		/**
