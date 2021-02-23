@@ -19,23 +19,28 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.util.comparator.NullSafeComparator;
 
 /**
  * Bucket is the data bag for Redis hash structures to be used with {@link RedisData}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Stefan Berger
  * @since 1.7
  */
 public class Bucket {
@@ -45,19 +50,22 @@ public class Bucket {
 	 */
 	public static final Charset CHARSET = StandardCharsets.UTF_8;
 
-	private final Map<String, byte[]> data;
+	/**
+	 * The Redis data as {@link Map} sorted by the keys.
+	 */
+	private final NavigableMap<String, byte[]> data = new TreeMap<>(
+			new NullSafeComparator<>(Comparator.<String> naturalOrder(), true));
 
 	/**
 	 * Creates new empty bucket
 	 */
 	public Bucket() {
-		data = new LinkedHashMap<>();
+
 	}
 
 	Bucket(Map<String, byte[]> data) {
 
 		Assert.notNull(data, "Initial data must not be null!");
-		this.data = new LinkedHashMap<>(data.size());
 		this.data.putAll(data);
 	}
 
@@ -151,14 +159,7 @@ public class Bucket {
 	 */
 	public Bucket extract(String prefix) {
 
-		Bucket partial = new Bucket();
-		for (Map.Entry<String, byte[]> entry : data.entrySet()) {
-			if (entry.getKey().startsWith(prefix)) {
-				partial.put(entry.getKey(), entry.getValue());
-			}
-		}
-
-		return partial;
+		return new Bucket(data.subMap(prefix, prefix + Character.MAX_VALUE));
 	}
 
 	/**
