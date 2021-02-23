@@ -37,11 +37,13 @@ import io.lettuce.core.output.*;
 import io.lettuce.core.protocol.Command;
 import io.lettuce.core.protocol.CommandArgs;
 import io.lettuce.core.protocol.CommandType;
+import io.lettuce.core.protocol.ProtocolKeyword;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.sentinel.api.StatefulRedisSentinelConnection;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Constructor;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -405,7 +407,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		try {
 
 			String name = command.trim().toUpperCase();
-			CommandType commandType = CommandType.valueOf(name);
+			ProtocolKeyword commandType = getCommandType(name);
 
 			validateCommandIfRunningInTransactionMode(commandType, args);
 
@@ -1046,14 +1048,14 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return io.lettuce.core.ScanCursor.of(Long.toString(cursorId));
 	}
 
-	private void validateCommandIfRunningInTransactionMode(CommandType cmd, byte[]... args) {
+	private void validateCommandIfRunningInTransactionMode(ProtocolKeyword cmd, byte[]... args) {
 
 		if (this.isQueueing()) {
 			validateCommand(cmd, args);
 		}
 	}
 
-	private void validateCommand(CommandType cmd, @Nullable byte[]... args) {
+	private void validateCommand(ProtocolKeyword cmd, @Nullable byte[]... args) {
 
 		RedisCommand redisCommand = RedisCommand.failsafeCommandLookup(cmd.name());
 		if (!RedisCommand.UNKNOWN.equals(redisCommand) && redisCommand.requiresArguments()) {
@@ -1106,6 +1108,15 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return connectionProvider;
 	}
 
+	private static ProtocolKeyword getCommandType(String name) {
+
+		try {
+			return CommandType.valueOf(name);
+		} catch (IllegalArgumentException e) {
+			return new CustomCommandType(name);
+		}
+	}
+
 	/**
 	 * {@link TypeHints} provide {@link CommandOutput} information for a given {@link CommandType}.
 	 *
@@ -1114,7 +1125,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	static class TypeHints {
 
 		@SuppressWarnings("rawtypes") //
-		private static final Map<CommandType, Class<? extends CommandOutput>> COMMAND_OUTPUT_TYPE_MAPPING = new HashMap<>();
+		private static final Map<ProtocolKeyword, Class<? extends CommandOutput>> COMMAND_OUTPUT_TYPE_MAPPING = new HashMap<>();
 
 		@SuppressWarnings("rawtypes") //
 		private static final Map<Class<?>, Constructor<CommandOutput>> CONSTRUCTORS = new ConcurrentHashMap<>();
@@ -1275,7 +1286,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		 * @return {@link ByteArrayOutput} as default when no matching {@link CommandOutput} available.
 		 */
 		@SuppressWarnings("rawtypes")
-		public CommandOutput getTypeHint(CommandType type) {
+		public CommandOutput getTypeHint(ProtocolKeyword type) {
 			return getTypeHint(type, new ByteArrayOutput<>(CODEC));
 		}
 
@@ -1286,7 +1297,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		 * @return
 		 */
 		@SuppressWarnings("rawtypes")
-		public CommandOutput getTypeHint(CommandType type, CommandOutput defaultType) {
+		public CommandOutput getTypeHint(ProtocolKeyword type, CommandOutput defaultType) {
 
 			if (type == null || !COMMAND_OUTPUT_TYPE_MAPPING.containsKey(type)) {
 				return defaultType;
@@ -1521,6 +1532,51 @@ public class LettuceConnection extends AbstractRedisConnection {
 		public void onClose(StatefulConnection<?, ?> connection) {
 			connection.flushCommands();
 			connection.setAutoFlushCommands(true);
+		}
+	}
+
+	/**
+	 * @since 2.3.8
+	 */
+	static class CustomCommandType implements ProtocolKeyword {
+
+		private final String name;
+
+		CustomCommandType(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public byte[] getBytes() {
+			return name.getBytes(StandardCharsets.US_ASCII);
+		}
+
+		@Override
+		public String name() {
+			return name;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof CustomCommandType)) {
+				return false;
+			}
+			CustomCommandType that = (CustomCommandType) o;
+			return ObjectUtils.nullSafeEquals(name, that.name);
+		}
+
+		@Override
+		public int hashCode() {
+			return ObjectUtils.nullSafeHashCode(name);
+		}
+
+		@Override
+		public String toString() {
+			return name;
 		}
 	}
 }
