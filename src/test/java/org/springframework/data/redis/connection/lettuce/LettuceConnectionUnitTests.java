@@ -19,12 +19,18 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.XAddArgs;
 import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.output.StatusOutput;
+import io.lettuce.core.protocol.AsyncCommand;
+import io.lettuce.core.protocol.Command;
+import io.lettuce.core.protocol.CommandArgs;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
@@ -33,6 +39,7 @@ import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
@@ -198,7 +205,6 @@ public class LettuceConnectionUnitTests {
 			}
 
 			assertThat(ReflectionTestUtils.getField(args.getValue(), "justid")).isEqualTo(false);
-
 		}
 
 		@Test // DATAREDIS-1226
@@ -215,6 +221,21 @@ public class LettuceConnectionUnitTests {
 			}
 
 			assertThat(ReflectionTestUtils.getField(args.getValue(), "justid")).isEqualTo(true);
+		}
+
+		@Test // GH-1979
+		void executeShouldPassThruCustomCommands() {
+
+			Command<byte[], byte[], String> command = new Command<>(new LettuceConnection.CustomCommandType("FOO.BAR"),
+					new StatusOutput<>(ByteArrayCodec.INSTANCE));
+			AsyncCommand<byte[], byte[], String> future = new AsyncCommand<>(command);
+			future.complete();
+
+			when(asyncCommandsMock.dispatch(any(), any(), any())).thenReturn((RedisFuture) future);
+
+			connection.execute("foo.bar", command.getOutput());
+
+			verify(asyncCommandsMock).dispatch(eq(command.getType()), eq(command.getOutput()), any(CommandArgs.class));
 		}
 	}
 
