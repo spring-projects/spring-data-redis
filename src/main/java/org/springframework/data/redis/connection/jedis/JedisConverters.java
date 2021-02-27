@@ -88,6 +88,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Ninad Divadkar
  * @author Guy Korland
+ * @author dengliming
  */
 public abstract class JedisConverters extends Converters {
 
@@ -424,21 +425,7 @@ public abstract class JedisConverters extends Converters {
 		SetParams paramsToUse = params == null ? SetParams.setParams() : params;
 
 		if (expiration.isKeepTtl()) {
-
-			// TODO: remove once jedis supports KEEPTTL (https://github.com/xetorthio/jedis/issues/2248)
-			return new SetParams() {
-
-				@Override
-				public byte[][] getByteParams(byte[]... args) {
-
-					ArrayList<byte[]> byteParams = new ArrayList<>();
-					for (byte[] arg : paramsToUse.getByteParams(args)) {
-						byteParams.add(arg);
-					}
-					byteParams.add(SafeEncoder.encode("keepttl"));
-					return byteParams.toArray(new byte[byteParams.size()][]);
-				}
-			};
+			return paramsToUse.keepttl();
 		}
 
 		if (!expiration.isPersistent()) {
@@ -700,7 +687,7 @@ public abstract class JedisConverters extends Converters {
 	/**
 	 * Convert given {@link BitFieldSubCommands} into argument array.
 	 *
-	 * @param bitfieldOperation
+	 * @param source
 	 * @return never {@literal null}.
 	 * @since 1.8
 	 */
