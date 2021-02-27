@@ -30,6 +30,7 @@ import org.springframework.util.CollectionUtils;
  * @author David Liu
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author dengliming
  */
 class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements ListOperations<K, V> {
 
@@ -95,6 +96,16 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 				return connection.lPop(rawKey);
 			}
 		}, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#leftPop(java.lang.Object, long)
+	 */
+	@Override
+	public List<V> leftPop(K key, long count) {
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> deserializeValues(connection.lPop(rawKey, count)), true);
 	}
 
 	/*
@@ -225,6 +236,16 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 				return connection.rPop(rawKey);
 			}
 		}, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#rightPop(java.lang.Object, long)
+	 */
+	@Override
+	public List<V> rightPop(K key, long count) {
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> deserializeValues(connection.rPop(rawKey, count)), true);
 	}
 
 	/*

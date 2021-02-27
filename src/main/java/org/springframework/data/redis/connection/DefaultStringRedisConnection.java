@@ -699,6 +699,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lPop(byte[], long)
+	 */
+	@Override
+	public List<byte[]> lPop(byte[] key, long count) {
+		return convertAndReturn(delegate.lPop(key, count), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisListCommands#lPos(byte[], byte[], java.lang.Integer, java.lang.Integer)
 	 */
 	@Override
@@ -885,6 +894,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public byte[] rPop(byte[] key) {
 		return convertAndReturn(delegate.rPop(key), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#rPop(byte[], long)
+	 */
+	@Override
+	public List<byte[]> rPop(byte[] key, long count) {
+		return convertAndReturn(delegate.rPop(key, count), Converters.identityConverter());
 	}
 
 	/*
@@ -2162,6 +2180,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#lPop(java.lang.String, long)
+	 */
+	@Override
+	public List<String> lPop(String key, long count) {
+		return convertAndReturn(delegate.lPop(serialize(key), count), byteListToStringList);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#lPos(java.lang.String, java.lang.String, java.lang.Integer, java.lang.Integer)
 	 */
 	@Override
@@ -2311,6 +2338,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public String rPop(String key) {
 		return convertAndReturn(delegate.rPop(serialize(key)), bytesToString);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#rPop(java.lang.String, long)
+	 */
+	@Override
+	public List<String> rPop(String key, long count) {
+		return convertAndReturn(delegate.rPop(serialize(key), count), byteListToStringList);
 	}
 
 	/*

@@ -26,6 +26,7 @@ import org.springframework.util.CollectionUtils;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author dengliming
  */
 public interface RedisListCommands {
 
@@ -201,6 +202,17 @@ public interface RedisListCommands {
 	byte[] lPop(byte[] key);
 
 	/**
+	 * Removes and returns first element in list stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 */
+	@Nullable
+	List<byte[]> lPop(byte[] key, long count);
+
+	/**
 	 * Removes and returns last element in list stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -209,6 +221,17 @@ public interface RedisListCommands {
 	 */
 	@Nullable
 	byte[] rPop(byte[] key);
+
+	/**
+	 * Removes and returns last element in list stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
+	 */
+	@Nullable
+	List<byte[]> rPop(byte[] key, long count);
 
 	/**
 	 * Removes and returns first element from lists stored at {@code keys}. <br>

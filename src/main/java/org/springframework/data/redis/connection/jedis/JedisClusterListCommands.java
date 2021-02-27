@@ -33,6 +33,7 @@ import org.springframework.util.CollectionUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Jot Zhao
+ * @author dengliming
  * @since 2.0
  */
 class JedisClusterListCommands implements RedisListCommands {
@@ -271,6 +272,22 @@ class JedisClusterListCommands implements RedisListCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lPop(byte[], long)
+	 */
+	@Override
+	public List<byte[]> lPop(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return connection.getCluster().lpop(key, (int) count);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisListCommands#rPop(byte[])
 	 */
 	@Override
@@ -280,6 +297,22 @@ class JedisClusterListCommands implements RedisListCommands {
 
 		try {
 			return connection.getCluster().rpop(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#rPop(byte[], long)
+	 */
+	@Override
+	public List<byte[]> rPop(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return connection.getCluster().rpop(key, (int) count);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author dengliming
  * @since 2.0
  */
 class LettuceListCommands implements RedisListCommands {
@@ -215,6 +216,18 @@ class LettuceListCommands implements RedisListCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lPop(byte[], long)
+	 */
+	@Override
+	public List<byte[]> lPop(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().just(RedisListAsyncCommands::lpop, key, count);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisListCommands#rPop(byte[])
 	 */
 	@Override
@@ -223,6 +236,18 @@ class LettuceListCommands implements RedisListCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		return connection.invoke().just(RedisListAsyncCommands::rpop, key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#rPop(byte[], long)
+	 */
+	@Override
+	public List<byte[]> rPop(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().just(RedisListAsyncCommands::rpop, key, count);
 	}
 
 	/*

@@ -42,6 +42,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author dengliming
  * @since 2.0
  */
 public interface ReactiveListCommands {
@@ -874,12 +875,14 @@ public interface ReactiveListCommands {
 	 */
 	class PopCommand extends KeyCommand {
 
+		private final long count;
+
 		private final Direction direction;
 
-		private PopCommand(@Nullable ByteBuffer key, Direction direction) {
+		private PopCommand(@Nullable ByteBuffer key, long count, Direction direction) {
 
 			super(key);
-
+			this.count = count;
 			this.direction = direction;
 		}
 
@@ -889,7 +892,7 @@ public interface ReactiveListCommands {
 		 * @return a new {@link PopCommand} for right push ({@literal RPOP}).
 		 */
 		public static PopCommand right() {
-			return new PopCommand(null, Direction.RIGHT);
+			return new PopCommand(null, 0, Direction.RIGHT);
 		}
 
 		/**
@@ -898,7 +901,7 @@ public interface ReactiveListCommands {
 		 * @return a new {@link PopCommand} for right push ({@literal LPOP}).
 		 */
 		public static PopCommand left() {
-			return new PopCommand(null, Direction.LEFT);
+			return new PopCommand(null, 0, Direction.LEFT);
 		}
 
 		/**
@@ -911,7 +914,17 @@ public interface ReactiveListCommands {
 
 			Assert.notNull(key, "Key must not be null!");
 
-			return new PopCommand(key, direction);
+			return new PopCommand(key, count, direction);
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param count
+		 * @return a new {@link LSetCommand} with {@literal value} applied.
+		 */
+		public PopCommand count(long count) {
+			return new PopCommand(getKey(), count, direction);
 		}
 
 		/**
@@ -919,6 +932,10 @@ public interface ReactiveListCommands {
 		 */
 		public Direction getDirection() {
 			return direction;
+		}
+
+		public long getCount() {
+			return count;
 		}
 	}
 
@@ -937,6 +954,21 @@ public interface ReactiveListCommands {
 	}
 
 	/**
+	 * Removes and returns first element in list stored at {@literal key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count
+	 * @return
+	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 */
+	default Flux<ByteBuffer> lPop(ByteBuffer key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return popList(Mono.just(PopCommand.left().from(key).count(count))).flatMap(CommandResponse::getOutput);
+	}
+
+	/**
 	 * Removes and returns last element in list stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -951,6 +983,21 @@ public interface ReactiveListCommands {
 	}
 
 	/**
+	 * Removes and returns last element in list stored at {@literal key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count
+	 * @return
+	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
+	 */
+	default Flux<ByteBuffer> rPop(ByteBuffer key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return popList(Mono.just(PopCommand.right().from(key).count(count))).flatMap(CommandResponse::getOutput);
+	}
+
+	/**
 	 * Removes and returns last element in list stored at {@link KeyCommand#getKey()}
 	 *
 	 * @param commands must not be {@literal null}.
@@ -959,6 +1006,16 @@ public interface ReactiveListCommands {
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 */
 	Flux<ByteBufferResponse<PopCommand>> pop(Publisher<PopCommand> commands);
+
+	/**
+	 * Removes and returns last element in list stored at {@link KeyCommand#getKey()}
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
+	 */
+	Flux<CommandResponse<PopCommand, Flux<ByteBuffer>>> popList(Publisher<PopCommand> commands);
 
 	/**
 	 * @author Christoph Strobl

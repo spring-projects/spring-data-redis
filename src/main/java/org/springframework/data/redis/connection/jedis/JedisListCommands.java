@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author dengliming
  * @since 2.0
  */
 class JedisListCommands implements RedisListCommands {
@@ -216,6 +217,18 @@ class JedisListCommands implements RedisListCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lPop(byte[], long)
+	 */
+	@Override
+	public List<byte[]> lPop(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().just(BinaryJedis::lpop, MultiKeyPipelineBase::lpop, key, (int) count);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisListCommands#rPop(byte[])
 	 */
 	@Override
@@ -224,6 +237,18 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		return connection.invoke().just(BinaryJedis::rpop, MultiKeyPipelineBase::rpop, key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#rPop(byte[], long)
+	 */
+	@Override
+	public List<byte[]> rPop(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().just(BinaryJedis::rpop, MultiKeyPipelineBase::rpop, key, (int) count);
 	}
 
 	/*

@@ -37,6 +37,7 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
  * @author Christoph Strobl
  * @author Ninad Divadkar
  * @author Mark Paluch
+ * @author dengliming
  */
 public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedisConnectionTests {
 
@@ -514,14 +515,25 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 	@Test
 	public void testLPopBytes() {
 		doReturn(Arrays.asList(new Object[] { barBytes })).when(nativeConnection).closePipeline();
-		actual.add(connection.lPop(fooBytes));
-		verifyResults(Arrays.asList(new Object[] { barBytes }));
+		super.testLPopBytes();
 	}
 
 	@Test
 	public void testLPop() {
 		doReturn(Arrays.asList(new Object[] { barBytes })).when(nativeConnection).closePipeline();
 		super.testLPop();
+	}
+
+	@Test
+	public void testLPopCountBytes() {
+		doReturn(Collections.singletonList(bytesList)).when(nativeConnection).closePipeline();
+		super.testLPopCountBytes();
+	}
+
+	@Test
+	public void testLPopCount() {
+		doReturn(Collections.singletonList(bytesList)).when(nativeConnection).closePipeline();
+		super.testLPopCount();
 	}
 
 	@Test
@@ -666,6 +678,18 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 	public void testRPop() {
 		doReturn(Arrays.asList(new Object[] { barBytes })).when(nativeConnection).closePipeline();
 		super.testRPop();
+	}
+
+	@Test
+	public void testRPopCountBytes() {
+		doReturn(Collections.singletonList(bytesList)).when(nativeConnection).closePipeline();
+		super.testRPopCountBytes();
+	}
+
+	@Test
+	public void testRPopCount() {
+		doReturn(Collections.singletonList(bytesList)).when(nativeConnection).closePipeline();
+		super.testRPopCount();
 	}
 
 	@Test
