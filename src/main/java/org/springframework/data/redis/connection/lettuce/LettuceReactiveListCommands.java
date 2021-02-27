@@ -41,6 +41,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Michele Mancioppi
+ * @author dengliming
  * @since 2.0
  */
 class LettuceReactiveListCommands implements ReactiveListCommands {
@@ -252,7 +253,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#rPop(org.reactivestreams.Publisher)
+	 * @see org.springframework.data.redis.connection.ReactiveListCommands#pop(org.reactivestreams.Publisher)
 	 */
 	@Override
 	public Flux<ByteBufferResponse<PopCommand>> pop(Publisher<PopCommand> commands) {
@@ -267,6 +268,25 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 					: cmd.lpop(command.getKey());
 
 			return popResult.map(value -> new ByteBufferResponse<>(command, value));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveListCommands#popList(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<PopCommand, Flux<ByteBuffer>>> popList(Publisher<PopCommand> commands) {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getDirection(), "Direction must not be null!");
+
+			Flux<ByteBuffer> popResult = ObjectUtils.nullSafeEquals(Direction.RIGHT, command.getDirection())
+					? cmd.rpop(command.getKey(), command.getCount())
+					: cmd.lpop(command.getKey(), command.getCount());
+
+			return Mono.just(new CommandResponse<>(command, popResult));
 		}));
 	}
 

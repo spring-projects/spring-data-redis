@@ -56,6 +56,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Tugdual Grall
  * @author Andrey Shlykov
+ * @author dengliming
  * @since 2.0
  */
 public interface DefaultedRedisConnection extends RedisConnection {
@@ -715,8 +716,22 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
 	@Override
 	@Deprecated
+	default List<byte[]> lPop(byte[] key, long count) {
+		return listCommands().lPop(key, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
+	@Override
+	@Deprecated
 	default byte[] rPop(byte[] key) {
 		return listCommands().rPop(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
+	@Override
+	@Deprecated
+	default List<byte[]> rPop(byte[] key, long count) {
+		return listCommands().rPop(key, count);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */

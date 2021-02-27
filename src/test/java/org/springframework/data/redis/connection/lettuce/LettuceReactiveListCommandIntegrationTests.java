@@ -43,6 +43,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Michele Mancioppi
+ * @author dengliming
  */
 public class LettuceReactiveListCommandIntegrationTests extends LettuceReactiveCommandsTestSupport {
 
@@ -245,6 +246,9 @@ public class LettuceReactiveListCommandIntegrationTests extends LettuceReactiveC
 
 		assertThat(connection.listCommands().lPop(KEY_1_BBUFFER).block()).isEqualTo(VALUE_1_BBUFFER);
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_2, VALUE_3);
+
+		assertThat(connection.listCommands().lPop(KEY_1_BBUFFER, 2).collectList().block()).isEqualTo(Arrays.asList(VALUE_2_BBUFFER, VALUE_3_BBUFFER));
+		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).isEmpty();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525

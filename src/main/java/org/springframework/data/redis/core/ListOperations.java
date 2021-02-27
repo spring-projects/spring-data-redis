@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author dengliming
  */
 public interface ListOperations<K, V> {
 
@@ -248,6 +249,17 @@ public interface ListOperations<K, V> {
 	V leftPop(K key);
 
 	/**
+	 * Removes and returns first element in list stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count
+	 * @return can be {@literal null}.
+	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 */
+	@Nullable
+	List<V> leftPop(K key, long count);
+
+	/**
 	 * Removes and returns first element from lists stored at {@code key} . <br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
@@ -289,6 +301,17 @@ public interface ListOperations<K, V> {
 	 */
 	@Nullable
 	V rightPop(K key);
+
+	/**
+	 * Removes and returns last element in list stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count
+	 * @return can be {@literal null}.
+	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
+	 */
+	@Nullable
+	List<V> rightPop(K key, long count);
 
 	/**
 	 * Removes and returns last element from lists stored at {@code key}. <br>

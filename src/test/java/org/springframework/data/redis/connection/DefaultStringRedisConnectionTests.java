@@ -70,6 +70,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Christoph Strobl
  * @author Ninad Divadkar
  * @author Mark Paluch
+ * @author dengliming
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -670,6 +671,20 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	@Test
+	public void testLPopCountBytes() {
+		doReturn(Collections.singletonList(barBytes)).when(nativeConnection).lPop(fooBytes, 2);
+		actual.add(connection.lPop(fooBytes, 2));
+		verifyResults(Collections.singletonList(bytesList));
+	}
+
+	@Test
+	public void testLPopCount() {
+		doReturn(Collections.singletonList(barBytes)).when(nativeConnection).lPop(fooBytes, 2);
+		actual.add(connection.lPop(foo, 2));
+		verifyResults(Collections.singletonList(stringList));
+	}
+
+	@Test
 	public void testLPushBytes() {
 		doReturn(8L).when(nativeConnection).lPush(fooBytes, barBytes);
 		actual.add(connection.lPush(fooBytes, barBytes));
@@ -835,6 +850,20 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(barBytes).when(nativeConnection).rPop(fooBytes);
 		actual.add(connection.rPop(foo));
 		verifyResults(Collections.singletonList(bar));
+	}
+
+	@Test
+	public void testRPopCountBytes() {
+		doReturn(Collections.singletonList(barBytes)).when(nativeConnection).rPop(fooBytes, 2);
+		actual.add(connection.rPop(fooBytes, 2));
+		verifyResults(Collections.singletonList(bytesList));
+	}
+
+	@Test
+	public void testRPopCount() {
+		doReturn(Collections.singletonList(barBytes)).when(nativeConnection).rPop(fooBytes, 2);
+		actual.add(connection.rPop(foo, 2));
+		verifyResults(Collections.singletonList(stringList));
 	}
 
 	@Test
