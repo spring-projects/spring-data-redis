@@ -513,6 +513,26 @@ public interface RedisZSetCommands {
 			return !flags.isEmpty();
 		}
 
+		@Override
+		public boolean equals(Object o) {
+
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+
+			ZAddArgs zAddArgs = (ZAddArgs) o;
+
+			return ObjectUtils.nullSafeEquals(flags, zAddArgs.flags);
+		}
+
+		@Override
+		public int hashCode() {
+			return ObjectUtils.nullSafeHashCode(flags);
+		}
+
 		public enum Flag {
 
 			/**

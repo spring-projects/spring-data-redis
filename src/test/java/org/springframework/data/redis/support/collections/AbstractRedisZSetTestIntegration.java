@@ -47,6 +47,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Andrey Shlykov
+ * @author Christoph Strobl
  */
 public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisCollectionIntegrationTests<T> {
 
@@ -676,5 +677,14 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 
 		cursor.close();
 
+	}
+
+	@ParameterizedRedisTest // GH-1794
+	void testZAddIfAbsentWorks() {
+
+		T t1 = getT();
+
+		assertThat(zSet.addIfAbsent(t1, 1)).isTrue();
+		assertThat(zSet.addIfAbsent(t1, 1)).isFalse();
 	}
 }

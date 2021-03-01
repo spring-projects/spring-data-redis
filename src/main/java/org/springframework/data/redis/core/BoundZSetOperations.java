@@ -49,6 +49,18 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Boolean add(V value, double score);
 
 	/**
+	 * Add {@code value} to a sorted set at {@code key} if it does not already exists.
+	 *
+	 * @param score the score.
+	 * @param value the value.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD NX</a>
+	 */
+	@Nullable
+	Boolean addIfAbsent(V value, double score);
+
+	/**
 	 * Add {@code tuples} to a sorted set at the bound key, or update its {@code score} if it already exists.
 	 *
 	 * @param tuples must not be {@literal null}.
@@ -57,6 +69,17 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Long add(Set<TypedTuple<V>> tuples);
+
+	/**
+	 * Add {@code tuples} to a sorted set at {@code key} if it does not already exists.
+	 *
+	 * @param tuples must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD NX</a>
+	 */
+	@Nullable
+	Long addIfAbsent(Set<TypedTuple<V>> tuples);
 
 	/**
 	 * Remove {@code values} from sorted set. Return number of removed elements.

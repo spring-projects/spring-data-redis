@@ -47,6 +47,19 @@ public interface ZSetOperations<K, V> {
 
 		@Nullable
 		Double getScore();
+
+		/**
+		 * Create a new {@link TypedTuple}.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @param score can be {@literal null}.
+		 * @param <V>
+		 * @return new instance of {@link TypedTuple}.
+		 * @since 2.5
+		 */
+		static <V> TypedTuple<V> of(V value, @Nullable Double score) {
+			return new DefaultTypedTuple<>(value, score);
+		}
 	}
 
 	/**
@@ -62,6 +75,19 @@ public interface ZSetOperations<K, V> {
 	Boolean add(K key, V value, double score);
 
 	/**
+	 * Add {@code value} to a sorted set at {@code key} if it does not already exists.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param score the score.
+	 * @param value the value.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD NX</a>
+	 */
+	@Nullable
+	Boolean addIfAbsent(K key, V value, double score);
+
+	/**
 	 * Add {@code tuples} to a sorted set at {@code key}, or update its {@code score} if it already exists.
 	 *
 	 * @param key must not be {@literal null}.
@@ -71,6 +97,18 @@ public interface ZSetOperations<K, V> {
 	 */
 	@Nullable
 	Long add(K key, Set<TypedTuple<V>> tuples);
+
+	/**
+	 * Add {@code tuples} to a sorted set at {@code key} if it does not already exists.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param tuples must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD NX</a>
+	 */
+	@Nullable
+	Long addIfAbsent(K key, Set<TypedTuple<V>> tuples);
 
 	/**
 	 * Remove {@code values} from sorted set. Return number of removed elements.
