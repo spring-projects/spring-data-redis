@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
@@ -118,7 +119,18 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 	 * @return
 	 * @see RedisServerCommands#time()
 	 */
-	Long time(RedisClusterNode node);
+	default Long time(RedisClusterNode node) {
+		return time(node, TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * @param node must not be {@literal null}.
+	 * @param timeUnit must not be {@literal null}.
+	 * @return
+	 * @since 2.5
+	 * @see RedisServerCommands#time(TimeUnit)
+	 */
+	Long time(RedisClusterNode node, TimeUnit timeUnit);
 
 	/**
 	 * @param node must not be {@literal null}.

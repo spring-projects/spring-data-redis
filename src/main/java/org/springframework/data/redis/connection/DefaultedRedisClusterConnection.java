@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.lang.Nullable;
@@ -126,6 +127,13 @@ public interface DefaultedRedisClusterConnection extends RedisClusterConnection,
 	@Deprecated
 	default Long time(RedisClusterNode node) {
 		return serverCommands().time(node);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default Long time(RedisClusterNode node, TimeUnit timeUnit) {
+		return serverCommands().time(node, timeUnit);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */

@@ -201,11 +201,14 @@ class LettuceServerCommands implements RedisServerCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time(TimeUnit)
 	 */
 	@Override
-	public Long time() {
-		return connection.invoke().from(RedisServerAsyncCommands::time).get(LettuceConverters.toTimeConverter());
+	public Long time(TimeUnit timeUnit) {
+
+		Assert.notNull(timeUnit, "TimeUnit must not be null.");
+
+		return connection.invoke().from(RedisServerAsyncCommands::time).get(LettuceConverters.toTimeConverter(timeUnit));
 	}
 
 	/*

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -260,7 +261,7 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 		return connection.execute(node, RedisServerReactiveCommands::time) //
 				.map(ByteUtils::getBytes) //
 				.collectList() //
-				.map(LettuceConverters.toTimeConverter()::convert);
+				.map(LettuceConverters.toTimeConverter(TimeUnit.MILLISECONDS)::convert);
 	}
 
 	/*

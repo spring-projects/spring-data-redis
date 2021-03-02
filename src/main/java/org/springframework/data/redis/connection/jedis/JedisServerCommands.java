@@ -21,6 +21,7 @@ import redis.clients.jedis.MultiKeyPipelineBase;
 
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands;
@@ -190,12 +191,15 @@ class JedisServerCommands implements RedisServerCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time(TimeUnit)
 	 */
 	@Override
-	public Long time() {
+	public Long time(TimeUnit timeUnit) {
+
+		Assert.notNull(timeUnit, "TimeUnit must not be null.");
+
 		return connection.invoke().from(BinaryJedis::time, MultiKeyPipelineBase::time)
-				.get(JedisConverters::toTime);
+				.get((List<String> source) -> JedisConverters.toTime(source, timeUnit));
 	}
 
 	/*

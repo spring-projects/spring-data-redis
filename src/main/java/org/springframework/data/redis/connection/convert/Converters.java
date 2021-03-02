@@ -208,6 +208,23 @@ abstract public class Converters {
 	}
 
 	/**
+	 * Returns the timestamp constructed from the given {@code seconds} and {@code microseconds}.
+	 *
+	 * @param seconds server time in seconds.
+	 * @param microseconds elapsed microseconds in current second.
+	 * @param unit target unit.
+	 * @return
+	 * @since 2.5
+	 */
+	public static Long toTimeMillis(String seconds, String microseconds, TimeUnit unit) {
+
+		long secondValue = TimeUnit.SECONDS.toMicros(NumberUtils.parseNumber(seconds, Long.class));
+		long microValue = NumberUtils.parseNumber(microseconds, Long.class);
+
+		return unit.convert(secondValue + microValue, TimeUnit.MICROSECONDS);
+	}
+
+	/**
 	 * Converts {@code seconds} to the given {@link TimeUnit}.
 	 *
 	 * @param seconds

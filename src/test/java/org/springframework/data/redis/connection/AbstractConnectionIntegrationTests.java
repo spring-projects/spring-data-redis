@@ -26,6 +26,8 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadi
 import static org.springframework.data.redis.core.ScanOptions.*;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -2115,6 +2117,31 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(results).isNotEmpty();
 		assertThat(results.get(0)).isNotNull();
 		assertThat((Long) results.get(0) > 0).isTrue();
+	}
+
+	@Test // GH-526
+	void testGetTimeShouldRequestServerTimeAsMicros() {
+
+		actual.add(connection.time(TimeUnit.MICROSECONDS));
+		actual.add(connection.time(TimeUnit.SECONDS));
+		actual.add(connection.time(TimeUnit.HOURS));
+
+		List<Object> results = getResults();
+		assertThat(results).isNotEmpty();
+		assertThat(results.get(0)).isNotNull();
+
+		Instant now = Instant.now();
+		Instant reference = Instant.parse("1970-01-01T00:00:00.0Z");
+
+		Instant micros = reference.plus(Duration.ofNanos(TimeUnit.MICROSECONDS.toNanos((Long) results.get(0))));
+
+		Instant seconds = reference.plus(Duration.ofNanos(TimeUnit.SECONDS.toNanos((Long) results.get(1))));
+
+		Instant hours = reference.plus(Duration.ofNanos(TimeUnit.HOURS.toNanos((Long) results.get(2))));
+
+		assertThat(micros).isCloseTo(now, within(1, ChronoUnit.MINUTES));
+		assertThat(seconds).isCloseTo(now, within(1, ChronoUnit.MINUTES));
+		assertThat(hours).isCloseTo(now, within(1, ChronoUnit.HOURS));
 	}
 
 	@Test // DATAREDIS-269

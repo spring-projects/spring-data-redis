@@ -319,13 +319,11 @@ class LettuceClusterConnectionUnitTests {
 	void timeShouldBeExecutedOnArbitraryNode() {
 
 		List<byte[]> values = Arrays.asList("1449655759".getBytes(), "92217".getBytes());
-		when(clusterConnection1Mock.time()).thenReturn(values);
-		when(clusterConnection2Mock.time()).thenReturn(values);
-		when(clusterConnection3Mock.time()).thenReturn(values);
+		when(dedicatedConnectionMock.time()).thenReturn(new LettuceServerCommands.CompletedRedisFuture<>(values));
 
 		connection.time();
 
-		verifyInvocationsAcross("time", times(1), clusterConnection1Mock, clusterConnection2Mock, clusterConnection3Mock);
+		verify(dedicatedConnectionMock).time();
 	}
 
 	@Test // DATAREDIS-315

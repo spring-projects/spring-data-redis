@@ -547,13 +547,14 @@ public abstract class JedisConverters extends Converters {
 		return sp;
 	}
 
-	static Long toTime(List<String> source) {
+	static Long toTime(List<String> source, TimeUnit timeUnit) {
 
 		Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
 		Assert.isTrue(source.size() == 2,
 				"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
+		Assert.notNull(timeUnit, "TimeUnit must not be null.");
 
-		return toTimeMillis(source.get(0), source.get(1));
+		return toTimeMillis(source.get(0), source.get(1), timeUnit);
 	}
 
 	/**

@@ -3355,6 +3355,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time(TimeUnit)
+	 */
+	@Override
+	public Long time(TimeUnit timeUnit) {
+		return convertAndReturn(this.delegate.time(timeUnit), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#getClientList()
 	 */
 	@Override

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiNodeResult;
@@ -308,23 +309,11 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#time()
-	 */
-	@Override
-	public Long time() {
-
-		return convertListOfStringToTime(connection.getClusterCommandExecutor()
-				.executeCommandOnArbitraryNode((LettuceClusterCommandCallback<List<byte[]>>) RedisServerCommands::time)
-				.getValue());
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#time(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
-	public Long time(RedisClusterNode node) {
-		return convertListOfStringToTime(executeCommandOnSingleNode(RedisServerCommands::time, node).getValue());
+	public Long time(RedisClusterNode node, TimeUnit timeUnit) {
+		return convertListOfStringToTime(executeCommandOnSingleNode(RedisServerCommands::time, node).getValue(), timeUnit);
 	}
 
 	/*
@@ -383,13 +372,13 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		return connection.getClusterCommandExecutor().executeCommandOnAllNodes(cmd);
 	}
 
-	private static Long convertListOfStringToTime(List<byte[]> serverTimeInformation) {
+	private static Long convertListOfStringToTime(List<byte[]> serverTimeInformation, TimeUnit timeUnit) {
 
 		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
 		Assert.isTrue(serverTimeInformation.size() == 2,
 				"Received invalid number of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
 
 		return Converters.toTimeMillis(LettuceConverters.toString(serverTimeInformation.get(0)),
-				LettuceConverters.toString(serverTimeInformation.get(1)));
+				LettuceConverters.toString(serverTimeInformation.get(1)), timeUnit);
 	}
 }

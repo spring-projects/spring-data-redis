@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.lang.Nullable;
@@ -174,14 +175,27 @@ public interface RedisServerCommands {
 	void resetConfigStats();
 
 	/**
-	 * Request server timestamp using {@code TIME} command.
+	 * Request server timestamp using {@code TIME} command in {@link TimeUnit#MILLISECONDS}.
 	 *
 	 * @return current server time in milliseconds or {@literal null} when used in pipeline / transaction.
 	 * @since 1.1
 	 * @see <a href="https://redis.io/commands/time">Redis Documentation: TIME</a>
 	 */
 	@Nullable
-	Long time();
+	default Long time() {
+		return time(TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * Request server timestamp using {@code TIME} command.
+	 *
+	 * @param timeUnit target unit.
+	 * @return current server time in {@link TimeUnit} or {@literal null} when used in pipeline / transaction.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/time">Redis Documentation: TIME</a>
+	 */
+	@Nullable
+	Long time(TimeUnit timeUnit);
 
 	/**
 	 * Closes a given client connection identified by {@literal host:port}.

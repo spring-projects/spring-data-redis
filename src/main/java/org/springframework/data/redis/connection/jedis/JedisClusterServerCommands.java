@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiNodeResult;
@@ -391,24 +392,26 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time(TimeUnit)
 	 */
 	@Override
-	public Long time() {
+	public Long time(TimeUnit timeUnit) {
 
 		return convertListOfStringToTime(connection.getClusterCommandExecutor()
-				.executeCommandOnArbitraryNode((JedisClusterCommandCallback<List<String>>) BinaryJedis::time).getValue());
+				.executeCommandOnArbitraryNode((JedisClusterCommandCallback<List<String>>) BinaryJedis::time).getValue(),
+				timeUnit);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#time(org.springframework.data.redis.connection.RedisClusterNode)
+	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#time(org.springframework.data.redis.connection.RedisClusterNode, TimeUnit)
 	 */
 	@Override
-	public Long time(RedisClusterNode node) {
+	public Long time(RedisClusterNode node, TimeUnit timeUnit) {
 
 		return convertListOfStringToTime(connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<List<String>>) BinaryJedis::time, node).getValue());
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<List<String>>) BinaryJedis::time, node).getValue(),
+				timeUnit);
 	}
 
 	/*
@@ -517,13 +520,13 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 				node);
 	}
 
-	private Long convertListOfStringToTime(List<String> serverTimeInformation) {
+	private Long convertListOfStringToTime(List<String> serverTimeInformation, TimeUnit timeUnit) {
 
 		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
 		Assert.isTrue(serverTimeInformation.size() == 2,
 				"Received invalid number of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
 
-		return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1));
+		return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1), timeUnit);
 	}
 
 	private <T> NodeResult<T> executeCommandOnSingleNode(JedisClusterCommandCallback<T> cmd, RedisClusterNode node) {

@@ -22,6 +22,7 @@ import reactor.core.publisher.Mono;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.ReactiveServerCommands;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -177,15 +178,15 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#time()
+	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#time(TimeUnit)
 	 */
 	@Override
-	public Mono<Long> time() {
+	public Mono<Long> time(TimeUnit timeUnit) {
 
 		return connection.execute(RedisServerReactiveCommands::time) //
 				.map(ByteUtils::getBytes) //
 				.collectList() //
-				.map(LettuceConverters.toTimeConverter()::convert);
+				.map(LettuceConverters.toTimeConverter(timeUnit)::convert);
 	}
 
 	/*

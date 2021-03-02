@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
@@ -142,12 +143,24 @@ public interface ReactiveServerCommands {
 	Mono<String> resetConfigStats();
 
 	/**
-	 * Request server timestamp using {@code TIME} command.
+	 * Request server timestamp using {@code TIME} command in {@link TimeUnit#MILLISECONDS}.
 	 *
 	 * @return {@link Mono} wrapping current server time in milliseconds.
 	 * @see <a href="https://redis.io/commands/time">Redis Documentation: TIME</a>
 	 */
-	Mono<Long> time();
+	default Mono<Long> time() {
+		return time(TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * Request server timestamp using {@code TIME} command.
+	 *
+	 * @param timeUnit target unit.
+	 * @return {@link Mono} wrapping current server time in {@link TimeUnit}.
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/time">Redis Documentation: TIME</a>
+	 */
+	Mono<Long> time(TimeUnit timeUnit);
 
 	/**
 	 * Closes a given client connection identified by {@literal host:port}.
