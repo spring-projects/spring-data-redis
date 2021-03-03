@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Christoph Strobl
@@ -50,12 +51,30 @@ public class RedisNode implements NamedNode {
 
 	protected RedisNode() {}
 
+	private RedisNode(RedisNode redisNode) {
+
+		this.id = redisNode.id;
+		this.name = redisNode.name;
+		this.host = redisNode.host;
+		this.port = redisNode.port;
+		this.type = redisNode.type;
+		this.masterId = redisNode.masterId;
+	}
+
 	/**
 	 * @return can be {@literal null}.
 	 */
 	@Nullable
 	public String getHost() {
 		return host;
+	}
+
+	/**
+	 * @return whether this node has a valid host (not null and not empty).
+	 * @since 2.5
+	 */
+	public boolean hasValidHost() {
+		return StringUtils.hasText(host);
 	}
 
 	/**
@@ -229,7 +248,7 @@ public class RedisNode implements NamedNode {
 		 */
 		public RedisNodeBuilder listeningAt(String host, int port) {
 
-			Assert.hasText(host, "Hostname must not be empty or null.");
+			Assert.notNull(host, "Hostname must not be null.");
 			node.host = host;
 			node.port = port;
 			return this;
@@ -290,7 +309,7 @@ public class RedisNode implements NamedNode {
 		 * @return
 		 */
 		public RedisNode build() {
-			return this.node;
+			return new RedisNode(this.node);
 		}
 	}
 

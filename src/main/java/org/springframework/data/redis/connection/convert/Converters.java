@@ -554,6 +554,7 @@ abstract public class Converters {
 		static final int LINK_STATE_INDEX = 7;
 		static final int SLOTS_INDEX = 8;
 
+		@Override
 		public RedisClusterNode convert(String source) {
 
 			String[] args = source.split(" ");
