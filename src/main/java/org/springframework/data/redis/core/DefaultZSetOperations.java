@@ -50,7 +50,10 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 */
 	@Override
 	public Boolean add(K key, V value, double score) {
-		return add(key, value, score, ZAddArgs.none());
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+		return execute(connection -> connection.zAdd(rawKey, score, rawValue), true);
 	}
 
 	/*
@@ -83,7 +86,10 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 */
 	@Override
 	public Long add(K key, Set<TypedTuple<V>> tuples) {
-		return add(key, tuples, ZAddArgs.none());
+
+		byte[] rawKey = rawKey(key);
+		Set<Tuple> rawValues = rawTupleValues(tuples);
+		return execute(connection -> connection.zAdd(rawKey, rawValues), true);
 	}
 
 	/*

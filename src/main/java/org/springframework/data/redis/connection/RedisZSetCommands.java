@@ -17,7 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.DoubleUnaryOperator;
@@ -400,13 +400,13 @@ public interface RedisZSetCommands {
 	/**
 	 * {@code ZADD} specific arguments. <br />
 	 * Looking of the {@code INCR} flag? Use the {@code ZINCRBY} operation instead.
-	 * 
-	 * @since 2.3
+	 *
+	 * @since 2.5
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
 	class ZAddArgs {
 
-		private static final ZAddArgs NONE = new ZAddArgs(Collections.emptySet());
+		private static final ZAddArgs NONE = new ZAddArgs(EnumSet.noneOf(Flag.class));
 
 		private final Set<Flag> flags;
 
@@ -415,17 +415,10 @@ public interface RedisZSetCommands {
 		}
 
 		/**
-		 * @return immutable {@link ZAddArgs}.
-		 */
-		public static ZAddArgs none() {
-			return NONE;
-		}
-
-		/**
 		 * @return new instance of {@link ZAddArgs} without any flags set.
 		 */
 		public static ZAddArgs empty() {
-			return new ZAddArgs(new LinkedHashSet<>(5));
+			return new ZAddArgs(EnumSet.noneOf(Flag.class));
 		}
 
 		/**
@@ -573,7 +566,7 @@ public interface RedisZSetCommands {
 	 */
 	@Nullable
 	default Boolean zAdd(byte[] key, double score, byte[] value) {
-		return zAdd(key, score, value, ZAddArgs.none());
+		return zAdd(key, score, value, ZAddArgs.NONE);
 	}
 
 	/**
@@ -601,7 +594,7 @@ public interface RedisZSetCommands {
 	 */
 	@Nullable
 	default Long zAdd(byte[] key, Set<Tuple> tuples) {
-		return zAdd(key, tuples, ZAddArgs.none());
+		return zAdd(key, tuples, ZAddArgs.NONE);
 	}
 
 	/**

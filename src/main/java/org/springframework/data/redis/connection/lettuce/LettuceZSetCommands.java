@@ -59,7 +59,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return connection.invoke().from(RedisSortedSetAsyncCommands::zadd, key, LettuceZSetCommands.toZAddArgs(args), score, value)
+		return connection.invoke()
+				.from(RedisSortedSetAsyncCommands::zadd, key, LettuceZSetCommands.toZAddArgs(args), score, value)
 				.get(LettuceConverters.longToBoolean());
 	}
 
@@ -165,15 +166,15 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(range, "Range for ZRANGEBYSCOREWITHSCORES must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-				if (limit.isUnlimited()) {
-					return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebyscoreWithScores, key,
-							LettuceConverters.<Number> toRange(range)).toSet(LettuceConverters::toTuple);
-				}
+		if (limit.isUnlimited()) {
+			return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebyscoreWithScores, key,
+					LettuceConverters.<Number> toRange(range)).toSet(LettuceConverters::toTuple);
+		}
 
-				return connection.invoke()
-						.fromMany(RedisSortedSetAsyncCommands::zrangebyscoreWithScores, key,
-								LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit))
-						.toSet(LettuceConverters::toTuple);
+		return connection
+				.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebyscoreWithScores, key,
+						LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit))
+				.toSet(LettuceConverters::toTuple);
 
 	}
 
@@ -214,15 +215,15 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(range, "Range for ZREVRANGEBYSCORE must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-				if (limit.isUnlimited()) {
+		if (limit.isUnlimited()) {
 
-					return connection.invoke()
-							.fromMany(RedisSortedSetAsyncCommands::zrevrangebyscore, key, LettuceConverters.<Number> toRange(range))
-							.toSet();
-				}
+			return connection.invoke()
+					.fromMany(RedisSortedSetAsyncCommands::zrevrangebyscore, key, LettuceConverters.<Number> toRange(range))
+					.toSet();
+		}
 
-				return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangebyscore, key,
-						LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit)).toSet();
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangebyscore, key,
+				LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit)).toSet();
 
 	}
 
@@ -237,15 +238,15 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(range, "Range for ZREVRANGEBYSCOREWITHSCORES must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-				if (limit.isUnlimited()) {
-					return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangebyscoreWithScores, key,
-							LettuceConverters.<Number> toRange(range)).toSet(LettuceConverters::toTuple);
-				}
+		if (limit.isUnlimited()) {
+			return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangebyscoreWithScores, key,
+					LettuceConverters.<Number> toRange(range)).toSet(LettuceConverters::toTuple);
+		}
 
-				return connection.invoke()
-						.fromMany(RedisSortedSetAsyncCommands::zrevrangebyscoreWithScores, key,
-								LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit))
-						.toSet(LettuceConverters::toTuple);
+		return connection.invoke()
+				.fromMany(RedisSortedSetAsyncCommands::zrevrangebyscoreWithScores, key,
+						LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit))
+				.toSet(LettuceConverters::toTuple);
 
 	}
 
@@ -580,23 +581,23 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		io.lettuce.core.ZAddArgs target = new io.lettuce.core.ZAddArgs();
 
-		if(!source.isEmpty()) {
+		if (!source.isEmpty()) {
 			return target;
 		}
 
-		if(source.contains(Flag.XX)) {
+		if (source.contains(Flag.XX)) {
 			target.xx();
 		}
-		if(source.contains(Flag.NX)) {
+		if (source.contains(Flag.NX)) {
 			target.nx();
 		}
-		if(source.contains(Flag.GT)) {
+		if (source.contains(Flag.GT)) {
 			target.gt();
 		}
-		if(source.contains(Flag.LT)) {
+		if (source.contains(Flag.LT)) {
 			target.lt();
 		}
-		if(source.contains(Flag.CH)) {
+		if (source.contains(Flag.CH)) {
 			target.ch();
 		}
 		return target;

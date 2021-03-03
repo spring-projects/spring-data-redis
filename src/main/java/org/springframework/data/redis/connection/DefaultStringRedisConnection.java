@@ -2686,11 +2686,29 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zAdd(java.lang.String, double, java.lang.String)
+	 */
+	@Override
+	public Boolean zAdd(String key, double score, String value) {
+		return zAdd(serialize(key), score, serialize(value));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#zAdd(java.lang.String, double, java.lang.String, org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs)
 	 */
 	@Override
 	public Boolean zAdd(String key, double score, String value, ZAddArgs args) {
 		return zAdd(serialize(key), score, serialize(value), args);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zAdd(java.lang.String, java.util.Set)
+	 */
+	@Override
+	public Long zAdd(String key, Set<StringTuple> tuples) {
+		return zAdd(serialize(key), stringTupleToTuple.convert(tuples));
 	}
 
 	/*

@@ -1102,9 +1102,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 * @see RedisZSetCommands#zAdd(byte[], double, byte[])
 	 */
-	default Boolean zAdd(String key, double score, String value) {
-		return zAdd(key, score, value, ZAddArgs.none());
-	}
+	Boolean zAdd(String key, double score, String value);
 
 	/**
 	 * Add the {@code value} to a sorted set at {@code key}, or update its {@code score} depending on the given
@@ -1130,9 +1128,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 * @see RedisZSetCommands#zAdd(byte[], Set)
 	 */
-	default Long zAdd(String key, Set<StringTuple> tuples) {
-		return zAdd(key, tuples, ZAddArgs.none());
-	}
+	Long zAdd(String key, Set<StringTuple> tuples);
 
 	/**
 	 * Add {@code tuples} to a sorted set at {@code key}, or update its {@code score} depending on the given

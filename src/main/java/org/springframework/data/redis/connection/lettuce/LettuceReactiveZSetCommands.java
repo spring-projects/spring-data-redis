@@ -98,14 +98,15 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				}
 
 				if (command.isUpsert()) {
-					args = ZAddArgs.Builder.nx();
+					args = args == null ? ZAddArgs.Builder.nx() : args.nx();
 				} else {
-					args = ZAddArgs.Builder.xx();
+					args = args == null ? ZAddArgs.Builder.xx() : args.xx();
 				}
-				if(command.isGt()) {
+
+				if (command.isGt()) {
 					args = args == null ? ZAddArgs.Builder.gt() : args.gt();
 				}
-				if(command.isLt()) {
+				if (command.isLt()) {
 					args = args == null ? ZAddArgs.Builder.lt() : args.lt();
 				}
 			}
@@ -168,7 +169,8 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getValue(), "Value must not be null!");
 
 			Mono<Long> result = ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)
-					? cmd.zrank(command.getKey(), command.getValue()) : cmd.zrevrank(command.getKey(), command.getValue());
+					? cmd.zrank(command.getKey(), command.getValue())
+					: cmd.zrevrank(command.getKey(), command.getValue());
 
 			return result.map(value -> new NumericResponse<>(command, value));
 		}));
@@ -194,24 +196,21 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			if (ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)) {
 				if (command.isWithScores()) {
 
-					result = cmd
-							.zrangeWithScores(command.getKey(), start, stop).map(sc -> new DefaultTuple(getBytes(sc), sc.getScore()));
+					result = cmd.zrangeWithScores(command.getKey(), start, stop)
+							.map(sc -> new DefaultTuple(getBytes(sc), sc.getScore()));
 				} else {
 
-					result = cmd
-							.zrange(command.getKey(), start, stop)
+					result = cmd.zrange(command.getKey(), start, stop)
 							.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 				}
 			} else {
 				if (command.isWithScores()) {
 
-					result = cmd
-							.zrevrangeWithScores(command.getKey(), start, stop)
+					result = cmd.zrevrangeWithScores(command.getKey(), start, stop)
 							.map(sc -> new DefaultTuple(getBytes(sc), sc.getScore()));
 				} else {
 
-					result = cmd
-							.zrevrange(command.getKey(), start, stop)
+					result = cmd.zrevrange(command.getKey(), start, stop)
 							.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
 				}
 			}
@@ -399,8 +398,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 					LettuceConverters.getLowerBoundIndex(command.getRange()), //
 					LettuceConverters.getUpperBoundIndex(command.getRange()));
 
-			return result
-					.map(value -> new NumericResponse<>(command, value));
+			return result.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
 
