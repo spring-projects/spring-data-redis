@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -50,18 +51,19 @@ public class Bucket {
 	 */
 	public static final Charset CHARSET = StandardCharsets.UTF_8;
 
+	private static final Comparator<String> COMPARATOR = new NullSafeComparator<>(Comparator.<String> naturalOrder(),
+			true);
+
 	/**
 	 * The Redis data as {@link Map} sorted by the keys.
 	 */
 	private final NavigableMap<String, byte[]> data = new TreeMap<>(
-			new NullSafeComparator<>(Comparator.<String> naturalOrder(), true));
+			COMPARATOR);
 
 	/**
-	 * Creates new empty bucket
+	 * Creates a new empty bucket.
 	 */
-	public Bucket() {
-
-	}
+	public Bucket() {}
 
 	Bucket(Map<String, byte[]> data) {
 
@@ -158,7 +160,6 @@ public class Bucket {
 	 * @return
 	 */
 	public Bucket extract(String prefix) {
-
 		return new Bucket(data.subMap(prefix, prefix + Character.MAX_VALUE));
 	}
 
@@ -269,19 +270,32 @@ public class Bucket {
 
 	private String safeToString() {
 
-		Map<String, String> serialized = new LinkedHashMap<>();
-		for (Map.Entry<String, byte[]> entry : data.entrySet()) {
-			if (entry.getValue() != null) {
-				serialized.put(entry.getKey(), toUtf8String(entry.getValue()));
-			} else {
-				serialized.put(entry.getKey(), null);
-			}
+		if (data.isEmpty()) {
+			return "{}";
 		}
-		return serialized.toString();
+
+		StringBuilder sb = new StringBuilder();
+		sb.append('{');
+
+		Iterator<Entry<String, byte[]>> iterator = data.entrySet().iterator();
+
+		for (;;) {
+
+			Entry<String, byte[]> e = iterator.next();
+			sb.append(e.getKey());
+			sb.append('=');
+			sb.append(toUtf8String(e.getValue()));
+
+			if (!iterator.hasNext()) {
+				return sb.append('}').toString();
+			}
+
+			sb.append(',').append(' ');
+		}
 	}
 
 	@Nullable
-	private String toUtf8String(byte[] raw) {
+	private static String toUtf8String(byte[] raw) {
 
 		try {
 			return new String(raw, CHARSET);
