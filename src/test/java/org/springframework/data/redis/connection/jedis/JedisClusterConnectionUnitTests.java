@@ -393,6 +393,25 @@ public class JedisClusterConnectionUnitTests {
 		verify(con1Mock, times(2)).clusterNodes();
 	}
 
+	@Test // GH-1985
+	public void nodeWithoutHostShouldRejectConnectionAttempt() {
+
+		reset(con1Mock, con2Mock, con3Mock);
+
+		when(con1Mock.clusterNodes())
+				.thenReturn("ef570f86c7b1a953846668debc177a3a16733420 :6379 fail,master - 0 0 1 connected");
+		when(con2Mock.clusterNodes())
+				.thenReturn("ef570f86c7b1a953846668debc177a3a16733420 :6379 fail,master - 0 0 1 connected");
+		when(con3Mock.clusterNodes())
+				.thenReturn("ef570f86c7b1a953846668debc177a3a16733420 :6379 fail,master - 0 0 1 connected");
+
+		JedisClusterConnection connection = new JedisClusterConnection(clusterMock);
+
+		assertThatThrownBy(() -> connection.ping(new RedisClusterNode("ef570f86c7b1a953846668debc177a3a16733420")))
+				.isInstanceOf(DataAccessResourceFailureException.class)
+				.hasMessageContaining("ef570f86c7b1a953846668debc177a3a16733420");
+	}
+
 	static class StubJedisCluster extends JedisCluster {
 
 		JedisClusterConnectionHandler connectionHandler;

@@ -197,11 +197,11 @@ public class ClusterTopology {
 
 		Assert.notNull(node, "RedisClusterNode must not be null!");
 
-		if (nodes.contains(node) && StringUtils.hasText(node.getHost()) && StringUtils.hasText(node.getId())) {
+		if (nodes.contains(node) && node.hasValidHost() && StringUtils.hasText(node.getId())) {
 			return node;
 		}
 
-		if (StringUtils.hasText(node.getHost()) && node.getPort() != null) {
+		if (node.hasValidHost() && node.getPort() != null) {
 			return lookup(node.getHost(), node.getPort());
 		}
 

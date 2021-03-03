@@ -27,6 +27,8 @@ import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
 
 /**
+ * Unit tests for {@link Converters}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
@@ -55,6 +57,8 @@ public class ConvertersUnitTests {
 	private static final String CLUSTER_NODE_WITH_FAIL_FLAG_AND_DISCONNECTED_LINK_STATE = "b8b5ee73b1d1997abff694b3fe8b2397d2138b6d 127.0.0.1:7382 master,fail - 1450160048933 1450160048832 38 disconnected";
 
 	private static final String CLUSTER_NODE_IMPORTING_SLOT = "ef570f86c7b1a953846668debc177a3a16733420 127.0.0.1:6379 myself,master - 0 0 1 connected [5461-<-0f2ee5df45d18c50aca07228cc18b1da96fd5e84]";
+
+	private static final String CLUSTER_NODE_WITHOUT_HOST = "ef570f86c7b1a953846668debc177a3a16733420 :6379 fail,master - 0 0 1 connected";
 
 	@Test // DATAREDIS-315
 	public void toSetOfRedis30ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
@@ -194,6 +198,23 @@ public class ConvertersUnitTests {
 		RedisClusterNode node = nodes.next();
 		assertThat(node.getId()).isEqualTo("ef570f86c7b1a953846668debc177a3a16733420");
 		assertThat(node.getHost()).isEqualTo("127.0.0.1");
+		assertThat(node.hasValidHost()).isTrue();
+		assertThat(node.getPort()).isEqualTo(6379);
+		assertThat(node.getType()).isEqualTo(NodeType.MASTER);
+		assertThat(node.getFlags()).contains(Flag.MASTER);
+		assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
+		assertThat(node.getSlotRange().getSlots().size()).isEqualTo(0);
+	}
+
+	@Test // GH-1985
+	public void toSetOfRedisClusterNodesShouldAllowEmptyHostname() {
+
+		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(CLUSTER_NODE_WITHOUT_HOST).iterator();
+
+		RedisClusterNode node = nodes.next();
+		assertThat(node.getId()).isEqualTo("ef570f86c7b1a953846668debc177a3a16733420");
+		assertThat(node.getHost()).isEmpty();
+		assertThat(node.hasValidHost()).isFalse();
 		assertThat(node.getPort()).isEqualTo(6379);
 		assertThat(node.getType()).isEqualTo(NodeType.MASTER);
 		assertThat(node.getFlags()).contains(Flag.MASTER);

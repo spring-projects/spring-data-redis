@@ -951,6 +951,11 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 			RedisClusterNode member = topologyProvider.getTopology().lookup(node);
 
+			if (!member.hasValidHost()) {
+				throw new DataAccessResourceFailureException(String
+						.format("Cannot obtain connection to node %ss as it is not associated with a hostname!", node.getId()));
+			}
+
 			if (member != null && connectionHandler != null) {
 				return connectionHandler.getConnectionFromNode(new HostAndPort(member.getHost(), member.getPort()));
 			}
