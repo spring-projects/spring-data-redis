@@ -178,7 +178,7 @@ abstract public class Converters {
 	 */
 	public static Set<RedisClusterNode> toSetOfRedisClusterNodes(String clusterNodes) {
 
-		if (StringUtils.isEmpty(clusterNodes)) {
+		if (!StringUtils.hasText(clusterNodes)) {
 			return Collections.emptySet();
 		}
 
