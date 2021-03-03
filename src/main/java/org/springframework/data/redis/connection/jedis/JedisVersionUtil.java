@@ -15,15 +15,14 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.Jedis;
+
 import java.io.IOException;
 import java.util.Properties;
 
 import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.data.redis.Version;
-import org.springframework.data.redis.VersionParser;
+import org.springframework.data.util.Version;
 import org.springframework.util.StringUtils;
-
-import redis.clients.jedis.Jedis;
 
 /**
  * @author Christoph Strobl
@@ -47,7 +46,7 @@ public class JedisVersionUtil {
 	 * @return
 	 */
 	static Version parseVersion(String version) {
-		return VersionParser.parseVersion(version);
+		return Version.parse(version);
 	}
 
 	/**
