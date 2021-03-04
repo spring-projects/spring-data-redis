@@ -14,10 +14,10 @@ pipeline {
 	stages {
 		stage("Docker images") {
 			parallel {
-				stage('Publish OpenJDK 8 + Redis 6.0 docker image') {
+				stage('Publish OpenJDK 8 + Redis 6.2 docker image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk8-redis-6.0/**"
+							changeset "ci/openjdk8-redis-6.2/**"
 							changeset "Makefile"
 						}
 					}
@@ -26,17 +26,17 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-openjdk8-with-redis-6.0", "-f ci/openjdk8-redis-6.0/Dockerfile .")
+							def image = docker.build("springci/spring-data-openjdk8-with-redis-6.2", "-f ci/openjdk8-redis-6.2/Dockerfile .")
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 								image.push()
 							}
 						}
 					}
 				}
-				stage('Publish OpenJDK 11 + Redis 6.0 docker image') {
+				stage('Publish OpenJDK 11 + Redis 6.2 docker image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk11-redis-6.0/**"
+							changeset "ci/openjdk11-redis-6.2/**"
 							changeset "Makefile"
 						}
 					}
@@ -45,17 +45,17 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-openjdk11-with-redis-6.0", "-f ci/openjdk11-redis-6.0/Dockerfile .")
+							def image = docker.build("springci/spring-data-openjdk11-with-redis-6.2", "-f ci/openjdk11-redis-6.2/Dockerfile .")
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 								image.push()
 							}
 						}
 					}
 				}
-				stage('Publish OpenJDK 15 + Redis 6.0 docker image') {
+				stage('Publish OpenJDK 15 + Redis 6.2 docker image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk15-redis-6.0/**"
+							changeset "ci/openjdk15-redis-6.2/**"
 							changeset "Makefile"
 						}
 					}
@@ -64,7 +64,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-openjdk15-with-redis-6.0", "-f ci/openjdk15-redis-6.0/Dockerfile .")
+							def image = docker.build("springci/spring-data-openjdk15-with-redis-6.2", "-f ci/openjdk15-redis-6.2/Dockerfile .")
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 								image.push()
 							}
@@ -88,7 +88,7 @@ pipeline {
 			steps {
 				script {
 					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						docker.image('springci/spring-data-openjdk8-with-redis-6.0:latest').inside('-v $HOME:/tmp/jenkins-home') {
+						docker.image('springci/spring-data-openjdk8-with-redis-6.2:latest').inside('-v $HOME:/tmp/jenkins-home') {
 							sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
 						}
 					}
@@ -112,7 +112,7 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-								docker.image('springci/spring-data-openjdk11-with-redis-6.0:latest').inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image('springci/spring-data-openjdk11-with-redis-6.2:latest').inside('-v $HOME:/tmp/jenkins-home') {
 									sh 'PROFILE=java11 ci/test.sh'
 								}
 							}
@@ -127,7 +127,7 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-								docker.image('springci/spring-data-openjdk15-with-redis-6.0:latest').inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image('springci/spring-data-openjdk15-with-redis-6.2:latest').inside('-v $HOME:/tmp/jenkins-home') {
 									sh 'PROFILE=java11 ci/test.sh'
 								}
 							}
