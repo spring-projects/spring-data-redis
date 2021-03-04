@@ -10,4 +10,3 @@ RUN set -eux; \
 	chmod -R o+rw work; \
 	apt-get clean; \
 	rm -rf /var/lib/apt/lists/*;
-
