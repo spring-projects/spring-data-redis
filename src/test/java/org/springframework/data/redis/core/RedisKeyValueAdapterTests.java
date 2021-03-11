@@ -34,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
+import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.geo.Point;
 import org.springframework.data.keyvalue.annotation.KeySpace;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -62,6 +63,7 @@ public class RedisKeyValueAdapterTests {
 	private RedisKeyValueAdapter adapter;
 	private StringRedisTemplate template;
 	private RedisConnectionFactory connectionFactory;
+	private RedisMappingContext mappingContext;
 
 	public RedisKeyValueAdapterTests(RedisConnectionFactory connectionFactory) throws Exception {
 		this.connectionFactory = connectionFactory;
@@ -73,7 +75,7 @@ public class RedisKeyValueAdapterTests {
 		template = new StringRedisTemplate(connectionFactory);
 		template.afterPropertiesSet();
 
-		RedisMappingContext mappingContext = new RedisMappingContext(
+		mappingContext = new RedisMappingContext(
 				new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration()));
 		mappingContext.afterPropertiesSet();
 
@@ -223,6 +225,34 @@ public class RedisKeyValueAdapterTests {
 
 		assertThat(loaded).isInstanceOf(Person.class);
 		assertThat(((Person) loaded).address.country).isEqualTo("Andor");
+	}
+
+	@Test // #1995
+	void getAllOfShouldReturnSuperTypeIfForUnregisteredTypeAlias() {
+
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("_class", "taveren");
+		map.put("address.country", "Andor");
+		template.opsForHash().putAll("persons:load-1", map);
+
+		Object loaded = adapter.get("load-1", "persons", Person.class);
+
+		assertThat(loaded).isExactlyInstanceOf(Person.class);
+	}
+
+	@Test // #1995
+	void getAllOfShouldReturnCorrectTypeIfForRegisteredTypeAlias() {
+
+		mappingContext.getPersistentEntity(TaVeren.class);
+
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("_class", "taveren");
+		map.put("address.country", "Andor");
+		template.opsForHash().putAll("persons:load-1", map);
+
+		Object loaded = adapter.get("load-1", "persons", Person.class);
+
+		assertThat(loaded).isExactlyInstanceOf(TaVeren.class);
 	}
 
 	@Test // DATAREDIS-425
@@ -826,6 +856,7 @@ public class RedisKeyValueAdapterTests {
 		String postcode;
 	}
 
+	@TypeAlias("taveren")
 	static class TaVeren extends Person {
 
 	}

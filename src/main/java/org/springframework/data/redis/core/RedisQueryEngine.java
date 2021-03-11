@@ -80,7 +80,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		if (criteria == null
 				|| (CollectionUtils.isEmpty(criteria.getOrSismember()) && CollectionUtils.isEmpty(criteria.getSismember()))
 						&& criteria.getNear() == null) {
-			return (Collection<T>) getAdapter().getAllOf(keyspace, offset, rows);
+			return getAdapter().getAllOf(keyspace, type, offset, rows);
 		}
 
 		RedisCallback<Map<byte[], Map<byte[], byte[]>>> callback = connection -> {
