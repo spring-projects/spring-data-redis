@@ -373,16 +373,21 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 */
 	@Override
 	public List<?> getAllOf(String keyspace) {
-		return getAllOf(keyspace, -1, -1);
+		return getAllOf(keyspace, Object.class, -1, -1);
 	}
 
-	public List<?> getAllOf(String keyspace, long offset, int rows) {
+	@Override
+	public <T> Iterable<T> getAllOf(String keyspace, Class<T> type) {
+		return getAllOf(keyspace, type, -1, -1);
+	}
+
+	public <T> List<T> getAllOf(String keyspace, Class<T> type, long offset, int rows) {
 
 		byte[] binKeyspace = toBytes(keyspace);
 
 		Set<byte[]> ids = redisOps.execute((RedisCallback<Set<byte[]>>) connection -> connection.sMembers(binKeyspace));
 
-		List<Object> result = new ArrayList<>();
+		List<T> result = new ArrayList<>();
 		List<byte[]> keys = new ArrayList<>(ids);
 
 		if (keys.isEmpty() || keys.size() < offset) {
@@ -395,7 +400,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 
 		for (byte[] key : keys) {
-			result.add(get(key, keyspace));
+			result.add(get(key, keyspace, type));
 		}
 		return result;
 	}
