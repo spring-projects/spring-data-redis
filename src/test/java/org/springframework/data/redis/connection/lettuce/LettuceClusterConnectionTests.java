@@ -23,6 +23,7 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
+import static org.springframework.data.redis.connection.RedisZSetCommands.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
 import io.lettuce.core.cluster.RedisClusterClient;
@@ -53,10 +54,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.RedisZSetCommands.Range;
-import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
-import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
@@ -996,7 +994,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_2, VALUE_2);
 
 		Set<byte[]> keysOnNode = clusterConnection.keys(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()),
-				JedisConverters.toBytes("*"));
+				LettuceConverters.toBytes("*"));
 
 		assertThat(keysOnNode).contains(KEY_2_BYTES);
 		assertThat(keysOnNode).doesNotContain(KEY_1_BYTES);
@@ -2082,6 +2080,40 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				LettuceConverters.toBytes("c"), LettuceConverters.toBytes("d"));
 	}
 
+	@Test // GH-1998
+	public void zRevRangeByLexShouldReturnValuesCorrectly() {
+
+		nativeConnection.zadd(KEY_1, 0, "a");
+		nativeConnection.zadd(KEY_1, 0, "b");
+		nativeConnection.zadd(KEY_1, 0, "c");
+		nativeConnection.zadd(KEY_1, 0, "d");
+		nativeConnection.zadd(KEY_1, 0, "e");
+		nativeConnection.zadd(KEY_1, 0, "f");
+		nativeConnection.zadd(KEY_1, 0, "g");
+
+		Set<byte[]> values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().lte("c"));
+
+		assertThat(values).containsExactly(LettuceConverters.toBytes("c"), LettuceConverters.toBytes("b"),
+				LettuceConverters.toBytes("a"));
+		assertThat(values).doesNotContain(LettuceConverters.toBytes("d"), LettuceConverters.toBytes("e"),
+				LettuceConverters.toBytes("f"), LettuceConverters.toBytes("g"));
+
+		values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().lt("c"));
+		assertThat(values).containsExactly(LettuceConverters.toBytes("b"), LettuceConverters.toBytes("a"));
+		assertThat(values).doesNotContain(LettuceConverters.toBytes("c"));
+
+		values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().gte("aaa").lt("g"));
+		assertThat(values).containsExactly(LettuceConverters.toBytes("f"), LettuceConverters.toBytes("e"),
+				LettuceConverters.toBytes("d"), LettuceConverters.toBytes("c"), LettuceConverters.toBytes("b"));
+		assertThat(values).doesNotContain(LettuceConverters.toBytes("a"), LettuceConverters.toBytes("g"));
+
+		values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().lte("d"), Limit.limit().count(2).offset(1));
+
+		assertThat(values).hasSize(2).containsExactly(LettuceConverters.toBytes("c"), LettuceConverters.toBytes("b"));
+		assertThat(values).doesNotContain(LettuceConverters.toBytes("a"), LettuceConverters.toBytes("d"),
+				LettuceConverters.toBytes("e"), LettuceConverters.toBytes("f"), LettuceConverters.toBytes("g"));
+	}
+
 	@Test // DATAREDIS-315
 	public void zRangeByScoreShouldReturnValuesCorrectly() {
 
@@ -2398,46 +2430,46 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-562
 	void bitFieldSetShouldWorkCorrectly() {
 
-		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L)).to(10L))).containsExactly(0L);
-		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L)).to(20L))).containsExactly(10L);
 	}
 
 	@Test // DATAREDIS-562
 	void bitFieldGetShouldWorkCorrectly() {
 
-		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().get(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L)))).containsExactly(0L);
 	}
 
 	@Test // DATAREDIS-562
 	void bitFieldIncrByShouldWorkCorrectly() {
 
-		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().incr(INT_8).valueAt(BitFieldSubCommands.Offset.offset(100L)).by(1L))).containsExactly(1L);
 	}
 
 	@Test // DATAREDIS-562
 	void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
 
-		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
 						.containsExactly(1L);
-		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
 						.containsExactly(2L);
-		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
 						.containsExactly(3L);
-		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L))).isNotNull();
 	}
 
 	@Test // DATAREDIS-562
 	void bitfieldShouldAllowMultipleSubcommands() {
 
-		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().incr(signed(5)).valueAt(BitFieldSubCommands.Offset.offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)))
 						.containsExactly(1L, 0L);
 	}
@@ -2446,13 +2478,13 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	void bitfieldShouldWorkUsingNonZeroBasedOffset() {
 
 		assertThat(
-				clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
+				clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 						create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).to(100L)
 								.set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()).to(200L)))
 										.containsExactly(0L, 0L);
 		assertThat(
 				clusterConnection.stringCommands()
-						.bitField(JedisConverters.toBytes(KEY_1),
+						.bitField(LettuceConverters.toBytes(KEY_1),
 								create().get(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).get(INT_8)
 										.valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()))).containsExactly(100L,
 												-56L);
