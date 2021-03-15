@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +31,9 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
@@ -43,6 +46,8 @@ import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisDriver;
+import org.springframework.data.redis.test.extension.RedisCluster;
+import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -67,10 +72,6 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 	public DefaultStreamOperationsIntegrationTests(RedisTemplate<K, ?> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<?> objectFactory) {
 
-		// Currently, only Lettuce supports Redis Streams.
-		// See https://github.com/xetorthio/jedis/issues/1820
-		assumeThat(redisTemplate.getRequiredConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
-
 		this.redisTemplate = redisTemplate;
 		this.connectionFactory = redisTemplate.getRequiredConnectionFactory();
 		this.keyFactory = keyFactory;
@@ -80,7 +81,21 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	public static Collection<Object[]> testParams() {
-		return AbstractOperationsTestParams.testParams();
+
+		List<Object[]> params = new ArrayList<>();
+		params.addAll(AbstractOperationsTestParams
+				.testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
+
+		params.addAll(AbstractOperationsTestParams
+				.testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisCluster.class)));
+
+		params.addAll(AbstractOperationsTestParams
+				.testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
+
+		params.addAll(AbstractOperationsTestParams
+				.testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisCluster.class)));
+
+		return params;
 	}
 
 	@BeforeEach
@@ -315,6 +330,8 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 
 	@ParameterizedRedisTest // DATAREDIS-1084
 	void pendingShouldReadMessageSummary() {
+		// XPENDING summary not supported by Jedis
+		assumeThat(redisTemplate.getRequiredConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
 
 		K key = keyFactory.instance();
 		HK hashKey = hashKeyFactory.instance();

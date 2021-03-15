@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -187,4 +188,107 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 		assertThatExceptionOfType(UnsupportedOperationException.class)
 				.isThrownBy(super::testListClientsContainsAtLeastOneElement);
 	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xReadShouldReadMessage() {
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xReadShouldReadMessage);
+	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xReadGroupShouldReadMessage() {
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xReadGroupShouldReadMessage);
+	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xGroupCreateShouldWorkWithAndWithoutExistingStream() {
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(super::xGroupCreateShouldWorkWithAndWithoutExistingStream);
+	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xPendingShouldLoadPendingMessages() {
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xPendingShouldLoadPendingMessages);
+	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xPendingShouldWorkWithBoundedRange() {
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(super::xPendingShouldWorkWithBoundedRange);
+	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xPendingShouldLoadPendingMessagesForConsumer() {
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(super::xPendingShouldLoadPendingMessagesForConsumer);
+	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xPendingShouldLoadPendingMessagesForNonExistingConsumer() {
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(super::xPendingShouldLoadPendingMessagesForNonExistingConsumer);
+	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xinfo() {
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfo);
+	}
+
+	@Test
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xinfoNoGroup() {
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfoNoGroup);
+	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xinfoGroups() {
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfoGroups);
+	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xinfoGroupsNoGroup() {
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfoGroupsNoGroup);
+	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xinfoGroupsNoConsumer() {
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfoGroupsNoConsumer);
+	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xinfoConsumers() {
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfoConsumers);
+	}
+
+	@Test // GH-1711
+	@EnabledOnCommand("XADD")
+	@Override
+	public void xinfoConsumersNoConsumer() {
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfoConsumersNoConsumer);
+	}
+
 }

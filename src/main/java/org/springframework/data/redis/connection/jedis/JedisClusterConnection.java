@@ -305,6 +305,15 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnection#streamCommands()
+	 */
+	@Override
+	public RedisStreamCommands streamCommands() {
+		return new JedisClusterStreamCommands(this);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConnection#zSetCommands()
 	 */
 	@Override

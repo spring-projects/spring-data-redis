@@ -368,6 +368,21 @@ class JedisInvoker {
 	 * and return a {@link ManyInvocationSpec} for further composition.
 	 *
 	 * @param function must not be {@literal null}.
+	 */
+	<R extends Collection<E>, E> ManyInvocationSpec<E> fromMany(ConnectionFunction0<R> function) {
+
+		Assert.notNull(function, "ConnectionFunction must not be null!");
+
+		return fromMany(function, connection -> {
+			throw new UnsupportedOperationException("Operation not supported in pipelining/transaction mode");
+		});
+	}
+
+	/**
+	 * Compose a invocation pipeline from the {@link ConnectionFunction0} that returns a {@link Collection}-like result
+	 * and return a {@link ManyInvocationSpec} for further composition.
+	 *
+	 * @param function must not be {@literal null}.
 	 * @param pipelineFunction must not be {@literal null}.
 	 */
 	<R extends Collection<E>, E> ManyInvocationSpec<E> fromMany(ConnectionFunction0<R> function,

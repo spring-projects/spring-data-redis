@@ -55,4 +55,5 @@ public class JedisConnectionPipelineTxIntegrationTests extends JedisConnectionTr
 	@Test
 	@Disabled
 	public void testListClientsContainsAtLeastOneElement() {}
+
 }

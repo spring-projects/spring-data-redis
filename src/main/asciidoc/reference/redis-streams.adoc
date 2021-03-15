@@ -16,8 +16,6 @@ While Pub/Sub relies on the broadcasting of transient messages (i.e. if you don'
 
 The `org.springframework.data.redis.connection` and `org.springframework.data.redis.stream` packages provide the core functionality for Redis Streams.
 
-NOTE: Redis Stream support is currently only available through the <<redis:connectors:lettuce, Lettuce client>> as it is not yet supported by <<redis:connectors:jedis, Jedis>>.
-
 [[redis.streams.send]]
 == Appending
 

@@ -65,6 +65,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Ninad Divadkar
  * @author Guy Korland
+ * @author Dengliming
  */
 public class JedisConnection extends AbstractRedisConnection {
 

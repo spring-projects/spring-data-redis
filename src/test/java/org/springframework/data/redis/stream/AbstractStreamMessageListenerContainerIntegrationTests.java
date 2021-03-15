@@ -33,15 +33,11 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.core.convert.ConversionFailedException;
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection;
-import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -62,13 +58,10 @@ import org.springframework.util.NumberUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-@ExtendWith(LettuceConnectionFactoryExtension.class)
 @EnabledOnCommand("XREAD")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class StreamMessageListenerContainerIntegrationTests {
+abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 
-	private static final RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration(
-			SettingsUtils.getHost(), SettingsUtils.getPort());
 	private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(2);
 
 	private final RedisConnectionFactory connectionFactory;
@@ -76,7 +69,7 @@ public class StreamMessageListenerContainerIntegrationTests {
 	private final StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> containerOptions = StreamMessageListenerContainerOptions
 			.builder().pollTimeout(Duration.ofMillis(100)).build();
 
-	public StreamMessageListenerContainerIntegrationTests(RedisConnectionFactory connectionFactory) {
+	AbstractStreamMessageListenerContainerIntegrationTests(RedisConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 		this.redisTemplate = new StringRedisTemplate(connectionFactory);
 		this.redisTemplate.afterPropertiesSet();
@@ -400,9 +393,18 @@ public class StreamMessageListenerContainerIntegrationTests {
 
 	private int getNumberOfPending(String stream, String group) {
 
-		String value = ((List) ((LettuceConnection) connectionFactory.getConnection()).execute("XPENDING",
-				new NestedMultiOutput<>(StringCodec.UTF8), new byte[][] { stream.getBytes(), group.getBytes() })).get(0)
-						.toString();
+		RedisConnection connection = connectionFactory.getConnection();
+
+		if (connection instanceof LettuceConnection) {
+
+			String value = ((List) ((LettuceConnection) connectionFactory.getConnection()).execute("XPENDING",
+					new NestedMultiOutput<>(StringCodec.UTF8), new byte[][] { stream.getBytes(), group.getBytes() })).get(0)
+							.toString();
+			return NumberUtils.parseNumber(value, Integer.class);
+		}
+
+		String value = ((List) connectionFactory.getConnection().execute("XPENDING", stream.getBytes(), group.getBytes()))
+				.get(0).toString();
 		return NumberUtils.parseNumber(value, Integer.class);
 	}
 
