@@ -376,11 +376,26 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		return getAllOf(keyspace, Object.class, -1, -1);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#getAllOf(java.lang.String, java.lang.Class)
+	 */
 	@Override
 	public <T> Iterable<T> getAllOf(String keyspace, Class<T> type) {
 		return getAllOf(keyspace, type, -1, -1);
 	}
 
+	/**
+	 * Get all elements for given keyspace.
+	 *
+	 * @param keyspace the keyspace to fetch entities from.
+	 * @param type the desired target type.
+	 * @param offset index value to start reading.
+	 * @param rows maximum number or entities to return.
+	 * @param <T>
+	 * @return never {@literal null}.
+	 * @since 2.5
+	 */
 	public <T> List<T> getAllOf(String keyspace, Class<T> type, long offset, int rows) {
 
 		byte[] binKeyspace = toBytes(keyspace);

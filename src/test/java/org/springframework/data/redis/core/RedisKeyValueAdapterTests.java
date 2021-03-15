@@ -227,8 +227,8 @@ public class RedisKeyValueAdapterTests {
 		assertThat(((Person) loaded).address.country).isEqualTo("Andor");
 	}
 
-	@Test // #1995
-	void getAllOfShouldReturnSuperTypeIfForUnregisteredTypeAlias() {
+	@Test // GH-1995
+	void getAllOfShouldReturnSuperTypeForUnregisteredTypeAlias() {
 
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put("_class", "taveren");
@@ -240,8 +240,8 @@ public class RedisKeyValueAdapterTests {
 		assertThat(loaded).isExactlyInstanceOf(Person.class);
 	}
 
-	@Test // #1995
-	void getAllOfShouldReturnCorrectTypeIfForRegisteredTypeAlias() {
+	@Test // GH-1995
+	void getAllOfShouldReturnCorrectTypeForRegisteredTypeAlias() {
 
 		mappingContext.getPersistentEntity(TaVeren.class);
 
