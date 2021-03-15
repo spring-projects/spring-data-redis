@@ -361,9 +361,9 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			if (limit.isUnlimited()) {
-				return connection.getCluster().zrevrangeByLex(key, min, max);
+				return connection.getCluster().zrevrangeByLex(key, max, min);
 			}
-			return connection.getCluster().zrevrangeByLex(key, min, max, limit.getOffset(), limit.getCount());
+			return connection.getCluster().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

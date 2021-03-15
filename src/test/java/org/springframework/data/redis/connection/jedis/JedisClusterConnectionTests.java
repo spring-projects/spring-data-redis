@@ -23,6 +23,7 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
+import static org.springframework.data.redis.connection.RedisZSetCommands.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
 import redis.clients.jedis.HostAndPort;
@@ -61,14 +62,13 @@ import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.RedisZSetCommands.Range;
-import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.script.DigestUtils;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
 import org.springframework.data.redis.test.extension.JedisExtension;
 import org.springframework.data.redis.test.util.HexStringUtils;
@@ -2037,6 +2037,40 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				JedisConverters.toBytes("g"));
 		assertThat(values).doesNotContain(JedisConverters.toBytes("a"), JedisConverters.toBytes("b"),
 				JedisConverters.toBytes("c"), JedisConverters.toBytes("d"));
+	}
+
+	@Test // GH-1998
+	public void zRevRangeByLexShouldReturnValuesCorrectly() {
+
+		nativeConnection.zadd(KEY_1, 0, "a");
+		nativeConnection.zadd(KEY_1, 0, "b");
+		nativeConnection.zadd(KEY_1, 0, "c");
+		nativeConnection.zadd(KEY_1, 0, "d");
+		nativeConnection.zadd(KEY_1, 0, "e");
+		nativeConnection.zadd(KEY_1, 0, "f");
+		nativeConnection.zadd(KEY_1, 0, "g");
+
+		Set<byte[]> values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().lte("c"));
+
+		assertThat(values).containsExactly(JedisConverters.toBytes("c"), JedisConverters.toBytes("b"),
+				JedisConverters.toBytes("a"));
+		assertThat(values).doesNotContain(JedisConverters.toBytes("d"), JedisConverters.toBytes("e"),
+				JedisConverters.toBytes("f"), JedisConverters.toBytes("g"));
+
+		values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().lt("c"));
+		assertThat(values).containsExactly(JedisConverters.toBytes("b"), JedisConverters.toBytes("a"));
+		assertThat(values).doesNotContain(JedisConverters.toBytes("c"));
+
+		values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().gte("aaa").lt("g"));
+		assertThat(values).containsExactly(JedisConverters.toBytes("f"), JedisConverters.toBytes("e"),
+				JedisConverters.toBytes("d"), JedisConverters.toBytes("c"), JedisConverters.toBytes("b"));
+		assertThat(values).doesNotContain(JedisConverters.toBytes("a"), JedisConverters.toBytes("g"));
+
+		values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().lte("d"), Limit.limit().count(2).offset(1));
+
+		assertThat(values).hasSize(2).containsExactly(JedisConverters.toBytes("c"), JedisConverters.toBytes("b"));
+		assertThat(values).doesNotContain(JedisConverters.toBytes("a"), JedisConverters.toBytes("d"),
+				JedisConverters.toBytes("e"), JedisConverters.toBytes("f"), JedisConverters.toBytes("g"));
 	}
 
 	@Test // DATAREDIS-315
