@@ -1,6 +1,17 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.4.6 (2021-03-17)
+-------------------------------------
+* #2001 - Upgrade to Lettuce 6.0.3.
+* #1998 - JedisClusterZSetCommands. reverseRangeByLex parameter order issue.
+* #1997 - Update build to force snapshot updates.
+* #1991 - Accept cluster nodes without hostname.
+* #1982 - Improved performance of Bucket.extract().
+* #1979 - No enum constant io.lettuce.core.protocol.CommandType.GIS.CONTAINS.
+* #1964 - Reference documentation shows usage of deprecated code.
+
+
 Changes in version 2.3.8.RELEASE (2021-03-17)
 ---------------------------------------------
 * #1991 - Accept cluster nodes without hostname.
@@ -2273,6 +2284,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
