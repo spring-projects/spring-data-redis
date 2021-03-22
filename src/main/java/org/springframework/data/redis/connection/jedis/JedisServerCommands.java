@@ -317,6 +317,11 @@ class JedisServerCommands implements RedisServerCommands {
 				target.getPort(), key, dbIndex, timeoutToUse);
 	}
 
+	@Override
+	public void rewriteConfig() {
+		connection.invokeStatus().just(Jedis::configRewrite);
+	}
+
 	private boolean isPipelined() {
 		return connection.isPipelined();
 	}

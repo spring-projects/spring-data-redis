@@ -984,6 +984,11 @@ class RedisConnectionUnitTests {
 		}
 
 		@Override
+		public void rewriteConfig() {
+			delegate.rewriteConfig();
+		}
+
+		@Override
 		public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption options) {
 			return delegate.set(key, value, expiration, options);
 		}

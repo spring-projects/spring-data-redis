@@ -304,6 +304,11 @@ class LettuceServerCommands implements RedisServerCommands {
 		connection.invoke().just(RedisKeyAsyncCommands::migrate, target.getHost(), target.getPort(), key, dbIndex, timeout);
 	}
 
+	@Override
+	public void rewriteConfig() {
+		connection.invoke().just(RedisServerAsyncCommands::configRewrite);
+	}
+
 	public RedisClusterCommands<byte[], byte[]> getConnection() {
 		return connection.getConnection();
 	}
