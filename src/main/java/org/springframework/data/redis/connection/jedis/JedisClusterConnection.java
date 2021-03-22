@@ -869,6 +869,11 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		throw new UnsupportedOperationException("Sentinel is currently not supported for JedisClusterConnection.");
 	}
 
+	@Override
+	public void rewriteConfig() {
+		serverCommands().rewriteConfig();
+	}
+
 	/**
 	 * {@link Jedis} specific {@link ClusterCommandCallback}.
 	 *

@@ -520,6 +520,12 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 				node);
 	}
 
+	@Override
+	public void rewriteConfig() {
+		connection.getClusterCommandExecutor()
+				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) client -> client.configRewrite());
+	}
+
 	private Long convertListOfStringToTime(List<String> serverTimeInformation, TimeUnit timeUnit) {
 
 		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");

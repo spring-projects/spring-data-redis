@@ -3731,6 +3731,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		delegate.migrate(key, target, dbIndex, option, timeout);
 	}
 
+	@Override
+	public void rewriteConfig() {
+		delegate.rewriteConfig();
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#xAck(java.lang.String, java.lang.String, RecordId[])
