@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import java.io.IOException;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -81,7 +79,7 @@ public class ConvertingCursor<S, T> implements Cursor<T> {
 	 * @see java.io.Closeable#close()
 	 */
 	@Override
-	public void close() throws IOException {
+	public void close() {
 		delegate.close();
 	}
 

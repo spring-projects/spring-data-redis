@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -39,10 +38,10 @@ import org.springframework.util.CollectionUtils;
  */
 public abstract class ScanCursor<T> implements Cursor<T> {
 
-	private @Nullable CursorState state;
+	private CursorState state;
 	private long cursorId;
-	private @Nullable Iterator<T> delegate;
-	private @Nullable final ScanOptions scanOptions;
+	private Iterator<T> delegate;
+	private final ScanOptions scanOptions;
 	private long position;
 	private final long limit;
 
@@ -56,7 +55,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	/**
 	 * Crates new {@link ScanCursor} with {@code id=0}.
 	 *
-	 * @param options
+	 * @param options the scan options to apply.
 	 */
 	public ScanCursor(ScanOptions options) {
 		this(0, options);
@@ -65,7 +64,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	/**
 	 * Crates new {@link ScanCursor} with {@link ScanOptions#NONE}
 	 *
-	 * @param cursorId
+	 * @param cursorId the cursor Id.
 	 */
 	public ScanCursor(long cursorId) {
 		this(cursorId, ScanOptions.NONE);
@@ -74,22 +73,22 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	/**
 	 * Crates new {@link ScanCursor}
 	 *
-	 * @param cursorId
-	 * @param options Defaulted to {@link ScanOptions#NONE} if nulled.
+	 * @param cursorId the cursor Id.
+	 * @param options Defaulted to {@link ScanOptions#NONE} if {@code null}.
 	 */
-	public ScanCursor(long cursorId, ScanOptions options) {
+	public ScanCursor(long cursorId, @Nullable ScanOptions options) {
 
 		this.scanOptions = options != null ? options : ScanOptions.NONE;
 		this.cursorId = cursorId;
 		this.state = CursorState.READY;
-		this.delegate = Collections.<T> emptyList().iterator();
+		this.delegate = Collections.emptyIterator();
 		this.limit = -1;
 	}
 
 	/**
 	 * Crates a new {@link ScanCursor}.
 	 *
-	 * @param source
+	 * @param source source cursor.
 	 * @param limit
 	 * @since 2.5
 	 */
@@ -144,14 +143,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	private void processScanResult(ScanIteration<T> result) {
 
-		if (result == null) {
-
-			resetDelegate();
-			state = CursorState.FINISHED;
-			return;
-		}
-
-		cursorId = Long.valueOf(result.getCursorId());
+		cursorId = result.getCursorId();
 
 		if (isFinished(cursorId)) {
 			state = CursorState.FINISHED;
@@ -176,7 +168,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	}
 
 	private void resetDelegate() {
-		delegate = Collections.<T> emptyList().iterator();
+		delegate = Collections.emptyIterator();
 	}
 
 	/*
@@ -209,11 +201,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 			return true;
 		}
 
-		if (cursorId > 0) {
-			return true;
-		}
-
-		return false;
+		return cursorId > 0;
 	}
 
 	private void assertCursorIsOpen() {
@@ -266,7 +254,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 * @see java.io.Closeable#close()
 	 */
 	@Override
-	public final void close() throws IOException {
+	public final void close() {
 
 		try {
 			doClose();
@@ -326,7 +314,8 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	}
 
 	/**
-	 * Wrapper for a concrete {@link ScanCursor} forwarding {@link #doScan(long, ScanOptions)}.
+	 * Wrapper for a concrete {@link ScanCursor} forwarding {@link #doScan(long, ScanOptions)}, {@link #doClose()} and
+	 * {@link #isClosed()}.
 	 *
 	 * @param <T>
 	 * @since 2.5
@@ -343,6 +332,16 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		@Override
 		protected ScanIteration<T> doScan(long cursorId, ScanOptions options) {
 			return delegate.doScan(cursorId, options);
+		}
+
+		@Override
+		protected void doClose() {
+			delegate.close();
+		}
+
+		@Override
+		public boolean isClosed() {
+			return delegate.isClosed();
 		}
 	}
 }

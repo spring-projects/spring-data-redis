@@ -169,7 +169,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 				redis.clients.jedis.ScanResult<String> result = connection.getJedis().scan(Long.toString(cursorId), params);
-				return new ScanIteration<>(Long.valueOf(result.getCursor()),
+				return new ScanIteration<>(Long.parseLong(result.getCursor()),
 						JedisConverters.stringListToByteList().convert(result.getResult()));
 			}
 
