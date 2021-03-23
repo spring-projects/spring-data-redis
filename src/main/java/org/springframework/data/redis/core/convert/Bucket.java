@@ -97,7 +97,7 @@ public class Bucket {
 	/**
 	 * Get value assigned with path.
 	 *
-	 * @param path path must not be {@literal null} or {@link String#isEmpty()}.
+	 * @param path must not be {@literal null} or {@link String#isEmpty()}.
 	 * @return {@literal null} if not set.
 	 */
 	@Nullable
@@ -105,6 +105,17 @@ public class Bucket {
 
 		Assert.hasText(path, "Path to property must not be null or empty.");
 		return data.get(path);
+	}
+
+	/**
+	 * Return whether {@code path} is associated with a non-{@code null} value.
+	 *
+	 * @param path must not be {@literal null} or {@link String#isEmpty()}.
+	 * @return {@literal true} if the {@code path} is associated with a non-{@code null} value.
+	 * @since 2.5
+	 */
+	public boolean hasValue(String path) {
+		return get(path) != null;
 	}
 
 	/**
