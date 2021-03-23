@@ -989,6 +989,31 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(reactiveConnection).isInstanceOf(LettuceReactiveRedisClusterConnection.class);
 	}
 
+	@Test // GH-1745
+	void getNativeClientShouldReturnClient() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		connectionFactory.setClientResources(getSharedClientResources());
+		connectionFactory.afterPropertiesSet();
+
+		assertThat(connectionFactory.getNativeClient()).isInstanceOf(RedisClient.class);
+
+		connectionFactory = new LettuceConnectionFactory(clusterConfig);
+		connectionFactory.setClientResources(getSharedClientResources());
+		connectionFactory.afterPropertiesSet();
+
+		assertThat(connectionFactory.getRequiredNativeClient()).isInstanceOf(RedisClusterClient.class);
+	}
+
+	@Test // GH-1745
+	void getNativeClientShouldFailIfNotInitialized() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+
+		assertThatIllegalStateException().isThrownBy(connectionFactory::getRequiredNativeClient)
+				.withMessage("Client not yet initialized");
+	}
+
 	@Data
 	@AllArgsConstructor
 	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {

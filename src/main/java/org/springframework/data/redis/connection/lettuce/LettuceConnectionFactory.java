@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
@@ -56,7 +57,6 @@ import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfi
 import org.springframework.data.redis.connection.RedisConfiguration.DomainSocketConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
-import org.springframework.data.redis.connection.lettuce.LettuceConnection.*;
 import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -786,6 +786,45 @@ public class LettuceConnectionFactory
 	@Deprecated
 	public void setClientName(@Nullable String clientName) {
 		this.getMutableConfiguration().setClientName(clientName);
+	}
+
+	/**
+	 * Returns the native {@link AbstractRedisClient} used by this instance. The client is initialized as part of
+	 * {@link #afterPropertiesSet() the bean initialization lifecycle} and only available when this connection factory is
+	 * initialized.
+	 * <p/>
+	 * Depending on the configuration, the client can be either {@link RedisClient} or {@link RedisClusterClient}.
+	 *
+	 * @return the native {@link AbstractRedisClient}. Can be {@literal null} if not initialized.
+	 * @since 2.5
+	 * @see #afterPropertiesSet()
+	 */
+	@Nullable
+	public AbstractRedisClient getNativeClient() {
+		return this.client;
+	}
+
+	/**
+	 * Returns the native {@link AbstractRedisClient} used by this instance. The client is initialized as part of
+	 * {@link #afterPropertiesSet() the bean initialization lifecycle} and only available when this connection factory is
+	 * initialized. Throws {@link IllegalStateException} if not yet initialized.
+	 * <p/>
+	 * Depending on the configuration, the client can be either {@link RedisClient} or {@link RedisClusterClient}.
+	 *
+	 * @return the native {@link AbstractRedisClient}.
+	 * @since 2.5
+	 * @throws IllegalStateException if not yet initialized.
+	 * @see #getNativeClient()
+	 */
+	public AbstractRedisClient getRequiredNativeClient() {
+
+		AbstractRedisClient client = getNativeClient();
+
+		if (client == null) {
+			throw new IllegalStateException("Client not yet initialized");
+		}
+
+		return client;
 	}
 
 	@Nullable
