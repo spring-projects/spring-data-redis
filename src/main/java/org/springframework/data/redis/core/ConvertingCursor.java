@@ -122,4 +122,12 @@ public class ConvertingCursor<S, T> implements Cursor<T> {
 		return delegate.getPosition();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.Cursor#limit(long)
+	 */
+	@Override
+	public Cursor<T> limit(long count) {
+		return new ConvertingCursor<>(delegate.limit(count), converter);
+	}
 }
