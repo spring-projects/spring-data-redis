@@ -22,6 +22,7 @@ import java.util.NoSuchElementException;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -43,6 +44,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	private @Nullable Iterator<T> delegate;
 	private @Nullable final ScanOptions scanOptions;
 	private long position;
+	private final long limit;
 
 	/**
 	 * Crates new {@link ScanCursor} with {@code id=0} and {@link ScanOptions#NONE}
@@ -81,6 +83,23 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		this.cursorId = cursorId;
 		this.state = CursorState.READY;
 		this.delegate = Collections.<T> emptyList().iterator();
+		this.limit = -1;
+	}
+
+	/**
+	 * Crates a new {@link ScanCursor}.
+	 *
+	 * @param source
+	 * @param limit
+	 * @since 2.5
+	 */
+	private ScanCursor(ScanCursor<T> source, long limit) {
+
+		this.scanOptions = source.scanOptions;
+		this.cursorId = source.cursorId;
+		this.state = source.state;
+		this.delegate = source.delegate;
+		this.limit = limit;
 	}
 
 	private void scan(long cursorId) {
@@ -177,6 +196,10 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	public boolean hasNext() {
 
 		assertCursorIsOpen();
+
+		if (limit != -1 && getPosition() > limit - 1) {
+			return false;
+		}
 
 		while (!delegate.hasNext() && !CursorState.FINISHED.equals(state)) {
 			scan(cursorId);
@@ -283,10 +306,43 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		return position;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.Cursor#limit(long)
+	 */
+	@Override
+	public ScanCursor<T> limit(long count) {
+
+		Assert.isTrue(count >= 0, "Count must be greater or equal to zero");
+
+		return new ScanCursorWrapper<>(this, count);
+	}
+
 	/**
 	 * @author Thomas Darimont
 	 */
 	enum CursorState {
 		READY, OPEN, FINISHED, CLOSED;
+	}
+
+	/**
+	 * Wrapper for a concrete {@link ScanCursor} forwarding {@link #doScan(long, ScanOptions)}.
+	 *
+	 * @param <T>
+	 * @since 2.5
+	 */
+	private static class ScanCursorWrapper<T> extends ScanCursor<T> {
+
+		private final ScanCursor<T> delegate;
+
+		public ScanCursorWrapper(ScanCursor<T> delegate, long limit) {
+			super(delegate, limit);
+			this.delegate = delegate;
+		}
+
+		@Override
+		protected ScanIteration<T> doScan(long cursorId, ScanOptions options) {
+			return delegate.doScan(cursorId, options);
+		}
 	}
 }

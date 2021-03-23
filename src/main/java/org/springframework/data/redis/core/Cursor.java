@@ -16,14 +16,19 @@
 package org.springframework.data.redis.core;
 
 import java.io.Closeable;
-import java.util.Iterator;
+
+import org.springframework.data.redis.util.BoundedIterator;
 
 /**
+ * Cursor abstraction to scan over the keyspace or elements within a data structure using a variant of a {@code SCAN}
+ * command.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @param <T>
  * @since 1.4
  */
-public interface Cursor<T> extends Iterator<T>, Closeable {
+public interface Cursor<T> extends BoundedIterator<T>, Closeable {
 
 	/**
 	 * Get the reference cursor. <br>
@@ -50,4 +55,14 @@ public interface Cursor<T> extends Iterator<T>, Closeable {
 	 */
 	long getPosition();
 
+	/**
+	 * Limit the maximum number of elements to be returned from this cursor. The returned cursor object can be used to
+	 * iterate over the remaining items and to {@link #close() release} associated resources. The returned cursor is not
+	 * attached to the state of {@code this} cursor and this object should be no longer used.
+	 *
+	 * @return a new {@link Cursor} with detached iteration state.
+	 * @since 2.5
+	 */
+	@Override
+	Cursor<T> limit(long count);
 }

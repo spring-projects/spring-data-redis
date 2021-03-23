@@ -17,7 +17,6 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,7 +31,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
+ * Unit tests for {@link ScanCursor}.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class ScanCursorUnitTests {
 
@@ -196,6 +198,43 @@ class ScanCursorUnitTests {
 
 		assertThat(loops).isEqualTo(0);
 		assertThat(cursor.getCursorId()).isEqualTo(0L);
+	}
+
+	@Test // GH-1575
+	void limitShouldApplyLimitation() {
+
+		LinkedList<ScanIteration<String>> values = new LinkedList<>();
+		values.add(createIteration(1, "spring"));
+		values.add(createIteration(2, "data"));
+		values.add(createIteration(3, "redis"));
+		values.add(createIteration(0));
+		Cursor<String> cursor = initCursor(values).limit(2);
+
+		List<String> result = new ArrayList<>();
+		while (cursor.hasNext()) {
+			result.add(cursor.next());
+		}
+
+		assertThat(result).hasSize(2).contains("spring", "data");
+	}
+
+	@Test // GH-1575
+	void limitShouldNotLimitOriginalCursor() {
+
+		LinkedList<ScanIteration<String>> values = new LinkedList<>();
+		values.add(createIteration(1, "spring"));
+		values.add(createIteration(2, "data"));
+		values.add(createIteration(3, "redis"));
+		values.add(createIteration(0));
+		Cursor<String> cursor = initCursor(values);
+		cursor.limit(1);
+
+		List<String> result = new ArrayList<>();
+		while (cursor.hasNext()) {
+			result.add(cursor.next());
+		}
+
+		assertThat(result).hasSize(3);
 	}
 
 	private CapturingCursorDummy initCursor(Queue<ScanIteration<String>> values) {
