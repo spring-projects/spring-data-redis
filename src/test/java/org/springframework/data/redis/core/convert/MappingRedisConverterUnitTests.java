@@ -52,7 +52,6 @@ import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.core.PartialUpdate;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.*;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.test.util.RedisTestData;
@@ -1273,6 +1272,40 @@ class MappingRedisConverterUnitTests {
 		assertThat(target.arrayOfSimpleTypes).isEqualTo(new String[] { "rand", "mat", "perrin" });
 	}
 
+	@Test // GH-1981
+	void readHandlesByteArrays() {
+
+		Map<String, String> source = new LinkedHashMap<>();
+		source.put("avatar", "foo-bar-baz");
+		source.put("otherAvatar", "foo-bar-baz");
+
+		WithArrays target = read(WithArrays.class, source);
+
+		assertThat(target.avatar).isEqualTo("foo-bar-baz".getBytes());
+	}
+
+	@Test // GH-1981
+	void writeHandlesByteArrays() {
+
+		WithArrays withArrays = new WithArrays();
+		withArrays.avatar = "foo-bar-baz".getBytes();
+
+		assertThat(write(withArrays)).containsEntry("avatar", "foo-bar-baz");
+	}
+
+	@Test // GH-1981
+	void readHandlesByteArraysUsingCollectionRepresentation() {
+
+		Map<String, String> source = new LinkedHashMap<>();
+		source.put("avatar.[0]", "102");
+		source.put("avatar.[1]", "111");
+		source.put("avatar.[2]", "111");
+
+		WithArrays target = read(WithArrays.class, source);
+
+		assertThat(target.avatar).isEqualTo("foo".getBytes());
+	}
+
 	@Test // DATAREDIS-492
 	void writeHandlesArraysOfComplexTypeProperly() {
 
@@ -1494,6 +1527,26 @@ class MappingRedisConverterUnitTests {
 		PartialUpdate<Person> update = new PartialUpdate<>("123", value);
 
 		assertThat(write(update)).containsEntry("firstname", "rand").containsEntry("age", "24");
+	}
+
+	@Test // GH-1981
+	void writeShouldWritePartialUpdateFromEntityByteArrayValueCorrectly() {
+
+		WithArrays value = new WithArrays();
+		value.avatar = "foo-bar-baz".getBytes();
+
+		PartialUpdate<WithArrays> update = new PartialUpdate<>("123", value);
+
+		assertThat(write(update)).containsEntry("avatar", "foo-bar-baz");
+	}
+
+	@Test // GH-1981
+	void writeShouldWritePartialUpdateFromSetByteArrayValueCorrectly() {
+
+		PartialUpdate<WithArrays> update = PartialUpdate.newPartialUpdate(42, WithArrays.class).set("avatar",
+				"foo-bar-baz".getBytes());
+
+		assertThat(write(update)).containsEntry("avatar", "foo-bar-baz");
 	}
 
 	@Test // DATAREDIS-471

@@ -203,6 +203,7 @@ public class ConversionTestEntities {
 		String[] arrayOfSimpleTypes;
 		Species[] arrayOfCompexTypes;
 		int[] arrayOfPrimitives;
+		byte[] avatar;
 	}
 
 	static class TypeWithObjectValueTypes {

@@ -3,6 +3,11 @@
 
 This section briefly covers items that are new and noteworthy in the latest releases.
 
+[[new-in-2.5.0]]
+== New in Spring Data Redis 2.5
+
+* `MappingRedisConverter` no longer converts <<redis.repositories.mapping,byte arrays to a collection>> representation.
+
 [[new-in-2.4.0]]
 == New in Spring Data Redis 2.4
 

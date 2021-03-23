@@ -131,6 +131,10 @@ The following table describes the default mapping rules:
 | String firstname = "rand";
 | firstname = "rand"
 
+| Byte array (`byte[]`)
+| byte[] image = "rand".getBytes();
+| image = "rand"
+
 | Complex Type +
 (for example, Address)
 | Address address = new Address("emond's field");
