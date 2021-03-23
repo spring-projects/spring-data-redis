@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
-import java.io.Closeable;
-
 import org.springframework.data.redis.util.BoundedIterator;
+import org.springframework.data.util.CloseableIterator;
 
 /**
  * Cursor abstraction to scan over the keyspace or elements within a data structure using a variant of a {@code SCAN}
@@ -28,7 +27,7 @@ import org.springframework.data.redis.util.BoundedIterator;
  * @param <T>
  * @since 1.4
  */
-public interface Cursor<T> extends BoundedIterator<T>, Closeable {
+public interface Cursor<T> extends BoundedIterator<T>, CloseableIterator<T> {
 
 	/**
 	 * Get the reference cursor. <br>
@@ -39,19 +38,19 @@ public interface Cursor<T> extends BoundedIterator<T>, Closeable {
 	long getCursorId();
 
 	/**
-	 * @return Returns true if cursor closed.
+	 * @return {@code true} if cursor closed.
 	 */
 	boolean isClosed();
 
 	/**
 	 * Opens cursor and returns itself.
 	 *
-	 * @return
+	 * @return the opened cursor.
 	 */
 	Cursor<T> open();
 
 	/**
-	 * @return Returns the current position of the cursor.
+	 * @return the current position of the cursor.
 	 */
 	long getPosition();
 

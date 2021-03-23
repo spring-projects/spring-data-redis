@@ -24,7 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
-import java.util.Stack;
 
 import org.junit.jupiter.api.Test;
 
@@ -237,6 +236,26 @@ class ScanCursorUnitTests {
 		assertThat(result).hasSize(3);
 	}
 
+	@Test // GH-1575
+	void decoratedCursorShouldForwardClose() {
+
+		LinkedList<ScanIteration<String>> values = new LinkedList<>();
+		values.add(createIteration(1, "spring"));
+		values.add(createIteration(2, "data"));
+		values.add(createIteration(3, "redis"));
+		values.add(createIteration(0));
+		Cursor<String> cursor = initCursor(values);
+		Cursor<String> limited = cursor.limit(1);
+
+		assertThat(cursor.isClosed()).isFalse();
+		assertThat(limited.isClosed()).isFalse();
+
+		limited.close();
+
+		assertThat(cursor.isClosed()).isTrue();
+		assertThat(limited.isClosed()).isTrue();
+	}
+
 	private CapturingCursorDummy initCursor(Queue<ScanIteration<String>> values) {
 		CapturingCursorDummy cursor = new CapturingCursorDummy(values);
 		cursor.open();
@@ -247,11 +266,9 @@ class ScanCursorUnitTests {
 		return new ScanIteration<>(cursorId, values.length > 0 ? Arrays.asList(values) : Collections.<String> emptyList());
 	}
 
-	private class CapturingCursorDummy extends ScanCursor<String> {
+	private static class CapturingCursorDummy extends ScanCursor<String> {
 
-		private Queue<ScanIteration<String>> values;
-
-		private Stack<Long> cursors;
+		private final Queue<ScanIteration<String>> values;
 
 		CapturingCursorDummy(Queue<ScanIteration<String>> values) {
 			this.values = values;
@@ -260,11 +277,12 @@ class ScanCursorUnitTests {
 		@Override
 		protected ScanIteration<String> doScan(long cursorId, ScanOptions options) {
 
-			if (cursors == null) {
-				cursors = new Stack<>();
+			ScanIteration<String> iteration = this.values.poll();
+
+			if (iteration == null) {
+				iteration = new ScanIteration<>(0, Collections.emptyList());
 			}
-			this.cursors.push(cursorId);
-			return this.values.poll();
+			return iteration;
 		}
 	}
 }
