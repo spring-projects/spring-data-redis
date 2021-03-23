@@ -61,6 +61,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.comparator.NullSafeComparator;
 
@@ -289,22 +290,22 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				if (!source.getBucket().hasValue(currentPath) && isByteArray(typeInformation)) {
 
 					return readCollectionOrArray(currentPath, typeInformation.getType(),
-							typeInformation.getRequiredComponentType().getActualType().getType(), source.getBucket());
+							typeInformation.getRequiredComponentType().getType(), source.getBucket());
 				}
 			} else {
 				return readCollectionOrArray(currentPath, typeInformation.getType(),
-						typeInformation.getRequiredComponentType().getActualType().getType(), source.getBucket());
+						typeInformation.getRequiredComponentType().getType(), source.getBucket());
 			}
 		}
 
 		if (persistentProperty.isEntity()
-				&& !conversionService.canConvert(byte[].class, typeInformation.getActualType().getType())) {
+				&& !conversionService.canConvert(byte[].class, typeInformation.getRequiredActualType().getType())) {
 
 			Bucket bucket = source.getBucket().extract(currentPath + ".");
 
 			RedisData newBucket = new RedisData(bucket);
 			TypeInformation<?> typeToRead = typeMapper.readType(bucket.getPropertyPath(currentPath),
-					typeInformation.getActualType());
+					typeInformation);
 
 			return readInternal(currentPath, typeToRead.getType(), newBucket);
 		}
@@ -315,8 +316,12 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			return null;
 		}
 
-		if (persistentProperty.isIdProperty() && StringUtils.isEmpty(path.isEmpty())) {
-			return sourceBytes == null ? fromBytes(sourceBytes, typeInformation.getActualType().getType()) : source.getId();
+		if (persistentProperty.isIdProperty() && ObjectUtils.isEmpty(path.isEmpty())) {
+			return sourceBytes != null ? fromBytes(sourceBytes, typeInformation.getType()) : source.getId();
+		}
+
+		if (sourceBytes == null) {
+			return null;
 		}
 
 		Class<?> typeToUse = getTypeHint(currentPath, source.getBucket(), persistentProperty.getType());
