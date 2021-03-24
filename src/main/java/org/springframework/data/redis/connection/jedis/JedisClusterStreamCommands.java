@@ -274,7 +274,7 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 		try {
 
-			List<byte[]> response = connection.getCluster().xpending(key, group,
+			List<Object> response = connection.getCluster().xpending(key, group,
 					JedisConverters.toBytes(getLowerValue(range)), JedisConverters.toBytes(getUpperValue(range)),
 					options.getCount().intValue(), JedisConverters.toBytes(options.getConsumerName()));
 

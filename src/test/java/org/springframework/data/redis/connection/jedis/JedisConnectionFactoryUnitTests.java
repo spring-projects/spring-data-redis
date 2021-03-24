@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import redis.clients.jedis.JedisClientConfig;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisClusterConnectionHandler;
 import redis.clients.jedis.JedisClusterInfoCache;
@@ -292,7 +293,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClusterConfiguration()).isSameAs(configuration);
 	}
 
-	@Test // DATAREDIS-974
+	@Test // DATAREDIS-974, GH-2017
 	void shouldApplySslConfigWhenCreatingClusterClient() throws NoSuchAlgorithmException {
 
 		SSLParameters sslParameters = new SSLParameters();
@@ -323,16 +324,17 @@ class JedisConnectionFactoryUnitTests {
 		JedisClusterConnectionHandler connectionHandler = (JedisClusterConnectionHandler) ReflectionTestUtils
 				.getField(cluster, "connectionHandler");
 		JedisClusterInfoCache cache = (JedisClusterInfoCache) ReflectionTestUtils.getField(connectionHandler, "cache");
+		JedisClientConfig clientConfig = (JedisClientConfig) ReflectionTestUtils.getField(cache, "clientConfig");
 
-		assertThat(ReflectionTestUtils.getField(cache, "connectionTimeout")).isEqualTo(60000);
-		assertThat(ReflectionTestUtils.getField(cache, "soTimeout")).isEqualTo(300000);
-		assertThat(ReflectionTestUtils.getField(cache, "password")).isNull();
-		assertThat(ReflectionTestUtils.getField(cache, "clientName")).isEqualTo("my-client");
-		assertThat(ReflectionTestUtils.getField(cache, "ssl")).isEqualTo(true);
-		assertThat(ReflectionTestUtils.getField(cache, "sslSocketFactory")).isEqualTo(socketFactory);
-		assertThat(ReflectionTestUtils.getField(cache, "sslParameters")).isEqualTo(sslParameters);
-		assertThat(ReflectionTestUtils.getField(cache, "hostnameVerifier")).isEqualTo(hostNameVerifier);
-		assertThat(ReflectionTestUtils.getField(cache, "hostAndPortMap")).isNull();
+		assertThat(clientConfig.getConnectionTimeoutMillis()).isEqualTo(60000);
+		assertThat(clientConfig.getSocketTimeoutMillis()).isEqualTo(300000);
+		assertThat(clientConfig.getPassword()).isNull();
+		assertThat(clientConfig.getClientName()).isEqualTo("my-client");
+		assertThat(clientConfig.isSsl()).isEqualTo(true);
+		assertThat(clientConfig.getSslSocketFactory()).isEqualTo(socketFactory);
+		assertThat(clientConfig.getSslParameters()).isEqualTo(sslParameters);
+		assertThat(clientConfig.getHostnameVerifier()).isEqualTo(hostNameVerifier);
+		assertThat(clientConfig.getHostAndPortMapper()).isNull();
 	}
 
 	@Test // DATAREDIS-574

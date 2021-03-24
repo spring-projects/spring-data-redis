@@ -118,7 +118,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	private static DefaultJedisClientConfig createConfig(int dbIndex, @Nullable String clientName) {
-		return DefaultJedisClientConfig.builder().databse(dbIndex).clientName(clientName).build();
+		return DefaultJedisClientConfig.builder().database(dbIndex).clientName(clientName).build();
 	}
 
 	/**

@@ -281,7 +281,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			// force initialization (see Jedis issue #82)
 			jedis.connect();
 
-			potentiallySetClientName(jedis);
 			return jedis;
 		} catch (Exception ex) {
 			throw new RedisConnectionFailureException("Cannot get Jedis connection", ex);
@@ -361,7 +360,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		builder.connectionTimeoutMillis(getConnectTimeout());
 		builder.socketTimeoutMillis(getReadTimeout());
 
-		builder.databse(getDatabase());
+		builder.database(getDatabase());
 
 		if (!ObjectUtils.isEmpty(username)) {
 			builder.user(username);
@@ -498,8 +497,15 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		Jedis jedis = fetchJedisConnector();
-		JedisConnection connection = (getUsePool() ? new JedisConnection(jedis, pool, getDatabase(), getClientName())
-				: new JedisConnection(jedis, null, getDatabase(), getClientName()));
+		JedisClientConfig sentinelConfig = this.clientConfig;
+
+		SentinelConfiguration sentinelConfiguration = getSentinelConfiguration();
+		if (sentinelConfiguration != null) {
+			sentinelConfig = createClientConfig(null, sentinelConfiguration.getSentinelPassword());
+		}
+
+		JedisConnection connection = (getUsePool() ? new JedisConnection(jedis, pool, this.clientConfig, sentinelConfig)
+				: new JedisConnection(jedis, null, this.clientConfig, sentinelConfig));
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return postProcessConnection(connection);
 	}
@@ -896,7 +902,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 					return jedis;
 				}
 			} catch (Exception ex) {
-				log.warn(String.format("Ping failed for sentinel host:%s", node.getHost()), ex);
+				log.warn(String.format("Ping failed for sentinel host: %s", node.getHost()), ex);
 			} finally {
 				if (!success && jedis != null) {
 					jedis.close();
@@ -920,10 +926,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			}
 		}
 		return convertedNodes;
-	}
-
-	private void potentiallySetClientName(Jedis jedis) {
-		clientConfiguration.getClientName().ifPresent(jedis::clientSetname);
 	}
 
 	private int getReadTimeout() {
