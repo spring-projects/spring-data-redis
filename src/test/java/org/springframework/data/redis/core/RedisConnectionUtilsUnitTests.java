@@ -104,14 +104,15 @@ class RedisConnectionUtilsUnitTests {
 		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
 	}
 
-	@Test // DATAREDIS-891
+	@Test // DATAREDIS-891, GH-2016
 	void bindConnectionShouldBindConnectionToOngoingTransactionScope() {
 
 		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
 
 		template.executeWithoutResult(status -> {
 
-			assertThat(RedisConnectionUtils.bindConnection(factoryMock, true)).isNotNull();
+			assertThat(RedisConnectionUtils.bindConnection(factoryMock, true))
+					.isInstanceOf(RedisConnectionUtils.RedisConnectionProxy.class);
 			assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isTrue();
 			assertThat(RedisConnectionUtils.getConnection(factoryMock)).isNotNull();
 
