@@ -820,9 +820,7 @@ public class LettuceConnectionFactory
 
 		AbstractRedisClient client = getNativeClient();
 
-		if (client == null) {
-			throw new IllegalStateException("Client not yet initialized");
-		}
+		Assert.state(client != null, "Client not yet initialized. Did you forget to call initialize the bean?");
 
 		return client;
 	}

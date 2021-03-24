@@ -1011,7 +1011,7 @@ class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 
 		assertThatIllegalStateException().isThrownBy(connectionFactory::getRequiredNativeClient)
-				.withMessage("Client not yet initialized");
+				.withMessageContaining("Client not yet initialized");
 	}
 
 	@Data
