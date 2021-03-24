@@ -15,15 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryJedis;
-import redis.clients.jedis.BinaryJedisPubSub;
-import redis.clients.jedis.Client;
-import redis.clients.jedis.Connection;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.MultiKeyPipelineBase;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Response;
-import redis.clients.jedis.Transaction;
+import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.jedis.util.Pool;
 
@@ -49,7 +41,6 @@ import org.springframework.data.redis.connection.jedis.JedisResult.JedisStatusRe
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * {@code RedisConnection} implementation on top of <a href="https://github.com/xetorthio/jedis">Jedis</a> library.
@@ -81,6 +72,8 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	private final @Nullable Pool<Jedis> pool;
 	private final String clientName;
+	private final JedisClientConfig nodeConfig;
+	private final JedisClientConfig sentinelConfig;
 
 	private List<JedisResult> pipelinedResults = new ArrayList<>();
 	private Queue<FutureResult<Response<?>>> txResults = new LinkedList<>();
@@ -120,18 +113,38 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @param clientName the client name, can be {@literal null}.
 	 * @since 1.8
 	 */
-	protected JedisConnection(Jedis jedis, @Nullable Pool<Jedis> pool, int dbIndex, String clientName) {
+	protected JedisConnection(Jedis jedis, @Nullable Pool<Jedis> pool, int dbIndex, @Nullable String clientName) {
+		this(jedis, pool, createConfig(dbIndex, clientName), createConfig(dbIndex, clientName));
+	}
+
+	private static DefaultJedisClientConfig createConfig(int dbIndex, @Nullable String clientName) {
+		return DefaultJedisClientConfig.builder().databse(dbIndex).clientName(clientName).build();
+	}
+
+	/**
+	 * Constructs a new <code>JedisConnection</code> instance backed by a jedis pool.
+	 *
+	 * @param jedis
+	 * @param pool can be null, if no pool is used
+	 * @param nodeConfig node configuration
+	 * @param sentinelConfig sentinel configuration
+	 * @since 2.5
+	 */
+	protected JedisConnection(Jedis jedis, @Nullable Pool<Jedis> pool, JedisClientConfig nodeConfig,
+			JedisClientConfig sentinelConfig) {
 
 		this.jedis = jedis;
 		this.pool = pool;
-		this.clientName = clientName;
+		this.clientName = nodeConfig.getClientName();
+		this.nodeConfig = nodeConfig;
+		this.sentinelConfig = sentinelConfig;
 
 		// select the db
 		// if this fail, do manual clean-up before propagating the exception
 		// as we're inside the constructor
-		if (dbIndex != jedis.getDB()) {
+		if (nodeConfig.getDatabase() != jedis.getDB()) {
 			try {
-				select(dbIndex);
+				select(nodeConfig.getDatabase());
 			} catch (DataAccessException ex) {
 				close();
 				throw ex;
@@ -776,14 +789,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	protected Jedis getJedis(RedisNode node) {
-
-		Jedis jedis = new Jedis(node.getHost(), node.getPort());
-
-		if (StringUtils.hasText(clientName)) {
-			jedis.clientSetname(clientName);
-		}
-
-		return jedis;
+		return new Jedis(new HostAndPort(node.getHost(), node.getPort()), this.sentinelConfig);
 	}
 
 	@Nullable
