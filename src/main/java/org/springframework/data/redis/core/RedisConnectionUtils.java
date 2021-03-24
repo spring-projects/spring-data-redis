@@ -626,7 +626,7 @@ public abstract class RedisConnectionUtils {
 	 * @since 2.4.2
 	 * @see RedisConnectionUtils#getTargetConnection(RedisConnection)
 	 */
-	interface RedisConnectionProxy extends RedisConnection, RawTargetAccess {
+	public interface RedisConnectionProxy extends RedisConnection, RawTargetAccess {
 
 		/**
 		 * Return the target {@link RedisConnection} of this proxy.
