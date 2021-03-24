@@ -87,7 +87,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 	void shouldNotFailOnFirstSentinelDown() {
 
 		RedisSentinelConfiguration oneDownSentinelConfig = new RedisSentinelConfiguration().master("mymaster")
-				.sentinel("any.unavailable.host", 26379).sentinel("127.0.0.1", 26379);
+				.sentinel("127.0.0.1", 1).sentinel("127.0.0.1", 26379);
 
 		factory = new JedisConnectionFactory(oneDownSentinelConfig);
 		assertThat(factory.getSentinelConnection().isOpen()).isTrue();

@@ -38,6 +38,7 @@ import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOpt
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Christoph Strobl
@@ -379,7 +380,7 @@ class JedisConnectionUnitTests {
 
 		MockedClientJedis(String host, Client client) {
 			super(host);
-			this.client = client;
+			ReflectionTestUtils.setField(this, "client", client);
 		}
 	}
 }
