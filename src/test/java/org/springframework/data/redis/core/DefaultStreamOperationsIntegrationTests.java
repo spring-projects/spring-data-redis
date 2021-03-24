@@ -46,6 +46,7 @@ import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisDriver;
+import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.RedisCluster;
 import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
@@ -86,14 +87,18 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		params.addAll(AbstractOperationsTestParams
 				.testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
 
-		params.addAll(AbstractOperationsTestParams
-				.testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisCluster.class)));
+		if(RedisDetector.isClusterAvailable()) {
+			params.addAll(AbstractOperationsTestParams
+					.testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisCluster.class)));
+		}
 
 		params.addAll(AbstractOperationsTestParams
 				.testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
 
-		params.addAll(AbstractOperationsTestParams
-				.testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisCluster.class)));
+		if(RedisDetector.isClusterAvailable()) {
+			params.addAll(AbstractOperationsTestParams
+					.testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisCluster.class)));
+		}
 
 		return params;
 	}
