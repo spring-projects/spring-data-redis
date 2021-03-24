@@ -43,7 +43,6 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	private Iterator<T> delegate;
 	private final ScanOptions scanOptions;
 	private long position;
-	private final long limit;
 
 	/**
 	 * Crates new {@link ScanCursor} with {@code id=0} and {@link ScanOptions#NONE}
@@ -82,23 +81,20 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		this.cursorId = cursorId;
 		this.state = CursorState.READY;
 		this.delegate = Collections.emptyIterator();
-		this.limit = -1;
 	}
 
 	/**
 	 * Crates a new {@link ScanCursor}.
 	 *
 	 * @param source source cursor.
-	 * @param limit
 	 * @since 2.5
 	 */
-	private ScanCursor(ScanCursor<T> source, long limit) {
+	private ScanCursor(ScanCursor<T> source) {
 
 		this.scanOptions = source.scanOptions;
 		this.cursorId = source.cursorId;
 		this.state = source.state;
 		this.delegate = source.delegate;
-		this.limit = limit;
 	}
 
 	private void scan(long cursorId) {
@@ -189,7 +185,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		assertCursorIsOpen();
 
-		if (limit != -1 && getPosition() > limit - 1) {
+		if (limitReached(getPosition())) {
 			return false;
 		}
 
@@ -202,6 +198,17 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		}
 
 		return cursorId > 0;
+	}
+
+	/**
+	 * Evaluate if the current cursor position has reached a point where it should stop.
+	 *
+	 * @param currentPosition the current position.
+	 * @return {@literal false} by default.
+	 * @since 2.5
+	 */
+	protected boolean limitReached(long currentPosition) {
+		return false;
 	}
 
 	private void assertCursorIsOpen() {
@@ -303,7 +310,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		Assert.isTrue(count >= 0, "Count must be greater or equal to zero");
 
-		return new ScanCursorWrapper<>(this, count);
+		return new LimitingCursor<>(this, count);
 	}
 
 	/**
@@ -318,30 +325,57 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 * {@link #isClosed()}.
 	 *
 	 * @param <T>
+	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 * @since 2.5
 	 */
-	private static class ScanCursorWrapper<T> extends ScanCursor<T> {
+	private static class LimitingCursor<T> extends ScanCursor<T> {
 
 		private final ScanCursor<T> delegate;
+		private final long limit;
 
-		public ScanCursorWrapper(ScanCursor<T> delegate, long limit) {
-			super(delegate, limit);
+		LimitingCursor(ScanCursor<T> delegate, long limit) {
+
+			super(delegate);
+
 			this.delegate = delegate;
+			this.limit = limit;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.core.ScanCursor#doScan(long, ScanOptions)
+		 */
 		@Override
 		protected ScanIteration<T> doScan(long cursorId, ScanOptions options) {
 			return delegate.doScan(cursorId, options);
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.core.ScanCursor#doClose()
+		 */
 		@Override
 		protected void doClose() {
 			delegate.close();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.core.Cursor#isClosed()
+		 */
 		@Override
 		public boolean isClosed() {
 			return delegate.isClosed();
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.core.ScanCursor#limitReached(long)
+		 */
+		@Override
+		protected boolean limitReached(long currentPosition) {
+			return delegate.limitReached(currentPosition) || (limit != -1 && currentPosition > limit - 1);
 		}
 	}
 }

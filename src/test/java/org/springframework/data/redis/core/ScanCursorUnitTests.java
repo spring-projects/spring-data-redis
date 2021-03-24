@@ -26,7 +26,6 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
@@ -234,6 +233,46 @@ class ScanCursorUnitTests {
 		}
 
 		assertThat(result).hasSize(3);
+	}
+
+	@Test // GH-1575
+	void limitAlreadyLimitedCursorToLess() {
+
+		LinkedList<ScanIteration<String>> values = new LinkedList<>();
+		values.add(createIteration(1, "spring"));
+		values.add(createIteration(2, "data"));
+		values.add(createIteration(3, "redis"));
+		values.add(createIteration(0));
+		Cursor<String> cursor = initCursor(values);
+		Cursor<String> limitedTo3 = cursor.limit(3);
+		Cursor<String> limitedTo2 = limitedTo3.limit(2);
+
+		List<String> result = new ArrayList<>();
+		while (limitedTo2.hasNext()) {
+			result.add(limitedTo2.next());
+		}
+
+		assertThat(result).hasSize(2);
+	}
+
+	@Test // GH-1575
+	void limitAlreadyLimitedCursorToMore/*should not work obviously*/() {
+
+		LinkedList<ScanIteration<String>> values = new LinkedList<>();
+		values.add(createIteration(1, "spring"));
+		values.add(createIteration(2, "data"));
+		values.add(createIteration(3, "redis"));
+		values.add(createIteration(0));
+		Cursor<String> cursor = initCursor(values);
+		Cursor<String> limitedTo2 = cursor.limit(2);
+		Cursor<String> limitedTo3 = limitedTo2.limit(3);
+
+		List<String> result = new ArrayList<>();
+		while (limitedTo3.hasNext()) {
+			result.add(limitedTo3.next());
+		}
+
+		assertThat(result).hasSize(2);
 	}
 
 	@Test // GH-1575
