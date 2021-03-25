@@ -24,6 +24,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -199,25 +201,21 @@ class ScanCursorUnitTests {
 	}
 
 	@Test // GH-1575
-	void limitShouldApplyLimitation() {
+	void streamLimitShouldApplyLimitation() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<>();
 		values.add(createIteration(1, "spring"));
 		values.add(createIteration(2, "data"));
 		values.add(createIteration(3, "redis"));
 		values.add(createIteration(0));
-		Cursor<String> cursor = initCursor(values).limit(2);
 
-		List<String> result = new ArrayList<>();
-		while (cursor.hasNext()) {
-			result.add(cursor.next());
-		}
+		Cursor<String> cursor = initCursor(values);
 
-		assertThat(result).hasSize(2).contains("spring", "data");
+		assertThat(cursor.stream().limit(2).collect(Collectors.toList())).hasSize(2).contains("spring", "data");
 	}
 
 	@Test // GH-1575
-	void limitShouldNotLimitOriginalCursor() {
+	void streamingCursorShouldForwardClose() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<>();
 		values.add(createIteration(1, "spring"));
@@ -225,74 +223,14 @@ class ScanCursorUnitTests {
 		values.add(createIteration(3, "redis"));
 		values.add(createIteration(0));
 		Cursor<String> cursor = initCursor(values);
-		cursor.limit(1);
-
-		List<String> result = new ArrayList<>();
-		while (cursor.hasNext()) {
-			result.add(cursor.next());
-		}
-
-		assertThat(result).hasSize(3);
-	}
-
-	@Test // GH-1575
-	void limitAlreadyLimitedCursorToLess() {
-
-		LinkedList<ScanIteration<String>> values = new LinkedList<>();
-		values.add(createIteration(1, "spring"));
-		values.add(createIteration(2, "data"));
-		values.add(createIteration(3, "redis"));
-		values.add(createIteration(0));
-		Cursor<String> cursor = initCursor(values);
-		Cursor<String> limitedTo3 = cursor.limit(3);
-		Cursor<String> limitedTo2 = limitedTo3.limit(2);
-
-		List<String> result = new ArrayList<>();
-		while (limitedTo2.hasNext()) {
-			result.add(limitedTo2.next());
-		}
-
-		assertThat(result).hasSize(2);
-	}
-
-	@Test // GH-1575
-	void limitAlreadyLimitedCursorToMore/*should not work obviously*/() {
-
-		LinkedList<ScanIteration<String>> values = new LinkedList<>();
-		values.add(createIteration(1, "spring"));
-		values.add(createIteration(2, "data"));
-		values.add(createIteration(3, "redis"));
-		values.add(createIteration(0));
-		Cursor<String> cursor = initCursor(values);
-		Cursor<String> limitedTo2 = cursor.limit(2);
-		Cursor<String> limitedTo3 = limitedTo2.limit(3);
-
-		List<String> result = new ArrayList<>();
-		while (limitedTo3.hasNext()) {
-			result.add(limitedTo3.next());
-		}
-
-		assertThat(result).hasSize(2);
-	}
-
-	@Test // GH-1575
-	void decoratedCursorShouldForwardClose() {
-
-		LinkedList<ScanIteration<String>> values = new LinkedList<>();
-		values.add(createIteration(1, "spring"));
-		values.add(createIteration(2, "data"));
-		values.add(createIteration(3, "redis"));
-		values.add(createIteration(0));
-		Cursor<String> cursor = initCursor(values);
-		Cursor<String> limited = cursor.limit(1);
 
 		assertThat(cursor.isClosed()).isFalse();
-		assertThat(limited.isClosed()).isFalse();
 
-		limited.close();
+		Stream<String> stream = cursor.stream();
+		stream.collect(Collectors.toList());
+		stream.close();
 
 		assertThat(cursor.isClosed()).isTrue();
-		assertThat(limited.isClosed()).isTrue();
 	}
 
 	private CapturingCursorDummy initCursor(Queue<ScanIteration<String>> values) {
