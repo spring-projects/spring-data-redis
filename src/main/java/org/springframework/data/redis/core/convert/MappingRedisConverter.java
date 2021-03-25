@@ -284,15 +284,14 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		if (typeInformation.isCollectionLike()) {
 
-			if (isByteArray(typeInformation)) {
+			if (!isByteArray(typeInformation)) {
 
-				// accept collection form for byte[] if there's no dedicated key
-				if (!source.getBucket().hasValue(currentPath) && isByteArray(typeInformation)) {
+				return readCollectionOrArray(currentPath, typeInformation.getType(),
+						typeInformation.getRequiredComponentType().getType(), source.getBucket());
+			}
 
-					return readCollectionOrArray(currentPath, typeInformation.getType(),
-							typeInformation.getRequiredComponentType().getType(), source.getBucket());
-				}
-			} else {
+			if (!source.getBucket().hasValue(currentPath) && isByteArray(typeInformation)) {
+
 				return readCollectionOrArray(currentPath, typeInformation.getType(),
 						typeInformation.getRequiredComponentType().getType(), source.getBucket());
 			}
