@@ -383,11 +383,30 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#rewriteConfig()
+	 */
+	@Override
+	public void rewriteConfig() {
+		connection.getClusterCommandExecutor()
+				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) BinaryJedis::configRewrite);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#resetConfigStats(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
 	public void resetConfigStats(RedisClusterNode node) {
 		executeCommandOnSingleNode(BinaryJedis::configResetStat, node);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#rewriteConfig(org.springframework.data.redis.connection.RedisClusterNode)
+	 */
+	@Override
+	public void rewriteConfig(RedisClusterNode node) {
+		executeCommandOnSingleNode(BinaryJedis::configRewrite, node);
 	}
 
 	/*
@@ -518,12 +537,6 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 		executeCommandOnSingleNode(client -> client.migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse),
 				node);
-	}
-
-	@Override
-	public void rewriteConfig() {
-		connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) client -> client.configRewrite());
 	}
 
 	private Long convertListOfStringToTime(List<String> serverTimeInformation, TimeUnit timeUnit) {

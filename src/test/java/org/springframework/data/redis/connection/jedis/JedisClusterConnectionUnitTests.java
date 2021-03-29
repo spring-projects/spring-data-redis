@@ -333,6 +333,27 @@ class JedisClusterConnectionUnitTests {
 		verify(con3Mock, never()).configResetStat();
 	}
 
+	@Test // GH-1992
+	void rewriteConfigShouldBeExecutedOnAllNodes() {
+
+		connection.rewriteConfig();
+
+		verify(con1Mock, times(1)).configRewrite();
+		verify(con2Mock, times(1)).configRewrite();
+		verify(con3Mock, times(1)).configRewrite();
+	}
+
+	@Test // GH-1992
+	void rewriteConfigShouldBeExecutedOnSingleNodeCorrectly() {
+
+		connection.rewriteConfig(CLUSTER_NODE_2);
+
+		verify(con2Mock, times(1)).configRewrite();
+		verify(con2Mock, atLeast(1)).close();
+		verify(con1Mock, never()).configRewrite();
+		verify(con3Mock, never()).configRewrite();
+	}
+
 	@Test // DATAREDIS-315
 	void clusterTopologyProviderShouldCollectErrorsWhenLoadingNodes() {
 

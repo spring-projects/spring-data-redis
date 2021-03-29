@@ -309,6 +309,24 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#rewriteConfig()
+	 */
+	@Override
+	public void rewriteConfig() {
+		executeCommandOnAllNodes(RedisServerCommands::configRewrite);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#rewriteConfig(org.springframework.data.redis.connection.RedisClusterNode)
+	 */
+	@Override
+	public void rewriteConfig(RedisClusterNode node) {
+		executeCommandOnSingleNode(RedisServerCommands::configRewrite, node);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#time(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override

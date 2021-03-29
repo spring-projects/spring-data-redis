@@ -116,6 +116,13 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 
 	/**
 	 * @param node must not be {@literal null}.
+	 * @see RedisServerCommands#rewriteConfig()
+	 * @since 2.5
+	 */
+	void rewriteConfig(RedisClusterNode node);
+
+	/**
+	 * @param node must not be {@literal null}.
 	 * @return
 	 * @see RedisServerCommands#time()
 	 */

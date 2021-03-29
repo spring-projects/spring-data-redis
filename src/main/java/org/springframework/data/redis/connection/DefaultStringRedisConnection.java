@@ -880,6 +880,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#rewriteConfig()
+	 */
+	@Override
+	public void rewriteConfig() {
+		delegate.rewriteConfig();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisListCommands#rPop(byte[])
 	 */
 	@Override
@@ -3729,11 +3738,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout) {
 		delegate.migrate(key, target, dbIndex, option, timeout);
-	}
-
-	@Override
-	public void rewriteConfig() {
-		delegate.rewriteConfig();
 	}
 
 	/*

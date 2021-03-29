@@ -191,6 +191,15 @@ class JedisServerCommands implements RedisServerCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#resetConfigStats()
+	 */
+	@Override
+	public void rewriteConfig() {
+		connection.invokeStatus().just(Jedis::configRewrite);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#time(TimeUnit)
 	 */
 	@Override
@@ -315,11 +324,6 @@ class JedisServerCommands implements RedisServerCommands {
 
 		connection.invokeStatus().just(BinaryJedis::migrate, MultiKeyPipelineBase::migrate, target.getHost(),
 				target.getPort(), key, dbIndex, timeoutToUse);
-	}
-
-	@Override
-	public void rewriteConfig() {
-		connection.invokeStatus().just(Jedis::configRewrite);
 	}
 
 	private boolean isPipelined() {

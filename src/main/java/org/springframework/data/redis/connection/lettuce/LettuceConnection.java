@@ -137,11 +137,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return LettuceResultBuilder.<T, R> forResponse(resultHolder).buildStatusResult();
 	}
 
-	@Override
-	public void rewriteConfig() {
-		serverCommands().rewriteConfig();
-	}
-
 	private class LettuceTransactionResultConverter<T> extends TransactionResultConverter<T> {
 		public LettuceTransactionResultConverter(Queue<FutureResult<T>> txResults,
 				Converter<Exception, DataAccessException> exceptionConverter) {

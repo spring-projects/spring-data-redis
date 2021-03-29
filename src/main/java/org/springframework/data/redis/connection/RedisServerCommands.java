@@ -175,6 +175,14 @@ public interface RedisServerCommands {
 	void resetConfigStats();
 
 	/**
+	 * Rewrites the {@code redis.conf} file.
+	 *
+	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/config-rewrite">Redis Documentation: CONFIG REWRITE</a>
+	 */
+	void rewriteConfig();
+
+	/**
 	 * Request server timestamp using {@code TIME} command in {@link TimeUnit#MILLISECONDS}.
 	 *
 	 * @return current server time in milliseconds or {@literal null} when used in pipeline / transaction.
@@ -281,8 +289,4 @@ public interface RedisServerCommands {
 	 */
 	void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout);
 
-	/**
-	 * Rewrites the redis.conf file.
-	 */
-	void rewriteConfig();
 }

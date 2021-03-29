@@ -1433,6 +1433,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
+	default void rewriteConfig() {
+		serverCommands().rewriteConfig();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
 	default Long time() {
 		return serverCommands().time();
 	}

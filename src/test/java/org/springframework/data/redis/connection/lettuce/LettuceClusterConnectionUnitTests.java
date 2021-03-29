@@ -357,6 +357,26 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection1Mock, never()).configResetstat();
 	}
 
+	@Test // GH-1992
+	void rewriteConfigShouldBeExecutedOnAllNodes() {
+
+		connection.rewriteConfig();
+
+		verify(clusterConnection1Mock, times(1)).configRewrite();
+		verify(clusterConnection2Mock, times(1)).configRewrite();
+		verify(clusterConnection3Mock, times(1)).configRewrite();
+	}
+
+	@Test // GH-1992
+	void rewriteConfigShouldBeExecutedOnSingleNodeCorrectly() {
+
+		connection.rewriteConfig(CLUSTER_NODE_2);
+
+		verify(clusterConnection2Mock, times(1)).configRewrite();
+		verify(clusterConnection1Mock, never()).configRewrite();
+		verify(clusterConnection1Mock, never()).configRewrite();
+	}
+
 	@Test // DATAREDIS-731, DATAREDIS-545
 	void shouldExecuteOnSharedConnection() {
 

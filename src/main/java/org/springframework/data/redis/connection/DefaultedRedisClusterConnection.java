@@ -125,6 +125,13 @@ public interface DefaultedRedisClusterConnection extends RedisClusterConnection,
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
+	default void rewriteConfig(RedisClusterNode node) {
+		serverCommands().rewriteConfig(node);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
 	default Long time(RedisClusterNode node) {
 		return serverCommands().time(node);
 	}

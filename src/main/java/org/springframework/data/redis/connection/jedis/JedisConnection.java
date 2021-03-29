@@ -806,8 +806,4 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	@Override
-	public void rewriteConfig() {
-		serverCommands().rewriteConfig();
-	}
 }

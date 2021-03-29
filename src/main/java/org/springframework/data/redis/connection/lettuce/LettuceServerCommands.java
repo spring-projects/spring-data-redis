@@ -201,6 +201,15 @@ class LettuceServerCommands implements RedisServerCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#resetConfigStats()
+	 */
+	@Override
+	public void rewriteConfig() {
+		connection.invokeStatus().just(RedisServerAsyncCommands::configRewrite);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#time(TimeUnit)
 	 */
 	@Override
@@ -302,11 +311,6 @@ class LettuceServerCommands implements RedisServerCommands {
 		Assert.notNull(target, "Target node must not be null!");
 
 		connection.invoke().just(RedisKeyAsyncCommands::migrate, target.getHost(), target.getPort(), key, dbIndex, timeout);
-	}
-
-	@Override
-	public void rewriteConfig() {
-		connection.invoke().just(RedisServerAsyncCommands::configRewrite);
 	}
 
 	public RedisClusterCommands<byte[], byte[]> getConnection() {
