@@ -1,6 +1,25 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.5.0-RC1 (2021-03-31)
+-----------------------------------------
+* #2019 - Upgrade to Lettuce 6.1.0.RELEASE.
+* #2017 - Upgrade to Jedis 3.6.0-RC1.
+* #2016 - Connection proxy creation fails when using package-protected RedisConnectionProxy interface.
+* #2015 - Pass-thru byte arrays in entities into `Bucket`.
+* #2014 - Add limit option to ScanCursor.
+* #2013 - Return AbstractRedisClient from LettuceConnectionFactory.
+* #2011 - Upgrade to Xstream 1.4.16.
+* #2010 - Readme lists artifacts with .RELEASE and .BUILD-SNAPSHOT suffixes.
+* #1992 - Add support for CONFIG REWRITE.
+* #1990 - Upgrade CI to Redis 6.2.
+* #1981 - Class with @RedisHash and byte[] property is turned into Map<String, Byte>.
+* #1745 - Return AbstractRedisClient from LettuceConnectionFactory [DATAREDIS-1170].
+* #1711 - Add support to Redis Streams using Jedis Client [DATAREDIS-1140].
+* #1575 - Add limit option to ScanCursor. [DATAREDIS-1004].
+* #1560 - Provide TLS support for Sentinel clients in Jedis driver [DATAREDIS-989].
+
+
 Changes in version 2.5.0-M5 (2021-03-17)
 ----------------------------------------
 * #2002 - Upgrade to Lettuce 6.1.0 RC1.
@@ -2314,6 +2333,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
