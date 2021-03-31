@@ -1,6 +1,13 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.4.7 (2021-03-31)
+-------------------------------------
+* #2016 - Connection proxy creation fails when using package-protected RedisConnectionProxy interface.
+* #2011 - Upgrade to Xstream 1.4.16.
+* #2010 - Readme lists artifacts with .RELEASE and .BUILD-SNAPSHOT suffixes.
+
+
 Changes in version 2.5.0-RC1 (2021-03-31)
 -----------------------------------------
 * #2019 - Upgrade to Lettuce 6.1.0.RELEASE.
@@ -2322,6 +2329,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
