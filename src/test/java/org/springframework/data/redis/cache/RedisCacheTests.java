@@ -224,12 +224,30 @@ public class RedisCacheTests {
 
 		doWithConnection(connection -> {
 			connection.set(binaryCacheKey, binaryNullValue);
+			connection.set("other".getBytes(), "value".getBytes());
 		});
 
 		cache.evict(key);
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
+			assertThat(connection.exists("other".getBytes())).isTrue();
+		});
+	}
+
+	@ParameterizedRedisTest // GH-2028
+	void clearShouldClearCache() {
+
+		doWithConnection(connection -> {
+			connection.set(binaryCacheKey, binaryNullValue);
+			connection.set("other".getBytes(), "value".getBytes());
+		});
+
+		cache.clear();
+
+		doWithConnection(connection -> {
+			assertThat(connection.exists(binaryCacheKey)).isFalse();
+			assertThat(connection.exists("other".getBytes())).isTrue();
 		});
 	}
 
