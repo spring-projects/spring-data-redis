@@ -1,6 +1,12 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.4.8 (2021-04-14)
+-------------------------------------
+* #2030 - Update reference documentation to set RedisConnectionFactory on RedisTemplate.
+* #2027 - Upgrade to Lettuce 6.0.4.
+
+
 Changes in version 2.3.9.RELEASE (2021-04-14)
 ---------------------------------------------
 * #2031 - Upgrade to Lettuce 5.3.7.
@@ -2347,6 +2353,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
