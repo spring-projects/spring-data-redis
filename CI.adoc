@@ -1,6 +1,6 @@
 = Continuous Integration
 
-image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2Fmaster&subject=Moore%20(master)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/]
+image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2Fmain&subject=Moore%20(main)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/]
 image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2F2.1.x&subject=Lovelace%20(2.1.x)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/]
 image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2F1.8.x&subject=Ingalls%20(1.8.x)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/]
 
@@ -52,4 +52,4 @@ Here are some ways for you to get involved in the community:
 
 Before we accept a non-trivial patch or pull request we will need you to https://cla.pivotal.io/sign/spring[sign the Contributor License Agreement]. Signing the contributor’s agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. If you forget to do so, you'll be reminded when you submit a pull request.
 
-Github is for social coding: if you want to write code, we encourage contributions through pull requests from https://help.github.com/forking/[forks of this repository]. If you want to contribute code this way, read the Spring Framework https://github.com/spring-projects/spring-framework/blob/master/CONTRIBUTING.md[contributor guidelines].
+Github is for social coding: if you want to write code, we encourage contributions through pull requests from https://help.github.com/forking/[forks of this repository]. If you want to contribute code this way, read the Spring Framework https://github.com/spring-projects/spring-framework/blob/main/CONTRIBUTING.md[contributor guidelines].
