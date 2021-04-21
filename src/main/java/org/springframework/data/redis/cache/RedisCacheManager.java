@@ -186,7 +186,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
 
-		return new RedisCacheManager(new DefaultRedisCacheWriter(connectionFactory),
+		return new RedisCacheManager(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
 				RedisCacheConfiguration.defaultCacheConfig());
 	}
 
@@ -311,7 +311,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 			Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
 
-			return new RedisCacheManagerBuilder(new DefaultRedisCacheWriter(connectionFactory));
+			return new RedisCacheManagerBuilder(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory));
 		}
 
 		/**

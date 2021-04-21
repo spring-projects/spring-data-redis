@@ -102,7 +102,8 @@ public class LegacyRedisCacheTests {
 			cacheConfiguration = cacheConfiguration.disableCachingNullValues();
 		}
 
-		return new RedisCache(CACHE_NAME, new DefaultRedisCacheWriter(connectionFactory), cacheConfiguration);
+		return new RedisCache(CACHE_NAME, RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
+				cacheConfiguration);
 	}
 
 	protected Object getValue() {

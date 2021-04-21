@@ -26,6 +26,9 @@ import org.springframework.util.Assert;
  * caching. <br />
  * The {@link RedisCacheWriter} may be shared by multiple cache implementations and is responsible for writing / reading
  * binary data to / from Redis. The implementation honors potential cache lock flags that might be set.
+ * <p>
+ * The default {@link RedisCacheWriter} implementation can be customized with {@link BatchStrategy} to tune performance
+ * behavior.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -40,10 +43,24 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @return new instance of {@link DefaultRedisCacheWriter}.
 	 */
 	static RedisCacheWriter nonLockingRedisCacheWriter(RedisConnectionFactory connectionFactory) {
+		return nonLockingRedisCacheWriter(connectionFactory, BatchStrategy.keys());
+	}
+
+	/**
+	 * Create new {@link RedisCacheWriter} without locking behavior.
+	 *
+	 * @param connectionFactory must not be {@literal null}.
+	 * @param batchStrategy must not be {@literal null}.
+	 * @return new instance of {@link DefaultRedisCacheWriter}.
+	 * @since 2.6
+	 */
+	static RedisCacheWriter nonLockingRedisCacheWriter(RedisConnectionFactory connectionFactory,
+			BatchStrategy batchStrategy) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
+		Assert.notNull(batchStrategy, "BatchStrategy must not be null!");
 
-		return new DefaultRedisCacheWriter(connectionFactory);
+		return new DefaultRedisCacheWriter(connectionFactory, batchStrategy);
 	}
 
 	/**
@@ -53,10 +70,23 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @return new instance of {@link DefaultRedisCacheWriter}.
 	 */
 	static RedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory) {
+		return lockingRedisCacheWriter(connectionFactory, BatchStrategy.keys());
+	}
+
+	/**
+	 * Create new {@link RedisCacheWriter} with locking behavior.
+	 *
+	 * @param connectionFactory must not be {@literal null}.
+	 * @param batchStrategy must not be {@literal null}.
+	 * @return new instance of {@link DefaultRedisCacheWriter}.
+	 * @since 2.6
+	 */
+	static RedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory,
+			BatchStrategy batchStrategy) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
 
-		return new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(50));
+		return new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(50), batchStrategy);
 	}
 
 	/**

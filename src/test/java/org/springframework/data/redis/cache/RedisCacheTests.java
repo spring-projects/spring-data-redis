@@ -16,6 +16,7 @@
 package org.springframework.data.redis.cache;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,6 +38,7 @@ import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.cache.support.NullValue;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
@@ -81,7 +83,7 @@ public class RedisCacheTests {
 
 		doWithConnection(RedisConnection::flushAll);
 
-		cache = new RedisCache("cache", new DefaultRedisCacheWriter(connectionFactory),
+		cache = new RedisCache("cache", RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer)));
 	}
 
@@ -251,6 +253,33 @@ public class RedisCacheTests {
 		});
 	}
 
+	@ParameterizedRedisTest // GH-1721
+	void clearWithScanShouldClearCache() {
+
+		// SCAN not supported via Jedis Cluster.
+		if (connectionFactory instanceof JedisConnectionFactory) {
+			assumeThat(((JedisConnectionFactory) connectionFactory).isRedisClusterAware()).isFalse();
+		}
+
+		RedisCache cache = new RedisCache("cache",
+				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory, BatchStrategy.scan(25)),
+				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer)));
+
+		doWithConnection(connection -> {
+			connection.set(binaryCacheKey, binaryNullValue);
+			connection.set("cache::foo".getBytes(), binaryNullValue);
+			connection.set("other".getBytes(), "value".getBytes());
+		});
+
+		cache.clear();
+
+		doWithConnection(connection -> {
+			assertThat(connection.exists(binaryCacheKey)).isFalse();
+			assertThat(connection.exists("cache::foo".getBytes())).isFalse();
+			assertThat(connection.exists("other".getBytes())).isTrue();
+		});
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-481
 	void getWithCallableShouldResolveValueIfNotPresent() {
 
@@ -280,7 +309,8 @@ public class RedisCacheTests {
 	@ParameterizedRedisTest // DATAREDIS-715
 	void computePrefixCreatesCacheKeyCorrectly() {
 
-		RedisCache cacheWithCustomPrefix = new RedisCache("cache", new DefaultRedisCacheWriter(connectionFactory),
+		RedisCache cacheWithCustomPrefix = new RedisCache("cache",
+				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
 						.computePrefixWith(cacheName -> "_" + cacheName + "_"));
 
@@ -296,7 +326,8 @@ public class RedisCacheTests {
 	@ParameterizedRedisTest // DATAREDIS-1041
 	void prefixCacheNameCreatesCacheKeyCorrectly() {
 
-		RedisCache cacheWithCustomPrefix = new RedisCache("cache", new DefaultRedisCacheWriter(connectionFactory),
+		RedisCache cacheWithCustomPrefix = new RedisCache("cache",
+				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
 						.prefixCacheNameWith("redis::"));
 
@@ -314,7 +345,8 @@ public class RedisCacheTests {
 
 		doWithConnection(connection -> connection.set("_cache_key-1".getBytes(StandardCharsets.UTF_8), binarySample));
 
-		RedisCache cacheWithCustomPrefix = new RedisCache("cache", new DefaultRedisCacheWriter(connectionFactory),
+		RedisCache cacheWithCustomPrefix = new RedisCache("cache",
+				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
 						.computePrefixWith(cacheName -> "_" + cacheName + "_"));
 
