@@ -157,10 +157,10 @@ class JedisConnectionUnitTests {
 					Integer.MAX_VALUE, (long) Integer.MAX_VALUE + 1L));
 		}
 
-		@Test // DATAREDIS-531
+		@Test // DATAREDIS-531, GH-2006
 		public void scanShouldKeepTheConnectionOpen() {
 
-			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).scan(anyString(),
+			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).scan(any(byte[].class),
 					any(ScanParams.class));
 
 			connection.scan(ScanOptions.NONE);
@@ -168,10 +168,10 @@ class JedisConnectionUnitTests {
 			verify(jedisSpy, never()).quit();
 		}
 
-		@Test // DATAREDIS-531
+		@Test // DATAREDIS-531, GH-2006
 		public void scanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
 
-			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).scan(anyString(),
+			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).scan(any(byte[].class),
 					any(ScanParams.class));
 
 			Cursor<byte[]> cursor = connection.scan(ScanOptions.NONE);
