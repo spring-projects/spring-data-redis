@@ -652,6 +652,8 @@ include::{referenceDir}/pipelining.adoc[]
 
 include::{referenceDir}/redis-scripting.adoc[]
 
+include::{referenceDir}/redis-cache.adoc[]
+
 :leveloffset: 1
 [[redis:support]]
 == Support Classes
@@ -693,120 +695,3 @@ public class AnotherExample {
 
 As shown in the preceding example, the consuming code is decoupled from the actual storage implementation. In fact, there is no indication that Redis is used underneath. This makes moving from development to production environments transparent and highly increases testability (the Redis implementation can be replaced with an in-memory one).
 
-[[redis:support:cache-abstraction]]
-=== Support for the Spring Cache Abstraction
-
-NOTE: Changed in 2.0
-
-Spring Redis provides an implementation for the Spring https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/integration.html#cache[cache abstraction] through the `org.springframework.data.redis.cache` package. To use Redis as a backing implementation, add `RedisCacheManager` to your configuration, as follows:
-
-[source,java]
-----
-@Bean
-public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-	return RedisCacheManager.create(connectionFactory);
-}
-----
-
-`RedisCacheManager` behavior can be configured with `RedisCacheManagerBuilder`, letting you set the default `RedisCacheConfiguration`, transaction behavior, and predefined caches.
-
-[source,java]
-----
-RedisCacheManager cm = RedisCacheManager.builder(connectionFactory)
-	.cacheDefaults(defaultCacheConfig())
-	.withInitialCacheConfigurations(singletonMap("predefined", defaultCacheConfig().disableCachingNullValues()))
-	.transactionAware()
-	.build();
-----
-
-As shown in the preceding example, `RedisCacheManager` allows definition of configurations on a per-cache basis.
-
-The behavior of `RedisCache` created with `RedisCacheManager` is defined with `RedisCacheConfiguration`. The configuration lets you set key expiration times, prefixes, and ``RedisSerializer`` implementations for converting to and from the binary storage format, as shown in the following example:
-
-[source,java]
-----
-RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-    .entryTtl(Duration.ofSeconds(1))
-	.disableCachingNullValues();
-----
-
-`RedisCacheManager` defaults to a lock-free `RedisCacheWriter` for reading and writing binary values. Lock-free caching improves throughput. The lack of entry locking can lead to overlapping, non-atomic commands for the `putIfAbsent` and `clean` methods, as those require multiple commands to be sent to Redis. The locking counterpart prevents command overlap by setting an explicit lock key and checking against presence of this key, which leads to additional requests and potential command wait times.
-
-It is possible to opt in to the locking behavior as follows:
-
-[source,java]
-----
-RedisCacheManager cm = RedisCacheManager.build(RedisCacheWriter.lockingRedisCacheWriter())
-	.cacheDefaults(defaultCacheConfig())
-	...
-----
-
-By default, any `key` for a cache entry gets prefixed with the actual cache name followed by two colons.
-This behavior can be changed to a static as well as a computed prefix.
-
-The following example shows how to set a static prefix:
-
-[source,java]
-----
-// static key prefix
-RedisCacheConfiguration.defaultCacheConfig().prefixKeysWith("( ͡° ᴥ ͡°)");
-
-The following example shows how to set a computed prefix:
-
-// computed key prefix
-RedisCacheConfiguration.defaultCacheConfig().computePrefixWith(cacheName -> "¯\_(ツ)_/¯" + cacheName);
-----
-
-The following table lists the default settings for `RedisCacheManager`:
-
-.`RedisCacheManager` defaults
-[width="80%",cols="<1,<2",options="header"]
-|====
-|Setting
-|Value
-
-|Cache Writer
-|Non-locking
-
-|Cache Configuration
-|`RedisCacheConfiguration#defaultConfiguration`
-
-|Initial Caches
-|None
-
-|Transaction Aware
-|No
-|====
-
-The following table lists the default settings for `RedisCacheConfiguration`:
-
-.RedisCacheConfiguration defaults
-[width="80%",cols="<1,<2",options="header"]
-|====
-|Key Expiration
-|None
-
-|Cache `null`
-|Yes
-
-|Prefix Keys
-|Yes
-
-|Default Prefix
-|The actual cache name
-
-|Key Serializer
-|`StringRedisSerializer`
-
-|Value Serializer
-|`JdkSerializationRedisSerializer`
-
-|Conversion Service
-|`DefaultFormattingConversionService` with default cache key converters
-|====
-
-[NOTE]
-====
-By default `RedisCache`, statistics are disabled.
-Use `RedisCacheManagerBuilder.enableStatistics()` to collect local _hits_ and _misses_ through  `RedisCache#getStatistics()`, returning a snapshot of the collected data.
-====

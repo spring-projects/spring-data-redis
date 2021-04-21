@@ -39,8 +39,8 @@ public abstract class BatchStrategy {
 
 	/**
 	 * Batching strategy using a single {@code KEYS} and {@code DEL} command to remove all matching keys. {@code KEYS}
-	 * scans the entire keyspace of the Redis database and can block the Redis worker thread for a long time when the
-	 * keyspace has a significant size.
+	 * scans the entire keyspace of the Redis database and can block the Redis worker thread for a long time on large
+	 * keyspaces.
 	 * <p/>
 	 * {@code KEYS} is supported for standalone and clustered (sharded) Redis operation modes.
 	 *
