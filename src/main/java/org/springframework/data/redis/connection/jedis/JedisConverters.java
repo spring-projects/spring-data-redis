@@ -529,8 +529,9 @@ public abstract class JedisConverters extends Converters {
 			if (options.getCount() != null) {
 				sp.count(options.getCount().intValue());
 			}
-			if (StringUtils.hasText(options.getPattern())) {
-				sp.match(options.getPattern());
+			byte[] pattern = options.getBytePattern();
+			if (pattern != null) {
+				sp.match(pattern);
 			}
 		}
 		return sp;

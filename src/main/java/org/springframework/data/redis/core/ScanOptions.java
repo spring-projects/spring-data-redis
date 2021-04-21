@@ -31,14 +31,16 @@ public class ScanOptions {
 	/**
 	 * Constant to apply default {@link ScanOptions} without setting a limit or matching a pattern.
 	 */
-	public static ScanOptions NONE = new ScanOptions(null, null);
+	public static ScanOptions NONE = new ScanOptions(null, null, null);
 
 	private final @Nullable Long count;
 	private final @Nullable String pattern;
+	private final @Nullable byte[] bytePattern;
 
-	private ScanOptions(@Nullable Long count, @Nullable String pattern) {
+	private ScanOptions(@Nullable Long count, @Nullable String pattern, @Nullable byte[] bytePattern) {
 		this.count = count;
 		this.pattern = pattern;
+		this.bytePattern = bytePattern;
 	}
 
 	/**
@@ -57,7 +59,22 @@ public class ScanOptions {
 
 	@Nullable
 	public String getPattern() {
+
+		if (bytePattern != null && pattern == null) {
+			return new String(bytePattern);
+		}
+
 		return pattern;
+	}
+
+	@Nullable
+	public byte[] getBytePattern() {
+
+		if (bytePattern == null && pattern != null) {
+			return pattern.getBytes();
+		}
+
+		return bytePattern;
 	}
 
 	public String toOptionString() {
@@ -71,7 +88,8 @@ public class ScanOptions {
 		if (this.count != null) {
 			params += (", 'count', " + count);
 		}
-		if (StringUtils.hasText(this.pattern)) {
+		String pattern = getPattern();
+		if (StringUtils.hasText(pattern)) {
 			params += (", 'match' , '" + this.pattern + "'");
 		}
 
@@ -87,6 +105,7 @@ public class ScanOptions {
 
 		private @Nullable Long count;
 		private @Nullable String pattern;
+		private @Nullable byte[] bytePattern;
 
 
 		/**
@@ -112,12 +131,24 @@ public class ScanOptions {
 		}
 
 		/**
+		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code pattern}.
+		 *
+		 * @param pattern
+		 * @return
+		 * @since 2.6
+		 */
+		public ScanOptionsBuilder match(byte[] pattern) {
+			this.bytePattern = pattern;
+			return this;
+		}
+
+		/**
 		 * Builds a new {@link ScanOptions} objects.
 		 *
 		 * @return a new {@link ScanOptions} objects.
 		 */
 		public ScanOptions build() {
-			return new ScanOptions(count, pattern);
+			return new ScanOptions(count, pattern, bytePattern);
 		}
 	}
 }

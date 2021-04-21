@@ -868,8 +868,9 @@ public abstract class LettuceConverters extends Converters {
 
 		ScanArgs scanArgs = new ScanArgs();
 
-		if (options.getPattern() != null) {
-			scanArgs.match(options.getPattern());
+		byte[] pattern = options.getBytePattern();
+		if (pattern != null) {
+			scanArgs.match(pattern);
 		}
 
 		if (options.getCount() != null) {
