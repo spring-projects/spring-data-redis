@@ -35,7 +35,11 @@ RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
 	.disableCachingNullValues();
 ----
 
-`RedisCacheManager` defaults to a lock-free `RedisCacheWriter` for reading and writing binary values. Lock-free caching improves throughput. The lack of entry locking can lead to overlapping, non-atomic commands for the `putIfAbsent` and `clean` methods, as those require multiple commands to be sent to Redis. The locking counterpart prevents command overlap by setting an explicit lock key and checking against presence of this key, which leads to additional requests and potential command wait times.
+`RedisCacheManager` defaults to a lock-free `RedisCacheWriter` for reading and writing binary values.
+Lock-free caching improves throughput.
+The lack of entry locking can lead to overlapping, non-atomic commands for the `putIfAbsent` and `clean` methods, as those require multiple commands to be sent to Redis. The locking counterpart prevents command overlap by setting an explicit lock key and checking against presence of this key, which leads to additional requests and potential command wait times.
+
+Locking applies on the *cache level*, not per *cache entry*.
 
 It is possible to opt in to the locking behavior as follows:
 
