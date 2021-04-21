@@ -169,6 +169,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * <dl>
 	 * <dt>locking</dt>
 	 * <dd>disabled</dd>
+	 * <dt>batch strategy</dt>
+	 * <dd>{@link BatchStrategy#keys() KEYS}</dd>
 	 * <dt>cache configuration</dt>
 	 * <dd>{@link RedisCacheConfiguration#defaultCacheConfig()}</dd>
 	 * <dt>initial caches</dt>
