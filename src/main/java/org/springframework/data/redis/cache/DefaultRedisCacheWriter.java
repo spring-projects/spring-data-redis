@@ -17,8 +17,6 @@ package org.springframework.data.redis.cache;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -53,21 +51,24 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	private final RedisConnectionFactory connectionFactory;
 	private final Duration sleepTime;
 	private final CacheStatisticsCollector statistics;
+	private final BatchStrategy batchStrategy;
 
 	/**
 	 * @param connectionFactory must not be {@literal null}.
+	 * @param batchStrategy must not be {@literal null}.
 	 */
-	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory) {
-		this(connectionFactory, Duration.ZERO);
+	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, BatchStrategy batchStrategy) {
+		this(connectionFactory, Duration.ZERO, batchStrategy);
 	}
 
 	/**
 	 * @param connectionFactory must not be {@literal null}.
 	 * @param sleepTime sleep time between lock request attempts. Must not be {@literal null}. Use {@link Duration#ZERO}
 	 *          to disable locking.
+	 * @param batchStrategy must not be {@literal null}.
 	 */
-	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime) {
-		this(connectionFactory, sleepTime, CacheStatisticsCollector.none());
+	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime, BatchStrategy batchStrategy) {
+		this(connectionFactory, sleepTime, CacheStatisticsCollector.none(), batchStrategy);
 	}
 
 	/**
@@ -75,17 +76,20 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 * @param sleepTime sleep time between lock request attempts. Must not be {@literal null}. Use {@link Duration#ZERO}
 	 *          to disable locking.
 	 * @param cacheStatisticsCollector must not be {@literal null}.
+	 * @param batchStrategy must not be {@literal null}.
 	 */
 	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime,
-			CacheStatisticsCollector cacheStatisticsCollector) {
+			CacheStatisticsCollector cacheStatisticsCollector, BatchStrategy batchStrategy) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
 		Assert.notNull(sleepTime, "SleepTime must not be null!");
 		Assert.notNull(cacheStatisticsCollector, "CacheStatisticsCollector must not be null!");
+		Assert.notNull(batchStrategy, "BatchStrategy must not be null!");
 
 		this.connectionFactory = connectionFactory;
 		this.sleepTime = sleepTime;
 		this.statistics = cacheStatisticsCollector;
+		this.batchStrategy = batchStrategy;
 	}
 
 	/*
@@ -213,13 +217,9 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 					wasLocked = true;
 				}
 
-				byte[][] keys = Optional.ofNullable(connection.keys(pattern)).orElse(Collections.emptySet())
-						.toArray(new byte[0][]);
 
-				if (keys.length > 0) {
-					statistics.incDeletesBy(name, keys.length);
-					connection.del(keys);
-				}
+				statistics.incDeletesBy(name, batchStrategy.cleanCache(connection, name, pattern));
+
 			} finally {
 
 				if (wasLocked && isLockingCacheWriter()) {
@@ -255,7 +255,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 */
 	@Override
 	public RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector) {
-		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, cacheStatisticsCollector);
+		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, cacheStatisticsCollector, this.batchStrategy);
 	}
 
 	/**
