@@ -11,7 +11,7 @@ cwd=$(pwd)
 pushd /tmp && ln -s /work && make -f $cwd/Makefile start && popd
 
 # Execute maven test
-MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean test -P${PROFILE} -DrunLongTests=${LONG_TESTS:-false} -U -B
+MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml clean test -P${PROFILE} -DrunLongTests=${LONG_TESTS:-false} -U -B
 
 # Capture resulting exit code from maven (pass/fail)
 RESULT=$?
