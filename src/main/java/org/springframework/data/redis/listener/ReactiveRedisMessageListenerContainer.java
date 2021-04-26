@@ -343,7 +343,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 * @throws InvalidDataAccessApiUsageException if {@code topics} is empty.
 	 * @since 2.6
 	 */
-	private <C, B> Mono<Flux<Message<C, B>>> receiveLater(Iterable<? extends Topic> topics,
+	public <C, B> Mono<Flux<Message<C, B>>> receiveLater(Iterable<? extends Topic> topics,
 			SerializationPair<C> channelSerializer, SerializationPair<B> messageSerializer) {
 
 		Assert.notNull(topics, "Topics must not be null!");

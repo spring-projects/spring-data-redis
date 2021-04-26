@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -27,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
 
@@ -441,7 +443,29 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		redisTemplate.listenToChannel(channel).as(StepVerifier::create) //
 				.thenAwait(Duration.ofMillis(500)) // just make sure we the subscription completed
-				.then(() -> redisTemplate.convertAndSend(channel, message).block()) //
+				.then(() -> redisTemplate.convertAndSend(channel, message).subscribe()) //
+				.assertNext(received -> {
+
+					assertThat(received).isInstanceOf(ChannelMessage.class);
+					assertThat(received.getMessage()).isEqualTo(message);
+					assertThat(received.getChannel()).isEqualTo(channel);
+				}) //
+				.thenAwait(Duration.ofMillis(10)) //
+				.thenCancel() //
+				.verify(Duration.ofSeconds(3));
+	}
+
+	@ParameterizedRedisTest // GH-1622
+	@EnabledIfLongRunningTest
+	void listenToLaterChannelShouldReceiveChannelMessagesCorrectly() {
+
+		String channel = "my-channel";
+
+		V message = valueFactory.instance();
+
+		redisTemplate.listenToChannelLater(channel) //
+				.doOnNext(it -> redisTemplate.convertAndSend(channel, message).subscribe()).flatMapMany(Function.identity()) //
+				.as(StepVerifier::create) //
 				.assertNext(received -> {
 
 					assertThat(received).isInstanceOf(ChannelMessage.class);
@@ -455,7 +479,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 	@ParameterizedRedisTest // DATAREDIS-612
 	@EnabledIfLongRunningTest
-	void listenToChannelPatternShouldReceiveChannelMessagesCorrectly() throws InterruptedException {
+	void listenToPatternShouldReceiveChannelMessagesCorrectly() {
 
 		String channel = "my-channel";
 		String pattern = "my-*";
@@ -466,7 +490,32 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		stream.as(StepVerifier::create) //
 				.thenAwait(Duration.ofMillis(500)) // just make sure we the subscription completed
-				.then(() -> redisTemplate.convertAndSend(channel, message).block()) //
+				.then(() -> redisTemplate.convertAndSend(channel, message).subscribe()) //
+				.assertNext(received -> {
+
+					assertThat(received).isInstanceOf(PatternMessage.class);
+					assertThat(received.getMessage()).isEqualTo(message);
+					assertThat(received.getChannel()).isEqualTo(channel);
+					assertThat(((PatternMessage) received).getPattern()).isEqualTo(pattern);
+				}) //
+				.thenCancel() //
+				.verify(Duration.ofSeconds(3));
+	}
+
+	@ParameterizedRedisTest // GH-1622
+	@EnabledIfLongRunningTest
+	void listenToPatternLaterShouldReceiveChannelMessagesCorrectly() {
+
+		String channel = "my-channel";
+		String pattern = "my-*";
+
+		V message = valueFactory.instance();
+
+		Mono<Flux<? extends Message<String, V>>> stream = redisTemplate.listenToPatternLater(pattern);
+
+		stream.doOnNext(it -> redisTemplate.convertAndSend(channel, message).subscribe()) //
+				.flatMapMany(Function.identity()) //
+				.as(StepVerifier::create) //
 				.assertNext(received -> {
 
 					assertThat(received).isInstanceOf(PatternMessage.class);

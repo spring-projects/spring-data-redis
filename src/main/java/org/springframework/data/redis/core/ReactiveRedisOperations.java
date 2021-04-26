@@ -116,6 +116,49 @@ public interface ReactiveRedisOperations<K, V> {
 	 */
 	Flux<? extends Message<String, V>> listenTo(Topic... topics);
 
+	/**
+	 * Subscribe to the given Redis {@code channels} and emit {@link Message messages} received for those. The
+	 * {@link Mono} completes once the {@link Topic topic} subscriptions are registered.
+	 *
+	 * @param channels must not be {@literal null}.
+	 * @return a hot sequence of {@link Message messages}.
+	 * @since 2.6
+	 * @see org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer#receiveLater(ChannelTopic...)
+	 */
+	default Mono<Flux<? extends Message<String, V>>> listenToChannelLater(String... channels) {
+
+		Assert.notNull(channels, "Channels must not be null!");
+
+		return listenToLater(Arrays.stream(channels).map(ChannelTopic::of).toArray(ChannelTopic[]::new));
+	}
+
+	/**
+	 * Subscribe to the Redis channels matching the given {@code pattern} and emit {@link Message messages} received for
+	 * those. The {@link Mono} completes once the {@link Topic topic} subscriptions are registered.
+	 *
+	 * @param patterns must not be {@literal null}.
+	 * @return a hot sequence of {@link Message messages}.
+	 * @since 2.6
+	 * @see org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer#receiveLater(PatternTopic...)
+	 */
+	default Mono<Flux<? extends Message<String, V>>> listenToPatternLater(String... patterns) {
+
+		Assert.notNull(patterns, "Patterns must not be null!");
+		return listenToLater(Arrays.stream(patterns).map(PatternTopic::of).toArray(PatternTopic[]::new));
+	}
+
+	/**
+	 * Subscribe to the Redis channels for the given {@link Topic topics} and emit {@link Message messages} received for
+	 * those. The {@link Mono} completes once the {@link Topic topic} subscriptions are registered.
+	 *
+	 * @param topics must not be {@literal null}.
+	 * @return a hot sequence of {@link Message messages}.
+	 * @since 2.6
+	 * @see org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer#receiveLater(Iterable,
+	 *      RedisSerializationContext.SerializationPair, RedisSerializationContext.SerializationPair)
+	 */
+	Mono<Flux<? extends Message<String, V>>> listenToLater(Topic... topics);
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Keys
 	// -------------------------------------------------------------------------

@@ -237,6 +237,21 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 				.doFinally((signalType) -> container.destroyLater().subscribe());
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#listenToLater(org.springframework.data.redis.listener.Topic[])
+	 */
+	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Mono<Flux<? extends Message<String, V>>> listenToLater(Topic... topics) {
+
+		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(getConnectionFactory());
+
+		return (Mono) container.receiveLater(Arrays.asList(topics), getSerializationContext().getStringSerializationPair(),
+						getSerializationContext().getValueSerializationPair()) //
+				.doFinally((signalType) -> container.destroyLater().subscribe());
+	}
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis keys
 	// -------------------------------------------------------------------------
