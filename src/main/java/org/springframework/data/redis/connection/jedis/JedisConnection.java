@@ -715,7 +715,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		doWithJedis(it -> {
 
-			BinaryJedisPubSub jedisPubSub = new JedisMessageListener(listener);
+			JedisMessageListener jedisPubSub = new JedisMessageListener(listener);
 
 			subscription = new JedisSubscription(listener, jedisPubSub, null, patterns);
 			it.psubscribe(jedisPubSub, patterns);
@@ -740,7 +740,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		doWithJedis(it -> {
 
-			BinaryJedisPubSub jedisPubSub = new JedisMessageListener(listener);
+			JedisMessageListener jedisPubSub = new JedisMessageListener(listener);
 
 			subscription = new JedisSubscription(listener, jedisPubSub, channels, null);
 			it.subscribe(jedisPubSub, channels);

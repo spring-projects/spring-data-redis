@@ -19,20 +19,26 @@ import io.lettuce.core.pubsub.RedisPubSubListener;
 
 import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.util.Assert;
 
 /**
  * MessageListener wrapper around Lettuce {@link RedisPubSubListener}.
  *
  * @author Costin Leau
+ * @author Mark Paluch
  */
 class LettuceMessageListener implements RedisPubSubListener<byte[], byte[]> {
 
 	private final MessageListener listener;
+	private final SubscriptionListener subscriptionListener;
 
 	LettuceMessageListener(MessageListener listener) {
 		Assert.notNull(listener, "MessageListener must not be null!");
+
 		this.listener = listener;
+		this.subscriptionListener = listener instanceof SubscriptionListener ? (SubscriptionListener) listener
+				: SubscriptionListener.EMPTY;
 	}
 
 	/*
@@ -55,23 +61,31 @@ class LettuceMessageListener implements RedisPubSubListener<byte[], byte[]> {
 	 * (non-Javadoc)
 	 * @see io.lettuce.core.pubsub.RedisPubSubListener#subscribed(java.lang.Object, long)
 	 */
-	public void subscribed(byte[] channel, long count) {}
+	public void subscribed(byte[] channel, long count) {
+		subscriptionListener.onChannelSubscribed(channel, count);
+	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see io.lettuce.core.pubsub.RedisPubSubListener#psubscribed(java.lang.Object, long)
 	 */
-	public void psubscribed(byte[] pattern, long count) {}
+	public void psubscribed(byte[] pattern, long count) {
+		subscriptionListener.onPatternSubscribed(pattern, count);
+	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see io.lettuce.core.pubsub.RedisPubSubListener#unsubscribed(java.lang.Object, long)
 	 */
-	public void unsubscribed(byte[] channel, long count) {}
+	public void unsubscribed(byte[] channel, long count) {
+		subscriptionListener.onChannelUnsubscribed(channel, count);
+	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see io.lettuce.core.pubsub.RedisPubSubListener#punsubscribed(java.lang.Object, long)
 	 */
-	public void punsubscribed(byte[] pattern, long count) {}
+	public void punsubscribed(byte[] pattern, long count) {
+		subscriptionListener.onPatternUnsubscribed(pattern, count);
+	}
 }

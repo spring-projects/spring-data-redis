@@ -39,7 +39,7 @@ import org.springframework.data.redis.connection.RedisInvalidSubscriptionExcepti
 @ExtendWith(MockitoExtension.class)
 class JedisSubscriptionUnitTests {
 
-	@Mock BinaryJedisPubSub jedisPubSub;
+	@Mock JedisMessageListener jedisPubSub;
 
 	@Mock MessageListener listener;
 

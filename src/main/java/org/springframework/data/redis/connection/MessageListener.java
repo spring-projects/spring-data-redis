@@ -18,11 +18,14 @@ package org.springframework.data.redis.connection;
 import org.springframework.lang.Nullable;
 
 /**
- * Listener of messages published in Redis.
+ * Listener of messages published in Redis. A MessageListener can implement {@link SubscriptionListener} to receive
+ * notifications for subscription states.
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @see SubscriptionListener
  */
+@FunctionalInterface
 public interface MessageListener {
 
 	/**

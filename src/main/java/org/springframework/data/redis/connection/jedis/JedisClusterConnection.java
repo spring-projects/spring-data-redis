@@ -450,7 +450,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
 		}
 		try {
-			BinaryJedisPubSub jedisPubSub = new JedisMessageListener(listener);
+			JedisMessageListener jedisPubSub = new JedisMessageListener(listener);
 			subscription = new JedisSubscription(listener, jedisPubSub, channels, null);
 			cluster.subscribe(jedisPubSub, channels);
 		} catch (Exception ex) {
@@ -466,7 +466,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
 		}
 		try {
-			BinaryJedisPubSub jedisPubSub = new JedisMessageListener(listener);
+			JedisMessageListener jedisPubSub = new JedisMessageListener(listener);
 			subscription = new JedisSubscription(listener, jedisPubSub, null, patterns);
 			cluster.psubscribe(jedisPubSub, patterns);
 		} catch (Exception ex) {
