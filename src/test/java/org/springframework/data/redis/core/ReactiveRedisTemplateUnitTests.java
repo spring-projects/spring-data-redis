@@ -71,7 +71,7 @@ class ReactiveRedisTemplateUnitTests {
 
 		when(connectionMock.pubSubCommands()).thenReturn(pubSubCommands);
 		when(pubSubCommands.subscribe(any())).thenReturn(Mono.empty());
-		when(pubSubCommands.createSubscription()).thenReturn(Mono.just(subscription));
+		when(pubSubCommands.createSubscription(any())).thenReturn(Mono.just(subscription));
 		when(subscription.receive()).thenReturn(Flux.create(sink -> {}));
 
 		ReactiveRedisTemplate<String, String> template = new ReactiveRedisTemplate<>(connectionFactoryMock,

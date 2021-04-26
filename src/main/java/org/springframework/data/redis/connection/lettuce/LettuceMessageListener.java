@@ -33,12 +33,13 @@ class LettuceMessageListener implements RedisPubSubListener<byte[], byte[]> {
 	private final MessageListener listener;
 	private final SubscriptionListener subscriptionListener;
 
-	LettuceMessageListener(MessageListener listener) {
+	LettuceMessageListener(MessageListener listener, SubscriptionListener subscriptionListener) {
+
 		Assert.notNull(listener, "MessageListener must not be null!");
+		Assert.notNull(subscriptionListener, "SubscriptionListener must not be null!");
 
 		this.listener = listener;
-		this.subscriptionListener = listener instanceof SubscriptionListener ? (SubscriptionListener) listener
-				: SubscriptionListener.EMPTY;
+		this.subscriptionListener = subscriptionListener;
 	}
 
 	/*

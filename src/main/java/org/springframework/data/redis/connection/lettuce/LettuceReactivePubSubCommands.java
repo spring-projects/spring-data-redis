@@ -23,9 +23,11 @@ import java.nio.ByteBuffer;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.redis.connection.ReactivePubSubCommands;
 import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.util.Assert;
 
 /**
@@ -43,13 +45,13 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactivePubSubCommands#createSubscription()
+	 * @see org.springframework.data.redis.connection.ReactivePubSubCommands#createSubscription(org.springframework.data.redis.connection.SubscriptionListener)
 	 */
 	@Override
-	public Mono<ReactiveSubscription> createSubscription() {
+	public Mono<ReactiveSubscription> createSubscription(SubscriptionListener listener) {
 
 		return connection.getPubSubConnection()
-				.map(pubSubConnection -> new LettuceReactiveSubscription(pubSubConnection.reactive(),
+				.map(pubSubConnection -> new LettuceReactiveSubscription(listener, pubSubConnection,
 						connection.translateException()));
 	}
 
