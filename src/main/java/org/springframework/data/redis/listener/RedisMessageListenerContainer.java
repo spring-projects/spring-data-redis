@@ -165,6 +165,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		return new SimpleAsyncTaskExecutor(threadNamePrefix);
 	}
 
+	@Override
 	public void destroy() throws Exception {
 		initialized = false;
 
@@ -181,24 +182,29 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
+	@Override
 	public boolean isAutoStartup() {
 		return true;
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		stop();
 		callback.run();
 	}
 
+	@Override
 	public int getPhase() {
 		// start the latest
 		return Integer.MAX_VALUE;
 	}
 
+	@Override
 	public boolean isRunning() {
 		return running;
 	}
 
+	@Override
 	public void start() {
 		if (!running) {
 			running = true;
@@ -225,6 +231,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
+	@Override
 	public void stop() {
 		if (isRunning()) {
 			running = false;
@@ -318,6 +325,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		this.connectionFactory = connectionFactory;
 	}
 
+	@Override
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}
