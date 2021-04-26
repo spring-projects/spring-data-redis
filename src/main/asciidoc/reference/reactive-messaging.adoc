@@ -57,6 +57,21 @@ ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListen
 Flux<ChannelMessage<String, String>> stream = container.receive(ChannelTopic.of("my-channel"));
 ----
 
+To await and ensure proper subscription, you can use the `receiveLater` method that returns a `Mono<Flux<ChannelMessage>>`.
+The resulting `Mono` completes with an inner publisher as a result of completing the subscription to the given topics. By intercepting `onNext` signals, you can synchronize server-side subscriptions.
+
+[source,java]
+----
+ReactiveRedisConnectionFactory factory = …
+ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(factory);
+
+Mono<Flux<ChannelMessage<String, String>>> stream = container.receiveLater(ChannelTopic.of("my-channel"));
+
+stream.doOnNext(inner -> // notification hook when Redis subscriptions are synchronized with the server)
+    .flatMapMany(Function.identity())
+    .…;
+----
+
 [[redis:reactive:pubsub:subscribe:template]]
 === Subscribing via template API
 
