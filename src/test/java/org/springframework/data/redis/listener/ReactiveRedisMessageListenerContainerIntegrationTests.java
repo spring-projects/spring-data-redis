@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import reactor.core.Disposable;
 import reactor.test.StepVerifier;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.awaitility.Awaitility;
@@ -36,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
 import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
@@ -62,6 +65,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 	private final LettuceConnectionFactory connectionFactory;
 	private @Nullable RedisConnection connection;
+	private @Nullable ReactiveRedisConnection reactiveConnection;
 
 	/**
 	 * @param connectionFactory
@@ -79,6 +83,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 	@BeforeEach
 	void before() {
 		connection = connectionFactory.getConnection();
+		reactiveConnection = connectionFactory.getReactiveConnection();
 	}
 
 	@AfterEach
@@ -87,16 +92,21 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		if (connection != null) {
 			connection.close();
 		}
+
+		if (reactiveConnection != null) {
+			reactiveConnection.close();
+		}
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-612
+	@ParameterizedRedisTest // DATAREDIS-612, GH-1622
 	void shouldReceiveChannelMessages() {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 
-		container.receive(ChannelTopic.of(CHANNEL1)).as(StepVerifier::create) //
-				.then(awaitSubscription(container::getActiveSubscriptions))
-				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
+		container.receiveLater(ChannelTopic.of(CHANNEL1)) //
+				.doOnNext(it -> doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
+				.flatMapMany(Function.identity()) //
+				.as(StepVerifier::create) //
 				.assertNext(c -> {
 
 					assertThat(c.getChannel()).isEqualTo(CHANNEL1);
@@ -136,9 +146,10 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 			}
 		};
 
-		container.receive(Collections.singletonList(ChannelTopic.of(CHANNEL1)), listener).as(StepVerifier::create) //
+		container.receive(Collections.singletonList(ChannelTopic.of(CHANNEL1)), listener) //
+				.as(StepVerifier::create) //
 				.then(awaitSubscription(container::getActiveSubscriptions))
-				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
+				.then(() -> doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
 				.assertNext(c -> {
 
 					assertThat(c.getChannel()).isEqualTo(CHANNEL1);
@@ -154,14 +165,14 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		container.destroy();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-612
+	@ParameterizedRedisTest // DATAREDIS-612, GH-1622
 	void shouldReceivePatternMessages() {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 
-		container.receive(PatternTopic.of(PATTERN1)).as(StepVerifier::create) //
-				.then(awaitSubscription(container::getActiveSubscriptions))
-				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
+		container.receiveLater(PatternTopic.of(PATTERN1)) //
+				.doOnNext(it -> doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes())).flatMapMany(Function.identity()) //
+				.as(StepVerifier::create) //
 				.assertNext(c -> {
 
 					assertThat(c.getPattern()).isEqualTo(PATTERN1);
@@ -206,7 +217,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 				.cast(PatternMessage.class) //
 				.as(StepVerifier::create) //
 				.then(awaitSubscription(container::getActiveSubscriptions))
-				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
+				.then(() -> doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
 				.assertNext(c -> {
 
 					assertThat(c.getPattern()).isEqualTo(PATTERN1);
@@ -223,19 +234,22 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		container.destroy();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-612
-	void shouldPublishAndReceiveMessage() throws InterruptedException {
+	@ParameterizedRedisTest // DATAREDIS-612, GH-1622
+	void shouldPublishAndReceiveMessage() throws Exception {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 		ReactiveRedisTemplate<String, String> template = new ReactiveRedisTemplate<>(connectionFactory,
 				RedisSerializationContext.string());
 
 		BlockingQueue<PatternMessage<String, String, String>> messages = new LinkedBlockingDeque<>();
-		Disposable subscription = container.receive(PatternTopic.of(PATTERN1)).doOnNext(messages::add).subscribe();
+		CompletableFuture<Void> subscribed = new CompletableFuture<>();
+		Disposable subscription = container.receiveLater(PatternTopic.of(PATTERN1))
+				.doOnNext(it -> subscribed.complete(null)).flatMapMany(Function.identity()).doOnNext(messages::add).subscribe();
 
-		StepVerifier.create(template.convertAndSend(CHANNEL1, MESSAGE), 0) //
-				.then(awaitSubscription(container::getActiveSubscriptions)) //
-				.thenRequest(1).expectNextCount(1) //
+		subscribed.get(5, TimeUnit.SECONDS);
+
+		template.convertAndSend(CHANNEL1, MESSAGE).as(StepVerifier::create) //
+				.expectNextCount(1) //
 				.verifyComplete();
 
 		PatternMessage<String, String, String> message = messages.poll(1, TimeUnit.SECONDS);
@@ -257,7 +271,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		template.listenToChannel(CHANNEL1).as(StepVerifier::create) //
 				.thenAwait(Duration.ofMillis(100)) // just make sure we the subscription completed
-				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
+				.then(() -> doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
 				.assertNext(message -> {
 
 					assertThat(message).isInstanceOf(ChannelMessage.class);
@@ -276,7 +290,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		template.listenToPattern(PATTERN1).as(StepVerifier::create) //
 				.thenAwait(Duration.ofMillis(100)) // just make sure we the subscription completed
-				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
+				.then(() -> doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
 				.assertNext(message -> {
 
 					assertThat(message).isInstanceOf(PatternMessage.class);
@@ -286,6 +300,10 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 				}) //
 				.thenCancel() //
 				.verify();
+	}
+
+	private void doPublish(byte[] channel, byte[] message) {
+		reactiveConnection.pubSubCommands().publish(ByteBuffer.wrap(channel), ByteBuffer.wrap(message)).subscribe();
 	}
 
 	private static Runnable awaitSubscription(Supplier<Collection<ReactiveSubscription>> activeSubscriptions) {
