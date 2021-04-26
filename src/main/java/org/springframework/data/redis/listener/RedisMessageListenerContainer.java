@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -41,6 +42,7 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -62,13 +64,16 @@ import org.springframework.util.ErrorHandler;
  * configured).
  * <p>
  * Adding and removing listeners at the same time has undefined results. It is strongly recommended to synchronize/order
- * these methods accordingly.
+ * these methods accordingly. {@link MessageListener Listeners} that wish to receive subscription/unsubscription
+ * callbacks in response to subscribe/unsubscribe commands can implement {@link SubscriptionListener}.
  *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Way Joke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @see MessageListener
+ * @see SubscriptionListener
  */
 public class RedisMessageListenerContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
 
@@ -133,6 +138,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	private long maxSubscriptionRegistrationWaitingTime = DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME;
 
+	@Override
 	public void afterPropertiesSet() {
 		if (taskExecutor == null) {
 			manageExecutor = true;
@@ -958,7 +964,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 *
 	 * @author Costin Leau
 	 */
-	private class DispatchMessageListener implements MessageListener {
+	private class DispatchMessageListener implements MessageListener, SubscriptionListener {
 
 		@Override
 		public void onMessage(Message message, @Nullable byte[] pattern) {
@@ -977,6 +983,56 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				dispatchMessage(listeners, message, pattern);
 			}
 		}
+
+		@Override
+		public void onChannelSubscribed(byte[] channel, long count) {
+			dispatchSubscriptionNotification(
+					channelMapping.getOrDefault(new ByteArrayWrapper(channel), Collections.emptyList()), channel, count,
+					SubscriptionListener::onChannelSubscribed);
+		}
+
+		@Override
+		public void onChannelUnsubscribed(byte[] channel, long count) {
+			dispatchSubscriptionNotification(
+					channelMapping.getOrDefault(new ByteArrayWrapper(channel), Collections.emptyList()), channel, count,
+					SubscriptionListener::onChannelUnsubscribed);
+		}
+
+		@Override
+		public void onPatternSubscribed(byte[] pattern, long count) {
+			dispatchSubscriptionNotification(
+					patternMapping.getOrDefault(new ByteArrayWrapper(pattern), Collections.emptyList()), pattern, count,
+					SubscriptionListener::onPatternSubscribed);
+		}
+
+		@Override
+		public void onPatternUnsubscribed(byte[] pattern, long count) {
+			dispatchSubscriptionNotification(
+					patternMapping.getOrDefault(new ByteArrayWrapper(pattern), Collections.emptyList()), pattern, count,
+					SubscriptionListener::onPatternUnsubscribed);
+		}
+	}
+
+	private void dispatchSubscriptionNotification(Collection<MessageListener> listeners, byte[] pattern, long count,
+			SubscriptionConsumer listenerConsumer) {
+
+		if (!CollectionUtils.isEmpty(listeners)) {
+			byte[] source = pattern.clone();
+
+			for (MessageListener messageListener : listeners) {
+				if (messageListener instanceof SubscriptionListener) {
+					taskExecutor.execute(() -> listenerConsumer.accept((SubscriptionListener) messageListener, source, count));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Represents an operation that accepts three input arguments {@link SubscriptionListener},
+	 * {@code channel or pattern}, and {@code count} and returns no result.
+	 */
+	interface SubscriptionConsumer {
+		void accept(SubscriptionListener listener, byte[] channelOrPattern, long count);
 	}
 
 	private void dispatchMessage(Collection<MessageListener> listeners, Message message, @Nullable byte[] pattern) {

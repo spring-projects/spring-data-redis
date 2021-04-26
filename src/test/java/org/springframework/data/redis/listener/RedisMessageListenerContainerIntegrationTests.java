@@ -16,87 +16,202 @@
 package org.springframework.data.redis.listener;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-import java.util.concurrent.Executor;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
-import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.data.redis.SettingsUtils;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.parametrized.MethodSource;
+import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+import org.springframework.lang.Nullable;
 
 /**
  * Integration tests for {@link RedisMessageListenerContainer}.
  *
  * @author Mark Paluch
- * @author Christoph Strobl
  */
+@MethodSource("testParams")
 class RedisMessageListenerContainerIntegrationTests {
 
-	private final Object handler = new Object() {
-
-		@SuppressWarnings("unused")
-		public void handleMessage(Object message) {}
-	};
-
-	private final MessageListenerAdapter adapter = new MessageListenerAdapter(handler);
-
-	private JedisConnectionFactory connectionFactory;
+	private RedisConnectionFactory connectionFactory;
 	private RedisMessageListenerContainer container;
 
-	private Executor executorMock;
+	public RedisMessageListenerContainerIntegrationTests(RedisConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
+	}
 
 	@BeforeEach
 	void setUp() {
 
-		executorMock = mock(Executor.class);
-
-		RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
-		configuration.setPort(SettingsUtils.getPort());
-		configuration.setHostName(SettingsUtils.getHost());
-		configuration.setDatabase(2);
-
-		connectionFactory = new JedisConnectionFactory(configuration);
-		connectionFactory.afterPropertiesSet();
-
 		container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
 		container.setBeanName("container");
-		container.setTaskExecutor(new SyncTaskExecutor());
-		container.setSubscriptionExecutor(executorMock);
 		container.afterPropertiesSet();
+	}
+
+	public static Collection<Object[]> testParams() {
+
+		// Jedis
+		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
+
+		// Lettuce
+		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
+				.getConnectionFactory(RedisStanalone.class);
+
+		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory } });
 	}
 
 	@AfterEach
 	void tearDown() throws Exception {
-
 		container.destroy();
-		connectionFactory.destroy();
 	}
 
-	@Test // DATAREDIS-415
-	void interruptAtStart() {
+	@ParameterizedRedisTest
+	void notifiesChannelSubscriptionState() throws Exception {
 
-		final Thread main = Thread.currentThread();
+		AtomicReference<String> onSubscribe = new AtomicReference<>();
+		AtomicReference<String> onUnsubscribe = new AtomicReference<>();
+		CompletableFuture<Void> subscribe = new CompletableFuture<>();
+		CompletableFuture<Void> unsubscribe = new CompletableFuture<>();
 
-		// interrupt thread once Executor.execute is called
-		doAnswer(invocationOnMock -> {
+		CompositeListener listener = new CompositeListener() {
+			@Override
+			public void onMessage(Message message, @Nullable byte[] pattern) {
 
-			main.interrupt();
-			return null;
-		}).when(executorMock).execute(any(Runnable.class));
+			}
 
-		container.addMessageListener(adapter, new ChannelTopic("a"));
+			@Override
+			public void onChannelSubscribed(byte[] channel, long count) {
+				onSubscribe.set(new String(channel));
+				subscribe.complete(null);
+			}
+
+			@Override
+			public void onChannelUnsubscribed(byte[] channel, long count) {
+				onUnsubscribe.set(new String(channel));
+				unsubscribe.complete(null);
+			}
+		};
+
+		container.addMessageListener(listener, new ChannelTopic("a"));
 		container.start();
 
-		// reset the interrupted flag to not destroy the teardown
-		assertThat(Thread.interrupted()).isTrue();
+		subscribe.get(10, TimeUnit.SECONDS);
 
-		assertThat(container.isRunning()).isFalse();
+		container.destroy();
+
+		unsubscribe.get(10, TimeUnit.SECONDS);
+
+		assertThat(onSubscribe).hasValue("a");
+		assertThat(onUnsubscribe).hasValue("a");
+	}
+
+	@ParameterizedRedisTest
+	void notifiesPatternSubscriptionState() throws Exception {
+
+		AtomicReference<String> onPsubscribe = new AtomicReference<>();
+		AtomicReference<String> onPunsubscribe = new AtomicReference<>();
+		CompletableFuture<Void> psubscribe = new CompletableFuture<>();
+		CompletableFuture<Void> punsubscribe = new CompletableFuture<>();
+
+		CompositeListener listener = new CompositeListener() {
+			@Override
+			public void onMessage(Message message, @Nullable byte[] pattern) {
+
+			}
+
+			@Override
+			public void onPatternSubscribed(byte[] pattern, long count) {
+				onPsubscribe.set(new String(pattern));
+				psubscribe.complete(null);
+			}
+
+			@Override
+			public void onPatternUnsubscribed(byte[] pattern, long count) {
+				onPunsubscribe.set(new String(pattern));
+				punsubscribe.complete(null);
+			}
+		};
+
+		container.addMessageListener(listener, new PatternTopic("a"));
+		container.start();
+
+		psubscribe.get(10, TimeUnit.SECONDS);
+
+		container.destroy();
+
+		punsubscribe.get(10, TimeUnit.SECONDS);
+
+		assertThat(onPsubscribe).hasValue("a");
+		assertThat(onPunsubscribe).hasValue("a");
+	}
+
+	@ParameterizedRedisTest
+	void repeatedSubscribeShouldNotifyOnlyOnce() throws Exception {
+
+		AtomicInteger subscriptions1 = new AtomicInteger();
+		AtomicInteger subscriptions2 = new AtomicInteger();
+		CountDownLatch received = new CountDownLatch(2);
+
+		CompositeListener listener1 = new CompositeListener() {
+			@Override
+			public void onMessage(Message message, @Nullable byte[] pattern) {
+				received.countDown();
+			}
+
+			@Override
+			public void onPatternSubscribed(byte[] pattern, long count) {
+				subscriptions1.incrementAndGet();
+			}
+		};
+
+		CompositeListener listener2 = new CompositeListener() {
+			@Override
+			public void onMessage(Message message, @Nullable byte[] pattern) {
+				received.countDown();
+			}
+
+			@Override
+			public void onPatternSubscribed(byte[] pattern, long count) {
+				subscriptions2.incrementAndGet();
+			}
+		};
+
+		container.addMessageListener(listener1, new PatternTopic("a"));
+		container.addMessageListener(listener2, new PatternTopic("a"));
+
+		container.start();
+
+		try (RedisConnection connection = connectionFactory.getConnection()) {
+			connection.publish("a".getBytes(), "hello".getBytes());
+		}
+
+		received.await(2, TimeUnit.SECONDS);
+		container.destroy();
+
+		assertThat(subscriptions1).hasValue(1);
+		assertThat(subscriptions2).hasValue(1);
+	}
+
+	interface CompositeListener extends MessageListener, SubscriptionListener {
+
 	}
 }

@@ -15,24 +15,29 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BinaryJedisPubSub;
+
 import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.util.Assert;
-
-import redis.clients.jedis.BinaryJedisPubSub;
 
 /**
  * MessageListener adapter on top of Jedis.
  *
  * @author Costin Leau
+ * @author Mark Paluch
  */
 class JedisMessageListener extends BinaryJedisPubSub {
 
 	private final MessageListener listener;
+	private final SubscriptionListener subscriptionListener;
 
 	JedisMessageListener(MessageListener listener) {
-		Assert.notNull(listener, "message listener is required");
+		Assert.notNull(listener, "MessageListener is required");
 		this.listener = listener;
+		this.subscriptionListener = listener instanceof SubscriptionListener ? (SubscriptionListener) listener
+				: SubscriptionListener.EMPTY;
 	}
 
 	public void onMessage(byte[] channel, byte[] message) {
@@ -44,18 +49,18 @@ class JedisMessageListener extends BinaryJedisPubSub {
 	}
 
 	public void onPSubscribe(byte[] pattern, int subscribedChannels) {
-		// no-op
+		subscriptionListener.onPatternSubscribed(pattern, subscribedChannels);
 	}
 
 	public void onPUnsubscribe(byte[] pattern, int subscribedChannels) {
-		// no-op
+		subscriptionListener.onPatternUnsubscribed(pattern, subscribedChannels);
 	}
 
 	public void onSubscribe(byte[] channel, int subscribedChannels) {
-		// no-op
+		subscriptionListener.onChannelSubscribed(channel, subscribedChannels);
 	}
 
 	public void onUnsubscribe(byte[] channel, int subscribedChannels) {
-		// no-op
+		subscriptionListener.onChannelUnsubscribed(channel, subscribedChannels);
 	}
 }

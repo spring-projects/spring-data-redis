@@ -18,10 +18,13 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
 import io.lettuce.core.pubsub.api.sync.RedisPubSubCommands;
 
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +45,9 @@ class LettuceSubscriptionUnitTests {
 
 	private StatefulRedisPubSubConnection<byte[], byte[]> pubsub;
 
-	private RedisPubSubCommands<byte[], byte[]> asyncCommands;
+	private RedisPubSubCommands<byte[], byte[]> syncCommands;
+
+	private RedisPubSubAsyncCommands<byte[], byte[]> asyncCommands;
 
 	private LettuceConnectionProvider connectionProvider;
 
@@ -51,10 +56,12 @@ class LettuceSubscriptionUnitTests {
 	void setUp() {
 
 		pubsub = mock(StatefulRedisPubSubConnection.class);
-		asyncCommands = mock(RedisPubSubCommands.class);
+		syncCommands = mock(RedisPubSubCommands.class);
+		asyncCommands = mock(RedisPubSubAsyncCommands.class);
 		connectionProvider = mock(LettuceConnectionProvider.class);
 
-		when(pubsub.sync()).thenReturn(asyncCommands);
+		when(pubsub.sync()).thenReturn(syncCommands);
+		when(pubsub.async()).thenReturn(asyncCommands);
 		subscription = new LettuceSubscription(mock(MessageListener.class), pubsub, connectionProvider);
 	}
 
@@ -64,8 +71,8 @@ class LettuceSubscriptionUnitTests {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
 
-		verify(asyncCommands).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
 
@@ -81,8 +88,8 @@ class LettuceSubscriptionUnitTests {
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 		subscription.unsubscribe();
 
-		verify(asyncCommands).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 
 		assertThat(subscription.isAlive()).isTrue();
 		assertThat(subscription.getChannels()).isEmpty();
@@ -100,9 +107,9 @@ class LettuceSubscriptionUnitTests {
 		subscription.subscribe(channel);
 		subscription.unsubscribe(channel);
 
-		verify(asyncCommands).unsubscribe(channel);
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands).unsubscribe(channel);
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
 
@@ -119,9 +126,9 @@ class LettuceSubscriptionUnitTests {
 		subscription.subscribe(channels);
 		subscription.unsubscribe(new byte[][] { "a".getBytes() });
 
-		verify(asyncCommands).unsubscribe(new byte[][] { "a".getBytes() });
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands).unsubscribe(new byte[][] { "a".getBytes() });
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 
 		assertThat(subscription.isAlive()).isTrue();
 
@@ -140,9 +147,9 @@ class LettuceSubscriptionUnitTests {
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 		subscription.unsubscribe(channel);
 
-		verify(asyncCommands).unsubscribe(channel);
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands).unsubscribe(channel);
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 
 		assertThat(subscription.isAlive()).isTrue();
 		assertThat(subscription.getChannels()).isEmpty();
@@ -161,9 +168,9 @@ class LettuceSubscriptionUnitTests {
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 		subscription.unsubscribe(channel);
 
-		verify(asyncCommands).unsubscribe(channel);
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands).unsubscribe(channel);
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 		assertThat(subscription.isAlive()).isTrue();
 
 		Collection<byte[]> channels = subscription.getChannels();
@@ -181,8 +188,8 @@ class LettuceSubscriptionUnitTests {
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 		subscription.unsubscribe();
 
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 
 		assertThat(subscription.isAlive()).isTrue();
 		assertThat(subscription.getChannels()).isEmpty();
@@ -204,8 +211,8 @@ class LettuceSubscriptionUnitTests {
 		assertThat(subscription.isAlive()).isFalse();
 
 		subscription.unsubscribe();
-		verify(asyncCommands).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 	}
 
 	@Test
@@ -226,8 +233,8 @@ class LettuceSubscriptionUnitTests {
 		subscription.pSubscribe(new byte[][] { "a*".getBytes() });
 		subscription.pUnsubscribe();
 
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands).punsubscribe();
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands).punsubscribe();
 		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
 
@@ -243,8 +250,8 @@ class LettuceSubscriptionUnitTests {
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 		subscription.pUnsubscribe();
 
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands).punsubscribe();
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands).punsubscribe();
 
 		assertThat(subscription.isAlive()).isTrue();
 		assertThat(subscription.getPatterns()).isEmpty();
@@ -262,9 +269,9 @@ class LettuceSubscriptionUnitTests {
 		subscription.pSubscribe(pattern);
 		subscription.pUnsubscribe(pattern);
 
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
-		verify(asyncCommands).punsubscribe(pattern);
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
+		verify(syncCommands).punsubscribe(pattern);
 		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
 
@@ -280,9 +287,9 @@ class LettuceSubscriptionUnitTests {
 		subscription.pSubscribe(patterns);
 		subscription.pUnsubscribe(new byte[][] { "a*".getBytes() });
 
-		verify(asyncCommands).punsubscribe(new byte[][] { "a*".getBytes() });
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands).punsubscribe(new byte[][] { "a*".getBytes() });
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 
 		assertThat(subscription.isAlive()).isTrue();
 
@@ -301,9 +308,9 @@ class LettuceSubscriptionUnitTests {
 		subscription.pSubscribe(pattern);
 		subscription.pUnsubscribe(pattern);
 
-		verify(asyncCommands).punsubscribe(pattern);
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands).punsubscribe(pattern);
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 
 		assertThat(subscription.isAlive()).isTrue();
 		assertThat(subscription.getPatterns()).isEmpty();
@@ -322,9 +329,9 @@ class LettuceSubscriptionUnitTests {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.pUnsubscribe(pattern);
 
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
-		verify(asyncCommands).punsubscribe(pattern);
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
+		verify(syncCommands).punsubscribe(pattern);
 
 		assertThat(subscription.isAlive()).isTrue();
 
@@ -343,8 +350,8 @@ class LettuceSubscriptionUnitTests {
 		subscription.subscribe(new byte[][] { "s".getBytes() });
 		subscription.pUnsubscribe();
 
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 		assertThat(subscription.isAlive()).isTrue();
 		assertThat(subscription.getPatterns()).isEmpty();
 
@@ -365,8 +372,8 @@ class LettuceSubscriptionUnitTests {
 
 		verify(connectionProvider).release(pubsub);
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
-		verify(asyncCommands).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 	}
 
 	@Test
@@ -386,27 +393,41 @@ class LettuceSubscriptionUnitTests {
 
 		subscription.doClose();
 
-		verify(asyncCommands, never()).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verify(syncCommands, never()).unsubscribe();
+		verify(syncCommands, never()).punsubscribe();
 	}
 
 	@Test
 	void testDoCloseSubscribedChannels() {
 
+		RedisFuture<Void> future = mock(RedisFuture.class);
+		when(future.toCompletableFuture()).thenReturn(CompletableFuture.completedFuture(null));
+
+		when(asyncCommands.unsubscribe()).thenReturn(future);
+		when(asyncCommands.ping()).thenReturn((RedisFuture) future);
+
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.doClose();
 
+		verify(asyncCommands).ping();
 		verify(asyncCommands).unsubscribe();
-		verify(asyncCommands, never()).punsubscribe();
+		verifyNoMoreInteractions(asyncCommands);
 	}
 
 	@Test
 	void testDoCloseSubscribedPatterns() {
 
+		RedisFuture<Void> future = mock(RedisFuture.class);
+		when(future.toCompletableFuture()).thenReturn(CompletableFuture.completedFuture(null));
+
+		when(asyncCommands.punsubscribe()).thenReturn(future);
+		when(asyncCommands.ping()).thenReturn((RedisFuture) future);
+
 		subscription.pSubscribe(new byte[][] { "a*".getBytes() });
 		subscription.doClose();
 
-		verify(asyncCommands, never()).unsubscribe();
+		verify(asyncCommands).ping();
 		verify(asyncCommands).punsubscribe();
+		verifyNoMoreInteractions(asyncCommands);
 	}
 }

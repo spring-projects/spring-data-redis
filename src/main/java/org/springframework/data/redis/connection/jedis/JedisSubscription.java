@@ -30,7 +30,7 @@ class JedisSubscription extends AbstractSubscription {
 
 	private final BinaryJedisPubSub jedisPubSub;
 
-	JedisSubscription(MessageListener listener, BinaryJedisPubSub jedisPubSub, @Nullable byte[][] channels,
+	JedisSubscription(MessageListener listener, JedisMessageListener jedisPubSub, @Nullable byte[][] channels,
 			@Nullable byte[][] patterns) {
 		super(listener, channels, patterns);
 		this.jedisPubSub = jedisPubSub;

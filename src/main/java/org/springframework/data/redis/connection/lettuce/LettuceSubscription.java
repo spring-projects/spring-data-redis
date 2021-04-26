@@ -16,7 +16,12 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
 import io.lettuce.core.pubsub.api.sync.RedisPubSubCommands;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.util.AbstractSubscription;
@@ -37,6 +42,7 @@ public class LettuceSubscription extends AbstractSubscription {
 	private final LettuceMessageListener listener;
 	private final LettuceConnectionProvider connectionProvider;
 	private final RedisPubSubCommands<byte[], byte[]> pubsub;
+	private final RedisPubSubAsyncCommands<byte[], byte[]> pubSubAsync;
 
 	/**
 	 * Creates a new {@link LettuceSubscription} given {@link MessageListener}, {@link StatefulRedisPubSubConnection}, and
@@ -55,6 +61,7 @@ public class LettuceSubscription extends AbstractSubscription {
 		this.listener = new LettuceMessageListener(listener);
 		this.connectionProvider = connectionProvider;
 		this.pubsub = connection.sync();
+		this.pubSubAsync = connection.async();
 
 		this.connection.addListener(this.listener);
 	}
@@ -70,15 +77,29 @@ public class LettuceSubscription extends AbstractSubscription {
 	@Override
 	protected void doClose() {
 
+		List<CompletableFuture<?>> futures = new ArrayList<>();
+
 		if (!getChannels().isEmpty()) {
-			doUnsubscribe(true);
+			futures.add(pubSubAsync.unsubscribe().toCompletableFuture());
 		}
 
 		if (!getPatterns().isEmpty()) {
-			doPUnsubscribe(true);
+			futures.add(pubSubAsync.punsubscribe().toCompletableFuture());
 		}
 
-		connection.removeListener(this.listener);
+		if (!futures.isEmpty()) {
+
+			// this is to ensure completion of the futures and result processing. Since we're unsubscribing first, we expect
+			// that we receive pub/sub confirmations before the PING response.
+			futures.add(pubSubAsync.ping().toCompletableFuture());
+
+			CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((v, t) -> {
+				connection.removeListener(listener);
+			});
+		} else {
+			connection.removeListener(listener);
+		}
+
 		connectionProvider.release(connection);
 	}
 
