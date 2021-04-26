@@ -17,7 +17,7 @@ package org.springframework.data.redis.listener;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoProcessor;
+import reactor.core.publisher.Sinks;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -106,7 +106,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 			return Mono.empty();
 		}
 
-		ReactiveRedisConnection connection = this.connection;
+		ReactiveRedisConnection connection = getRequiredConnection();
 
 		Flux<Void> terminationSignals = null;
 		while (!subscriptions.isEmpty()) {
@@ -136,7 +136,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	public Collection<ReactiveSubscription> getActiveSubscriptions() {
 
 		return subscriptions.entrySet().stream().filter(entry -> entry.getValue().hasRegistration())
-				.map(entry -> entry.getKey()).collect(Collectors.toList());
+				.map(Map.Entry::getKey).collect(Collectors.toList());
 	}
 
 	/**
@@ -223,8 +223,8 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 * subscription/unsubscription and can be used for synchronization.
 	 *
 	 * @param topics the channels to subscribe.
-	 * @param channelSerializer
-	 * @param messageSerializer
+	 * @param channelSerializer serialization pair to decode the channel/pattern name.
+	 * @param messageSerializer serialization pair to decode the message body.
 	 * @param subscriptionListener listener to receive subscription/unsubscription notifications.
 	 * @return the message stream.
 	 * @see #receive(Iterable, SerializationPair, SerializationPair)
@@ -249,7 +249,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 		}
 
 		return doReceive(channelSerializer, messageSerializer,
-				connection.pubSubCommands().createSubscription(subscriptionListener), patterns,
+				getRequiredConnection().pubSubCommands().createSubscription(subscriptionListener), patterns,
 				channels);
 	}
 
@@ -261,7 +261,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 			Mono<Void> subscribe = subscribe(patterns, channels, it);
 
-			MonoProcessor<ChannelMessage<ByteBuffer, ByteBuffer>> terminalProcessor = MonoProcessor.create();
+			Sinks.One<Message<ByteBuffer, ByteBuffer>> terminalSink = Sinks.one();
 			return it.receive().mergeWith(subscribe.then(Mono.defer(() -> {
 
 				getSubscribers(it).registered();
@@ -272,9 +272,9 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 				Subscribers subscribers = getSubscribers(it);
 				if (subscribers.unregister()) {
 					subscriptions.remove(it);
-					it.cancel().subscribe(v -> terminalProcessor.onComplete(), terminalProcessor::onError);
+					it.cancel().subscribe(v -> terminalSink.tryEmitEmpty(), terminalSink::tryEmitError);
 				}
-			}).mergeWith(terminalProcessor);
+			}).mergeWith(terminalSink.asMono());
 		});
 
 		return messageStream
@@ -303,7 +303,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 			}
 		}
 
-		return subscribe;
+		return subscribe == null ? Mono.empty() : subscribe;
 	}
 
 	private boolean isActive() {
@@ -330,13 +330,12 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 				.toArray(ByteBuffer[]::new);
 	}
 
-	@SuppressWarnings("unchecked")
 	private <C, B> Message<C, B> readMessage(RedisElementReader<C> channelSerializer,
 			RedisElementReader<B> messageSerializer, Message<ByteBuffer, ByteBuffer> message) {
 
 		if (message instanceof PatternMessage) {
 
-			PatternMessage<ByteBuffer, ByteBuffer, ByteBuffer> patternMessage = (PatternMessage) message;
+			PatternMessage<ByteBuffer, ByteBuffer, ByteBuffer> patternMessage = (PatternMessage<ByteBuffer, ByteBuffer, ByteBuffer>) message;
 
 			String pattern = read(stringSerializationPair.getReader(), patternMessage.getPattern());
 			C channel = read(channelSerializer, patternMessage.getChannel());
@@ -349,6 +348,17 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 		B body = read(messageSerializer, message.getMessage());
 
 		return new ChannelMessage<>(channel, body);
+	}
+
+	private ReactiveRedisConnection getRequiredConnection() {
+
+		ReactiveRedisConnection connection = this.connection;
+
+		if (connection == null) {
+			throw new IllegalStateException("Connection no longer available");
+		}
+
+		return connection;
 	}
 
 	private static <C> C read(RedisElementReader<C> reader, ByteBuffer buffer) {
