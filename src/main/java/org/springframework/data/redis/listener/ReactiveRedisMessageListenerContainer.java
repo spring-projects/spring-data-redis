@@ -23,10 +23,12 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -41,9 +43,11 @@ import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMes
 import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
 import org.springframework.data.redis.connection.SubscriptionListener;
+import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.data.redis.serializer.RedisElementReader;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -158,6 +162,28 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	}
 
 	/**
+	 * Subscribe to one or more {@link ChannelTopic}s and receive a stream of {@link ChannelMessage} once the returned
+	 * {@link Mono} completes. Messages and channel names are treated as {@link String}. The message stream subscribes
+	 * lazily to the Redis channels and unsubscribes if the inner {@link org.reactivestreams.Subscription} is
+	 * {@link org.reactivestreams.Subscription#cancel() cancelled}.
+	 * <p/>
+	 * The returned {@link Mono} completes once the connection has been subscribed to the given {@link Topic topics}. Note
+	 * that cancelling the returned {@link Mono} can leave the connection in a subscribed state.
+	 *
+	 * @param channelTopics the channels to subscribe.
+	 * @return the message stream.
+	 * @throws InvalidDataAccessApiUsageException if {@code patternTopics} is empty.
+	 * @since 2.6
+	 */
+	public Mono<Flux<Message<String, String>>> receiveLater(ChannelTopic... channelTopics) {
+
+		Assert.notNull(channelTopics, "ChannelTopics must not be null!");
+		Assert.noNullElements(channelTopics, "ChannelTopics must not contain null elements!");
+
+		return receiveLater(Arrays.asList(channelTopics), stringSerializationPair, stringSerializationPair);
+	}
+
+	/**
 	 * Subscribe to one or more {@link PatternTopic}s and receive a stream of {@link PatternMessage}. Messages, pattern,
 	 * and channel names are treated as {@link String}. The message stream subscribes lazily to the Redis channels and
 	 * unsubscribes if the {@link org.reactivestreams.Subscription} is {@link org.reactivestreams.Subscription#cancel()
@@ -176,6 +202,30 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 		return receive(Arrays.asList(patternTopics), stringSerializationPair, stringSerializationPair)
 				.map(m -> (PatternMessage<String, String, String>) m);
+	}
+
+	/**
+	 * Subscribe to one or more {@link PatternTopic}s and receive a stream of {@link PatternMessage} once the returned
+	 * {@link Mono} completes. Messages, pattern, and channel names are treated as {@link String}. The message stream
+	 * subscribes lazily to the Redis channels and unsubscribes if the inner {@link org.reactivestreams.Subscription} is
+	 * {@link org.reactivestreams.Subscription#cancel() cancelled}.
+	 * <p/>
+	 * The returned {@link Mono} completes once the connection has been subscribed to the given {@link Topic topics}. Note
+	 * that cancelling the returned {@link Mono} can leave the connection in a subscribed state.
+	 *
+	 * @param patternTopics the channels to subscribe.
+	 * @return the message stream.
+	 * @throws InvalidDataAccessApiUsageException if {@code patternTopics} is empty.
+	 * @since 2.6
+	 */
+	@SuppressWarnings("unchecked")
+	public Mono<Flux<PatternMessage<String, String, String>>> receiveLater(PatternTopic... patternTopics) {
+
+		Assert.notNull(patternTopics, "PatternTopic must not be null!");
+		Assert.noNullElements(patternTopics, "PatternTopic must not contain null elements!");
+
+		return receiveLater(Arrays.asList(patternTopics), stringSerializationPair, stringSerializationPair)
+				.map(it -> it.map(m -> (PatternMessage<String, String, String>) m));
 	}
 
 	/**
@@ -279,6 +329,68 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 		return messageStream
 				.map(message -> readMessage(channelSerializer.getReader(), messageSerializer.getReader(), message));
+	}
+
+	/**
+	 * Subscribe to one or more {@link Topic}s and receive a stream of {@link ChannelMessage}. The returned {@link Mono}
+	 * completes once the connection has been subscribed to the given {@link Topic topics}. Note that cancelling the
+	 * returned {@link Mono} can leave the connection in a subscribed state.
+	 *
+	 * @param topics the channels to subscribe.
+	 * @param channelSerializer serialization pair to decode the channel/pattern name.
+	 * @param messageSerializer serialization pair to decode the message body.
+	 * @return the message stream.
+	 * @throws InvalidDataAccessApiUsageException if {@code topics} is empty.
+	 * @since 2.6
+	 */
+	private <C, B> Mono<Flux<Message<C, B>>> receiveLater(Iterable<? extends Topic> topics,
+			SerializationPair<C> channelSerializer, SerializationPair<B> messageSerializer) {
+
+		Assert.notNull(topics, "Topics must not be null!");
+		Assert.notNull(channelSerializer, "Channel serializer must not be null!");
+		Assert.notNull(messageSerializer, "Message serializer must not be null!");
+
+		verifyConnection();
+
+		ByteBuffer[] patterns = getTargets(topics, PatternTopic.class);
+		ByteBuffer[] channels = getTargets(topics, ChannelTopic.class);
+
+		if (ObjectUtils.isEmpty(patterns) && ObjectUtils.isEmpty(channels)) {
+			throw new InvalidDataAccessApiUsageException("No channels or patterns to subscribe to.");
+		}
+
+		return Mono.defer(() -> {
+
+			SubscriptionReadyListener readyListener = SubscriptionReadyListener.create(topics, stringSerializationPair);
+
+			return doReceiveLater(channelSerializer, messageSerializer,
+					getRequiredConnection().pubSubCommands().createSubscription(readyListener), patterns, channels)
+							.delayUntil(it -> readyListener.getTrigger());
+		});
+	}
+
+	private <C, B> Mono<Flux<Message<C, B>>> doReceiveLater(SerializationPair<C> channelSerializer,
+			SerializationPair<B> messageSerializer, Mono<ReactiveSubscription> subscription, ByteBuffer[] patterns,
+			ByteBuffer[] channels) {
+
+		return subscription.flatMap(it -> {
+
+			Mono<Void> subscribe = subscribe(patterns, channels, it).doOnSuccess(v -> getSubscribers(it).registered());
+
+			Sinks.One<Message<ByteBuffer, ByteBuffer>> terminalSink = Sinks.one();
+
+			Flux<Message<C, B>> receiver = it.receive().doOnCancel(() -> {
+
+				Subscribers subscribers = getSubscribers(it);
+				if (subscribers.unregister()) {
+					subscriptions.remove(it);
+					it.cancel().subscribe(v -> terminalSink.tryEmitEmpty(), terminalSink::tryEmitError);
+				}
+			}).mergeWith(terminalSink.asMono())
+					.map(message -> readMessage(channelSerializer.getReader(), messageSerializer.getReader(), message));
+
+			return subscribe.then(Mono.just(receiver));
+		});
 	}
 
 	private static Mono<Void> subscribe(ByteBuffer[] patterns, ByteBuffer[] channels, ReactiveSubscription it) {
@@ -416,6 +528,56 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 			}
 
 			return false;
+		}
+	}
+
+	static class SubscriptionReadyListener extends AtomicBoolean implements SubscriptionListener {
+
+		private final Set<ByteArrayWrapper> toSubscribe;
+		private final Sinks.Empty<Void> sink = Sinks.empty();
+
+		private SubscriptionReadyListener(Set<ByteArrayWrapper> topics) {
+			this.toSubscribe = topics;
+		}
+
+		public static SubscriptionReadyListener create(Iterable<? extends Topic> topics,
+				SerializationPair<String> serializationPair) {
+
+			Set<ByteArrayWrapper> wrappers = new HashSet<>();
+
+			for (Topic topic : topics) {
+				wrappers.add(new ByteArrayWrapper(ByteUtils.getBytes(serializationPair.getWriter().write(topic.getTopic()))));
+			}
+
+			return new SubscriptionReadyListener(wrappers);
+		}
+
+		@Override
+		public void onChannelSubscribed(byte[] channel, long count) {
+			removeRemaining(channel);
+		}
+
+		@Override
+		public void onPatternSubscribed(byte[] pattern, long count) {
+			removeRemaining(pattern);
+		}
+
+		private void removeRemaining(byte[] channel) {
+
+			boolean done;
+
+			synchronized (toSubscribe) {
+				toSubscribe.remove(new ByteArrayWrapper(channel));
+				done = toSubscribe.isEmpty();
+			}
+
+			if (done && compareAndSet(false, true)) {
+				sink.emitEmpty(Sinks.EmitFailureHandler.FAIL_FAST);
+			}
+		}
+
+		public Mono<Void> getTrigger() {
+			return sink.asMono();
 		}
 	}
 }
