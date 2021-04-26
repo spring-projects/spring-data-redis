@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.reactive.RedisPubSubReactiveCommands;
 import reactor.core.Disposable;
 import reactor.core.publisher.ConnectableFlux;
@@ -33,6 +34,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.springframework.data.redis.connection.ReactiveSubscription;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -46,15 +48,23 @@ import org.springframework.util.ObjectUtils;
  */
 class LettuceReactiveSubscription implements ReactiveSubscription {
 
+	private final LettuceByteBufferPubSubListenerWrapper listener;
+	private final StatefulRedisPubSubConnection<ByteBuffer, ByteBuffer> connection;
 	private final RedisPubSubReactiveCommands<ByteBuffer, ByteBuffer> commands;
 
 	private final State patternState;
 	private final State channelState;
 
-	LettuceReactiveSubscription(RedisPubSubReactiveCommands<ByteBuffer, ByteBuffer> commands,
+	LettuceReactiveSubscription(SubscriptionListener subscriptionListener,
+			StatefulRedisPubSubConnection<ByteBuffer, ByteBuffer> connection,
 			Function<Throwable, Throwable> exceptionTranslator) {
 
-		this.commands = commands;
+		this.listener = new LettuceByteBufferPubSubListenerWrapper(
+				new LettuceMessageListener((messages, pattern) -> {}, subscriptionListener));
+		this.connection = connection;
+		this.commands = connection.reactive();
+		connection.addListener(listener);
+
 		this.patternState = new State(exceptionTranslator);
 		this.channelState = new State(exceptionTranslator);
 	}
@@ -176,7 +186,12 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 
 			channelState.terminate();
 			patternState.terminate();
-			return Mono.empty();
+
+			// this is to ensure completion of the futures and result processing. Since we're unsubscribing first, we expect
+			// that we receive pub/sub confirmations before the PING response.
+			return commands.ping().then(Mono.fromRunnable(() -> {
+				connection.removeListener(listener);
+			}));
 		}));
 	}
 

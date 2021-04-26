@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.util.ByteUtils.*;
 
 import io.lettuce.core.RedisConnectionException;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.reactive.RedisPubSubReactiveCommands;
 import reactor.core.Disposable;
 import reactor.core.publisher.DirectProcessor;
@@ -40,6 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
+import org.springframework.data.redis.connection.SubscriptionListener;
 
 /**
  * Unit tests for {@link LettuceReactiveSubscription}.
@@ -52,11 +54,14 @@ class LettuceReactiveSubscriptionUnitTests {
 
 	private LettuceReactiveSubscription subscription;
 
+	@Mock StatefulRedisPubSubConnection<ByteBuffer, ByteBuffer> connectionMock;
 	@Mock RedisPubSubReactiveCommands<ByteBuffer, ByteBuffer> commandsMock;
 
 	@BeforeEach
 	void before() {
-		subscription = new LettuceReactiveSubscription(commandsMock, e -> new RedisSystemException(e.getMessage(), e));
+		when(connectionMock.reactive()).thenReturn(commandsMock);
+		subscription = new LettuceReactiveSubscription(mock(SubscriptionListener.class), connectionMock,
+				e -> new RedisSystemException(e.getMessage(), e));
 	}
 
 	@Test // DATAREDIS-612

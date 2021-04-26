@@ -67,7 +67,7 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 		when(connectionFactoryMock.getReactiveConnection()).thenReturn(connectionMock);
 		when(connectionMock.pubSubCommands()).thenReturn(commandsMock);
 		when(connectionMock.closeLater()).thenReturn(Mono.empty());
-		when(commandsMock.createSubscription()).thenReturn(Mono.just(subscriptionMock));
+		when(commandsMock.createSubscription(any())).thenReturn(Mono.just(subscriptionMock));
 		when(subscriptionMock.subscribe(any())).thenReturn(Mono.empty());
 		when(subscriptionMock.pSubscribe(any())).thenReturn(Mono.empty());
 		when(subscriptionMock.unsubscribe()).thenReturn(Mono.empty());
@@ -182,7 +182,7 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 		assertThat(container.getActiveSubscriptions()).isEmpty();
 	}
 
-	@Test // DATAREDIS-612
+	@Test // DATAREDIS-612, GH-1622
 	void shouldRegisterSubscriptionMultipleSubscribers() {
 
 		reset(subscriptionMock);
@@ -203,11 +203,11 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 
 		second.dispose();
 
-		verify(subscriptionMock).unsubscribe();
+		verify(subscriptionMock).cancel();
 		assertThat(container.getActiveSubscriptions()).isEmpty();
 	}
 
-	@Test // DATAREDIS-612
+	@Test // DATAREDIS-612, GH-1622
 	void shouldUnsubscribeOnCancel() {
 
 		when(subscriptionMock.receive()).thenReturn(DirectProcessor.create());
@@ -221,7 +221,7 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 
 		}).thenCancel().verify();
 
-		verify(subscriptionMock).unsubscribe();
+		verify(subscriptionMock).cancel();
 	}
 
 	@Test // DATAREDIS-612

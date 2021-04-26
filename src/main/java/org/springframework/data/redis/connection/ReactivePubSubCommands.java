@@ -37,7 +37,18 @@ public interface ReactivePubSubCommands {
 	 *
 	 * @return the subscription.
 	 */
-	Mono<ReactiveSubscription> createSubscription();
+	default Mono<ReactiveSubscription> createSubscription() {
+		return createSubscription(SubscriptionListener.EMPTY);
+	}
+
+	/**
+	 * Creates a subscription for this connection. Connections can have multiple {@link ReactiveSubscription}s.
+	 *
+	 * @param subscriptionListener the subscription listener to listen for subscription confirmations.
+	 * @return the subscription.
+	 * @since 2.6
+	 */
+	Mono<ReactiveSubscription> createSubscription(SubscriptionListener subscriptionListener);
 
 	/**
 	 * Publishes the given {@code message} to the given {@code channel}.

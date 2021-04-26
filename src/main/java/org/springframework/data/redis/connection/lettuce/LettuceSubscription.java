@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.util.AbstractSubscription;
 
 /**
@@ -58,7 +59,8 @@ public class LettuceSubscription extends AbstractSubscription {
 		super(listener);
 
 		this.connection = pubsubConnection;
-		this.listener = new LettuceMessageListener(listener);
+		this.listener = new LettuceMessageListener(listener,
+				listener instanceof SubscriptionListener ? (SubscriptionListener) listener : SubscriptionListener.EMPTY);
 		this.connectionProvider = connectionProvider;
 		this.pubsub = connection.sync();
 		this.pubSubAsync = connection.async();

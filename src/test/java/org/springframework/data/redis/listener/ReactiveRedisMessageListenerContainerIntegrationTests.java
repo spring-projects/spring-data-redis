@@ -22,19 +22,25 @@ import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
+import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
 import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -101,6 +107,53 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		container.destroy();
 	}
 
+	@ParameterizedRedisTest // GH-1622
+	void receiveChannelShouldNotifySubscriptionListener() throws Exception {
+
+		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
+
+		AtomicReference<String> onSubscribe = new AtomicReference<>();
+		AtomicReference<String> onUnsubscribe = new AtomicReference<>();
+		CompletableFuture<Void> subscribe = new CompletableFuture<>();
+		CompletableFuture<Void> unsubscribe = new CompletableFuture<>();
+
+		CompositeListener listener = new CompositeListener() {
+			@Override
+			public void onMessage(Message message, @Nullable byte[] pattern) {
+
+			}
+
+			@Override
+			public void onChannelSubscribed(byte[] channel, long count) {
+				onSubscribe.set(new String(channel));
+				subscribe.complete(null);
+			}
+
+			@Override
+			public void onChannelUnsubscribed(byte[] channel, long count) {
+				onUnsubscribe.set(new String(channel));
+				unsubscribe.complete(null);
+			}
+		};
+
+		container.receive(Collections.singletonList(ChannelTopic.of(CHANNEL1)), listener).as(StepVerifier::create) //
+				.then(awaitSubscription(container::getActiveSubscriptions))
+				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
+				.assertNext(c -> {
+
+					assertThat(c.getChannel()).isEqualTo(CHANNEL1);
+					assertThat(c.getMessage()).isEqualTo(MESSAGE);
+				}) //
+				.thenCancel().verify();
+
+		unsubscribe.get(10, TimeUnit.SECONDS);
+
+		assertThat(onSubscribe).hasValue(CHANNEL1);
+		assertThat(onUnsubscribe).hasValue(CHANNEL1);
+
+		container.destroy();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-612
 	void shouldReceivePatternMessages() {
 
@@ -116,6 +169,56 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 					assertThat(c.getMessage()).isEqualTo(MESSAGE);
 				}) //
 				.thenCancel().verify();
+
+		container.destroy();
+	}
+
+	@ParameterizedRedisTest // GH-1622
+	void receivePatternShouldNotifySubscriptionListener() throws Exception {
+
+		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
+
+		AtomicReference<String> onPsubscribe = new AtomicReference<>();
+		AtomicReference<String> onPunsubscribe = new AtomicReference<>();
+		CompletableFuture<Void> psubscribe = new CompletableFuture<>();
+		CompletableFuture<Void> punsubscribe = new CompletableFuture<>();
+
+		CompositeListener listener = new CompositeListener() {
+			@Override
+			public void onMessage(Message message, @Nullable byte[] pattern) {
+
+			}
+
+			@Override
+			public void onPatternSubscribed(byte[] pattern, long count) {
+				onPsubscribe.set(new String(pattern));
+				psubscribe.complete(null);
+			}
+
+			@Override
+			public void onPatternUnsubscribed(byte[] pattern, long count) {
+				onPunsubscribe.set(new String(pattern));
+				punsubscribe.complete(null);
+			}
+		};
+
+		container.receive(Collections.singletonList(PatternTopic.of(PATTERN1)), listener) //
+				.cast(PatternMessage.class) //
+				.as(StepVerifier::create) //
+				.then(awaitSubscription(container::getActiveSubscriptions))
+				.then(() -> connection.publish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
+				.assertNext(c -> {
+
+					assertThat(c.getPattern()).isEqualTo(PATTERN1);
+					assertThat(c.getChannel()).isEqualTo(CHANNEL1);
+					assertThat(c.getMessage()).isEqualTo(MESSAGE);
+				}) //
+				.thenCancel().verify();
+
+		punsubscribe.get(10, TimeUnit.SECONDS);
+
+		assertThat(onPsubscribe).hasValue(PATTERN1);
+		assertThat(onPunsubscribe).hasValue(PATTERN1);
 
 		container.destroy();
 	}
@@ -190,5 +293,9 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		return () -> {
 			Awaitility.await().until(() -> !activeSubscriptions.get().isEmpty());
 		};
+	}
+
+	interface CompositeListener extends MessageListener, SubscriptionListener {
+
 	}
 }

@@ -40,6 +40,7 @@ import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
 import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.serializer.RedisElementReader;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -178,21 +179,65 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	}
 
 	/**
-	 * Subscribe to one or more {@link Topic}s and receive a stream of {@link ChannelMessage} The stream may contain
+	 * Subscribe to one or more {@link Topic}s and receive a stream of {@link ChannelMessage}. The stream may contain
 	 * {@link PatternMessage} if subscribed to patterns. Messages, and channel names are serialized/deserialized using the
 	 * given {@code channelSerializer} and {@code messageSerializer}. The message stream subscribes lazily to the Redis
 	 * channels and unsubscribes if the {@link org.reactivestreams.Subscription} is
 	 * {@link org.reactivestreams.Subscription#cancel() cancelled}.
 	 *
-	 * @param topics the channels to subscribe.
+	 * @param topics the channels/patterns to subscribe.
+	 * @param subscriptionListener listener to receive subscription/unsubscription notifications.
+	 * @return the message stream.
+	 * @throws InvalidDataAccessApiUsageException if {@code patternTopics} is empty.
+	 * @see #receive(Iterable, SerializationPair, SerializationPair)
+	 * @since 2.6
+	 */
+	public Flux<Message<String, String>> receive(Iterable<? extends Topic> topics,
+			SubscriptionListener subscriptionListener) {
+		return receive(topics, stringSerializationPair, stringSerializationPair, subscriptionListener);
+	}
+
+	/**
+	 * Subscribe to one or more {@link Topic}s and receive a stream of {@link ChannelMessage}. The stream may contain
+	 * {@link PatternMessage} if subscribed to patterns. Messages, and channel names are serialized/deserialized using the
+	 * given {@code channelSerializer} and {@code messageSerializer}. The message stream subscribes lazily to the Redis
+	 * channels and unsubscribes if the {@link org.reactivestreams.Subscription} is
+	 * {@link org.reactivestreams.Subscription#cancel() cancelled}.
+	 *
+	 * @param topics the channels/patterns to subscribe.
 	 * @return the message stream.
 	 * @see #receive(Iterable, SerializationPair, SerializationPair)
 	 * @throws InvalidDataAccessApiUsageException if {@code topics} is empty.
 	 */
 	public <C, B> Flux<Message<C, B>> receive(Iterable<? extends Topic> topics, SerializationPair<C> channelSerializer,
 			SerializationPair<B> messageSerializer) {
+		return receive(topics, channelSerializer, messageSerializer, SubscriptionListener.EMPTY);
+	}
+
+	/**
+	 * Subscribe to one or more {@link Topic}s and receive a stream of {@link ChannelMessage}. The stream may contain
+	 * {@link PatternMessage} if subscribed to patterns. Messages, and channel names are serialized/deserialized using the
+	 * given {@code channelSerializer} and {@code messageSerializer}. The message stream subscribes lazily to the Redis
+	 * channels and unsubscribes if the {@link org.reactivestreams.Subscription} is
+	 * {@link org.reactivestreams.Subscription#cancel() cancelled}. {@link SubscriptionListener} is notified upon
+	 * subscription/unsubscription and can be used for synchronization.
+	 *
+	 * @param topics the channels to subscribe.
+	 * @param channelSerializer
+	 * @param messageSerializer
+	 * @param subscriptionListener listener to receive subscription/unsubscription notifications.
+	 * @return the message stream.
+	 * @see #receive(Iterable, SerializationPair, SerializationPair)
+	 * @throws InvalidDataAccessApiUsageException if {@code topics} is empty.
+	 * @since 2.6
+	 */
+	public <C, B> Flux<Message<C, B>> receive(Iterable<? extends Topic> topics, SerializationPair<C> channelSerializer,
+			SerializationPair<B> messageSerializer, SubscriptionListener subscriptionListener) {
 
 		Assert.notNull(topics, "Topics must not be null!");
+		Assert.notNull(channelSerializer, "Channel serializer must not be null!");
+		Assert.notNull(messageSerializer, "Message serializer must not be null!");
+		Assert.notNull(subscriptionListener, "SubscriptionListener must not be null!");
 
 		verifyConnection();
 
@@ -203,7 +248,8 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 			throw new InvalidDataAccessApiUsageException("No channels or patterns to subscribe to.");
 		}
 
-		return doReceive(channelSerializer, messageSerializer, connection.pubSubCommands().createSubscription(), patterns,
+		return doReceive(channelSerializer, messageSerializer,
+				connection.pubSubCommands().createSubscription(subscriptionListener), patterns,
 				channels);
 	}
 
@@ -226,7 +272,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 				Subscribers subscribers = getSubscribers(it);
 				if (subscribers.unregister()) {
 					subscriptions.remove(it);
-					it.unsubscribe().subscribe(v -> terminalProcessor.onComplete(), terminalProcessor::onError);
+					it.cancel().subscribe(v -> terminalProcessor.onComplete(), terminalProcessor::onError);
 				}
 			}).mergeWith(terminalProcessor);
 		});
