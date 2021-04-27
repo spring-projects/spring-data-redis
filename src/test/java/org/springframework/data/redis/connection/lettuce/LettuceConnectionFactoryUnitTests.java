@@ -1014,6 +1014,29 @@ class LettuceConnectionFactoryUnitTests {
 				.withMessageContaining("Client not yet initialized");
 	}
 
+	@Test // GH-2057
+	void uninitializedUsageShouldFail() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration());
+		assertThatIllegalStateException().isThrownBy(connectionFactory::getConnection);
+		assertThatIllegalStateException().isThrownBy(connectionFactory::getReactiveConnection);
+	}
+
+	@Test // GH-2057
+	void uninitializedSentinelUsageShouldFail() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisSentinelConfiguration());
+		assertThatIllegalStateException().isThrownBy(connectionFactory::getSentinelConnection);
+	}
+
+	@Test // GH-2057
+	void uninitializedClusterUsageShouldFail() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisClusterConfiguration());
+		assertThatIllegalStateException().isThrownBy(connectionFactory::getClusterConnection);
+		assertThatIllegalStateException().isThrownBy(connectionFactory::getReactiveClusterConnection);
+	}
+
 	@Data
 	@AllArgsConstructor
 	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {

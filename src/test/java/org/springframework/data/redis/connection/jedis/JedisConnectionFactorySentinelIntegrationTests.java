@@ -90,6 +90,14 @@ class JedisConnectionFactorySentinelIntegrationTests {
 				.sentinel("127.0.0.1", 1).sentinel("127.0.0.1", 26379);
 
 		factory = new JedisConnectionFactory(oneDownSentinelConfig);
+		factory.afterPropertiesSet();
 		assertThat(factory.getSentinelConnection().isOpen()).isTrue();
+	}
+
+	@Test // GH-2057
+	void uninitializedUsageShouldFail() {
+
+		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
+		assertThatIllegalStateException().isThrownBy(() -> factory.getSentinelConnection());
 	}
 }

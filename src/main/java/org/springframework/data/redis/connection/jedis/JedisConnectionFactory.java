@@ -98,6 +98,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost",
 			Protocol.DEFAULT_PORT);
 
+	private boolean initialized;
+
 	private @Nullable RedisConfiguration configuration;
 
 	private @Nullable JedisCluster cluster;
@@ -350,6 +352,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 					new JedisClusterConnection.JedisClusterNodeResourceProvider(this.cluster, this.topologyProvider),
 					EXCEPTION_TRANSLATION);
 		}
+
+		this.initialized = true;
 	}
 
 	private JedisClientConfig createClientConfig(@Nullable String username, RedisPassword password) {
@@ -460,6 +464,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	public void destroy() {
 
+		this.initialized = false;
+
 		if (getUsePool() && pool != null) {
 
 			try {
@@ -492,6 +498,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	public RedisConnection getConnection() {
 
+		assertInitialized();
+
 		if (isRedisClusterAware()) {
 			return getClusterConnection();
 		}
@@ -517,9 +525,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	@Override
 	public RedisClusterConnection getClusterConnection() {
 
+		assertInitialized();
+
 		if (!isRedisClusterAware()) {
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
 		}
+
 		return new JedisClusterConnection(this.cluster, this.clusterCommandExecutor, this.topologyProvider);
 	}
 
@@ -876,11 +887,18 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
 
+		assertInitialized();
+
 		if (!isRedisSentinelAware()) {
 			throw new InvalidDataAccessResourceUsageException("No Sentinels configured");
 		}
 
 		return new JedisSentinelConnection(getActiveSentinel());
+	}
+
+	private void assertInitialized() {
+		Assert.state(initialized,
+				"JedisConnectionFactory is not initialized. This connection factory must be initialized with calling afterPropertiesSet() prior to connection retrieval.");
 	}
 
 	private Jedis getActiveSentinel() {

@@ -346,6 +346,22 @@ class JedisConnectionFactoryUnitTests {
 		assertThatIllegalStateException().isThrownBy(() -> connectionFactory.setClientName("foo"));
 	}
 
+	@Test // GH-2057
+	void uninitializedUsageShouldFail() {
+
+		connectionFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration(),
+				JedisClientConfiguration.defaultConfiguration());
+		assertThatIllegalStateException().isThrownBy(connectionFactory::getConnection);
+	}
+
+	@Test // GH-2057
+	void uninitializedClusterUsageShouldFail() {
+
+		connectionFactory = new JedisConnectionFactory(new RedisClusterConfiguration(),
+				JedisClientConfiguration.defaultConfiguration());
+		assertThatIllegalStateException().isThrownBy(connectionFactory::getClusterConnection);
+	}
+
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfig,
 			JedisPoolConfig poolConfig) {
 
