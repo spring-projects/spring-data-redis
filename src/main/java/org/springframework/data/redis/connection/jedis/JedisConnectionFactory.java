@@ -80,6 +80,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Fu Jian
  * @author Ajith Kumar
+ * @author Sathish S
  * @see JedisClientConfiguration
  * @see Jedis
  */
@@ -278,6 +279,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			}
 
 			Jedis jedis = createJedis();
+			if (getDatabase() > 0) {
+				jedis.getClient().select(getDatabase());
+			}
 			// force initialization (see Jedis issue #82)
 			jedis.connect();
 

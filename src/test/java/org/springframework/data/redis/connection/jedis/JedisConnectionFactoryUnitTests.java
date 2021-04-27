@@ -18,6 +18,8 @@ package org.springframework.data.redis.connection.jedis;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import redis.clients.jedis.JedisClientConfig;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisClusterConnectionHandler;
@@ -50,6 +52,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Sathish S
  */
 class JedisConnectionFactoryUnitTests {
 
@@ -344,6 +347,25 @@ class JedisConnectionFactoryUnitTests {
 				JedisClientConfiguration.defaultConfiguration());
 
 		assertThatIllegalStateException().isThrownBy(() -> connectionFactory.setClientName("foo"));
+	}
+
+	@Test // https://github.com/spring-projects/spring-data-redis/issues/2053
+	void shouldSelectDatabaseIndexWhenCreatingClient() {
+		RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+		redisStandaloneConfiguration.setDatabase(9);
+
+		connectionFactory = new JedisConnectionFactory(redisStandaloneConfiguration, JedisClientConfiguration.builder().build());
+
+		RedisConnection redisConnection = connectionFactory.getConnection();
+
+		redisConnection.serverCommands().setClientName("shouldSelectDatabaseIndexWhenCreatingClient".getBytes());
+		redisConnection.serverCommands().getClientList();
+
+		String clientInfo = redisConnection.serverCommands().getClientName();
+		assertThat(clientInfo).isNotNull();
+		RedisClientInfo redisClientInfo = RedisClientInfo.RedisClientInfoBuilder.fromString(clientInfo);
+		assertThat(redisClientInfo.getName()).isEqualTo("shouldSelectDatabaseIndexWhenCreatingClient");
+		assertThat(redisClientInfo.getDatabaseId()).isEqualTo(redisStandaloneConfiguration.getDatabase());
 	}
 
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfig,
