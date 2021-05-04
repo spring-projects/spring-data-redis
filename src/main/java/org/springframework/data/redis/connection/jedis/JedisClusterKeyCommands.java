@@ -53,6 +53,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author ihaohong
  * @since 2.0
  */
 class JedisClusterKeyCommands implements RedisKeyCommands {
@@ -85,6 +86,18 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) (client, key) -> client.del(key),
 						Arrays.asList(keys))
 				.resultsAsList().size();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[])
+	 */
+	@Override
+	public Boolean copy(byte[] sourceKey, byte[] targetKey) {
+		Assert.notNull(sourceKey, "source key must not be null!");
+		Assert.notNull(targetKey, "target key must not be null!");
+
+		return connection.getCluster().copy(sourceKey, targetKey, false);
 	}
 
 	/*

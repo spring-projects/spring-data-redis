@@ -70,6 +70,7 @@ import org.springframework.util.ObjectUtils;
  * @author Tugdual Grall
  * @author Andrey Shlykov
  * @author dengliming
+ * @author ihaohong
  */
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
@@ -274,6 +275,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long del(byte[]... keys) {
 		return convertAndReturn(delegate.del(keys), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[])
+	 */
+	@Override
+	public Boolean copy(byte[] sourceKey, byte[] targetKey) {
+		return convertAndReturn(delegate.copy(sourceKey, targetKey), Converters.identityConverter());
 	}
 
 	/*
@@ -1897,6 +1907,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long del(String... keys) {
 		return del(serializeMulti(keys));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#copy(java.lang.String[])
+	 */
+	@Override
+	public Boolean copy(String sourceKey, String targetKey) {
+		return copy(serialize(sourceKey), serialize(targetKey));
 	}
 
 	/*

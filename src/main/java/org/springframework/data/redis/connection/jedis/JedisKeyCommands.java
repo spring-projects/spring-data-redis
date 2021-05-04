@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author ihaohong
  * @since 2.0
  */
 class JedisKeyCommands implements RedisKeyCommands {
@@ -88,6 +89,17 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		return connection.invoke().just(BinaryJedis::del, MultiKeyPipelineBase::del, keys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[])
+	 */
+	public Boolean copy(byte[] sourceKey, byte[] targetKey) {
+		Assert.notNull(sourceKey, "source key must not be null!");
+		Assert.notNull(targetKey, "target key must not be null!");
+
+		return connection.invoke().just(BinaryJedis::copy, MultiKeyPipelineBase::copy, sourceKey, targetKey, false);
 	}
 
 	/*

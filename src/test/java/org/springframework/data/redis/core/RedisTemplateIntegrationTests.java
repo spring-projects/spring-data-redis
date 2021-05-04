@@ -58,6 +58,7 @@ import org.springframework.data.redis.test.util.CollectionAwareComparator;
  * @author Anqing Shao
  * @author Duobiao Ou
  * @author Mark Paluch
+ * @author ihaohong
  */
 @MethodSource("testParams")
 public class RedisTemplateIntegrationTests<K, V> {
@@ -388,6 +389,20 @@ public class RedisTemplateIntegrationTests<K, V> {
 		assertThat(redisTemplate.hasKey(key1)).isTrue();
 		assertThat(redisTemplate.delete(key1)).isTrue();
 		assertThat(redisTemplate.hasKey(key1)).isFalse();
+	}
+
+	@ParameterizedRedisTest
+	void testCopy() {
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key1, value1);
+
+		assertThat(redisTemplate.hasKey(key2)).isFalse();
+		redisTemplate.copy(key1, key2);
+		assertThat(redisTemplate.hasKey(key2)).isTrue();
+		assertThat(redisTemplate.opsForValue().get(key2)).isEqualTo(value1);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-688

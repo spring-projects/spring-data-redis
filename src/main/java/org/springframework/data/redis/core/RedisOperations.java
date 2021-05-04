@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Ninad Divadkar
  * @author Mark Paluch
+ * @author ihaohong
  */
 public interface RedisOperations<K, V> {
 
@@ -198,6 +199,17 @@ public interface RedisOperations<K, V> {
 	 */
 	@Nullable
 	Long delete(Collection<K> keys);
+
+	/**
+	 * Copy given {@code sourceKey} to {@code targetKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param targetKey must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
+	 */
+	@Nullable
+	Boolean copy(K sourceKey, K targetKey);
 
 	/**
 	 * Unlink the {@code key} from the keyspace. Unlike with {@link #delete(Object)} the actual memory reclaiming here

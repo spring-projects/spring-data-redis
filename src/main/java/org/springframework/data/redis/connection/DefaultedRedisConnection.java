@@ -56,6 +56,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Tugdual Grall
  * @author Andrey Shlykov
+ * @author ihaohong
  * @since 2.0
  */
 public interface DefaultedRedisConnection extends RedisConnection {
@@ -81,6 +82,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Deprecated
 	default Long del(byte[]... keys) {
 		return keyCommands().del(keys);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
+	default Boolean copy(byte[] sourceKey, byte[] targetKey) {
+		return keyCommands().copy(sourceKey, targetKey);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
