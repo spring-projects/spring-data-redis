@@ -71,6 +71,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Ninad Divadkar
  * @author Mark Paluch
  * @author dengliming
+ * @author ihaohong
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -233,6 +234,13 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(1L).when(nativeConnection).del(fooBytes);
 		actual.add(connection.del(foo));
 		verifyResults(Collections.singletonList(1L));
+	}
+
+	@Test
+	public void testCopy() {
+		doReturn(Boolean.TRUE).when(nativeConnection).copy(fooBytes, barBytes);
+		actual.add(connection.copy(foo, bar));
+		verifyResults(Collections.singletonList(Boolean.TRUE));
 	}
 
 	@Test

@@ -143,6 +143,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 	}
 
 	@Test
+	public void testCopy() {
+		doReturn(Collections.singletonList(Collections.singletonList(Boolean.TRUE))).when(nativeConnection).closePipeline();
+		super.testCopy();
+	}
+
+
+	@Test
 	public void testEchoBytes() {
 		doReturn(Collections.singletonList(Arrays.asList(new Object[] { barBytes }))).when(nativeConnection)
 				.closePipeline();

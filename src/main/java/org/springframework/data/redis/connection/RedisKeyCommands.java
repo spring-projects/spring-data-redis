@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author ihaohong
  */
 public interface RedisKeyCommands {
 
@@ -70,6 +71,17 @@ public interface RedisKeyCommands {
 	 */
 	@Nullable
 	Long del(byte[]... keys);
+
+	/**
+	 * Copy given {@code sourceKey} to {@code targetKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param targetKey must not be  {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
+	 */
+	@Nullable
+	Boolean copy(byte[] sourceKey, byte[] targetKey);
 
 	/**
 	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #del(byte[]...)} the actual memory reclaiming here

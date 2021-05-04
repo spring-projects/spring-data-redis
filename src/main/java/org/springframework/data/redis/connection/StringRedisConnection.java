@@ -64,6 +64,8 @@ import org.springframework.util.CollectionUtils;
  * @author Tugdual Grall
  * @author Dengliming
  * @author Andrey Shlykov
+ * @author ihaohong
+ *
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -131,6 +133,17 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisKeyCommands#del(byte[]...)
 	 */
 	Long del(String... keys);
+
+	/**
+	 * Copy given {@code sourceKey} to {@code targetKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param targetKey must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
+	 * @see RedisKeyCommands#copy(byte[], byte[])
+	 */
+	Boolean copy(String sourceKey, String targetKey);
 
 	/**
 	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #del(String...)} the actual memory reclaiming here

@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author ihaohong
  * @since 2.0
  */
 class LettuceKeyCommands implements RedisKeyCommands {
@@ -88,6 +89,18 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		return connection.invoke().just(RedisKeyAsyncCommands::del, keys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[])
+	 */
+	@Override
+	public Boolean copy(byte[] sourceKey, byte[] targetKey) {
+		Assert.notNull(sourceKey, "source key must not be null!");
+		Assert.notNull(targetKey, "target key must not be null!");
+
+		return connection.invoke().just(RedisKeyAsyncCommands::copy, targetKey, sourceKey);
 	}
 
 	/*

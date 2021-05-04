@@ -82,6 +82,8 @@ import org.springframework.util.CollectionUtils;
  * @author Anqing Shao
  * @author Mark Paluch
  * @author Denis Zavedeev
+ * @author ihaohong
+ *
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -708,6 +710,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		Long result = execute(connection -> connection.del(rawKey), true);
 
 		return result != null && result.intValue() == 1;
+	}
+
+	@Override
+	public Boolean copy(K source, K target) {
+		byte[] sourceKey = rawKey(source);
+		byte[] targetKey = rawKey(target);
+
+		return execute(connection -> connection.copy(sourceKey, targetKey), true);
 	}
 
 	/*
