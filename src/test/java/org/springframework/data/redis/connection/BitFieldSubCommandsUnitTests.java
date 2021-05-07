@@ -22,10 +22,14 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Unit tests for {@link BitFieldSubCommands}.
  *
  * @author Mark Paluch
+ * @author Yanam
  */
 class BitFieldSubCommandsUnitTests {
 
@@ -45,5 +49,37 @@ class BitFieldSubCommandsUnitTests {
 
 		assertThat(type.isSigned()).isFalse();
 		assertThat(type.getBits()).isEqualTo(10);
+	}
+
+	@Test //ISSUES #2055
+	void shouldCreateBitCommandsWithChainingMethod(){
+
+		BitFieldType type =  BitFieldType.unsigned(1);
+		BitFieldSubCommands bitFieldSubCommands = BitFieldSubCommands.create()
+				.get(type).valueAt(BitFieldSubCommands.Offset.offset(1))
+				.get(type).valueAt(BitFieldSubCommands.Offset.offset(2))
+				.set(type).valueAt(BitFieldSubCommands.Offset.offset(3)).to(1)
+				.set(type).valueAt(BitFieldSubCommands.Offset.offset(4)).to(1)
+				.incr(type).valueAt(BitFieldSubCommands.Offset.offset(5)).by(1);
+
+		assertThat(bitFieldSubCommands.getSubCommands().size()).isEqualTo(5);
+	}
+
+	@Test //ISSUES #2055
+	void shouldCreateBitCommandsWithNonChainingMethod(){
+
+		List<BitFieldSubCommands.BitFieldSubCommand> subCommandList = new ArrayList<>();
+
+		BitFieldType type =  BitFieldType.unsigned(1);
+
+		subCommandList.add(new BitFieldSubCommands.BitFieldGet(type, BitFieldSubCommands.Offset.offset(1)));
+		subCommandList.add(new BitFieldSubCommands.BitFieldSet(type, BitFieldSubCommands.Offset.offset(2),2));
+		subCommandList.add(new BitFieldSubCommands.BitFieldIncrBy(type, BitFieldSubCommands.Offset.offset(3),3));
+		subCommandList.add(new BitFieldSubCommands.BitFieldIncrBy(type, BitFieldSubCommands.Offset.offset(4),4,
+				BitFieldSubCommands.BitFieldIncrBy.Overflow.FAIL));
+
+		BitFieldSubCommands bitFieldSubCommands = new BitFieldSubCommands(subCommandList);
+
+		assertThat(bitFieldSubCommands.getSubCommands().size()).isEqualTo(4);
 	}
 }

@@ -29,17 +29,18 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Qiang Lee
+ * @author Yanam
  * @since 2.1
  */
 public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 	private final List<BitFieldSubCommand> subCommands;
 
-	private BitFieldSubCommands(List<BitFieldSubCommand> subCommands) {
+	public BitFieldSubCommands(List<BitFieldSubCommand> subCommands) {
 		this.subCommands = new ArrayList<>(subCommands);
 	}
 
-	private BitFieldSubCommands(List<BitFieldSubCommand> subCommands, BitFieldSubCommand subCommand) {
+	public BitFieldSubCommands(List<BitFieldSubCommand> subCommands, BitFieldSubCommand subCommand) {
 
 		this(subCommands);
 
@@ -533,6 +534,14 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 		private long value;
 
+		public BitFieldSet(BitFieldType type,Offset offset,long value){
+			this.type = type;
+			this.offset = offset;
+			this.value = value;
+		}
+
+		public BitFieldSet(){}
+
 		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.StringRedisConnection.BitFieldSubCommand#getCommand()
@@ -561,6 +570,13 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	 */
 	public static class BitFieldGet extends AbstractBitFieldSubCommand {
 
+		public BitFieldGet(BitFieldType type,Offset offset){
+			this.type = type;
+			this.offset = offset;
+		}
+
+		public BitFieldGet(){}
+
 		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.StringRedisConnection.BitFieldSubCommand#getCommand()
@@ -582,6 +598,21 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 		private long value;
 		private @Nullable Overflow overflow;
+
+		public BitFieldIncrBy(BitFieldType type,Offset offset,long value){
+			this.type = type;
+			this.offset = offset;
+			this.value = value;
+		}
+
+		public BitFieldIncrBy(BitFieldType type,Offset offset,long value,Overflow overflow){
+			this.type = type;
+			this.offset = offset;
+			this.value = value;
+			this.overflow = overflow;
+		}
+
+		public BitFieldIncrBy(){}
 
 		/*
 		 * (non-Javadoc)
