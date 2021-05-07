@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +30,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Qiang Lee
+ * @author Yanam
  * @since 2.1
  */
 public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
@@ -54,6 +56,15 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	 */
 	public static BitFieldSubCommands create() {
 		return new BitFieldSubCommands(Collections.emptyList());
+	}
+
+	/**
+	 * Creates a new {@link BitFieldSubCommands} with Multiple BitFieldSubCommand.
+	 *
+	 * @return
+	 */
+	public static BitFieldSubCommands create(BitFieldSubCommand... subCommands) {
+		return new BitFieldSubCommands(Arrays.asList(subCommands));
 	}
 
 	/**
@@ -533,6 +544,21 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 		private long value;
 
+		/**
+		 * Creates a new {@link BitFieldSet}.
+		 * @param type must not be {@literal null}.
+		 * @param offset must not be {@literal null}.
+		 * @param value must not be {@literal null}.
+		 * @return
+		 */
+		public static BitFieldSet create(BitFieldType type,Offset offset,long value){
+			BitFieldSet instance = new BitFieldSet();
+			instance.type =  type;
+			instance.offset = offset;
+			instance.value = value;
+			return instance;
+		}
+
 		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.StringRedisConnection.BitFieldSubCommand#getCommand()
@@ -561,6 +587,19 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	 */
 	public static class BitFieldGet extends AbstractBitFieldSubCommand {
 
+		/**
+		 * Creates a new {@link BitFieldGet}.
+		 * @param type must not be {@literal null}.
+		 * @param offset must not be {@literal null}.
+		 * @return
+		 */
+		public static BitFieldGet create(BitFieldType type,Offset offset){
+			BitFieldGet instance = new BitFieldGet();
+			instance.type =  type;
+			instance.offset = offset;
+			return instance;
+		}
+
 		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.redis.connection.StringRedisConnection.BitFieldSubCommand#getCommand()
@@ -582,6 +621,38 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 		private long value;
 		private @Nullable Overflow overflow;
+
+		/**
+		 * Creates a new {@link BitFieldIncrBy}.
+		 * @param type must not be {@literal null}.
+		 * @param offset must not be {@literal null}.
+		 * @param value must not be {@literal null}.
+		 * @return
+		 */
+		public static BitFieldIncrBy create(BitFieldType type,Offset offset,long value){
+			BitFieldIncrBy instance = new BitFieldIncrBy();
+			instance.type =  type;
+			instance.offset = offset;
+			instance.value = value;
+			return instance;
+		}
+
+		/**
+		 * Creates a new {@link BitFieldIncrBy}.
+		 * @param type must not be {@literal null}.
+		 * @param offset must not be {@literal null}.
+		 * @param value must not be {@literal null}.
+		 * @param overflow Can be {@literal null} to use redis defaults.
+		 * @return
+		 */
+		public static BitFieldIncrBy create(BitFieldType type,Offset offset,long value,Overflow overflow){
+			BitFieldIncrBy instance = new BitFieldIncrBy();
+			instance.type =  type;
+			instance.offset = offset;
+			instance.value = value;
+			instance.overflow = overflow;
+			return instance;
+		}
 
 		/*
 		 * (non-Javadoc)
