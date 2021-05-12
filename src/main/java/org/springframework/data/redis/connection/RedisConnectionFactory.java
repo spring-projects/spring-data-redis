@@ -30,6 +30,8 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	 * Provides a suitable connection for interacting with Redis.
 	 *
 	 * @return connection for interacting with Redis.
+	 * @throws IllegalStateException if the connection factory requires initialization and the factory was not yet
+	 *           initialized.
 	 */
 	RedisConnection getConnection();
 
@@ -37,6 +39,8 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	 * Provides a suitable connection for interacting with Redis Cluster.
 	 *
 	 * @return
+	 * @throws IllegalStateException if the connection factory requires initialization and the factory was not yet
+	 *           initialized.
 	 * @since 1.7
 	 */
 	RedisClusterConnection getClusterConnection();
@@ -55,6 +59,8 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	 * Provides a suitable connection for interacting with Redis Sentinel.
 	 *
 	 * @return connection for interacting with Redis Sentinel.
+	 * @throws IllegalStateException if the connection factory requires initialization and the factory was not yet
+	 *           initialized.
 	 * @since 1.4
 	 */
 	RedisSentinelConnection getSentinelConnection();

@@ -32,13 +32,15 @@ public interface ReactiveRedisConnectionFactory extends PersistenceExceptionTran
 
 	/**
 	 * @return a reactive Redis connection.
-	 * @since 2.0.
+	 * @throws IllegalStateException if the connection factory requires initialization and the factory was not yet
+	 *           initialized.
 	 */
 	ReactiveRedisConnection getReactiveConnection();
 
 	/**
 	 * @return a reactive Redis Cluster connection.
-	 * @since 2.0
+	 * @throws IllegalStateException if the connection factory requires initialization and the factory was not yet
+	 *           initialized.
 	 */
 	ReactiveRedisClusterConnection getReactiveClusterConnection();
 }

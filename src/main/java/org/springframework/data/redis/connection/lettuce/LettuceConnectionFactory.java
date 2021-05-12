@@ -84,6 +84,9 @@ import org.springframework.util.StringUtils;
  * <li>{@link RedisSentinelConfiguration}</li>
  * <li>{@link RedisClusterConfiguration}</li>
  * </ul>
+ * <p>
+ * This connection factory must be {@link #afterPropertiesSet() initialized} prior to {@link #getConnection obtaining
+ * connections}.
  *
  * @author Costin Leau
  * @author Jennifer Hickey
@@ -123,6 +126,9 @@ public class LettuceConnectionFactory
 	private @Nullable RedisConfiguration configuration;
 
 	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
+
+	private boolean initialized;
+	private boolean destroyed;
 
 	/**
 	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
@@ -293,6 +299,8 @@ public class LettuceConnectionFactory
 					EXCEPTION_TRANSLATION);
 		}
 
+		this.initialized = true;
+
 		if (getEagerInitialization() && getShareNativeConnection()) {
 			initConnection();
 		}
@@ -329,6 +337,8 @@ public class LettuceConnectionFactory
 				log.warn("Cannot properly close cluster command executor", ex);
 			}
 		}
+
+		this.destroyed = true;
 	}
 
 	private void dispose(LettuceConnectionProvider connectionProvider) {
@@ -351,6 +361,8 @@ public class LettuceConnectionFactory
 	 */
 	public RedisConnection getConnection() {
 
+		assertInitialized();
+
 		if (isClusterAware()) {
 			return getClusterConnection();
 		}
@@ -367,6 +379,8 @@ public class LettuceConnectionFactory
 	 */
 	@Override
 	public RedisClusterConnection getClusterConnection() {
+
+		assertInitialized();
 
 		if (!isClusterAware()) {
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
@@ -437,6 +451,8 @@ public class LettuceConnectionFactory
 	@Override
 	public LettuceReactiveRedisConnection getReactiveConnection() {
 
+		assertInitialized();
+
 		if (isClusterAware()) {
 			return getReactiveClusterConnection();
 		}
@@ -452,6 +468,8 @@ public class LettuceConnectionFactory
 	 */
 	@Override
 	public LettuceReactiveRedisClusterConnection getReactiveClusterConnection() {
+
+		assertInitialized();
 
 		if (!isClusterAware()) {
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
@@ -481,6 +499,8 @@ public class LettuceConnectionFactory
 	 */
 	public void resetConnection() {
 
+		assertInitialized();
+
 		Optionals.toStream(Optional.ofNullable(connection), Optional.ofNullable(reactiveConnection))
 				.forEach(SharedConnection::resetConnection);
 
@@ -495,6 +515,8 @@ public class LettuceConnectionFactory
 	 * Validate the shared connections and reinitialize if invalid.
 	 */
 	public void validateConnection() {
+
+		assertInitialized();
 
 		getOrCreateSharedConnection().validateConnection();
 		getOrCreateSharedReactiveConnection().validateConnection();
@@ -801,6 +823,7 @@ public class LettuceConnectionFactory
 	 */
 	@Nullable
 	public AbstractRedisClient getNativeClient() {
+		assertInitialized();
 		return this.client;
 	}
 
@@ -1167,6 +1190,11 @@ public class LettuceConnectionFactory
 		return redisUri;
 	}
 
+	private void assertInitialized() {
+		Assert.state(this.initialized, "LettuceConnectionFactory was not initialized through afterPropertiesSet()");
+		Assert.state(!this.destroyed, "LettuceConnectionFactory was destroyed and cannot be used anymore");
+	}
+
 	private static void applyToAll(RedisURI source, Consumer<RedisURI> action) {
 
 		action.accept(source);
@@ -1214,6 +1242,9 @@ public class LettuceConnectionFactory
 
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
+
+		assertInitialized();
+
 		return new LettuceSentinelConnection(connectionProvider);
 	}
 
