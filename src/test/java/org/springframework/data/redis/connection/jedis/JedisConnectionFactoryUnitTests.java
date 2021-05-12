@@ -346,6 +346,16 @@ class JedisConnectionFactoryUnitTests {
 		assertThatIllegalStateException().isThrownBy(() -> connectionFactory.setClientName("foo"));
 	}
 
+	@Test // GH-2057
+	void getConnectionShouldFailIfNotInitialized() {
+
+		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+
+		assertThatIllegalStateException().isThrownBy(connectionFactory::getConnection);
+		assertThatIllegalStateException().isThrownBy(connectionFactory::getClusterConnection);
+		assertThatIllegalStateException().isThrownBy(connectionFactory::getSentinelConnection);
+	}
+
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfig,
 			JedisPoolConfig poolConfig) {
 

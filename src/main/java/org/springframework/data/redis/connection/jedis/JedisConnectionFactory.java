@@ -73,6 +73,9 @@ import org.springframework.util.StringUtils;
  * <li>{@link RedisSentinelConfiguration}</li>
  * <li>{@link RedisClusterConfiguration}</li>
  * </ul>
+ * <p>
+ * This connection factory must be {@link #afterPropertiesSet() initialized} prior to {@link #getConnection obtaining
+ * connections}.
  *
  * @author Costin Leau
  * @author Thomas Darimont
@@ -103,6 +106,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private @Nullable JedisCluster cluster;
 	private @Nullable ClusterTopologyProvider topologyProvider;
 	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
+
+	private boolean initialized;
+	private boolean destroyed;
 
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance with default settings (default connection pooling, no
@@ -350,6 +356,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 					new JedisClusterConnection.JedisClusterNodeResourceProvider(this.cluster, this.topologyProvider),
 					EXCEPTION_TRANSLATION);
 		}
+
+		this.initialized = true;
 	}
 
 	private JedisClientConfig createClientConfig(@Nullable String username, RedisPassword password) {
@@ -484,6 +492,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 				log.warn("Cannot properly close cluster command executor", ex);
 			}
 		}
+
+		this.destroyed = true;
 	}
 
 	/*
@@ -491,6 +501,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getConnection()
 	 */
 	public RedisConnection getConnection() {
+
+		assertInitialized();
 
 		if (isRedisClusterAware()) {
 			return getClusterConnection();
@@ -516,6 +528,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	@Override
 	public RedisClusterConnection getClusterConnection() {
+
+		assertInitialized();
 
 		if (!isRedisClusterAware()) {
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
@@ -876,6 +890,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
 
+		assertInitialized();
+
 		if (!isRedisSentinelAware()) {
 			throw new InvalidDataAccessResourceUsageException("No Sentinels configured");
 		}
@@ -943,6 +959,11 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 						ClassUtils.getShortName(clientConfiguration.getClass())));
 
 		return (MutableJedisClientConfiguration) clientConfiguration;
+	}
+
+	private void assertInitialized() {
+		Assert.state(this.initialized, "JedisConnectionFactory was not initialized through afterPropertiesSet()");
+		Assert.state(!this.destroyed, "JedisConnectionFactory was destroyed and cannot be used anymore");
 	}
 
 	/**
