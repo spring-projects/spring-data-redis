@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk15:latest
+FROM adoptopenjdk/openjdk16:latest
 
 # Copy Spring Data Redis's Makefile into the container
 COPY ./Makefile /

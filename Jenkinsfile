@@ -52,10 +52,10 @@ pipeline {
 						}
 					}
 				}
-				stage('Publish OpenJDK 15 + Redis 6.2 docker image') {
+				stage('Publish OpenJDK 16 + Redis 6.2 docker image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk15-redis-6.2/**"
+							changeset "ci/openjdk16-redis-6.2/**"
 							changeset "Makefile"
 						}
 					}
@@ -64,7 +64,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-openjdk15-with-redis-6.2", "-f ci/openjdk15-redis-6.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-openjdk16-with-redis-6.2", "-f ci/openjdk16-redis-6.2/Dockerfile .")
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 								image.push()
 							}
