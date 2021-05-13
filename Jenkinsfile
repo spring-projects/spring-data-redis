@@ -125,7 +125,7 @@ pipeline {
 						}
 					}
 				}
-				stage("test: baseline (jdk15)") {
+				stage("test: baseline (jdk16)") {
 					agent {
 						label 'data'
 					}
@@ -136,7 +136,7 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-								docker.image('springci/spring-data-openjdk15-with-redis-6.2:latest').inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image('springci/spring-data-openjdk16-with-redis-6.2:latest').inside('-v $HOME:/tmp/jenkins-home') {
 									sh 'PROFILE=java11 ci/test.sh'
 								}
 							}
