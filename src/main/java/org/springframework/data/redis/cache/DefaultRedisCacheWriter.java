@@ -217,8 +217,12 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 					wasLocked = true;
 				}
 
-
-				statistics.incDeletesBy(name, batchStrategy.cleanCache(connection, name, pattern));
+				long deleteCount = batchStrategy.cleanCache(connection, name, pattern);
+				while (deleteCount > Integer.MAX_VALUE) {
+					statistics.incDeletesBy(name, Integer.MAX_VALUE);
+					deleteCount -= Integer.MAX_VALUE;
+				}
+				statistics.incDeletesBy(name, (int) deleteCount);
 
 			} finally {
 

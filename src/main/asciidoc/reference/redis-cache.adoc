@@ -26,7 +26,7 @@ RedisCacheManager cm = RedisCacheManager.builder(connectionFactory)
 
 As shown in the preceding example, `RedisCacheManager` allows definition of configurations on a per-cache basis.
 
-The behavior of `RedisCache` created with `RedisCacheManager` is defined with `RedisCacheConfiguration`. The configuration lets you set key expiration times, prefixes, and ``RedisSerializer`` implementations for converting to and from the binary storage format, as shown in the following example:
+The behavior of `RedisCache` created with `RedisCacheManager` is defined with `RedisCacheConfiguration`. The configuration lets you set key expiration times, prefixes, and `RedisSerializer` implementations for converting to and from the binary storage format, as shown in the following example:
 
 [source,java]
 ----
@@ -70,7 +70,7 @@ The cache implementation defaults to use `KEYS` and `DEL` to clear the cache. `K
 
 [source,java]
 ----
-RedisCacheManager cm = RedisCacheManager.build(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory, BatchStrategy.scan(1000)))
+RedisCacheManager cm = RedisCacheManager.build(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory, BatchStrategies.scan(1000)))
 	.cacheDefaults(defaultCacheConfig())
 	...
 ----

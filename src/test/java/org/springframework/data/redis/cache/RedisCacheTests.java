@@ -262,7 +262,7 @@ public class RedisCacheTests {
 		}
 
 		RedisCache cache = new RedisCache("cache",
-				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory, BatchStrategy.scan(25)),
+				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory, BatchStrategies.scan(25)),
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer)));
 
 		doWithConnection(connection -> {
