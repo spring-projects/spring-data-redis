@@ -307,7 +307,7 @@ public class DefaultRedisCacheWriterTests {
 		Thread th = new Thread(() -> {
 
 			DefaultRedisCacheWriter writer = new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(50),
-					BatchStrategy.keys()) {
+					BatchStrategies.keys()) {
 
 				@Override
 				boolean doCheckLock(String name, RedisConnection connection) {
