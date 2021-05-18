@@ -68,17 +68,15 @@ class BitFieldSubCommandsUnitTests {
 	@Test //ISSUES #2055
 	void shouldCreateBitCommandsWithNonChainingMethod(){
 
-		List<BitFieldSubCommands.BitFieldSubCommand> subCommandList = new ArrayList<>();
-
 		BitFieldType type =  BitFieldType.unsigned(1);
+		BitFieldSubCommands.Offset offset = BitFieldSubCommands.Offset.offset(1);
 
-		subCommandList.add(new BitFieldSubCommands.BitFieldGet(type, BitFieldSubCommands.Offset.offset(1)));
-		subCommandList.add(new BitFieldSubCommands.BitFieldSet(type, BitFieldSubCommands.Offset.offset(2),2));
-		subCommandList.add(new BitFieldSubCommands.BitFieldIncrBy(type, BitFieldSubCommands.Offset.offset(3),3));
-		subCommandList.add(new BitFieldSubCommands.BitFieldIncrBy(type, BitFieldSubCommands.Offset.offset(4),4,
-				BitFieldSubCommands.BitFieldIncrBy.Overflow.FAIL));
+		BitFieldSubCommands.BitFieldSubCommand subGetCommand = BitFieldSubCommands.BitFieldGet.create(type,offset);
+		BitFieldSubCommands.BitFieldSubCommand subSetCommand = BitFieldSubCommands.BitFieldSet.create(type,offset,1);
+		BitFieldSubCommands.BitFieldSubCommand subIncrByCommand = BitFieldSubCommands.BitFieldIncrBy.create(type,offset,1);
+		BitFieldSubCommands.BitFieldSubCommand subIncrByCommand2 = BitFieldSubCommands.BitFieldIncrBy.create(type,offset,1,BitFieldSubCommands.BitFieldIncrBy.Overflow.FAIL);
 
-		BitFieldSubCommands bitFieldSubCommands = new BitFieldSubCommands(subCommandList);
+		BitFieldSubCommands bitFieldSubCommands =  BitFieldSubCommands.create(subGetCommand,subSetCommand,subIncrByCommand,subIncrByCommand2);
 
 		assertThat(bitFieldSubCommands.getSubCommands().size()).isEqualTo(4);
 	}

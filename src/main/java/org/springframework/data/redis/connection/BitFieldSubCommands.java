@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -36,11 +37,11 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 	private final List<BitFieldSubCommand> subCommands;
 
-	public BitFieldSubCommands(List<BitFieldSubCommand> subCommands) {
+	private BitFieldSubCommands(List<BitFieldSubCommand> subCommands) {
 		this.subCommands = new ArrayList<>(subCommands);
 	}
 
-	public BitFieldSubCommands(List<BitFieldSubCommand> subCommands, BitFieldSubCommand subCommand) {
+	private BitFieldSubCommands(List<BitFieldSubCommand> subCommands, BitFieldSubCommand subCommand) {
 
 		this(subCommands);
 
@@ -55,6 +56,15 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	 */
 	public static BitFieldSubCommands create() {
 		return new BitFieldSubCommands(Collections.emptyList());
+	}
+
+	/**
+	 * Creates a new {@link BitFieldSubCommands} with Multiple BitFieldSubCommand.
+	 *
+	 * @return
+	 */
+	public static BitFieldSubCommands create(BitFieldSubCommand... subCommands) {
+		return new BitFieldSubCommands(Arrays.asList(subCommands));
 	}
 
 	/**
@@ -534,13 +544,20 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 		private long value;
 
-		public BitFieldSet(BitFieldType type,Offset offset,long value){
-			this.type = type;
-			this.offset = offset;
-			this.value = value;
+		/**
+		 * Creates a new {@link BitFieldSet}.
+		 * @param type must not be {@literal null}.
+		 * @param offset must not be {@literal null}.
+		 * @param value must not be {@literal null}.
+		 * @return
+		 */
+		public static BitFieldSet create(BitFieldType type,Offset offset,long value){
+			BitFieldSet instance = new BitFieldSet();
+			instance.type =  type;
+			instance.offset = offset;
+			instance.value = value;
+			return instance;
 		}
-
-		public BitFieldSet(){}
 
 		/*
 		 * (non-Javadoc)
@@ -570,12 +587,18 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	 */
 	public static class BitFieldGet extends AbstractBitFieldSubCommand {
 
-		public BitFieldGet(BitFieldType type,Offset offset){
-			this.type = type;
-			this.offset = offset;
+		/**
+		 * Creates a new {@link BitFieldGet}.
+		 * @param type must not be {@literal null}.
+		 * @param offset must not be {@literal null}.
+		 * @return
+		 */
+		public static BitFieldGet create(BitFieldType type,Offset offset){
+			BitFieldGet instance = new BitFieldGet();
+			instance.type =  type;
+			instance.offset = offset;
+			return instance;
 		}
-
-		public BitFieldGet(){}
 
 		/*
 		 * (non-Javadoc)
@@ -599,20 +622,37 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		private long value;
 		private @Nullable Overflow overflow;
 
-		public BitFieldIncrBy(BitFieldType type,Offset offset,long value){
-			this.type = type;
-			this.offset = offset;
-			this.value = value;
+		/**
+		 * Creates a new {@link BitFieldIncrBy}.
+		 * @param type must not be {@literal null}.
+		 * @param offset must not be {@literal null}.
+		 * @param value must not be {@literal null}.
+		 * @return
+		 */
+		public static BitFieldIncrBy create(BitFieldType type,Offset offset,long value){
+			BitFieldIncrBy instance = new BitFieldIncrBy();
+			instance.type =  type;
+			instance.offset = offset;
+			instance.value = value;
+			return instance;
 		}
 
-		public BitFieldIncrBy(BitFieldType type,Offset offset,long value,Overflow overflow){
-			this.type = type;
-			this.offset = offset;
-			this.value = value;
-			this.overflow = overflow;
+		/**
+		 * Creates a new {@link BitFieldIncrBy}.
+		 * @param type must not be {@literal null}.
+		 * @param offset must not be {@literal null}.
+		 * @param value must not be {@literal null}.
+		 * @param overflow Can be {@literal null} to use redis defaults.
+		 * @return
+		 */
+		public static BitFieldIncrBy create(BitFieldType type,Offset offset,long value,Overflow overflow){
+			BitFieldIncrBy instance = new BitFieldIncrBy();
+			instance.type =  type;
+			instance.offset = offset;
+			instance.value = value;
+			instance.overflow = overflow;
+			return instance;
 		}
-
-		public BitFieldIncrBy(){}
 
 		/*
 		 * (non-Javadoc)
