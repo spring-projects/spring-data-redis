@@ -19,6 +19,7 @@ import io.lettuce.core.pubsub.RedisPubSubListener;
 
 import java.nio.ByteBuffer;
 
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -99,14 +100,6 @@ class LettuceByteBufferPubSubListenerWrapper implements RedisPubSubListener<Byte
 			return new byte[0];
 		}
 
-		if (byteBuffer.hasArray()) {
-			return byteBuffer.array();
-		}
-
-		byteBuffer.mark();
-		byte[] bytes = new byte[byteBuffer.remaining()];
-		byteBuffer.get(bytes);
-		byteBuffer.reset();
-		return bytes;
+		return ByteUtils.getBytes(byteBuffer);
 	}
 }

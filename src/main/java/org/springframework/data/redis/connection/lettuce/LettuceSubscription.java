@@ -60,7 +60,7 @@ public class LettuceSubscription extends AbstractSubscription {
 
 		this.connection = pubsubConnection;
 		this.listener = new LettuceMessageListener(listener,
-				listener instanceof SubscriptionListener ? (SubscriptionListener) listener : SubscriptionListener.EMPTY);
+				listener instanceof SubscriptionListener ? (SubscriptionListener) listener : SubscriptionListener.NO_OP_SUBSCRIPTION_LISTENER);
 		this.connectionProvider = connectionProvider;
 		this.pubsub = connection.sync();
 		this.pubSubAsync = connection.async();

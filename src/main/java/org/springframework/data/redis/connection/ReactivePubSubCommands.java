@@ -34,11 +34,13 @@ public interface ReactivePubSubCommands {
 
 	/**
 	 * Creates a subscription for this connection. Connections can have multiple {@link ReactiveSubscription}s.
+	 * <p/>
+	 * Use {@link #createSubscription(SubscriptionListener)} to get notified when the subscription completes.
 	 *
 	 * @return the subscription.
 	 */
 	default Mono<ReactiveSubscription> createSubscription() {
-		return createSubscription(SubscriptionListener.EMPTY);
+		return createSubscription(SubscriptionListener.NO_OP_SUBSCRIPTION_LISTENER);
 	}
 
 	/**

@@ -139,6 +139,10 @@ public final class ByteUtils {
 
 		Assert.notNull(byteBuffer, "ByteBuffer must not be null!");
 
+		if (byteBuffer.hasArray()) {
+			return byteBuffer.array();
+		}
+
 		ByteBuffer duplicate = byteBuffer.duplicate();
 		byte[] bytes = new byte[duplicate.remaining()];
 		duplicate.get(bytes);

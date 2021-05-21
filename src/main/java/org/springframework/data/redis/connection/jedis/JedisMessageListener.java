@@ -34,10 +34,12 @@ class JedisMessageListener extends BinaryJedisPubSub {
 	private final SubscriptionListener subscriptionListener;
 
 	JedisMessageListener(MessageListener listener) {
+
 		Assert.notNull(listener, "MessageListener is required");
+
 		this.listener = listener;
 		this.subscriptionListener = listener instanceof SubscriptionListener ? (SubscriptionListener) listener
-				: SubscriptionListener.EMPTY;
+				: SubscriptionListener.NO_OP_SUBSCRIPTION_LISTENER;
 	}
 
 	public void onMessage(byte[] channel, byte[] message) {

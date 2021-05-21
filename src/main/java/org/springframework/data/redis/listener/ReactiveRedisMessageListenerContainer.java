@@ -261,7 +261,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 */
 	public <C, B> Flux<Message<C, B>> receive(Iterable<? extends Topic> topics, SerializationPair<C> channelSerializer,
 			SerializationPair<B> messageSerializer) {
-		return receive(topics, channelSerializer, messageSerializer, SubscriptionListener.EMPTY);
+		return receive(topics, channelSerializer, messageSerializer, SubscriptionListener.NO_OP_SUBSCRIPTION_LISTENER);
 	}
 
 	/**

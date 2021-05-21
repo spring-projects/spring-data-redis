@@ -465,6 +465,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		redisTemplate.listenToChannelLater(channel) //
 				.doOnNext(it -> redisTemplate.convertAndSend(channel, message).subscribe()).flatMapMany(Function.identity()) //
+				.cast(Message.class)  // why? java16 why?
 				.as(StepVerifier::create) //
 				.assertNext(received -> {
 
@@ -515,6 +516,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		stream.doOnNext(it -> redisTemplate.convertAndSend(channel, message).subscribe()) //
 				.flatMapMany(Function.identity()) //
+				.cast(Message.class) // why? java16 why?
 				.as(StepVerifier::create) //
 				.assertNext(received -> {
 

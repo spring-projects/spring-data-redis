@@ -29,7 +29,7 @@ public interface SubscriptionListener {
 	/**
 	 * Empty {@link SubscriptionListener}.
 	 */
-	SubscriptionListener EMPTY = new SubscriptionListener() {};
+	SubscriptionListener NO_OP_SUBSCRIPTION_LISTENER = new SubscriptionListener() {};
 
 	/**
 	 * Notification when Redis has confirmed a channel subscription.
