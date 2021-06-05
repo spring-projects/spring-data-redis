@@ -324,9 +324,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		if (shardInfo == null && clientConfiguration instanceof MutableJedisClientConfiguration) {
 
 			providedShardInfo = false;
-			shardInfo = new JedisShardInfo(getHostName(), getPort(), isUseSsl(), //
-					clientConfiguration.getSslSocketFactory().orElse(null), //
-					clientConfiguration.getSslParameters().orElse(null), //
+			shardInfo = new JedisShardInfo(getHostName(), getPort(), isUseSsl(),
+					clientConfiguration.getSslSocketFactory().orElse(null),
+					clientConfiguration.getSslParameters().orElse(null),
 					clientConfiguration.getHostnameVerifier().orElse(null));
 
 			getRedisPassword().map(String::new).ifPresent(shardInfo::setPassword);
