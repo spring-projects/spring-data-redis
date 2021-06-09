@@ -366,7 +366,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		io.lettuce.core.Range<String> lettuceRange = RangeConverter.toRange(range, Function.identity());
 		io.lettuce.core.Limit lettuceLimit = LettuceConverters.toLimit(limit);
 
-		return connection.invoke(getAsyncDedicatedConnection())
+		return connection.invoke()
 				.fromMany(RedisStreamAsyncCommands::xrevrange, key, lettuceRange, lettuceLimit)
 				.toList(StreamConverters.byteRecordConverter());
 	}
