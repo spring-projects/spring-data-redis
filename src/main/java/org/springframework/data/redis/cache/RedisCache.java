@@ -34,6 +34,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -44,6 +45,7 @@ import org.springframework.util.ReflectionUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Piotr Mionskowski
  * @see RedisCacheConfiguration
  * @see RedisCacheWriter
  * @since 2.0
@@ -118,7 +120,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public synchronized <T> T get(Object key, Callable<T> valueLoader) {
+	public <T> T get(Object key, Callable<T> valueLoader) {
 
 		ValueWrapper result = get(key);
 
@@ -126,9 +128,26 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return (T) result.get();
 		}
 
-		T value = valueFromLoader(key, valueLoader);
-		put(key, value);
-		return value;
+		return getSynchronized(key, valueLoader);
+	}
+
+	private final ConcurrentReferenceHashMap<String, Object> valueLoaderLocks = new ConcurrentReferenceHashMap<>();
+
+	@SuppressWarnings({"unchecked", "SynchronizationOnLocalVariableOrMethodParameter"})
+	private <T> T getSynchronized(Object key, Callable<T> valueLoader) {
+		final Object loaderLock = valueLoaderLocks.computeIfAbsent(createCacheKey(key), (String k) -> new Object());
+
+		synchronized (loaderLock) {
+			ValueWrapper result = get(key);
+
+			if (result != null) {
+				return (T) result.get();
+			}
+
+			T value = valueFromLoader(key, valueLoader);
+			put(key, value);
+			return value;
+		}
 	}
 
 	/*
