@@ -27,7 +27,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 
@@ -377,14 +382,46 @@ public class RedisCacheTests {
 		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> cache.put(key, sample));
 	}
 
-	void doWithConnection(Consumer<RedisConnection> callback) {
-		RedisConnection connection = connectionFactory.getConnection();
-		try {
-			callback.accept(connection);
-		} finally {
-			connection.close();
-		}
+	@ParameterizedRedisTest // GH-2079
+	void multipleThreadsLoadValueOnce() {
+
+		int threadCount = 5;
+
+		ConcurrentMap<Integer, Integer> valuesByThreadId = new ConcurrentHashMap<>(threadCount);
+
+		CountDownLatch waiter = new CountDownLatch(threadCount);
+
+		AtomicInteger threadIds = new AtomicInteger(0);
+
+		AtomicInteger currentValueForKey = new AtomicInteger(0);
+
+		Stream.generate(threadIds::getAndIncrement)
+				.limit(threadCount)
+				.parallel()
+				.forEach((threadId) -> {
+					waiter.countDown();
+					try {
+						waiter.await();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					Integer valueForThread = cache.get("key", currentValueForKey::incrementAndGet);
+					valuesByThreadId.put(threadId, valueForThread);
+				});
+
+		valuesByThreadId.forEach((thread, valueForThread) -> {
+			assertThat(valueForThread).isEqualTo(currentValueForKey.get());
+		});
 	}
+
+	void doWithConnection(Consumer<RedisConnection> callback) {
+        RedisConnection connection = connectionFactory.getConnection();
+        try {
+            callback.accept(connection);
+        } finally {
+            connection.close();
+        }
+    }
 
 	@Data
 	@NoArgsConstructor

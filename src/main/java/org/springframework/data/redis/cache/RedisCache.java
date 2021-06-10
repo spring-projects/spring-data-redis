@@ -44,6 +44,7 @@ import org.springframework.util.ReflectionUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Piotr Mionskowski
  * @see RedisCacheConfiguration
  * @see RedisCacheWriter
  * @since 2.0
@@ -118,8 +119,19 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public synchronized <T> T get(Object key, Callable<T> valueLoader) {
+	public <T> T get(Object key, Callable<T> valueLoader) {
 
+		ValueWrapper result = get(key);
+
+		if (result != null) {
+			return (T) result.get();
+		}
+
+		return getSynchronized(key, valueLoader);
+	}
+
+	@SuppressWarnings("unchecked")
+	private synchronized <T> T getSynchronized(Object key, Callable<T> valueLoader) {
 		ValueWrapper result = get(key);
 
 		if (result != null) {
