@@ -15,8 +15,10 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
@@ -27,6 +29,8 @@ import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -47,7 +51,11 @@ abstract public class AbstractOperationsTestParams {
 
 	// DATAREDIS-241
 	public static Collection<Object[]> testParams() {
-		return testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class));
+
+		List<Object[]> params = new ArrayList<>();
+		params.addAll(testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
+		params.addAll(testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
+		return params;
 	}
 
 	// DATAREDIS-241
