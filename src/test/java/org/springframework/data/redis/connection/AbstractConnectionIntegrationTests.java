@@ -80,6 +80,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisDriver;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import org.springframework.data.redis.test.condition.LongRunningTest;
 import org.springframework.data.redis.test.condition.RedisDriver;
 import org.springframework.data.redis.test.util.HexStringUtils;
@@ -1286,6 +1287,16 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 1L, 2L, "hello" }));
 	}
 
+	@Test // GH-1987
+	@EnabledOnRedisVersion("6.2")
+	void testLPopWithCount() {
+		actual.add(connection.rPush("PopList", "hello"));
+		actual.add(connection.rPush("PopList", "world"));
+		actual.add(connection.rPush("PopList", "42"));
+		actual.add(connection.lPop("PopList", 2));
+		verifyResults(Arrays.asList(new Object[] { 1L, 2L, 3L, Arrays.asList("hello", "world") }));
+	}
+
 	@Test
 	void testLRem() {
 		actual.add(connection.rPush("PopList", "hello"));
@@ -1333,6 +1344,16 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.rPush("PopList", "world"));
 		actual.add(connection.rPop("PopList"));
 		verifyResults(Arrays.asList(new Object[] { 1L, 2L, "world" }));
+	}
+
+	@Test // GH-1987
+	@EnabledOnRedisVersion("6.2")
+	void testRPopWithCount() {
+		actual.add(connection.rPush("PopList", "hello"));
+		actual.add(connection.rPush("PopList", "world"));
+		actual.add(connection.rPush("PopList", "42"));
+		actual.add(connection.rPop("PopList", 2));
+		verifyResults(Arrays.asList(new Object[] { 1L, 2L, 3L, Arrays.asList("42", "world") }));
 	}
 
 	@Test

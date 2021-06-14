@@ -201,6 +201,18 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	V leftPop();
 
 	/**
+	 * Removes and returns first {@code} elements in list stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count
+	 * @return can be {@literal null}.
+	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	List<V> leftPop(long count);
+
+	/**
 	 * Removes and returns first element from lists stored at the bound key . <br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
@@ -239,6 +251,18 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	V rightPop();
+
+	/**
+	 * Removes and returns last {@code} elements in list stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count
+	 * @return can be {@literal null}.
+	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	List<V> rightPop(long count);
 
 	/**
 	 * Removes and returns last element from lists stored at the bound key. <br>

@@ -277,6 +277,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 	 */
 	@Override
 	public Flux<CommandResponse<PopCommand, Flux<ByteBuffer>>> popList(Publisher<PopCommand> commands) {
+
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");

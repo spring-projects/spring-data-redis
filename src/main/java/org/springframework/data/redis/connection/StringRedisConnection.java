@@ -843,13 +843,14 @@ public interface StringRedisConnection extends RedisConnection {
 	String lPop(String key);
 
 	/**
-	 * Removes and returns first element in list stored at {@code key}.
+	 * Removes and returns first {@code} elements in list stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count
 	 * @return
 	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 * @see RedisListCommands#lPop(byte[], long)
+	 * @since 2.6
 	 */
 	List<String> lPop(String key, long count);
 
@@ -864,13 +865,14 @@ public interface StringRedisConnection extends RedisConnection {
 	String rPop(String key);
 
 	/**
-	 * Removes and returns last element in list stored at {@code key}.
+	 * Removes and returns last {@code} elements in list stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count
 	 * @return
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 * @see RedisListCommands#rPop(byte[], long)
+	 * @since 2.6
 	 */
 	List<String> rPop(String key, long count);
 

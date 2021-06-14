@@ -670,14 +670,14 @@ public class DefaultStringRedisConnectionTests {
 		verifyResults(Collections.singletonList(bar));
 	}
 
-	@Test
+	@Test // GH-1987
 	public void testLPopCountBytes() {
 		doReturn(Collections.singletonList(barBytes)).when(nativeConnection).lPop(fooBytes, 2);
 		actual.add(connection.lPop(fooBytes, 2));
 		verifyResults(Collections.singletonList(bytesList));
 	}
 
-	@Test
+	@Test // GH-1987
 	public void testLPopCount() {
 		doReturn(Collections.singletonList(barBytes)).when(nativeConnection).lPop(fooBytes, 2);
 		actual.add(connection.lPop(foo, 2));
@@ -852,14 +852,14 @@ public class DefaultStringRedisConnectionTests {
 		verifyResults(Collections.singletonList(bar));
 	}
 
-	@Test
+	@Test // GH-1987
 	public void testRPopCountBytes() {
 		doReturn(Collections.singletonList(barBytes)).when(nativeConnection).rPop(fooBytes, 2);
 		actual.add(connection.rPop(fooBytes, 2));
 		verifyResults(Collections.singletonList(bytesList));
 	}
 
-	@Test
+	@Test // GH-1987
 	public void testRPopCount() {
 		doReturn(Collections.singletonList(barBytes)).when(nativeConnection).rPop(fooBytes, 2);
 		actual.add(connection.rPop(foo, 2));

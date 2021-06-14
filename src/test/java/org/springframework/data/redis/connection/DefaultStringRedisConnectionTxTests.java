@@ -509,6 +509,18 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 		super.testLPop();
 	}
 
+	@Test // GH-1987
+	public void testLPopCountBytes() {
+		doReturn(Collections.singletonList(Collections.singletonList(barBytes))).when(nativeConnection).exec();
+		super.testLPopCountBytes();
+	}
+
+	@Test // GH-1987
+	public void testLPopCount() {
+		doReturn(Collections.singletonList(Collections.singletonList(barBytes))).when(nativeConnection).exec();
+		super.testLPopCount();
+	}
+
 	@Test
 	public void testLPushBytes() {
 		doReturn(Collections.singletonList(8L)).when(nativeConnection).exec();
@@ -651,6 +663,18 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 	public void testRPop() {
 		doReturn(Arrays.asList(new Object[] { barBytes })).when(nativeConnection).exec();
 		super.testRPop();
+	}
+
+	@Test // GH-1987
+	public void testRPopCountBytes() {
+		doReturn(Collections.singletonList(Collections.singletonList(barBytes))).when(nativeConnection).exec();
+		super.testRPopCountBytes();
+	}
+
+	@Test // GH-1987
+	public void testRPopCount() {
+		doReturn(Collections.singletonList(Collections.singletonList(barBytes))).when(nativeConnection).exec();
+		super.testRPopCount();
 	}
 
 	@Test

@@ -202,12 +202,13 @@ public interface RedisListCommands {
 	byte[] lPop(byte[] key);
 
 	/**
-	 * Removes and returns first element in list stored at {@code key}.
+	 * Removes and returns first {@code} elements in list stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 * @since 2.6
 	 */
 	@Nullable
 	List<byte[]> lPop(byte[] key, long count);
@@ -223,12 +224,13 @@ public interface RedisListCommands {
 	byte[] rPop(byte[] key);
 
 	/**
-	 * Removes and returns last element in list stored at {@code key}.
+	 * Removes and returns last {@code} elements in list stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
+	 * @since 2.6
 	 */
 	@Nullable
 	List<byte[]> rPop(byte[] key, long count);

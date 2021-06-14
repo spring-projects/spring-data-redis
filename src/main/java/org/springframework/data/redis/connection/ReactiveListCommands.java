@@ -922,6 +922,7 @@ public interface ReactiveListCommands {
 		 *
 		 * @param count
 		 * @return a new {@link LSetCommand} with {@literal value} applied.
+		 * @since 2.6
 		 */
 		public PopCommand count(long count) {
 			return new PopCommand(getKey(), count, direction);
@@ -954,12 +955,13 @@ public interface ReactiveListCommands {
 	}
 
 	/**
-	 * Removes and returns first element in list stored at {@literal key}.
+	 * Removes and returns first {@code count} elements in list stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count
 	 * @return
 	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 * @since 2.6
 	 */
 	default Flux<ByteBuffer> lPop(ByteBuffer key, long count) {
 
@@ -983,12 +985,13 @@ public interface ReactiveListCommands {
 	}
 
 	/**
-	 * Removes and returns last element in list stored at {@literal key}.
+	 * Removes and returns last {@code count} elements in list stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count
 	 * @return
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
+	 * @since 2.6
 	 */
 	default Flux<ByteBuffer> rPop(ByteBuffer key, long count) {
 

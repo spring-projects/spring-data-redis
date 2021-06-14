@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.lang.Nullable;
 
 /**
  * Default implementation for {@link BoundListOperations}.
@@ -80,6 +81,15 @@ class DefaultBoundListOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	@Override
 	public V leftPop() {
 		return ops.leftPop(getKey());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundListOperations#leftPop(long)
+	 */
+	@Override
+	public List<V> leftPop(long count) {
+		return ops.leftPop(getKey(), count);
 	}
 
 	/*
@@ -161,6 +171,15 @@ class DefaultBoundListOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	@Override
 	public V rightPop() {
 		return ops.rightPop(getKey());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundListOperations#rightPop(long)
+	 */
+	@Override
+	public List<V> rightPop(long count) {
+		return ops.rightPop(getKey(), count);
 	}
 
 	/*
