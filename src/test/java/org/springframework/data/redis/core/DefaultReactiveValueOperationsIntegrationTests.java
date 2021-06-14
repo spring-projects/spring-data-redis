@@ -40,6 +40,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -233,6 +234,50 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2050
+	@EnabledOnCommand("GETEX")
+	void getAndExpire() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.getAndExpire(key, Duration.ofSeconds(10)).as(StepVerifier::create).expectNext(value)
+				.verifyComplete();
+
+		redisTemplate.getExpire(key).as(StepVerifier::create)
+				.assertNext(actual -> assertThat(actual).isGreaterThan(Duration.ZERO)).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2050
+	@EnabledOnCommand("GETDEL")
+	void getAndDelete() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.getAndDelete(key).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		redisTemplate.hasKey(key).as(StepVerifier::create).expectNext(false).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2050
+	@EnabledOnCommand("GETEX")
+	void getAndPersist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOperations.set(key, value, Duration.ofSeconds(10)).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.getAndPersist(key).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		redisTemplate.getExpire(key).as(StepVerifier::create).expectNext(Duration.ZERO).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

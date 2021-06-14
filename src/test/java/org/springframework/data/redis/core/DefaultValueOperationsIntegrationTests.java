@@ -32,6 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -212,6 +213,46 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		valueOps.set(key, value);
 
 		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@ParameterizedRedisTest // GH-2050
+	@EnabledOnCommand("GETEX")
+	void testGetAndExpire() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOps.set(key, value1);
+
+		assertThat(valueOps.getAndExpire(key, Duration.ofSeconds(10))).isEqualTo(value1);
+		assertThat(redisTemplate.getExpire(key)).isGreaterThan(1);
+	}
+
+	@ParameterizedRedisTest // GH-2050
+	@EnabledOnCommand("GETEX")
+	void testGetAndPersist() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+
+		valueOps.set(key, value1, Duration.ofSeconds(10));
+
+		assertThat(valueOps.getAndPersist(key)).isEqualTo(value1);
+		assertThat(redisTemplate.getExpire(key)).isEqualTo(-1);
+	}
+
+	@ParameterizedRedisTest // GH-2050
+	@EnabledOnCommand("GETDEL")
+	void testGetAndDelete() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+
+		valueOps.set(key, value1);
+
+		assertThat(valueOps.getAndDelete(key)).isEqualTo(value1);
+		assertThat(redisTemplate.hasKey(key)).isFalse();
 	}
 
 	@ParameterizedRedisTest

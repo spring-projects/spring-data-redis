@@ -279,6 +279,20 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
+	default byte[] getEx(byte[] key, Expiration expiration) {
+		return stringCommands().getEx(key, expiration);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
+	@Override
+	@Deprecated
+	default byte[] getDel(byte[] key) {
+		return stringCommands().getDel(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
+	@Override
+	@Deprecated
 	default byte[] getSet(byte[] key, byte[] value) {
 		return stringCommands().getSet(key, value);
 	}

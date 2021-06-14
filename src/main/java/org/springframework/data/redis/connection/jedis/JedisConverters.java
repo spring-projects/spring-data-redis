@@ -23,6 +23,7 @@ import redis.clients.jedis.ListPosition;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.params.GeoRadiusParam;
+import redis.clients.jedis.params.GetExParams;
 import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.util.SafeEncoder;
@@ -439,6 +440,34 @@ public abstract class JedisConverters extends Converters {
 		}
 
 		return params;
+	}
+
+	/**
+	 * Converts a given {@link Expiration} to the according {@code GETEX} command argument.
+	 * <dl>
+	 * <dt>{@link TimeUnit#MILLISECONDS}</dt>
+	 * <dd>{@code PX}</dd>
+	 * <dt>{@link TimeUnit#SECONDS}</dt>
+	 * <dd>{@code EX}</dd>
+	 * </dl>
+	 *
+	 * @param expiration must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 */
+	static GetExParams toGetExParams(Expiration expiration) {
+
+		GetExParams params = new GetExParams();
+
+		if (expiration.isPersistent()) {
+			return params.persist();
+		}
+
+		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			return params.px(expiration.getExpirationTime());
+		}
+
+		return params.ex((int) expiration.getExpirationTime());
 	}
 
 	/**

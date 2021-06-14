@@ -412,6 +412,46 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#getDel(byte[])
+	 */
+	@Nullable
+	@Override
+	public byte[] getDel(byte[] key) {
+		return convertAndReturn(delegate.getDel(key), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#getDel(byte[])
+	 */
+	@Nullable
+	@Override
+	public String getDel(String key) {
+		return convertAndReturn(delegate.getDel(serialize(key)), bytesToString);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#get(byte[], org.springframework.data.redis.core.types.Expiration)
+	 */
+	@Nullable
+	@Override
+	public byte[] getEx(byte[] key, Expiration expiration) {
+		return convertAndReturn(delegate.getEx(key, expiration), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#get(byte[], org.springframework.data.redis.core.types.Expiration)
+	 */
+	@Nullable
+	@Override
+	public String getEx(String key, Expiration expiration) {
+		return convertAndReturn(delegate.getEx(serialize(key), expiration), bytesToString);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#getBit(byte[], long)
 	 */
 	@Override

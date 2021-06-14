@@ -696,6 +696,26 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.getRange(KEY_1_BYTES, 0, 2)).isEqualTo(JedisConverters.toBytes("val"));
 	}
 
+	@Test // GH-2050
+	@EnabledOnCommand("GETEX")
+	public void getExShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		assertThat(clusterConnection.getEx(KEY_1_BYTES, Expiration.seconds(10))).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.ttl(KEY_1_BYTES)).isGreaterThan(1);
+	}
+
+	@Test // GH-2050
+	@EnabledOnCommand("GETDEL")
+	public void getDelShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		assertThat(clusterConnection.getDel(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.exists(KEY_1_BYTES)).isFalse();
+	}
+
 	@Test // DATAREDIS-315
 	public void getSetShouldWorkCorrectly() {
 

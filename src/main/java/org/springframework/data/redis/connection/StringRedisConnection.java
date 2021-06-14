@@ -398,6 +398,29 @@ public interface StringRedisConnection extends RedisConnection {
 	String get(String key);
 
 	/**
+	 * Return the value at {@code key} and delete the key.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	String getDel(String key);
+
+	/**
+	 * Return the value at {@code key} and expire the key by applying {@link Expiration}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expiration must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	String getEx(String key, Expiration expiration);
+
+	/**
 	 * Set {@code value} of {@code key} and return its old value.
 	 *
 	 * @param key must not be {@literal null}.
