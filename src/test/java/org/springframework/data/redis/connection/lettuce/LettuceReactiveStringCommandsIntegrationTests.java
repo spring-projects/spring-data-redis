@@ -51,6 +51,7 @@ import org.springframework.data.redis.connection.ReactiveStringCommands.SetComma
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.data.redis.test.util.HexStringUtils;
 import org.springframework.data.redis.util.ByteUtils;
@@ -64,6 +65,32 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	public LettuceReactiveStringCommandsIntegrationTests(Fixture fixture) {
 		super(fixture);
+	}
+
+	@ParameterizedRedisTest // GH-2050
+	@EnabledOnCommand("GETEX")
+	void getExShouldWorkCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.stringCommands().getEx(KEY_1_BBUFFER, Expiration.seconds(10)).as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.ttl(KEY_1)).isGreaterThan(1L);
+	}
+
+	@ParameterizedRedisTest // GH-2050
+	@EnabledOnCommand("GETDEL")
+	void getDelShouldWorkCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.stringCommands().getDel(KEY_1_BBUFFER).as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.exists(KEY_1)).isZero();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525

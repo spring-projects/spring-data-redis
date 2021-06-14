@@ -1135,6 +1135,28 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(true, DataType.STRING));
 	}
 
+	@Test // GH-2050
+	@EnabledOnCommand("GETEX")
+	void testGetEx() {
+		actual.add(connection.set("testGS", "1"));
+		actual.add(connection.getEx("testGS", Expiration.seconds(10)));
+		actual.add(connection.ttl("testGS"));
+
+		Long ttl = (Long) getResults().get(2);
+
+		assertThat(ttl).isGreaterThan(1);
+	}
+
+	@Test // GH-2050
+	@EnabledOnCommand("GETDEL")
+	void testGetDel() {
+		actual.add(connection.set("testGS", "1"));
+		actual.add(connection.getDel("testGS"));
+		actual.add(connection.exists("testGS"));
+
+		verifyResults(Arrays.asList(true, "1", false));
+	}
+
 	@Test
 	void testGetSet() {
 		actual.add(connection.set("testGS", "1"));

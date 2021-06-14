@@ -118,6 +118,35 @@ public interface ReactiveValueOperations<K, V> {
 	Mono<V> get(Object key);
 
 	/**
+	 * Return the value at {@code key} and delete the key.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
+	 * @since 2.6
+	 */
+	Mono<V> getAndDelete(K key);
+
+	/**
+	 * Return the value at {@code key} and expire the key by applying {@code timeout}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	Mono<V> getAndExpire(K key, Duration timeout);
+
+	/**
+	 * Return the value at {@code key} and persist the key. This operation removes any TTL that is associated with
+	 * {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	Mono<V> getAndPersist(K key);
+
+	/**
 	 * Set {@code value} of {@code key} and return its old value.
 	 *
 	 * @param key must not be {@literal null}.

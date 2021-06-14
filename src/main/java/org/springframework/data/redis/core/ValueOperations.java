@@ -198,17 +198,65 @@ public interface ValueOperations<K, V> {
 	 * Get the value of {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
 	@Nullable
 	V get(Object key);
 
 	/**
+	 * Return the value at {@code key} and delete the key.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	V getAndDelete(K key);
+
+	/**
+	 * Return the value at {@code key} and expire the key by applying {@code timeout}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	V getAndExpire(K key, long timeout, TimeUnit unit);
+
+	/**
+	 * Return the value at {@code key} and expire the key by applying {@code timeout}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	V getAndExpire(K key, Duration timeout);
+
+	/**
+	 * Return the value at {@code key} and persist the key. This operation removes any TTL that is associated with
+	 * {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	V getAndPersist(K key);
+
+	/**
 	 * Set {@code value} of {@code key} and return its old value.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
 	@Nullable

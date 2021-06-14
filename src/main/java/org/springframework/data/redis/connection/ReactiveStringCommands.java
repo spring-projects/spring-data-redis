@@ -219,6 +219,109 @@ public interface ReactiveStringCommands {
 	Flux<ByteBufferResponse<KeyCommand>> get(Publisher<KeyCommand> keys);
 
 	/**
+	 * Return the value at {@code key} and delete the key.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@link Mono#empty()} in case {@literal key} does not exist.
+	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
+	 * @since 2.6
+	 */
+	default Mono<ByteBuffer> getDel(ByteBuffer key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return getDel(Mono.just(new KeyCommand(key))).next().filter(CommandResponse::isPresent)
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Return the value at {@code key} and delete the key.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link ByteBufferResponse} holding the {@literal key} to get along with the value
+	 *         retrieved.
+	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
+	 * @since 2.6
+	 */
+	Flux<ByteBufferResponse<KeyCommand>> getDel(Publisher<KeyCommand> commands);
+
+	/**
+	 * {@link Command} for {@code GETEX}.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.6
+	 */
+	class GetExCommand extends KeyCommand {
+
+		private final Expiration expiration;
+
+		private GetExCommand(@Nullable ByteBuffer key, Expiration expiration) {
+
+			super(key);
+
+			Assert.notNull(expiration, "Expiration must not be null!");
+			this.expiration = expiration;
+		}
+
+		/**
+		 * Creates a new {@link GetExCommand} given a {@code key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link GetExCommand} for {@code key}.
+		 */
+		public static GetExCommand key(ByteBuffer key) {
+			return new GetExCommand(key, Expiration.persistent());
+		}
+
+		/**
+		 * Applies {@link Expiration}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param options must not be {@literal null}.
+		 * @return a new {@link GetExCommand} with {@link Expiration} applied.
+		 */
+		public GetExCommand withExpiration(Expiration expiration) {
+			return new GetExCommand(getKey(), expiration);
+		}
+
+		/**
+		 * Get the {@link Expiration} to apply.
+		 *
+		 * @return never {@literal null}.
+		 */
+		public Expiration getExpiration() {
+			return expiration;
+		}
+	}
+
+	/**
+	 * Return the value at {@code key} and expire the key by applying {@link Expiration}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expiration must not be {@literal null}.
+	 * @return {@link Mono#empty()} in case {@literal key} does not exist.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	default Mono<ByteBuffer> getEx(ByteBuffer key, Expiration expiration) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return getEx(Mono.just(GetExCommand.key(key).withExpiration(expiration))).next().filter(CommandResponse::isPresent)
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Return the value at {@code key} and expire the key by applying {@link Expiration}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link ByteBufferResponse} holding the {@literal key} to get along with the value
+	 *         retrieved.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	Flux<ByteBufferResponse<GetExCommand>> getEx(Publisher<GetExCommand> commands);
+
+	/**
 	 * Set {@literal value} for {@literal key} and return the existing value.
 	 *
 	 * @param key must not be {@literal null}.

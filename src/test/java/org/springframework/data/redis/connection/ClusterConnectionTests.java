@@ -186,6 +186,12 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void getRangeShouldReturnValueCorrectly();
 
+	// GH-2050
+	void getExShouldWorkCorrectly();
+
+	// GH-2050
+	void getDelShouldWorkCorrectly();
+
 	// DATAREDIS-315
 	void getSetShouldWorkCorrectly();
 

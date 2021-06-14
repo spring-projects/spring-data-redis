@@ -177,6 +177,43 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 	}
 
 	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#getAndDelete(java.lang.Object)
+	 */
+	@Override
+	public Mono<V> getAndDelete(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> connection.getDel(rawKey(key)) //
+				.map(this::readValue));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#getAndExpire(java.lang.Object, java.time.Duration)
+	 */
+	@Override
+	public Mono<V> getAndExpire(K key, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		return createMono(connection -> connection.getEx(rawKey(key), Expiration.from(timeout)) //
+				.map(this::readValue));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#getAndPersist(java.lang.Object)
+	 */
+	@Override
+	public Mono<V> getAndPersist(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> connection.getEx(rawKey(key), Expiration.persistent()) //
+				.map(this::readValue));
+	}
+
+	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveValueOperations#getAndSet(java.lang.Object, java.lang.Object)
 	 */
 	@Override

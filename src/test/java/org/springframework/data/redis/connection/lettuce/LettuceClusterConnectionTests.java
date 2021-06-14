@@ -58,6 +58,7 @@ import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncodin
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
 import org.springframework.data.redis.test.extension.LettuceExtension;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
@@ -725,6 +726,26 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 
 		assertThat(clusterConnection.getRange(KEY_1_BYTES, 0, 2)).isEqualTo(LettuceConverters.toBytes("val"));
+	}
+
+	@Test // GH-2050
+	@EnabledOnCommand("GETEX")
+	public void getExShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		assertThat(clusterConnection.getEx(KEY_1_BYTES, Expiration.seconds(10))).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.ttl(KEY_1_BYTES)).isGreaterThan(1);
+	}
+
+	@Test // GH-2050
+	@EnabledOnCommand("GETDEL")
+	public void getDelShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		assertThat(clusterConnection.getDel(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.exists(KEY_1_BYTES)).isFalse();
 	}
 
 	@Test // DATAREDIS-315

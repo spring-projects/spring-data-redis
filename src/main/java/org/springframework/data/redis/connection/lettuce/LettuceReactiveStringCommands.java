@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.BitFieldArgs;
+import io.lettuce.core.GetExArgs;
 import io.lettuce.core.SetArgs;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.AbsentByteBufferResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
@@ -136,6 +138,40 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
 			return cmd.get(command.getKey()).map((value) -> new ByteBufferResponse<>(command, value))
+					.defaultIfEmpty(new AbsentByteBufferResponse<>(command));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#getDel(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<ByteBufferResponse<KeyCommand>> getDel(Publisher<KeyCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap((command) -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			return cmd.getdel(command.getKey()).map((value) -> new ByteBufferResponse<>(command, value))
+					.defaultIfEmpty(new AbsentByteBufferResponse<>(command));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#getDel(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<ByteBufferResponse<GetExCommand>> getEx(Publisher<GetExCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap((command) -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			GetExArgs args = LettuceConverters.toGetExArgs(command.getExpiration());
+
+			return cmd.getex(command.getKey(), args).map((value) -> new ByteBufferResponse<>(command, value))
 					.defaultIfEmpty(new AbsentByteBufferResponse<>(command));
 		}));
 	}
