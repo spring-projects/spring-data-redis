@@ -132,13 +132,19 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	@SuppressWarnings("unchecked")
 	private synchronized <T> T getSynchronized(Object key, Callable<T> valueLoader) {
+
 		ValueWrapper result = get(key);
 
 		if (result != null) {
 			return (T) result.get();
 		}
 
-		T value = valueFromLoader(key, valueLoader);
+		T value;
+		try {
+			value = valueLoader.call();
+		} catch (Exception e) {
+			throw new ValueRetrievalException(key, valueLoader, e);
+		}
 		put(key, value);
 		return value;
 	}
@@ -391,12 +397,4 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		return cacheConfig.getKeyPrefixFor(name) + key;
 	}
 
-	private static <T> T valueFromLoader(Object key, Callable<T> valueLoader) {
-
-		try {
-			return valueLoader.call();
-		} catch (Exception e) {
-			throw new ValueRetrievalException(key, valueLoader, e);
-		}
-	}
 }
