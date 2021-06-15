@@ -18,6 +18,7 @@ package org.springframework.data.redis.cache;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
+import io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,15 +26,18 @@ import lombok.RequiredArgsConstructor;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
 
@@ -48,6 +52,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext.Seria
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+import org.springframework.lang.Nullable;
 
 /**
  * Tests for {@link RedisCache} with {@link DefaultRedisCacheWriter} using different {@link RedisSerializer} and
@@ -55,6 +60,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Piotr Mionskowski
  */
 @MethodSource("testParams")
 public class RedisCacheTests {
@@ -415,35 +421,85 @@ public class RedisCacheTests {
 	}
 
 	@ParameterizedRedisTest // GH-2079
-	void multipleThreadsLoadValueOnce() {
+	void multipleThreadsLoadValueOnce() throws InterruptedException {
 
-		int threadCount = 5;
+		int threadCount = 2;
 
-		ConcurrentMap<Integer, Integer> valuesByThreadId = new ConcurrentHashMap<>(threadCount);
+		CountDownLatch prepare = new CountDownLatch(threadCount);
+		CountDownLatch prepareForReturn = new CountDownLatch(1);
+		CountDownLatch finished = new CountDownLatch(threadCount);
+		AtomicInteger retrievals = new AtomicInteger();
+		AtomicReference<byte[]> storage = new AtomicReference<>();
 
-		CountDownLatch waiter = new CountDownLatch(threadCount);
+		cache = new RedisCache("foo", new RedisCacheWriter() {
+			@Override
+			public void put(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
+				storage.set(value);
+			}
 
-		AtomicInteger threadIds = new AtomicInteger(0);
+			@Override
+			public byte[] get(String name, byte[] key) {
 
-		AtomicInteger currentValueForKey = new AtomicInteger(0);
+				prepare.countDown();
+				try {
+					prepareForReturn.await(1, TimeUnit.MINUTES);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
 
-		Stream.generate(threadIds::getAndIncrement)
-				.limit(threadCount)
-				.parallel()
-				.forEach((threadId) -> {
-					waiter.countDown();
-					try {
-						waiter.await();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					Integer valueForThread = cache.get("key", currentValueForKey::incrementAndGet);
-					valuesByThreadId.put(threadId, valueForThread);
-				});
+				return storage.get();
+			}
 
-		valuesByThreadId.forEach((thread, valueForThread) -> {
-			assertThat(valueForThread).isEqualTo(currentValueForKey.get());
-		});
+			@Override
+			public byte[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
+				return new byte[0];
+			}
+
+			@Override
+			public void remove(String name, byte[] key) {
+
+			}
+
+			@Override
+			public void clean(String name, byte[] pattern) {
+
+			}
+
+			@Override
+			public void clearStatistics(String name) {
+
+			}
+
+			@Override
+			public RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector) {
+				return null;
+			}
+
+			@Override
+			public CacheStatistics getCacheStatistics(String cacheName) {
+				return null;
+			}
+		}, RedisCacheConfiguration.defaultCacheConfig());
+
+		ThreadPoolExecutor tpe = new ThreadPoolExecutor(threadCount, threadCount, 1, TimeUnit.MINUTES,
+				new LinkedBlockingDeque<>(), new DefaultThreadFactory("RedisCacheTests"));
+
+		IntStream.range(0, threadCount).forEach(it -> tpe.submit(() -> {
+			cache.get("foo", retrievals::incrementAndGet);
+			finished.countDown();
+		}));
+
+		// wait until all Threads have arrived in RedisCacheWriter.get(…)
+		prepare.await();
+
+		// let all threads continue
+		prepareForReturn.countDown();
+
+		// wait until ThreadPoolExecutor has completed.
+		finished.await();
+		tpe.shutdown();
+
+		assertThat(retrievals).hasValue(1);
 	}
 
 	void doWithConnection(Consumer<RedisConnection> callback) {
