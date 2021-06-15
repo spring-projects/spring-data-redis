@@ -304,6 +304,19 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zMScore(byte[], byte[][])
+	 */
+	@Override
+	public List<Double> zMScore(byte[] key, byte[][] values) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Value must not be null!");
+
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zmscore, key, values);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRange(byte[], long, long)
 	 */
 	@Override

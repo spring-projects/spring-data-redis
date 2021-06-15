@@ -17,6 +17,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.DataType;
@@ -246,6 +247,15 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 */
 	@Override
 	public Double score(Object o) {
+		return ops.score(getKey(), o);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#score(java.lang.Object[])
+	 */
+	@Override
+	public List<Double> score(Object... o) {
 		return ops.score(getKey(), o);
 	}
 

@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ZParams;
 
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
@@ -632,6 +633,23 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			return connection.getCluster().zscore(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zMScore(byte[], byte[][])
+	 */
+	@Override
+	public List<Double> zMScore(byte[] key, byte[][] values) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Values must not be null!");
+
+		try {
+			return connection.getCluster().zmscore(key, values);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

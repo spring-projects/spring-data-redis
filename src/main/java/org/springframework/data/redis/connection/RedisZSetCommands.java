@@ -994,6 +994,18 @@ public interface RedisZSetCommands {
 	Double zScore(byte[] key, byte[] value);
 
 	/**
+	 * Get the scores of elements with {@code values} from sorted set with key {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param values the values.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	List<Double> zMScore(byte[] key, byte[]... values);
+
+	/**
 	 * Remove elements in range between {@code start} and {@code end} from sorted set with {@code key}.
 	 *
 	 * @param key must not be {@literal null}.

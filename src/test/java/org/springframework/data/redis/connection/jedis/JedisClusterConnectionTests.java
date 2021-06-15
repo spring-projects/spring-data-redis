@@ -2284,6 +2284,16 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zScore(KEY_1_BYTES, VALUE_2_BYTES)).isEqualTo(20D);
 	}
 
+	@Test // GH-2038
+	@EnabledOnCommand("ZMSCORE")
+	public void zMScoreShouldRetrieveScoreForValues() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.zMScore(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES)).containsSequence(10D, 20D);
+	}
+
 	@Test // DATAREDIS-315
 	public void zUnionStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
 		assertThatExceptionOfType(DataAccessException.class)

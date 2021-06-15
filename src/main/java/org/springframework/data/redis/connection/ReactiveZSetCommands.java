@@ -31,6 +31,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyScanCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
@@ -292,7 +293,7 @@ public interface ReactiveZSetCommands {
 		 * Creates a new {@link ZRemCommand} given a {@link Tuple}.
 		 *
 		 * @param value must not be {@literal null}.
-		 * @return a new {@link ZAddCommand} for {@link Tuple}.
+		 * @return a new {@link ZRemCommand} for {@link Tuple}.
 		 */
 		public static ZRemCommand values(ByteBuffer value) {
 
@@ -305,7 +306,7 @@ public interface ReactiveZSetCommands {
 		 * Creates a new {@link ZRemCommand} given a {@link Collection} of {@link Tuple}.
 		 *
 		 * @param values must not be {@literal null}.
-		 * @return a new {@link ZAddCommand} for {@link Tuple}.
+		 * @return a new {@link ZRemCommand} for {@link Tuple}.
 		 */
 		public static ZRemCommand values(Collection<ByteBuffer> values) {
 
@@ -1283,7 +1284,7 @@ public interface ReactiveZSetCommands {
 		 * Creates a new {@link ZScoreCommand} given a {@link ByteBuffer member}.
 		 *
 		 * @param member must not be {@literal null}.
-		 * @return a new {@link ZScoreCommand} for {@link Range}.
+		 * @return a new {@link ZScoreCommand} for {@link ByteBuffer member}.
 		 */
 		public static ZScoreCommand scoreOf(ByteBuffer member) {
 
@@ -1338,6 +1339,99 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="https://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 */
 	Flux<NumericResponse<ZScoreCommand, Double>> zScore(Publisher<ZScoreCommand> commands);
+
+	/**
+	 * {@code ZMSCORE} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
+	 * @since 2.6
+	 */
+	class ZMScoreCommand extends KeyCommand {
+
+		private final Collection<ByteBuffer> values;
+
+		private ZMScoreCommand(@Nullable ByteBuffer key, Collection<ByteBuffer> values) {
+
+			super(key);
+
+			this.values = values;
+		}
+
+		/**
+		 * Creates a new {@link ZMScoreCommand} given a {@link ByteBuffer member}.
+		 *
+		 * @param member must not be {@literal null}.
+		 * @return a new {@link ZMScoreCommand} for {@link ByteBuffer}.
+		 */
+		public static ZMScoreCommand scoreOf(ByteBuffer member) {
+
+			Assert.notNull(member, "Member must not be null!");
+
+			return new ZMScoreCommand(null, Collections.singletonList(member));
+		}
+
+		/**
+		 * Creates a new {@link ZMScoreCommand} given a {@link List members}.
+		 *
+		 * @param member must not be {@literal null}.
+		 * @return a new {@link ZMScoreCommand} for {@link List} of members.
+		 */
+		public static ZMScoreCommand scoreOf(Collection<ByteBuffer> members) {
+
+			Assert.notNull(members, "Members must not be null!");
+
+			return new ZMScoreCommand(null, members);
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ZMScoreCommand} with {@literal key} applied.
+		 */
+		public ZMScoreCommand forKey(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new ZMScoreCommand(key, values);
+		}
+
+		/**
+		 * @return
+		 */
+		public Collection<ByteBuffer> getValues() {
+			return values;
+		}
+	}
+
+	/**
+	 * Get the scores of elements with {@literal values} from sorted set with key {@literal key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param values must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
+	 * @since 2.6
+	 */
+	default Mono<List<Double>> zMScore(ByteBuffer key, Collection<ByteBuffer> values) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Values must not be null!");
+
+		return zMScore(Mono.just(ZMScoreCommand.scoreOf(values).forKey(key))).next().map(MultiValueResponse::getOutput);
+	}
+
+	/**
+	 * Get the scores of elements with {@link ZMScoreCommand#getValues()} from sorted set with key
+	 * {@link ZMScoreCommand#getKey()}
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
+	 * @since 2.6
+	 */
+	Flux<MultiValueResponse<ZMScoreCommand, Double>> zMScore(Publisher<ZMScoreCommand> commands);
 
 	/**
 	 * {@code ZREMRANGEBYRANK} command parameters.
@@ -1787,7 +1881,7 @@ public interface ReactiveZSetCommands {
 		 * Creates a new {@link ZInterStoreCommand} given a {@link List} of keys.
 		 *
 		 * @param keys must not be {@literal null}.
-		 * @return a new {@link ZInterStoreCommand} for {@link Range}.
+		 * @return a new {@link ZInterStoreCommand} for {@link List} of keys.
 		 */
 		public static ZInterStoreCommand sets(List<ByteBuffer> keys) {
 
