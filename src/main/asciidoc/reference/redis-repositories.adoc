@@ -673,7 +673,6 @@ public interface PersonRepository extends CrudRepository<Person, String> {
 ----
 ====
 
-
 NOTE: Please make sure properties used in finder methods are set up for indexing.
 
 NOTE: Query methods for Redis repositories support only queries for entities and collections of entities with paging.
@@ -709,6 +708,26 @@ The following table provides an overview of the keywords supported for Redis and
 |`IsFalse` | `findByAliveIsFalse` | `SINTER …:alive:0`
 |`Top,First`|`findFirst10ByFirstname`,`findTop5ByFirstname`|
 |===============
+====
+
+[[redis.repositories.queries.sort]]
+=== Sorting Query Method results
+
+Redis repositories allow various approaches to define sorting order. Redis itself does not support in-flight sorting when retrieving hashes or sets. Therefore, Redis repository query methods construct a `Comparator` that is applied to the result before returning results as `List`. Let's take a look at the following example:
+
+.Sorting Query Results
+====
+[source,java]
+----
+interface PersonRepository extends RedisRepository<Person, String> {
+
+  List<Person> findByFirstnameSortByAgeDesc(String firstname); <1>
+
+  List<Person> findByFirstname(String firstname, Sort sort);   <2>
+}
+----
+<1> Static sorting derived from method name.
+<2> Dynamic sorting using a method argument.
 ====
 
 [[redis.repositories.cluster]]
