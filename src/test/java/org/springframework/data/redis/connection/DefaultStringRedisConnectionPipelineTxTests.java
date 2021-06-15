@@ -1434,6 +1434,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 	}
 
 	@Test
+	public void testZMScore() {
+		doReturn(Collections.singletonList(Collections.singletonList(Arrays.asList(1d, 3d)))).when(nativeConnection)
+				.closePipeline();
+		super.testZMScore();
+	}
+
+	@Test
 	public void testZUnionStoreAggWeightsBytes() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testZUnionStoreAggWeightsBytes();

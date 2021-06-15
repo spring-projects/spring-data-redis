@@ -833,6 +833,10 @@ class RedisConnectionUnitTests {
 			return delegate.zScore(key, value);
 		}
 
+		public List<Double> zMScore(byte[] key, byte[][] values) {
+			return delegate.zMScore(key, values);
+		}
+
 		public Long zRemRange(byte[] key, long begin, long end) {
 			return delegate.zRemRange(key, begin, end);
 		}

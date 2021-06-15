@@ -2055,6 +2055,16 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@EnabledOnCommand("ZMSCORE")
+	void testZMScore() {
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 3, "Joe"));
+		actual.add(connection.zMScore("myset", "James", "Joe"));
+		verifyResults(Arrays.asList(new Object[] { true, true, true, Arrays.asList(1d, 3d) }));
+	}
+
+	@Test
 	void testZUnionStore() {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));

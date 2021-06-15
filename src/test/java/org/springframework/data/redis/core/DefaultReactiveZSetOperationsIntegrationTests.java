@@ -38,6 +38,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -458,6 +459,21 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 
 		zSetOperations.score(key, value1).as(StepVerifier::create).expectNext(42.1d).verifyComplete();
 		zSetOperations.score(key, value2).as(StepVerifier::create).expectNext(10d).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2038
+	@EnabledOnCommand("ZMSCORE")
+	void scores() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOperations.add(key, value1, 42.1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value2, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.score(key, value1, value2, valueFactory.instance()).as(StepVerifier::create)
+				.expectNext(Arrays.asList(42.1d, 10d, null)).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

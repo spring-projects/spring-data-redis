@@ -27,6 +27,7 @@ import java.util.Arrays;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
@@ -400,6 +401,17 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 
 		assertThat(connection.zSetCommands().zScore(KEY_1_BBUFFER, VALUE_2_BBUFFER).block()).isEqualTo(2D);
+	}
+
+	@ParameterizedRedisTest // GH-2038
+	@EnabledOnCommand("ZMSCORE")
+	void zMScoreShouldReturnScoreCorrectly() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+
+		connection.zSetCommands().zMScore(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER))
+				.as(StepVerifier::create).expectNext(Arrays.asList(1D, 2D)).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525

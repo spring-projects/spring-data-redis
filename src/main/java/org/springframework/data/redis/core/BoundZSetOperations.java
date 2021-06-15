@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -263,6 +264,17 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Double score(Object o);
+
+	/**
+	 * Get the scores of elements with {@code values} from sorted set with key the bound key.
+	 *
+	 * @param o the values.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	List<Double> score(Object... o);
 
 	/**
 	 * Remove elements in range between {@code start} and {@code end} from sorted set with the bound key.

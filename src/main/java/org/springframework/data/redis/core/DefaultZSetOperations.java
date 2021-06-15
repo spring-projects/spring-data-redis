@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -435,6 +436,18 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(o);
 		return execute(connection -> connection.zScore(rawKey, rawValue), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#score(java.lang.Object, java.lang.Object[])
+	 */
+	@Override
+	public List<Double> score(K key, Object... o) {
+
+		byte[] rawKey = rawKey(key);
+		byte[][] rawValues = rawValues(o);
+		return execute(connection -> connection.zMScore(rawKey, rawValues), true);
 	}
 
 	/*

@@ -21,14 +21,13 @@ import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.ZParams;
-import redis.clients.jedis.params.ZAddParams;
 
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisZSetCommands;
-import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs.Flag;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
@@ -321,6 +320,19 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(value, "Value must not be null!");
 
 		return connection.invoke().just(BinaryJedis::zscore, MultiKeyPipelineBase::zscore, key, value);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zScore(byte[], byte[][])
+	 */
+	@Override
+	public List<Double> zMScore(byte[] key, byte[][] values) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Value must not be null!");
+
+		return connection.invoke().just(BinaryJedis::zmscore, MultiKeyPipelineBase::zmscore, key, values);
 	}
 
 	/*

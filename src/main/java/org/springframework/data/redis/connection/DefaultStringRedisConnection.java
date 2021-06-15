@@ -1724,6 +1724,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zMScore(byte[], byte[][])
+	 */
+	@Override
+	public List<Double> zMScore(byte[] key, byte[]... values) {
+		return convertAndReturn(delegate.zMScore(key, values), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
 	 */
 	@Override
@@ -3050,6 +3059,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Double zScore(String key, String value) {
 		return zScore(serialize(key), serialize(value));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zMScore(java.lang.String, java.lang.String[])
+	 */
+	@Override
+	public List<Double> zMScore(String key, String... values) {
+		return zMScore(serialize(key), serializeMulti(values));
 	}
 
 	/*

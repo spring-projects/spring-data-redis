@@ -2345,6 +2345,16 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zScore(KEY_1_BYTES, VALUE_2_BYTES)).isEqualTo(20D);
 	}
 
+	@Test // GH-2038
+	@EnabledOnCommand("ZMSCORE")
+	public void zMScoreShouldRetrieveScoreForValues() {
+
+		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
+		nativeConnection.zadd(KEY_1, 20D, VALUE_2);
+
+		assertThat(clusterConnection.zMScore(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES)).containsExactly(10D, 20D);
+	}
+
 	@Test // DATAREDIS-315
 	public void zUnionStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
 		assertThatExceptionOfType(DataAccessException.class)

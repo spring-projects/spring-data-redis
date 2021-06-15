@@ -1456,6 +1456,18 @@ public interface StringRedisConnection extends RedisConnection {
 	Double zScore(String key, String value);
 
 	/**
+	 * Get the scores of elements with {@code values} from sorted set with key {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param values the values.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
+	 * @see RedisZSetCommands#zMScore(byte[], byte[][])
+	 * @since 2.6
+	 */
+	List<Double> zMScore(String key, String... values);
+
+	/**
 	 * Remove elements in range between {@code start} and {@code end} from sorted set with {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
