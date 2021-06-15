@@ -29,6 +29,7 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.keyvalue.core.CriteriaAccessor;
 import org.springframework.data.keyvalue.core.QueryEngine;
 import org.springframework.data.keyvalue.core.SortAccessor;
+import org.springframework.data.keyvalue.core.SpelSortAccessor;
 import org.springframework.data.keyvalue.core.query.KeyValueQuery;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.core.convert.GeoIndexedPropertyValue;
@@ -37,6 +38,7 @@ import org.springframework.data.redis.repository.query.RedisOperationChain;
 import org.springframework.data.redis.repository.query.RedisOperationChain.NearPath;
 import org.springframework.data.redis.repository.query.RedisOperationChain.PathAndValue;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
@@ -53,7 +55,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	 * Creates new {@link RedisQueryEngine} with defaults.
 	 */
 	RedisQueryEngine() {
-		this(new RedisCriteriaAccessor(), null);
+		this(new RedisCriteriaAccessor(), new SpelSortAccessor(new SpelExpressionParser()));
 	}
 
 	/**
@@ -76,6 +78,16 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	@SuppressWarnings("unchecked")
 	public <T> Collection<T> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
 			String keyspace, Class<T> type) {
+		List<T> result = doFind(criteria, offset, rows, keyspace, type);
+
+		if (sort != null) {
+			result.sort((Comparator<? super T>) sort);
+		}
+
+		return result;
+	}
+
+	private <T> List<T> doFind(RedisOperationChain criteria, long offset, int rows, String keyspace, Class<T> type) {
 
 		if (criteria == null
 				|| (CollectionUtils.isEmpty(criteria.getOrSismember()) && CollectionUtils.isEmpty(criteria.getSismember()))

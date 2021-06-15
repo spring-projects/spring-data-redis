@@ -19,13 +19,13 @@ import static org.assertj.core.api.Assertions.*;
 
 import lombok.Data;
 import lombok.Value;
+import lombok.With;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.With;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +36,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
@@ -115,6 +116,45 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		assertThat(repo.findByFirstnameAndLastname("egwene", "al'vere").size()).isEqualTo(1);
 		assertThat(repo.findByFirstnameAndLastname("egwene", "al'vere").get(0)).isEqualTo(egwene);
+	}
+
+	@Test // GH-2080
+	void simpleFindAndSort() {
+
+		Person egwene = new Person();
+		egwene.firstname = "egwene";
+		egwene.lastname = "al'vere";
+
+		Person marin = new Person();
+		marin.firstname = "marin";
+		marin.lastname = "al'vere";
+
+		repo.saveAll(Arrays.asList(egwene, marin));
+
+		assertThat(repo.findByLastname("al'vere", Sort.by(Sort.Direction.ASC, "firstname"))).containsSequence(egwene,
+				marin);
+		assertThat(repo.findByLastname("al'vere", Sort.by(Sort.Direction.DESC, "firstname"))).containsSequence(marin,
+				egwene);
+
+		assertThat(repo.findByLastnameOrderByFirstnameAsc("al'vere")).containsSequence(egwene, marin);
+		assertThat(repo.findByLastnameOrderByFirstnameDesc("al'vere")).containsSequence(marin, egwene);
+	}
+
+	@Test // GH-2080
+	void simpleFindAllWithSort() {
+
+		Person egwene = new Person();
+		egwene.firstname = "egwene";
+		egwene.lastname = "al'vere";
+
+		Person marin = new Person();
+		marin.firstname = "marin";
+		marin.lastname = "al'vere";
+
+		repo.saveAll(Arrays.asList(egwene, marin));
+
+		assertThat(repo.findAll(Sort.by(Sort.Direction.ASC, "firstname"))).containsSequence(egwene, marin);
+		assertThat(repo.findAll(Sort.by(Sort.Direction.DESC, "firstname"))).containsSequence(marin, egwene);
 	}
 
 	@Test // DATAREDIS-425
@@ -440,6 +480,12 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		List<Person> findByFirstname(String firstname);
 
 		List<Person> findByLastname(String lastname);
+
+		List<Person> findByLastname(String lastname, Sort sort);
+
+		List<Person> findByLastnameOrderByFirstnameAsc(String lastname);
+
+		List<Person> findByLastnameOrderByFirstnameDesc(String lastname);
 
 		Page<Person> findPersonByLastname(String lastname, Pageable page);
 
