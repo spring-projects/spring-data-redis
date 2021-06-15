@@ -258,6 +258,19 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#copy(java.lang.Object, java.lang.Object, boolean)
+	 */
+	@Override
+	public Mono<Boolean> copy(K sourceKey, K targetKey, boolean replace) {
+
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(targetKey, "Target key must not be null!");
+
+		return createMono(connection -> connection.keyCommands().copy(rawKey(sourceKey), rawKey(targetKey), replace));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#hasKey(java.lang.Object)
 	 */
 	@Override

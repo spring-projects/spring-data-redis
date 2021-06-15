@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.CopyArgs;
 import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.RestoreArgs;
 import io.lettuce.core.ScanArgs;
@@ -50,6 +51,20 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 	LettuceKeyCommands(LettuceConnection connection) {
 		this.connection = connection;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[])
+	 */
+	@Override
+	public Boolean copy(byte[] sourceKey, byte[] targetKey, boolean replace) {
+
+		Assert.notNull(sourceKey, "source key must not be null!");
+		Assert.notNull(targetKey, "target key must not be null!");
+
+		return connection.invoke().just(RedisKeyAsyncCommands::copy, sourceKey, targetKey,
+				CopyArgs.Builder.replace(replace));
 	}
 
 	/*
@@ -91,17 +106,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::del, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[])
-	 */
-	@Override
-	public Boolean copy(byte[] sourceKey, byte[] targetKey) {
-		Assert.notNull(sourceKey, "source key must not be null!");
-		Assert.notNull(targetKey, "target key must not be null!");
-
-		return connection.invoke().just(RedisKeyAsyncCommands::copy, targetKey, sourceKey);
-	}
 
 	/*
 	 * (non-Javadoc)

@@ -188,6 +188,13 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	@Test
+	public void testCopy() {
+		doReturn(Boolean.TRUE).when(nativeConnection).copy(fooBytes, barBytes, false);
+		actual.add(connection.copy(foo, bar, false));
+		verifyResults(Collections.singletonList(Boolean.TRUE));
+	}
+
+	@Test
 	public void testDbSize() {
 		doReturn(3L).when(nativeConnection).dbSize();
 		actual.add(connection.dbSize());
@@ -234,13 +241,6 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(1L).when(nativeConnection).del(fooBytes);
 		actual.add(connection.del(foo));
 		verifyResults(Collections.singletonList(1L));
-	}
-
-	@Test
-	public void testCopy() {
-		doReturn(Boolean.TRUE).when(nativeConnection).copy(fooBytes, barBytes);
-		actual.add(connection.copy(foo, bar));
-		verifyResults(Collections.singletonList(Boolean.TRUE));
 	}
 
 	@Test

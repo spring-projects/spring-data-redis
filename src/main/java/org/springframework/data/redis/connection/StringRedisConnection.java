@@ -139,11 +139,12 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param sourceKey must not be {@literal null}.
 	 * @param targetKey must not be {@literal null}.
-	 * @return
+	 * @param replace whether to replace existing keys.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
 	 * @see RedisKeyCommands#copy(byte[], byte[])
 	 */
-	Boolean copy(String sourceKey, String targetKey);
+	Boolean copy(String sourceKey, String targetKey, boolean replace);
 
 	/**
 	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #del(String...)} the actual memory reclaiming here

@@ -66,6 +66,19 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[])
+	 */
+	@Override
+	public Boolean copy(byte[] sourceKey, byte[] targetKey, boolean replace) {
+
+		Assert.notNull(sourceKey, "source key must not be null!");
+		Assert.notNull(targetKey, "target key must not be null!");
+
+		return connection.getCluster().copy(sourceKey, targetKey, replace);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#del(byte[][])
 	 */
 	@Override
@@ -86,18 +99,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) (client, key) -> client.del(key),
 						Arrays.asList(keys))
 				.resultsAsList().size();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[])
-	 */
-	@Override
-	public Boolean copy(byte[] sourceKey, byte[] targetKey) {
-		Assert.notNull(sourceKey, "source key must not be null!");
-		Assert.notNull(targetKey, "target key must not be null!");
-
-		return connection.getCluster().copy(sourceKey, targetKey, false);
 	}
 
 	/*

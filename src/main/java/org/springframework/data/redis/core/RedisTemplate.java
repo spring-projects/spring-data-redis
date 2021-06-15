@@ -700,6 +700,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#delete(java.lang.Object, java.lang.Object, boolean)
+	 */
+	@Override
+	public Boolean copy(K source, K target, boolean replace) {
+
+		byte[] sourceKey = rawKey(source);
+		byte[] targetKey = rawKey(target);
+
+		return execute(connection -> connection.copy(sourceKey, targetKey, replace), true);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.RedisOperations#delete(java.lang.Object)
 	 */
 	@Override
@@ -708,16 +721,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		byte[] rawKey = rawKey(key);
 
 		Long result = execute(connection -> connection.del(rawKey), true);
-
 		return result != null && result.intValue() == 1;
-	}
-
-	@Override
-	public Boolean copy(K source, K target) {
-		byte[] sourceKey = rawKey(source);
-		byte[] targetKey = rawKey(target);
-
-		return execute(connection -> connection.copy(sourceKey, targetKey), true);
 	}
 
 	/*

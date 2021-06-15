@@ -93,6 +93,12 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 	}
 
 	@Test
+	public void testCopy() {
+		doReturn(Collections.singletonList(Boolean.TRUE)).when(nativeConnection).exec();
+		super.testCopy();
+	}
+
+	@Test
 	public void testDbSize() {
 		doReturn(Collections.singletonList(3L)).when(nativeConnection).exec();
 		super.testDbSize();

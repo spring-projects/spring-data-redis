@@ -243,6 +243,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[], boolean)
+	 */
+	@Override
+	public Boolean copy(byte[] sourceKey, byte[] targetKey, boolean replace) {
+		return convertAndReturn(delegate.copy(sourceKey, targetKey, replace), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#dbSize()
 	 */
 	@Override
@@ -268,6 +277,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.decrBy(key, value), Converters.identityConverter());
 	}
 
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#del(byte[][])
@@ -275,15 +285,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long del(byte[]... keys) {
 		return convertAndReturn(delegate.del(keys), Converters.identityConverter());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[])
-	 */
-	@Override
-	public Boolean copy(byte[] sourceKey, byte[] targetKey) {
-		return convertAndReturn(delegate.copy(sourceKey, targetKey), Converters.identityConverter());
 	}
 
 	/*
@@ -1902,6 +1903,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#copy(java.lang.String, java.lang.String, boolean)
+	 */
+	@Override
+	public Boolean copy(String sourceKey, String targetKey, boolean replace) {
+		return copy(serialize(sourceKey), serialize(targetKey), replace);
+	}
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#decr(java.lang.String)
 	 */
 	@Override
@@ -1927,14 +1936,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return del(serializeMulti(keys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#copy(java.lang.String[])
-	 */
-	@Override
-	public Boolean copy(String sourceKey, String targetKey) {
-		return copy(serialize(sourceKey), serialize(targetKey));
-	}
 
 	/*
 	 * (non-Javadoc)

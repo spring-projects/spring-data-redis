@@ -187,8 +187,8 @@ class RedisConnectionUnitTests {
 			return delegate.del(keys);
 		}
 
-		public Boolean copy(byte[] sourceKey, byte[] targetKey) {
-			return delegate.copy(sourceKey, targetKey);
+		public Boolean copy(byte[] sourceKey, byte[] targetKey, boolean replace) {
+			return delegate.copy(sourceKey, targetKey, replace);
 		}
 
 		public void close() throws DataAccessException {

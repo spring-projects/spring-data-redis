@@ -53,6 +53,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -89,6 +90,34 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		RedisConnection connection = connectionFactory.getConnection();
 		connection.flushAll();
 		connection.close();
+	}
+
+	@ParameterizedRedisTest // GH-2040
+	@EnabledOnCommand("COPY")
+	void copy() {
+
+		ReactiveRedisClusterConnection connection = null;
+		try {
+			connection = redisTemplate.getConnectionFactory().getReactiveClusterConnection();
+			assumeThat(connection == null).isTrue();
+		} catch (InvalidDataAccessApiUsageException e) {} finally {
+			if (connection != null) {
+				connection.close();
+			}
+		}
+
+		K key = keyFactory.instance();
+		K targetKey = keyFactory.instance();
+		V value = valueFactory.instance();
+		V nextValue = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
+		redisTemplate.copy(key, targetKey, false).as(StepVerifier::create).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().get(targetKey).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		redisTemplate.opsForValue().set(key, nextValue).as(StepVerifier::create).expectNext(true).verifyComplete();
+		redisTemplate.copy(key, targetKey, true).as(StepVerifier::create).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().get(targetKey).as(StepVerifier::create).expectNext(nextValue).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

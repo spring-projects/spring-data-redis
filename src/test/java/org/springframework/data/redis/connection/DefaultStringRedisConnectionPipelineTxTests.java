@@ -101,6 +101,12 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 	}
 
 	@Test
+	public void testCopy() {
+		doReturn(Collections.singletonList(Arrays.asList(Boolean.TRUE))).when(nativeConnection).closePipeline();
+		super.testCopy();
+	}
+
+	@Test
 	public void testDbSize() {
 		doReturn(Collections.singletonList(Collections.singletonList(3L))).when(nativeConnection).closePipeline();
 		super.testDbSize();
@@ -141,13 +147,6 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 		doReturn(Collections.singletonList(Collections.singletonList(1L))).when(nativeConnection).closePipeline();
 		super.testDel();
 	}
-
-	@Test
-	public void testCopy() {
-		doReturn(Collections.singletonList(Collections.singletonList(Boolean.TRUE))).when(nativeConnection).closePipeline();
-		super.testCopy();
-	}
-
 
 	@Test
 	public void testEchoBytes() {

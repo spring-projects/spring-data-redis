@@ -34,6 +34,8 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -393,16 +395,24 @@ public class RedisTemplateIntegrationTests<K, V> {
 
 	@ParameterizedRedisTest
 	void testCopy() {
+
+		assumeThat(redisTemplate.execute((RedisCallback<RedisConnection>) it -> it))
+				.isNotInstanceOf(RedisClusterConnection.class);
+
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
 		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
 
 		redisTemplate.opsForValue().set(key1, value1);
 
-		assertThat(redisTemplate.hasKey(key2)).isFalse();
-		redisTemplate.copy(key1, key2);
-		assertThat(redisTemplate.hasKey(key2)).isTrue();
+		redisTemplate.copy(key1, key2, false);
 		assertThat(redisTemplate.opsForValue().get(key2)).isEqualTo(value1);
+
+		redisTemplate.opsForValue().set(key1, value2);
+
+		redisTemplate.copy(key1, key2, true);
+		assertThat(redisTemplate.opsForValue().get(key2)).isEqualTo(value2);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-688

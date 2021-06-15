@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.CopyArgs;
 import io.lettuce.core.ScanStream;
 import io.lettuce.core.api.reactive.RedisKeyReactiveCommands;
 import reactor.core.publisher.Flux;
@@ -57,6 +58,27 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		Assert.notNull(connection, "Connection must not be null!");
 
 		this.connection = connection;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#copy(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<BooleanResponse<CopyCommand>> copy(Publisher<CopyCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap((command) -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			CopyArgs copyArgs = CopyArgs.Builder.replace(command.isReplace());
+			if (command.getDatabase() != null) {
+				copyArgs.destinationDb(command.getDatabase());
+			}
+
+			return cmd.copy(command.getKey(), command.getTarget(), copyArgs)
+					.map((value) -> new BooleanResponse<>(command, value));
+		}));
 	}
 
 	/*

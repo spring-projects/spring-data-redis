@@ -44,6 +44,124 @@ import org.springframework.util.Assert;
 public interface ReactiveKeyCommands {
 
 	/**
+	 * {@code MOVE} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @see <a href="https://redis.io/commands/move">Redis Documentation: MOVE</a>
+	 */
+	class CopyCommand extends KeyCommand {
+
+		private final @Nullable ByteBuffer target;
+		private final boolean replace;
+		private final @Nullable Integer database;
+
+		public CopyCommand(ByteBuffer key, @Nullable ByteBuffer target, boolean replace, @Nullable Integer database) {
+			super(key);
+			this.target = target;
+			this.replace = replace;
+			this.database = database;
+		}
+
+		/**
+		 * Creates a new {@link CopyCommand} given a {@link ByteBuffer key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link CopyCommand} for {@link ByteBuffer key}.
+		 */
+		public static CopyCommand key(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new CopyCommand(key, null, false, null);
+		}
+
+		/**
+		 * Applies the {@link ByteBuffer targetKey}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param targetKey must not be {@literal null}.
+		 * @return a new {@link CopyCommand} with {@literal database} applied.
+		 */
+		public CopyCommand to(ByteBuffer targetKey) {
+
+			Assert.notNull(targetKey, "Key must not be null!");
+
+			return new CopyCommand(getKey(), targetKey, isReplace(), database);
+		}
+
+		/**
+		 * Applies {@code replace}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link CopyCommand} with {@literal replace} applied.
+		 */
+		public CopyCommand replace(boolean replace) {
+			return new CopyCommand(getKey(), this.target, replace, database);
+		}
+
+		/**
+		 * Applies the {@literal database} index. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param database
+		 * @return a new {@link CopyCommand} with {@literal database} applied.
+		 */
+		public CopyCommand database(int database) {
+			return new CopyCommand(getKey(), this.target, isReplace(), database);
+		}
+
+		/**
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public ByteBuffer getTarget() {
+			return target;
+		}
+
+		public boolean isReplace() {
+			return replace;
+		}
+
+		/**
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public Integer getDatabase() {
+			return database;
+		}
+
+	}
+
+	/**
+	 * Copy given {@code key} to a target {@code key}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param targetKey must not be {@literal null}.
+	 * @param replace whether to replace existing keys.
+	 * @return
+	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
+	 * @since 2.6
+	 */
+	default Mono<Boolean> copy(ByteBuffer sourceKey, ByteBuffer targetKey, boolean replace) {
+
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(targetKey, "Targetk ey must not be null!");
+
+		return copy(Mono.just(CopyCommand.key(sourceKey).to(targetKey).replace(replace))).next()
+				.map(BooleanResponse::getOutput);
+	}
+
+	/**
+	 * Copy keys one-by-one.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} to move along with the copy result.
+	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
+	 * @since 2.6
+	 */
+	Flux<BooleanResponse<CopyCommand>> copy(Publisher<CopyCommand> commands);
+
+	/**
 	 * Determine if given {@literal key} exists.
 	 *
 	 * @param key must not be {@literal null}.
@@ -670,7 +788,7 @@ public interface ReactiveKeyCommands {
 		 * Creates a new {@link MoveCommand} given a {@link ByteBuffer key}.
 		 *
 		 * @param key must not be {@literal null}.
-		 * @return a new {@link ExpireCommand} for {@link ByteBuffer key}.
+		 * @return a new {@link MoveCommand} for {@link ByteBuffer key}.
 		 */
 		public static MoveCommand key(ByteBuffer key) {
 

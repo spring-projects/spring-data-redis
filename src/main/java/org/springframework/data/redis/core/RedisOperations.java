@@ -159,6 +159,19 @@ public interface RedisOperations<K, V> {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Copy given {@code sourceKey} to {@code targetKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param targetKey must not be {@literal null}.
+	 * @param replace whether the key was copied. {@literal null} when used in pipeline / transaction.
+	 * @return
+	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Boolean copy(K sourceKey, K targetKey, boolean replace);
+
+	/**
 	 * Determine if given {@code key} exists.
 	 *
 	 * @param key must not be {@literal null}.
@@ -180,6 +193,7 @@ public interface RedisOperations<K, V> {
 	@Nullable
 	Long countExistingKeys(Collection<K> keys);
 
+
 	/**
 	 * Delete given {@code key}.
 	 *
@@ -199,17 +213,6 @@ public interface RedisOperations<K, V> {
 	 */
 	@Nullable
 	Long delete(Collection<K> keys);
-
-	/**
-	 * Copy given {@code sourceKey} to {@code targetKey}.
-	 *
-	 * @param sourceKey must not be {@literal null}.
-	 * @param targetKey must not be {@literal null}.
-	 * @return
-	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
-	 */
-	@Nullable
-	Boolean copy(K sourceKey, K targetKey);
 
 	/**
 	 * Unlink the {@code key} from the keyspace. Unlike with {@link #delete(Object)} the actual memory reclaiming here

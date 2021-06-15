@@ -510,6 +510,18 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@EnabledOnCommand("COPY")
+	public void testCopy() {
+
+		actual.add(connection.set("foo", "bar"));
+		actual.add(connection.copy("foo", "baz", false));
+
+		verifyResults(Arrays.asList(true, true));
+		assertThat(connection.get("baz")).isEqualTo("bar");
+		assertThat(connection.exists("foo")).isTrue();
+	}
+
+	@Test
 	void testInfo() {
 
 		actual.add(connection.info());

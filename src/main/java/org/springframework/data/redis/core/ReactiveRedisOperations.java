@@ -164,6 +164,17 @@ public interface ReactiveRedisOperations<K, V> {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Copy given {@code sourceKey} to {@code targetKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param targetKey must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
+	 * @since 2.6
+	 */
+	Mono<Boolean> copy(K sourceKey, K targetKey, boolean replace);
+
+	/**
 	 * Determine if given {@code key} exists.
 	 *
 	 * @param key must not be {@literal null}.

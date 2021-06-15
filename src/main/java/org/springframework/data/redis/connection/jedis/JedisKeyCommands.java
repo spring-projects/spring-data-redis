@@ -95,11 +95,12 @@ class JedisKeyCommands implements RedisKeyCommands {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[])
 	 */
-	public Boolean copy(byte[] sourceKey, byte[] targetKey) {
+	public Boolean copy(byte[] sourceKey, byte[] targetKey, boolean replace) {
+
 		Assert.notNull(sourceKey, "source key must not be null!");
 		Assert.notNull(targetKey, "target key must not be null!");
 
-		return connection.invoke().just(BinaryJedis::copy, MultiKeyPipelineBase::copy, sourceKey, targetKey, false);
+		return connection.invoke().just(BinaryJedis::copy, MultiKeyPipelineBase::copy, sourceKey, targetKey, replace);
 	}
 
 	/*
