@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -299,6 +300,17 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 */
 	Mono<Double> score(K key, Object o);
+
+	/**
+	 * Get the scores of elements with {@code values} from sorted set with key {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param o the values.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
+	 * @since 2.6
+	 */
+	Mono<List<Double>> score(K key, Object... o);
 
 	/**
 	 * Remove elements in range between {@code start} and {@code end} from sorted set with {@code key}.

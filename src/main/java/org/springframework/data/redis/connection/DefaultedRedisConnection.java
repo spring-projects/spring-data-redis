@@ -1106,6 +1106,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
+	default List<Double> zMScore(byte[] key, byte[]... values) {
+		return zSetCommands().zMScore(key, values);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
 	default Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		return zSetCommands().zUnionStore(destKey, aggregate, weights, sets);
 	}

@@ -670,6 +670,9 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void zScoreShouldRetrieveScoreForValue();
 
+	// GH-2038
+	void zMScoreShouldRetrieveScoreForValues();
+
 	// DATAREDIS-315
 	void zUnionStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots();
 

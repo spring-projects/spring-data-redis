@@ -340,6 +340,21 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest
+	void testScore() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.9);
+		zSetOps.add(key, value2, 3.7);
+		zSetOps.add(key, value3, 5.8);
+
+		assertThat(zSetOps.score(key, value1, value2, valueFactory.instance())).containsExactly(1.9d, 3.7d, null);
+	}
+
+	@ParameterizedRedisTest
 	void zCardRetrievesDataCorrectly() {
 
 		K key = keyFactory.instance();

@@ -372,6 +372,22 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#score(java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public Mono<List<Double>> score(K key, Object... o) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> Flux.fromArray((V[]) o) //
+				.map(this::rawValue) //
+				.collectList() //
+				.flatMap(values -> connection.zMScore(rawKey(key), values)));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#removeRange(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override
