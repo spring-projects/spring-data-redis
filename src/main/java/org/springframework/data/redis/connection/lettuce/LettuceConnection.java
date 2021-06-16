@@ -936,7 +936,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	RedisClusterAsyncCommands<byte[], byte[]> getAsyncConnection() {
 
-		if (isQueueing()) {
+		if (isQueueing() || isPipelined()) {
 			return getAsyncDedicatedConnection();
 		}
 
