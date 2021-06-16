@@ -43,7 +43,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements RedisZSet<E> {
 
 	private final BoundZSetOperations<String, E> boundZSetOps;
-	private double defaultScore = 1;
+	private final double defaultScore;
 
 	private class DefaultRedisSortedSetIterator extends RedisIterator<E> {
 

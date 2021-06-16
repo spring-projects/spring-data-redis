@@ -36,7 +36,7 @@ public class RedisZSetIntegrationTests extends AbstractRedisZSetTestIntegration<
 	}
 
 	RedisStore copyStore(RedisStore store) {
-		return new DefaultRedisZSet(store.getKey().toString(), store.getOperations());
+		return RedisZSet.create(store.getKey(), store.getOperations());
 	}
 
 	AbstractRedisCollection<Object> createCollection() {
