@@ -20,10 +20,12 @@ import redis.clients.jedis.ZParams;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
+import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.core.Cursor;
@@ -31,6 +33,7 @@ import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -276,6 +279,112 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			return connection.getCluster().zlexcount(key, min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(byte[])
+	 */
+	@Nullable
+	@Override
+	public Tuple zPopMin(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			redis.clients.jedis.Tuple tuple = connection.getCluster().zpopmin(key);
+			return tuple != null ? JedisConverters.toTuple(tuple) : null;
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public Set<Tuple> zPopMin(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return toTupleSet(connection.getCluster().zpopmin(key, Math.toIntExact(count)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMin(byte[], long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(unit, "TimeUnit must not be null!");
+
+		try {
+			return toTuple(connection.getCluster().bzpopmin(JedisConverters.toSeconds(timeout, unit), key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(byte[])
+	 */
+	@Nullable
+	@Override
+	public Tuple zPopMax(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			redis.clients.jedis.Tuple tuple = connection.getCluster().zpopmax(key);
+			return tuple != null ? JedisConverters.toTuple(tuple) : null;
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public Set<Tuple> zPopMax(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return toTupleSet(connection.getCluster().zpopmax(key, Math.toIntExact(count)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMax(byte[], long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(unit, "TimeUnit must not be null!");
+
+		try {
+			return toTuple(connection.getCluster().bzpopmax(JedisConverters.toSeconds(timeout, unit), key));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -862,6 +971,23 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 	private static Set<Tuple> toTupleSet(Set<redis.clients.jedis.Tuple> source) {
 		return TUPLE_SET_CONVERTER.convert(source);
+	}
+
+	/**
+	 * Workaround for broken Jedis BZPOP signature.
+	 *
+	 * @param bytes
+	 * @return
+	 */
+	@Nullable
+	@SuppressWarnings("unchecked")
+	private static Tuple toTuple(List<?> bytes) {
+
+		if (bytes.isEmpty()) {
+			return null;
+		}
+
+		return new DefaultTuple((byte[]) bytes.get(1), Double.parseDouble(new String((byte[]) bytes.get(2))));
 	}
 
 }

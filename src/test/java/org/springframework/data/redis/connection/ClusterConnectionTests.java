@@ -610,6 +610,18 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void zInterStoreShouldWorkForSameSlotKeys();
 
+	// GH-2007
+	void zPopMinShouldWorkCorrectly();
+
+	// GH-2007
+	void bzPopMinShouldWorkCorrectly();
+
+	// GH-2007
+	void zPopMaxShouldWorkCorrectly();
+
+	// GH-2007
+	void bzPopMaxShouldWorkCorrectly();
+
 	// DATAREDIS-315
 	void zRangeByLexShouldReturnResultCorrectly();
 

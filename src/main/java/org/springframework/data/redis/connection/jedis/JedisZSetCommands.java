@@ -26,12 +26,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -295,6 +298,96 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.PLUS_BYTES);
 
 		return connection.invoke().just(BinaryJedis::zlexcount, MultiKeyPipelineBase::zlexcount, key, min, max);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(byte[])
+	 */
+	@Nullable
+	@Override
+	public Tuple zPopMin(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().from(BinaryJedis::zpopmin, MultiKeyPipelineBase::zpopmin, key)
+				.get(JedisConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public Set<Tuple> zPopMin(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke()
+				.fromMany(BinaryJedis::zpopmin, MultiKeyPipelineBase::zpopmin, key, Math.toIntExact(count))
+				.toSet(JedisConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMin(byte[], long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(unit, "TimeUnit must not be null!");
+
+		return connection.invoke()
+				.from(BinaryJedis::bzpopmin, MultiKeyPipelineBase::bzpopmin, JedisConverters.toSeconds(timeout, unit), key)
+				.get(JedisZSetCommands::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(byte[])
+	 */
+	@Nullable
+	@Override
+	public Tuple zPopMax(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().from(BinaryJedis::zpopmax, MultiKeyPipelineBase::zpopmax, key)
+				.get(JedisConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public Set<Tuple> zPopMax(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke()
+				.fromMany(BinaryJedis::zpopmax, MultiKeyPipelineBase::zpopmax, key, Math.toIntExact(count))
+				.toSet(JedisConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMax(byte[], long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(unit, "TimeUnit must not be null!");
+
+		return connection.invoke()
+				.from(BinaryJedis::bzpopmax, MultiKeyPipelineBase::bzpopmax, JedisConverters.toSeconds(timeout, unit), key)
+				.get(JedisZSetCommands::toTuple);
 	}
 
 	/*
@@ -600,6 +693,23 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 	private boolean isQueueing() {
 		return connection.isQueueing();
+	}
+
+	/**
+	 * Workaround for broken Jedis BZPOP signature.
+	 *
+	 * @param bytes
+	 * @return
+	 */
+	@Nullable
+	@SuppressWarnings("unchecked")
+	private static Tuple toTuple(List<?> bytes) {
+
+		if (bytes.isEmpty()) {
+			return null;
+		}
+
+		return new DefaultTuple((byte[]) bytes.get(1), Double.parseDouble(new String((byte[]) bytes.get(2))));
 	}
 
 }

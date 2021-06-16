@@ -759,6 +759,26 @@ public abstract class JedisConverters extends Converters {
 	}
 
 	/**
+	 * Convert a timeout to seconds using {@code double} representation including fraction of seconds.
+	 *
+	 * @param timeout
+	 * @param unit
+	 * @return
+	 * @since 2.6
+	 */
+	static double toSeconds(long timeout, TimeUnit unit) {
+
+		switch (unit) {
+			case MILLISECONDS:
+			case MICROSECONDS:
+			case NANOSECONDS:
+				return unit.toMillis(timeout) / 1000d;
+			default:
+				return unit.toSeconds(timeout);
+		}
+	}
+
+	/**
 	 * Convert given {@link BitFieldSubCommands} into argument array.
 	 *
 	 * @param source

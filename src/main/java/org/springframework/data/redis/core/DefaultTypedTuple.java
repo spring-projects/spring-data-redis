@@ -102,4 +102,14 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 
 		return compareTo(o.getScore());
 	}
+
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append(getClass().getSimpleName());
+		sb.append(" [score=").append(score);
+		sb.append(", value=").append(value);
+		sb.append(']');
+		return sb.toString();
+	}
 }

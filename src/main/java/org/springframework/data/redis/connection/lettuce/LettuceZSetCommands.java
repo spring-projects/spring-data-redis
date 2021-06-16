@@ -24,6 +24,7 @@ import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs.Flag;
@@ -275,6 +276,92 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zlexcount, key,
 				LettuceConverters.<byte[]> toRange(range, true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(byte[])
+	 */
+	@Nullable
+	@Override
+	public Tuple zPopMin(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().from(RedisSortedSetAsyncCommands::zpopmin, key).get(LettuceConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public Set<Tuple> zPopMin(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zpopmin, key, count)
+				.toSet(LettuceConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMin(byte[], long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(unit, "TimeUnit must not be null!");
+
+		return connection.invoke(connection.getAsyncDedicatedConnection())
+				.from(RedisSortedSetAsyncCommands::bzpopmin, unit.toSeconds(timeout), key)
+				.get(it -> it.map(LettuceConverters::toTuple).getValueOrElse(null));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(byte[])
+	 */
+	@Nullable
+	@Override
+	public Tuple zPopMax(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().from(RedisSortedSetAsyncCommands::zpopmax, key).get(LettuceConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public Set<Tuple> zPopMax(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zpopmax, key, count)
+				.toSet(LettuceConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMax(byte[], long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(unit, "TimeUnit must not be null!");
+
+		return connection.invoke(connection.getAsyncDedicatedConnection())
+				.from(RedisSortedSetAsyncCommands::bzpopmax, unit.toSeconds(timeout), key)
+				.get(it -> it.map(LettuceConverters::toTuple).getValueOrElse(null));
 	}
 
 	/*
