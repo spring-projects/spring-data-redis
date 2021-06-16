@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Base implementation for {@link RedisCollection}. Provides a skeletal implementation. Note that the collection support
@@ -46,6 +47,9 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 	 * @param operations {@link RedisOperations} for the value type of this collection.
 	 */
 	public AbstractRedisCollection(String key, RedisOperations<String, E> operations) {
+
+		Assert.hasText(key, "Key must not be empty!");
+		Assert.notNull(operations, "RedisOperations must not be null!");
 
 		this.key = key;
 		this.operations = operations;
@@ -217,7 +221,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 
 		StringBuilder sb = new StringBuilder();
 
-		sb.append("RedisStore for key:");
+		sb.append(String.format("%s for key:", getClass().getSimpleName()));
 		sb.append(getKey());
 
 		return sb.toString();

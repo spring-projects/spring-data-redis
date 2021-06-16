@@ -112,7 +112,7 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 				return new DefaultRedisSet(key, template);
 
 			case ZSET:
-				return new DefaultRedisZSet(key, template);
+				return RedisZSet.create(key, template);
 
 			case HASH:
 				if (CollectionType.PROPERTIES.equals(type)) {
