@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,7 @@ import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
@@ -120,12 +122,45 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("ZPOPMIN")
+	void testPopFirst() {
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 3);
+		zSet.add(t2, 4);
+		zSet.add(t3, 5);
+
+		assertThat(zSet.popFirst()).isEqualTo(t1);
+		assertThat(zSet).hasSize(2);
+	}
+
+	@ParameterizedRedisTest
+	@EnabledOnCommand("ZPOPMIN")
+	void testPopFirstWithTimeout() {
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 3);
+		zSet.add(t2, 4);
+		zSet.add(t3, 5);
+
+		assertThat(zSet.popFirst(1, TimeUnit.SECONDS)).isEqualTo(t1);
+		assertThat(zSet).hasSize(2);
+	}
+
+	@ParameterizedRedisTest
 	void testFirstException() {
 		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(() -> zSet.first());
 	}
 
 	@ParameterizedRedisTest
 	void testLast() {
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -136,6 +171,38 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 
 		assertThat(zSet).hasSize(3);
 		assertThat(zSet.last()).isEqualTo(t3);
+	}
+
+	@ParameterizedRedisTest
+	@EnabledOnCommand("ZPOPMAX")
+	void testPopLast() {
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 3);
+		zSet.add(t2, 4);
+		zSet.add(t3, 5);
+
+		assertThat(zSet.popLast()).isEqualTo(t3);
+		assertThat(zSet).hasSize(2);
+	}
+
+	@ParameterizedRedisTest
+	@EnabledOnCommand("ZPOPMAX")
+	void testPopLastWithTimeout() {
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 3);
+		zSet.add(t2, 4);
+		zSet.add(t3, 5);
+
+		assertThat(zSet.popLast(1, TimeUnit.SECONDS)).isEqualTo(t3);
+		assertThat(zSet).hasSize(2);
 	}
 
 	@ParameterizedRedisTest

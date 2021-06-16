@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
@@ -218,12 +219,56 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	E first();
 
 	/**
+	 * Removes the first (lowest) object at the top of this sorted set and returns that object as the value of this
+	 * function.
+	 *
+	 * @return the first (lowest) element currently in this sorted set.
+	 * @throws NoSuchElementException sorted set is empty.
+	 * @since 2.6
+	 */
+	E popFirst();
+
+	/**
+	 * Removes the first (lowest) object at the top of this sorted set and returns that object as the value of this
+	 * function. <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return the first (lowest) element currently in this sorted set.
+	 * @throws NoSuchElementException sorted set is empty.
+	 * @since 2.6
+	 */
+	E popFirst(long timeout, TimeUnit unit);
+
+	/**
 	 * Returns the last (highest) element currently in this sorted set.
 	 *
 	 * @return the last (highest) element currently in this sorted set.
 	 * @throws NoSuchElementException sorted set is empty.
 	 */
 	E last();
+
+	/**
+	 * Removes the last (highest) object at the top of this sorted set and returns that object as the value of this
+	 * function.
+	 *
+	 * @return the last (highest) element currently in this sorted set.
+	 * @throws NoSuchElementException sorted set is empty.
+	 * @since 2.6
+	 */
+	E popLast();
+
+	/**
+	 * Removes the last (highest) object at the top of this sorted set and returns that object as the value of this
+	 * function. <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return the last (highest) element currently in this sorted set.
+	 * @throws NoSuchElementException sorted set is empty.
+	 * @since 2.6
+	 */
+	E popLast(long timeout, TimeUnit unit);
 
 	/**
 	 * @since 1.4
