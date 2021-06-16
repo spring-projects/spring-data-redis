@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
@@ -470,6 +471,78 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.zLexCount(rawKey, range), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#popMin(java.lang.Object)
+	 */
+	@Nullable
+	@Override
+	public TypedTuple<V> popMin(K key) {
+
+		byte[] rawKey = rawKey(key);
+		return deserializeTuple(execute(connection -> connection.zPopMin(rawKey), true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#popMin(java.lang.Object, long)
+	 */
+	@Nullable
+	@Override
+	public Set<TypedTuple<V>> popMin(K key, long count) {
+
+		byte[] rawKey = rawKey(key);
+		return deserializeTupleValues(execute(connection -> connection.zPopMin(rawKey, count), true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#popMin(java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public TypedTuple<V> popMin(K key, long timeout, TimeUnit unit) {
+
+		byte[] rawKey = rawKey(key);
+		return deserializeTuple(execute(connection -> connection.bZPopMin(rawKey, timeout, unit), true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#popMax(java.lang.Object)
+	 */
+	@Nullable
+	@Override
+	public TypedTuple<V> popMax(K key) {
+
+		byte[] rawKey = rawKey(key);
+		return deserializeTuple(execute(connection -> connection.zPopMax(rawKey), true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#popMax(java.lang.Object, long)
+	 */
+	@Nullable
+	@Override
+	public Set<TypedTuple<V>> popMax(K key, long count) {
+
+		byte[] rawKey = rawKey(key);
+		return deserializeTupleValues(execute(connection -> connection.zPopMax(rawKey, count), true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#popMax(java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public TypedTuple<V> popMax(K key, long timeout, TimeUnit unit) {
+
+		byte[] rawKey = rawKey(key);
+		return deserializeTuple(execute(connection -> connection.bZPopMax(rawKey, timeout, unit), true));
 	}
 
 	/*

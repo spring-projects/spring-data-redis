@@ -2026,6 +2026,56 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrange(SAME_SLOT_KEY_3_BYTES, 0, -1)).contains(VALUE_2_BYTES);
 	}
 
+	@Test // GH-2007
+	@EnabledOnCommand("ZPOPMIN")
+	public void zPopMinShouldWorkCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 30D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zPopMin(KEY_1_BYTES)).isEqualTo(new DefaultTuple(VALUE_1_BYTES, 10D));
+		assertThat(clusterConnection.zPopMin(KEY_1_BYTES, 2)).containsExactly(new DefaultTuple(VALUE_2_BYTES, 20D),
+				new DefaultTuple(VALUE_3_BYTES, 30D));
+	}
+
+	@Test // GH-2007
+	@EnabledOnCommand("BZPOPMIN")
+	public void bzPopMinShouldWorkCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 30D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.bZPopMin(KEY_1_BYTES, 1, TimeUnit.SECONDS))
+				.isEqualTo(new DefaultTuple(VALUE_1_BYTES, 10D));
+	}
+
+	@Test // GH-2007
+	@EnabledOnCommand("ZPOPMAX")
+	public void zPopMaxShouldWorkCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 30D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zPopMax(KEY_1_BYTES)).isEqualTo(new DefaultTuple(VALUE_3_BYTES, 30D));
+		assertThat(clusterConnection.zPopMax(KEY_1_BYTES, 2)).containsExactly(new DefaultTuple(VALUE_2_BYTES, 20D),
+				new DefaultTuple(VALUE_1_BYTES, 10D));
+	}
+
+	@Test // GH-2007
+	@EnabledOnCommand("BZPOPMAX")
+	public void bzPopMaxShouldWorkCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 30D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.bZPopMax(KEY_1_BYTES, 1, TimeUnit.SECONDS))
+				.isEqualTo(new DefaultTuple(VALUE_3_BYTES, 30D));
+	}
+
 	@Test // DATAREDIS-315
 	public void zRangeByLexShouldReturnResultCorrectly() {
 

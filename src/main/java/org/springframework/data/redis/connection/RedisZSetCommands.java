@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -971,6 +972,80 @@ public interface RedisZSetCommands {
 	 */
 	@Nullable
 	Long zLexCount(byte[] key, Range range);
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Tuple zPopMin(byte[] key);
+
+	/**
+	 * Remove and return {@code count} values with their score having the lowest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of elements to pop.
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Set<Tuple> zPopMin(byte[] key, long count);
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit);
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Tuple zPopMax(byte[] key);
+
+	/**
+	 * Remove and return {@code count} values with their score having the highest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of elements to pop.
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Set<Tuple> zPopMax(byte[] key, long count);
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at {@code key}. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit);
 
 	/**
 	 * Get the size of sorted set with {@code key}.

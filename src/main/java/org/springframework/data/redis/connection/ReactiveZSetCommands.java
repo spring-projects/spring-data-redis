@@ -19,13 +19,16 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -1242,6 +1245,293 @@ public interface ReactiveZSetCommands {
 	Flux<NumericResponse<ZLexCountCommand, Long>> zLexCount(Publisher<ZLexCountCommand> commands);
 
 	/**
+	 * @author Mark Paluch
+	 */
+	enum PopDirection {
+		MIN, MAX
+	}
+
+	/**
+	 * {@code ZPOPMIN}/{@literal ZPOPMAX} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	class ZPopCommand extends KeyCommand {
+
+		private final PopDirection direction;
+
+		private final long count;
+
+		private ZPopCommand(PopDirection direction, @Nullable ByteBuffer key, long count) {
+
+			super(key);
+			this.count = count;
+			this.direction = direction;
+		}
+
+		/**
+		 * Creates a new {@link ZPopCommand} for min pop ({@literal ZPOPMIN}).
+		 *
+		 * @return a new {@link ZPopCommand} for min pop ({@literal ZPOPMIN}).
+		 */
+		public static ZPopCommand min() {
+			return new ZPopCommand(PopDirection.MIN, null, 1);
+		}
+
+		/**
+		 * Creates a new {@link ZPopCommand} for max pop ({@literal ZPOPMAX}).
+		 *
+		 * @return a new {@link ZPopCommand} for max pop ({@literal ZPOPMAX}).
+		 */
+		public static ZPopCommand max() {
+			return new ZPopCommand(PopDirection.MAX, null, 1);
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ZPopCommand} with {@literal value} applied.
+		 */
+		public ZPopCommand from(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new ZPopCommand(direction, key, count);
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param count
+		 * @return a new {@link ZPopCommand} with {@literal value} applied.
+		 */
+		public ZPopCommand count(long count) {
+			return new ZPopCommand(direction, getKey(), count);
+		}
+
+		/**
+		 * @return never {@literal null}.
+		 */
+		public PopDirection getDirection() {
+			return direction;
+		}
+
+		public long getCount() {
+			return count;
+		}
+	}
+
+	/**
+	 * {@code BZPOPMIN}/{@literal BZPOPMAX} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
+	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
+	 * @since 2.6
+	 */
+	class BZPopCommand extends KeyCommand {
+
+		private final PopDirection direction;
+
+		private final Duration timeout;
+
+		private final long count;
+
+		private BZPopCommand(@Nullable ByteBuffer key, Duration timeout, long count, PopDirection direction) {
+
+			super(key);
+			this.count = count;
+			this.timeout = timeout;
+			this.direction = direction;
+		}
+
+		/**
+		 * Creates a new {@link BZPopCommand} for min pop ({@literal ZPOPMIN}).
+		 *
+		 * @return a new {@link BZPopCommand} for min pop ({@literal ZPOPMIN}).
+		 */
+		public static BZPopCommand min() {
+			return new BZPopCommand(null, null, 0, PopDirection.MIN);
+		}
+
+		/**
+		 * Creates a new {@link BZPopCommand} for max pop ({@literal ZPOPMAX}).
+		 *
+		 * @return a new {@link BZPopCommand} for max pop ({@literal ZPOPMAX}).
+		 */
+		public static BZPopCommand max() {
+			return new BZPopCommand(null, null, 0, PopDirection.MAX);
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link BZPopCommand} with {@literal value} applied.
+		 */
+		public BZPopCommand from(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new BZPopCommand(key, timeout, count, direction);
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param count
+		 * @return a new {@link BZPopCommand} with {@literal value} applied.
+		 */
+		public BZPopCommand count(long count) {
+			return new BZPopCommand(getKey(), timeout, count, direction);
+		}
+
+		/**
+		 * Applies a {@link Duration timeout}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param timeout must not be {@literal null}.
+		 * @return a new {@link BZPopCommand} with {@link Duration timeout} applied.
+		 */
+		public BZPopCommand blockingFor(Duration timeout) {
+
+			Assert.notNull(timeout, "Timeout must not be null!");
+
+			return new BZPopCommand(getKey(), timeout, count, direction);
+		}
+
+		/**
+		 * @return never {@literal null}.
+		 */
+		public PopDirection getDirection() {
+			return direction;
+		}
+
+		public Duration getTimeout() {
+			return timeout;
+		}
+
+		public long getCount() {
+			return count;
+		}
+	}
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	default Mono<Tuple> zPopMin(ByteBuffer key) {
+		return zPop(Mono.just(ZPopCommand.min().from(key))).map(CommandResponse::getOutput).flatMap(Flux::next).next();
+	}
+
+	/**
+	 * Remove and return {@code count} values with their score having the lowest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of elements to pop.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	default Flux<Tuple> zPopMin(ByteBuffer key, long count) {
+		return zPop(Mono.just(ZPopCommand.min().from(key).count(count))).map(CommandResponse::getOutput)
+				.flatMap(Function.identity());
+	}
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return
+	 * @throws IllegalArgumentException if the timeout is {@literal null} or negative.
+	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
+	 * @since 2.6
+	 */
+	default Mono<Tuple> bZPopMin(ByteBuffer key, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return bZPop(Mono.just(BZPopCommand.min().from(key).blockingFor(timeout))).map(CommandResponse::getOutput)
+				.flatMap(Flux::next).next();
+	}
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	default Mono<Tuple> zPopMax(ByteBuffer key) {
+		return zPop(Mono.just(ZPopCommand.max().from(key))).map(CommandResponse::getOutput).flatMap(Flux::next).next();
+	}
+
+	/**
+	 * Remove and return {@code count} values with their score having the highest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of elements to pop.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	default Flux<Tuple> zPopMax(ByteBuffer key, long count) {
+		return zPop(Mono.just(ZPopCommand.max().from(key).count(count))).map(CommandResponse::getOutput)
+				.flatMap(Function.identity());
+	}
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at {@code key}. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return
+	 * @throws IllegalArgumentException if the timeout is {@literal null} or negative.
+	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
+	 * @since 2.6
+	 */
+	default Mono<Tuple> bZPopMax(ByteBuffer key, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return bZPop(Mono.just(BZPopCommand.max().from(key).blockingFor(timeout))).map(CommandResponse::getOutput)
+				.flatMap(Flux::next).next();
+	}
+
+	/**
+	 * Remove and return elements from sorted set at {@link ByteBuffer keyCommand#getKey()}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 */
+	Flux<CommandResponse<ZPopCommand, Flux<Tuple>>> zPop(Publisher<ZPopCommand> commands);
+
+	/**
+	 * Remove and return elements from sorted set at {@link ByteBuffer keyCommand#getKey()}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 */
+	Flux<CommandResponse<BZPopCommand, Flux<Tuple>>> bZPop(Publisher<BZPopCommand> commands);
+
+	/**
 	 * Get the size of sorted set with {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -1256,7 +1546,7 @@ public interface ReactiveZSetCommands {
 	}
 
 	/**
-	 * Get the size of sorted set with {@link KeyCommand#getKey()}.
+	 * Get the size of sorted set with {@linByteBuffer keyCommand#getKey()}.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return

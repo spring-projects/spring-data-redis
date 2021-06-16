@@ -945,6 +945,48 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
+	default Tuple zPopMin(byte[] key) {
+		return zSetCommands().zPopMin(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zPopMin(byte[] key, long count) {
+		return zSetCommands().zPopMin(key, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
+		return zSetCommands().bZPopMin(key, timeout, unit);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Tuple zPopMax(byte[] key) {
+		return zSetCommands().zPopMax(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zPopMax(byte[] key, long count) {
+		return zSetCommands().zPopMax(key, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
+		return zSetCommands().bZPopMax(key, timeout, unit);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
 	default Long zCount(byte[] key, Range range) {
 		return zSetCommands().zCount(key, range);
 	}

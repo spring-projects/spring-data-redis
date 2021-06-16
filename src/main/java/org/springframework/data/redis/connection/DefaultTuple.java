@@ -89,4 +89,14 @@ public class DefaultTuple implements Tuple {
 		Double a = (o == null ? Double.valueOf(0.0d) : o);
 		return d.compareTo(a);
 	}
+
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append(getClass().getSimpleName());
+		sb.append(" [score=").append(score);
+		sb.append(", value=").append(value == null ? "null" : new String(value));
+		sb.append(']');
+		return sb.toString();
+	}
 }

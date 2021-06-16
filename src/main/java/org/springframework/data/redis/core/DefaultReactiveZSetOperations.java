@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.ReactiveZSetCommands;
@@ -343,6 +345,80 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(range, "Range must not be null!");
 
 		return createMono(connection -> connection.zLexCount(rawKey(key), range));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#popMin(java.lang.Object)
+	 */
+	@Override
+	public Mono<TypedTuple<V>> popMin(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> connection.zPopMin(rawKey(key)).map(this::readTypedTuple));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#popMin(java.lang.Object, long)
+	 */
+	@Override
+	public Flux<TypedTuple<V>> popMin(K key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createFlux(connection -> connection.zPopMin(rawKey(key), count).map(this::readTypedTuple));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#popMin(java.lang.Object, java.time.Duration)
+	 */
+	@Override
+	public Mono<TypedTuple<V>> popMin(K key, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		return createMono(connection -> connection.bZPopMin(rawKey(key), timeout).map(this::readTypedTuple));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#popMax(java.lang.Object)
+	 */
+	@Override
+	public Mono<TypedTuple<V>> popMax(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> connection.zPopMax(rawKey(key)).map(this::readTypedTuple));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#popMax(java.lang.Object, long)
+	 */
+	@Override
+	public Flux<TypedTuple<V>> popMax(K key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createFlux(connection -> connection.zPopMax(rawKey(key), count).map(this::readTypedTuple));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#popMax(java.lang.Object, java.time.Duration)
+	 */
+	@Override
+	public Mono<TypedTuple<V>> popMax(K key, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		return createMono(connection -> connection.bZPopMax(rawKey(key), timeout).map(this::readTypedTuple));
 	}
 
 	/*

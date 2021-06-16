@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 
@@ -35,6 +36,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -126,6 +128,48 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key, value3, 0);
 
 		assertThat(zSetOps.lexCount(key, RedisZSetCommands.Range.range().gt(value1))).isEqualTo(2);
+	}
+
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("ZPOPMIN")
+	void testPopMin() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+		V value4 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1);
+		zSetOps.add(key, value2, 2);
+		zSetOps.add(key, value3, 3);
+		zSetOps.add(key, value4, 4);
+
+		assertThat(zSetOps.popMin(key)).isEqualTo(new DefaultTypedTuple<>(value1, 1d));
+		assertThat(zSetOps.popMin(key, 2)).containsExactly(new DefaultTypedTuple<>(value2, 2d),
+				new DefaultTypedTuple<>(value3, 3d));
+		assertThat(zSetOps.popMin(key, 1, TimeUnit.SECONDS)).isEqualTo(new DefaultTypedTuple<>(value4, 4d));
+	}
+
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("ZPOPMAX")
+	void testPopMax() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+		V value4 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1);
+		zSetOps.add(key, value2, 2);
+		zSetOps.add(key, value3, 3);
+		zSetOps.add(key, value4, 4);
+
+		assertThat(zSetOps.popMax(key)).isEqualTo(new DefaultTypedTuple<>(value4, 4d));
+		assertThat(zSetOps.popMax(key, 2)).containsExactly(new DefaultTypedTuple<>(value3, 3d),
+				new DefaultTypedTuple<>(value2, 2d));
+		assertThat(zSetOps.popMax(key, 1, TimeUnit.SECONDS)).isEqualTo(new DefaultTypedTuple<>(value1, 1d));
 	}
 
 	@ParameterizedRedisTest

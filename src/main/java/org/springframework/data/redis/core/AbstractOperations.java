@@ -223,7 +223,8 @@ abstract class AbstractOperations<K, V> {
 		return SerializationUtils.deserialize(rawValues, valueSerializer());
 	}
 
-	Set<TypedTuple<V>> deserializeTupleValues(Collection<Tuple> rawValues) {
+	@Nullable
+	Set<TypedTuple<V>> deserializeTupleValues(@Nullable Collection<Tuple> rawValues) {
 		if (rawValues == null) {
 			return null;
 		}
@@ -235,7 +236,11 @@ abstract class AbstractOperations<K, V> {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	TypedTuple<V> deserializeTuple(Tuple tuple) {
+	@Nullable
+	TypedTuple<V> deserializeTuple(@Nullable Tuple tuple) {
+		if (tuple == null) {
+			return null;
+		}
 		Object value = tuple.getValue();
 		if (valueSerializer() != null) {
 			value = valueSerializer().deserialize(tuple.getValue());

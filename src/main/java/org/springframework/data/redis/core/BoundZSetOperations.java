@@ -15,9 +15,11 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
@@ -26,6 +28,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * ZSet (or SortedSet) operations bound to a certain key.
@@ -234,6 +237,112 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Long lexCount(Range range);
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at the bound key.
+	 *
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	TypedTuple<V> popMin();
+
+	/**
+	 * Remove and return {@code count} values with their score having the lowest score from sorted set at the bound key.
+	 *
+	 * @param count number of elements to pop.
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Set<TypedTuple<V>> popMin(long count);
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at the bound key. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	TypedTuple<V> popMin(long timeout, TimeUnit unit);
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at the bound key. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @throws IllegalArgumentException if the timeout is {@literal null} or negative.
+	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	default TypedTuple<V> popMin(Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return popMin(TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+	}
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at the bound key.
+	 *
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	TypedTuple<V> popMax();
+
+	/**
+	 * Remove and return {@code count} values with their score having the highest score from sorted set at the bound key.
+	 *
+	 * @param count number of elements to pop.
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Set<TypedTuple<V>> popMax(long count);
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at the bound key. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	TypedTuple<V> popMax(long timeout, TimeUnit unit);
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at the bound key. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @throws IllegalArgumentException if the timeout is {@literal null} or negative.
+	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	default TypedTuple<V> popMax(Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return popMax(TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+	}
 
 	/**
 	 * Returns the number of elements of the sorted set stored with given the bound key.
