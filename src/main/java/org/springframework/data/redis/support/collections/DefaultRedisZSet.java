@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
@@ -382,6 +383,38 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisZSet#popFirst()
+	 */
+	@Override
+	public E popFirst() {
+
+		TypedTuple<E> tuple = boundZSetOps.popMin();
+
+		if (tuple != null) {
+			return tuple.getValue();
+		}
+
+		throw new NoSuchElementException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisZSet#popFirst(long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public E popFirst(long timeout, TimeUnit unit) {
+
+		TypedTuple<E> tuple = boundZSetOps.popMin(timeout, unit);
+
+		if (tuple != null) {
+			return tuple.getValue();
+		}
+
+		throw new NoSuchElementException();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.support.collections.RedisZSet#last()
 	 */
 	@Override
@@ -392,6 +425,38 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		Iterator<E> iterator = members.iterator();
 		if (iterator.hasNext()) {
 			return iterator.next();
+		}
+
+		throw new NoSuchElementException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisZSet#popLast()
+	 */
+	@Override
+	public E popLast() {
+
+		TypedTuple<E> tuple = boundZSetOps.popMax();
+
+		if (tuple != null) {
+			return tuple.getValue();
+		}
+
+		throw new NoSuchElementException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisZSet#popLast(long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public E popLast(long timeout, TimeUnit unit) {
+
+		TypedTuple<E> tuple = boundZSetOps.popMax(timeout, unit);
+
+		if (tuple != null) {
+			return tuple.getValue();
 		}
 
 		throw new NoSuchElementException();
