@@ -81,7 +81,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	private final RedisSerializer<String> serializer;
 	private Converter<byte[], String> bytesToString = new DeserializingConverter();
 	private Converter<String, byte[]> stringToBytes = new SerializingConverter();
-	private SetConverter<Tuple, StringTuple> tupleToStringTuple = new SetConverter<>(new TupleConverter());
+	private final TupleConverter tupleConverter = new TupleConverter();
+	private SetConverter<Tuple, StringTuple> tupleToStringTuple = new SetConverter<>(tupleConverter);
 	private SetConverter<StringTuple, Tuple> stringTupleToTuple = new SetConverter<>(new StringTupleConverter());
 	private ListConverter<byte[], String> byteListToStringList = new ListConverter<>(bytesToString);
 	private MapConverter<byte[], String> byteMapToStringMap = new MapConverter<>(bytesToString);
@@ -2819,6 +2820,126 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long zLexCount(byte[] key, Range range) {
 		return delegate.zLexCount(key, range);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(byte[])
+	 */
+	@Nullable
+	@Override
+	public Tuple zPopMin(byte[] key) {
+		return delegate.zPopMin(key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(String)
+	 */
+	@Nullable
+	@Override
+	public StringTuple zPopMin(String key) {
+		return convertAndReturn(delegate.zPopMin(serialize(key)), tupleConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMinMin(byte[], count)
+	 */
+	@Nullable
+	@Override
+	public Set<Tuple> zPopMin(byte[] key, long count) {
+		return delegate.zPopMin(key, count);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(String, long)
+	 */
+	@Nullable
+	@Override
+	public Set<StringTuple> zPopMin(String key, long count) {
+		return convertAndReturn(delegate.zPopMin(serialize(key), count), tupleToStringTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMin(byte[], long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
+		return delegate.bZPopMin(key, timeout, unit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMin(String, long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public StringTuple bZPopMin(String key, long timeout, TimeUnit unit) {
+		return convertAndReturn(delegate.bZPopMin(serialize(key), timeout, unit), tupleConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(byte[])
+	 */
+	@Nullable
+	@Override
+	public Tuple zPopMax(byte[] key) {
+		return delegate.zPopMax(key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(String)
+	 */
+	@Nullable
+	@Override
+	public StringTuple zPopMax(String key) {
+		return convertAndReturn(delegate.zPopMax(serialize(key)), tupleConverter);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public Set<Tuple> zPopMax(byte[] key, long count) {
+		return delegate.zPopMax(key, count);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(String, long)
+	 */
+	@Nullable
+	@Override
+	public Set<StringTuple> zPopMax(String key, long count) {
+		return convertAndReturn(delegate.zPopMax(serialize(key), count), tupleToStringTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMax(byte[], long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
+		return delegate.bZPopMax(key, timeout, unit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMax(String, long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public StringTuple bZPopMax(String key, long timeout, TimeUnit unit) {
+		return convertAndReturn(delegate.bZPopMax(serialize(key), timeout, unit), tupleConverter);
 	}
 
 	/*

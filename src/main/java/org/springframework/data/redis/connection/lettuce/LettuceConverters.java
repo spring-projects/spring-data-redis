@@ -247,7 +247,8 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	public static Tuple toTuple(@Nullable ScoredValue<byte[]> source) {
-		return source != null ? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore())) : null;
+		return source != null && source.hasValue() ? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore()))
+				: null;
 	}
 
 	public static String toString(@Nullable byte[] source) {

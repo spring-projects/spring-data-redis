@@ -1801,6 +1801,52 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Long) results.get(11)).isEqualTo(3);
 	}
 
+	@Test // GH-2007
+	@EnabledOnCommand("ZPOPMIN")
+	void zPopMin() {
+
+		actual.add(connection.zAdd("myzset", 1, "a"));
+		actual.add(connection.zAdd("myzset", 2, "b"));
+		actual.add(connection.zAdd("myzset", 3, "c"));
+		actual.add(connection.zAdd("myzset", 4, "d"));
+
+		actual.add(connection.zPopMin("myzset"));
+		actual.add(connection.bZPopMin("myzset", 1, TimeUnit.SECONDS));
+		actual.add(connection.zPopMin("myzset", 2));
+		actual.add(connection.zPopMin("myzset"));
+
+		List<Object> results = getResults();
+
+		assertThat(results.get(4)).isEqualTo(new DefaultStringTuple("a".getBytes(), "a", 1D));
+		assertThat(results.get(5)).isEqualTo(new DefaultStringTuple("b".getBytes(), "b", 2D));
+		assertThat((Collection) results.get(6)).containsExactly(new DefaultStringTuple("c".getBytes(), "c", 3D),
+				new DefaultStringTuple("d".getBytes(), "d", 4D));
+		assertThat(results.get(7)).isNull();
+	}
+
+	@Test // GH-2007
+	@EnabledOnCommand("ZPOPMAX")
+	void zPopMax() {
+
+		actual.add(connection.zAdd("myzset", 1, "a"));
+		actual.add(connection.zAdd("myzset", 2, "b"));
+		actual.add(connection.zAdd("myzset", 3, "c"));
+		actual.add(connection.zAdd("myzset", 4, "d"));
+
+		actual.add(connection.zPopMax("myzset"));
+		actual.add(connection.bZPopMax("myzset", 1, TimeUnit.SECONDS));
+		actual.add(connection.zPopMax("myzset", 2));
+		actual.add(connection.zPopMax("myzset"));
+
+		List<Object> results = getResults();
+
+		assertThat(results.get(4)).isEqualTo(new DefaultStringTuple("d".getBytes(), "d", 4D));
+		assertThat(results.get(5)).isEqualTo(new DefaultStringTuple("c".getBytes(), "c", 3D));
+		assertThat((Collection) results.get(6)).containsExactly(new DefaultStringTuple("b".getBytes(), "b", 2D),
+				new DefaultStringTuple("a".getBytes(), "a", 1D));
+		assertThat(results.get(7)).isNull();
+	}
+
 	@Test
 	void testZIncrBy() {
 		actual.add(connection.zAdd("myset", 2, "Bob"));

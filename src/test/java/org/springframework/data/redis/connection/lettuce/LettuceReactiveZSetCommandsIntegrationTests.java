@@ -22,6 +22,7 @@ import static org.springframework.data.domain.Range.Bound.*;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Arrays;
 
 import org.springframework.data.domain.Range;
@@ -383,6 +384,62 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 
 		assertThat(connection.zSetCommands().zCount(KEY_1_BBUFFER, Range.rightUnbounded(inclusive(2D))).block())
 				.isEqualTo(2L);
+	}
+
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("ZPOPMIN")
+	void zPopMinShouldReturnCorrectly() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+
+		connection.zSetCommands().zPopMin(KEY_1_BBUFFER).as(StepVerifier::create)
+				.expectNext(new DefaultTuple(VALUE_1_BYTES, 1D)).verifyComplete();
+
+		connection.zSetCommands().zPopMin(KEY_1_BBUFFER, 2).as(StepVerifier::create)
+				.expectNext(new DefaultTuple(VALUE_2_BYTES, 2D)).expectNext(new DefaultTuple(VALUE_3_BYTES, 3D))
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("BZPOPMIN")
+	void bzPopMinShouldReturnCorrectly() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+
+		connection.zSetCommands().bZPopMin(KEY_1_BBUFFER, Duration.ofSeconds(1)).as(StepVerifier::create)
+				.expectNext(new DefaultTuple(VALUE_1_BYTES, 1D)).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("ZPOPMAX")
+	void zPopMaxShouldReturnCorrectly() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+
+		connection.zSetCommands().zPopMax(KEY_1_BBUFFER).as(StepVerifier::create)
+				.expectNext(new DefaultTuple(VALUE_3_BYTES, 3D)).verifyComplete();
+
+		connection.zSetCommands().zPopMax(KEY_1_BBUFFER, 2).as(StepVerifier::create)
+				.expectNext(new DefaultTuple(VALUE_2_BYTES, 2D)).expectNext(new DefaultTuple(VALUE_1_BYTES, 1D))
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("BZPOPMAX")
+	void bzPopMaxShouldReturnCorrectly() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+
+		connection.zSetCommands().bZPopMax(KEY_1_BBUFFER, Duration.ofSeconds(1)).as(StepVerifier::create)
+				.expectNext(new DefaultTuple(VALUE_3_BYTES, 3D)).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525

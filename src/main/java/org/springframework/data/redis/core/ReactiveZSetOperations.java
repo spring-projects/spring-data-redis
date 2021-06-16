@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 
@@ -281,6 +282,74 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/ZLEXCOUNT">Redis Documentation: ZLEXCOUNT</a>
 	 */
 	Mono<Long> lexCount(K key, Range<String> range);
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	Mono<TypedTuple<V>> popMin(K key);
+
+	/**
+	 * Remove and return {@code count} values with their score having the lowest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of elements to pop.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	Flux<TypedTuple<V>> popMin(K key, long count);
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout maximal duration to wait until an entry in the list at {@code key} is available. Must be either
+	 *          {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero can be
+	 *          used to wait indefinitely. Durations between zero and one second are not supported.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	Mono<TypedTuple<V>> popMin(K key, Duration timeout);
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	Mono<TypedTuple<V>> popMax(K key);
+
+	/**
+	 * Remove and return {@code count} values with their score having the highest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of elements to pop.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	Flux<TypedTuple<V>> popMax(K key, long count);
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout maximal duration to wait until an entry in the list at {@code key} is available. Must be either
+	 *          {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero can be
+	 *          used to wait indefinitely. Durations between zero and one second are not supported.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	Mono<TypedTuple<V>> popMax(K key, Duration timeout);
 
 	/**
 	 * Returns the number of elements of the sorted set stored with given {@code key}.

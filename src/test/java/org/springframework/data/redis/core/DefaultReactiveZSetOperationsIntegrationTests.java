@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assumptions.*;
 
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -432,6 +433,52 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.lexCount(key, Range.unbounded()).as(StepVerifier::create).expectNext(7L).verifyComplete();
 		zSetOperations.lexCount(key, Range.leftOpen("b", "f")).as(StepVerifier::create).expectNext(4L).verifyComplete();
 		zSetOperations.lexCount(key, Range.rightOpen("b", "f")).as(StepVerifier::create).expectNext(4L).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("ZPOPMIN")
+	void popMin() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+		V value4 = valueFactory.instance();
+
+		zSetOperations.add(key, value1, 1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value2, 2).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value3, 3).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value4, 4).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.popMin(key).as(StepVerifier::create).expectNext(new DefaultTypedTuple<>(value1, 1D))
+				.verifyComplete();
+		zSetOperations.popMin(key, Duration.ofSeconds(1)).as(StepVerifier::create)
+				.expectNext(new DefaultTypedTuple<>(value2, 2D)).verifyComplete();
+		zSetOperations.popMin(key, 2).as(StepVerifier::create).expectNext(new DefaultTypedTuple<>(value3, 3D))
+				.expectNext(new DefaultTypedTuple<>(value4, 4D)).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("ZPOPMAX")
+	void popMax() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+		V value4 = valueFactory.instance();
+
+		zSetOperations.add(key, value1, 1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value2, 2).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value3, 3).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value4, 4).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.popMax(key).as(StepVerifier::create).expectNext(new DefaultTypedTuple<>(value4, 4D))
+				.verifyComplete();
+		zSetOperations.popMax(key, Duration.ofSeconds(1)).as(StepVerifier::create)
+				.expectNext(new DefaultTypedTuple<>(value3, 3D)).verifyComplete();
+		zSetOperations.popMax(key, 2).as(StepVerifier::create).expectNext(new DefaultTypedTuple<>(value2, 2D))
+				.expectNext(new DefaultTypedTuple<>(value1, 1D)).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

@@ -19,6 +19,7 @@ package org.springframework.data.redis.core;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -26,6 +27,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.lang.Nullable;
 
 /**
  * Default implementation for {@link BoundZSetOperations}.
@@ -320,6 +322,66 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	@Override
 	public Long lexCount(Range range) {
 		return ops.lexCount(getKey(), range);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#popMin()
+	 */
+	@Nullable
+	@Override
+	public TypedTuple<V> popMin() {
+		return ops.popMin(getKey());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#popMin(long)
+	 */
+	@Nullable
+	@Override
+	public Set<TypedTuple<V>> popMin(long count) {
+		return ops.popMin(getKey(), count);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#popMin(long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public TypedTuple<V> popMin(long timeout, TimeUnit unit) {
+		return ops.popMin(getKey(), timeout, unit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#popMax()
+	 */
+	@Nullable
+	@Override
+	public TypedTuple<V> popMax() {
+		return ops.popMax(getKey());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#popMax(long)
+	 */
+	@Nullable
+	@Override
+	public Set<TypedTuple<V>> popMax(long count) {
+		return ops.popMax(getKey(), count);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#popMax(long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public TypedTuple<V> popMax(long timeout, TimeUnit unit) {
+		return ops.popMax(getKey(), timeout, unit);
 	}
 
 	/*

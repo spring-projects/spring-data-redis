@@ -2047,6 +2047,56 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrange(SAME_SLOT_KEY_3, 0, -1)).contains(VALUE_2);
 	}
 
+	@Test // GH-2007
+	@EnabledOnCommand("ZPOPMIN")
+	public void zPopMinShouldWorkCorrectly() {
+
+		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
+		nativeConnection.zadd(KEY_1, 20D, VALUE_2);
+		nativeConnection.zadd(KEY_1, 30D, VALUE_3);
+
+		assertThat(clusterConnection.zPopMin(KEY_1_BYTES)).isEqualTo(new DefaultTuple(VALUE_1_BYTES, 10D));
+		assertThat(clusterConnection.zPopMin(KEY_1_BYTES, 2)).containsExactly(new DefaultTuple(VALUE_2_BYTES, 20D),
+				new DefaultTuple(VALUE_3_BYTES, 30D));
+	}
+
+	@Test // GH-2007
+	@EnabledOnCommand("BZPOPMIN")
+	public void bzPopMinShouldWorkCorrectly() {
+
+		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
+		nativeConnection.zadd(KEY_1, 20D, VALUE_2);
+		nativeConnection.zadd(KEY_1, 30D, VALUE_3);
+
+		assertThat(clusterConnection.bZPopMin(KEY_1_BYTES, 1, TimeUnit.SECONDS))
+				.isEqualTo(new DefaultTuple(VALUE_1_BYTES, 10D));
+	}
+
+	@Test // GH-2007
+	@EnabledOnCommand("ZPOPMAX")
+	public void zPopMaxShouldWorkCorrectly() {
+
+		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
+		nativeConnection.zadd(KEY_1, 20D, VALUE_2);
+		nativeConnection.zadd(KEY_1, 30D, VALUE_3);
+
+		assertThat(clusterConnection.zPopMax(KEY_1_BYTES)).isEqualTo(new DefaultTuple(VALUE_3_BYTES, 30D));
+		assertThat(clusterConnection.zPopMax(KEY_1_BYTES, 2)).containsExactly(new DefaultTuple(VALUE_2_BYTES, 20D),
+				new DefaultTuple(VALUE_1_BYTES, 10D));
+	}
+
+	@Test // GH-2007
+	@EnabledOnCommand("BZPOPMAX")
+	public void bzPopMaxShouldWorkCorrectly() {
+
+		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
+		nativeConnection.zadd(KEY_1, 20D, VALUE_2);
+		nativeConnection.zadd(KEY_1, 30D, VALUE_3);
+
+		assertThat(clusterConnection.bZPopMax(KEY_1_BYTES, 1, TimeUnit.SECONDS))
+				.isEqualTo(new DefaultTuple(VALUE_3_BYTES, 30D));
+	}
+
 	@Test // DATAREDIS-315
 	public void zRangeByLexShouldReturnResultCorrectly() {
 
