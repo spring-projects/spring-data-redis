@@ -15,15 +15,10 @@
  */
 package org.springframework.data.redis.connection;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 
-
-import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link BitFieldSubCommands}.
@@ -51,33 +46,50 @@ class BitFieldSubCommandsUnitTests {
 		assertThat(type.getBits()).isEqualTo(10);
 	}
 
-	@Test //ISSUES #2055
-	void shouldCreateBitCommandsWithChainingMethod(){
+	@Test // GH-2055
+	void shouldCreateBitCommandsWithChainingMethod() {
 
-		BitFieldType type =  BitFieldType.unsigned(1);
-		BitFieldSubCommands bitFieldSubCommands = BitFieldSubCommands.create()
-				.get(type).valueAt(BitFieldSubCommands.Offset.offset(1))
-				.get(type).valueAt(BitFieldSubCommands.Offset.offset(2))
-				.set(type).valueAt(BitFieldSubCommands.Offset.offset(3)).to(1)
-				.set(type).valueAt(BitFieldSubCommands.Offset.offset(4)).to(1)
-				.incr(type).valueAt(BitFieldSubCommands.Offset.offset(5)).by(1);
+		BitFieldType type = BitFieldType.unsigned(1);
+		BitFieldSubCommands bitFieldSubCommands = BitFieldSubCommands.create().get(type).valueAt(Offset.offset(1)).get(type)
+				.valueAt(Offset.offset(2)).set(type).valueAt(Offset.offset(3)).to(1).set(type).valueAt(Offset.offset(4)).to(1)
+				.incr(type).valueAt(Offset.offset(5)).by(1);
 
-		assertThat(bitFieldSubCommands.getSubCommands().size()).isEqualTo(5);
+		assertThat(bitFieldSubCommands.getSubCommands()).hasSize(5);
 	}
 
-	@Test //ISSUES #2055
-	void shouldCreateBitCommandsWithNonChainingMethod(){
+	@Test // GH-2055
+	void shouldCreateEqualObjects() {
 
-		BitFieldType type =  BitFieldType.unsigned(1);
-		BitFieldSubCommands.Offset offset = BitFieldSubCommands.Offset.offset(1);
+		BitFieldType type = BitFieldType.unsigned(1);
 
-		BitFieldSubCommands.BitFieldSubCommand subGetCommand = BitFieldSubCommands.BitFieldGet.create(type,offset);
-		BitFieldSubCommands.BitFieldSubCommand subSetCommand = BitFieldSubCommands.BitFieldSet.create(type,offset,1);
-		BitFieldSubCommands.BitFieldSubCommand subIncrByCommand = BitFieldSubCommands.BitFieldIncrBy.create(type,offset,1);
-		BitFieldSubCommands.BitFieldSubCommand subIncrByCommand2 = BitFieldSubCommands.BitFieldIncrBy.create(type,offset,1,BitFieldSubCommands.BitFieldIncrBy.Overflow.FAIL);
+		BitFieldSubCommands createdWithBuilder = BitFieldSubCommands.create() //
+				.get(type).valueAt(Offset.offset(2)) //
+				.set(type).valueAt(Offset.offset(3)).to(1) //
+				.incr(type).valueAt(Offset.offset(5)).by(1);
 
-		BitFieldSubCommands bitFieldSubCommands =  BitFieldSubCommands.create(subGetCommand,subSetCommand,subIncrByCommand,subIncrByCommand2);
+		BitFieldSubCommand subGetCommand = BitFieldGet.create(type, Offset.offset(2));
+		BitFieldSubCommand subSetCommand = BitFieldSet.create(type, Offset.offset(3), 1);
+		BitFieldSubCommand subIncrByCommand = BitFieldIncrBy.create(type, Offset.offset(5), 1);
 
-		assertThat(bitFieldSubCommands.getSubCommands().size()).isEqualTo(4);
+		BitFieldSubCommands createdWithCreate = BitFieldSubCommands.create(subGetCommand, subSetCommand, subIncrByCommand);
+
+		assertThat(createdWithBuilder).isEqualTo(createdWithCreate).hasSameHashCodeAs(createdWithCreate);
+	}
+
+	@Test // GH-2055
+	void shouldCreateBitCommandsWithNonChainingMethod() {
+
+		BitFieldType type = BitFieldType.unsigned(1);
+		Offset offset = Offset.offset(1);
+
+		BitFieldSubCommand subGetCommand = BitFieldGet.create(type, offset);
+		BitFieldSubCommand subSetCommand = BitFieldSet.create(type, offset, 1);
+		BitFieldSubCommand subIncrByCommand = BitFieldIncrBy.create(type, offset, 1);
+		BitFieldSubCommand subIncrByCommand2 = BitFieldIncrBy.create(type, offset, 1, BitFieldIncrBy.Overflow.FAIL);
+
+		BitFieldSubCommands bitFieldSubCommands = BitFieldSubCommands.create(subGetCommand, subSetCommand, subIncrByCommand,
+				subIncrByCommand2);
+
+		assertThat(bitFieldSubCommands.getSubCommands()).hasSize(4);
 	}
 }
