@@ -24,6 +24,7 @@ import java.util.List;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * The actual {@code BITFIELD} command representation holding several {@link BitFieldSubCommand}s to execute.
@@ -62,8 +63,12 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	 * Creates a new {@link BitFieldSubCommands} with Multiple BitFieldSubCommand.
 	 *
 	 * @return
+	 * @since 2.5.2
 	 */
 	public static BitFieldSubCommands create(BitFieldSubCommand... subCommands) {
+
+		Assert.notNull(subCommands, "Subcommands must not be null");
+
 		return new BitFieldSubCommands(Arrays.asList(subCommands));
 	}
 
@@ -145,6 +150,44 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		return subCommands.iterator();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof BitFieldSubCommands)) {
+			return false;
+		}
+		BitFieldSubCommands that = (BitFieldSubCommands) o;
+		return ObjectUtils.nullSafeEquals(subCommands, that.subCommands);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return ObjectUtils.nullSafeHashCode(subCommands);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		final StringBuffer sb = new StringBuffer();
+		sb.append(getClass().getSimpleName());
+		sb.append(" [subCommands=").append(subCommands);
+		sb.append(']');
+		return sb.toString();
+	}
+
 	/**
 	 * @author Christoph Strobl
 	 */
@@ -203,7 +246,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	/**
 	 * @author Christoph Strobl
 	 */
-	public class BitFieldGetBuilder {
+	public static class BitFieldGetBuilder {
 
 		private BitFieldSubCommands ref;
 
@@ -407,6 +450,37 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		public String toString() {
 			return asString();
 		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object o) {
+
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof Offset)) {
+				return false;
+			}
+			Offset that = (Offset) o;
+			if (offset != that.offset) {
+				return false;
+			}
+			return zeroBased == that.zeroBased;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			int result = (int) (offset ^ (offset >>> 32));
+			result = 31 * result + (zeroBased ? 1 : 0);
+			return result;
+		}
 	}
 
 	/**
@@ -499,12 +573,44 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 		/*
 		 * (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object o) {
+
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof BitFieldType)) {
+				return false;
+			}
+			BitFieldType that = (BitFieldType) o;
+			if (signed != that.signed) {
+				return false;
+			}
+			return bits == that.bits;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			int result = (signed ? 1 : 0);
+			result = 31 * result + bits;
+			return result;
+		}
+
+		/*
+		 * (non-Javadoc)
 		 * @see java.lang.Object#toString()
 		 */
 		@Override
 		public String toString() {
 			return asString();
 		}
+
 	}
 
 	/**
@@ -532,6 +638,55 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		public Offset getOffset() {
 			return offset;
 		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object o) {
+
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof AbstractBitFieldSubCommand)) {
+				return false;
+			}
+			AbstractBitFieldSubCommand that = (AbstractBitFieldSubCommand) o;
+			if (!ObjectUtils.nullSafeEquals(getClass(), that.getClass())) {
+				return false;
+			}
+			if (!ObjectUtils.nullSafeEquals(type, that.type)) {
+				return false;
+			}
+			return ObjectUtils.nullSafeEquals(offset, that.offset);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+
+			int result = ObjectUtils.nullSafeHashCode(type);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(offset);
+			return result;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuffer sb = new StringBuffer();
+			sb.append(getClass().getSimpleName());
+			sb.append(" [type=").append(type);
+			sb.append(", offset=").append(offset);
+			sb.append(']');
+			return sb.toString();
+		}
 	}
 
 	/**
@@ -546,16 +701,23 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 		/**
 		 * Creates a new {@link BitFieldSet}.
+		 *
 		 * @param type must not be {@literal null}.
 		 * @param offset must not be {@literal null}.
 		 * @param value must not be {@literal null}.
 		 * @return
+		 * @since 2.5.2
 		 */
 		public static BitFieldSet create(BitFieldType type,Offset offset,long value){
+
+			Assert.notNull(type, "BitFieldType must not be null");
+			Assert.notNull(offset, "Offset must not be null");
+
 			BitFieldSet instance = new BitFieldSet();
 			instance.type =  type;
 			instance.offset = offset;
 			instance.value = value;
+
 			return instance;
 		}
 
@@ -577,6 +739,53 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return value;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof BitFieldSet)) {
+				return false;
+			}
+			if (!super.equals(o)) {
+				return false;
+			}
+			BitFieldSet that = (BitFieldSet) o;
+			if (value != that.value) {
+				return false;
+			}
+			return true;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			int result = super.hashCode();
+			result = 31 * result + (int) (value ^ (value >>> 32));
+			return result;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuffer sb = new StringBuffer();
+			sb.append(getClass().getSimpleName());
+			sb.append(" [type=").append(type);
+			sb.append(", offset=").append(offset);
+			sb.append(", value=").append(value);
+			sb.append(']');
+			return sb.toString();
+		}
 	}
 
 	/**
@@ -589,14 +798,21 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 		/**
 		 * Creates a new {@link BitFieldGet}.
+		 *
 		 * @param type must not be {@literal null}.
 		 * @param offset must not be {@literal null}.
+		 * @since 2.5.2
 		 * @return
 		 */
 		public static BitFieldGet create(BitFieldType type,Offset offset){
+
+			Assert.notNull(type, "BitFieldType must not be null");
+			Assert.notNull(offset, "Offset must not be null");
+
 			BitFieldGet instance = new BitFieldGet();
 			instance.type =  type;
 			instance.offset = offset;
+
 			return instance;
 		}
 
@@ -624,33 +840,38 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 		/**
 		 * Creates a new {@link BitFieldIncrBy}.
+		 *
 		 * @param type must not be {@literal null}.
 		 * @param offset must not be {@literal null}.
 		 * @param value must not be {@literal null}.
 		 * @return
+		 * @since 2.5.2
 		 */
 		public static BitFieldIncrBy create(BitFieldType type,Offset offset,long value){
-			BitFieldIncrBy instance = new BitFieldIncrBy();
-			instance.type =  type;
-			instance.offset = offset;
-			instance.value = value;
-			return instance;
+			return create(type, offset, value, null);
 		}
 
 		/**
 		 * Creates a new {@link BitFieldIncrBy}.
+		 *
 		 * @param type must not be {@literal null}.
 		 * @param offset must not be {@literal null}.
 		 * @param value must not be {@literal null}.
-		 * @param overflow Can be {@literal null} to use redis defaults.
+		 * @param overflow can be {@literal null} to use redis defaults.
+		 * @since 2.5.2
 		 * @return
 		 */
-		public static BitFieldIncrBy create(BitFieldType type,Offset offset,long value,Overflow overflow){
+		public static BitFieldIncrBy create(BitFieldType type, Offset offset, long value, @Nullable Overflow overflow) {
+
+			Assert.notNull(type, "BitFieldType must not be null");
+			Assert.notNull(offset, "Offset must not be null");
+
 			BitFieldIncrBy instance = new BitFieldIncrBy();
 			instance.type =  type;
 			instance.offset = offset;
 			instance.value = value;
 			instance.overflow = overflow;
+
 			return instance;
 		}
 
@@ -687,6 +908,54 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 */
 		public enum Overflow {
 			SAT, FAIL, WRAP
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object o) {
+
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof BitFieldIncrBy)) {
+				return false;
+			}
+			BitFieldIncrBy that = (BitFieldIncrBy) o;
+			if (value != that.value) {
+				return false;
+			}
+			return overflow == that.overflow;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+
+			int result = (int) (value ^ (value >>> 32));
+			result = 31 * result + ObjectUtils.nullSafeHashCode(overflow);
+			return result;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuffer sb = new StringBuffer();
+			sb.append(getClass().getSimpleName());
+			sb.append(" [type=").append(type);
+			sb.append(", offset=").append(offset);
+			sb.append(", value=").append(value);
+			sb.append(", overflow=").append(overflow);
+			sb.append(']');
+			return sb.toString();
 		}
 	}
 }
