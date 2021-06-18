@@ -713,7 +713,10 @@ The following table provides an overview of the keywords supported for Redis and
 [[redis.repositories.queries.sort]]
 === Sorting Query Method results
 
-Redis repositories allow various approaches to define sorting order. Redis itself does not support in-flight sorting when retrieving hashes or sets. Therefore, Redis repository query methods construct a `Comparator` that is applied to the result before returning results as `List`. Let's take a look at the following example:
+Redis repositories allow various approaches to define sorting order.
+Redis itself does not support in-flight sorting when retrieving hashes or sets.
+Therefore, Redis repository query methods construct a `Comparator` that is applied to the result before returning results as `List`.
+Let's take a look at the following example:
 
 .Sorting Query Results
 ====
@@ -721,7 +724,7 @@ Redis repositories allow various approaches to define sorting order. Redis itsel
 ----
 interface PersonRepository extends RedisRepository<Person, String> {
 
-  List<Person> findByFirstnameSortByAgeDesc(String firstname); <1>
+  List<Person> findByFirstnameOrderByAgeDesc(String firstname); <1>
 
   List<Person> findByFirstname(String firstname, Sort sort);   <2>
 }
