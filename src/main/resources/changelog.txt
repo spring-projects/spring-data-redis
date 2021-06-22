@@ -1,6 +1,17 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.5.2 (2021-06-22)
+-------------------------------------
+* #2093 - Upgrade to Jedis 3.6.1.
+* #2091 - Upgrade to Lettuce 6.1.3.
+* #2087 - Fix result sorting using Redis repository query methods.
+* #2079 - RedisCache synchronises all get(key, valueLoader) calls.
+* #2078 - `LettuceStreamCommands.xRevRange` uses async dedicated connection.
+* #2069 - Bump xstream from 1.4.16 to 1.4.17.
+* #2055 - Add support for BitFieldSubCommands that generate multiple bit operations using non-chaining methods.
+
+
 Changes in version 2.4.10 (2021-06-22)
 --------------------------------------
 * #2092 - Upgrade to Lettuce 6.0.6.
@@ -2378,6 +2389,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
