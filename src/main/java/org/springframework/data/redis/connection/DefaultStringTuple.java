@@ -43,6 +43,18 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 	/**
 	 * Constructs a new <code>DefaultStringTuple</code> instance.
 	 *
+	 * @param valueAsString
+	 * @param score
+	 * @since 2.6
+	 */
+	public DefaultStringTuple(String valueAsString, double score) {
+		super(valueAsString.getBytes(), score);
+		this.valueAsString = valueAsString;
+	}
+
+	/**
+	 * Constructs a new <code>DefaultStringTuple</code> instance.
+	 *
 	 * @param tuple
 	 * @param valueAsString
 	 */
