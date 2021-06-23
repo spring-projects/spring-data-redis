@@ -1887,6 +1887,64 @@ public abstract class AbstractConnectionIntegrationTests {
 				Arrays.asList(new Object[] { true, true, true, 6d, new LinkedHashSet<>(Collections.singletonList("Joe")) }));
 	}
 
+	@Test // GH-2041
+	@EnabledOnCommand("ZDIFF")
+	void testZDiff() {
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 4, "Joe"));
+		actual.add(connection.zAdd("otherset", 1, "Bob"));
+		actual.add(connection.zAdd("otherset", 4, "James"));
+		actual.add(connection.zDiff("myset", "otherset"));
+		actual.add(connection.zDiffWithScores("myset", "otherset"));
+		verifyResults(Arrays.asList(new Object[] { true, true, true, true, true, Collections.singleton("Joe"),
+				Collections.singleton(new DefaultStringTuple("Joe", 4)) }));
+	}
+
+	@Test // GH-2041
+	@EnabledOnCommand("ZDIFFSTORE")
+	void testZDiffStore() {
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 4, "Joe"));
+		actual.add(connection.zAdd("otherset", 1, "Bob"));
+		actual.add(connection.zAdd("otherset", 4, "James"));
+		actual.add(connection.zDiffStore("thirdset", "myset", "otherset"));
+		actual.add(connection.zRange("thirdset", 0, -1));
+		verifyResults(Arrays.asList(new Object[] { true, true, true, true, true, 1L, Collections.singleton("Joe") }));
+	}
+
+	@Test // GH-2042
+	@EnabledOnCommand("ZINTER")
+	void testZInter() {
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 4, "Joe"));
+		actual.add(connection.zAdd("otherset", 1, "Bob"));
+		actual.add(connection.zAdd("otherset", 4, "James"));
+		actual.add(connection.zInter("myset", "otherset"));
+		actual.add(connection.zInterWithScores("myset", "otherset"));
+		verifyResults(Arrays.asList(new Object[] { true, true, true, true, true,
+				new LinkedHashSet<>(Arrays.asList("Bob", "James")),
+				new LinkedHashSet<>(Arrays.asList(new DefaultStringTuple("Bob", 3d), new DefaultStringTuple("James", 5))) }));
+	}
+
+	@Test // GH-2042
+	@EnabledOnCommand("ZINTER")
+	void testZInterAggWeights() {
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 4, "Joe"));
+		actual.add(connection.zAdd("otherset", 1, "Bob"));
+		actual.add(connection.zAdd("otherset", 4, "James"));
+		actual.add(connection.zInter("myset", "otherset"));
+		actual.add(connection.zInterWithScores(Aggregate.MAX, new int[] { 2, 3 }, "myset", "otherset"));
+
+		verifyResults(Arrays.asList(new Object[] { true, true, true, true, true,
+				new LinkedHashSet<>(Arrays.asList("Bob", "James")),
+				new LinkedHashSet<>(Arrays.asList(new DefaultStringTuple("Bob", 4d), new DefaultStringTuple("James", 12d))) }));
+	}
+
 	@Test
 	void testZInterStore() {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
@@ -2114,6 +2172,39 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { true, true, true, Arrays.asList(1d, 3d, null) }));
 	}
 
+	@Test // GH-2042
+	@EnabledOnCommand("ZUNION")
+	void testZUnion() {
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 4, "Joe"));
+		actual.add(connection.zAdd("otherset", 1, "Bob"));
+		actual.add(connection.zAdd("otherset", 4, "James"));
+		actual.add(connection.zUnion("myset", "otherset"));
+		actual.add(connection.zUnionWithScores("myset", "otherset"));
+		verifyResults(Arrays
+				.asList(new Object[] { true, true, true, true, true, new LinkedHashSet<>(Arrays.asList("Bob", "James", "Joe")),
+						new LinkedHashSet<>(Arrays.asList(new DefaultStringTuple("Bob", 3d), new DefaultStringTuple("James", 5),
+								new DefaultStringTuple("Joe", 4))) }));
+	}
+
+	@Test // GH-2042
+	@EnabledOnCommand("ZUNION")
+	void testZUnionAggWeights() {
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 4, "Joe"));
+		actual.add(connection.zAdd("otherset", 1, "Bob"));
+		actual.add(connection.zAdd("otherset", 4, "James"));
+		actual.add(connection.zUnion("myset", "otherset"));
+		actual.add(connection.zUnionWithScores(Aggregate.MAX, new int[] { 2, 3 }, "myset", "otherset"));
+
+		verifyResults(Arrays
+				.asList(new Object[] { true, true, true, true, true, new LinkedHashSet<>(Arrays.asList("Bob", "James", "Joe")),
+						new LinkedHashSet<>(Arrays.asList(new DefaultStringTuple("Bob", 4d), new DefaultStringTuple("Joe", 8d),
+								new DefaultStringTuple("James", 12d))) }));
+	}
+
 	@Test
 	void testZUnionStore() {
 
@@ -2139,9 +2230,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zUnionStore("thirdset", Aggregate.MAX, new int[] { 2, 3 }, "myset", "otherset"));
 		actual.add(connection.zRangeWithScores("thirdset", 0, -1));
 		verifyResults(Arrays.asList(new Object[] { true, true, true, true, true, 3L,
-				new LinkedHashSet<>(Arrays.asList(new DefaultStringTuple("Bob".getBytes(), "Bob", 4d),
-						new DefaultStringTuple("Joe".getBytes(), "Joe", 8d),
-						new DefaultStringTuple("James".getBytes(), "James", 12d))) }));
+				new LinkedHashSet<>(Arrays.asList(new DefaultStringTuple("Bob", 4d), new DefaultStringTuple("Joe", 8d),
+						new DefaultStringTuple("James", 12d))) }));
 	}
 
 	// Hash Ops

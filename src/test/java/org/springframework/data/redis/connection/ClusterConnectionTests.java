@@ -604,6 +604,21 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void zIncrByShouldIncScoreForValueCorrectly();
 
+	// GH-2041
+	void zDiffShouldThrowExceptionWhenKeysDoNotMapToSameSlots();
+
+	// GH-2041
+	void zDiffShouldWorkForSameSlotKeys();
+
+	// GH-2041
+	void zDiffStoreShouldWorkForSameSlotKeys();
+
+	// GH-2042
+	void zInterShouldThrowExceptionWhenKeysDoNotMapToSameSlots();
+
+	// GH-2042
+	void zInterShouldWorkForSameSlotKeys();
+
 	// DATAREDIS-315
 	void zInterStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots();
 
@@ -684,6 +699,12 @@ public interface ClusterConnectionTests {
 
 	// GH-2038
 	void zMScoreShouldRetrieveScoreForValues();
+
+	// GH-2042
+	void zUnionShouldThrowExceptionWhenKeysDoNotMapToSameSlots();
+
+	// GH-2042
+	void zUnionShouldWorkForSameSlotKeys();
 
 	// DATAREDIS-315
 	void zUnionStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots();

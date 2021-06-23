@@ -994,8 +994,57 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
+	default Set<byte[]> zDiff(byte[]... sets) {
+		return zSetCommands().zDiff(sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zDiffWithScores(byte[]... sets) {
+		return zSetCommands().zDiffWithScores(sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Long zDiffStore(byte[] destKey, byte[]... sets) {
+		return zSetCommands().zDiffStore(destKey, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
 	default Double zIncrBy(byte[] key, double increment, byte[] value) {
 		return zSetCommands().zIncrBy(key, increment, value);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<byte[]> zInter(byte[]... sets) {
+		return zSetCommands().zInter(sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zInterWithScores(Aggregate aggregate, int[] weights, byte[]... sets) {
+		return zSetCommands().zInterWithScores(aggregate, weights, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zInterWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+		return zSetCommands().zInterWithScores(aggregate, weights, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zInterWithScores(byte[]... sets) {
+		return zSetCommands().zInterWithScores(sets);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
@@ -1150,6 +1199,34 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Deprecated
 	default List<Double> zMScore(byte[] key, byte[]... values) {
 		return zSetCommands().zMScore(key, values);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<byte[]> zUnion(byte[]... sets) {
+		return zSetCommands().zUnion(sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zUnionWithScores(Aggregate aggregate, int[] weights, byte[]... sets) {
+		return zSetCommands().zUnionWithScores(aggregate, weights, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zUnionWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+		return zSetCommands().zUnionWithScores(aggregate, weights, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zUnionWithScores(byte[]... sets) {
+		return zSetCommands().zUnionWithScores(sets);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
