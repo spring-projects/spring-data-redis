@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScoredValue;
 import io.lettuce.core.ScoredValueScanCursor;
+import io.lettuce.core.ZAggregateArgs;
 import io.lettuce.core.ZStoreArgs;
 import io.lettuce.core.api.async.RedisSortedSetAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
@@ -444,34 +445,83 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zDiff(byte[][])
 	 */
 	@Override
-	public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
+	public Set<byte[]> zDiff(byte[]... sets) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(sets, "Source sets must not be null!");
-		Assert.noNullElements(sets, "Source sets must not contain null elements!");
-		Assert.isTrue(weights.size() == sets.length, () -> String
-				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
+		Assert.notNull(sets, "Sets must not be null!");
 
-		ZStoreArgs storeArgs = zStoreArgs(aggregate, weights);
-
-		return connection.invoke().just(RedisSortedSetAsyncCommands::zunionstore, destKey, storeArgs, sets);
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zdiff, sets).toSet();
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], byte[][])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zDiffWithScores(byte[][])
 	 */
 	@Override
-	public Long zUnionStore(byte[] destKey, byte[]... sets) {
+	public Set<Tuple> zDiffWithScores(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zdiffWithScores, sets)
+				.toSet(LettuceConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zDiffStore(byte[], byte[][])
+	 */
+	@Override
+	public Long zDiffStore(byte[] destKey, byte[]... sets) {
 
 		Assert.notNull(destKey, "Destination key must not be null!");
 		Assert.notNull(sets, "Source sets must not be null!");
-		Assert.noNullElements(sets, "Source sets must not contain null elements!");
 
-		return connection.invoke().just(RedisSortedSetAsyncCommands::zunionstore, destKey, sets);
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zdiffstore, destKey, sets);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInter(byte[][])
+	 */
+	@Override
+	public Set<byte[]> zInter(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zinter, sets).toSet();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterWithScores(byte[][])
+	 */
+	@Override
+	public Set<Tuple> zInterWithScores(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zinterWithScores, sets)
+				.toSet(LettuceConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterWithScores(org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Set<Tuple> zInterWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
+
+		ZAggregateArgs zAggregateArgs = zAggregateArgs(aggregate, weights);
+
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zinterWithScores, zAggregateArgs, sets)
+				.toSet(LettuceConverters::toTuple);
 	}
 
 	/*
@@ -504,6 +554,81 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.noNullElements(sets, "Source sets must not contain null elements!");
 
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zinterstore, destKey, sets);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnion(byte[][])
+	 */
+	@Override
+	public Set<byte[]> zUnion(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zunion, sets).toSet();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionWithScores(byte[][])
+	 */
+	@Override
+	public Set<Tuple> zUnionWithScores(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zunionWithScores, sets)
+				.toSet(LettuceConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionWithScores(org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Set<Tuple> zUnionWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
+
+		ZAggregateArgs zAggregateArgs = zAggregateArgs(aggregate, weights);
+
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zunionWithScores, zAggregateArgs, sets)
+				.toSet(LettuceConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(sets, "Source sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
+
+		ZStoreArgs storeArgs = zStoreArgs(aggregate, weights);
+
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zunionstore, destKey, storeArgs, sets);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], byte[][])
+	 */
+	@Override
+	public Long zUnionStore(byte[] destKey, byte[]... sets) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(sets, "Source sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zunionstore, destKey, sets);
 	}
 
 	/*
@@ -650,6 +775,29 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	private static ZStoreArgs zStoreArgs(@Nullable Aggregate aggregate, Weights weights) {
 
 		ZStoreArgs args = new ZStoreArgs();
+
+		if (aggregate != null) {
+			switch (aggregate) {
+				case MIN:
+					args.min();
+					break;
+				case MAX:
+					args.max();
+					break;
+				default:
+					args.sum();
+					break;
+			}
+		}
+
+		args.weights(weights.toArray());
+
+		return args;
+	}
+
+	private static ZAggregateArgs zAggregateArgs(@Nullable Aggregate aggregate, Weights weights) {
+
+		ZAggregateArgs args = new ZAggregateArgs();
 
 		if (aggregate != null) {
 			switch (aggregate) {

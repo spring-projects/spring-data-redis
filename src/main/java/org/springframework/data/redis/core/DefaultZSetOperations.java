@@ -132,41 +132,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#intersectAndStore(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Long intersectAndStore(K key, K otherKey, K destKey) {
-		return intersectAndStore(key, Collections.singleton(otherKey), destKey);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
-	 */
-	@Override
-	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
-
-		byte[][] rawKeys = rawKeys(key, otherKeys);
-		byte[] rawDestKey = rawKey(destKey);
-
-		return execute(connection -> connection.zInterStore(rawDestKey, rawKeys), true);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
-	 */
-	@Override
-	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
-
-		byte[][] rawKeys = rawKeys(key, otherKeys);
-		byte[] rawDestKey = rawKey(destKey);
-
-		return execute(connection -> connection.zInterStore(rawDestKey, aggregate, weights, rawKeys), true);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ZSetOperations#range(java.lang.Object, long, long)
 	 */
 	@Override
@@ -563,6 +528,147 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.zCard(rawKey), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#difference(java.lang.Object, java.util.Collection)
+	 */
+	@Override
+	public Set<V> difference(K key, Collection<K> otherKeys) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		Set<byte[]> rawValues = execute(connection -> connection.zDiff(rawKeys), true);
+		return deserializeValues(rawValues);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#differenceWithScores(java.lang.Object, java.util.Collection)
+	 */
+	@Override
+	public Set<TypedTuple<V>> differenceWithScores(K key, Collection<K> otherKeys) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		return deserializeTupleValues(execute(connection -> connection.zDiffWithScores(rawKeys), true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#differenceAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
+	 */
+	@Override
+	public Long differenceAndStore(K key, Collection<K> otherKeys, K destKey) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		byte[] rawDestKey = rawKey(destKey);
+
+		return execute(connection -> connection.zDiffStore(rawDestKey, rawKeys), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#intersect(java.lang.Object, java.util.Collection)
+	 */
+	@Override
+	public Set<V> intersect(K key, Collection<K> otherKeys) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		Set<byte[]> rawValues = execute(connection -> connection.zInter(rawKeys), true);
+		return deserializeValues(rawValues);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#intersectWithScores(java.lang.Object, java.util.Collection)
+	 */
+	@Override
+	public Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		return deserializeTupleValues(execute(connection -> connection.zInterWithScores(rawKeys), true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#intersectWithScores(java.lang.Object, java.util.Collection, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
+	 */
+	@Override
+	public Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		return deserializeTupleValues(
+				execute(connection -> connection.zInterWithScores(aggregate, weights, rawKeys), true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#intersectAndStore(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Long intersectAndStore(K key, K otherKey, K destKey) {
+		return intersectAndStore(key, Collections.singleton(otherKey), destKey);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
+	 */
+	@Override
+	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		byte[] rawDestKey = rawKey(destKey);
+
+		return execute(connection -> connection.zInterStore(rawDestKey, rawKeys), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
+	 */
+	@Override
+	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		byte[] rawDestKey = rawKey(destKey);
+
+		return execute(connection -> connection.zInterStore(rawDestKey, aggregate, weights, rawKeys), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#union(java.lang.Object, java.util.Collection)
+	 */
+	@Override
+	public Set<V> union(K key, Collection<K> otherKeys) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		Set<byte[]> rawValues = execute(connection -> connection.zUnion(rawKeys), true);
+		return deserializeValues(rawValues);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#unionWithScores(java.lang.Object, java.util.Collection)
+	 */
+	@Override
+	public Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		return deserializeTupleValues(execute(connection -> connection.zUnionWithScores(rawKeys), true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#unionWithScores(java.lang.Object, java.util.Collection, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
+	 */
+	@Override
+	public Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		return deserializeTupleValues(
+				execute(connection -> connection.zUnionWithScores(aggregate, weights, rawKeys), true));
 	}
 
 	/*

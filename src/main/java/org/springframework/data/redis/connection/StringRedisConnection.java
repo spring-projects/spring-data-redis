@@ -1555,28 +1555,88 @@ public interface StringRedisConnection extends RedisConnection {
 	Long zRemRangeByScore(String key, double min, double max);
 
 	/**
-	 * Union sorted {@code sets} and store result in destination {@code key}.
+	 * Diff sorted {@code sets}.
 	 *
-	 * @param destKey must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
-	 * @return
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
-	 * @see RedisZSetCommands#zUnionStore(byte[], byte[]...)
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	Long zUnionStore(String destKey, String... sets);
+	@Nullable
+	Set<String> zDiff(String... sets);
 
 	/**
-	 * Union sorted {@code sets} and store result in destination {@code key}.
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	@Nullable
+	Set<StringTuple> zDiffWithScores(String... sets);
+
+	/**
+	 * Diff sorted {@code sets} and store result in destination {@code destKey}.
 	 *
 	 * @param destKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
+	 */
+	@Nullable
+	Long zDiffStore(String destKey, String... sets);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	Set<String> zInter(String... sets);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	Set<StringTuple> zInterWithScores(String... sets);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
 	 * @param aggregate must not be {@literal null}.
-	 * @param weights
+	 * @param weights must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
 	 * @return
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
-	 * @see RedisZSetCommands#zUnionStore(byte[], Aggregate, int[], byte[]...)
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	Long zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
+	@Nullable
+	default Set<StringTuple> zInterWithScores(Aggregate aggregate, int[] weights, String... sets) {
+		return zInterWithScores(aggregate, Weights.of(weights), sets);
+	}
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	Set<StringTuple> zInterWithScores(Aggregate aggregate, Weights weights, String... sets);
 
 	/**
 	 * Intersect sorted {@code sets} and store result in destination {@code key}.
@@ -1601,6 +1661,82 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisZSetCommands#zInterStore(byte[], Aggregate, int[], byte[]...)
 	 */
 	Long zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param destKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	Set<String> zUnion(String... sets);
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param destKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	Set<StringTuple> zUnionWithScores(String... sets);
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	default Set<StringTuple> zUnionWithScores(Aggregate aggregate, int[] weights, String... sets) {
+		return zUnionWithScores(aggregate, Weights.of(weights), sets);
+	}
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	Set<StringTuple> zUnionWithScores(Aggregate aggregate, Weights weights, String... sets);
+
+	/**
+	 * Union sorted {@code sets} and store result in destination {@code key}.
+	 *
+	 * @param destKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @see RedisZSetCommands#zUnionStore(byte[], byte[]...)
+	 */
+	Long zUnionStore(String destKey, String... sets);
+
+	/**
+	 * Union sorted {@code sets} and store result in destination {@code key}.
+	 *
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @see RedisZSetCommands#zUnionStore(byte[], Aggregate, int[], byte[]...)
+	 */
+	Long zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
 
 	/**
 	 * Use a {@link Cursor} to iterate over elements in sorted set at {@code key}.

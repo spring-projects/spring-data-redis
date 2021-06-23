@@ -476,36 +476,82 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zDiff(byte[][])
 	 */
 	@Override
-	public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
+	public Set<byte[]> zDiff(byte[]... sets) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(sets, "Source sets must not be null!");
-		Assert.notNull(weights, "Weights must not be null!");
-		Assert.noNullElements(sets, "Source sets must not contain null elements!");
-		Assert.isTrue(weights.size() == sets.length, () -> String
-				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
+		Assert.notNull(sets, "Sets must not be null!");
 
-		ZParams zparams = new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
-
-		return connection.invoke().just(BinaryJedis::zunionstore, MultiKeyPipelineBase::zunionstore, destKey, zparams,
-				sets);
+		return connection.invoke().just(BinaryJedis::zdiff, MultiKeyPipelineBase::zdiff, sets);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], byte[][])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zDiffWithScores(byte[][])
 	 */
 	@Override
-	public Long zUnionStore(byte[] destKey, byte[]... sets) {
+	public Set<Tuple> zDiffWithScores(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return connection.invoke().fromMany(BinaryJedis::zdiffWithScores, MultiKeyPipelineBase::zdiffWithScores, sets)
+				.toSet(JedisConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zDiffStore(byte[], byte[][])
+	 */
+	@Override
+	public Long zDiffStore(byte[] destKey, byte[]... sets) {
 
 		Assert.notNull(destKey, "Destination key must not be null!");
 		Assert.notNull(sets, "Source sets must not be null!");
-		Assert.noNullElements(sets, "Source sets must not contain null elements!");
 
-		return connection.invoke().just(BinaryJedis::zunionstore, MultiKeyPipelineBase::zunionstore, destKey, sets);
+		return connection.invoke().just(BinaryJedis::zdiffStore, MultiKeyPipelineBase::zdiffStore, destKey, sets);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInter(byte[][])
+	 */
+	@Override
+	public Set<byte[]> zInter(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return connection.invoke().just(BinaryJedis::zinter, MultiKeyPipelineBase::zinter, new ZParams(), sets);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterWithScores(byte[][])
+	 */
+	@Override
+	public Set<Tuple> zInterWithScores(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return connection.invoke()
+				.fromMany(BinaryJedis::zinterWithScores, MultiKeyPipelineBase::zinterWithScores, new ZParams(), sets)
+				.toSet(JedisConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterWithScores(org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Set<Tuple> zInterWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
+
+		return connection.invoke().fromMany(BinaryJedis::zinterWithScores, MultiKeyPipelineBase::zinterWithScores,
+				toZParams(aggregate, weights), sets).toSet(JedisConverters::toTuple);
 	}
 
 	/*
@@ -521,7 +567,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.isTrue(weights.size() == sets.length, () -> String
 				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
 
-		ZParams zparams = new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+		ZParams zparams = toZParams(aggregate, weights);
 
 		return connection.invoke().just(BinaryJedis::zinterstore, MultiKeyPipelineBase::zinterstore, destKey, zparams,
 				sets);
@@ -539,6 +585,82 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.noNullElements(sets, "Source sets must not contain null elements!");
 
 		return connection.invoke().just(BinaryJedis::zinterstore, MultiKeyPipelineBase::zinterstore, destKey, sets);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnion(byte[][])
+	 */
+	@Override
+	public Set<byte[]> zUnion(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return connection.invoke().just(BinaryJedis::zunion, MultiKeyPipelineBase::zunion, new ZParams(), sets);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionWithScores(byte[][])
+	 */
+	@Override
+	public Set<Tuple> zUnionWithScores(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return connection.invoke()
+				.fromMany(BinaryJedis::zunionWithScores, MultiKeyPipelineBase::zunionWithScores, new ZParams(), sets)
+				.toSet(JedisConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionWithScores(org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Set<Tuple> zUnionWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
+
+		return connection.invoke().fromMany(BinaryJedis::zunionWithScores, MultiKeyPipelineBase::zunionWithScores,
+				toZParams(aggregate, weights), sets).toSet(JedisConverters::toTuple);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(sets, "Source sets must not be null!");
+		Assert.notNull(weights, "Weights must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
+
+		ZParams zparams = toZParams(aggregate, weights);
+
+		return connection.invoke().just(BinaryJedis::zunionstore, MultiKeyPipelineBase::zunionstore, destKey, zparams,
+				sets);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], byte[][])
+	 */
+	@Override
+	public Long zUnionStore(byte[] destKey, byte[]... sets) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(sets, "Source sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+
+		return connection.invoke().just(BinaryJedis::zunionstore, MultiKeyPipelineBase::zunionstore, destKey, sets);
 	}
 
 	/*
@@ -693,6 +815,10 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 	private boolean isQueueing() {
 		return connection.isQueueing();
+	}
+
+	private static ZParams toZParams(Aggregate aggregate, Weights weights) {
+		return new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 	}
 
 	/**

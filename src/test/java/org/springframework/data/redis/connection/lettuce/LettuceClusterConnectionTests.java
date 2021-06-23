@@ -2027,6 +2027,66 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrank(KEY_1, VALUE_1)).isEqualTo(1L);
 	}
 
+	@Test // GH-2041
+	public void zDiffShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zDiff(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zDiffStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zDiffWithScores(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+	}
+
+	@Test // GH-2041
+	@EnabledOnCommand("ZDIFF")
+	public void zDiffShouldWorkForSameSlotKeys() {
+
+		nativeConnection.zadd(SAME_SLOT_KEY_1, 10D, VALUE_1);
+		nativeConnection.zadd(SAME_SLOT_KEY_1, 20D, VALUE_2);
+
+		nativeConnection.zadd(SAME_SLOT_KEY_2, 20D, VALUE_2);
+
+		assertThat(clusterConnection.zDiff(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).contains(VALUE_1_BYTES);
+		assertThat(clusterConnection.zDiffWithScores(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES))
+				.contains(new DefaultTuple(VALUE_1_BYTES, 10D));
+	}
+
+	@Test // GH-2041
+	@EnabledOnCommand("ZDIFFSTORE")
+	public void zDiffStoreShouldWorkForSameSlotKeys() {
+
+		nativeConnection.zadd(SAME_SLOT_KEY_1, 10D, VALUE_1);
+		nativeConnection.zadd(SAME_SLOT_KEY_1, 20D, VALUE_2);
+
+		nativeConnection.zadd(SAME_SLOT_KEY_2, 20D, VALUE_2);
+
+		clusterConnection.zDiffStore(SAME_SLOT_KEY_3_BYTES, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES);
+
+		assertThat(nativeConnection.zrange(SAME_SLOT_KEY_3, 0, -1)).contains(VALUE_1);
+	}
+
+	@Test // GH-2042
+	public void zInterShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zInter(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zInterWithScores(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+	}
+
+	@Test // GH-2042
+	@EnabledOnCommand("ZINTER")
+	public void zInterShouldWorkForSameSlotKeys() {
+
+		nativeConnection.zadd(SAME_SLOT_KEY_1, 10D, VALUE_1);
+		nativeConnection.zadd(SAME_SLOT_KEY_1, 20D, VALUE_2);
+
+		nativeConnection.zadd(SAME_SLOT_KEY_2, 20D, VALUE_2);
+
+		assertThat(clusterConnection.zInter(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).contains(VALUE_2_BYTES);
+		assertThat(clusterConnection.zInterWithScores(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES))
+				.contains(new DefaultTuple(VALUE_2_BYTES, 40D));
+	}
+
 	@Test // DATAREDIS-315
 	public void zInterStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
 		assertThatExceptionOfType(DataAccessException.class)
@@ -2383,6 +2443,29 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.zadd(KEY_1, 20D, VALUE_2);
 
 		assertThat(clusterConnection.zMScore(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES)).containsExactly(10D, 20D);
+	}
+
+	@Test // GH-2042
+	public void zUnionShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zUnion(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zUnionWithScores(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+	}
+
+	@Test // GH-2042
+	@EnabledOnCommand("ZUNION")
+	public void zUnionShouldWorkForSameSlotKeys() {
+
+		nativeConnection.zadd(SAME_SLOT_KEY_1, 10D, VALUE_1);
+		nativeConnection.zadd(SAME_SLOT_KEY_1, 30D, VALUE_3);
+		nativeConnection.zadd(SAME_SLOT_KEY_2, 20D, VALUE_2);
+
+		assertThat(clusterConnection.zUnion(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).contains(VALUE_1_BYTES,
+				VALUE_2_BYTES, VALUE_3_BYTES);
+		assertThat(clusterConnection.zUnionWithScores(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).contains(
+				new DefaultTuple(VALUE_1_BYTES, 10D), new DefaultTuple(VALUE_2_BYTES, 20D),
+				new DefaultTuple(VALUE_3_BYTES, 30D));
 	}
 
 	@Test // DATAREDIS-315

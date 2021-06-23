@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -537,59 +538,150 @@ public interface ZSetOperations<K, V> {
 	Long removeRangeByScore(K key, double min, double max);
 
 	/**
-	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 * Diff sorted {@code sets}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param otherKey must not be {@literal null}.
-	 * @param destKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
 	@Nullable
-	Long unionAndStore(K key, K otherKey, K destKey);
-
-	/**
-	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param otherKeys must not be {@literal null}.
-	 * @param destKey must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
-	 */
-	@Nullable
-	Long unionAndStore(K key, Collection<K> otherKeys, K destKey);
-
-	/**
-	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param otherKeys must not be {@literal null}.
-	 * @param destKey must not be {@literal null}.
-	 * @param aggregate must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.1
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
-	 */
-	@Nullable
-	default Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
-		return unionAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
+	default Set<V> difference(K key, K otherKey) {
+		return difference(key, Collections.singleton(otherKey));
 	}
 
 	/**
-	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	@Nullable
+	Set<V> difference(K key, Collection<K> otherKeys);
+
+	/**
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	@Nullable
+	default Set<TypedTuple<V>> differenceWithScores(K key, K otherKey) {
+		return differenceWithScores(key, Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> differenceWithScores(K key, Collection<K> otherKeys);
+
+	/**
+	 * Diff sorted {@code sets} and store result in destination {@code destKey}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
-	 * @param aggregate must not be {@literal null}.
-	 * @param weights must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.1
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
 	 */
 	@Nullable
-	Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
+	Long differenceAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	default Set<V> intersect(K key, K otherKey) {
+		return intersect(key, Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	Set<V> intersect(K key, Collection<K> otherKeys);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	default Set<TypedTuple<V>> intersectWithScores(K key, K otherKey) {
+		return intersectWithScores(key, Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys);
+
+	/**
+	 * Intersect sorted sets at {@code key} and {@code otherKeys} .
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	default Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate) {
+		return intersectWithScores(key, otherKeys, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
+	}
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights);
 
 	/**
 	 * Intersect sorted sets at {@code key} and {@code otherKey} and store result in destination {@code destKey}.
@@ -647,6 +739,142 @@ public interface ZSetOperations<K, V> {
 	Long intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
 
 	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	default Set<V> union(K key, K otherKey) {
+		return union(key, Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	Set<V> union(K key, Collection<K> otherKeys);
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	default Set<TypedTuple<V>> unionWithScores(K key, K otherKey) {
+		return unionWithScores(key, Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys);
+
+	/**
+	 * Union sorted sets at {@code key} and {@code otherKeys} .
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	default Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate) {
+		return unionWithScores(key, otherKeys, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
+	}
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights);
+
+	/**
+	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	@Nullable
+	Long unionAndStore(K key, K otherKey, K destKey);
+
+	/**
+	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	@Nullable
+	Long unionAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	@Nullable
+	default Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
+		return unionAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
+	}
+
+	/**
+	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	@Nullable
+	Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
+
+	/**
 	 * Iterate over elements in zset at {@code key}. <br />
 	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leak.
 	 *
@@ -688,38 +916,38 @@ public interface ZSetOperations<K, V> {
 	@Nullable
 	Set<V> rangeByLex(K key, Range range, Limit limit);
 
-	/**
-	 * Get all elements with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value between
-	 * {@link Range#getMin()} and {@link Range#getMax()}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param range must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.4
-	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
-	 */
-	@Nullable
-	default Set<V> reverseRangeByLex(K key, Range range) {
-		return reverseRangeByLex(key, range, Limit.unlimited());
+		/**
+		 * Get all elements with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value between
+		 * {@link Range#getMin()} and {@link Range#getMax()}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @param range must not be {@literal null}.
+		 * @return {@literal null} when used in pipeline / transaction.
+		 * @since 2.4
+		 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+		 */
+		@Nullable
+		default Set<V> reverseRangeByLex(K key, Range range) {
+			return reverseRangeByLex(key, range, Limit.unlimited());
+		}
+
+		/**
+		 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
+		 * {@link Limit#getOffset()} with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value
+		 * between {@link Range#getMin()} and {@link Range#getMax()}.
+		 *
+		 * @param key must not be {@literal null}
+		 * @param range must not be {@literal null}.
+		 * @param limit can be {@literal null}.
+		 * @return {@literal null} when used in pipeline / transaction.
+		 * @since 2.4
+		 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+		 */
+		@Nullable
+		Set<V> reverseRangeByLex(K key, Range range, Limit limit);
+
+		/**
+		 * @return never {@literal null}.
+		 */
+		RedisOperations<K, V> getOperations();
 	}
-
-	/**
-	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
-	 * {@link Limit#getOffset()} with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value
-	 * between {@link Range#getMin()} and {@link Range#getMax()}.
-	 *
-	 * @param key must not be {@literal null}
-	 * @param range must not be {@literal null}.
-	 * @param limit can be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.4
-	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
-	 */
-	@Nullable
-	Set<V> reverseRangeByLex(K key, Range range, Limit limit);
-
-	/**
-	 * @return never {@literal null}.
-	 */
-	RedisOperations<K, V> getOperations();
-}

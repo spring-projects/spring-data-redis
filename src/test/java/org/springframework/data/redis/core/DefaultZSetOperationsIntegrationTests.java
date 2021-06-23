@@ -462,7 +462,117 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(count).isEqualTo(3);
 	}
 
+	@ParameterizedRedisTest // GH-2042
+	@EnabledOnCommand("ZDIFF")
+	void testZsetDiff() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOps.add(key1, value1, 1.0);
+		zSetOps.add(key1, value2, 2.0);
+		zSetOps.add(key2, value2, 3.0);
+
+		assertThat(zSetOps.difference(key1, key2)).containsOnly(value1);
+		assertThat(zSetOps.differenceWithScores(key1, key2)).containsOnly(new DefaultTypedTuple<>(value1, 1d));
+	}
+
+	@ParameterizedRedisTest // DATAREDIS-746, GH-2042
+	@EnabledOnCommand("ZDIFFSTORE")
+	void testZsetDiffStore() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		K key3 = keyFactory.instance();
+
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOps.add(key1, value1, 1.0);
+		zSetOps.add(key1, value2, 2.0);
+		zSetOps.add(key2, value2, 3.0);
+
+		assertThat(zSetOps.differenceAndStore(key1, Collections.singletonList(key2), key3)).isEqualTo(1);
+
+		assertThat(zSetOps.rangeWithScores(key3, 0, -1)).containsOnly(new DefaultTypedTuple<>(value1, 1d));
+	}
+
+	@ParameterizedRedisTest // GH-2042
+	@EnabledOnCommand("ZINTER")
+	void testZsetIntersect() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOps.add(key1, value1, 1.0);
+		zSetOps.add(key1, value2, 2.0);
+		zSetOps.add(key2, value2, 3.0);
+
+		assertThat(zSetOps.intersect(key1, Collections.singletonList(key2))).containsExactly(value2);
+	}
+
+	@ParameterizedRedisTest // DATAREDIS-746, GH-2042
+	@EnabledOnCommand("ZINTER")
+	void testZsetIntersectWithAggregate() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOps.add(key1, value1, 1.0);
+		zSetOps.add(key1, value2, 2.0);
+		zSetOps.add(key2, value2, 3.0);
+
+		assertThat(zSetOps.intersectWithScores(key1, Collections.singletonList(key2), RedisZSetCommands.Aggregate.MIN))
+				.contains(new DefaultTypedTuple<>(value2, 2d));
+
+		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MIN);
+		assertThat(zSetOps.score(key1, value2)).isCloseTo(2.0, offset(0.1));
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-746
+	void testZsetIntersectWithAggregateWeights() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+
+		zSetOps.add(key1, value1, 4.0);
+		zSetOps.add(key2, value1, 3.0);
+
+		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MAX,
+				Weights.of(1, 2));
+
+		assertThat(zSetOps.score(key1, value1)).isCloseTo(6.0, offset(0.1));
+	}
+
+	@ParameterizedRedisTest // GH-2042
+	@EnabledOnCommand("ZUNION")
+	void testZsetUnion() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOps.add(key1, value1, 1.0);
+		zSetOps.add(key1, value2, 2.0);
+		zSetOps.add(key2, value2, 3.0);
+
+		assertThat(zSetOps.union(key1, Collections.singletonList(key2))).containsOnly(value1, value2);
+	}
+
+	@ParameterizedRedisTest // DATAREDIS-746, GH-2042
+	@EnabledOnCommand("ZUNION")
 	void testZsetUnionWithAggregate() {
 
 		K key1 = keyFactory.instance();
@@ -474,6 +584,9 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key1, value1, 1.0);
 		zSetOps.add(key1, value2, 2.0);
 		zSetOps.add(key2, value2, 3.0);
+
+		assertThat(zSetOps.unionWithScores(key1, Collections.singletonList(key2)))
+				.containsOnly(new DefaultTypedTuple<>(value1, 1d), new DefaultTypedTuple<>(value2, 5d));
 
 		zSetOps.unionAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MIN);
 
@@ -491,40 +604,6 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key2, value1, 3.0);
 
 		zSetOps.unionAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MAX,
-				Weights.of(1, 2));
-
-		assertThat(zSetOps.score(key1, value1)).isCloseTo(6.0, offset(0.1));
-	}
-
-	@ParameterizedRedisTest // DATAREDIS-746
-	void testZsetIntersectWithAggregate() {
-
-		K key1 = keyFactory.instance();
-		K key2 = keyFactory.instance();
-
-		V value1 = valueFactory.instance();
-		V value2 = valueFactory.instance();
-
-		zSetOps.add(key1, value1, 1.0);
-		zSetOps.add(key1, value2, 2.0);
-		zSetOps.add(key2, value2, 3.0);
-
-		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MIN);
-
-		assertThat(zSetOps.score(key1, value2)).isCloseTo(2.0, offset(0.1));
-	}
-
-	@ParameterizedRedisTest // DATAREDIS-746
-	void testZsetIntersectWithAggregateWeights() {
-
-		K key1 = keyFactory.instance();
-		K key2 = keyFactory.instance();
-		V value1 = valueFactory.instance();
-
-		zSetOps.add(key1, value1, 4.0);
-		zSetOps.add(key2, value1, 3.0);
-
-		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MAX,
 				Weights.of(1, 2));
 
 		assertThat(zSetOps.score(key1, value1)).isCloseTo(6.0, offset(0.1));

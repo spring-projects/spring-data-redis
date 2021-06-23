@@ -110,42 +110,6 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Long intersectAndStore(K otherKey, K destKey) {
-		return ops.intersectAndStore(getKey(), otherKey, destKey);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object)
-	 */
-	@Override
-	public Long intersectAndStore(Collection<K> otherKeys, K destKey) {
-		return ops.intersectAndStore(getKey(), otherKeys, destKey);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
-	 */
-	@Override
-	public Long intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate) {
-		return ops.intersectAndStore(getKey(), otherKeys, destKey, aggregate);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
-	 */
-	@Override
-	public Long intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
-		return ops.intersectAndStore(getKey(), otherKeys, destKey, aggregate, weights);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#range(long, long)
 	 */
 	@Override
@@ -400,6 +364,132 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	@Override
 	public Long zCard() {
 		return ops.zCard(getKey());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#difference(java.util.Collection)
+	 */
+	@Nullable
+	@Override
+	public Set<V> difference(Collection<K> otherKeys) {
+		return ops.difference(getKey(), otherKeys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#differenceWithScores(java.util.Collection)
+	 */
+	@Nullable
+	@Override
+	public Set<TypedTuple<V>> differenceWithScores(Collection<K> otherKeys) {
+		return ops.differenceWithScores(getKey(), otherKeys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#differenceAndStore(java.util.Collection, java.lang.Object)
+	 */
+	@Nullable
+	@Override
+	public Long differenceAndStore(Collection<K> otherKeys, K destKey) {
+		return ops.differenceAndStore(getKey(), otherKeys, destKey);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersect(java.util.Collection)
+	 */
+	@Nullable
+	@Override
+	public Set<V> intersect(Collection<K> otherKeys) {
+		return ops.intersect(getKey(), otherKeys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectWithScores(java.util.Collection)
+	 */
+	@Nullable
+	@Override
+	public Set<TypedTuple<V>> intersectWithScores(Collection<K> otherKeys) {
+		return ops.intersectWithScores(getKey(), otherKeys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectWithScores(java.util.Collection, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
+	 */
+	@Nullable
+	@Override
+	public Set<TypedTuple<V>> intersectWithScores(Collection<K> otherKeys, Aggregate aggregate, Weights weights) {
+		return ops.intersectWithScores(getKey(), otherKeys, aggregate, weights);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Long intersectAndStore(K otherKey, K destKey) {
+		return ops.intersectAndStore(getKey(), otherKey, destKey);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object)
+	 */
+	@Override
+	public Long intersectAndStore(Collection<K> otherKeys, K destKey) {
+		return ops.intersectAndStore(getKey(), otherKeys, destKey);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate)
+	 */
+	@Override
+	public Long intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate) {
+		return ops.intersectAndStore(getKey(), otherKeys, destKey, aggregate);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#intersectAndStore(java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
+	 */
+	@Override
+	public Long intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
+		return ops.intersectAndStore(getKey(), otherKeys, destKey, aggregate, weights);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#union(java.util.Collection)
+	 */
+	@Nullable
+	@Override
+	public Set<V> union(Collection<K> otherKeys) {
+		return ops.union(getKey(), otherKeys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionWithScores(java.util.Collection)
+	 */
+	@Nullable
+	@Override
+	public Set<TypedTuple<V>> unionWithScores(Collection<K> otherKeys) {
+		return ops.unionWithScores(getKey(), otherKeys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#unionWithScores(java.util.Collection, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
+	 */
+	@Nullable
+	@Override
+	public Set<TypedTuple<V>> unionWithScores(Collection<K> otherKeys, Aggregate aggregate, Weights weights) {
+		return ops.unionWithScores(getKey(), otherKeys, aggregate, weights);
 	}
 
 	/*
