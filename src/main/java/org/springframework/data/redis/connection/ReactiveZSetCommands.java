@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
+import static org.springframework.data.redis.connection.ReactiveRedisConnection.*;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -31,11 +33,6 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
-import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
-import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyScanCommand;
-import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
-import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
@@ -163,8 +160,7 @@ public interface ReactiveZSetCommands {
 		}
 
 		/**
-		 * Applies {@literal GT} mode. Constructs a new command
-		 * instance with all previously configured properties.
+		 * Applies {@literal GT} mode. Constructs a new command instance with all previously configured properties.
 		 *
 		 * @return a new {@link ZAddCommand} with {@literal incr} applied.
 		 * @since 2.5
@@ -174,8 +170,7 @@ public interface ReactiveZSetCommands {
 		}
 
 		/**
-		 * Applies {@literal LT} mode. Constructs a new command
-		 * instance with all previously configured properties.
+		 * Applies {@literal LT} mode. Constructs a new command instance with all previously configured properties.
 		 *
 		 * @return a new {@link ZAddCommand} with {@literal incr} applied.
 		 * @since 2.5
@@ -206,7 +201,6 @@ public interface ReactiveZSetCommands {
 		}
 
 		/**
-		 *
 		 * @return {@literal true} if {@literal GT} is set.
 		 * @since 2.5
 		 */
@@ -1255,9 +1249,9 @@ public interface ReactiveZSetCommands {
 	 * {@code ZPOPMIN}/{@literal ZPOPMAX} command parameters.
 	 *
 	 * @author Mark Paluch
+	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
 	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
-	 * @since 2.6
 	 */
 	class ZPopCommand extends KeyCommand {
 
@@ -1329,9 +1323,9 @@ public interface ReactiveZSetCommands {
 	 * {@code BZPOPMIN}/{@literal BZPOPMAX} command parameters.
 	 *
 	 * @author Mark Paluch
+	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
 	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
-	 * @since 2.6
 	 */
 	class BZPopCommand extends KeyCommand {
 
@@ -1424,8 +1418,8 @@ public interface ReactiveZSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
 	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
 	 */
 	default Mono<Tuple> zPopMin(ByteBuffer key) {
 		return zPop(Mono.just(ZPopCommand.min().from(key))).map(CommandResponse::getOutput).flatMap(Flux::next).next();
@@ -1437,8 +1431,8 @@ public interface ReactiveZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param count number of elements to pop.
 	 * @return
-	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
 	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
 	 */
 	default Flux<Tuple> zPopMin(ByteBuffer key, long count) {
 		return zPop(Mono.just(ZPopCommand.min().from(key).count(count))).map(CommandResponse::getOutput)
@@ -1453,8 +1447,8 @@ public interface ReactiveZSetCommands {
 	 * @param timeout must not be {@literal null}.
 	 * @return
 	 * @throws IllegalArgumentException if the timeout is {@literal null} or negative.
-	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
 	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
 	 */
 	default Mono<Tuple> bZPopMin(ByteBuffer key, Duration timeout) {
 
@@ -1470,8 +1464,8 @@ public interface ReactiveZSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
 	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
 	 */
 	default Mono<Tuple> zPopMax(ByteBuffer key) {
 		return zPop(Mono.just(ZPopCommand.max().from(key))).map(CommandResponse::getOutput).flatMap(Flux::next).next();
@@ -1483,8 +1477,8 @@ public interface ReactiveZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param count number of elements to pop.
 	 * @return
-	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
 	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
 	 */
 	default Flux<Tuple> zPopMax(ByteBuffer key, long count) {
 		return zPop(Mono.just(ZPopCommand.max().from(key).count(count))).map(CommandResponse::getOutput)
@@ -1499,8 +1493,8 @@ public interface ReactiveZSetCommands {
 	 * @param timeout must not be {@literal null}.
 	 * @return
 	 * @throws IllegalArgumentException if the timeout is {@literal null} or negative.
-	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
 	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
 	 */
 	default Mono<Tuple> bZPopMax(ByteBuffer key, Duration timeout) {
 
@@ -1634,8 +1628,8 @@ public interface ReactiveZSetCommands {
 	 * {@code ZMSCORE} command parameters.
 	 *
 	 * @author Mark Paluch
-	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
 	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
 	 */
 	class ZMScoreCommand extends KeyCommand {
 
@@ -1701,8 +1695,8 @@ public interface ReactiveZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return
-	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
 	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
 	 */
 	default Mono<List<Double>> zMScore(ByteBuffer key, Collection<ByteBuffer> values) {
 
@@ -1718,8 +1712,8 @@ public interface ReactiveZSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
-	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
 	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
 	 */
 	Flux<MultiValueResponse<ZMScoreCommand, Double>> zMScore(Publisher<ZMScoreCommand> commands);
 
@@ -1948,57 +1942,229 @@ public interface ReactiveZSetCommands {
 	Flux<NumericResponse<ZRemRangeByLexCommand, Long>> zRemRangeByLex(Publisher<ZRemRangeByLexCommand> commands);
 
 	/**
-	 * {@code ZUNIONSTORE} command parameters.
+	 * {@code ZDIFF} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	class ZDiffCommand implements Command {
+
+		private final List<ByteBuffer> keys;
+
+		private ZDiffCommand(List<ByteBuffer> keys) {
+			this.keys = keys;
+		}
+
+		/**
+		 * Creates a new {@link ZDiffCommand} given a {@link Collection} of keys.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link ZDiffCommand} for a {@link Collection} of values.
+		 */
+		public static ZDiffCommand sets(Collection<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new ZDiffCommand(new ArrayList<>(keys));
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
+		 */
+		@Override
+		@Nullable
+		public ByteBuffer getKey() {
+			return null;
+		}
+
+		/**
+		 * @return
+		 */
+		public List<ByteBuffer> getKeys() {
+			return keys;
+		}
+	}
+
+	/**
+	 * Diff sorted {@literal sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	default Flux<ByteBuffer> zDiff(List<ByteBuffer> sets) {
+		return zDiff(Mono.just(ZDiffCommand.sets(sets))).flatMap(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Diff sorted {@literal sets}.
+	 *
+	 * @param commands
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	Flux<CommandResponse<ZDiffCommand, Flux<ByteBuffer>>> zDiff(Publisher<? extends ZDiffCommand> commands);
+
+	/**
+	 * Diff sorted {@literal sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	default Flux<Tuple> zDiffWithScores(List<ByteBuffer> sets) {
+		return zDiffWithScores(Mono.just(ZDiffCommand.sets(sets))).flatMap(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Diff sorted {@literal sets}.
+	 *
+	 * @param commands
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	Flux<CommandResponse<ZDiffCommand, Flux<Tuple>>> zDiffWithScores(Publisher<? extends ZDiffCommand> commands);
+
+	/**
+	 * {@code ZDIFFSTORE} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
+	 */
+	class ZDiffStoreCommand extends KeyCommand {
+
+		private final List<ByteBuffer> sourceKeys;
+
+		private ZDiffStoreCommand(@Nullable ByteBuffer key, List<ByteBuffer> sourceKeys) {
+
+			super(key);
+
+			this.sourceKeys = sourceKeys;
+		}
+
+		/**
+		 * Creates a new {@link ZDiffStoreCommand} given a {@link Collection} of keys.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link ZDiffStoreCommand} for a {@link Collection} of values.
+		 */
+		public static ZDiffStoreCommand sourceKeys(Collection<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new ZDiffStoreCommand(null, new ArrayList<>(keys));
+		}
+
+		/**
+		 * Applies the {@literal key} at which the result is stored. Constructs a new command instance with all previously
+		 * configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ZDiffStoreCommand} with {@literal key} applied.
+		 */
+		public ZDiffStoreCommand storeAs(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new ZDiffStoreCommand(key, sourceKeys);
+		}
+
+		/**
+		 * @return
+		 */
+		public List<ByteBuffer> getSourceKeys() {
+			return sourceKeys;
+		}
+	}
+
+	/**
+	 * Diff sorted {@literal sets} and store result in destination {@literal destinationKey}.
+	 *
+	 * @param destinationKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
+	 */
+	default Mono<Long> zDiffStore(ByteBuffer destinationKey, List<ByteBuffer> sets) {
+
+		Assert.notNull(destinationKey, "DestinationKey must not be null!");
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return zDiffStore(Mono.just(ZDiffStoreCommand.sourceKeys(sets).storeAs(destinationKey))).next()
+				.map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Diff sorted {@literal sets} and store result in destination {@literal destinationKey}.
+	 *
+	 * @param commands
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
+	 */
+	Flux<NumericResponse<ZDiffStoreCommand, Long>> zDiffStore(Publisher<ZDiffStoreCommand> commands);
+
+	/**
+	 * {@code ZINTER}/{@code ZUNION} command parameters.
 	 *
 	 * @author Christoph Strobl
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @author Mark Paluch
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	class ZUnionStoreCommand extends KeyCommand {
+	class ZAggregateCommand implements Command {
 
 		private final List<ByteBuffer> sourceKeys;
 		private final List<Double> weights;
 		private final @Nullable Aggregate aggregateFunction;
 
-		private ZUnionStoreCommand(@Nullable ByteBuffer key, List<ByteBuffer> sourceKeys, List<Double> weights,
-				@Nullable Aggregate aggregate) {
+		private ZAggregateCommand(List<ByteBuffer> sourceKeys, List<Double> weights, @Nullable Aggregate aggregate) {
 
-			super(key);
 			this.sourceKeys = sourceKeys;
 			this.weights = weights;
 			this.aggregateFunction = aggregate;
 		}
 
 		/**
-		 * Creates a new {@link ZUnionStoreCommand} given a {@link List} of keys.
+		 * Creates a new {@link ZAggregateCommand} given a {@link List} of keys.
 		 *
 		 * @param keys must not be {@literal null}.
-		 * @return a new {@link ZUnionStoreCommand} for {@link Range}.
+		 * @return a new {@link ZAggregateCommand} for {@link Range}.
 		 */
-		public static ZUnionStoreCommand sets(List<ByteBuffer> keys) {
+		public static ZAggregateCommand sets(List<ByteBuffer> keys) {
 
 			Assert.notNull(keys, "Keys must not be null!");
 
-			return new ZUnionStoreCommand(null, new ArrayList<>(keys), Collections.emptyList(), null);
+			return new ZAggregateCommand(new ArrayList<>(keys), Collections.emptyList(), null);
 		}
 
 		/**
 		 * Applies the {@link List} of weights. Constructs a new command instance with all previously configured properties.
 		 *
 		 * @param weights must not be {@literal null}.
-		 * @return a new {@link ZUnionStoreCommand} with {@literal weights} applied.
+		 * @return a new {@link ZAggregateCommand} with {@literal weights} applied.
 		 */
-		public ZUnionStoreCommand applyWeights(List<Double> weights) {
-			return new ZUnionStoreCommand(getKey(), sourceKeys, weights, aggregateFunction);
+		public ZAggregateCommand applyWeights(List<Double> weights) {
+			return new ZAggregateCommand(sourceKeys, weights, aggregateFunction);
 		}
 
 		/**
 		 * Applies the {@link Weights}. Constructs a new command instance with all previously configured properties.
 		 *
 		 * @param weights must not be {@literal null}.
-		 * @return a new {@link ZUnionStoreCommand} with {@literal weights} applied.
+		 * @return a new {@link ZAggregateCommand} with {@literal weights} applied.
 		 * @since 2.1
 		 */
-		public ZUnionStoreCommand applyWeights(Weights weights) {
+		public ZAggregateCommand applyWeights(Weights weights) {
 			return applyWeights(weights.toList());
 		}
 
@@ -2007,25 +2173,17 @@ public interface ReactiveZSetCommands {
 		 * properties.
 		 *
 		 * @param aggregateFunction can be {@literal null}.
-		 * @return a new {@link ZUnionStoreCommand} with {@link Aggregate} applied.
+		 * @return a new {@link ZAggregateStoreCommand} with {@link Aggregate} applied.
 		 */
-		public ZUnionStoreCommand aggregateUsing(@Nullable Aggregate aggregateFunction) {
+		public ZAggregateCommand aggregateUsing(@Nullable Aggregate aggregateFunction) {
 
-			return new ZUnionStoreCommand(getKey(), sourceKeys, weights, aggregateFunction);
+			return new ZAggregateCommand(sourceKeys, weights, aggregateFunction);
 		}
 
-		/**
-		 * Applies the {@literal key} at which the result is stored. Constructs a new command instance with all previously
-		 * configured properties.
-		 *
-		 * @param key must not be {@literal null}.
-		 * @return a new {@link ZUnionStoreCommand} with {@literal key} applied.
-		 */
-		public ZUnionStoreCommand storeAs(ByteBuffer key) {
-
-			Assert.notNull(key, "Key must not be null!");
-
-			return new ZUnionStoreCommand(key, sourceKeys, weights, aggregateFunction);
+		@Nullable
+		@Override
+		public ByteBuffer getKey() {
+			return null;
 		}
 
 		/**
@@ -2051,100 +2209,223 @@ public interface ReactiveZSetCommands {
 	}
 
 	/**
-	 * Union sorted {@literal sets} and store result in destination {@literal destinationKey}.
+	 * {@code ZINTERSTORE}/{@code ZUNIONSTORE} command parameters.
 	 *
-	 * @param destinationKey must not be {@literal null}.
-	 * @param sets must not be {@literal null}.
-	 * @return
+	 * @author Christoph Strobl
+	 * @author Mark Paluch
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets) {
-		return zUnionStore(destinationKey, sets, Collections.emptyList());
+	class ZAggregateStoreCommand extends KeyCommand {
+
+		private final List<ByteBuffer> sourceKeys;
+		private final List<Double> weights;
+		private final @Nullable Aggregate aggregateFunction;
+
+		private ZAggregateStoreCommand(@Nullable ByteBuffer key, List<ByteBuffer> sourceKeys, List<Double> weights,
+				@Nullable Aggregate aggregate) {
+
+			super(key);
+			this.sourceKeys = sourceKeys;
+			this.weights = weights;
+			this.aggregateFunction = aggregate;
+		}
+
+		/**
+		 * Creates a new {@link ZAggregateStoreCommand} given a {@link List} of keys.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link ZAggregateStoreCommand} for {@link Range}.
+		 */
+		public static ZAggregateStoreCommand sets(List<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new ZAggregateStoreCommand(null, new ArrayList<>(keys), Collections.emptyList(), null);
+		}
+
+		/**
+		 * Applies the {@link List} of weights. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param weights must not be {@literal null}.
+		 * @return a new {@link ZAggregateStoreCommand} with {@literal weights} applied.
+		 */
+		public ZAggregateStoreCommand applyWeights(List<Double> weights) {
+			return new ZAggregateStoreCommand(getKey(), sourceKeys, weights, aggregateFunction);
+		}
+
+		/**
+		 * Applies the {@link Weights}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param weights must not be {@literal null}.
+		 * @return a new {@link ZAggregateStoreCommand} with {@literal weights} applied.
+		 * @since 2.1
+		 */
+		public ZAggregateStoreCommand applyWeights(Weights weights) {
+			return applyWeights(weights.toList());
+		}
+
+		/**
+		 * Applies a specific {@link Aggregate} function. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param aggregateFunction can be {@literal null}.
+		 * @return a new {@link ZAggregateStoreCommand} with {@link Aggregate} applied.
+		 */
+		public ZAggregateStoreCommand aggregateUsing(@Nullable Aggregate aggregateFunction) {
+
+			return new ZAggregateStoreCommand(getKey(), sourceKeys, weights, aggregateFunction);
+		}
+
+		/**
+		 * Applies the {@literal key} at which the result is stored. Constructs a new command instance with all previously
+		 * configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ZAggregateStoreCommand} with {@literal key} applied.
+		 */
+		public ZAggregateStoreCommand storeAs(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new ZAggregateStoreCommand(key, sourceKeys, weights, aggregateFunction);
+		}
+
+		/**
+		 * @return never {@literal null}.
+		 */
+		public List<ByteBuffer> getSourceKeys() {
+			return sourceKeys;
+		}
+
+		/**
+		 * @return never {@literal null}.
+		 */
+		public List<Double> getWeights() {
+			return weights;
+		}
+
+		/**
+		 * @return never {@literal null}.
+		 */
+		public Optional<Aggregate> getAggregateFunction() {
+			return Optional.ofNullable(aggregateFunction);
+		}
 	}
 
 	/**
-	 * Union sorted {@literal sets} and store result in destination {@literal destinationKey} and apply weights to
-	 * individual sets.
+	 * Intersect sorted {@literal sets}.
 	 *
-	 * @param destinationKey must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
-	 * @param weights must not be {@literal null}.
 	 * @return
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets, List<Double> weights) {
-		return zUnionStore(destinationKey, sets, weights, null);
-	}
+	default Flux<ByteBuffer> zInter(List<ByteBuffer> sets) {
 
-	/**
-	 * Union sorted {@literal sets} and store result in destination {@literal destinationKey} and apply weights to
-	 * individual sets.
-	 *
-	 * @param destinationKey must not be {@literal null}.
-	 * @param sets must not be {@literal null}.
-	 * @param weights must not be {@literal null}.
-	 * @return
-	 * @since 2.1
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
-	 */
-	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets, Weights weights) {
-		return zUnionStore(destinationKey, sets, weights, null);
-	}
-
-	/**
-	 * Union sorted {@literal sets} by applying {@literal aggregateFunction} and store result in destination
-	 * {@literal destinationKey} and apply weights to individual sets.
-	 *
-	 * @param destinationKey must not be {@literal null}.
-	 * @param sets must not be {@literal null}.
-	 * @param weights can be {@literal null}.
-	 * @param aggregateFunction can be {@literal null}.
-	 * @return
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
-	 */
-	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets, List<Double> weights,
-			@Nullable Aggregate aggregateFunction) {
-
-		Assert.notNull(destinationKey, "DestinationKey must not be null!");
 		Assert.notNull(sets, "Sets must not be null!");
 
-		return zUnionStore(Mono.just(
-				ZUnionStoreCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights).storeAs(destinationKey)))
-						.next().map(NumericResponse::getOutput);
+		return zInter(Mono.just(ZAggregateCommand.sets(sets))).flatMap(CommandResponse::getOutput);
 	}
 
 	/**
-	 * Union sorted {@literal sets} by applying {@literal aggregateFunction} and store result in destination
-	 * {@literal destinationKey} and apply weights to individual sets.
-	 *
-	 * @param destinationKey must not be {@literal null}.
-	 * @param sets must not be {@literal null}.
-	 * @param weights can be {@literal null}.
-	 * @param aggregateFunction can be {@literal null}.
-	 * @return
-	 * @since 2.1
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
-	 */
-	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets, Weights weights,
-			@Nullable Aggregate aggregateFunction) {
-
-		Assert.notNull(destinationKey, "DestinationKey must not be null!");
-		Assert.notNull(sets, "Sets must not be null!");
-
-		return zUnionStore(Mono.just(
-				ZUnionStoreCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights).storeAs(destinationKey)))
-						.next().map(NumericResponse::getOutput);
-	}
-
-	/**
-	 * Union sorted {@literal sets} by applying {@literal aggregateFunction} and store result in destination
-	 * {@literal destinationKey} and apply weights to individual sets.
+	 * Intersect sorted {@literal sets} by applying {@literal aggregateFunction} and apply weights to individual sets.
 	 *
 	 * @param commands
 	 * @return
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	Flux<NumericResponse<ZUnionStoreCommand, Long>> zUnionStore(Publisher<ZUnionStoreCommand> commands);
+	Flux<CommandResponse<ZAggregateCommand, Flux<ByteBuffer>>> zInter(Publisher<? extends ZAggregateCommand> commands);
+
+	/**
+	 * Intersect sorted {@literal sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	default Flux<Tuple> zInterWithScores(List<ByteBuffer> sets) {
+		return zInterWithScores(sets, Collections.emptyList());
+	}
+
+	/**
+	 * Intersect sorted {@literal sets} and apply weights to individual sets.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	default Flux<Tuple> zInterWithScores(List<ByteBuffer> sets, List<Double> weights) {
+		return zInterWithScores(sets, weights, null);
+	}
+
+	/**
+	 * Intersect sorted {@literal sets} and apply weights to individual sets.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	default Flux<Tuple> zInterWithScores(List<ByteBuffer> sets, Weights weights) {
+		return zInterWithScores(sets, weights, null);
+	}
+
+	/**
+	 * Intersect sorted {@literal sets} by applying {@literal aggregateFunction} and apply weights to individual sets.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @param aggregateFunction can be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	default Flux<Tuple> zInterWithScores(List<ByteBuffer> sets, List<Double> weights,
+			@Nullable Aggregate aggregateFunction) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return zInterWithScores(
+				Mono.just(ZAggregateCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights)))
+						.flatMap(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Intersect sorted {@literal sets} by applying {@literal aggregateFunction} and apply weights to individual sets.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @param aggregateFunction can be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	default Flux<Tuple> zInterWithScores(List<ByteBuffer> sets, Weights weights, @Nullable Aggregate aggregateFunction) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return zInterWithScores(
+				Mono.just(ZAggregateCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights)))
+						.flatMap(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Intersect sorted {@literal sets} by applying {@literal aggregateFunction} and apply weights to individual sets.
+	 *
+	 * @param commands
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	Flux<CommandResponse<ZAggregateCommand, Flux<Tuple>>> zInterWithScores(
+			Publisher<? extends ZAggregateCommand> commands);
 
 	/**
 	 * {@code ZINTERSTORE} command parameters.
@@ -2152,19 +2433,11 @@ public interface ReactiveZSetCommands {
 	 * @author Christoph Strobl
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	class ZInterStoreCommand extends KeyCommand {
-
-		private final List<ByteBuffer> sourceKeys;
-		private final List<Double> weights;
-		private final @Nullable Aggregate aggregateFunction;
+	class ZInterStoreCommand extends ZAggregateStoreCommand {
 
 		private ZInterStoreCommand(ByteBuffer key, List<ByteBuffer> sourceKeys, List<Double> weights,
 				@Nullable Aggregate aggregate) {
-
-			super(key);
-			this.sourceKeys = sourceKeys;
-			this.weights = weights;
-			this.aggregateFunction = aggregate;
+			super(key, sourceKeys, weights, aggregate);
 		}
 
 		/**
@@ -2188,7 +2461,7 @@ public interface ReactiveZSetCommands {
 		 * @return a new {@link ZInterStoreCommand} with {@literal weights} applied.
 		 */
 		public ZInterStoreCommand applyWeights(List<Double> weights) {
-			return new ZInterStoreCommand(getKey(), sourceKeys, weights, aggregateFunction);
+			return new ZInterStoreCommand(getKey(), getSourceKeys(), weights, getAggregateFunction().orElse(null));
 		}
 
 		/**
@@ -2211,7 +2484,7 @@ public interface ReactiveZSetCommands {
 		 */
 		public ZInterStoreCommand aggregateUsing(@Nullable Aggregate aggregateFunction) {
 
-			return new ZInterStoreCommand(getKey(), sourceKeys, weights, aggregateFunction);
+			return new ZInterStoreCommand(getKey(), getSourceKeys(), getWeights(), aggregateFunction);
 		}
 
 		/**
@@ -2225,29 +2498,9 @@ public interface ReactiveZSetCommands {
 
 			Assert.notNull(key, "Key must not be null!");
 
-			return new ZInterStoreCommand(key, sourceKeys, weights, aggregateFunction);
+			return new ZInterStoreCommand(key, getSourceKeys(), getWeights(), getAggregateFunction().orElse(null));
 		}
 
-		/**
-		 * @return never {@literal null}.
-		 */
-		public List<ByteBuffer> getSourceKeys() {
-			return sourceKeys;
-		}
-
-		/**
-		 * @return never {@literal null}.
-		 */
-		public List<Double> getWeights() {
-			return weights;
-		}
-
-		/**
-		 * @return never {@literal null}.ø
-		 */
-		public Optional<Aggregate> getAggregateFunction() {
-			return Optional.ofNullable(aggregateFunction);
-		}
 	}
 
 	/**
@@ -2344,7 +2597,291 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	Flux<NumericResponse<ZInterStoreCommand, Long>> zInterStore(Publisher<ZInterStoreCommand> commands);
+	Flux<NumericResponse<ZAggregateStoreCommand, Long>> zInterStore(Publisher<? extends ZAggregateStoreCommand> commands);
+
+	/**
+	 * Union sorted {@literal sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	default Flux<ByteBuffer> zUnion(List<ByteBuffer> sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return zUnion(Mono.just(ZAggregateCommand.sets(sets))).flatMap(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Union sorted {@literal sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	default Flux<Tuple> zUnionWithScores(List<ByteBuffer> sets) {
+		return zUnionWithScores(sets, Collections.emptyList());
+	}
+
+	/**
+	 * Union sorted {@literal sets} and apply weights to individual sets.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	default Flux<Tuple> zUnionWithScores(List<ByteBuffer> sets, List<Double> weights) {
+		return zUnionWithScores(sets, weights, null);
+	}
+
+	/**
+	 * Union sorted {@literal sets} and apply weights to individual sets.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	default Flux<Tuple> zUnionWithScores(List<ByteBuffer> sets, Weights weights) {
+		return zUnionWithScores(sets, weights, null);
+	}
+
+	/**
+	 * Union sorted {@literal sets} by applying {@literal aggregateFunction} and apply weights to individual sets.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param weights can be {@literal null}.
+	 * @param aggregateFunction can be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	default Flux<Tuple> zUnionWithScores(List<ByteBuffer> sets, List<Double> weights,
+			@Nullable Aggregate aggregateFunction) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return zUnionWithScores(
+				Mono.just(ZAggregateCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights)))
+						.flatMap(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Union sorted {@literal sets} by applying {@literal aggregateFunction} and apply weights to individual sets.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param weights can be {@literal null}.
+	 * @param aggregateFunction can be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	default Flux<Tuple> zUnionWithScores(List<ByteBuffer> sets, Weights weights, @Nullable Aggregate aggregateFunction) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return zUnionWithScores(
+				Mono.just(ZAggregateCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights)))
+						.flatMap(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Union sorted {@literal sets} by applying {@literal aggregateFunction} and apply weights to individual sets.
+	 *
+	 * @param commands
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	Flux<CommandResponse<ZAggregateCommand, Flux<Tuple>>> zUnionWithScores(
+			Publisher<? extends ZAggregateCommand> commands);
+
+	/**
+	 * Union sorted {@literal sets} by applying {@literal aggregateFunction} and apply weights to individual sets.
+	 *
+	 * @param commands
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	Flux<CommandResponse<ZAggregateCommand, Flux<ByteBuffer>>> zUnion(Publisher<? extends ZAggregateCommand> commands);
+
+	/**
+	 * {@code ZUNIONSTORE} command parameters.
+	 *
+	 * @author Christoph Strobl
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	class ZUnionStoreCommand extends ZAggregateStoreCommand {
+
+		private ZUnionStoreCommand(@Nullable ByteBuffer key, List<ByteBuffer> sourceKeys, List<Double> weights,
+				@Nullable Aggregate aggregate) {
+
+			super(key, sourceKeys, weights, aggregate);
+		}
+
+		/**
+		 * Creates a new {@link ZUnionStoreCommand} given a {@link List} of keys.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link ZUnionStoreCommand} for {@link Range}.
+		 */
+		public static ZUnionStoreCommand sets(List<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new ZUnionStoreCommand(null, new ArrayList<>(keys), Collections.emptyList(), null);
+		}
+
+		/**
+		 * Applies the {@link List} of weights. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param weights must not be {@literal null}.
+		 * @return a new {@link ZUnionStoreCommand} with {@literal weights} applied.
+		 */
+		public ZUnionStoreCommand applyWeights(List<Double> weights) {
+			return new ZUnionStoreCommand(getKey(), getSourceKeys(), weights, getAggregateFunction().orElse(null));
+		}
+
+		/**
+		 * Applies the {@link Weights}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param weights must not be {@literal null}.
+		 * @return a new {@link ZUnionStoreCommand} with {@literal weights} applied.
+		 * @since 2.1
+		 */
+		public ZUnionStoreCommand applyWeights(Weights weights) {
+			return applyWeights(weights.toList());
+		}
+
+		/**
+		 * Applies a specific {@link Aggregate} function. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param aggregateFunction can be {@literal null}.
+		 * @return a new {@link ZUnionStoreCommand} with {@link Aggregate} applied.
+		 */
+		public ZUnionStoreCommand aggregateUsing(@Nullable Aggregate aggregateFunction) {
+
+			return new ZUnionStoreCommand(getKey(), getSourceKeys(), getWeights(), aggregateFunction);
+		}
+
+		/**
+		 * Applies the {@literal key} at which the result is stored. Constructs a new command instance with all previously
+		 * configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ZUnionStoreCommand} with {@literal key} applied.
+		 */
+		public ZUnionStoreCommand storeAs(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new ZUnionStoreCommand(key, getSourceKeys(), getWeights(), getAggregateFunction().orElse(null));
+		}
+
+	}
+
+	/**
+	 * Union sorted {@literal sets} and store result in destination {@literal destinationKey}.
+	 *
+	 * @param destinationKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets) {
+		return zUnionStore(destinationKey, sets, Collections.emptyList());
+	}
+
+	/**
+	 * Union sorted {@literal sets} and store result in destination {@literal destinationKey} and apply weights to
+	 * individual sets.
+	 *
+	 * @param destinationKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets, List<Double> weights) {
+		return zUnionStore(destinationKey, sets, weights, null);
+	}
+
+	/**
+	 * Union sorted {@literal sets} and store result in destination {@literal destinationKey} and apply weights to
+	 * individual sets.
+	 *
+	 * @param destinationKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets, Weights weights) {
+		return zUnionStore(destinationKey, sets, weights, null);
+	}
+
+	/**
+	 * Union sorted {@literal sets} by applying {@literal aggregateFunction} and store result in destination
+	 * {@literal destinationKey} and apply weights to individual sets.
+	 *
+	 * @param destinationKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @param weights can be {@literal null}.
+	 * @param aggregateFunction can be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets, List<Double> weights,
+			@Nullable Aggregate aggregateFunction) {
+
+		Assert.notNull(destinationKey, "DestinationKey must not be null!");
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return zUnionStore(Mono.just(ZAggregateStoreCommand.sets(sets).aggregateUsing(aggregateFunction)
+				.applyWeights(weights).storeAs(destinationKey))).next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Union sorted {@literal sets} by applying {@literal aggregateFunction} and store result in destination
+	 * {@literal destinationKey} and apply weights to individual sets.
+	 *
+	 * @param destinationKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @param weights can be {@literal null}.
+	 * @param aggregateFunction can be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	default Mono<Long> zUnionStore(ByteBuffer destinationKey, List<ByteBuffer> sets, Weights weights,
+			@Nullable Aggregate aggregateFunction) {
+
+		Assert.notNull(destinationKey, "DestinationKey must not be null!");
+		Assert.notNull(sets, "Sets must not be null!");
+
+		return zUnionStore(Mono.just(
+				ZUnionStoreCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights).storeAs(destinationKey)))
+						.next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Union sorted {@literal sets} by applying {@literal aggregateFunction} and store result in destination
+	 * {@literal destinationKey} and apply weights to individual sets.
+	 *
+	 * @param commands
+	 * @return
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	Flux<NumericResponse<ZAggregateStoreCommand, Long>> zUnionStore(Publisher<? extends ZAggregateStoreCommand> commands);
 
 	/**
 	 * {@code ZRANGEBYLEX}/{@literal ZREVRANGEBYLEX} command parameters.

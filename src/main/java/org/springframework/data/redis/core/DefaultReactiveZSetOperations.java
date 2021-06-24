@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
-
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.ReactiveZSetCommands;
@@ -501,6 +500,194 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return createMono(connection -> connection.zRemRangeByScore(rawKey(key), range));
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#difference(K, Collection)
+	 */
+	@Override
+	public Flux<V> difference(K key, Collection<K> otherKeys) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(otherKeys, "Other keys must not be null!");
+
+		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMapMany(connection::zDiff).map(this::readValue));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#differenceWithScores(K, Collection)
+	 */
+	@Override
+	public Flux<TypedTuple<V>> differenceWithScores(K key, Collection<K> otherKeys) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(otherKeys, "Other keys must not be null!");
+
+		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMapMany(connection::zDiffWithScores).map(this::readTypedTuple));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#differenceAndStore(K, Collection, K)
+	 */
+	@Override
+	public Mono<Long> differenceAndStore(K key, Collection<K> otherKeys, K destKey) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(otherKeys, "Other keys must not be null!");
+		Assert.notNull(destKey, "Destination key must not be null!");
+
+		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(serialized -> connection.zDiffStore(rawKey(destKey), serialized)));
+
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#intersect(K, Collection)
+	 */
+	@Override
+	public Flux<V> intersect(K key, Collection<K> otherKeys) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(otherKeys, "Other keys must not be null!");
+
+		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMapMany(connection::zInter).map(this::readValue));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#intersectWithScores(K, Collection)
+	 */
+	@Override
+	public Flux<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(otherKeys, "Other keys must not be null!");
+
+		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMapMany(connection::zInterWithScores).map(this::readTypedTuple));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#intersectWithScores(K, Collection, Aggregate, Weights)
+	 */
+	@Override
+	public Flux<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights) {
+
+		// TODO: Inconsistent method signatures Aggregate/Weights vs Weights/Aggregate in Connection API
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(otherKeys, "Other keys must not be null!");
+		Assert.notNull(aggregate, "Aggregate must not be null!");
+		Assert.notNull(weights, "Weights must not be null!");
+
+		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMapMany(sets -> connection.zInterWithScores(sets, weights, aggregate)).map(this::readTypedTuple));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
+	 */
+	@Override
+	public Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(otherKeys, "Other keys must not be null!");
+		Assert.notNull(destKey, "Destination key must not be null!");
+
+		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(serialized -> connection.zInterStore(rawKey(destKey), serialized)));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
+	 */
+	@Override
+	public Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(otherKeys, "Other keys must not be null!");
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(aggregate, "Aggregate must not be null!");
+		Assert.notNull(weights, "Weights must not be null!");
+
+		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(serialized -> connection.zInterStore(rawKey(destKey), serialized, weights, aggregate)));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#union(K, Collection)
+	 */
+	@Override
+	public Flux<V> union(K key, Collection<K> otherKeys) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(otherKeys, "Other keys must not be null!");
+
+		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMapMany(connection::zUnion).map(this::readValue));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#unionWithScores(K, Collection)
+	 */
+	@Override
+	public Flux<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(otherKeys, "Other keys must not be null!");
+
+		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMapMany(connection::zUnionWithScores).map(this::readTypedTuple));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#unionWithScores(K, Collection, Aggregate, Weights)
+	 */
+	@Override
+	public Flux<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(otherKeys, "Other keys must not be null!");
+		Assert.notNull(aggregate, "Aggregate must not be null!");
+		Assert.notNull(weights, "Weights must not be null!");
+
+		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMapMany(sets -> connection.zUnionWithScores(sets, weights, aggregate)).map(this::readTypedTuple));
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#unionAndStore(java.lang.Object, java.lang.Object, java.lang.Object)
@@ -549,56 +736,6 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 				.map(this::rawKey) //
 				.collectList() //
 				.flatMap(serialized -> connection.zUnionStore(rawKey(destKey), serialized, weights, aggregate)));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#intersectAndStore(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Mono<Long> intersectAndStore(K key, K otherKey, K destKey) {
-
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(otherKey, "Other key must not be null!");
-		Assert.notNull(destKey, "Destination key must not be null!");
-
-		return intersectAndStore(key, Collections.singleton(otherKey), destKey);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
-	 */
-	@Override
-	public Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
-
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(otherKeys, "Other keys must not be null!");
-		Assert.notNull(destKey, "Destination key must not be null!");
-
-		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
-				.map(this::rawKey) //
-				.collectList() //
-				.flatMap(serialized -> connection.zInterStore(rawKey(destKey), serialized)));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
-	 */
-	@Override
-	public Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
-
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(otherKeys, "Other keys must not be null!");
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(aggregate, "Aggregate must not be null!");
-		Assert.notNull(weights, "Weights must not be null!");
-
-		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
-				.map(this::rawKey) //
-				.collectList() //
-				.flatMap(serialized -> connection.zInterStore(rawKey(destKey), serialized, weights, aggregate)));
 	}
 
 	/*
