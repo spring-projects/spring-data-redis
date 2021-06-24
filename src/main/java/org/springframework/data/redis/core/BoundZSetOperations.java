@@ -491,6 +491,20 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
 	 */
 	@Nullable
+	default Long differenceAndStore(K otherKey, K destKey) {
+		return differenceAndStore(Collections.singleton(otherKey), destKey);
+	}
+
+	/**
+	 * Diff sorted {@code sets} and store result in destination {@code destKey}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
+	 */
+	@Nullable
 	Long differenceAndStore(Collection<K> otherKeys, K destKey);
 
 	/**

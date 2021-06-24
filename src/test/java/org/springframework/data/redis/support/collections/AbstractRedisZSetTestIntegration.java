@@ -36,6 +36,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.DefaultTypedTuple;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
@@ -301,35 +302,6 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 	@SuppressWarnings("unchecked")
 	private RedisZSet<T> createZSetFor(String key) {
 		return new DefaultRedisZSet<>((BoundZSetOperations<String, T>) zSet.getOperations().boundZSetOps(key));
-	}
-
-	@ParameterizedRedisTest
-	void testIntersectAndStore() {
-
-		RedisZSet<T> interSet1 = createZSetFor("test:zset:inter1");
-		RedisZSet<T> interSet2 = createZSetFor("test:zset:inter");
-
-		T t1 = getT();
-		T t2 = getT();
-		T t3 = getT();
-		T t4 = getT();
-
-		zSet.add(t1, 1);
-		zSet.add(t2, 2);
-		zSet.add(t3, 3);
-
-		interSet1.add(t2, 2);
-		interSet1.add(t4, 3);
-		interSet2.add(t2, 2);
-		interSet2.add(t3, 3);
-
-		String resultName = "test:zset:inter:result:1";
-		RedisZSet<T> inter = zSet.intersectAndStore(Arrays.asList(interSet1, interSet2), resultName);
-
-		assertThat(inter).hasSize(1);
-		assertThat(inter).contains(t2);
-		assertThat(inter.score(t2)).isEqualTo(Double.valueOf(6));
-		assertThat(inter.getKey()).isEqualTo(resultName);
 	}
 
 	@ParameterizedRedisTest
@@ -638,6 +610,136 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		assertThat(iterator.next()).isEqualTo(t1);
 		assertThat(iterator.next()).isEqualTo(t3);
 		assertThat(iterator.next()).isEqualTo(t4);
+	}
+
+	@ParameterizedRedisTest // GH-2041
+	@EnabledOnCommand("ZDIFF")
+	void testDifference() {
+
+		RedisZSet<T> set1 = createZSetFor("test:zset:set1");
+		RedisZSet<T> set2 = createZSetFor("test:zset:set2");
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+		T t4 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+
+		set1.add(t2, 2);
+		set1.add(t4, 3);
+		set2.add(t2, 2);
+		set2.add(t3, 3);
+
+		assertThat(zSet.difference(Arrays.asList(set1, set2))).containsOnly(t1);
+		assertThat(zSet.differenceWithScores(Arrays.asList(set1, set2))).containsOnly(new DefaultTypedTuple<>(t1, 1d));
+	}
+
+	@ParameterizedRedisTest // GH-2041
+	void testDifferenceAndStore() {
+
+		RedisZSet<T> set1 = createZSetFor("test:zset:set1");
+		RedisZSet<T> set2 = createZSetFor("test:zset:set2");
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+		T t4 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+
+		set1.add(t2, 2);
+		set1.add(t4, 3);
+		set2.add(t2, 2);
+		set2.add(t3, 3);
+
+		String resultName = "test:zset:inter:result:1";
+		RedisZSet<T> diff = zSet.differenceAndStore(Arrays.asList(set1, set2), resultName);
+
+		assertThat(diff).containsOnly(t1);
+	}
+
+	@ParameterizedRedisTest // GH-2042
+	@EnabledOnCommand("ZINTER")
+	void testIntersect() {
+
+		RedisZSet<T> interSet1 = createZSetFor("test:zset:inter1");
+		RedisZSet<T> interSet2 = createZSetFor("test:zset:inter");
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+		T t4 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+
+		interSet1.add(t2, 2);
+		interSet1.add(t4, 3);
+		interSet2.add(t2, 2);
+		interSet2.add(t3, 3);
+
+		assertThat(zSet.intersect(Arrays.asList(interSet1, interSet2))).containsOnly(t2);
+		assertThat(zSet.intersectWithScores(Arrays.asList(interSet1, interSet2)))
+				.containsOnly(new DefaultTypedTuple<>(t2, 6d));
+	}
+
+	@ParameterizedRedisTest
+	void testIntersectAndStore() {
+
+		RedisZSet<T> interSet1 = createZSetFor("test:zset:inter1");
+		RedisZSet<T> interSet2 = createZSetFor("test:zset:inter");
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+		T t4 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+
+		interSet1.add(t2, 2);
+		interSet1.add(t4, 3);
+		interSet2.add(t2, 2);
+		interSet2.add(t3, 3);
+
+		String resultName = "test:zset:inter:result:1";
+		RedisZSet<T> inter = zSet.intersectAndStore(Arrays.asList(interSet1, interSet2), resultName);
+
+		assertThat(inter).hasSize(1);
+		assertThat(inter).contains(t2);
+		assertThat(inter.score(t2)).isEqualTo(Double.valueOf(6));
+		assertThat(inter.getKey()).isEqualTo(resultName);
+	}
+
+	@ParameterizedRedisTest // GH-2042
+	@EnabledOnCommand("ZUNION")
+	void testUnion() {
+
+		RedisZSet<T> set1 = createZSetFor("test:zset:union1");
+		RedisZSet<T> set2 = createZSetFor("test:zset:union2");
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+		T t4 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+
+		set1.add(t2, 2);
+		set1.add(t4, 3);
+		set2.add(t2, 2);
+		set2.add(t3, 3);
+
+		assertThat(zSet.union(Arrays.asList(set1, set2))).contains(t1, t2, t3, t4);
 	}
 
 	@SuppressWarnings("unchecked")

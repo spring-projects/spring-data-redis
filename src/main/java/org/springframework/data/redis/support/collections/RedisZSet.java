@@ -67,6 +67,100 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	}
 
 	/**
+	 * Diff this set and another {@link RedisZSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the values that differ.
+	 * @since 2.6
+	 */
+	Set<E> difference(RedisZSet<?> set);
+
+	/**
+	 * Diff this set and other {@link RedisZSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return a {@link Set} containing the values that differ.
+	 * @since 2.6
+	 */
+	Set<E> difference(Collection<? extends RedisZSet<?>> sets);
+
+	/**
+	 * Diff this set and another {@link RedisZSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the values that differ with their scores.
+	 * @since 2.6
+	 */
+	Set<TypedTuple<E>> differenceWithScores(RedisZSet<?> set);
+
+	/**
+	 * Diff this set and other {@link RedisZSet}s.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the values that differ with their scores.
+	 * @since 2.6
+	 */
+	Set<TypedTuple<E>> differenceWithScores(Collection<? extends RedisZSet<?>> sets);
+
+	/**
+	 * Create a new {@link RedisZSet} by diffing this sorted set and {@link RedisZSet} and store result in destination
+	 * {@code destKey}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}.
+	 * @since 2.6
+	 */
+	RedisZSet<E> differenceAndStore(RedisZSet<?> set, String destKey);
+
+	/**
+	 * Create a new {@link RedisZSet} by diffing this sorted set and the collection {@link RedisZSet} and store result in
+	 * destination {@code destKey}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}.
+	 * @since 2.6
+	 */
+	RedisZSet<E> differenceAndStore(Collection<? extends RedisZSet<?>> sets, String destKey);
+
+	/**
+	 * Intersect this set and another {@link RedisZSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the intersecting values.
+	 * @since 2.6
+	 */
+	Set<E> intersect(RedisZSet<?> set);
+
+	/**
+	 * Intersect this set and other {@link RedisZSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return a {@link Set} containing the intersecting values.
+	 * @since 2.6
+	 */
+	Set<E> intersect(Collection<? extends RedisZSet<?>> sets);
+
+	/**
+	 * Intersect this set and another {@link RedisZSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the intersecting values with their scores.
+	 * @since 2.6
+	 */
+	Set<TypedTuple<E>> intersectWithScores(RedisZSet<?> set);
+
+	/**
+	 * Intersect this set and other {@link RedisZSet}s.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the intersecting values with their scores.
+	 * @since 2.6
+	 */
+	Set<TypedTuple<E>> intersectWithScores(Collection<? extends RedisZSet<?>> sets);
+
+	/**
 	 * Create a new {@link RedisZSet} by intersecting this sorted set and {@link RedisZSet} and store result in
 	 * destination {@code destKey}.
 	 *
@@ -85,6 +179,42 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return a new {@link RedisZSet} pointing at {@code destKey}
 	 */
 	RedisZSet<E> intersectAndStore(Collection<? extends RedisZSet<?>> sets, String destKey);
+
+	/**
+	 * Union this set and another {@link RedisZSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the combined values.
+	 * @since 2.6
+	 */
+	Set<E> union(RedisZSet<?> set);
+
+	/**
+	 * Union this set and other {@link RedisZSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return a {@link Set} containing the combined values.
+	 * @since 2.6
+	 */
+	Set<E> union(Collection<? extends RedisZSet<?>> sets);
+
+	/**
+	 * Union this set and another {@link RedisZSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the combined values with their scores.
+	 * @since 2.6
+	 */
+	Set<TypedTuple<E>> unionWithScores(RedisZSet<?> set);
+
+	/**
+	 * Union this set and other {@link RedisZSet}s.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the combined values with their scores.
+	 * @since 2.6
+	 */
+	Set<TypedTuple<E>> unionWithScores(Collection<? extends RedisZSet<?>> sets);
 
 	/**
 	 * Create a new {@link RedisZSet} by union this sorted set and {@link RedisZSet} and store result in destination
