@@ -1177,34 +1177,6 @@ public interface RedisZSetCommands {
 	/**
 	 * Intersect sorted {@code sets}.
 	 *
-	 * @param aggregate must not be {@literal null}.
-	 * @param weights must not be {@literal null}.
-	 * @param sets must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.6
-	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
-	 */
-	@Nullable
-	default Set<byte[]> zInter(Aggregate aggregate, int[] weights, byte[]... sets) {
-		return zInter(aggregate, Weights.of(weights), sets);
-	}
-
-	/**
-	 * Intersect sorted {@code sets}.
-	 *
-	 * @param aggregate must not be {@literal null}.
-	 * @param weights must not be {@literal null}.
-	 * @param sets must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.6
-	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
-	 */
-	@Nullable
-	Set<byte[]> zInter(Aggregate aggregate, Weights weights, byte[]... sets);
-
-	/**
-	 * Intersect sorted {@code sets}.
-	 *
 	 * @param sets must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.6
@@ -1292,34 +1264,6 @@ public interface RedisZSetCommands {
 	 */
 	@Nullable
 	Set<byte[]> zUnion(byte[]... sets);
-
-	/**
-	 * Union sorted {@code sets}.
-	 *
-	 * @param aggregate must not be {@literal null}.
-	 * @param weights must not be {@literal null}.
-	 * @param sets must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.6
-	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
-	 */
-	@Nullable
-	default Set<byte[]> zUnion(Aggregate aggregate, int[] weights, byte[]... sets) {
-		return zUnion(aggregate, Weights.of(weights), sets);
-	}
-
-	/**
-	 * Union sorted {@code sets}.
-	 *
-	 * @param aggregate must not be {@literal null}.
-	 * @param weights must not be {@literal null}.
-	 * @param sets must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.6
-	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
-	 */
-	@Nullable
-	Set<byte[]> zUnion(Aggregate aggregate, Weights weights, byte[]... sets);
 
 	/**
 	 * Union sorted {@code sets}.

@@ -41,11 +41,13 @@ class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetCommands imp
 		super(connection);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveZSetCommands#zUnionStore(org.reactivestreams.Publisher)
 	 */
 	@Override
-	public Flux<NumericResponse<ZUnionStoreCommand, Long>> zUnionStore(Publisher<ZUnionStoreCommand> commands) {
+	public Flux<NumericResponse<ZAggregateStoreCommand, Long>> zUnionStore(
+			Publisher<? extends ZAggregateStoreCommand> commands) {
 
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
@@ -60,11 +62,13 @@ class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetCommands imp
 		}));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveZSetCommands#zInterStore(org.reactivestreams.Publisher)
 	 */
 	@Override
-	public Flux<NumericResponse<ZInterStoreCommand, Long>> zInterStore(Publisher<ZInterStoreCommand> commands) {
+	public Flux<NumericResponse<ZAggregateStoreCommand, Long>> zInterStore(
+			Publisher<? extends ZAggregateStoreCommand> commands) {
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty.");
