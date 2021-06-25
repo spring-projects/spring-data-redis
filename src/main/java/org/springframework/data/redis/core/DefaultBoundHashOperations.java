@@ -110,6 +110,46 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 		return ops.increment(getKey(), key, delta);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundHashOperations#randomField()
+	 */
+	@Nullable
+	@Override
+	public HK randomField() {
+		return ops.randomField(getKey());
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundHashOperations#randomValue()
+	 */
+	@Nullable
+	@Override
+	public Entry<HK, HV> randomValue() {
+		return ops.randomValue(getKey());
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundHashOperations#randomFields(long)
+	 */
+	@Nullable
+	@Override
+	public List<HK> randomFields(long count) {
+		return ops.randomFields(getKey(), count);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundHashOperations#randomValues(long)
+	 */
+	@Nullable
+	@Override
+	public Map<HK, HV> randomValues(long count) {
+		return ops.randomValues(getKey(), count);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundHashOperations#keys()

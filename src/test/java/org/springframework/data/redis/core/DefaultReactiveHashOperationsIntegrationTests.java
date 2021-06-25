@@ -38,6 +38,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
@@ -226,6 +227,81 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.as(StepVerifier::create) //
 				.expectNext((HV) "2") //
 				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2048
+	@EnabledOnCommand("HRANDFIELD")
+	void randomField() {
+
+		assumeThat(hashValueFactory).isNotInstanceOf(RawObjectFactory.class);
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		hashOperations.put(key, hashkey1, hashvalue1) //
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		hashOperations.put(key, hashkey2, hashvalue2) //
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		hashOperations.randomField(key) //
+				.as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).isIn(hashkey1, hashkey2);
+				}).verifyComplete();
+
+		hashOperations.randomFields(key, -10) //
+				.collectList().as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).hasSize(10);
+				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2048
+	@EnabledOnCommand("HRANDFIELD")
+	void randomValue() {
+
+		assumeThat(hashValueFactory).isNotInstanceOf(RawObjectFactory.class);
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		hashOperations.put(key, hashkey1, hashvalue1) //
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		hashOperations.put(key, hashkey2, hashvalue2) //
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		hashOperations.randomValue(key) //
+				.as(StepVerifier::create) //
+				.assertNext(actual -> {
+
+					if (actual.getKey().equals(hashkey1)) {
+						assertThat(actual.getValue()).isEqualTo(hashvalue1);
+					} else {
+						assertThat(actual.getValue()).isEqualTo(hashvalue2);
+					}
+				}).verifyComplete();
+
+		hashOperations.randomValues(key, -10) //
+				.collectList().as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).hasSize(10);
+				}).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

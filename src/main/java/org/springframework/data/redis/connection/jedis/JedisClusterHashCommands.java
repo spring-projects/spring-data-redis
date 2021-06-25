@@ -30,6 +30,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -162,6 +163,74 @@ class JedisClusterHashCommands implements RedisHashCommands {
 
 		try {
 			return connection.getCluster().hincrByFloat(key, field, delta);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandField(byte[])
+	 */
+	@Nullable
+	@Override
+	public byte[] hRandField(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return connection.getCluster().hrandfield(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandFieldWithValues(byte[])
+	 */
+	@Nullable
+	@Override
+	public Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			Map<byte[], byte[]> map = connection.getCluster().hrandfieldWithValues(key, 1);
+			return map.isEmpty() ? null : map.entrySet().iterator().next();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandField(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public List<byte[]> hRandField(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return connection.getCluster().hrandfield(key, count);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandFieldWithValues(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
+
+		try {
+			Map<byte[], byte[]> map = connection.getCluster().hrandfieldWithValues(key, count);
+			return Streamable.of(() -> map.entrySet().iterator()).toList();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

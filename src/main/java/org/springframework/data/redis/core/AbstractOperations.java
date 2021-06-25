@@ -278,6 +278,14 @@ abstract class AbstractOperations<K, V> {
 	}
 
 	@SuppressWarnings("unchecked")
+	<T> List<T> deserializeHashKeys(List<byte[]> rawKeys) {
+		if (hashKeySerializer() == null) {
+			return (List<T>) rawKeys;
+		}
+		return SerializationUtils.deserialize(rawKeys, hashKeySerializer());
+	}
+
+	@SuppressWarnings("unchecked")
 	<T> List<T> deserializeHashValues(List<byte[]> rawValues) {
 		if (hashValueSerializer() == null) {
 			return (List<T>) rawValues;

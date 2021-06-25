@@ -1206,6 +1206,34 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
+	default byte[] hRandField(byte[] key) {
+		return hashCommands().hRandField(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
+		return hashCommands().hRandFieldWithValues(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<byte[]> hRandField(byte[] key, long count) {
+		return hashCommands().hRandField(key, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
+		return hashCommands().hRandFieldWithValues(key, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
 	default Set<byte[]> hKeys(byte[] key) {
 		return hashCommands().hKeys(key);
 	}

@@ -23,6 +23,7 @@ import java.util.function.IntFunction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -103,6 +104,26 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@SuppressWarnings("rawtypes") private Queue<Converter> pipelineConverters = new LinkedList<>();
 	@SuppressWarnings("rawtypes") private Queue<Converter> txConverters = new LinkedList<>();
 	private boolean deserializePipelineAndTxResults = false;
+
+	private Entry<String, String> convertEntry(Entry<byte[], byte[]> source) {
+		return new Entry<String, String>() {
+
+			@Override
+			public String getKey() {
+				return bytesToString.convert(source.getKey());
+			}
+
+			@Override
+			public String getValue() {
+				return bytesToString.convert(source.getValue());
+			}
+
+			@Override
+			public String setValue(String value) {
+				throw new UnsupportedOperationException("Cannot set value for entry");
+			}
+		};
+	}
 
 	private class DeserializingConverter implements Converter<byte[], String> {
 		public String convert(byte[] source) {
@@ -276,7 +297,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	public Long decrBy(byte[] key, long value) {
 		return convertAndReturn(delegate.decrBy(key, value), Converters.identityConverter());
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -1530,7 +1550,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
-		return convertAndReturn(delegate.zRangeByScoreWithScores(key, min, max, offset, count), Converters.identityConverter());
+		return convertAndReturn(delegate.zRangeByScoreWithScores(key, min, max, offset, count),
+				Converters.identityConverter());
 	}
 
 	/*
@@ -1602,7 +1623,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
-		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, min, max, offset, count), Converters.identityConverter());
+		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, min, max, offset, count),
+				Converters.identityConverter());
 	}
 
 	/*
@@ -1853,7 +1875,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		return convertAndReturn(delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs), Converters.identityConverter());
+		return convertAndReturn(delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs),
+				Converters.identityConverter());
 	}
 
 	/*
@@ -1862,7 +1885,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		return convertAndReturn(delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs), Converters.identityConverter());
+		return convertAndReturn(delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs),
+				Converters.identityConverter());
 	}
 
 	//
@@ -1949,6 +1973,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	public Boolean copy(String sourceKey, String targetKey, boolean replace) {
 		return copy(serialize(sourceKey), serialize(targetKey), replace);
 	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#decr(java.lang.String)
@@ -1975,7 +2000,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	public Long del(String... keys) {
 		return del(serializeMulti(keys));
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -2110,6 +2134,88 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Double hIncrBy(String key, String field, double delta) {
 		return hIncrBy(serialize(key), serialize(field), delta);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandField(byte[])
+	 */
+	@Nullable
+	@Override
+	public byte[] hRandField(byte[] key) {
+		return convertAndReturn(delegate.hRandField(key), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandFieldWithValues(byte[])
+	 */
+	@Nullable
+	@Override
+	public Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
+		return convertAndReturn(delegate.hRandFieldWithValues(key), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandField(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public List<byte[]> hRandField(byte[] key, long count) {
+		return convertAndReturn(delegate.hRandField(key, count), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandFieldWithValues(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
+		return convertAndReturn(delegate.hRandFieldWithValues(key, count), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hRandField(java.lang.String)
+	 */
+	@Nullable
+	@Override
+	public String hRandField(String key) {
+		return convertAndReturn(delegate.hRandField(serialize(key)), bytesToString);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hRandFieldWithValues(java.lang.String)
+	 */
+	@Nullable
+	@Override
+	public Entry<String, String> hRandFieldWithValues(String key) {
+		return convertAndReturn(delegate.hRandFieldWithValues(serialize(key)),
+				(Converter<Entry<byte[], byte[]>, Entry<String, String>>) this::convertEntry);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hRandField(java.lang.String, long)
+	 */
+	@Nullable
+	@Override
+	public List<String> hRandField(String key, long count) {
+		return convertAndReturn(delegate.hRandField(serialize(key), count), byteListToStringList);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hRandFieldWithValues(java.lang.String, long)
+	 */
+	@Nullable
+	@Override
+	public List<Entry<String, String>> hRandFieldWithValues(String key, long count) {
+		return convertAndReturn(delegate.hRandFieldWithValues(serialize(key), count),
+				new ListConverter<>(this::convertEntry));
 	}
 
 	/*
@@ -3600,24 +3706,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Cursor<Entry<String, String>> hScan(String key, ScanOptions options) {
 
-		return new ConvertingCursor<>(this.delegate.hScan(this.serialize(key), options),
-				source -> new Entry<String, String>() {
-
-					@Override
-					public String getKey() {
-						return bytesToString.convert(source.getKey());
-					}
-
-					@Override
-					public String getValue() {
-						return bytesToString.convert(source.getValue());
-					}
-
-					@Override
-					public String setValue(String value) {
-						throw new UnsupportedOperationException("Cannot set value for entry in cursor");
-					}
-				});
+		return new ConvertingCursor<>(this.delegate.hScan(this.serialize(key), options), this::convertEntry);
 	}
 
 	/*
@@ -3860,7 +3949,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public List<RecordId> xClaimJustId(String key, String group, String consumer, XClaimOptions options) {
-		return convertAndReturn(delegate.xClaimJustId(serialize(key), group, consumer, options), Converters.identityConverter());
+		return convertAndReturn(delegate.xClaimJustId(serialize(key), group, consumer, options),
+				Converters.identityConverter());
 	}
 
 	/*
@@ -3897,7 +3987,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 */
 	@Override
 	public String xGroupCreate(String key, ReadOffset readOffset, String group, boolean mkStream) {
-		return convertAndReturn(delegate.xGroupCreate(serialize(key), group, readOffset, mkStream), Converters.identityConverter());
+		return convertAndReturn(delegate.xGroupCreate(serialize(key), group, readOffset, mkStream),
+				Converters.identityConverter());
 	}
 
 	/*
@@ -3970,7 +4061,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public PendingMessages xPending(String key, String groupName, String consumer,
 			org.springframework.data.domain.Range<String> range, Long count) {
-		return convertAndReturn(delegate.xPending(serialize(key), groupName, consumer, range, count), Converters.identityConverter());
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, consumer, range, count),
+				Converters.identityConverter());
 	}
 
 	/*
@@ -4267,7 +4359,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		}
 
 		return value == null ? null
-				: ObjectUtils.nullSafeEquals(converter, Converters.identityConverter()) ? (T) value : (T) converter.convert(value);
+				: ObjectUtils.nullSafeEquals(converter, Converters.identityConverter()) ? (T) value
+						: (T) converter.convert(value);
 	}
 
 	private void addResultConverter(Converter<?, ?> converter) {

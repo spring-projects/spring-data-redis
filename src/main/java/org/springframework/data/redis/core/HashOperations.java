@@ -89,6 +89,55 @@ public interface HashOperations<H, HK, HV> {
 	Double increment(H key, HK hashKey, double delta);
 
 	/**
+	 * Return a random field from the hash value stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	@Nullable
+	HK randomField(H key);
+
+	/**
+	 * Return a random field from the hash value stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	@Nullable
+	Map.Entry<HK, HV> randomValue(H key);
+
+	/**
+	 * Return a random field from the hash value stored at {@code key}. If the provided {@code count} argument is
+	 * positive, return a list of distinct fields, capped either at {@code count} or the hash size. If {@code count} is
+	 * negative, the behavior changes and the command is allowed to return the same field multiple times. In this case,
+	 * the number of returned fields is the absolute value of the specified count.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of fields to return.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	@Nullable
+	List<HK> randomFields(H key, long count);
+
+	/**
+	 * Return a random field from the hash value stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of fields to return. Must be positive.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	@Nullable
+	Map<HK, HV> randomValues(H key, long count);
+
+	/**
 	 * Get key set (fields) of hash at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.

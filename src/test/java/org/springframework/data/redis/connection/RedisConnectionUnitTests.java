@@ -657,6 +657,22 @@ class RedisConnectionUnitTests {
 			return delegate.hGetAll(key);
 		}
 
+		public byte[] hRandField(byte[] key) {
+			return delegate.hRandField(key);
+		}
+
+		public Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
+			return delegate.hRandFieldWithValues(key);
+		}
+
+		public List<byte[]> hRandField(byte[] key, long count) {
+			return delegate.hRandField(key, count);
+		}
+
+		public List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
+			return delegate.hRandFieldWithValues(key, count);
+		}
+
 		public Boolean move(byte[] key, int dbIndex) {
 			return delegate.move(key, dbIndex);
 		}

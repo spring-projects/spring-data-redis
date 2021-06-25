@@ -36,6 +36,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyComm
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyScanCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.util.Assert;
 
 /**
@@ -161,6 +162,39 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 			Assert.notNull(command.getKey(), "Command.getKey() must not be null!");
 
 			return cmd.hlen(command.getKey()).map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	@Override
+	public Flux<CommandResponse<HRandFieldCommand, Flux<ByteBuffer>>> hRandField(Publisher<HRandFieldCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notNull(command.getKey(), "Command.getKey() must not be null!");
+
+			return new CommandResponse<>(command, cmd.hrandfield(command.getKey(), command.getCount()));
+		}));
+	}
+
+	@Override
+	public Flux<CommandResponse<HRandFieldCommand, Flux<Entry<ByteBuffer, ByteBuffer>>>> hRandFieldWithValues(
+			Publisher<HRandFieldCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notNull(command.getKey(), "Command.getKey() must not be null!");
+
+			Flux<Entry<ByteBuffer, ByteBuffer>> flux = cmd.hrandfieldWithvalues(command.getKey(), command.getCount())
+					.handle((it, sink) -> {
+
+						if (it.isEmpty()) {
+							return;
+						}
+
+						sink.next(Converters.entryOf(it.getKey(), it.getValue()));
+					});
+
+			return new CommandResponse<>(command, flux);
 		}));
 	}
 

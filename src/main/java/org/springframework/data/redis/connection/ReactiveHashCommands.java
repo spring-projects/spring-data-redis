@@ -513,6 +513,145 @@ public interface ReactiveHashCommands {
 	Flux<NumericResponse<KeyCommand, Long>> hLen(Publisher<KeyCommand> commands);
 
 	/**
+	 * {@literal HRANDFIELD} {@link Command}.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	class HRandFieldCommand extends KeyCommand {
+
+		private long count;
+
+		private HRandFieldCommand(@Nullable ByteBuffer key, long count) {
+
+			super(key);
+
+			this.count = count;
+		}
+
+		/**
+		 * Applies the hash {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link HRandFieldCommand} with {@literal key} applied.
+		 */
+		public static HRandFieldCommand key(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new HRandFieldCommand(key, 1);
+		}
+
+		/**
+		 * Applies the {@literal count}. Constructs a new command instance with all previously configured properties. If the
+		 * provided {@code count} argument is positive, return a list of distinct fields, capped either at {@code count} or
+		 * the hash size. If {@code count} is negative, the behavior changes and the command is allowed to return the same
+		 * field multiple times. In this case, the number of returned fields is the absolute value of the specified count.
+		 *
+		 * @param count
+		 * @return a new {@link HRandFieldCommand} with {@literal key} applied.
+		 */
+		public HRandFieldCommand count(long count) {
+			return new HRandFieldCommand(getKey(), count);
+		}
+
+		public long getCount() {
+			return count;
+		}
+	}
+
+	/**
+	 * Return a random field from the hash value stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	default Mono<ByteBuffer> hRandField(ByteBuffer key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return hRandField(Mono.just(HRandFieldCommand.key(key).count(1))).flatMap(CommandResponse::getOutput).next();
+	}
+
+	/**
+	 * Return a random field from the hash value stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	default Mono<Map.Entry<ByteBuffer, ByteBuffer>> hRandFieldWithValues(ByteBuffer key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return hRandFieldWithValues(Mono.just(HRandFieldCommand.key(key).count(1))).flatMap(CommandResponse::getOutput)
+				.next();
+	}
+
+	/**
+	 * Return a random field from the hash value stored at {@code key}. If the provided {@code count} argument is
+	 * positive, return a list of distinct fields, capped either at {@code count} or the hash size. If {@code count} is
+	 * negative, the behavior changes and the command is allowed to return the same field multiple times. In this case,
+	 * the number of returned fields is the absolute value of the specified count.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of fields to return.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	default Flux<ByteBuffer> hRandField(ByteBuffer key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return hRandField(Mono.just(HRandFieldCommand.key(key).count(count))).flatMap(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Return a random field from the hash value stored at {@code key}. If the provided {@code count} argument is
+	 * positive, return a list of distinct fields, capped either at {@code count} or the hash size. If {@code count} is
+	 * negative, the behavior changes and the command is allowed to return the same field multiple times. In this case,
+	 * the number of returned fields is the absolute value of the specified count.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of fields to return.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	default Flux<Map.Entry<ByteBuffer, ByteBuffer>> hRandFieldWithValues(ByteBuffer key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return hRandFieldWithValues(Mono.just(HRandFieldCommand.key(key).count(count))).flatMap(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Get random fields of hash at {@literal key}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	Flux<CommandResponse<HRandFieldCommand, Flux<ByteBuffer>>> hRandField(Publisher<HRandFieldCommand> commands);
+
+	/**
+	 * Get random fields along their values of hash at {@literal key}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	Flux<CommandResponse<HRandFieldCommand, Flux<Map.Entry<ByteBuffer, ByteBuffer>>>> hRandFieldWithValues(
+			Publisher<HRandFieldCommand> commands);
+
+	/**
 	 * Get key set (fields) of hash at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.

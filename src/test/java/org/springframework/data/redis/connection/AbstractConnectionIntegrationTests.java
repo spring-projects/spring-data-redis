@@ -1269,6 +1269,52 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { true, largeNumber, -largeNumber }));
 	}
 
+	@Test // GH-2048
+	@EnabledOnCommand("HRANDFIELD")
+	void testHRandField() {
+
+		String key = "hash";
+		Map<String, String> hash = new HashMap<>();
+		hash.put("key1", "val1");
+		hash.put("key2", "val2");
+		hash.put("key3", "val3");
+		hash.put("key4", "val4");
+
+		connection.hMSet(key, hash);
+		actual.add(connection.hRandField(key));
+		actual.add(connection.hRandField(key, 2));
+		actual.add(connection.hRandField(key, -10));
+
+		List<Object> results = getResults();
+		assertThat((String) results.get(0)).isIn(hash.keySet());
+		assertThat((List<String>) results.get(1)).hasSize(2);
+		assertThat((List<String>) results.get(2)).hasSize(10);
+	}
+
+	@Test // GH-2048
+	@EnabledOnCommand("HRANDFIELD")
+	void testHRandFieldWithValues() {
+
+		String key = "hash";
+		Map<String, String> hash = new HashMap<>();
+		hash.put("key1", "val1");
+		hash.put("key2", "val2");
+		hash.put("key3", "val3");
+		hash.put("key4", "val4");
+
+		connection.hMSet(key, hash);
+		actual.add(connection.hRandFieldWithValues(key));
+		actual.add(connection.hRandFieldWithValues(key, 2));
+		actual.add(connection.hRandFieldWithValues(key, -10));
+
+		List<Object> results = getResults();
+		assertThat(results.get(0)).isNotNull();
+		assertThat((List<?>) results.get(1)).hasSize(2);
+
+		// Oh Jedis, JedisByteHashMap.ByteArrayWrapper. Why?
+		assertThat((List<?>) results.get(2)).hasSizeGreaterThan(2);
+	}
+
 	@Test
 	void testIncDecr() {
 
