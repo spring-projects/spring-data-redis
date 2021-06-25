@@ -146,6 +146,58 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveHashOperations#randomField(H)
+	 */
+	@Override
+	public Mono<HK> randomField(H key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection //
+				.hashCommands().hRandField(rawKey(key))).map(this::readHashKey);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveHashOperations#randomValue(H)
+	 */
+	@Override
+	public Mono<Map.Entry<HK, HV>> randomValue(H key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection //
+				.hashCommands().hRandFieldWithValues(rawKey(key))).map(this::deserializeHashEntry);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveHashOperations#randomFields(H, long)
+	 */
+	@Override
+	public Flux<HK> randomFields(H key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createFlux(connection -> connection //
+				.hashCommands().hRandField(rawKey(key), count)).map(this::readHashKey);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveHashOperations#randomValues(H, long)
+	 */
+	@Override
+	public Flux<Map.Entry<HK, HV>> randomValues(H key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createFlux(connection -> connection //
+				.hashCommands().hRandFieldWithValues(rawKey(key), count)).map(this::deserializeHashEntry);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#keys(java.lang.Object)
 	 */
 	@Override

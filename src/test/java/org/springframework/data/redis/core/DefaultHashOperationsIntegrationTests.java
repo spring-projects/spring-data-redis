@@ -162,4 +162,43 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(hashOps.lengthOfValue(key, key1)).isEqualTo(Long.valueOf(val1.toString().length()));
 	}
 
+	@ParameterizedRedisTest // GH-2048
+	void randomField() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+
+		assertThat(hashOps.randomField(key)).isIn(key1, key2);
+		assertThat(hashOps.randomFields(key, 2)).hasSize(2).contains(key1, key2);
+	}
+
+	@ParameterizedRedisTest // GH-2048
+	void randomValue() {
+
+		assumeThat(hashKeyFactory).isNotInstanceOf(RawObjectFactory.class);
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+
+		Map.Entry<HK, HV> entry = hashOps.randomValue(key);
+
+		if (entry.getKey().equals(key1)) {
+			assertThat(entry.getValue()).isEqualTo(val1);
+		} else {
+			assertThat(entry.getValue()).isEqualTo(val2);
+		}
+
+		Map<HK, HV> values = hashOps.randomValues(key, 10);
+		assertThat(values).hasSize(2).containsEntry(key1, val1).containsEntry(key2, val2);
+	}
 }

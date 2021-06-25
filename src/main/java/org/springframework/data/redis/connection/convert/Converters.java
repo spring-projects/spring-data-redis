@@ -462,6 +462,20 @@ abstract public class Converters {
 	}
 
 	/**
+	 * Create an {@link Map.Entry} from {@code key} and {@code value}.
+	 *
+	 * @param key
+	 * @param value
+	 * @param <K>
+	 * @param <V>
+	 * @return
+	 * @since 2.6
+	 */
+	public static <K, V> Map.Entry<K, V> entryOf(K key, V value) {
+		return new SimpleEntry<>(key, value);
+	}
+
+	/**
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
@@ -638,5 +652,31 @@ abstract public class Converters {
 			return new SlotRange(slots);
 		}
 
+	}
+
+	private static class SimpleEntry<K, V> implements Map.Entry<K, V> {
+
+		private final K key;
+		private final V value;
+
+		public SimpleEntry(K key, V value) {
+			this.key = key;
+			this.value = value;
+		}
+
+		@Override
+		public K getKey() {
+			return key;
+		}
+
+		@Override
+		public V getValue() {
+			return value;
+		}
+
+		@Override
+		public V setValue(V value) {
+			throw new UnsupportedOperationException();
+		}
 	}
 }
