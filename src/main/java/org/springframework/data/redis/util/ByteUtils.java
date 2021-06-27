@@ -210,6 +210,18 @@ public final class ByteUtils {
 		return -1;
 	}
 
+	public static int lastIndexOf(byte[] haystack, byte needle, int fromIndex) {
+		if (fromIndex > haystack.length || fromIndex < 1) {
+			return -1;
+		}
+		for (int i = fromIndex - 1; i >= 0; i--) {
+			if (haystack[i] == needle) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	/**
 	 * Convert a {@link String} into a {@link ByteBuffer} using {@link java.nio.charset.StandardCharsets#UTF_8}.
 	 *
