@@ -25,6 +25,7 @@ import org.springframework.data.redis.core.convert.MappingRedisConverter.BinaryK
  * Unit tests for {@link BinaryKeyspaceIdentifier}.
  *
  * @author Mark Paluch
+ * @author Yongjoon Park
  */
 class BinaryKeyspaceIdentifierUnitTests {
 

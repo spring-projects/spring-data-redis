@@ -30,6 +30,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Yongjoon Park
  * @since 1.7
  */
 public final class ByteUtils {

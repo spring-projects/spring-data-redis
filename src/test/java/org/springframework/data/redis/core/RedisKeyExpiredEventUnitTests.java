@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.*;
  * Unit tests for {@link RedisKeyExpiredEvent}.
  *
  * @author Mark Paluch
+ * @author Yongjoon Park
  */
 class RedisKeyExpiredEventUnitTests {
 
