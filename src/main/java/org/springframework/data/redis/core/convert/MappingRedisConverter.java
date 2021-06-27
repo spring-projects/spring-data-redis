@@ -1323,8 +1323,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			Assert.isTrue(isValid(key), String.format("Invalid key %s", new String(key)));
 
 			boolean phantomKey = ByteUtils.startsWith(key, PHANTOM_SUFFIX, key.length - PHANTOM_SUFFIX.length);
-
-			int keyspaceEndIndex = ByteUtils.indexOf(key, DELIMITTER);
+			int end = phantomKey ? key.length - PHANTOM_SUFFIX.length : key.length;
+			int keyspaceEndIndex = ByteUtils.lastIndexOf(key, DELIMITTER, end);
 			byte[] keyspace = extractKeyspace(key, keyspaceEndIndex);
 			byte[] id = extractId(key, phantomKey, keyspaceEndIndex);
 

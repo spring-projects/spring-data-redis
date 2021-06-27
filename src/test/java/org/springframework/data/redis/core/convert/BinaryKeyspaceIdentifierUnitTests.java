@@ -42,16 +42,16 @@ class BinaryKeyspaceIdentifierUnitTests {
 	void shouldReturnKeyspace() {
 
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).getKeyspace()).isEqualTo("foo".getBytes());
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).getKeyspace()).isEqualTo("foo".getBytes());
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz:phantom".getBytes()).getKeyspace()).isEqualTo("foo".getBytes());
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).getKeyspace()).isEqualTo("foo:bar".getBytes());
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz:phantom".getBytes()).getKeyspace()).isEqualTo("foo:bar".getBytes());
 	}
 
 	@Test // DATAREDIS-744
 	void shouldReturnId() {
 
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).getId()).isEqualTo("bar".getBytes());
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).getId()).isEqualTo("bar:baz".getBytes());
-		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz:phantom".getBytes()).getId()).isEqualTo("bar:baz".getBytes());
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz".getBytes()).getId()).isEqualTo("baz".getBytes());
+		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz:phantom".getBytes()).getId()).isEqualTo("baz".getBytes());
 	}
 
 	@Test // DATAREDIS-744

@@ -32,7 +32,7 @@ class RedisKeyExpiredEventUnitTests {
 
 		assertThat(new RedisKeyExpiredEvent<>("foo".getBytes(), "").getKeyspace()).isNull();
 		assertThat(new RedisKeyExpiredEvent<>("foo:bar".getBytes(), "").getKeyspace()).isEqualTo("foo");
-		assertThat(new RedisKeyExpiredEvent<>("foo:bar:baz".getBytes(), "").getKeyspace()).isEqualTo("foo");
+		assertThat(new RedisKeyExpiredEvent<>("foo:bar:baz".getBytes(), "").getKeyspace()).isEqualTo("foo:bar");
 	}
 
 	@Test // DATAREDIS-744
@@ -40,6 +40,6 @@ class RedisKeyExpiredEventUnitTests {
 
 		assertThat(new RedisKeyExpiredEvent<>("foo".getBytes(), "").getId()).isEqualTo("foo".getBytes());
 		assertThat(new RedisKeyExpiredEvent<>("foo:bar".getBytes(), "").getId()).isEqualTo("bar".getBytes());
-		assertThat(new RedisKeyExpiredEvent<>("foo:bar:baz".getBytes(), "").getId()).isEqualTo("bar:baz".getBytes());
+		assertThat(new RedisKeyExpiredEvent<>("foo:bar:baz".getBytes(), "").getId()).isEqualTo("baz".getBytes());
 	}
 }
