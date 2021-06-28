@@ -1138,6 +1138,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // GH-2050
 	@EnabledOnCommand("GETEX")
 	void testGetEx() {
+
 		actual.add(connection.set("testGS", "1"));
 		actual.add(connection.getEx("testGS", Expiration.seconds(10)));
 		actual.add(connection.ttl("testGS"));
@@ -1150,6 +1151,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // GH-2050
 	@EnabledOnCommand("GETDEL")
 	void testGetDel() {
+
 		actual.add(connection.set("testGS", "1"));
 		actual.add(connection.getDel("testGS"));
 		actual.add(connection.exists("testGS"));
@@ -1159,6 +1161,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testGetSet() {
+
 		actual.add(connection.set("testGS", "1"));
 		actual.add(connection.getSet("testGS", "2"));
 		actual.add(connection.get("testGS"));
@@ -1167,6 +1170,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testMSet() {
+
 		Map<String, String> vals = new HashMap<>();
 		vals.put("color", "orange");
 		vals.put("size", "1");
@@ -1178,6 +1182,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testMSetNx() {
+
 		Map<String, String> vals = new HashMap<>();
 		vals.put("height", "5");
 		vals.put("width", "1");
@@ -1188,6 +1193,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testMSetNxFailure() {
+
 		actual.add(connection.set("height", "2"));
 		Map<String, String> vals = new HashMap<>();
 		vals.put("height", "5");
@@ -1199,6 +1205,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testSetNx() {
+
 		actual.add(connection.setNX("notaround", "54"));
 		actual.add(connection.get("notaround"));
 		actual.add(connection.setNX("notaround", "55"));

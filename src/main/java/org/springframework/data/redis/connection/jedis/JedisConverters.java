@@ -443,12 +443,13 @@ public abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * Converts a given {@link Expiration} to the according {@code GETEX} command argument.
+	 * Converts a given {@link Expiration} to the according {@code GETEX} command argument depending on
+	 * {@link Expiration#isUnixTimestamp()}.
 	 * <dl>
 	 * <dt>{@link TimeUnit#MILLISECONDS}</dt>
-	 * <dd>{@code PX}</dd>
+	 * <dd>{@code PX|PXAT}</dd>
 	 * <dt>{@link TimeUnit#SECONDS}</dt>
-	 * <dd>{@code EX}</dd>
+	 * <dd>{@code EX|EXAT}</dd>
 	 * </dl>
 	 *
 	 * @param expiration must not be {@literal null}.
@@ -464,10 +465,14 @@ public abstract class JedisConverters extends Converters {
 		}
 
 		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			if (expiration.isUnixTimestamp()) {
+				return params.pxAt(expiration.getExpirationTime());
+			}
 			return params.px(expiration.getExpirationTime());
 		}
 
-		return params.ex((int) expiration.getExpirationTime());
+		return expiration.isUnixTimestamp() ? params.exAt(expiration.getConverted(TimeUnit.SECONDS))
+				: params.ex(expiration.getConverted(TimeUnit.SECONDS));
 	}
 
 	/**

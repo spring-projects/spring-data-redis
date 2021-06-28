@@ -728,32 +728,31 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Convert {@link Expiration} to {@link GetExArgs}.
 	 *
-	 * @param expiration
+	 * @param expiration can be {@literal null}.
 	 * @return
 	 * @since 2.6
 	 */
-	static GetExArgs toGetExArgs(Expiration expiration) {
+	static GetExArgs toGetExArgs(@Nullable Expiration expiration) {
 
 		GetExArgs args = new GetExArgs();
 
-		if (expiration != null) {
-
-			if (expiration.isPersistent()) {
-				args.persist();
-			} else if (!expiration.isPersistent()) {
-
-				switch (expiration.getTimeUnit()) {
-					case SECONDS:
-						args.ex(expiration.getExpirationTime());
-						break;
-					default:
-						args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
-						break;
-				}
-			}
+		if (expiration == null) {
+			return args;
 		}
 
-		return args;
+		if(expiration.isPersistent()) {
+			return args.persist();
+		}
+
+		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			if (expiration.isUnixTimestamp()) {
+				return args.pxAt(expiration.getExpirationTime());
+			}
+			return args.px(expiration.getExpirationTime());
+		}
+
+		return expiration.isUnixTimestamp() ? args.exAt(expiration.getConverted(TimeUnit.SECONDS))
+				: args.ex(expiration.getConverted(TimeUnit.SECONDS));
 	}
 
 	static Converter<List<byte[]>, Long> toTimeConverter(TimeUnit timeUnit) {
