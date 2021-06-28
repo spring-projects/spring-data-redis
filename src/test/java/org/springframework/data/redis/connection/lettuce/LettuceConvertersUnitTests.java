@@ -39,8 +39,10 @@ import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import redis.clients.jedis.params.SetParams;
 
 /**
  * @author Christoph Strobl
@@ -134,6 +136,20 @@ class LettuceConvertersUnitTests {
 		assertThat(getField(args, "px")).isNull();
 		assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.FALSE);
 		assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToSetPXAT() {
+
+		assertThatCommandArgument(LettuceConverters.toSetArgs(Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS), null))
+				.isEqualTo(SetArgs.Builder.pxAt(10));
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToSetEXAT() {
+
+		assertThatCommandArgument(LettuceConverters.toSetArgs(Expiration.unixTimestamp(1, TimeUnit.MINUTES), null))
+				.isEqualTo(SetArgs.Builder.exAt(60));
 	}
 
 	@Test // DATAREDIS-316

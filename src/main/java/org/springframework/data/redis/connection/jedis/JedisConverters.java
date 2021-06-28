@@ -431,15 +431,15 @@ public abstract class JedisConverters extends Converters {
 			return paramsToUse.keepttl();
 		}
 
-		if (!expiration.isPersistent()) {
-			if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-				return paramsToUse.px(expiration.getExpirationTime());
-			}
-
-			return paramsToUse.ex((int) expiration.getExpirationTime());
+		if (expiration.isPersistent()) {
+			return paramsToUse;
 		}
 
-		return params;
+		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			return expiration.isUnixTimestamp() ? paramsToUse.pxAt(expiration.getExpirationTime()) : paramsToUse.px(expiration.getExpirationTime());
+		}
+
+		return expiration.isUnixTimestamp() ? paramsToUse.exAt(expiration.getConverted(TimeUnit.SECONDS)) : paramsToUse.ex(expiration.getConverted(TimeUnit.SECONDS));
 	}
 
 	/**
