@@ -3930,7 +3930,18 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public PendingMessages xPending(String key, String groupName, String consumer,
 			org.springframework.data.domain.Range<String> range, Long count) {
-		return convertAndReturn(delegate.xPending(serialize(key), groupName, consumer, range, count), Converters.identityConverter());
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, consumer, range, count, null), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xPending(java.lang.String, java.lang.String, java.lang.String, org.springframework.data.domain.Range, java.lang.Long)
+	 */
+	@Override
+	public PendingMessages xPending(String key, String groupName, String consumer,
+			org.springframework.data.domain.Range<String> range, Long count, Long idleMilliSeconds) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, consumer, range, count, idleMilliSeconds),
+				Converters.identityConverter());
 	}
 
 	/*
@@ -3940,7 +3951,18 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public PendingMessages xPending(String key, String groupName, org.springframework.data.domain.Range<String> range,
 			Long count) {
-		return convertAndReturn(delegate.xPending(serialize(key), groupName, range, count), Converters.identityConverter());
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, range, count, null), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#xPending(java.lang.String, java.lang.String, org.springframework.data.domain.Range, java.lang.Long, java.lang.Long)
+	 */
+	@Override
+	public PendingMessages xPending(String key, String groupName, org.springframework.data.domain.Range<String> range,
+			Long count, Long idleMilliSeconds) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, range, count, idleMilliSeconds),
+				Converters.identityConverter());
 	}
 
 	/*

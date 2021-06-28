@@ -573,8 +573,8 @@ public interface ReactiveStreamCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(groupName, "GroupName must not be null!");
 
-		return xPendingSummary(Mono.just(new PendingRecordsCommand(key, groupName, null, Range.unbounded(), null))).next()
-				.map(CommandResponse::getOutput);
+		return xPendingSummary(Mono.just(new PendingRecordsCommand(key, groupName, null, Range.unbounded(), null, null)))
+				.next().map(CommandResponse::getOutput);
 	}
 
 	/**
@@ -614,8 +614,8 @@ public interface ReactiveStreamCommands {
 	 */
 	@Nullable
 	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName) {
-		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, consumerName, Range.unbounded(), null))).next()
-				.map(CommandResponse::getOutput);
+		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, consumerName, Range.unbounded(), null, null)))
+				.next().map(CommandResponse::getOutput);
 	}
 
 	/**
@@ -631,7 +631,26 @@ public interface ReactiveStreamCommands {
 	 * @since 2.3
 	 */
 	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, Range<?> range, Long count) {
-		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, null, range, count))).next()
+		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, null, range, count, null))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} within a
+	 * {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param idleMilliSeconds the pending messages which were idle for certain duration . Must not be {@literal null}.
+	 * @return {@link Mono} emitting pending messages for the given {@literal consumer group}. transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, Range<?> range, Long count,
+			Long idleMilliSeconds) {
+		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, null, range, count, idleMilliSeconds))).next()
 				.map(CommandResponse::getOutput);
 	}
 
@@ -667,8 +686,29 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName, Range<?> range,
 			Long count) {
-		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, consumerName, range, count))).next()
+		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, consumerName, range, count, null))).next()
 				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
+	 * {@literal consumer} within a {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param consumerName the name of the {@literal consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param idleMilliSeconds the pending messages which were idle for certain duration . Must not be {@literal null}.
+	 * @return {@link Mono} emitting pending messages for the given {@literal consumer} in given
+	 *         {@literal consumer group}.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 2.3
+	 */
+	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName, Range<?> range,
+			Long count, Long idleMilliSeconds) {
+		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, consumerName, range, count, idleMilliSeconds)))
+				.next().map(CommandResponse::getOutput);
 	}
 
 	/**
@@ -694,9 +734,10 @@ public interface ReactiveStreamCommands {
 		private final @Nullable String consumerName;
 		private final Range<?> range;
 		private final @Nullable Long count;
+		private final @Nullable Long idleMilliSeconds;
 
 		private PendingRecordsCommand(ByteBuffer key, String groupName, @Nullable String consumerName, Range<?> range,
-				@Nullable Long count) {
+				@Nullable Long count, @Nullable Long idleMilliSeconds) {
 
 			super(key);
 
@@ -704,6 +745,7 @@ public interface ReactiveStreamCommands {
 			this.consumerName = consumerName;
 			this.range = range;
 			this.count = count;
+			this.idleMilliSeconds = idleMilliSeconds;
 		}
 
 		/**
@@ -714,16 +756,17 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link PendingRecordsCommand}.
 		 */
 		static PendingRecordsCommand pending(ByteBuffer key, String groupName) {
-			return new PendingRecordsCommand(key, groupName, null, Range.unbounded(), null);
+			return new PendingRecordsCommand(key, groupName, null, Range.unbounded(), null, null);
 		}
 
 		/**
-		 * Create new {@link PendingRecordsCommand} with given {@link Range} and limit.
+		 * Create new {@link PendingRecordsCommand} with given {@link Range},limit and messages which are idle for certain
+		 * time.
 		 *
 		 * @return new instance of {@link XPendingOptions}.
 		 */
-		public PendingRecordsCommand range(Range<String> range, Long count) {
-			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count);
+		public PendingRecordsCommand range(Range<String> range, Long count, Long idleMilliSeconds) {
+			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count, idleMilliSeconds);
 		}
 
 		/**
@@ -733,7 +776,7 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link PendingRecordsCommand}.
 		 */
 		public PendingRecordsCommand consumer(String consumerName) {
-			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count);
+			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count, idleMilliSeconds);
 		}
 
 		public String getGroupName() {
