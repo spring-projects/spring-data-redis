@@ -997,8 +997,8 @@ public interface RedisZSetCommands {
 	Set<Tuple> zPopMin(byte[] key, long count);
 
 	/**
-	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}. <b>Blocks
-	 * connection</b> until element available or {@code timeout} reached.
+	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}. <br />
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeout
@@ -1034,8 +1034,8 @@ public interface RedisZSetCommands {
 	Set<Tuple> zPopMax(byte[] key, long count);
 
 	/**
-	 * Remove and return the value with its score having the highest score from sorted set at {@code key}. <b>Blocks
-	 * connection</b> until element available or {@code timeout} reached.
+	 * Remove and return the value with its score having the highest score from sorted set at {@code key}. <br />
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeout

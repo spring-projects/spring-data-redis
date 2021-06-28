@@ -2074,6 +2074,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRemRangeByScore() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRemRangeByScore("myset", 0d, 1d));
@@ -2084,6 +2085,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRevRank() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 3, "Joe"));
@@ -2093,6 +2095,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZScore() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 3, "Joe"));
@@ -2103,15 +2106,17 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("ZMSCORE")
 	void testZMScore() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 3, "Joe"));
-		actual.add(connection.zMScore("myset", "James", "Joe"));
-		verifyResults(Arrays.asList(new Object[] { true, true, true, Arrays.asList(1d, 3d) }));
+		actual.add(connection.zMScore("myset", "James", "Joe", "Dave"));
+		verifyResults(Arrays.asList(new Object[] { true, true, true, Arrays.asList(1d, 3d, null) }));
 	}
 
 	@Test
 	void testZUnionStore() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 5, "Joe"));
@@ -2125,6 +2130,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZUnionStoreAggWeights() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 4, "Joe"));
