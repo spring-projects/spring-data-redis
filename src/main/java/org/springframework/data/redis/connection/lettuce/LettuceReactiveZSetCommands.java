@@ -25,8 +25,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Publisher;
 
@@ -390,7 +390,18 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getTimeout(), "Timeout must not be null!");
 
-			long timeout = command.getTimeout().get(ChronoUnit.SECONDS);
+			if(command.getTimeUnit() == TimeUnit.MILLISECONDS) {
+
+				double timeout = preciseTimeout(command.getTimeout(), command.getTimeUnit());
+
+				Mono<ScoredValue<ByteBuffer>> result = (command.getDirection() == PopDirection.MIN
+						? cmd.bzpopmin(timeout, command.getKey())
+						: cmd.bzpopmax(timeout, command.getKey())).filter(Value::hasValue).map(Value::getValue);
+
+				return new CommandResponse<>(command, result.filter(Value::hasValue).map(this::toTuple).flux());
+			}
+
+			long timeout = command.getTimeUnit().toSeconds(command.getTimeout());
 
 			Mono<ScoredValue<ByteBuffer>> result = (command.getDirection() == PopDirection.MIN
 					? cmd.bzpopmin(timeout, command.getKey())
@@ -622,6 +633,10 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 	private Tuple toTuple(ByteBuffer value, double score) {
 		return new DefaultTuple(ByteUtils.getBytes(value), score);
+	}
+
+	static double preciseTimeout(long val, TimeUnit unit) {
+		return (double) unit.toMillis(val) / 1000.0D;
 	}
 
 	protected LettuceReactiveRedisConnection getConnection() {

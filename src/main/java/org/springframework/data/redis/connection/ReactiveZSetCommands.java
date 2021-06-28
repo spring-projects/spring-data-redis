@@ -25,10 +25,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
-
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -163,8 +163,7 @@ public interface ReactiveZSetCommands {
 		}
 
 		/**
-		 * Applies {@literal GT} mode. Constructs a new command
-		 * instance with all previously configured properties.
+		 * Applies {@literal GT} mode. Constructs a new command instance with all previously configured properties.
 		 *
 		 * @return a new {@link ZAddCommand} with {@literal incr} applied.
 		 * @since 2.5
@@ -174,8 +173,7 @@ public interface ReactiveZSetCommands {
 		}
 
 		/**
-		 * Applies {@literal LT} mode. Constructs a new command
-		 * instance with all previously configured properties.
+		 * Applies {@literal LT} mode. Constructs a new command instance with all previously configured properties.
 		 *
 		 * @return a new {@link ZAddCommand} with {@literal incr} applied.
 		 * @since 2.5
@@ -206,7 +204,6 @@ public interface ReactiveZSetCommands {
 		}
 
 		/**
-		 *
 		 * @return {@literal true} if {@literal GT} is set.
 		 * @since 2.5
 		 */
@@ -1337,15 +1334,18 @@ public interface ReactiveZSetCommands {
 
 		private final PopDirection direction;
 
-		private final Duration timeout;
+		private final @Nullable TimeUnit timeUnit;
+		private final @Nullable Long timeout;
 
 		private final long count;
 
-		private BZPopCommand(@Nullable ByteBuffer key, Duration timeout, long count, PopDirection direction) {
+		private BZPopCommand(@Nullable ByteBuffer key, @Nullable Long timeout, @Nullable TimeUnit timeUnit, long count,
+				PopDirection direction) {
 
 			super(key);
 			this.count = count;
 			this.timeout = timeout;
+			this.timeUnit = timeUnit;
 			this.direction = direction;
 		}
 
@@ -1355,7 +1355,7 @@ public interface ReactiveZSetCommands {
 		 * @return a new {@link BZPopCommand} for min pop ({@literal ZPOPMIN}).
 		 */
 		public static BZPopCommand min() {
-			return new BZPopCommand(null, null, 0, PopDirection.MIN);
+			return new BZPopCommand(null, null, null, 0, PopDirection.MIN);
 		}
 
 		/**
@@ -1364,7 +1364,7 @@ public interface ReactiveZSetCommands {
 		 * @return a new {@link BZPopCommand} for max pop ({@literal ZPOPMAX}).
 		 */
 		public static BZPopCommand max() {
-			return new BZPopCommand(null, null, 0, PopDirection.MAX);
+			return new BZPopCommand(null, null, null, 0, PopDirection.MAX);
 		}
 
 		/**
@@ -1377,7 +1377,7 @@ public interface ReactiveZSetCommands {
 
 			Assert.notNull(key, "Key must not be null!");
 
-			return new BZPopCommand(key, timeout, count, direction);
+			return new BZPopCommand(key, timeout, timeUnit, count, direction);
 		}
 
 		/**
@@ -1387,7 +1387,7 @@ public interface ReactiveZSetCommands {
 		 * @return a new {@link BZPopCommand} with {@literal value} applied.
 		 */
 		public BZPopCommand count(long count) {
-			return new BZPopCommand(getKey(), timeout, count, direction);
+			return new BZPopCommand(getKey(), timeout, timeUnit, count, direction);
 		}
 
 		/**
@@ -1400,7 +1400,21 @@ public interface ReactiveZSetCommands {
 
 			Assert.notNull(timeout, "Timeout must not be null!");
 
-			return new BZPopCommand(getKey(), timeout, count, direction);
+			return blockingFor(timeout.toMillis(), TimeUnit.MILLISECONDS);
+		}
+
+		/**
+		 * Applies a {@link Duration timeout}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param timeout value.
+		 * @param timeout must not be {@literal null}.
+		 * @return a new {@link BZPopCommand} with {@link Duration timeout} applied.
+		 */
+		public BZPopCommand blockingFor(long timeout, TimeUnit timeUnit) {
+
+			Assert.notNull(timeUnit, "TimeUnit must not be null!");
+
+			return new BZPopCommand(getKey(), timeout, timeUnit, count, direction);
 		}
 
 		/**
@@ -1410,8 +1424,14 @@ public interface ReactiveZSetCommands {
 			return direction;
 		}
 
-		public Duration getTimeout() {
+		@Nullable
+		public Long getTimeout() {
 			return timeout;
+		}
+
+		@Nullable
+		public TimeUnit getTimeUnit() {
+			return timeUnit;
 		}
 
 		public long getCount() {
@@ -1664,7 +1684,7 @@ public interface ReactiveZSetCommands {
 		/**
 		 * Creates a new {@link ZMScoreCommand} given a {@link List members}.
 		 *
-		 * @param member must not be {@literal null}.
+		 * @param members must not be {@literal null}.
 		 * @return a new {@link ZMScoreCommand} for {@link List} of members.
 		 */
 		public static ZMScoreCommand scoreOf(Collection<ByteBuffer> members) {

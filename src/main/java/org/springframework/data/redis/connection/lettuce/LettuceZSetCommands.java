@@ -316,6 +316,13 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(unit, "TimeUnit must not be null!");
 
+		if(TimeUnit.MILLISECONDS == unit) {
+
+			return connection.invoke(connection.getAsyncDedicatedConnection())
+					.from(RedisSortedSetAsyncCommands::bzpopmin, preciseTimeout(timeout, unit), key)
+					.get(it -> it.map(LettuceConverters::toTuple).getValueOrElse(null));
+		}
+
 		return connection.invoke(connection.getAsyncDedicatedConnection())
 				.from(RedisSortedSetAsyncCommands::bzpopmin, unit.toSeconds(timeout), key)
 				.get(it -> it.map(LettuceConverters::toTuple).getValueOrElse(null));
@@ -358,6 +365,13 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(unit, "TimeUnit must not be null!");
+
+		if(TimeUnit.MILLISECONDS == unit) {
+
+			return connection.invoke(connection.getAsyncDedicatedConnection())
+					.from(RedisSortedSetAsyncCommands::bzpopmax, preciseTimeout(timeout, unit), key)
+					.get(it -> it.map(LettuceConverters::toTuple).getValueOrElse(null));
+		}
 
 		return connection.invoke(connection.getAsyncDedicatedConnection())
 				.from(RedisSortedSetAsyncCommands::bzpopmax, unit.toSeconds(timeout), key)
@@ -703,4 +717,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return target;
 	}
 
+	static double preciseTimeout(long val, TimeUnit unit) {
+		return (double) unit.toMillis(val) / 1000.0D;
+	}
 }
