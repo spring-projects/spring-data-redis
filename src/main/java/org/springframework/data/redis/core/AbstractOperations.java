@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -224,11 +225,22 @@ abstract class AbstractOperations<K, V> {
 	}
 
 	@Nullable
-	Set<TypedTuple<V>> deserializeTupleValues(@Nullable Collection<Tuple> rawValues) {
+	Set<TypedTuple<V>> deserializeTupleValues(@Nullable Set<Tuple> rawValues) {
 		if (rawValues == null) {
 			return null;
 		}
 		Set<TypedTuple<V>> set = new LinkedHashSet<>(rawValues.size());
+		for (Tuple rawValue : rawValues) {
+			set.add(deserializeTuple(rawValue));
+		}
+		return set;
+	}
+
+	List<TypedTuple<V>> deserializeTupleValues(List<Tuple> rawValues) {
+		if (rawValues == null) {
+			return null;
+		}
+		List<TypedTuple<V>> set = new ArrayList<>(rawValues.size());
 		for (Tuple rawValue : rawValues) {
 			set.add(deserializeTuple(rawValue));
 		}

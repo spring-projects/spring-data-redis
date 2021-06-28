@@ -637,6 +637,12 @@ public interface ClusterConnectionTests {
 	// GH-2007
 	void bzPopMaxShouldWorkCorrectly();
 
+	// GH-2049
+	void zRandMemberShouldReturnResultCorrectly();
+
+	// GH-2049
+	void zRandMemberWithScoreShouldReturnResultCorrectly();
+
 	// DATAREDIS-315
 	void zRangeByLexShouldReturnResultCorrectly();
 

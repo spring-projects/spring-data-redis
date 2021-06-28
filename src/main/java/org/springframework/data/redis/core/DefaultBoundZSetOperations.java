@@ -99,6 +99,64 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		return ops.incrementScore(getKey(), value, delta);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#randomMember()
+	 */
+	@Override
+	public V randomMember() {
+		return ops.randomMember(getKey());
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#distinctRandomMembers(long)
+	 */
+	@Nullable
+	@Override
+	public Set<V> distinctRandomMembers(long count) {
+		return ops.distinctRandomMembers(getKey(), count);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#randomMembers(long)
+	 */
+	@Nullable
+	@Override
+	public List<V> randomMembers(long count) {
+		return ops.randomMembers(getKey(), count);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#randomMemberWithScore()
+	 */
+	@Override
+	public TypedTuple<V> randomMemberWithScore() {
+		return ops.randomMemberWithScore(getKey());
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#distinctRandomMembersWithScore(long)
+	 */
+	@Nullable
+	@Override
+	public Set<TypedTuple<V>> distinctRandomMembersWithScore(long count) {
+		return ops.distinctRandomMembersWithScore(getKey(), count);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#randomMembersWithScore(long)
+	 */
+	@Nullable
+	@Override
+	public List<TypedTuple<V>> randomMembersWithScore(long count) {
+		return ops.randomMembersWithScore(getKey(), count);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#getOperations()

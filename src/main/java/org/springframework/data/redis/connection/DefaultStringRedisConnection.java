@@ -85,6 +85,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	private final TupleConverter tupleConverter = new TupleConverter();
 	private SetConverter<Tuple, StringTuple> tupleToStringTuple = new SetConverter<>(tupleConverter);
 	private SetConverter<StringTuple, Tuple> stringTupleToTuple = new SetConverter<>(new StringTupleConverter());
+	private ListConverter<Tuple, StringTuple> tupleListToStringTuple = new ListConverter<>(new TupleConverter());
 	private ListConverter<byte[], String> byteListToStringList = new ListConverter<>(bytesToString);
 	private MapConverter<byte[], String> byteMapToStringMap = new MapConverter<>(bytesToString);
 	private MapConverter<String, byte[]> stringMapToByteMap = new MapConverter<>(stringToBytes);
@@ -3294,6 +3295,78 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long zInterStore(String destKey, String... sets) {
 		return zInterStore(serialize(destKey), serializeMulti(sets));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMember(byte[])
+	 */
+	@Override
+	public byte[] zRandMember(byte[] key) {
+		return delegate.zRandMember(key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMember(byte[], long)
+	 */
+	@Override
+	public List<byte[]> zRandMember(byte[] key, long count) {
+		return delegate.zRandMember(key, count);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMemberWithScore(byte[])
+	 */
+	@Override
+	public Tuple zRandMemberWithScore(byte[] key) {
+		return delegate.zRandMemberWithScore(key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMemberWithScore(byte[], long)
+	 */
+	@Override
+	public List<Tuple> zRandMemberWithScore(byte[] key, long count) {
+		return delegate.zRandMemberWithScore(key, count);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRandMember(java.lang.String)
+	 */
+	@Override
+	public String zRandMember(String key) {
+		return convertAndReturn(delegate.zRandMember(serialize(key)), bytesToString);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRandMember(java.lang.String, long)
+	 */
+	@Override
+	public List<String> zRandMember(String key, long count) {
+		return convertAndReturn(delegate.zRandMember(serialize(key), count), byteListToStringList);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRandMemberWithScore(java.lang.String)
+	 */
+	@Override
+	public StringTuple zRandMemberWithScore(String key) {
+		return convertAndReturn(delegate.zRandMemberWithScore(serialize(key)), new TupleConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRandMemberWithScores(java.lang.String, long)
+	 */
+	@Override
+	public List<StringTuple> zRandMemberWithScores(String key, long count) {
+		return convertAndReturn(delegate.zRandMemberWithScore(serialize(key), count), tupleListToStringTuple);
 	}
 
 	/*

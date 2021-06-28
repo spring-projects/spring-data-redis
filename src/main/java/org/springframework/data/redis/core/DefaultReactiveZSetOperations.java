@@ -120,6 +120,82 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return createMono(connection -> connection.zIncrBy(rawKey(key), delta, rawValue(value)));
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#randomMember(K)
+	 */
+	@Override
+	public Mono<V> randomMember(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> connection.zRandMember(rawKey(key))).map(this::readValue);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#distinctRandomMembers(K, long)
+	 */
+	@Override
+	public Flux<V> distinctRandomMembers(K key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.isTrue(count > 0, "Negative count not supported. Use randomMembers to allow duplicate elements.");
+
+		return createFlux(connection -> connection.zRandMember(rawKey(key), count)).map(this::readValue);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#randomMembers(K, long)
+	 */
+	@Override
+	public Flux<V> randomMembers(K key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.isTrue(count > 0, "Use a positive number for count. This method is already allowing duplicate elements.");
+
+		return createFlux(connection -> connection.zRandMember(rawKey(key), -count)).map(this::readValue);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#randomMemberWithScore(K)
+	 */
+	@Override
+	public Mono<TypedTuple<V>> randomMemberWithScore(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> connection.zRandMemberWithScore(rawKey(key))).map(this::readTypedTuple);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#distinctRandomMembersWithScore(K, long)
+	 */
+	@Override
+	public Flux<TypedTuple<V>> distinctRandomMembersWithScore(K key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.isTrue(count > 0, "Negative count not supported. Use randomMembers to allow duplicate elements.");
+
+		return createFlux(connection -> connection.zRandMemberWithScore(rawKey(key), count)).map(this::readTypedTuple);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#randomMembersWithScore(K, long)
+	 */
+	@Override
+	public Flux<TypedTuple<V>> randomMembersWithScore(K key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.isTrue(count > 0, "Use a positive number for count. This method is already allowing duplicate elements.");
+
+		return createFlux(connection -> connection.zRandMemberWithScore(rawKey(key), -count)).map(this::readTypedTuple);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#rank(java.lang.Object, java.lang.Object)

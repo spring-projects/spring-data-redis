@@ -62,7 +62,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return connection.invoke().from(BinaryJedis::zadd, MultiKeyPipelineBase::zadd, key, score, value, JedisConverters.toZAddParams(args))
+		return connection.invoke()
+				.from(BinaryJedis::zadd, MultiKeyPipelineBase::zadd, key, score, value, JedisConverters.toZAddParams(args))
 				.get(JedisConverters::toBoolean);
 	}
 
@@ -105,6 +106,65 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(value, "Value must not be null!");
 
 		return connection.invoke().just(BinaryJedis::zincrby, MultiKeyPipelineBase::zincrby, key, increment, value);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMember(byte[])
+	 */
+	@Override
+	public byte[] zRandMember(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().just(BinaryJedis::zrandmember, MultiKeyPipelineBase::zrandmember, key);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMember(byte[], long)
+	 */
+	@Override
+	public List<byte[]> zRandMember(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().fromMany(BinaryJedis::zrandmember, MultiKeyPipelineBase::zrandmember, key, count)
+				.toList();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMemberWithScore(byte[])
+	 */
+	@Override
+	public Tuple zRandMemberWithScore(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke()
+				.from(BinaryJedis::zrandmemberWithScores, MultiKeyPipelineBase::zrandmemberWithScores, key, 1L).get(it -> {
+
+					if (it.isEmpty()) {
+						return null;
+					}
+
+					return JedisConverters.toTuple(it.iterator().next());
+				});
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMemberWithScore(byte[], long)
+	 */
+	@Override
+	public List<Tuple> zRandMemberWithScore(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke()
+				.fromMany(BinaryJedis::zrandmemberWithScores, MultiKeyPipelineBase::zrandmemberWithScores, key, count)
+				.toList(JedisConverters::toTuple);
 	}
 
 	/*

@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +29,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@link ZSetOperations}.
@@ -128,6 +130,90 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
 		return execute(connection -> connection.zIncrBy(rawKey, delta, rawValue), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#randomMember(java.lang.Object)
+	 */
+	@Override
+	public V randomMember(K key) {
+
+		byte[] rawKey = rawKey(key);
+
+		return deserializeValue(execute(connection -> connection.zRandMember(rawKey), true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#distinctRandomMembers(java.lang.Object, long)
+	 */
+	@Override
+	public Set<V> distinctRandomMembers(K key, long count) {
+
+		Assert.isTrue(count > 0, "Negative count not supported. Use randomMembers to allow duplicate elements.");
+
+		byte[] rawKey = rawKey(key);
+
+		List<byte[]> result = execute(connection -> connection.zRandMember(rawKey, count), true);
+		return result != null ? deserializeValues(new LinkedHashSet<>(result)) : null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#randomMembers(java.lang.Object, long)
+	 */
+	@Override
+	public List<V> randomMembers(K key, long count) {
+
+		Assert.isTrue(count > 0, "Use a positive number for count. This method is already allowing duplicate elements.");
+
+		byte[] rawKey = rawKey(key);
+
+		List<byte[]> result = execute(connection -> connection.zRandMember(rawKey, count), true);
+		return deserializeValues(result);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#randomMemberWithScore(java.lang.Object)
+	 */
+	@Override
+	public TypedTuple<V> randomMemberWithScore(K key) {
+
+		byte[] rawKey = rawKey(key);
+
+		return deserializeTuple(execute(connection -> connection.zRandMemberWithScore(rawKey), true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#distinctRandomMembersWithScore(java.lang.Object, long)
+	 */
+	@Override
+	public Set<TypedTuple<V>> distinctRandomMembersWithScore(K key, long count) {
+
+		Assert.isTrue(count > 0, "Negative count not supported. Use randomMembers to allow duplicate elements.");
+
+		byte[] rawKey = rawKey(key);
+
+		List<Tuple> result = execute(connection -> connection.zRandMemberWithScore(rawKey, count), true);
+		return result != null ? deserializeTupleValues(new LinkedHashSet<>(result)) : null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#randomMembersWithScore(java.lang.Object, long)
+	 */
+	@Override
+	public List<TypedTuple<V>> randomMembersWithScore(K key, long count) {
+
+		Assert.isTrue(count > 0, "Use a positive number for count. This method is already allowing duplicate elements.");
+
+		byte[] rawKey = rawKey(key);
+
+		List<Tuple> result = execute(connection -> connection.zRandMemberWithScore(rawKey, count), true);
+		return result != null ? deserializeTupleValues(result) : null;
 	}
 
 	/*
@@ -459,7 +545,8 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> popMin(K key, long count) {
 
 		byte[] rawKey = rawKey(key);
-		return deserializeTupleValues(execute(connection -> connection.zPopMin(rawKey, count), true));
+		Set<Tuple> result = execute(connection -> connection.zPopMin(rawKey, count), true);
+		return deserializeTupleValues(new LinkedHashSet<> (result));
 	}
 
 	/*
@@ -495,7 +582,8 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> popMax(K key, long count) {
 
 		byte[] rawKey = rawKey(key);
-		return deserializeTupleValues(execute(connection -> connection.zPopMax(rawKey, count), true));
+		Set<Tuple> result =execute(connection -> connection.zPopMax(rawKey, count), true);
+		return deserializeTupleValues(new LinkedHashSet<>(result));
 	}
 
 	/*
@@ -550,7 +638,8 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> differenceWithScores(K key, Collection<K> otherKeys) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		return deserializeTupleValues(execute(connection -> connection.zDiffWithScores(rawKeys), true));
+		Set<Tuple> result = execute(connection -> connection.zDiffWithScores(rawKeys), true);
+		return deserializeTupleValues(new LinkedHashSet<>(result));
 	}
 
 	/*
@@ -586,7 +675,8 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		return deserializeTupleValues(execute(connection -> connection.zInterWithScores(rawKeys), true));
+		Set<Tuple> result = execute(connection -> connection.zInterWithScores(rawKeys), true);
+		return deserializeTupleValues(result);
 	}
 
 	/*
@@ -597,8 +687,8 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		return deserializeTupleValues(
-				execute(connection -> connection.zInterWithScores(aggregate, weights, rawKeys), true));
+		Set<Tuple> result = execute(connection -> connection.zInterWithScores(aggregate, weights, rawKeys), true);
+		return deserializeTupleValues(result);
 	}
 
 	/*
@@ -656,7 +746,8 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		return deserializeTupleValues(execute(connection -> connection.zUnionWithScores(rawKeys), true));
+		Set<Tuple> result =  execute(connection -> connection.zUnionWithScores(rawKeys), true);
+		return deserializeTupleValues(result);
 	}
 
 	/*
@@ -667,8 +758,9 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
+		Set<Tuple> result = execute(connection -> connection.zUnionWithScores(aggregate, weights, rawKeys), true);
 		return deserializeTupleValues(
-				execute(connection -> connection.zUnionWithScores(aggregate, weights, rawKeys), true));
+				result);
 	}
 
 	/*

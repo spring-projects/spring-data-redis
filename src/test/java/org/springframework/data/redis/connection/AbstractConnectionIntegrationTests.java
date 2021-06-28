@@ -2026,6 +2026,39 @@ public abstract class AbstractConnectionIntegrationTests {
 						new DefaultStringTuple("James".getBytes(), "James", 12d))) }));
 	}
 
+	@Test // GH-2049
+	@EnabledOnCommand("ZRANDMEMBER")
+	void testZRandMember() {
+
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zRandMember("myset"));
+		actual.add(connection.zRandMember("myset", 2));
+
+		List<Object> results = getResults();
+
+		assertThat(results.get(2)).isNotNull();
+		assertThat(new LinkedHashSet<>((Collection) results.get(3)))
+				.isEqualTo(new LinkedHashSet<>(Arrays.asList("Bob", "James")));
+	}
+
+	@Test // GH-2049
+	@EnabledOnCommand("ZRANDMEMBER")
+	void testZRandMemberWithScore() {
+
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zRandMemberWithScore("myset"));
+		actual.add(connection.zRandMemberWithScores("myset", 2));
+
+		List<Object> results = getResults();
+
+		assertThat(results.get(2)).isNotNull();
+		assertThat(new LinkedHashSet<>((Collection) results.get(3)))
+				.isEqualTo(new LinkedHashSet<>(Arrays.asList(new DefaultStringTuple("Bob".getBytes(), "Bob", 2d),
+						new DefaultStringTuple("James".getBytes(), "James", 1d))));
+	}
+
 	@Test
 	void testZRangeWithScores() {
 

@@ -478,6 +478,142 @@ public interface ReactiveZSetCommands {
 	Flux<NumericResponse<ZIncrByCommand, Double>> zIncrBy(Publisher<ZIncrByCommand> commands);
 
 	/**
+	 * {@code ZRANDMEMBER} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	class ZRandMemberCommand extends KeyCommand {
+
+		private final long count;
+
+		private ZRandMemberCommand(@Nullable ByteBuffer key, long count) {
+
+			super(key);
+			this.count = count;
+		}
+
+		/**
+		 * Creates a new {@link ZRandMemberCommand} given the number of values to retrieve.
+		 *
+		 * @param nrValuesToRetrieve
+		 * @return a new {@link ZRandMemberCommand} for a number of values to retrieve.
+		 */
+		public static ZRandMemberCommand valueCount(long nrValuesToRetrieve) {
+			return new ZRandMemberCommand(null, nrValuesToRetrieve);
+		}
+
+		/**
+		 * Creates a new {@link ZRandMemberCommand} to retrieve one random member.
+		 *
+		 * @return a new {@link ZRandMemberCommand} to retrieve one random member.
+		 */
+		public static ZRandMemberCommand singleValue() {
+			return new ZRandMemberCommand(null, 1);
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ZRandMemberCommand} with {@literal key} applied.
+		 */
+		public ZRandMemberCommand from(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new ZRandMemberCommand(key, count);
+		}
+
+		/**
+		 * @return
+		 */
+		public long getCount() {
+			return count;
+		}
+	}
+
+	/**
+	 * Get random element from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	default Mono<ByteBuffer> zRandMember(ByteBuffer key) {
+		return zRandMember(Mono.just(ZRandMemberCommand.singleValue().from(key))).flatMap(CommandResponse::getOutput)
+				.next();
+	}
+
+	/**
+	 * Get {@code count} random elements from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count if the provided {@code count} argument is positive, return a list of distinct fields, capped either at
+	 *          {@code count} or the set size. If {@code count} is negative, the behavior changes and the command is
+	 *          allowed to return the same value multiple times. In this case, the number of returned values is the
+	 *          absolute value of the specified count.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	default Flux<ByteBuffer> zRandMember(ByteBuffer key, long count) {
+		return zRandMember(Mono.just(ZRandMemberCommand.valueCount(count).from(key))).flatMap(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Get random elements from sorted set at {@code key}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Flux<CommandResponse<ZRandMemberCommand, Flux<ByteBuffer>>> zRandMember(Publisher<ZRandMemberCommand> commands);
+
+	/**
+	 * Get random element from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	default Mono<Tuple> zRandMemberWithScore(ByteBuffer key) {
+		return zRandMemberWithScore(Mono.just(ZRandMemberCommand.singleValue().from(key)))
+				.flatMap(CommandResponse::getOutput).next();
+	}
+
+	/**
+	 * Get {@code count} random elements from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count if the provided {@code count} argument is positive, return a list of distinct fields, capped either at
+	 *          {@code count} or the set size. If {@code count} is negative, the behavior changes and the command is
+	 *          allowed to return the same value multiple times. In this case, the number of returned values is the
+	 *          absolute value of the specified count.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	default Flux<Tuple> zRandMemberWithScore(ByteBuffer key, long count) {
+		return zRandMemberWithScore(Mono.just(ZRandMemberCommand.valueCount(count).from(key)))
+				.flatMap(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Get random elements from sorted set at {@code key}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Flux<CommandResponse<ZRandMemberCommand, Flux<Tuple>>> zRandMemberWithScore(Publisher<ZRandMemberCommand> commands);
+
+	/**
 	 * {@code ZRANK}/{@literal ZREVRANK} command parameters.
 	 *
 	 * @author Christoph Strobl

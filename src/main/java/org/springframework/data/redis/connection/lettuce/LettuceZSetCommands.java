@@ -107,6 +107,56 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zincrby, key, increment, value);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMember(byte[])
+	 */
+	@Override
+	public byte[] zRandMember(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zrandmember, key);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMember(byte[], long)
+	 */
+	@Override
+	public List<byte[]> zRandMember(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zrandmember, key, count);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMemberWithScore(byte[])
+	 */
+	@Override
+	public Tuple zRandMemberWithScore(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().from(RedisSortedSetAsyncCommands::zrandmemberWithScores, key)
+				.get(LettuceConverters::toTuple);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMemberWithScore(byte[], long)
+	 */
+	@Override
+	public List<Tuple> zRandMemberWithScore(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrandmemberWithScores, key, count)
+				.toList(LettuceConverters::toTuple);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRank(byte[], byte[])
