@@ -121,7 +121,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		assertThat(zSet.first()).isEqualTo(t1);
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-2038
 	@EnabledOnCommand("ZPOPMIN")
 	void testPopFirst() {
 
@@ -137,7 +137,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		assertThat(zSet).hasSize(2);
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-2038
 	@EnabledOnCommand("ZPOPMIN")
 	void testPopFirstWithTimeout() {
 
