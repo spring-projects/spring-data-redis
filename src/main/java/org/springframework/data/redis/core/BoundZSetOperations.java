@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -101,6 +102,73 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Double incrementScore(V value, double delta);
+
+	/**
+	 * Get random element from set at the bound key.
+	 *
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	V randomMember();
+
+	/**
+	 * Get {@code count} distinct random elements from set at the bound key.
+	 *
+	 * @param count nr of members to return
+	 * @return empty {@link Set} if {@code key} does not exist.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	Set<V> distinctRandomMembers(long count);
+
+	/**
+	 * Get {@code count} random elements from set at the bound key.
+	 *
+	 * @param count nr of members to return.
+	 * @return empty {@link List} if {@code key} does not exist or {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	List<V> randomMembers(long count);
+
+	/**
+	 * Get random element with its score from set at the bound key.
+	 *
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	TypedTuple<V> randomMemberWithScore();
+
+	/**
+	 * Get {@code count} distinct random elements with their score from set at the bound key.
+	 *
+	 * @param count nr of members to return
+	 * @return empty {@link Set} if {@code key} does not exist.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> distinctRandomMembersWithScore(long count);
+
+	/**
+	 * Get {@code count} random elements with their score from set at the bound key.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return.
+	 * @return empty {@link List} if {@code key} does not exist or {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	List<TypedTuple<V>> randomMembersWithScore(long count);
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set.

@@ -610,6 +610,12 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void zInterStoreShouldWorkForSameSlotKeys();
 
+	// GH-2049
+	void zRandMemberShouldReturnResultCorrectly();
+
+	// GH-2049
+	void zRandMemberWithScoreShouldReturnResultCorrectly();
+
 	// DATAREDIS-315
 	void zRangeByLexShouldReturnResultCorrectly();
 

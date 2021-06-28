@@ -2026,6 +2026,29 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrange(SAME_SLOT_KEY_3_BYTES, 0, -1)).contains(VALUE_2_BYTES);
 	}
 
+	@Test // GH-2049
+	@EnabledOnCommand("ZRANDMEMBER")
+	public void zRandMemberShouldReturnResultCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.zRandMember(KEY_1_BYTES)).isIn(VALUE_1_BYTES, VALUE_2_BYTES);
+		assertThat(clusterConnection.zRandMember(KEY_1_BYTES, 2)).hasSize(2).contains(VALUE_1_BYTES, VALUE_2_BYTES);
+
+	}
+
+	@Test // GH-2049
+	@EnabledOnCommand("ZRANDMEMBER")
+	public void zRandMemberWithScoreShouldReturnResultCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.zRandMemberWithScore(KEY_1_BYTES)).isNotNull();
+		assertThat(clusterConnection.zRandMemberWithScore(KEY_1_BYTES, 2)).hasSize(2);
+	}
+
 	@Test // DATAREDIS-315
 	public void zRangeByLexShouldReturnResultCorrectly() {
 

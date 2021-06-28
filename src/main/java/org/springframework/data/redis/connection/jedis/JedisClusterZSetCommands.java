@@ -18,7 +18,10 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ZParams;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -60,7 +63,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(value, "Value must not be null!");
 
 		try {
-			return JedisConverters.toBoolean(connection.getCluster().zadd(key, score, value, JedisConverters.toZAddParams(args)));
+			return JedisConverters
+					.toBoolean(connection.getCluster().zadd(key, score, value, JedisConverters.toZAddParams(args)));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -114,6 +118,74 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			return connection.getCluster().zincrby(key, increment, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMember(byte[])
+	 */
+	@Override
+	public byte[] zRandMember(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return connection.getCluster().zrandmember(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMember(byte[], long)
+	 */
+	@Override
+	public List<byte[]> zRandMember(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return new ArrayList<>(connection.getCluster().zrandmember(key, count));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMemberWithScore(byte[])
+	 */
+	@Override
+	public Tuple zRandMemberWithScore(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			Set<redis.clients.jedis.Tuple> tuples = connection.getCluster().zrandmemberWithScores(key, 1);
+
+			return tuples.isEmpty() ? null : JedisConverters.toTuple(tuples.iterator().next());
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMemberWithScore(byte[], long)
+	 */
+	@Override
+	public List<Tuple> zRandMemberWithScore(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			Set<redis.clients.jedis.Tuple> tuples = connection.getCluster().zrandmemberWithScores(key, count);
+
+			return tuples.stream().map(JedisConverters::toTuple).collect(Collectors.toList());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

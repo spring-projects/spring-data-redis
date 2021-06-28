@@ -980,6 +980,34 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
+	default byte[] zRandMember(byte[] key) {
+		return zSetCommands().zRandMember(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default List<byte[]> zRandMember(byte[] key, long count) {
+		return zSetCommands().zRandMember(key, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Tuple zRandMemberWithScore(byte[] key) {
+		return zSetCommands().zRandMemberWithScore(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Tuple> zRandMemberWithScore(byte[] key, long count) {
+		return zSetCommands().zRandMemberWithScore(key, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
 	default Set<byte[]> zRange(byte[] key, long start, long end) {
 		return zSetCommands().zRange(key, start, end);
 	}

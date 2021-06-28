@@ -634,6 +634,58 @@ public interface RedisZSetCommands {
 	Double zIncrBy(byte[] key, double increment, byte[] value);
 
 	/**
+	 * Get random element from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	byte[] zRandMember(byte[] key);
+
+	/**
+	 * Get {@code count} random elements from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count if the provided {@code count} argument is positive, return a list of distinct fields, capped either at
+	 *          {@code count} or the set size. If {@code count} is negative, the behavior changes and the command is
+	 *          allowed to return the same value multiple times. In this case, the number of returned values is the
+	 *          absolute value of the specified count.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	List<byte[]> zRandMember(byte[] key, long count);
+
+	/**
+	 * Get random element from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	Tuple zRandMemberWithScore(byte[] key);
+
+	/**
+	 * Get {@code count} random elements from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count if the provided {@code count} argument is positive, return a list of distinct fields, capped either at
+	 *          {@code count} or the set size. If {@code count} is negative, the behavior changes and the command is
+	 *          allowed to return the same value multiple times. In this case, the number of returned values is the
+	 *          absolute value of the specified count.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	List<Tuple> zRandMemberWithScore(byte[] key, long count);
+
+	/**
 	 * Determine the index of element with {@code value} in a sorted set.
 	 *
 	 * @param key must not be {@literal null}.

@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -132,6 +133,78 @@ public interface ZSetOperations<K, V> {
 	 */
 	@Nullable
 	Double incrementScore(K key, V value, double delta);
+
+	/**
+	 * Get random element from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	V randomMember(K key);
+
+	/**
+	 * Get {@code count} distinct random elements from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return
+	 * @return empty {@link Set} if {@code key} does not exist.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	Set<V> distinctRandomMembers(K key, long count);
+
+	/**
+	 * Get {@code count} random elements from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return.
+	 * @return empty {@link List} if {@code key} does not exist or {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	List<V> randomMembers(K key, long count);
+
+	/**
+	 * Get random element with its score from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	TypedTuple<V> randomMemberWithScore(K key);
+
+	/**
+	 * Get {@code count} distinct random elements with their score from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return
+	 * @return empty {@link Set} if {@code key} does not exist.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> distinctRandomMembersWithScore(K key, long count);
+
+	/**
+	 * Get {@code count} random elements with their score from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return.
+	 * @return empty {@link List} if {@code key} does not exist or {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	List<TypedTuple<V>> randomMembersWithScore(K key, long count);
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set.

@@ -156,6 +156,39 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRandMember(Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<ZRandMemberCommand, Flux<ByteBuffer>>> zRandMember(
+			Publisher<ZRandMemberCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			return new CommandResponse<>(command, cmd.zrandmember(command.getKey(), command.getCount()));
+		}));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRandMemberWithScore(Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<ZRandMemberCommand, Flux<Tuple>>> zRandMemberWithScore(
+			Publisher<ZRandMemberCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			return new CommandResponse<>(command, cmd.zrandmemberWithScores(command.getKey(), command.getCount())
+					.map(sc -> new DefaultTuple(getBytes(sc), sc.getScore())));
+		}));
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRank(org.reactivestreams.Publisher)

@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.ByteBufferObjectFactory;
@@ -38,6 +39,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -138,6 +140,47 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.add(key, value, 42.1).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		zSetOperations.incrementScore(key, value, 1.1).as(StepVerifier::create).expectNext(43.2).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2049
+	@EnabledOnCommand("ZRANDMEMBER")
+	void randomMember() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOperations.add(key, value1, 42.1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value2, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.randomMember(key).as(StepVerifier::create).consumeNextWith(actual -> {
+
+			assertThat(actual).isIn(value1, value2);
+		}).verifyComplete();
+
+		zSetOperations.randomMembers(key, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
+		zSetOperations.distinctRandomMembers(key, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2049
+	@Disabled("https://github.com/redis/redis/issues/9160")
+	@EnabledOnCommand("ZRANDMEMBER")
+	void randomMemberWithScore() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOperations.add(key, value1, 42.1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value2, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.randomMemberWithScore(key).as(StepVerifier::create).consumeNextWith(actual -> {
+
+			assertThat(actual).isIn(new DefaultTypedTuple<>(value1, 42.1d), new DefaultTypedTuple<>(value2, 10d));
+		}).verifyComplete();
+
+		zSetOperations.randomMembersWithScore(key, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
+		zSetOperations.distinctRandomMembersWithScore(key, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

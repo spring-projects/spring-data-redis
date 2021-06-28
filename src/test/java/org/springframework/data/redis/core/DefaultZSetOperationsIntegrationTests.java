@@ -26,15 +26,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -141,6 +144,49 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(values).hasSize(1);
 		TypedTuple<V> tuple = values.iterator().next();
 		assertThat(tuple).isEqualTo(new DefaultTypedTuple<>(value1, 5.7));
+	}
+
+	@ParameterizedRedisTest // GH-2049
+	@EnabledOnCommand("ZRANDMEMBER")
+	void testRandomMember() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.9);
+		zSetOps.add(key, value2, 3.7);
+		zSetOps.add(key, value3, 5.8);
+
+		assertThat(zSetOps.randomMember(key)).isIn(value1, value2, value3);
+		assertThat(zSetOps.randomMembers(key, 2)).hasSize(2).containsAnyOf(value1, value2, value3);
+		assertThat(zSetOps.distinctRandomMembers(key, 2)).hasSize(2).containsAnyOf(value1, value2, value3);
+	}
+
+	@ParameterizedRedisTest // GH-2049
+	@Disabled("https://github.com/redis/redis/issues/9160")
+	@EnabledOnCommand("ZRANDMEMBER")
+	void testRandomMemberWithScore() {
+
+		assumeThat(valueFactory).isNotInstanceOf(RawObjectFactory.class);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.9);
+		zSetOps.add(key, value2, 3.7);
+		zSetOps.add(key, value3, 5.8);
+
+		assertThat(zSetOps.randomMemberWithScore(key)).isIn(new DefaultTypedTuple<>(value1, 1.9d),
+				new DefaultTypedTuple<>(value2, 3.7d), new DefaultTypedTuple<>(value3, 5.8d));
+		assertThat(zSetOps.randomMembersWithScore(key, 2)).hasSize(2).containsAnyOf(new DefaultTypedTuple<>(value1, 1.9d),
+				new DefaultTypedTuple<>(value2, 3.7d), new DefaultTypedTuple<>(value3, 5.8d));
+		assertThat(zSetOps.distinctRandomMembersWithScore(key, 2)).hasSize(2).containsAnyOf(
+				new DefaultTypedTuple<>(value1, 1.9d), new DefaultTypedTuple<>(value2, 3.7d),
+				new DefaultTypedTuple<>(value3, 5.8d));
 	}
 
 	@ParameterizedRedisTest

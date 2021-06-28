@@ -81,6 +81,74 @@ public interface ReactiveZSetOperations<K, V> {
 	Mono<Double> incrementScore(K key, V value, double delta);
 
 	/**
+	 * Get random element from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Mono<V> randomMember(K key);
+
+	/**
+	 * Get {@code count} distinct random elements from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return
+	 * @return
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Flux<V> distinctRandomMembers(K key, long count);
+
+	/**
+	 * Get {@code count} random elements from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return.
+	 * @return
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Flux<V> randomMembers(K key, long count);
+
+	/**
+	 * Get random element with its score from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Mono<TypedTuple<V>> randomMemberWithScore(K key);
+
+	/**
+	 * Get {@code count} distinct random elements with their score from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return
+	 * @return
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Flux<TypedTuple<V>> distinctRandomMembersWithScore(K key, long count);
+
+	/**
+	 * Get {@code count} random elements with their score from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return.
+	 * @return
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Flux<TypedTuple<V>> randomMembersWithScore(K key, long count);
+
+	/**
 	 * Determine the index of element with {@code value} in a sorted set.
 	 *
 	 * @param key must not be {@literal null}.

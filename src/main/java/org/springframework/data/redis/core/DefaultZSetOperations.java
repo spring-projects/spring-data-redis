@@ -17,6 +17,8 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -26,6 +28,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@link ZSetOperations}.
@@ -161,6 +164,90 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[] rawDestKey = rawKey(destKey);
 
 		return execute(connection -> connection.zInterStore(rawDestKey, aggregate, weights, rawKeys), true);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#randomMember(java.lang.Object)
+	 */
+	@Override
+	public V randomMember(K key) {
+
+		byte[] rawKey = rawKey(key);
+
+		return deserializeValue(execute(connection -> connection.zRandMember(rawKey), true));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#distinctRandomMembers(java.lang.Object, long)
+	 */
+	@Override
+	public Set<V> distinctRandomMembers(K key, long count) {
+
+		Assert.isTrue(count > 0, "Negative count not supported. Use randomMembers to allow duplicate elements.");
+
+		byte[] rawKey = rawKey(key);
+
+		List<byte[]> result = execute(connection -> connection.zRandMember(rawKey, count), true);
+		return result != null ? deserializeValues(new LinkedHashSet<>(result)) : null;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#randomMembers(java.lang.Object, long)
+	 */
+	@Override
+	public List<V> randomMembers(K key, long count) {
+
+		Assert.isTrue(count > 0, "Use a positive number for count. This method is already allowing duplicate elements.");
+
+		byte[] rawKey = rawKey(key);
+
+		List<byte[]> result = execute(connection -> connection.zRandMember(rawKey, count), true);
+		return deserializeValues(result);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#randomMemberWithScore(java.lang.Object)
+	 */
+	@Override
+	public TypedTuple<V> randomMemberWithScore(K key) {
+
+		byte[] rawKey = rawKey(key);
+
+		return deserializeTuple(execute(connection -> connection.zRandMemberWithScore(rawKey), true));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#distinctRandomMembersWithScore(java.lang.Object, long)
+	 */
+	@Override
+	public Set<TypedTuple<V>> distinctRandomMembersWithScore(K key, long count) {
+
+		Assert.isTrue(count > 0, "Negative count not supported. Use randomMembers to allow duplicate elements.");
+
+		byte[] rawKey = rawKey(key);
+
+		List<Tuple> result = execute(connection -> connection.zRandMemberWithScore(rawKey, count), true);
+		return result != null ? deserializeTupleValues(new LinkedHashSet<>(result)) : null;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#randomMembersWithScore(java.lang.Object, long)
+	 */
+	@Override
+	public List<TypedTuple<V>> randomMembersWithScore(K key, long count) {
+
+		Assert.isTrue(count > 0, "Use a positive number for count. This method is already allowing duplicate elements.");
+
+		byte[] rawKey = rawKey(key);
+
+		List<Tuple> result = execute(connection -> connection.zRandMemberWithScore(rawKey, count), true);
+		return result != null ? deserializeTupleValues(result) : null;
 	}
 
 	/*
