@@ -213,6 +213,22 @@ class JedisConvertersUnitTests {
 		assertThat(toString(JedisConverters.toSetCommandExPxArgument(Expiration.milliseconds(100)))).isEqualTo("px 100");
 	}
 
+	@Test // GH-2050
+	void convertsExpirationToSetPXAT() {
+
+		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS)))
+				.extracting(SetParams::toString)
+				.isEqualTo(SetParams.setParams().pxAt(10).toString());
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToSetEXAT() {
+
+		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.unixTimestamp(1, TimeUnit.MINUTES)))
+				.extracting(SetParams::toString)
+				.isEqualTo(SetParams.setParams().exAt(60).toString());
+	}
+
 	@Test // DATAREDIS-316, DATAREDIS-749
 	void toSetCommandNxXxOptionShouldReturnNXforAbsent() {
 		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent()))).isEqualTo("nx");

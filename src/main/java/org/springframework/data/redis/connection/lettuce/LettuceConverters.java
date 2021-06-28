@@ -699,11 +699,19 @@ public abstract class LettuceConverters extends Converters {
 			} else if (!expiration.isPersistent()) {
 
 				switch (expiration.getTimeUnit()) {
-					case SECONDS:
-						args.ex(expiration.getExpirationTime());
+					case MILLISECONDS:
+						if (expiration.isUnixTimestamp()) {
+							args.pxAt(expiration.getConverted(TimeUnit.MILLISECONDS));
+						} else {
+							args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
+						}
 						break;
 					default:
-						args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
+						if (expiration.isUnixTimestamp()) {
+							args.exAt(expiration.getConverted(TimeUnit.SECONDS));
+						} else {
+							args.ex(expiration.getConverted(TimeUnit.SECONDS));
+						}
 						break;
 				}
 			}
@@ -740,7 +748,7 @@ public abstract class LettuceConverters extends Converters {
 			return args;
 		}
 
-		if(expiration.isPersistent()) {
+		if (expiration.isPersistent()) {
 			return args.persist();
 		}
 
