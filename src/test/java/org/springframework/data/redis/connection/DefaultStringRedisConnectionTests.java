@@ -1626,6 +1626,7 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testZMScore() {
+
 		doReturn(Arrays.asList(1d, 3d)).when(nativeConnection).zMScore(fooBytes, barBytes, bar2Bytes);
 		actual.add(connection.zMScore(foo, bar, bar2));
 		verifyResults(Collections.singletonList(Arrays.asList(1d, 3d)));
