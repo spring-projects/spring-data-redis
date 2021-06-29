@@ -16,11 +16,9 @@
 package org.springframework.data.redis.support.collections;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.BoundSetOperations;
@@ -216,10 +214,7 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 	 */
 	@Override
 	public void clear() {
-		// intersect the set with a non existing one
-		// TODO: find a safer way to clean the set
-		String randomKey = UUID.randomUUID().toString();
-		boundSetOps.intersectAndStore(Collections.singleton(randomKey), getKey());
+		boundSetOps.getOperations().delete(getKey());
 	}
 
 	/*

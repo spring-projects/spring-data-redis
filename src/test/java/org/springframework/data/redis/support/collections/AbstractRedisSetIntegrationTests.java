@@ -72,6 +72,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 	@ParameterizedRedisTest // GH-2037
 	@EnabledOnCommand("SMISMEMBER")
 	void testContainsAll() {
+		
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();

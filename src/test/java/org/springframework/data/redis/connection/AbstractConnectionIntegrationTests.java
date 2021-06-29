@@ -1587,6 +1587,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testSAdd() {
+
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sMembers("myset"));
@@ -1595,6 +1596,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testSAddMultiple() {
+
 		actual.add(connection.sAdd("myset", "foo", "bar"));
 		actual.add(connection.sAdd("myset", "baz"));
 		actual.add(connection.sMembers("myset"));
@@ -1603,6 +1605,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testSCard() {
+
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sCard("myset"));
@@ -1611,6 +1614,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testSDiff() {
+
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sAdd("otherset", "bar"));
@@ -1620,6 +1624,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testSDiffStore() {
+
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sAdd("otherset", "bar"));
@@ -1630,6 +1635,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testSInter() {
+
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sAdd("otherset", "bar"));
@@ -1649,6 +1655,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testSIsMember() {
+
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sIsMember("myset", "foo"));
@@ -1659,6 +1666,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // GH-2037
 	@EnabledOnCommand("SMISMEMBER")
 	void testSMIsMember() {
+
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sMIsMember("myset", "foo", "bar", "baz"));
@@ -1667,6 +1675,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testSMove() {
+
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sAdd("otherset", "bar"));
@@ -1676,6 +1685,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testSPop() {
+
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sPop("myset"));
