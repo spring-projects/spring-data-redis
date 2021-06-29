@@ -1044,6 +1044,19 @@ public interface StringRedisConnection extends RedisConnection {
 	Boolean sIsMember(String key, String value);
 
 	/**
+	 * Check if set at {@code key} contains one or more {@code values}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param values must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
+	 * @see RedisSetCommands#sMIsMember(byte[], byte[]...)
+	 */
+	@Nullable
+	List<Boolean> sMIsMember(String key, String... values);
+
+	/**
 	 * Returns the members intersecting all given sets at {@code keys}.
 	 *
 	 * @param keys must not be {@literal null}.

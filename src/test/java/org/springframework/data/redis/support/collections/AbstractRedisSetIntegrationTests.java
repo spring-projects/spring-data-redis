@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -30,6 +31,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.util.ObjectUtils;
 
@@ -65,6 +67,21 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 	@SuppressWarnings("unchecked")
 	private RedisSet<T> createSetFor(String key) {
 		return new DefaultRedisSet<>((BoundSetOperations<String, T>) set.getOperations().boundSetOps(key));
+	}
+
+	@ParameterizedRedisTest // GH-2037
+	@EnabledOnCommand("SMISMEMBER")
+	void testContainsAll() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		set.add(t1);
+		set.add(t2);
+
+		assertThat(set.containsAll(Arrays.asList(t1, t2, t3))).isFalse();
+		assertThat(set.containsAll(Arrays.asList(t1, t2))).isTrue();
+		assertThat(set.containsAll(Collections.emptyList())).isTrue();
 	}
 
 	@ParameterizedRedisTest

@@ -838,6 +838,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#setCommands()}}. */
 	@Override
 	@Deprecated
+	default List<Boolean> sMIsMember(byte[] key, byte[]... value) {
+		return setCommands().sMIsMember(key, value);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#setCommands()}}. */
+	@Override
+	@Deprecated
 	default Set<byte[]> sMembers(byte[] key) {
 		return setCommands().sMembers(key);
 	}

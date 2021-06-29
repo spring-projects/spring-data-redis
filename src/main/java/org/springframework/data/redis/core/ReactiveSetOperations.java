@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Redis set specific operations.
@@ -99,6 +100,17 @@ public interface ReactiveSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
 	 */
 	Mono<Boolean> isMember(K key, Object o);
+
+	/**
+	 * Check if set at {@code key} contains one or more {@code values}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param values
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
+	 */
+	Mono<Map<Object, Boolean>> isMember(K key, Object... objects);
 
 	/**
 	 * Returns the members intersecting all given sets at {@code key} and {@code otherKey}.

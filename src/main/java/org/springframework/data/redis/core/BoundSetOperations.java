@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.lang.Nullable;
@@ -87,6 +88,18 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Boolean isMember(Object o);
+
+	/**
+	 * Check if set at at the bound key contains one or more {@code values}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param objects
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
+	 */
+	@Nullable
+	Map<Object, Boolean> isMember(Object... objects);
 
 	/**
 	 * Returns the members intersecting all given sets at the bound key and {@code key}.

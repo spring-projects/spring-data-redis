@@ -1624,6 +1624,16 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sIsMember(KEY_1_BYTES, VALUE_1_BYTES)).isTrue();
 	}
 
+	@Test // GH-2037
+	@EnabledOnCommand("SMISMEMBER")
+	public void sMIsMemberShouldReturnCorrectValues() {
+
+		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
+
+		assertThat(clusterConnection.sMIsMember(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES, VALUE_3_BYTES))
+				.containsExactly(true, true, false);
+	}
+
 	@Test // DATAREDIS-315
 	public void sMembersShouldReturnValuesContainedInSetCorrectly() {
 

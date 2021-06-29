@@ -18,7 +18,9 @@ package org.springframework.data.redis.core;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisConnection;
@@ -201,6 +203,34 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		byte[] rawValue = rawValue(o);
 
 		return execute(connection -> connection.sIsMember(rawKey, rawValue), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.SetOperations#isMember(java.lang.Object, java.lang.Object...)
+	 */
+	@Override
+	public Map<Object, Boolean> isMember(K key, Object... objects) {
+
+		byte[] rawKey = rawKey(key);
+		byte[][] rawValues = rawValues(objects);
+
+		return execute(connection -> {
+
+			List<Boolean> result = connection.sMIsMember(rawKey, rawValues);
+
+			if (result == null || result.size() != objects.length) {
+				return null;
+			}
+
+			Map<Object, Boolean> isMember = new LinkedHashMap<>(result.size());
+
+			for (int i = 0; i < objects.length; i++) {
+				isMember.put(objects[i], result.get(i));
+			}
+
+			return isMember;
+		}, true);
 	}
 
 	/*

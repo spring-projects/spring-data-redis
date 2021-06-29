@@ -30,6 +30,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -152,6 +153,23 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 
 		setOperations.add(key, value1, value2).as(StepVerifier::create).expectNext(2L).verifyComplete();
 		setOperations.isMember(key, value1).as(StepVerifier::create).expectNext(true).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2037
+	@EnabledOnCommand("SMISMEMBER")
+	void isMembers() {
+
+		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		setOperations.add(key, value1).as(StepVerifier::create).expectNext(1L).verifyComplete();
+		setOperations.isMember(key, value1, value2).as(StepVerifier::create).consumeNextWith(actual -> {
+
+			assertThat(actual).containsEntry(value1, true).containsEntry(value2, false);
+		}).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602, DATAREDIS-873
