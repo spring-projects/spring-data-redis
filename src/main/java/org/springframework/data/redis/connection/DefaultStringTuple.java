@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.util.ObjectUtils;
@@ -23,6 +25,8 @@ import org.springframework.util.ObjectUtils;
  * Default implementation for {@link StringTuple} interface.
  *
  * @author Costin Leau
+ * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 
@@ -35,6 +39,7 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 	 * @param score
 	 */
 	public DefaultStringTuple(byte[] value, String valueAsString, Double score) {
+
 		super(value, score);
 		this.valueAsString = valueAsString;
 
@@ -43,13 +48,12 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 	/**
 	 * Constructs a new <code>DefaultStringTuple</code> instance.
 	 *
-	 * @param valueAsString
+	 * @param valueAsString must not be {@literal null}.
 	 * @param score
 	 * @since 2.6
 	 */
 	public DefaultStringTuple(String valueAsString, double score) {
-		super(valueAsString.getBytes(), score);
-		this.valueAsString = valueAsString;
+		this(valueAsString.getBytes(StandardCharsets.UTF_8), valueAsString, score);
 	}
 
 	/**
@@ -59,6 +63,7 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 	 * @param valueAsString
 	 */
 	public DefaultStringTuple(Tuple tuple, String valueAsString) {
+
 		super(tuple.getValue(), tuple.getScore());
 		this.valueAsString = valueAsString;
 	}

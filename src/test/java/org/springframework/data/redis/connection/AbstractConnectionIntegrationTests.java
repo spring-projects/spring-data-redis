@@ -1878,6 +1878,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZIncrBy() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 4, "Joe"));
@@ -1890,6 +1891,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // GH-2041
 	@EnabledOnCommand("ZDIFF")
 	void testZDiff() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 4, "Joe"));
@@ -1904,6 +1906,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // GH-2041
 	@EnabledOnCommand("ZDIFFSTORE")
 	void testZDiffStore() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 4, "Joe"));
@@ -1917,6 +1920,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // GH-2042
 	@EnabledOnCommand("ZINTER")
 	void testZInter() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 4, "Joe"));
@@ -1932,6 +1936,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // GH-2042
 	@EnabledOnCommand("ZINTER")
 	void testZInterAggWeights() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 4, "Joe"));
@@ -1947,6 +1952,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZInterStore() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 4, "Joe"));
@@ -1960,6 +1966,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZInterStoreAggWeights() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 4, "Joe"));
@@ -1975,6 +1982,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRangeWithScores() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRangeWithScores("myset", 0, -1));
@@ -1985,6 +1993,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRangeByScore() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRangeByScore("myset", 1, 1));
@@ -1993,6 +2002,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRangeByScoreOffsetCount() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRangeByScore("myset", 1d, 3d, 1, -1));
@@ -2001,6 +2011,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRangeByScoreWithScores() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRangeByScoreWithScores("myset", 2d, 5d));
@@ -2010,6 +2021,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRangeByScoreWithScoresOffsetCount() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRangeByScoreWithScores("myset", 1d, 5d, 0, 1));
@@ -2019,6 +2031,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRevRange() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRevRange("myset", 0, -1));
@@ -2027,6 +2040,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRevRangeWithScores() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRevRangeWithScores("myset", 0, -1));
@@ -2037,6 +2051,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRevRangeByScoreOffsetCount() {
+
 		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
 		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
 		actual.add(connection.zRevRangeByScore("myset", 0d, 3d, 0, 5));
@@ -2045,6 +2060,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRevRangeByScore() {
+
 		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
 		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
 		actual.add(connection.zRevRangeByScore("myset", 0d, 3d));
@@ -2053,6 +2069,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRevRangeByScoreWithScoresOffsetCount() {
+
 		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
 		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
 		actual.add(connection.zRevRangeByScoreWithScores("myset", 0d, 3d, 0, 1));
@@ -2062,6 +2079,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRevRangeByScoreWithScores() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 3, "Joe"));
@@ -2073,6 +2091,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRank() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRank("myset", "James"));
@@ -2082,6 +2101,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRem() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRem("myset", "James"));
@@ -2091,6 +2111,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRemMultiple() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 0.5, "Joe"));
@@ -2103,6 +2124,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testZRemRangeByRank() {
+
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRemRange("myset", 0L, 3L));

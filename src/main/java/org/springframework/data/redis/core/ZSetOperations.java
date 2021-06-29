@@ -916,38 +916,38 @@ public interface ZSetOperations<K, V> {
 	@Nullable
 	Set<V> rangeByLex(K key, Range range, Limit limit);
 
-		/**
-		 * Get all elements with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value between
-		 * {@link Range#getMin()} and {@link Range#getMax()}.
-		 *
-		 * @param key must not be {@literal null}.
-		 * @param range must not be {@literal null}.
-		 * @return {@literal null} when used in pipeline / transaction.
-		 * @since 2.4
-		 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
-		 */
-		@Nullable
-		default Set<V> reverseRangeByLex(K key, Range range) {
-			return reverseRangeByLex(key, range, Limit.unlimited());
-		}
-
-		/**
-		 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
-		 * {@link Limit#getOffset()} with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value
-		 * between {@link Range#getMin()} and {@link Range#getMax()}.
-		 *
-		 * @param key must not be {@literal null}
-		 * @param range must not be {@literal null}.
-		 * @param limit can be {@literal null}.
-		 * @return {@literal null} when used in pipeline / transaction.
-		 * @since 2.4
-		 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
-		 */
-		@Nullable
-		Set<V> reverseRangeByLex(K key, Range range, Limit limit);
-
-		/**
-		 * @return never {@literal null}.
-		 */
-		RedisOperations<K, V> getOperations();
+	/**
+	 * Get all elements with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value between
+	 * {@link Range#getMin()} and {@link Range#getMax()}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 */
+	@Nullable
+	default Set<V> reverseRangeByLex(K key, Range range) {
+		return reverseRangeByLex(key, range, Limit.unlimited());
 	}
+
+	/**
+	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value
+	 * between {@link Range#getMin()} and {@link Range#getMax()}.
+	 *
+	 * @param key must not be {@literal null}
+	 * @param range must not be {@literal null}.
+	 * @param limit can be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 */
+	@Nullable
+	Set<V> reverseRangeByLex(K key, Range range, Limit limit);
+
+	/**
+	 * @return never {@literal null}.
+	 */
+	RedisOperations<K, V> getOperations();
+}

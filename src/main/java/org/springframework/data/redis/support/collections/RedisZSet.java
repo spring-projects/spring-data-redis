@@ -210,7 +210,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	/**
 	 * Union this set and other {@link RedisZSet}s.
 	 *
-	 * @param set must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
 	 * @return a {@link Set} containing the combined values with their scores.
 	 * @since 2.6
 	 */

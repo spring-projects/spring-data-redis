@@ -2008,6 +2008,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // GH-2041
 	public void zDiffShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
+
 		assertThatExceptionOfType(DataAccessException.class)
 				.isThrownBy(() -> clusterConnection.zDiff(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
 		assertThatExceptionOfType(DataAccessException.class)
@@ -2046,6 +2047,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // GH-2042
 	public void zInterShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
+
 		assertThatExceptionOfType(DataAccessException.class)
 				.isThrownBy(() -> clusterConnection.zInter(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
 		assertThatExceptionOfType(DataAccessException.class)
@@ -2068,6 +2070,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // GH-2042
 	public void zInterStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
+
 		assertThatExceptionOfType(DataAccessException.class)
 				.isThrownBy(() -> clusterConnection.zInterStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
 	}
