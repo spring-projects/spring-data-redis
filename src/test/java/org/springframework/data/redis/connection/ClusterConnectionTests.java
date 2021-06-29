@@ -470,6 +470,9 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void sIsMemberShouldReturnTrueIfValueIsMemberOfSet();
 
+	// GH-2037
+	void sMIsMemberShouldReturnCorrectValues();
+
 	// DATAREDIS-315
 	void sMembersShouldReturnValuesContainedInSetCorrectly();
 

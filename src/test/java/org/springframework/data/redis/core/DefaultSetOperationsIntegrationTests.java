@@ -26,6 +26,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -321,5 +322,24 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 
 		assertThat(setOps.intersectAndStore(sourceKey1, sourceKey2, destinationKey)).isEqualTo(2L);
 		assertThat(setOps.intersectAndStore(Arrays.asList(sourceKey1, sourceKey2), destinationKey)).isEqualTo(2L);
+	}
+
+	@ParameterizedRedisTest // GH-2037
+	@EnabledOnCommand("SMISMEMBER")
+	void isMember() {
+
+		K key = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+
+		setOps.add(key, v1, v2, v3);
+
+		assertThat(setOps.isMember(key, v1)).isTrue();
+		assertThat(setOps.isMember(key, v4)).isFalse();
+		assertThat(setOps.isMember(key, v1, v2, v3, v4)).containsEntry(v1, true).containsEntry(v2, true)
+				.containsEntry(v3, true).containsEntry(v4, false);
 	}
 }

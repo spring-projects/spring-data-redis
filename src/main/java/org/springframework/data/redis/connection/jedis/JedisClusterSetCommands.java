@@ -179,6 +179,24 @@ class JedisClusterSetCommands implements RedisSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sMIsMember(byte[], byte[]...)
+	 */
+	@Override
+	public List<Boolean> sMIsMember(byte[] key, byte[]... values) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Value must not be null!");
+		Assert.noNullElements(values, "Values must not contain null elements!");
+
+		try {
+			return connection.getCluster().smismember(key, values);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisSetCommands#sInter(byte[][])
 	 */
 	@Override

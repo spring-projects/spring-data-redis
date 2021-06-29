@@ -22,6 +22,7 @@ import reactor.test.StepVerifier;
 import java.util.Arrays;
 
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
@@ -141,6 +142,18 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 
 		assertThat(connection.setCommands().sIsMember(KEY_1_BBUFFER, VALUE_3_BBUFFER).block()).isFalse();
+	}
+
+	@ParameterizedRedisTest // GH-2037
+	@EnabledOnCommand("SMISMEMBER")
+	void sMIsMemberShouldReturnCorrectly() {
+
+		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
+
+		connection.setCommands().sMIsMember(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_3_BBUFFER)) //
+				.as(StepVerifier::create) //
+				.expectNext(Arrays.asList(true, false)) //
+				.verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525, DATAREDIS-647

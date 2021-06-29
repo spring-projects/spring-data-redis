@@ -1656,6 +1656,15 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 1L, 1L, true, false }));
 	}
 
+	@Test // GH-2037
+	@EnabledOnCommand("SMISMEMBER")
+	void testSMIsMember() {
+		actual.add(connection.sAdd("myset", "foo"));
+		actual.add(connection.sAdd("myset", "bar"));
+		actual.add(connection.sMIsMember("myset", "foo", "bar", "baz"));
+		verifyResults(Arrays.asList(new Object[] { 1L, 1L, Arrays.asList(true, true, false) }));
+	}
+
 	@Test
 	void testSMove() {
 		actual.add(connection.sAdd("myset", "foo"));
