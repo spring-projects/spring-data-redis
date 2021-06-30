@@ -26,7 +26,6 @@ import org.springframework.data.redis.connection.lettuce.extension.LettuceConnec
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
-import org.springframework.data.redis.support.collections.DefaultRedisList;
 import org.springframework.data.redis.support.collections.DefaultRedisMap;
 import org.springframework.data.redis.support.collections.DefaultRedisSet;
 import org.springframework.data.redis.support.collections.RedisList;
@@ -47,7 +46,7 @@ public class BoundKeyParams {
 		StringRedisTemplate templateJS = new StringRedisTemplate(jedisConnFactory);
 		DefaultRedisMap mapJS = new DefaultRedisMap("bound:key:map", templateJS);
 		DefaultRedisSet setJS = new DefaultRedisSet("bound:key:set", templateJS);
-		RedisList list = new DefaultRedisList("bound:key:list", templateJS);
+		RedisList list = RedisList.create("bound:key:list", templateJS);
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
@@ -56,7 +55,7 @@ public class BoundKeyParams {
 		StringRedisTemplate templateLT = new StringRedisTemplate(lettuceConnFactory);
 		DefaultRedisMap mapLT = new DefaultRedisMap("bound:key:mapLT", templateLT);
 		DefaultRedisSet setLT = new DefaultRedisSet("bound:key:setLT", templateLT);
-		RedisList listLT = new DefaultRedisList("bound:key:listLT", templateLT);
+		RedisList listLT = RedisList.create("bound:key:listLT", templateLT);
 
 		StringObjectFactory sof = new StringObjectFactory();
 

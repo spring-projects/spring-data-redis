@@ -24,6 +24,8 @@ import java.util.Queue;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.core.BoundListOperations;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.TimeoutUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -36,6 +38,50 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  */
 public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque<E> {
+
+	/**
+	 * Constructs a new, uncapped {@link RedisList} instance.
+	 *
+	 * @param key Redis key of this list.
+	 * @param operations {@link RedisOperations} for the value type of this list.
+	 * @since 2.6
+	 */
+	static <E> RedisList<E> create(String key, RedisOperations<String, E> operations) {
+		return new DefaultRedisList<>(key, operations);
+	}
+
+	/**
+	 * Constructs a new {@link RedisList} instance.
+	 *
+	 * @param key Redis key of this list.
+	 * @param operations {@link RedisOperations} for the value type of this list.
+	 * @param maxSize
+	 * @since 2.6
+	 */
+	static <E> RedisList<E> create(String key, RedisOperations<String, E> operations, int maxSize) {
+		return new DefaultRedisList<>(key, operations, maxSize);
+	}
+
+	/**
+	 * Constructs a new, uncapped {@link DefaultRedisList} instance.
+	 *
+	 * @param boundOps {@link BoundListOperations} for the value type of this list.
+	 * @since 2.6
+	 */
+	static <E> RedisList<E> create(BoundListOperations<String, E> boundOps) {
+		return new DefaultRedisList<>(boundOps);
+	}
+
+	/**
+	 * Constructs a new {@link DefaultRedisList} instance.
+	 *
+	 * @param boundOps {@link BoundListOperations} for the value type of this list.
+	 * @param maxSize
+	 * @since 2.6
+	 */
+	static <E> RedisList<E> create(BoundListOperations<String, E> boundOps, int maxSize) {
+		return new DefaultRedisList<>(boundOps, maxSize);
+	}
 
 	/**
 	 * Atomically returns and removes the first element of the list stored at the bound key, and pushes the element at the
@@ -155,7 +201,32 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	@Nullable
 	E moveLastTo(RedisList<E> destination, Direction destinationPosition, long timeout, TimeUnit unit);
 
-	List<E> range(long begin, long end);
+	/**
+	 * Get elements between {@code start} and {@code end} from list at the bound key.
+	 *
+	 * @param start
+	 * @param end
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
+	 */
+	List<E> range(long start, long end);
 
-	RedisList<E> trim(int begin, int end);
+	/**
+	 * Trim list at the bound key to elements between {@code start} and {@code end}.
+	 *
+	 * @param start
+	 * @param end
+	 * @see <a href="https://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
+	 */
+	RedisList<E> trim(int start, int end);
+
+	/**
+	 * Trim list at the bound key to elements between {@code start} and {@code end}.
+	 *
+	 * @param start
+	 * @param end
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
+	 */
+	RedisList<E> trim(long start, long end);
 }
