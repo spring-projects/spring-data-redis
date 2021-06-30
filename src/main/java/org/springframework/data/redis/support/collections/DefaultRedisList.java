@@ -70,6 +70,18 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	/**
+	 * Constructs a new {@link DefaultRedisList} instance.
+	 *
+	 * @param key Redis key of this list.
+	 * @param operations {@link RedisOperations} for the value type of this list.
+	 * @param maxSize
+	 * @since 2.6
+	 */
+	public DefaultRedisList(String key, RedisOperations<String, E> operations, int maxSize) {
+		this(operations.boundListOps(key), maxSize);
+	}
+
+	/**
 	 * Constructs a new, uncapped {@link DefaultRedisList} instance.
 	 *
 	 * @param boundOps {@link BoundListOperations} for the value type of this list.
@@ -190,6 +202,16 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	 */
 	@Override
 	public RedisList<E> trim(int start, int end) {
+		listOps.trim(start, end);
+		return this;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisList#trim(long, long)
+	 */
+	@Override
+	public RedisList<E> trim(long start, long end) {
 		listOps.trim(start, end);
 		return this;
 	}

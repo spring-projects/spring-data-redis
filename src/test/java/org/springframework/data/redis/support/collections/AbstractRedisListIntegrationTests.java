@@ -319,9 +319,10 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		list.add(t1);
 		list.add(t2);
 		assertThat(list).hasSize(2);
-		assertThat(list.trim(0, 0)).hasSize(1);
+		assertThat(list.trim(0L, 0L)).hasSize(1);
 		assertThat(list).hasSize(1);
 		assertThat(list.get(0)).isEqualTo(t1);
+		assertThat(list).hasSize(1);
 	}
 
 	@SuppressWarnings("unchecked")
