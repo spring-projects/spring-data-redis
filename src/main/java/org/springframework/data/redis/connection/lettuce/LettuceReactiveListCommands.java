@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.LMoveArgs;
 import io.lettuce.core.LPosArgs;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,8 +23,10 @@ import reactor.core.publisher.Mono;
 import java.nio.ByteBuffer;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveListCommands;
@@ -34,6 +37,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyComm
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.core.TimeoutUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -209,6 +213,50 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 
 			return cmd.linsert(command.getKey(), Position.BEFORE.equals(command.getPosition()), command.getPivot(),
 					command.getValue()).map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lMove(Publisher)
+	 */
+	@Override
+	public Flux<ByteBufferResponse<LMoveCommand>> lMove(Publisher<? extends LMoveCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Source key must not be null!");
+			Assert.notNull(command.getFrom(), "Source direction must not be null!");
+			Assert.notNull(command.getDestinationKey(), "Destination key must not be null!");
+			Assert.notNull(command.getTo(), "Destination direction must not be null!");
+
+			LMoveArgs lMoveArgs = LettuceConverters.toLmoveArgs(command.getFrom(), command.getTo());
+
+			return cmd.lmove(command.getKey(), command.getDestinationKey(), lMoveArgs)
+					.map(value -> new ByteBufferResponse<>(command, value));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveListCommands#bLMove(Publisher)
+	 */
+	@Override
+	public Flux<ByteBufferResponse<BLMoveCommand>> bLMove(Publisher<BLMoveCommand> commands) {
+
+		return connection.executeDedicated(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Source key must not be null!");
+			Assert.notNull(command.getFrom(), "Source direction must not be null!");
+			Assert.notNull(command.getDestinationKey(), "Destination key must not be null!");
+			Assert.notNull(command.getTo(), "Destination direction must not be null!");
+			Assert.notNull(command.getTimeout(), "Timeout must not be null!");
+
+			LMoveArgs lMoveArgs = LettuceConverters.toLmoveArgs(command.getFrom(), command.getTo());
+			double timeout = TimeoutUtils.toDoubleSeconds(command.getTimeout().toMillis(), TimeUnit.MILLISECONDS);
+
+			return cmd.blmove(command.getKey(), command.getDestinationKey(), lMoveArgs, timeout)
+					.map(value -> new ByteBufferResponse<>(command, value));
 		}));
 	}
 

@@ -1405,6 +1405,39 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 1L, 2L, 3L, 4L, 4L }));
 	}
 
+	@Test // GH-2039
+	@EnabledOnCommand("LMOVE")
+	void testLMove() {
+
+		actual.add(connection.rPush("From", "hello"));
+		actual.add(connection.rPush("From", "big"));
+		actual.add(connection.rPush("From", "world"));
+		actual.add(connection.rPush("To", "bar"));
+		actual.add(connection.lMove("From", "To", RedisListCommands.Direction.LEFT, RedisListCommands.Direction.RIGHT));
+		actual.add(connection.lRange("From", 0, -1));
+		actual.add(connection.lRange("To", 0, -1));
+
+		verifyResults(Arrays.asList(1L, 2L, 3L, 1L, "hello", Arrays.asList("big", "world"), Arrays.asList("bar", "hello")));
+	}
+
+	@Test // GH-2039
+	@EnabledOnCommand("BLMOVE")
+	void testBLMove() {
+
+		actual.add(connection.rPush("From", "hello"));
+		actual.add(connection.rPush("From", "big"));
+		actual.add(
+				connection.bLMove("From", "To", RedisListCommands.Direction.LEFT, RedisListCommands.Direction.RIGHT, 0.01d));
+		actual.add(
+				connection.bLMove("From", "To", RedisListCommands.Direction.LEFT, RedisListCommands.Direction.RIGHT, 0.01d));
+		actual.add(
+				connection.bLMove("From", "To", RedisListCommands.Direction.LEFT, RedisListCommands.Direction.RIGHT, 0.01d));
+		actual.add(connection.lRange("From", 0, -1));
+		actual.add(connection.lRange("To", 0, -1));
+
+		verifyResults(Arrays.asList(1L, 2L, "hello", "big", null, Collections.emptyList(), Arrays.asList("hello", "big")));
+	}
+
 	@Test
 	void testLSet() {
 		actual.add(connection.rPush("PopList", "hello"));
@@ -1452,7 +1485,6 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.lRange("PopList", 0, -1));
 		actual.add(connection.lRange("pop2", 0, -1));
 		verifyResults(Arrays.asList(1L, 2L, 1L, "world", Arrays.asList("hello"), Arrays.asList("world", "hey")));
-
 	}
 
 	@Test

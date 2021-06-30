@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -138,6 +139,58 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Long rightPush(V pivot, V value);
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at the bound key, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 *
+	 * @param from must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
+	 */
+	@Nullable
+	V move(Direction from, K destinationKey, Direction to);
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at the bound key, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 * <p/>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param from must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @param timeout
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
+	 */
+	@Nullable
+	V move(Direction from, K destinationKey, Direction to, Duration timeout);
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at the bound key, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 * <p/>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param from must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @param timeout
+	 * @param unit
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
+	 */
+	@Nullable
+	V move(Direction from, K destinationKey, Direction to, long timeout, TimeUnit unit);
 
 	/**
 	 * Set the {@code value} list element at {@code index}.

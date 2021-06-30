@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.Protocol;
+import redis.clients.jedis.args.ListDirection;
 import redis.clients.jedis.params.LPosParams;
 
 import java.util.Collections;
@@ -175,6 +176,38 @@ class JedisListCommands implements RedisListCommands {
 
 		return connection.invoke().just(BinaryJedis::linsert, MultiKeyPipelineBase::linsert, key,
 				JedisConverters.toListPosition(where), pivot, value);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lMove(byte[], byte[], org.springframework.data.redis.connection.RedisListCommands.Direction, org.springframework.data.redis.connection.RedisListCommands.Direction)
+	 */
+	@Override
+	public byte[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to) {
+
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(destinationKey, "Destination key must not be null!");
+		Assert.notNull(from, "From direction must not be null!");
+		Assert.notNull(to, "To direction must not be null!");
+
+		return connection.invoke().just(BinaryJedis::lmove, MultiKeyPipelineBase::lmove, sourceKey, destinationKey,
+				ListDirection.valueOf(from.name()), ListDirection.valueOf(to.name()));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bLMove(byte[], byte[], org.springframework.data.redis.connection.RedisListCommands.Direction, org.springframework.data.redis.connection.RedisListCommands.Direction, double)
+	 */
+	@Override
+	public byte[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout) {
+
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(destinationKey, "Destination key must not be null!");
+		Assert.notNull(from, "From direction must not be null!");
+		Assert.notNull(to, "To direction must not be null!");
+
+		return connection.invoke().just(BinaryJedis::blmove, MultiKeyPipelineBase::blmove, sourceKey, destinationKey,
+				ListDirection.valueOf(from.name()), ListDirection.valueOf(to.name()), timeout);
 	}
 
 	/*

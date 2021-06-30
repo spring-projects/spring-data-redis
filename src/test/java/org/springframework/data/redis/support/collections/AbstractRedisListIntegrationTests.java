@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
@@ -38,6 +39,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  *
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Mark Paluch
  */
 public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedisCollectionIntegrationTests<T> {
 
@@ -236,6 +238,48 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		list.add(t1);
 		assertThat(list.remove()).isEqualTo(t1);
 		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(list::remove);
+	}
+
+	@ParameterizedRedisTest // GH-2039
+	@EnabledOnCommand("LMOVE")
+	void testMoveFirstTo() {
+
+		RedisList<T> target = new DefaultRedisList<T>(template.boundListOps(collection.getKey() + ":target"));
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		list.add(t1);
+		list.add(t2);
+		list.add(t3);
+
+		assertThat(list.moveFirstTo(target, RedisListCommands.Direction.first())).isEqualTo(t1);
+		assertThat(list.moveFirstTo(target, RedisListCommands.Direction.first())).isEqualTo(t2);
+		assertThat(list.moveFirstTo(target, RedisListCommands.Direction.last())).isEqualTo(t3);
+		assertThat(list).isEmpty();
+		assertThat(target).hasSize(3).containsSequence(t2, t1, t3);
+	}
+
+	@ParameterizedRedisTest // GH-2039
+	@EnabledOnCommand("LMOVE")
+	void testMoveLastTo() {
+
+		RedisList<T> target = new DefaultRedisList<T>(template.boundListOps(collection.getKey() + ":target"));
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		list.add(t1);
+		list.add(t2);
+		list.add(t3);
+
+		assertThat(list.moveLastTo(target, RedisListCommands.Direction.first())).isEqualTo(t3);
+		assertThat(list.moveLastTo(target, RedisListCommands.Direction.first())).isEqualTo(t2);
+		assertThat(list.moveLastTo(target, RedisListCommands.Direction.last())).isEqualTo(t1);
+		assertThat(list).isEmpty();
+		assertThat(target).hasSize(3).containsSequence(t2, t3, t1);
 	}
 
 	@ParameterizedRedisTest

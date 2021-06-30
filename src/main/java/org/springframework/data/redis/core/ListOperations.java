@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.springframework.data.redis.connection.RedisListCommands.*;
+
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
@@ -180,6 +182,168 @@ public interface ListOperations<K, V> {
 	 */
 	@Nullable
 	Long rightPush(K key, V pivot, V value);
+
+	/**
+	 * Value object representing the {@code where from} part for the {@code LMOVE} command.
+	 *
+	 * @param <K>
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
+	 */
+	class MoveFrom<K> {
+
+		final K key;
+		final Direction direction;
+
+		MoveFrom(K key, Direction direction) {
+			this.key = key;
+			this.direction = direction;
+		}
+
+		public static <K> MoveFrom<K> fromHead(K key) {
+			return new MoveFrom<>(key, Direction.first());
+		}
+
+		public static <K> MoveFrom<K> fromTail(K key) {
+			return new MoveFrom<>(key, Direction.last());
+		}
+
+	}
+
+	/**
+	 * Value object representing the {@code where to} from part for the {@code LMOVE} command.
+	 *
+	 * @param <K>
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
+	 */
+	class MoveTo<K> {
+
+		final K key;
+		final Direction direction;
+
+		MoveTo(K key, Direction direction) {
+			this.key = key;
+			this.direction = direction;
+		}
+
+		public static <K> MoveTo<K> toHead(K key) {
+			return new MoveTo<>(key, Direction.first());
+		}
+
+		public static <K> MoveTo<K> toTail(K key) {
+			return new MoveTo<>(key, Direction.last());
+		}
+
+	}
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 *
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
+	 */
+	@Nullable
+	default V move(MoveFrom<K> from, MoveTo<K> to) {
+
+		Assert.notNull(from, "Move from must not be null");
+		Assert.notNull(to, "Move to must not be null");
+
+		return move(from.key, from.direction, to.key, to.direction);
+	}
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
+	 */
+	@Nullable
+	V move(K sourceKey, Direction from, K destinationKey, Direction to);
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 * <p/>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @param timeout must not be {@literal null} or negative.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
+	 */
+	@Nullable
+	default V move(MoveFrom<K> from, MoveTo<K> to, Duration timeout) {
+
+		Assert.notNull(from, "Move from must not be null");
+		Assert.notNull(to, "Move to must not be null");
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return move(from.key, from.direction, to.key, to.direction,
+				TimeoutUtils.toMillis(timeout.toMillis(), TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 * <p/>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @param timeout must not be {@literal null} or negative.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
+	 */
+	@Nullable
+	default V move(K sourceKey, Direction from, K destinationKey, Direction to, Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return move(sourceKey, from, destinationKey, to, TimeoutUtils.toMillis(timeout.toMillis(), TimeUnit.MILLISECONDS),
+				TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 * <p/>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @param timeout
+	 * @param unit
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
+	 */
+	@Nullable
+	V move(K sourceKey, Direction from, K destinationKey, Direction to, long timeout, TimeUnit unit);
 
 	/**
 	 * Set the {@code value} list element at {@code index}.
