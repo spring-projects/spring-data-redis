@@ -3490,7 +3490,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
 				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
-		actual.add(connection.xPending(KEY_1, "my-group", org.springframework.data.domain.Range.open("-", "+"), 10L));
+		actual.add(connection.xPending(KEY_1, "my-group", org.springframework.data.domain.Range.unbounded(), 10L));
 
 		List<Object> results = getResults();
 		assertThat(results).hasSize(4);
@@ -3535,7 +3535,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
 		actual.add(connection.xPending(KEY_1, "my-group", "my-consumer",
-				org.springframework.data.domain.Range.open("-", "+"), 10L));
+				org.springframework.data.domain.Range.unbounded(), 10L));
 
 		List<Object> results = getResults();
 		assertThat(results).hasSize(4);
@@ -3558,7 +3558,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
 		actual.add(connection.xPending(KEY_1, "my-group", "my-consumer-2",
-				org.springframework.data.domain.Range.open("-", "+"), 10L));
+				org.springframework.data.domain.Range.unbounded(), 10L));
 
 		List<Object> results = getResults();
 		assertThat(results).hasSize(4);
@@ -3574,7 +3574,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
 
-		actual.add(connection.xPending(KEY_1, "my-group", org.springframework.data.domain.Range.open("-", "+"), 10L));
+		actual.add(connection.xPending(KEY_1, "my-group", org.springframework.data.domain.Range.unbounded(), 10L));
 
 		List<Object> results = getResults();
 		assertThat(results).hasSize(3);
