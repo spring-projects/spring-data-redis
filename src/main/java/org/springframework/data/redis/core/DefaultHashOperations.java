@@ -99,7 +99,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	 */
 	@Nullable
 	@Override
-	public HK randomField(K key) {
+	public HK randomKey(K key) {
 
 		byte[] rawKey = rawKey(key);
 		return deserializeHashKey(execute(connection -> connection.hRandField(rawKey), true));
@@ -111,7 +111,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	 */
 	@Nullable
 	@Override
-	public Entry<HK, HV> randomValue(K key) {
+	public Entry<HK, HV> randomEntry(K key) {
 
 		byte[] rawKey = rawKey(key);
 		Entry<byte[], byte[]> rawEntry = execute(connection -> connection.hRandFieldWithValues(rawKey), true);
@@ -125,7 +125,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	 */
 	@Nullable
 	@Override
-	public List<HK> randomFields(K key, long count) {
+	public List<HK> randomKeys(K key, long count) {
 
 		byte[] rawKey = rawKey(key);
 		List<byte[]> rawValues = execute(connection -> connection.hRandField(rawKey, count), true);
@@ -138,7 +138,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	 */
 	@Nullable
 	@Override
-	public Map<HK, HV> randomValues(K key, long count) {
+	public Map<HK, HV> randomEntries(K key, long count) {
 
 		Assert.isTrue(count > 0, "Count must not be negative");
 		byte[] rawKey = rawKey(key);
@@ -324,24 +324,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 							@Override
 							public Entry<HK, HV> convert(final Entry<byte[], byte[]> source) {
-
-								return new Entry<HK, HV>() {
-
-									@Override
-									public HK getKey() {
-										return deserializeHashKey(source.getKey());
-									}
-
-									@Override
-									public HV getValue() {
-										return deserializeHashValue(source.getValue());
-									}
-
-									@Override
-									public HV setValue(HV value) {
-										throw new UnsupportedOperationException("Values cannot be set when scanning through entries.");
-									}
-								};
+								return Converters.entryOf(deserializeHashKey(source.getKey()), deserializeHashValue(source.getValue()));
 							}
 						}));
 

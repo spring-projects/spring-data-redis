@@ -18,11 +18,11 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
+import org.springframework.data.redis.connection.convert.Converters;
 import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -251,13 +251,13 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.expectNext(true) //
 				.verifyComplete();
 
-		hashOperations.randomField(key) //
+		hashOperations.randomKey(key) //
 				.as(StepVerifier::create) //
 				.assertNext(actual -> {
 					assertThat(actual).isIn(hashkey1, hashkey2);
 				}).verifyComplete();
 
-		hashOperations.randomFields(key, -10) //
+		hashOperations.randomKeys(key, -10) //
 				.collectList().as(StepVerifier::create) //
 				.assertNext(actual -> {
 					assertThat(actual).hasSize(10);
@@ -286,7 +286,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.expectNext(true) //
 				.verifyComplete();
 
-		hashOperations.randomValue(key) //
+		hashOperations.randomEntry(key) //
 				.as(StepVerifier::create) //
 				.assertNext(actual -> {
 
@@ -297,7 +297,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 					}
 				}).verifyComplete();
 
-		hashOperations.randomValues(key, -10) //
+		hashOperations.randomEntries(key, -10) //
 				.collectList().as(StepVerifier::create) //
 				.assertNext(actual -> {
 					assertThat(actual).hasSize(10);
@@ -462,8 +462,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.as(StepVerifier::create) //
 				.consumeNextWith(list -> {
 
-					Entry<HK, HV> entry1 = Collections.singletonMap(hashkey1, hashvalue1).entrySet().iterator().next();
-					Entry<HK, HV> entry2 = Collections.singletonMap(hashkey2, hashvalue2).entrySet().iterator().next();
+					Entry<HK, HV> entry1 = Converters.entryOf(hashkey1, hashvalue1);
+					Entry<HK, HV> entry2 = Converters.entryOf(hashkey2, hashvalue2);
 
 					assertThat(list).containsExactlyInAnyOrder(entry1, entry2);
 				}) //
@@ -489,8 +489,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.as(StepVerifier::create) //
 				.consumeNextWith(list -> {
 
-					Entry<HK, HV> entry1 = Collections.singletonMap(hashkey1, hashvalue1).entrySet().iterator().next();
-					Entry<HK, HV> entry2 = Collections.singletonMap(hashkey2, hashvalue2).entrySet().iterator().next();
+					Entry<HK, HV> entry1 = Converters.entryOf(hashkey1, hashvalue1);
+					Entry<HK, HV> entry2 = Converters.entryOf(hashkey2, hashvalue2);
 
 					assertThat(list).containsExactlyInAnyOrder(entry1, entry2);
 				}) //

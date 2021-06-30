@@ -108,23 +108,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	private boolean deserializePipelineAndTxResults = false;
 
 	private Entry<String, String> convertEntry(Entry<byte[], byte[]> source) {
-		return new Entry<String, String>() {
-
-			@Override
-			public String getKey() {
-				return bytesToString.convert(source.getKey());
-			}
-
-			@Override
-			public String getValue() {
-				return bytesToString.convert(source.getValue());
-			}
-
-			@Override
-			public String setValue(String value) {
-				throw new UnsupportedOperationException("Cannot set value for entry");
-			}
-		};
+		return Converters.entryOf(bytesToString.convert(source.getKey()), bytesToString.convert(source.getValue()));
 	}
 
 	private class DeserializingConverter implements Converter<byte[], String> {

@@ -88,29 +88,29 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Mono<Double> increment(H key, HK hashKey, double delta);
 
 	/**
-	 * Return a random field from the hash value stored at {@code key}.
+	 * Return a random hash key (aka field) from the hash value stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	Mono<HK> randomField(H key);
+	Mono<HK> randomKey(H key);
 
 	/**
-	 * Return a random field from the hash value stored at {@code key}.
+	 * Return a random entry from the hash value stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	Mono<Map.Entry<HK, HV>> randomValue(H key);
+	Mono<Map.Entry<HK, HV>> randomEntry(H key);
 
 	/**
-	 * Return a random field from the hash value stored at {@code key}. If the provided {@code count} argument is
-	 * positive, return a list of distinct fields, capped either at {@code count} or the hash size. If {@code count} is
-	 * negative, the behavior changes and the command is allowed to return the same field multiple times. In this case,
+	 * Return random hash keys (aka fields) from the hash value stored at {@code key}. If the provided {@code count} argument is
+	 * positive, return a list of distinct hash keys, capped either at {@code count} or the hash size. If {@code count} is
+	 * negative, the behavior changes and the command is allowed to return the same hash key multiple times. In this case,
 	 * the number of returned fields is the absolute value of the specified count.
 	 *
 	 * @param key must not be {@literal null}.
@@ -119,12 +119,12 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	Flux<HK> randomFields(H key, long count);
+	Flux<HK> randomKeys(H key, long count);
 
 	/**
-	 * Return a random field from the hash value stored at {@code key}. If the provided {@code count} argument is
-	 * positive, return a list of distinct fields, capped either at {@code count} or the hash size. If {@code count} is
-	 * negative, the behavior changes and the command is allowed to return the same field multiple times. In this case,
+	 * Return random entries from the hash stored at {@code key}. If the provided {@code count} argument is
+	 * positive, return a list of distinct entries, capped either at {@code count} or the hash size. If {@code count} is
+	 * negative, the behavior changes and the command is allowed to return the same entry multiple times. In this case,
 	 * the number of returned fields is the absolute value of the specified count.
 	 *
 	 * @param key must not be {@literal null}.
@@ -133,7 +133,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	Flux<Map.Entry<HK, HV>> randomValues(H key, long count);
+	Flux<Map.Entry<HK, HV>> randomEntries(H key, long count);
 
 	/**
 	 * Get key set (fields) of hash at {@code key}.

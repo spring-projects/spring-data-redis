@@ -173,8 +173,8 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
 
-		assertThat(hashOps.randomField(key)).isIn(key1, key2);
-		assertThat(hashOps.randomFields(key, 2)).hasSize(2).contains(key1, key2);
+		assertThat(hashOps.randomKey(key)).isIn(key1, key2);
+		assertThat(hashOps.randomKeys(key, 2)).hasSize(2).contains(key1, key2);
 	}
 
 	@ParameterizedRedisTest // GH-2048
@@ -190,7 +190,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
 
-		Map.Entry<HK, HV> entry = hashOps.randomValue(key);
+		Map.Entry<HK, HV> entry = hashOps.randomEntry(key);
 
 		if (entry.getKey().equals(key1)) {
 			assertThat(entry.getValue()).isEqualTo(val1);
@@ -198,7 +198,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 			assertThat(entry.getValue()).isEqualTo(val2);
 		}
 
-		Map<HK, HV> values = hashOps.randomValues(key, 10);
+		Map<HK, HV> values = hashOps.randomEntries(key, 10);
 		assertThat(values).hasSize(2).containsEntry(key1, val1).containsEntry(key2, val2);
 	}
 }

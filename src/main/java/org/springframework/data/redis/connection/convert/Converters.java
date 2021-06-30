@@ -18,16 +18,7 @@ package org.springframework.data.redis.connection.convert;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -472,7 +463,7 @@ abstract public class Converters {
 	 * @since 2.6
 	 */
 	public static <K, V> Map.Entry<K, V> entryOf(K key, V value) {
-		return new SimpleEntry<>(key, value);
+		return new AbstractMap.SimpleImmutableEntry<>(key, value);
 	}
 
 	/**
@@ -652,31 +643,5 @@ abstract public class Converters {
 			return new SlotRange(slots);
 		}
 
-	}
-
-	private static class SimpleEntry<K, V> implements Map.Entry<K, V> {
-
-		private final K key;
-		private final V value;
-
-		public SimpleEntry(K key, V value) {
-			this.key = key;
-			this.value = value;
-		}
-
-		@Override
-		public K getKey() {
-			return key;
-		}
-
-		@Override
-		public V getValue() {
-			return value;
-		}
-
-		@Override
-		public V setValue(V value) {
-			throw new UnsupportedOperationException();
-		}
 	}
 }

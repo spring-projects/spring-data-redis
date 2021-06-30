@@ -83,6 +83,24 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisMap#randomKey()
+	 */
+	@Override
+	public K randomKey() {
+		return hashOps.randomKey();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisMap#randomEntry()
+	 */
+	@Override
+	public Entry<K, V> randomEntry() {
+		return hashOps.randomEntry();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.support.collections.RedisStore#getOperations()
 	 */
 	@Override

@@ -306,6 +306,24 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisMap#randomKey()
+	 */
+	@Override
+	public Object randomKey() {
+		return delegate.randomKey();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisMap#randomEntry()
+	 */
+	@Override
+	public Entry<Object, Object> randomEntry() {
+		return (Entry) delegate.randomEntry();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.support.collections.RedisStore#getOperations()
 	 */
 	@Override

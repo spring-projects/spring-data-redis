@@ -116,8 +116,8 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	 */
 	@Nullable
 	@Override
-	public HK randomField() {
-		return ops.randomField(getKey());
+	public HK randomKey() {
+		return ops.randomKey(getKey());
 	}
 
 	/* 
@@ -126,8 +126,8 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	 */
 	@Nullable
 	@Override
-	public Entry<HK, HV> randomValue() {
-		return ops.randomValue(getKey());
+	public Entry<HK, HV> randomEntry() {
+		return ops.randomEntry(getKey());
 	}
 
 	/* 
@@ -136,8 +136,8 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	 */
 	@Nullable
 	@Override
-	public List<HK> randomFields(long count) {
-		return ops.randomFields(getKey(), count);
+	public List<HK> randomKeys(long count) {
+		return ops.randomKeys(getKey(), count);
 	}
 
 	/* 
@@ -146,8 +146,8 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	 */
 	@Nullable
 	@Override
-	public Map<HK, HV> randomValues(long count) {
-		return ops.randomValues(getKey(), count);
+	public Map<HK, HV> randomEntries(long count) {
+		return ops.randomEntries(getKey(), count);
 	}
 
 	/*
