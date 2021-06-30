@@ -733,6 +733,44 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lMove(byte[], byte[], org.springframework.data.redis.connection.RedisListCommands.Direction, org.springframework.data.redis.connection.RedisListCommands.Direction)
+	 */
+	@Override
+	public byte[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to) {
+		return convertAndReturn(delegate.lMove(sourceKey, destinationKey, from, to), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bLMove(byte[], byte[], org.springframework.data.redis.connection.RedisListCommands.Direction, org.springframework.data.redis.connection.RedisListCommands.Direction, double)
+	 */
+	@Override
+	public byte[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout) {
+		return convertAndReturn(delegate.bLMove(sourceKey, destinationKey, from, to, timeout),
+				Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#lMove(java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisListCommands.Direction, org.springframework.data.redis.connection.RedisListCommands.Direction)
+	 */
+	@Override
+	public String lMove(String sourceKey, String destinationKey, Direction from, Direction to) {
+		return convertAndReturn(delegate.lMove(serialize(sourceKey), serialize(destinationKey), from, to), bytesToString);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bLMove(java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisListCommands.Direction, org.springframework.data.redis.connection.RedisListCommands.Direction, double)
+	 */
+	@Override
+	public String bLMove(String sourceKey, String destinationKey, Direction from, Direction to, double timeout) {
+		return convertAndReturn(delegate.bLMove(serialize(sourceKey), serialize(destinationKey), from, to, timeout),
+				bytesToString);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisListCommands#lLen(byte[])
 	 */
 	@Override

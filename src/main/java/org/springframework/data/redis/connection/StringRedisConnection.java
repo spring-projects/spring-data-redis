@@ -847,6 +847,43 @@ public interface StringRedisConnection extends RedisConnection {
 	Long lInsert(String key, Position where, String pivot, String value);
 
 	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
+	 * @see #bLMove(byte[], byte[], Direction, Direction, double)
+	 * @see #lMove(byte[], byte[], Direction, Direction)
+	 */
+	@Nullable
+	String lMove(String sourceKey, String destinationKey, Direction from, Direction to);
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @param timeout
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: BLMOVE</a>
+	 * @see #lMove(byte[], byte[], Direction, Direction)
+	 * @see #bLMove(byte[], byte[], Direction, Direction, double)
+	 */
+	@Nullable
+	String bLMove(String sourceKey, String destinationKey, Direction from, Direction to, double timeout);
+
+	/**
 	 * Set the {@code value} list element at {@code index}.
 	 *
 	 * @param key must not be {@literal null}.

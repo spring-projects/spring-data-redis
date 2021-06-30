@@ -15,16 +15,18 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
-import org.springframework.lang.Nullable;
+import org.springframework.data.redis.connection.RedisListCommands.Direction;
 
 /**
  * Default implementation for {@link BoundListOperations}.
  *
  * @author Costin Leau
+ * @author Mark Paluch
  */
 class DefaultBoundListOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundListOperations<K, V> {
 
@@ -225,6 +227,33 @@ class DefaultBoundListOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	@Override
 	public Long rightPush(V pivot, V value) {
 		return ops.rightPush(getKey(), pivot, value);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundListOperations#move(org.springframework.data.redis.connection.RedisListCommands.Direction, java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction)
+	 */
+	@Override
+	public V move(Direction from, K destinationKey, Direction to) {
+		return ops.move(getKey(), from, destinationKey, to);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundListOperations#move(org.springframework.data.redis.connection.RedisListCommands.Direction, java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, java.time.Duration)
+	 */
+	@Override
+	public V move(Direction from, K destinationKey, Direction to, Duration timeout) {
+		return ops.move(getKey(), from, destinationKey, to, timeout);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundListOperations#move(org.springframework.data.redis.connection.RedisListCommands.Direction, java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public V move(Direction from, K destinationKey, Direction to, long timeout, TimeUnit unit) {
+		return ops.move(getKey(), from, destinationKey, to, timeout, unit);
 	}
 
 	/*

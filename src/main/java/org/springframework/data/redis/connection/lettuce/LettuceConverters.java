@@ -47,6 +47,7 @@ import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
@@ -1023,6 +1024,27 @@ public abstract class LettuceConverters extends Converters {
 	 */
 	static long getUpperBoundIndex(org.springframework.data.domain.Range<Long> range) {
 		return getUpperBound(range).orElse(INDEXED_RANGE_END);
+	}
+
+	static LMoveArgs toLmoveArgs(Enum<?> from, Enum<?> to) {
+
+		if (from.name().equals(Direction.LEFT.name()) && to.name().equals(Direction.LEFT.name())) {
+			return LMoveArgs.Builder.leftLeft();
+		}
+
+		if (from.name().equals(Direction.LEFT.name()) && to.name().equals(Direction.RIGHT.name())) {
+			return LMoveArgs.Builder.leftRight();
+		}
+
+		if (from.name().equals(Direction.RIGHT.name()) && to.name().equals(Direction.LEFT.name())) {
+			return LMoveArgs.Builder.rightLeft();
+		}
+
+		if (from.name().equals(Direction.RIGHT.name()) && to.name().equals(Direction.RIGHT.name())) {
+			return LMoveArgs.Builder.rightRight();
+		}
+
+		throw new IllegalArgumentException(String.format("Unsupported combination of arguments: %s/%s", from, to));
 	}
 
 	/**

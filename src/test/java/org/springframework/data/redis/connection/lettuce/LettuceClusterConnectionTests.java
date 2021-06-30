@@ -1067,6 +1067,38 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.lrange(KEY_1, 0, -1).get(2)).isEqualTo("booh!");
 	}
 
+	@Test // GH-2039
+	@EnabledOnCommand("LMOVE")
+	public void lMoveShouldMoveElementsCorrectly() {
+
+		nativeConnection.rpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2, VALUE_3);
+
+		assertThat(clusterConnection.lMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, RedisListCommands.Direction.RIGHT,
+				RedisListCommands.Direction.LEFT)).isEqualTo(VALUE_3_BYTES);
+		assertThat(clusterConnection.lMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, RedisListCommands.Direction.RIGHT,
+				RedisListCommands.Direction.LEFT)).isEqualTo(VALUE_2_BYTES);
+
+		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_1, 0, -1)).containsExactly(VALUE_1);
+		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_2, 0, -1)).containsExactly(VALUE_2, VALUE_3);
+	}
+
+	@Test // GH-2039
+	@EnabledOnCommand("BLMOVE")
+	public void blMoveShouldMoveElementsCorrectly() {
+
+		nativeConnection.rpush(SAME_SLOT_KEY_1, VALUE_2, VALUE_3);
+
+		assertThat(clusterConnection.lMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, RedisListCommands.Direction.RIGHT,
+				RedisListCommands.Direction.LEFT)).isEqualTo(VALUE_3_BYTES);
+		assertThat(clusterConnection.lMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, RedisListCommands.Direction.RIGHT,
+				RedisListCommands.Direction.LEFT)).isEqualTo(VALUE_2_BYTES);
+		assertThat(clusterConnection.bLMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, RedisListCommands.Direction.RIGHT,
+				RedisListCommands.Direction.LEFT, 0.01)).isNull();
+
+		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_1, 0, -1)).isEmpty();
+		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_2, 0, -1)).containsExactly(VALUE_2, VALUE_3);
+	}
+
 	@Test // DATAREDIS-315
 	public void lLenShouldCountValuesCorrectly() {
 

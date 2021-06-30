@@ -28,6 +28,7 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveListCommands;
+import org.springframework.data.redis.connection.ReactiveListCommands.Direction;
 import org.springframework.data.redis.connection.ReactiveListCommands.LPosCommand;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -197,6 +198,39 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(key, "Key must not be null!");
 
 		return createMono(connection -> connection.lInsert(rawKey(key), Position.AFTER, rawValue(pivot), rawValue(value)));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveListOperations#move(K, Direction, K, Direction)
+	 */
+	@Override
+	public Mono<V> move(K sourceKey, Direction from, K destinationKey, Direction to) {
+
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(destinationKey, "Destination key must not be null!");
+		Assert.notNull(from, "From direction must not be null!");
+		Assert.notNull(to, "To direction must not be null!");
+
+		return createMono(
+				connection -> connection.lMove(rawKey(sourceKey), rawKey(destinationKey), from, to).map(this::readValue));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveListOperations#move(K, Direction, K, Direction, Duration)
+	 */
+	@Override
+	public Mono<V> move(K sourceKey, Direction from, K destinationKey, Direction to, Duration timeout) {
+
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(destinationKey, "Destination key must not be null!");
+		Assert.notNull(from, "From direction must not be null!");
+		Assert.notNull(to, "To direction must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		return createMono(connection -> connection.bLMove(rawKey(sourceKey), rawKey(destinationKey), from, to, timeout)
+				.map(this::readValue));
 	}
 
 	/* (non-Javadoc)

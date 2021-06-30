@@ -38,6 +38,33 @@ public interface RedisListCommands {
 	}
 
 	/**
+	 * List move direction.
+	 *
+	 * @since 2.6
+	 */
+	enum Direction {
+		LEFT, RIGHT;
+
+		/**
+		 * Alias for {@link Direction#LEFT}.
+		 *
+		 * @return
+		 */
+		public static Direction first() {
+			return LEFT;
+		}
+
+		/**
+		 * Alias for {@link Direction#RIGHT}.
+		 *
+		 * @return
+		 */
+		public static Direction last() {
+			return RIGHT;
+		}
+	}
+
+	/**
 	 * Append {@code values} to {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -168,6 +195,43 @@ public interface RedisListCommands {
 	 */
 	@Nullable
 	Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value);
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
+	 * @see #bLMove(byte[], byte[], Direction, Direction, double)
+	 */
+	@Nullable
+	byte[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to);
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 * <p/>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @param timeout
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
+	 * @see #lMove(byte[], byte[], Direction, Direction)
+	 */
+	@Nullable
+	byte[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout);
 
 	/**
 	 * Set the {@code value} list element at {@code index}.

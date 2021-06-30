@@ -45,7 +45,6 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
 @SuppressWarnings("unchecked")
 public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 
-
 	private final ReactiveRedisTemplate<K, V> redisTemplate;
 	private final ReactiveListOperations<K, V> listOperations;
 
@@ -293,6 +292,71 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 				.expectNext(value1) //
 				.expectNext(value3) //
 				.expectNext(value2) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2039
+	@EnabledOnCommand("LMOVE")
+	void move() {
+
+		K source = keyFactory.instance();
+		K target = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+
+		listOperations.rightPushAll(source, v1, v2, v3, v4).as(StepVerifier::create).expectNext(4L).verifyComplete();
+
+		listOperations.move(ListOperations.MoveFrom.fromHead(source), ListOperations.MoveTo.toTail(target))
+				.as(StepVerifier::create).expectNext(v1).verifyComplete();
+		listOperations.move(ListOperations.MoveFrom.fromTail(source), ListOperations.MoveTo.toHead(target))
+				.as(StepVerifier::create).expectNext(v4).verifyComplete();
+
+		listOperations.range(source, 0, -1) //
+				.as(StepVerifier::create) //
+				.expectNext(v2) //
+				.expectNext(v3) //
+				.verifyComplete();
+
+		listOperations.range(target, 0, -1) //
+				.as(StepVerifier::create) //
+				.expectNext(v4) //
+				.expectNext(v1) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2039
+	@EnabledOnCommand("BLMOVE")
+	void moveWithTimeout() {
+
+		K source = keyFactory.instance();
+		K target = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+
+		listOperations.rightPushAll(source, v1, v4).as(StepVerifier::create).expectNext(2L).verifyComplete();
+
+		listOperations
+				.move(ListOperations.MoveFrom.fromHead(source), ListOperations.MoveTo.toTail(target), Duration.ofMillis(10))
+				.as(StepVerifier::create).expectNext(v1).verifyComplete();
+		listOperations
+				.move(ListOperations.MoveFrom.fromTail(source), ListOperations.MoveTo.toHead(target), Duration.ofMillis(10))
+				.as(StepVerifier::create).expectNext(v4).verifyComplete();
+		listOperations
+				.move(ListOperations.MoveFrom.fromTail(source), ListOperations.MoveTo.toHead(target), Duration.ofMillis(10))
+				.as(StepVerifier::create).verifyComplete();
+
+		listOperations.range(source, 0, -1) //
+				.as(StepVerifier::create) //
+				.verifyComplete();
+
+		listOperations.range(target, 0, -1) //
+				.as(StepVerifier::create) //
+				.expectNext(v4) //
+				.expectNext(v1) //
 				.verifyComplete();
 	}
 

@@ -23,6 +23,7 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
+import static org.springframework.data.redis.connection.RedisListCommands.*;
 import static org.springframework.data.redis.connection.RedisZSetCommands.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
@@ -59,12 +60,12 @@ import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
+import org.springframework.data.redis.connection.RedisListCommands.*;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.script.DigestUtils;
@@ -1029,6 +1030,39 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.lInsert(KEY_1_BYTES, Position.AFTER, VALUE_2_BYTES, JedisConverters.toBytes("booh!"));
 
 		assertThat(nativeConnection.lrange(KEY_1, 0, -1).get(2)).isEqualTo("booh!");
+	}
+
+	@Test // GH-2039
+	@EnabledOnCommand("LMOVE")
+	public void lMoveShouldMoveElementsCorrectly() {
+
+		nativeConnection.rpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2, VALUE_3);
+
+		assertThat(clusterConnection.lMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, Direction.RIGHT, Direction.LEFT))
+				.isEqualTo(VALUE_3_BYTES);
+		assertThat(clusterConnection.lMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, Direction.RIGHT, Direction.LEFT))
+				.isEqualTo(VALUE_2_BYTES);
+
+		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_1, 0, -1)).containsExactly(VALUE_1);
+		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_2, 0, -1)).containsExactly(VALUE_2, VALUE_3);
+	}
+
+	@Test // GH-2039
+	@EnabledOnCommand("BLMOVE")
+	public void blMoveShouldMoveElementsCorrectly() {
+
+		nativeConnection.rpush(SAME_SLOT_KEY_1, VALUE_2, VALUE_3);
+
+		assertThat(clusterConnection.lMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, Direction.RIGHT, Direction.LEFT))
+				.isEqualTo(VALUE_3_BYTES);
+		assertThat(clusterConnection.lMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, Direction.RIGHT, Direction.LEFT))
+				.isEqualTo(VALUE_2_BYTES);
+		assertThat(
+				clusterConnection.bLMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, Direction.RIGHT, Direction.LEFT, 0.01))
+						.isNull();
+
+		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_1, 0, -1)).isEmpty();
+		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_2, 0, -1)).containsExactly(VALUE_2, VALUE_3);
 	}
 
 	@Test // DATAREDIS-315

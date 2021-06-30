@@ -288,6 +288,12 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void lInsertShouldAddElementAtPositionCorrectly();
 
+	// GH-2039
+	void lMoveShouldMoveElementsCorrectly();
+
+	// GH-2039
+	void blMoveShouldMoveElementsCorrectly();
+
 	// DATAREDIS-315
 	void lLenShouldCountValuesCorrectly();
 

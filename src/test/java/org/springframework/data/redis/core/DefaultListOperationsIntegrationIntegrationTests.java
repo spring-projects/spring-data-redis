@@ -267,7 +267,6 @@ public class DefaultListOperationsIntegrationIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-288
-
 	void testLeftPushAllCollection() {
 
 		assumeThat(redisTemplate.getConnectionFactory() instanceof LettuceConnectionFactory).isTrue();
@@ -298,6 +297,53 @@ public class DefaultListOperationsIntegrationIntegrationTests<K, V> {
 	void leftPushAllShouldThrowExceptionWhenCalledWithNull() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> listOps.leftPushAll(keyFactory.instance(), (Collection<V>) null));
+	}
+
+	@ParameterizedRedisTest // GH-2039
+	@EnabledOnCommand("LMOVE")
+	void move() {
+
+		K source = keyFactory.instance();
+		K target = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+
+		listOps.rightPushAll(source, v1, v2, v3, v4);
+
+		assertThat(listOps.move(ListOperations.MoveFrom.fromHead(source), ListOperations.MoveTo.toTail(target)))
+				.isEqualTo(v1);
+		assertThat(listOps.move(ListOperations.MoveFrom.fromTail(source), ListOperations.MoveTo.toHead(target)))
+				.isEqualTo(v4);
+
+		assertThat(listOps.range(source, 0, -1)).containsExactly(v2, v3);
+		assertThat(listOps.range(target, 0, -1)).containsExactly(v4, v1);
+	}
+
+	@ParameterizedRedisTest // GH-2039
+	@EnabledOnCommand("BLMOVE")
+	void moveWithTimeout() {
+
+		K source = keyFactory.instance();
+		K target = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+
+		listOps.rightPushAll(source, v1, v4);
+
+		assertThat(listOps.move(ListOperations.MoveFrom.fromHead(source), ListOperations.MoveTo.toTail(target)))
+				.isEqualTo(v1);
+		assertThat(listOps.move(ListOperations.MoveFrom.fromTail(source), ListOperations.MoveTo.toHead(target)))
+				.isEqualTo(v4);
+
+		assertThat(listOps.move(ListOperations.MoveFrom.fromTail(source), ListOperations.MoveTo.toHead(target),
+				Duration.ofMillis(10))).isNull();
+
+		assertThat(listOps.range(source, 0, -1)).isEmpty();
+		assertThat(listOps.range(target, 0, -1)).containsExactly(v4, v1);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-1196

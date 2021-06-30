@@ -717,6 +717,20 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
 	@Override
 	@Deprecated
+	default byte[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to) {
+		return listCommands().lMove(sourceKey, destinationKey, from, to);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
+	@Override
+	@Deprecated
+	default byte[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout) {
+		return listCommands().bLMove(sourceKey, destinationKey, from, to, timeout);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
+	@Override
+	@Deprecated
 	default void lSet(byte[] key, long index, byte[] value) {
 		listCommands().lSet(key, index, value);
 	}

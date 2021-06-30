@@ -72,7 +72,8 @@ class LettuceListCommands implements RedisListCommands {
 			return connection.invoke().just(RedisListAsyncCommands::lpos, key, element, count, args);
 		}
 
-		return connection.invoke().from(RedisListAsyncCommands::lpos, key, element, args).getOrElse(Collections::singletonList, Collections::emptyList);
+		return connection.invoke().from(RedisListAsyncCommands::lpos, key, element, args)
+				.getOrElse(Collections::singletonList, Collections::emptyList);
 	}
 
 	/*
@@ -174,6 +175,39 @@ class LettuceListCommands implements RedisListCommands {
 
 		return connection.invoke().just(RedisListAsyncCommands::linsert, key, LettuceConverters.toBoolean(where), pivot,
 				value);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lMove(byte[], byte[], org.springframework.data.redis.connection.RedisListCommands.Direction, org.springframework.data.redis.connection.RedisListCommands.Direction)
+	 */
+	@Override
+	public byte[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to) {
+
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(destinationKey, "Destination key must not be null!");
+		Assert.notNull(from, "From direction must not be null!");
+		Assert.notNull(to, "To direction must not be null!");
+
+		return connection.invoke().just(RedisListAsyncCommands::lmove, sourceKey, destinationKey,
+				LettuceConverters.toLmoveArgs(from, to));
+
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bLMove(byte[], byte[], org.springframework.data.redis.connection.RedisListCommands.Direction, org.springframework.data.redis.connection.RedisListCommands.Direction, double)
+	 */
+	@Override
+	public byte[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout) {
+
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(destinationKey, "Destination key must not be null!");
+		Assert.notNull(from, "From direction must not be null!");
+		Assert.notNull(to, "To direction must not be null!");
+
+		return connection.invoke(connection.getAsyncDedicatedConnection()).just(RedisListAsyncCommands::blmove, sourceKey,
+				destinationKey, LettuceConverters.toLmoveArgs(from, to), timeout);
 	}
 
 	/*
