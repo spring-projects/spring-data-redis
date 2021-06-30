@@ -302,4 +302,14 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 		}
 		cursor.close();
 	}
+
+	@ParameterizedRedisTest // GH-2049
+	void randMemberReturnsSomething() {
+
+		Object[] valuesArray = new Object[]{getT(), getT(), getT()};
+
+		collection.addAll((List<T>) Arrays.asList(valuesArray));
+
+		assertThat(set.randomValue()).isIn(valuesArray);
+	}
 }

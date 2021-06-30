@@ -189,6 +189,15 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisSet#randomElement()
+	 */
+	@Override
+	public E randomValue() {
+		return boundSetOps.randomMember();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see java.util.AbstractCollection#add(java.lang.Object)
 	 */
 	@Override

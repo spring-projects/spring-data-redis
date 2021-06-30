@@ -237,6 +237,14 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	RedisZSet<E> unionAndStore(Collection<? extends RedisZSet<?>> sets, String destKey);
 
 	/**
+	 * Get random element from the set.
+	 *
+	 * @return
+	 * @since 2.6
+	 */
+	E randomValue();
+
+	/**
 	 * Get elements between {@code start} and {@code end} from sorted set.
 	 *
 	 * @param start

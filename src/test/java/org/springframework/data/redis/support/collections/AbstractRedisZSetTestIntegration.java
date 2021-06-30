@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assumptions.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -855,5 +856,16 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 
 		assertThat(zSet.addIfAbsent(t1, 1)).isTrue();
 		assertThat(zSet.addIfAbsent(t1, 1)).isFalse();
+	}
+
+	@ParameterizedRedisTest // GH-2049
+	@EnabledOnCommand("ZRANDMEMBER")
+	void randMemberReturnsSomething() {
+
+		Object[] valuesArray = new Object[]{getT(), getT(), getT()};
+
+		collection.addAll((List<T>) Arrays.asList(valuesArray));
+
+		assertThat(zSet.randomValue()).isIn(valuesArray);
 	}
 }

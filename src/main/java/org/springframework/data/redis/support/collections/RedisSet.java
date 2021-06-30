@@ -82,8 +82,8 @@ public interface RedisSet<E> extends RedisCollection<E>, Set<E> {
 	Set<E> diff(Collection<? extends RedisSet<?>> sets);
 
 	/**
-	 * Create a new {@link RedisSet} by intersecting this sorted set and {@link RedisSet} and store result in
-	 * destination {@code destKey}.
+	 * Create a new {@link RedisSet} by intersecting this sorted set and {@link RedisSet} and store result in destination
+	 * {@code destKey}.
 	 *
 	 * @param set must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
@@ -93,8 +93,8 @@ public interface RedisSet<E> extends RedisCollection<E>, Set<E> {
 	RedisSet<E> intersectAndStore(RedisSet<?> set, String destKey);
 
 	/**
-	 * Create a new {@link RedisSet} by intersecting this sorted set and the collection {@link RedisSet} and store
-	 * result in destination {@code destKey}.
+	 * Create a new {@link RedisSet} by intersecting this sorted set and the collection {@link RedisSet} and store result
+	 * in destination {@code destKey}.
 	 *
 	 * @param sets must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
@@ -124,6 +124,14 @@ public interface RedisSet<E> extends RedisCollection<E>, Set<E> {
 	 * @since 1.0
 	 */
 	RedisSet<E> unionAndStore(Collection<? extends RedisSet<?>> sets, String destKey);
+
+	/**
+	 * Get random element from the set.
+	 *
+	 * @return
+	 * @since 2.6
+	 */
+	E randomValue();
 
 	/**
 	 * Create a new {@link RedisSet} by diffing this sorted set and {@link RedisSet} and store result in destination
