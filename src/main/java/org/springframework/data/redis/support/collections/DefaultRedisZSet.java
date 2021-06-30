@@ -110,7 +110,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	 * @see org.springframework.data.redis.support.collections.RedisZSet#difference(org.springframework.data.redis.support.collections.RedisZSet)
 	 */
 	@Override
-	public Set<E> difference(RedisZSet<?> set) {
+	public Set<E> diff(RedisZSet<?> set) {
 		return boundZSetOps.difference(set.getKey());
 	}
 
@@ -119,7 +119,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	 * @see org.springframework.data.redis.support.collections.RedisZSet#difference(java.util.Collection)
 	 */
 	@Override
-	public Set<E> difference(Collection<? extends RedisZSet<?>> sets) {
+	public Set<E> diff(Collection<? extends RedisZSet<?>> sets) {
 		return boundZSetOps.difference(CollectionUtils.extractKeys(sets));
 	}
 
@@ -128,7 +128,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	 * @see org.springframework.data.redis.support.collections.RedisZSet#differenceWithScores(org.springframework.data.redis.support.collections.RedisZSet)
 	 */
 	@Override
-	public Set<TypedTuple<E>> differenceWithScores(RedisZSet<?> set) {
+	public Set<TypedTuple<E>> diffWithScores(RedisZSet<?> set) {
 		return boundZSetOps.differenceWithScores(set.getKey());
 	}
 
@@ -137,7 +137,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	 * @see org.springframework.data.redis.support.collections.RedisZSet#differenceWithScores(java.util.Collection)
 	 */
 	@Override
-	public Set<TypedTuple<E>> differenceWithScores(Collection<? extends RedisZSet<?>> sets) {
+	public Set<TypedTuple<E>> diffWithScores(Collection<? extends RedisZSet<?>> sets) {
 		return boundZSetOps.differenceWithScores(CollectionUtils.extractKeys(sets));
 	}
 
@@ -146,7 +146,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	 * @see org.springframework.data.redis.support.collections.RedisZSet#differenceAndStore(org.springframework.data.redis.support.collections.RedisZSet, java.lang.String)
 	 */
 	@Override
-	public RedisZSet<E> differenceAndStore(RedisZSet<?> set, String destKey) {
+	public RedisZSet<E> diffAndStore(RedisZSet<?> set, String destKey) {
 
 		boundZSetOps.differenceAndStore(set.getKey(), destKey);
 		return new DefaultRedisZSet<>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
@@ -157,7 +157,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	 * @see org.springframework.data.redis.support.collections.RedisZSet#differenceAndStore(java.util.Collection, java.lang.String)
 	 */
 	@Override
-	public RedisZSet<E> differenceAndStore(Collection<? extends RedisZSet<?>> sets, String destKey) {
+	public RedisZSet<E> diffAndStore(Collection<? extends RedisZSet<?>> sets, String destKey) {
 
 		boundZSetOps.differenceAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisZSet<>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());

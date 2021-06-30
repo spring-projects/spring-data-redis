@@ -633,8 +633,8 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		set2.add(t2, 2);
 		set2.add(t3, 3);
 
-		assertThat(zSet.difference(Arrays.asList(set1, set2))).containsOnly(t1);
-		assertThat(zSet.differenceWithScores(Arrays.asList(set1, set2))).containsOnly(new DefaultTypedTuple<>(t1, 1d));
+		assertThat(zSet.diff(Arrays.asList(set1, set2))).containsOnly(t1);
+		assertThat(zSet.diffWithScores(Arrays.asList(set1, set2))).containsOnly(new DefaultTypedTuple<>(t1, 1d));
 	}
 
 	@ParameterizedRedisTest // GH-2041
@@ -658,7 +658,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		set2.add(t3, 3);
 
 		String resultName = "test:zset:inter:result:1";
-		RedisZSet<T> diff = zSet.differenceAndStore(Arrays.asList(set1, set2), resultName);
+		RedisZSet<T> diff = zSet.diffAndStore(Arrays.asList(set1, set2), resultName);
 
 		assertThat(diff).containsOnly(t1);
 	}

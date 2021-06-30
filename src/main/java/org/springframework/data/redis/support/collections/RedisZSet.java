@@ -73,7 +73,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return a {@link Set} containing the values that differ.
 	 * @since 2.6
 	 */
-	Set<E> difference(RedisZSet<?> set);
+	Set<E> diff(RedisZSet<?> set);
 
 	/**
 	 * Diff this set and other {@link RedisZSet}s.
@@ -82,7 +82,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return a {@link Set} containing the values that differ.
 	 * @since 2.6
 	 */
-	Set<E> difference(Collection<? extends RedisZSet<?>> sets);
+	Set<E> diff(Collection<? extends RedisZSet<?>> sets);
 
 	/**
 	 * Diff this set and another {@link RedisZSet}.
@@ -91,16 +91,16 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return a {@link Set} containing the values that differ with their scores.
 	 * @since 2.6
 	 */
-	Set<TypedTuple<E>> differenceWithScores(RedisZSet<?> set);
+	Set<TypedTuple<E>> diffWithScores(RedisZSet<?> set);
 
 	/**
 	 * Diff this set and other {@link RedisZSet}s.
 	 *
-	 * @param set must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
 	 * @return a {@link Set} containing the values that differ with their scores.
 	 * @since 2.6
 	 */
-	Set<TypedTuple<E>> differenceWithScores(Collection<? extends RedisZSet<?>> sets);
+	Set<TypedTuple<E>> diffWithScores(Collection<? extends RedisZSet<?>> sets);
 
 	/**
 	 * Create a new {@link RedisZSet} by diffing this sorted set and {@link RedisZSet} and store result in destination
@@ -111,7 +111,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return a new {@link RedisZSet} pointing at {@code destKey}.
 	 * @since 2.6
 	 */
-	RedisZSet<E> differenceAndStore(RedisZSet<?> set, String destKey);
+	RedisZSet<E> diffAndStore(RedisZSet<?> set, String destKey);
 
 	/**
 	 * Create a new {@link RedisZSet} by diffing this sorted set and the collection {@link RedisZSet} and store result in
@@ -122,7 +122,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return a new {@link RedisZSet} pointing at {@code destKey}.
 	 * @since 2.6
 	 */
-	RedisZSet<E> differenceAndStore(Collection<? extends RedisZSet<?>> sets, String destKey);
+	RedisZSet<E> diffAndStore(Collection<? extends RedisZSet<?>> sets, String destKey);
 
 	/**
 	 * Intersect this set and another {@link RedisZSet}.
@@ -154,7 +154,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	/**
 	 * Intersect this set and other {@link RedisZSet}s.
 	 *
-	 * @param set must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
 	 * @return a {@link Set} containing the intersecting values with their scores.
 	 * @since 2.6
 	 */
