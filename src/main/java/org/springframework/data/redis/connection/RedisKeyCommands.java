@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -127,6 +128,18 @@ public interface RedisKeyCommands {
 	 */
 	@Nullable
 	Set<byte[]> keys(byte[] pattern);
+
+	/**
+	 * Use a {@link Cursor} to iterate over keys.
+	 *
+	 * @param options must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 */
+	default Cursor<byte[]> scan(KeyScanOptions options) {
+		return scan((ScanOptions) options);
+	}
 
 	/**
 	 * Use a {@link Cursor} to iterate over keys.

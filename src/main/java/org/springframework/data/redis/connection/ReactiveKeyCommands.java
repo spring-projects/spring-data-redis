@@ -30,6 +30,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Command
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -266,6 +267,20 @@ public interface ReactiveKeyCommands {
 	 */
 	default Flux<ByteBuffer> scan() {
 		return scan(ScanOptions.NONE);
+	}
+
+	/**
+	 * Use a {@link Flux} to iterate over keys. The resulting {@link Flux} acts as a cursor and issues {@code SCAN}
+	 * commands itself as long as the subscriber signals demand.
+	 *
+	 * @param options must not be {@literal null}.
+	 * @return the {@link Flux} emitting {@link ByteBuffer keys} one by one.
+	 * @throws IllegalArgumentException when options is {@literal null}.
+	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @since 2.6
+	 */
+	default Flux<ByteBuffer> scan(KeyScanOptions options) {
+		return scan((ScanOptions) options);
 	}
 
 	/**
