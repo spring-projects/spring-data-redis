@@ -21,6 +21,7 @@ import io.lettuce.core.ScoredValue;
 import io.lettuce.core.Value;
 import io.lettuce.core.ZAddArgs;
 import io.lettuce.core.ZStoreArgs;
+import org.springframework.data.redis.core.TimeoutUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -415,7 +416,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 			if(command.getTimeUnit() == TimeUnit.MILLISECONDS) {
 
-				double timeout = preciseTimeout(command.getTimeout(), command.getTimeUnit());
+				double timeout = TimeoutUtils.toDoubleSeconds(command.getTimeout(), command.getTimeUnit());
 
 				Mono<ScoredValue<ByteBuffer>> result = (command.getDirection() == PopDirection.MIN
 						? cmd.bzpopmin(timeout, command.getKey())
@@ -805,10 +806,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 	private Tuple toTuple(ByteBuffer value, double score) {
 		return new DefaultTuple(ByteUtils.getBytes(value), score);
-	}
-
-	static double preciseTimeout(long val, TimeUnit unit) {
-		return (double) unit.toMillis(val) / 1000.0D;
 	}
 
 	protected LettuceReactiveRedisConnection getConnection() {

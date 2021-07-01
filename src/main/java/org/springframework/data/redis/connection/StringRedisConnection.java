@@ -876,7 +876,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param timeout
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.6
-	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: BLMOVE</a>
+	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
 	 * @see #lMove(byte[], byte[], Direction, Direction)
 	 * @see #bLMove(byte[], byte[], Direction, Direction, double)
 	 */

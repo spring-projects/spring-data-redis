@@ -1028,23 +1028,17 @@ public abstract class LettuceConverters extends Converters {
 
 	static LMoveArgs toLmoveArgs(Enum<?> from, Enum<?> to) {
 
-		if (from.name().equals(Direction.LEFT.name()) && to.name().equals(Direction.LEFT.name())) {
-			return LMoveArgs.Builder.leftLeft();
-		}
-
-		if (from.name().equals(Direction.LEFT.name()) && to.name().equals(Direction.RIGHT.name())) {
+		if (from.name().equals(Direction.LEFT.name())) {
+			if (to.name().equals(Direction.LEFT.name())) {
+				return LMoveArgs.Builder.leftLeft();
+			}
 			return LMoveArgs.Builder.leftRight();
 		}
 
-		if (from.name().equals(Direction.RIGHT.name()) && to.name().equals(Direction.LEFT.name())) {
+		if (to.name().equals(Direction.LEFT.name())) {
 			return LMoveArgs.Builder.rightLeft();
 		}
-
-		if (from.name().equals(Direction.RIGHT.name()) && to.name().equals(Direction.RIGHT.name())) {
-			return LMoveArgs.Builder.rightRight();
-		}
-
-		throw new IllegalArgumentException(String.format("Unsupported combination of arguments: %s/%s", from, to));
+		return LMoveArgs.Builder.rightRight();
 	}
 
 	/**

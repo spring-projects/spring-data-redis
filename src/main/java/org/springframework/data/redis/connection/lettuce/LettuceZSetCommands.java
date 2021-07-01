@@ -34,6 +34,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.TimeoutUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -370,7 +371,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		if(TimeUnit.MILLISECONDS == unit) {
 
 			return connection.invoke(connection.getAsyncDedicatedConnection())
-					.from(RedisSortedSetAsyncCommands::bzpopmin, preciseTimeout(timeout, unit), key)
+					.from(RedisSortedSetAsyncCommands::bzpopmin, TimeoutUtils.toDoubleSeconds(timeout, unit), key)
 					.get(it -> it.map(LettuceConverters::toTuple).getValueOrElse(null));
 		}
 
@@ -420,7 +421,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		if(TimeUnit.MILLISECONDS == unit) {
 
 			return connection.invoke(connection.getAsyncDedicatedConnection())
-					.from(RedisSortedSetAsyncCommands::bzpopmax, preciseTimeout(timeout, unit), key)
+					.from(RedisSortedSetAsyncCommands::bzpopmax, TimeoutUtils.toDoubleSeconds(timeout, unit), key)
 					.get(it -> it.map(LettuceConverters::toTuple).getValueOrElse(null));
 		}
 
@@ -913,9 +914,5 @@ class LettuceZSetCommands implements RedisZSetCommands {
 			target.ch();
 		}
 		return target;
-	}
-
-	static double preciseTimeout(long val, TimeUnit unit) {
-		return (double) unit.toMillis(val) / 1000.0D;
 	}
 }

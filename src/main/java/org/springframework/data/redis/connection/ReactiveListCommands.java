@@ -671,6 +671,7 @@ public interface ReactiveListCommands {
 
 		public LMoveCommand(@Nullable ByteBuffer sourceKey, @Nullable ByteBuffer destinationKey, @Nullable Direction from,
 				@Nullable Direction to) {
+
 			super(sourceKey);
 			this.destinationKey = destinationKey;
 			this.from = from;
@@ -697,15 +698,15 @@ public interface ReactiveListCommands {
 		 * properties.
 		 *
 		 * @param destinationKey must not be {@literal null}.
-		 * @param to must not be {@literal null}.
+		 * @param direction must not be {@literal null}.
 		 * @return a new {@link LMoveCommand} with {@literal pivot} applied.
 		 */
-		public LMoveCommand to(ByteBuffer destinationKey, Direction destinationDirection) {
+		public LMoveCommand to(ByteBuffer destinationKey, Direction direction) {
 
 			Assert.notNull(destinationKey, "Destination key must not be null!");
-			Assert.notNull(destinationDirection, "Direction must not be null!");
+			Assert.notNull(direction, "Direction must not be null!");
 
-			return new LMoveCommand(getKey(), destinationKey, from, destinationDirection);
+			return new LMoveCommand(getKey(), destinationKey, from, direction);
 		}
 
 		/**

@@ -196,6 +196,7 @@ public interface ListOperations<K, V> {
 		final Direction direction;
 
 		MoveFrom(K key, Direction direction) {
+
 			this.key = key;
 			this.direction = direction;
 		}
@@ -207,7 +208,6 @@ public interface ListOperations<K, V> {
 		public static <K> MoveFrom<K> fromTail(K key) {
 			return new MoveFrom<>(key, Direction.last());
 		}
-
 	}
 
 	/**
@@ -223,6 +223,7 @@ public interface ListOperations<K, V> {
 		final Direction direction;
 
 		MoveTo(K key, Direction direction) {
+
 			this.key = key;
 			this.direction = direction;
 		}
@@ -234,7 +235,6 @@ public interface ListOperations<K, V> {
 		public static <K> MoveTo<K> toTail(K key) {
 			return new MoveTo<>(key, Direction.last());
 		}
-
 	}
 
 	/**

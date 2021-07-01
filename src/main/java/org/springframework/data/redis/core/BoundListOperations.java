@@ -256,7 +256,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	/**
 	 * Removes and returns first {@code} elements in list stored at {@code key}.
 	 *
-	 * @param key must not be {@literal null}.
 	 * @param count
 	 * @return can be {@literal null}.
 	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
@@ -308,7 +307,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	/**
 	 * Removes and returns last {@code} elements in list stored at {@code key}.
 	 *
-	 * @param key must not be {@literal null}.
 	 * @param count
 	 * @return can be {@literal null}.
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>

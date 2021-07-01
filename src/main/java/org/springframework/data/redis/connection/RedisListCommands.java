@@ -43,6 +43,7 @@ public interface RedisListCommands {
 	 * @since 2.6
 	 */
 	enum Direction {
+
 		LEFT, RIGHT;
 
 		/**
