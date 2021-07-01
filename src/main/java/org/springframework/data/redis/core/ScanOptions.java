@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.StringJoiner;
+
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
@@ -25,6 +27,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @since 1.4
+ * @see KeyScanOptions
  */
 public class ScanOptions {
 
@@ -37,14 +40,14 @@ public class ScanOptions {
 	private final @Nullable String pattern;
 	private final @Nullable byte[] bytePattern;
 
-	private ScanOptions(@Nullable Long count, @Nullable String pattern, @Nullable byte[] bytePattern) {
+	ScanOptions(@Nullable Long count, @Nullable String pattern, @Nullable byte[] bytePattern) {
 		this.count = count;
 		this.pattern = pattern;
 		this.bytePattern = bytePattern;
 	}
 
 	/**
-	 * Static factory method that returns a new {@link ScanOptionsBuilder}.
+	 * Static factory method that returns a new {@link ScanOptionsBuilder}.
 	 *
 	 * @return
 	 */
@@ -83,17 +86,18 @@ public class ScanOptions {
 			return "";
 		}
 
-		String params = "";
+		StringJoiner joiner = new StringJoiner(", ");
 
-		if (this.count != null) {
-			params += (", 'count', " + count);
+		if (this.getCount() != null) {
+			joiner.add("'count' " + this.getCount());
 		}
+
 		String pattern = getPattern();
 		if (StringUtils.hasText(pattern)) {
-			params += (", 'match' , '" + this.pattern + "'");
+			joiner.add("'match' '" + pattern + "'");
 		}
 
-		return params;
+		return joiner.toString();
 	}
 
 	/**
@@ -103,10 +107,11 @@ public class ScanOptions {
 	 */
 	public static class ScanOptionsBuilder {
 
-		private @Nullable Long count;
-		private @Nullable String pattern;
-		private @Nullable byte[] bytePattern;
+		@Nullable Long count;
+		@Nullable String pattern;
+		@Nullable byte[] bytePattern;
 
+		ScanOptionsBuilder() {}
 
 		/**
 		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code count}.

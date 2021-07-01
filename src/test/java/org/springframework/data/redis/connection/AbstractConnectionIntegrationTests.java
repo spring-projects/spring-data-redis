@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
@@ -73,6 +74,7 @@ import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
@@ -84,6 +86,7 @@ import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import org.springframework.data.redis.test.condition.LongRunningTest;
 import org.springframework.data.redis.test.condition.RedisDriver;
 import org.springframework.data.redis.test.util.HexStringUtils;
+import org.springframework.data.util.Streamable;
 
 /**
  * Base test class for AbstractConnection integration tests
@@ -2591,6 +2594,39 @@ public abstract class AbstractConnectionIntegrationTests {
 		}
 
 		assertThat(i).isEqualTo(itemCount);
+	}
+
+	@Test // GH-2089
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	@EnabledOnRedisVersion("6.2")
+	void scanWithType() {
+
+		assumeThat(connection.isPipelined() || connection.isQueueing())
+				.describedAs("SCAN is only available in non pipeline | queue mode.").isFalse();
+
+		connection.set("key", "data");
+		connection.lPush("list", "foo");
+		connection.sAdd("set", "foo");
+
+		try (Cursor<byte[]> cursor = connection.scan(KeyScanOptions.scanOptions().type("set").build())) {
+			assertThat(toList(cursor)).hasSize(1).contains("set");
+		}
+
+		try (Cursor<byte[]> cursor = connection.scan(KeyScanOptions.scanOptions().type("string").match("k*").build())) {
+			assertThat(toList(cursor)).hasSize(1).contains("key");
+		}
+
+		try (Cursor<byte[]> cursor = connection.scan(KeyScanOptions.scanOptions().match("k*").build())) {
+			assertThat(toList(cursor)).hasSize(1).contains("key");
+		}
+
+		try (Cursor<byte[]> cursor = connection.scan(KeyScanOptions.scanOptions().build())) {
+			assertThat(toList(cursor)).contains("key", "list", "set");
+		}
+	}
+
+	private static List<String> toList(Cursor<byte[]> cursor) {
+		return Streamable.of(() -> cursor).map(String::new).toList();
 	}
 
 	@Test // DATAREDIS-417

@@ -65,6 +65,7 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -906,7 +907,7 @@ public abstract class LettuceConverters extends Converters {
 			return null;
 		}
 
-		ScanArgs scanArgs = new ScanArgs();
+		KeyScanArgs scanArgs = new KeyScanArgs();
 
 		byte[] pattern = options.getBytePattern();
 		if (pattern != null) {
@@ -915,6 +916,10 @@ public abstract class LettuceConverters extends Converters {
 
 		if (options.getCount() != null) {
 			scanArgs.limit(options.getCount());
+		}
+
+		if (options instanceof KeyScanOptions) {
+			scanArgs.type(((KeyScanOptions) options).getType());
 		}
 
 		return scanArgs;
