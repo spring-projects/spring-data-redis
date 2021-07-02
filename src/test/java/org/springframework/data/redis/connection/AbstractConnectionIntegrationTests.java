@@ -2598,7 +2598,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-2089
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
-	@EnabledOnRedisVersion("6.2")
+	@EnabledOnRedisVersion("6.0")
 	void scanWithType() {
 
 		assumeThat(connection.isPipelined() || connection.isQueueing())

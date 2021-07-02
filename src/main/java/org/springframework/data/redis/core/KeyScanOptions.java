@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.util.StringJoiner;
 
+import org.springframework.data.redis.connection.DataType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
@@ -24,6 +25,7 @@ import org.springframework.util.StringUtils;
  * Options to be used for with {@literal SCAN} commands.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.6
  */
 public class KeyScanOptions extends ScanOptions {
@@ -35,7 +37,7 @@ public class KeyScanOptions extends ScanOptions {
 
 	private final @Nullable String type;
 
-	private KeyScanOptions(@Nullable Long count, @Nullable String pattern, @Nullable byte[] bytePattern,
+	KeyScanOptions(@Nullable Long count, @Nullable String pattern, @Nullable byte[] bytePattern,
 			@Nullable String type) {
 
 		super(count, pattern, bytePattern);
@@ -43,12 +45,13 @@ public class KeyScanOptions extends ScanOptions {
 	}
 
 	/**
-	 * Static factory method that returns a new {@link KeyScanOptionsBuilder}.
+	 * Static factory method that returns a new {@link ScanOptionsBuilder}.
 	 *
+	 * @param type 
 	 * @return
 	 */
-	public static KeyScanOptionsBuilder scanOptions() {
-		return new KeyScanOptionsBuilder();
+	public static ScanOptionsBuilder scanOptions(DataType type) {
+		return new ScanOptionsBuilder().type(type);
 	}
 
 	@Nullable
@@ -70,69 +73,5 @@ public class KeyScanOptions extends ScanOptions {
 		}
 
 		return joiner.toString();
-	}
-
-	public static class KeyScanOptionsBuilder extends ScanOptionsBuilder {
-
-		private @Nullable String type;
-
-		private KeyScanOptionsBuilder() {}
-
-		/**
-		 * Returns the current {@link KeyScanOptionsBuilder} configured with the given {@code count}.
-		 *
-		 * @param count
-		 * @return
-		 */
-		@Override
-		public KeyScanOptionsBuilder count(long count) {
-			super.count(count);
-			return this;
-		}
-
-		/**
-		 * Returns the current {@link KeyScanOptionsBuilder} configured with the given {@code pattern}.
-		 *
-		 * @param pattern
-		 * @return
-		 */
-		@Override
-		public KeyScanOptionsBuilder match(String pattern) {
-			super.match(pattern);
-			return this;
-		}
-
-		/**
-		 * Returns the current {@link KeyScanOptionsBuilder} configured with the given {@code pattern}.
-		 *
-		 * @param pattern
-		 * @return
-		 */
-		@Override
-		public KeyScanOptionsBuilder match(byte[] pattern) {
-			super.match(pattern);
-			return this;
-		}
-
-		/**
-		 * Returns the current {@link KeyScanOptionsBuilder} configured with the given {@code type}.
-		 *
-		 * @param type
-		 * @return
-		 */
-		public KeyScanOptionsBuilder type(String type) {
-			this.type = type;
-			return this;
-		}
-
-		/**
-		 * Builds a new {@link KeyScanOptions} objects.
-		 *
-		 * @return a new {@link KeyScanOptions} objects.
-		 */
-		@Override
-		public KeyScanOptions build() {
-			return new KeyScanOptions(count, pattern, bytePattern, type);
-		}
 	}
 }

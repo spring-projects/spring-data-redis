@@ -17,7 +17,9 @@ package org.springframework.data.redis.core;
 
 import java.util.StringJoiner;
 
+import org.springframework.data.redis.connection.DataType;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -41,6 +43,7 @@ public class ScanOptions {
 	private final @Nullable byte[] bytePattern;
 
 	ScanOptions(@Nullable Long count, @Nullable String pattern, @Nullable byte[] bytePattern) {
+
 		this.count = count;
 		this.pattern = pattern;
 		this.bytePattern = bytePattern;
@@ -110,6 +113,7 @@ public class ScanOptions {
 		@Nullable Long count;
 		@Nullable String pattern;
 		@Nullable byte[] bytePattern;
+		@Nullable DataType type;
 
 		ScanOptionsBuilder() {}
 
@@ -117,7 +121,7 @@ public class ScanOptions {
 		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code count}.
 		 *
 		 * @param count
-		 * @return
+		 * @return this.
 		 */
 		public ScanOptionsBuilder count(long count) {
 			this.count = count;
@@ -128,7 +132,7 @@ public class ScanOptions {
 		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code pattern}.
 		 *
 		 * @param pattern
-		 * @return
+		 * @return this.
 		 */
 		public ScanOptionsBuilder match(String pattern) {
 			this.pattern = pattern;
@@ -139,7 +143,7 @@ public class ScanOptions {
 		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code pattern}.
 		 *
 		 * @param pattern
-		 * @return
+		 * @return this.
 		 * @since 2.6
 		 */
 		public ScanOptionsBuilder match(byte[] pattern) {
@@ -148,11 +152,45 @@ public class ScanOptions {
 		}
 
 		/**
+		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code type}. <br />
+		 * Please verify the the targeted command supports the
+		 * <a href="https://redis.io/commands/SCAN#the-type-option">TYPE</a> option before use.
+		 *
+		 * @param type must not be {@literal null}. Either do not set or use {@link DataType#NONE}.
+		 * @return this.
+		 * @since 2.6
+		 */
+		public ScanOptionsBuilder type(DataType type) {
+
+			Assert.notNull(type, "Type must not be null! Use NONE instead.");
+
+			this.type = type;
+			return this;
+		}
+
+		/**
+		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code type}.
+		 *
+		 * @param type the textual representation of {@link DataType#fromCode(String)}. Must not be {@literal null}.
+		 * @return this.
+		 * @throws IllegalArgumentException if given type is {@literal null} or unknown.
+		 */
+		public ScanOptionsBuilder type(String type) {
+
+			Assert.notNull(type, "Type must not be null!");
+			return type(DataType.fromCode(type));
+		}
+
+		/**
 		 * Builds a new {@link ScanOptions} objects.
 		 *
 		 * @return a new {@link ScanOptions} objects.
 		 */
 		public ScanOptions build() {
+
+			if (type != null && !DataType.NONE.equals(type)) {
+				return new KeyScanOptions(count, pattern, bytePattern, type.code());
+			}
 			return new ScanOptions(count, pattern, bytePattern);
 		}
 	}
