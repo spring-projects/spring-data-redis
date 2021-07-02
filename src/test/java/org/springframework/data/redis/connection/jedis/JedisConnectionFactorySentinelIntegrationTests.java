@@ -17,11 +17,14 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
 import org.springframework.lang.Nullable;
 
@@ -46,6 +49,40 @@ class JedisConnectionFactorySentinelIntegrationTests {
 		if (factory != null) {
 			factory.destroy();
 		}
+	}
+
+	@Test // GH-2103
+	void shouldConnectDataNodeCorrectly() {
+
+		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration().master("mymaster")
+				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
+		configuration.setDatabase(5);
+
+		factory = new JedisConnectionFactory(configuration);
+		factory.afterPropertiesSet();
+
+		RedisConnection connection = factory.getConnection();
+		connection.flushAll();
+		connection.set("key5".getBytes(), "value5".getBytes());
+
+		connection.select(0);
+		assertThat(connection.exists("key5".getBytes())).isFalse();
+		connection.close();
+	}
+
+	@Test // GH-2103
+	void shouldConnectSentinelNodeCorrectly() throws IOException {
+
+		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration().master("mymaster")
+				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
+		configuration.setDatabase(5);
+
+		factory = new JedisConnectionFactory(configuration);
+		factory.afterPropertiesSet();
+
+		RedisSentinelConnection sentinelConnection = factory.getSentinelConnection();
+		assertThat(sentinelConnection.masters()).isNotNull();
+		sentinelConnection.close();
 	}
 
 	@Test // DATAREDIS-574, DATAREDIS-765
