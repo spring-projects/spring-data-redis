@@ -2425,6 +2425,66 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	Long geoRemove(String key, String... members);
 
+	/**
+	 * Return the members of a geo set which are within the borders of the area specified by a given {@link GeoShape
+	 * shape}. The query's center point is provided by {@code member}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param member must not be {@literal null}.
+	 * @param predicate must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	GeoResults<GeoLocation<String>> geoSearch(String key, String member, GeoShape predicate, GeoSearchCommandArgs args);
+
+	/**
+	 * Return the members of a geo set which are within the borders of the area specified by a given {@link GeoShape
+	 * shape}. The query's center point is provided by {@link Point lonLat}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param lonLat must not be {@literal null}.
+	 * @param predicate must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	GeoResults<GeoLocation<String>> geoSearch(String key, Point lonLat, GeoShape predicate, GeoSearchCommandArgs args);
+
+	/**
+	 * Query the members of a geo set which are within the borders of the area specified by a given {@link GeoShape shape}
+	 * and store the result at {@code destKey}. The query's center point is provided by {@code member}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param member must not be {@literal null}.
+	 * @param predicate must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	Long geoSearchStore(String destKey, String key, String member, GeoShape predicate, GeoSearchStoreCommandArgs args);
+
+	/**
+	 * Query the members of a geo set which are within the borders of the area specified by a given {@link GeoShape shape}
+	 * and store the result at {@code destKey}. The query's center point is provided by {@link Point lonLat}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param lonLat must not be {@literal null}.
+	 * @param predicate must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	Long geoSearchStore(String destKey, String key, Point lonLat, GeoShape predicate, GeoSearchStoreCommandArgs args);
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Pub/Sub
 	// -------------------------------------------------------------------------

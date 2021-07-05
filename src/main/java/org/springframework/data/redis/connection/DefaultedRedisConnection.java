@@ -1540,6 +1540,38 @@ public interface DefaultedRedisConnection extends RedisConnection {
 		return geoCommands().geoRemove(key, members);
 	}
 
+	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */
+	@Override
+	@Deprecated
+	default GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, byte[] member, GeoShape predicate,
+			GeoSearchCommandArgs args) {
+		return geoCommands().geoSearch(key, member, predicate, args);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */
+	@Override
+	@Deprecated
+	default GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, Point lonLat, GeoShape predicate,
+			GeoSearchCommandArgs args) {
+		return geoCommands().geoSearch(key, lonLat, predicate, args);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */
+	@Override
+	@Deprecated
+	default Long geoSearchStore(byte[] destKey, byte[] key, byte[] member, GeoShape predicate,
+			GeoSearchStoreCommandArgs args) {
+		return geoCommands().geoSearchStore(destKey, key, member, predicate, args);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */
+	@Override
+	@Deprecated
+	default Long geoSearchStore(byte[] destKey, byte[] key, Point lonLat, GeoShape predicate,
+			GeoSearchStoreCommandArgs args) {
+		return geoCommands().geoSearchStore(destKey, key, lonLat, predicate, args);
+	}
+
 	// HLL COMMANDS
 
 	/** @deprecated in favor of {@link RedisConnection#hyperLogLogCommands()}. */

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.springframework.data.redis.connection.RedisGeoCommands.*;
+
 import io.lettuce.core.*;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
@@ -44,9 +46,6 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
-import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
-import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
@@ -800,6 +799,17 @@ public abstract class LettuceConverters extends Converters {
 	 * @since 1.8
 	 */
 	public static GeoArgs toGeoArgs(GeoRadiusCommandArgs args) {
+		return toGeoArgs((GeoSearchCommandArgs) args);
+	}
+
+	/**
+	 * Convert {@link GeoRadiusCommandArgs} into {@link GeoArgs}.
+	 *
+	 * @param args
+	 * @return
+	 * @since 2.6
+	 */
+	public static GeoArgs toGeoArgs(GeoSearchCommandArgs args) {
 
 		GeoArgs geoArgs = new GeoArgs();
 
@@ -828,7 +838,35 @@ public abstract class LettuceConverters extends Converters {
 		}
 
 		if (args.hasLimit()) {
-			geoArgs.withCount(args.getLimit());
+			geoArgs.withCount(args.getLimit(), args.hasAnyLimit());
+		}
+		return geoArgs;
+	}
+
+	/**
+	 * Convert {@link GeoRadiusCommandArgs} into {@link GeoArgs}.
+	 *
+	 * @param args
+	 * @return
+	 * @since 2.6
+	 */
+	static GeoArgs toGeoArgs(GeoSearchStoreCommandArgs args) {
+
+		GeoArgs geoArgs = new GeoArgs();
+
+		if (args.hasSortDirection()) {
+			switch (args.getSortDirection()) {
+				case ASC:
+					geoArgs.asc();
+					break;
+				case DESC:
+					geoArgs.desc();
+					break;
+			}
+		}
+
+		if (args.hasLimit()) {
+			geoArgs.withCount(args.getLimit(), args.hasLimit());
 		}
 		return geoArgs;
 	}
@@ -1044,6 +1082,26 @@ public abstract class LettuceConverters extends Converters {
 			return LMoveArgs.Builder.rightLeft();
 		}
 		return LMoveArgs.Builder.rightRight();
+	}
+
+	static GeoSearch.GeoPredicate toGeoPredicate(GeoShape predicate) {
+
+		if (predicate instanceof RadiusShape) {
+
+			Distance radius = ((RadiusShape) predicate).getRadius();
+
+			return GeoSearch.byRadius(radius.getValue(), toGeoArgsUnit(radius.getMetric()));
+		}
+
+		if (predicate instanceof BoxShape) {
+
+			BoxShape boxPredicate = (BoxShape) predicate;
+			BoundingBox boundingBox = boxPredicate.getBoundingBox();
+			return GeoSearch.byBox(boundingBox.getWidth().getValue(), boundingBox.getHeight().getValue(),
+					toGeoArgsUnit(boxPredicate.getMetric()));
+		}
+
+		throw new IllegalArgumentException(String.format("Cannot convert %s to Lettuce GeoPredicate", predicate));
 	}
 
 	/**

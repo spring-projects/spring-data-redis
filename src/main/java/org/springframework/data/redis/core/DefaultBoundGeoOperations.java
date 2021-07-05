@@ -24,6 +24,7 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 
@@ -175,6 +176,44 @@ class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> imple
 	@Override
 	public Long remove(M... members) {
 		return ops.remove(getKey(), members);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#search(org.springframework.data.geo.Circle, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> search(Circle within, RedisGeoCommands.GeoSearchCommandArgs args) {
+		return ops.search(getKey(), within, args);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#search(java.lang.Object, org.springframework.data.geo.Distance, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> search(M member, Distance radius, RedisGeoCommands.GeoSearchCommandArgs args) {
+		return ops.search(getKey(), member, radius, args);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#search(org.springframework.data.geo.Point, org.springframework.data.redis.connection.RedisGeoCommands.BoundingBox, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> search(Point point, RedisGeoCommands.BoundingBox boundingBox,
+			RedisGeoCommands.GeoSearchCommandArgs args) {
+		return ops.search(getKey(), point, boundingBox, args);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#search(java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.BoundingBox, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> search(M member, RedisGeoCommands.BoundingBox boundingBox,
+			RedisGeoCommands.GeoSearchCommandArgs args) {
+		return ops.search(getKey(), member, boundingBox, args);
 	}
 
 	/*

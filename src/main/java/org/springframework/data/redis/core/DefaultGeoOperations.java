@@ -25,6 +25,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 
@@ -240,5 +241,67 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		byte[] rawKey = rawKey(key);
 		byte[][] rawMembers = rawValues(members);
 		return execute(connection -> connection.zRem(rawKey, rawMembers), true);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#search(java.lang.Object, org.springframework.data.geo.Circle, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> search(K key, Circle within, RedisGeoCommands.GeoSearchCommandArgs args) {
+
+		byte[] rawKey = rawKey(key);
+		GeoResults<GeoLocation<byte[]>> raw = execute(connection -> connection.geoSearch(rawKey, within.getCenter(),
+				RedisGeoCommands.GeoShape.byRadius(within.getRadius()), args), true);
+
+		return deserializeGeoResults(raw);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#search(java.lang.Object, java.lang.Object, org.springframework.data.geo.Distance, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> search(K key, M member, Distance radius,
+			RedisGeoCommands.GeoSearchCommandArgs args) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawMember = rawValue(member);
+		GeoResults<GeoLocation<byte[]>> raw = execute(
+				connection -> connection.geoSearch(rawKey, rawMember, RedisGeoCommands.GeoShape.byRadius(radius), args), true);
+
+		return deserializeGeoResults(raw);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#search(java.lang.Object, org.springframework.data.geo.Point, org.springframework.data.redis.connection.RedisGeoCommands.BoundingBox, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> search(K key, Point point, RedisGeoCommands.BoundingBox boundingBox,
+			RedisGeoCommands.GeoSearchCommandArgs args) {
+
+		byte[] rawKey = rawKey(key);
+		GeoResults<GeoLocation<byte[]>> raw = execute(
+				connection -> connection.geoSearch(rawKey, point, RedisGeoCommands.GeoShape.byBox(boundingBox), args), true);
+
+		return deserializeGeoResults(raw);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#search(java.lang.Object, java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.BoundingBox, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> search(K key, M member, RedisGeoCommands.BoundingBox boundingBox,
+			RedisGeoCommands.GeoSearchCommandArgs args) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawMember = rawValue(member);
+		GeoResults<GeoLocation<byte[]>> raw = execute(
+				connection -> connection.geoSearch(rawKey, rawMember, RedisGeoCommands.GeoShape.byBox(boundingBox), args),
+				true);
+
+		return deserializeGeoResults(raw);
 	}
 }

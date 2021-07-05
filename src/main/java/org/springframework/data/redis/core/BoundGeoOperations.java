@@ -23,8 +23,10 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.RedisGeoCommands.BoundingBox;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs;
 import org.springframework.lang.Nullable;
 
 /**
@@ -408,4 +410,118 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	default Long geoRemove(M... members) {
 		return remove(members);
 	}
+
+	/**
+	 * Get the {@literal member}s within the boundaries of a given {@link Circle}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param within must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	default GeoResults<GeoLocation<M>> search(Circle within) {
+		return search(within, GeoSearchCommandArgs.newGeoSearchArgs());
+	}
+
+	/**
+	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
+	 *
+	 * @param within must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	GeoResults<GeoLocation<M>> search(Circle within, GeoSearchCommandArgs args);
+
+	/**
+	 * Get the {@literal member}s using {@code member} as center of the query within the boundaries of a given
+	 * {@link Distance radius}.
+	 *
+	 * @param member must not be {@literal null}.
+	 * @param radius must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	default GeoResults<GeoLocation<M>> search(M member, Distance radius) {
+		return search(member, radius, GeoSearchCommandArgs.newGeoSearchArgs());
+	}
+
+	/**
+	 * Get the {@literal member}s using {@code member} as center of the query within the boundaries of a given
+	 * {@link Distance radius} applying {@link GeoRadiusCommandArgs}.
+	 *
+	 * @param member must not be {@literal null}.
+	 * @param radius must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	GeoResults<GeoLocation<M>> search(M member, Distance radius, GeoSearchCommandArgs args);
+
+	/**
+	 * Get the {@literal member}s using {@link Point} as center of the query within the boundaries of a given bounding
+	 * box.
+	 *
+	 * @param point must not be {@literal null}.
+	 * @param boundingBox must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	default GeoResults<GeoLocation<M>> search(Point point, BoundingBox boundingBox) {
+		return search(point, boundingBox, GeoSearchCommandArgs.newGeoSearchArgs());
+	}
+
+	/**
+	 * Get the {@literal member}s using {@link Point} as center of the query within the boundaries of a given bounding box
+	 * applying {@link GeoRadiusCommandArgs}.
+	 *
+	 * @param point must not be {@literal null}.
+	 * @param boundingBox must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	GeoResults<GeoLocation<M>> search(Point point, BoundingBox boundingBox, GeoSearchCommandArgs args);
+
+	/**
+	 * Get the {@literal member}s using {@code member} as center of the query within the boundaries of a given bounding
+	 * box.
+	 *
+	 * @param member must not be {@literal null}.
+	 * @param boundingBox must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	default GeoResults<GeoLocation<M>> search(M member, BoundingBox boundingBox) {
+		return search(member, boundingBox, GeoSearchCommandArgs.newGeoSearchArgs());
+	}
+
+	/**
+	 * Get the {@literal member}s using {@code member} as center of the query within the boundaries of a given bounding
+	 * box applying {@link GeoRadiusCommandArgs}.
+	 *
+	 * @param member must not be {@literal null}.
+	 * @param boundingBox must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	GeoResults<GeoLocation<M>> search(M member, BoundingBox boundingBox, GeoSearchCommandArgs args);
+
 }

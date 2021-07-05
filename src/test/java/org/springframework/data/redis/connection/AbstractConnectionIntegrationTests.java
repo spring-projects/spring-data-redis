@@ -24,6 +24,7 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
 import java.time.Duration;
@@ -45,6 +46,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
@@ -3280,6 +3282,101 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> results = getResults();
 		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent()).hasSize(2);
+	}
+
+	@Test // GH-2043
+	@EnabledOnCommand("GEOSEARCH")
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void geoSearchByMemberShouldReturnMembersCorrectly() {
+
+		String key = "geo-" + UUID.randomUUID();
+		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
+
+		actual.add(connection.geoSearch(key, PALERMO.getName(),
+				RedisGeoCommands.GeoShape.byRadius(new Distance(200, KILOMETERS)), newGeoSearchArgs().limit(2)));
+
+		List<Object> results = getResults();
+		List<GeoResult<GeoLocation<String>>> content = ((GeoResults<GeoLocation<String>>) results.get(1)).getContent();
+		assertThat(content).hasSize(2);
+		assertThat(content.get(0).getDistance()).isEqualTo(new Distance(0, KILOMETERS));
+		assertThat(content.get(0).getContent().getPoint()).isNull();
+	}
+
+	@Test // GH-2043
+	@EnabledOnCommand("GEOSEARCH")
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void geoSearchByPointShouldReturnMembersCorrectly() {
+
+		String key = "geo-" + UUID.randomUUID();
+		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
+
+		actual.add(connection.geoSearch(key, PALERMO.getPoint(),
+				RedisGeoCommands.GeoShape.byRadius(new Distance(200, KILOMETERS)), newGeoSearchArgs().limit(2)));
+
+		List<Object> results = getResults();
+		List<GeoResult<GeoLocation<String>>> content = ((GeoResults<GeoLocation<String>>) results.get(1)).getContent();
+		assertThat(content).hasSize(2);
+		assertThat(content.get(0).getDistance()).isEqualTo(new Distance(0, KILOMETERS));
+		assertThat(content.get(0).getContent().getPoint()).isNull();
+	}
+
+	@Test // GH-2043
+	@EnabledOnCommand("GEOSEARCH")
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void geoSearchShouldConsiderDistanceCorrectly() {
+
+		String key = "geo-" + UUID.randomUUID();
+		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
+
+		actual.add(
+				connection.geoSearch(key, PALERMO.getName(), RedisGeoCommands.GeoShape.byRadius(new Distance(200, KILOMETERS)),
+						newGeoSearchArgs().limit(2).includeDistance().includeCoordinates()));
+
+		List<Object> results = getResults();
+		List<GeoResult<GeoLocation<String>>> content = ((GeoResults<GeoLocation<String>>) results.get(1)).getContent();
+		assertThat(content).hasSize(2);
+		assertThat(content.get(0).getDistance()).isNotNull();
+		assertThat(content.get(0).getContent().getPoint()).isNotNull();
+	}
+
+	@Test // GH-2043
+	@EnabledOnCommand("GEOSEARCHSTORE")
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void geoSearchStoreByMemberShouldStoreResult() {
+
+		String key = "geo-" + UUID.randomUUID();
+		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
+
+		actual.add(connection.geoSearchStore("georesults", key, PALERMO.getName(),
+				RedisGeoCommands.GeoShape.byRadius(new Distance(200, KILOMETERS)),
+				newGeoSearchStoreArgs().limit(2).storeDistance()));
+		actual.add(connection.zScore("georesults", PALERMO.getName()));
+		actual.add(connection.zScore("georesults", ARIGENTO.getName()));
+
+		List<Object> results = getResults();
+		assertThat(results.get(1)).isEqualTo(2L);
+		assertThat((Double) results.get(2)).isLessThan(1);
+		assertThat((Double) results.get(3)).isGreaterThan(1);
+	}
+
+	@Test // GH-2043
+	@EnabledOnCommand("GEOSEARCHSTORE")
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void geoSearchStoreByPointShouldStoreResult() {
+
+		String key = "geo-" + UUID.randomUUID();
+		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
+
+		actual.add(connection.geoSearchStore("georesults", key, PALERMO.getPoint(),
+				RedisGeoCommands.GeoShape.byRadius(new Distance(200, KILOMETERS)),
+				newGeoSearchStoreArgs().limit(2).storeDistance()));
+		actual.add(connection.zScore("georesults", PALERMO.getName()));
+		actual.add(connection.zScore("georesults", ARIGENTO.getName()));
+
+		List<Object> results = getResults();
+		assertThat(results.get(1)).isEqualTo(2L);
+		assertThat((Double) results.get(2)).isLessThan(1);
+		assertThat((Double) results.get(3)).isGreaterThan(1);
 	}
 
 	@Test // DATAREDIS-698
