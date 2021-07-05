@@ -39,7 +39,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
  */
 class EnabledOnRedisDriverCondition implements ExecutionCondition {
 
-	private static final ConditionEvaluationResult ENABLED_BY_DEFAULT = enabled("@WithRedisDriver is not present");
+	private static final ConditionEvaluationResult ENABLED_BY_DEFAULT = enabled("@EnabledOnRedisDriver is not present");
 
 	@Override
 	public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
@@ -59,7 +59,7 @@ class EnabledOnRedisDriverCondition implements ExecutionCondition {
 
 		if (annotatedFields.isEmpty()) {
 			throw new IllegalStateException(
-					"@WithRedisDriver requires a field of type RedisConnectionFactory annotated with @DriverQualifier!");
+					"@EnabledOnRedisDriver requires a field of type RedisConnectionFactory annotated with @DriverQualifier!");
 		}
 
 		for (Field field : annotatedFields) {
