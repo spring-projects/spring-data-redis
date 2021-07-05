@@ -25,6 +25,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 
@@ -240,5 +241,45 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		byte[] rawKey = rawKey(key);
 		byte[][] rawMembers = rawValues(members);
 		return execute(connection -> connection.zRem(rawKey, rawMembers), true);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#search(java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> search(K key, RedisGeoCommands.GeoReference<M> reference,
+			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
+
+		byte[] rawKey = rawKey(key);
+		RedisGeoCommands.GeoReference<byte[]> rawMember = getGeoReference(reference);
+
+		GeoResults<GeoLocation<byte[]>> raw = execute(
+				connection -> connection.geoSearch(rawKey, rawMember, geoPredicate, args), true);
+
+		return deserializeGeoResults(raw);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#searchAndStore(java.lang.Object, java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
+	 */
+	@Override
+	public Long searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<M> reference,
+			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawDestKey = rawKey(destKey);
+		RedisGeoCommands.GeoReference<byte[]> rawMember = getGeoReference(reference);
+
+		return execute(connection -> connection.geoSearchStore(rawDestKey, rawKey, rawMember, geoPredicate, args), true);
+	}
+
+	@SuppressWarnings("unchecked")
+	private RedisGeoCommands.GeoReference<byte[]> getGeoReference(RedisGeoCommands.GeoReference<M> reference) {
+		return reference instanceof RedisGeoCommands.GeoReference.GeoSearchMemberReference
+				? RedisGeoCommands.GeoReference
+						.fromMember(rawValue(((RedisGeoCommands.GeoReference.GeoSearchMemberReference<M>) reference).getMember()))
+				: (RedisGeoCommands.GeoReference<byte[]>) reference;
 	}
 }

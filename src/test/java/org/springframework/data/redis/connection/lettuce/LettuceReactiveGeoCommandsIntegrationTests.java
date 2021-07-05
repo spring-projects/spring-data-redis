@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Offset.offset;
+import static org.springframework.data.redis.connection.RedisGeoCommands.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 
@@ -31,7 +32,7 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
@@ -231,7 +232,6 @@ public class LettuceReactiveGeoCommandsIntegrationTests extends LettuceReactiveC
 				}) //
 				.expectNextCount(1) //
 				.verifyComplete();
-
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525
@@ -245,6 +245,45 @@ public class LettuceReactiveGeoCommandsIntegrationTests extends LettuceReactiveC
 				.geoRadiusByMember(KEY_1_BBUFFER, PALERMO.getName(), new Distance(200, KILOMETERS), newGeoRadiusArgs().limit(2))
 				.as(StepVerifier::create) //
 				.expectNextCount(2) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2043
+	@EnabledOnCommand("GEOSEARCH")
+	void geoSearchShouldReturnMembersCorrectly() {
+
+		nativeCommands.geoadd(KEY_1, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO_MEMBER_NAME);
+		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
+		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
+
+		connection.geoCommands()
+				.geoSearch(KEY_1_BBUFFER, GeoReference.fromMember(PALERMO.getName()),
+						GeoShape.byRadius(new Distance(200, KILOMETERS)), newGeoRadiusArgs().limit(2))
+				.as(StepVerifier::create) //
+				.expectNextCount(2) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2043
+	@EnabledOnCommand("GEOSEARCHSTORE")
+	void geoSearchStoreShouldStoreMembersCorrectly() {
+
+		nativeCommands.geoadd(SAME_SLOT_KEY_1, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO_MEMBER_NAME);
+		nativeCommands.geoadd(SAME_SLOT_KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
+		nativeCommands.geoadd(SAME_SLOT_KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(),
+				ARIGENTO_MEMBER_NAME);
+
+		connection.geoCommands()
+				.geoSearchStore(SAME_SLOT_KEY_2_BBUFFER, SAME_SLOT_KEY_1_BBUFFER, GeoReference.fromMember(PALERMO.getName()),
+						GeoShape.byRadius(new Distance(200, KILOMETERS)),
+						GeoSearchStoreCommandArgs.newGeoSearchStoreArgs().limit(2))
+				.as(StepVerifier::create) //
+				.expectNext(2L) //
+				.verifyComplete();
+
+		connection.zSetCommands().zCard(SAME_SLOT_KEY_2_BBUFFER) //
+				.as(StepVerifier::create) //
+				.expectNext(2L) //
 				.verifyComplete();
 	}
 

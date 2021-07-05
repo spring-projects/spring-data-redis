@@ -1540,6 +1540,22 @@ public interface DefaultedRedisConnection extends RedisConnection {
 		return geoCommands().geoRemove(key, members);
 	}
 
+	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */
+	@Override
+	@Deprecated
+	default GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
+			GeoSearchCommandArgs args) {
+		return geoCommands().geoSearch(key, reference, predicate, args);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */
+	@Override
+	@Deprecated
+	default Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
+			GeoSearchStoreCommandArgs args) {
+		return geoCommands().geoSearchStore(destKey, key, reference, predicate, args);
+	}
+
 	// HLL COMMANDS
 
 	/** @deprecated in favor of {@link RedisConnection#hyperLogLogCommands()}. */

@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.GeoArgs;
 import io.lettuce.core.GeoCoordinates;
+import io.lettuce.core.GeoSearch;
 import io.lettuce.core.GeoWithin;
 import io.lettuce.core.Value;
 import reactor.core.publisher.Flux;
@@ -202,6 +203,60 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 					.map(converter(command.getDistance().getMetric())::convert);
 
 			return Mono.just(new CommandResponse<>(command, result));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveGeoCommands#geoSearch(Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<GeoSearchCommand, Flux<GeoResult<GeoLocation<ByteBuffer>>>>> geoSearch(
+			Publisher<GeoSearchCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getReference(), "GeoReference must not be null!");
+			Assert.notNull(command.getShape(), "GeoShape must not be null!");
+			Assert.notNull(command.getArgs(), "Command args must not be null!");
+
+			GeoArgs geoArgs = command.getArgs().map(LettuceConverters::toGeoArgs).orElseGet(GeoArgs::new);
+			GeoSearch.GeoRef<ByteBuffer> ref = LettuceConverters.toGeoRef(command.getReference());
+			GeoSearch.GeoPredicate predicate = LettuceConverters.toGeoPredicate(command.getShape());
+
+			Flux<GeoResult<GeoLocation<ByteBuffer>>> result = cmd.geosearch(command.getKey(), ref, predicate, geoArgs)
+					.map(converter(command.getShape().getMetric())::convert);
+
+			return new CommandResponse<>(command, result);
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveGeoCommands#geoSearchStore(Publisher)
+	 */
+	@Override
+	public Flux<NumericResponse<GeoSearchStoreCommand, Long>> geoSearchStore(Publisher<GeoSearchStoreCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getDestKey(), "Destination key must not be null!");
+			Assert.notNull(command.getReference(), "GeoReference must not be null!");
+			Assert.notNull(command.getShape(), "GeoShape must not be null!");
+			Assert.notNull(command.getArgs(), "Command args must not be null!");
+
+			GeoArgs geoArgs = command.getArgs().map(LettuceConverters::toGeoArgs).orElseGet(GeoArgs::new);
+			Boolean storeDist = command.getArgs().map(RedisGeoCommands.GeoSearchStoreCommandArgs::isStoreDistance)
+					.orElse(false);
+			GeoSearch.GeoRef<ByteBuffer> ref = LettuceConverters.toGeoRef(command.getReference());
+			GeoSearch.GeoPredicate predicate = LettuceConverters.toGeoPredicate(command.getShape());
+
+			Mono<Long> result = cmd.geosearchstore(command.getDestKey(), command.getKey(), ref, predicate, geoArgs,
+					storeDist);
+
+			return result.map(it -> new NumericResponse<>(command, it));
 		}));
 	}
 

@@ -2425,6 +2425,40 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	Long geoRemove(String key, String... members);
 
+	/**
+	 * Return the members of a geo set which are within the borders of the area specified by a given {@link GeoShape
+	 * shape}. The query's center point is provided by
+	 * {@link org.springframework.data.redis.connection.RedisGeoCommands.GeoReference}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
+	 * @param predicate must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	GeoResults<GeoLocation<String>> geoSearch(String key, GeoReference<String> reference, GeoShape predicate,
+			GeoSearchCommandArgs args);
+
+	/**
+	 * Query the members of a geo set which are within the borders of the area specified by a given {@link GeoShape shape}
+	 * and store the result at {@code destKey}. The query's center point is provided by
+	 * {@link org.springframework.data.redis.connection.RedisGeoCommands.GeoReference}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
+	 * @param predicate must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	Long geoSearchStore(String destKey, String key, GeoReference<String> reference, GeoShape predicate,
+			GeoSearchStoreCommandArgs args);
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Pub/Sub
 	// -------------------------------------------------------------------------

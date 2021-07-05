@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.GeoArgs;
+import io.lettuce.core.GeoSearch;
 import io.lettuce.core.GeoWithin;
 import io.lettuce.core.api.async.RedisGeoAsyncCommands;
 
@@ -266,6 +267,48 @@ class LettuceGeoCommands implements RedisGeoCommands {
 	@Override
 	public Long geoRemove(byte[] key, byte[]... values) {
 		return connection.zSetCommands().zRem(key, values);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearch(byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
+			GeoSearchCommandArgs args) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(reference, "Reference must not be null!");
+		Assert.notNull(predicate, "GeoPredicate must not be null!");
+		Assert.notNull(args, "GeoSearchCommandArgs must not be null!");
+
+		GeoSearch.GeoRef<byte[]> ref = LettuceConverters.toGeoRef(reference);
+		GeoSearch.GeoPredicate lettucePredicate = LettuceConverters.toGeoPredicate(predicate);
+		GeoArgs geoArgs = LettuceConverters.toGeoArgs(args);
+
+		return connection.invoke().from(RedisGeoAsyncCommands::geosearch, key, ref, lettucePredicate, geoArgs)
+				.get(LettuceConverters.geoRadiusResponseToGeoResultsConverter(predicate.getMetric()));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearchStore(byte[], byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
+	 */
+	@Override
+	public Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
+			GeoSearchStoreCommandArgs args) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(reference, "Reference must not be null!");
+		Assert.notNull(predicate, "GeoPredicate must not be null!");
+		Assert.notNull(args, "GeoSearchCommandArgs must not be null!");
+
+		GeoSearch.GeoRef<byte[]> ref = LettuceConverters.toGeoRef(reference);
+		GeoSearch.GeoPredicate lettucePredicate = LettuceConverters.toGeoPredicate(predicate);
+		GeoArgs geoArgs = LettuceConverters.toGeoArgs(args);
+
+		return connection.invoke().just(
+				connection -> connection.geosearchstore(destKey, key, ref, lettucePredicate, geoArgs, args.isStoreDistance()));
 	}
 
 }
