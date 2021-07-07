@@ -178,10 +178,24 @@ class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> imple
 		return ops.remove(getKey(), members);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#search(org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 */
 	@Override
 	public GeoResults<GeoLocation<M>> search(RedisGeoCommands.GeoReference<M> reference,
 			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
 		return ops.search(getKey(), reference, geoPredicate, args);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundGeoOperations#searchAndStore(java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
+	 */
+	@Override
+	public Long searchAndStore(K destKey, RedisGeoCommands.GeoReference<M> reference,
+			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
+		return ops.searchAndStore(getKey(), destKey, reference, geoPredicate, args);
 	}
 
 	/*

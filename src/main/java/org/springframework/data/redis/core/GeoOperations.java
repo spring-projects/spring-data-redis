@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.springframework.data.redis.connection.RedisGeoCommands.*;
+
 import java.util.List;
 import java.util.Map;
 
@@ -24,10 +26,7 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
-import org.springframework.data.redis.connection.RedisGeoCommands.BoundingBox;
-import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
-import org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs;
+import org.springframework.data.redis.connection.RedisGeoCommands.*;
 import org.springframework.lang.Nullable;
 
 /**
@@ -452,28 +451,13 @@ public interface GeoOperations<K, M> {
 	 */
 	@Nullable
 	default GeoResults<GeoLocation<M>> search(K key, Circle within) {
-		return search(key, within, GeoSearchCommandArgs.newGeoSearchArgs());
+		return search(key, GeoReference.fromCircle(within), GeoShape.byRadius(within.getRadius()),
+				GeoSearchCommandArgs.newGeoSearchArgs());
 	}
 
 	/**
-	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param within must not be {@literal null}.
-	 * @param args must not be {@literal null}.
-	 * @return never {@literal null} unless used in pipeline / transaction.
-	 * @since 2.6
-	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
-	 */
-	@Nullable
-	default GeoResults<GeoLocation<M>> search(K key, Circle within, GeoSearchCommandArgs args) {
-		return search(key, RedisGeoCommands.GeoReference.fromCircle(within),
-				RedisGeoCommands.GeoShape.byRadius(within.getRadius()), args);
-	}
-
-	/**
-	 * Get the {@literal member}s using {@link org.springframework.data.redis.connection.RedisGeoCommands.GeoReference} as
-	 * center of the query within the boundaries of a given {@link Distance radius}.
+	 * Get the {@literal member}s using {@link GeoReference} as center of the query within the boundaries of a given
+	 * {@link Distance radius}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param reference must not be {@literal null}.
@@ -488,8 +472,8 @@ public interface GeoOperations<K, M> {
 	}
 
 	/**
-	 * Get the {@literal member}s using {@link org.springframework.data.redis.connection.RedisGeoCommands.GeoReference} as
-	 * center of the query within the boundaries of a given {@link Distance radius} applying {@link GeoRadiusCommandArgs}.
+	 * Get the {@literal member}s using {@link GeoReference} as center of the query within the boundaries of a given
+	 * {@link Distance radius} applying {@link GeoRadiusCommandArgs}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param reference must not be {@literal null}.
@@ -502,12 +486,12 @@ public interface GeoOperations<K, M> {
 	@Nullable
 	default GeoResults<GeoLocation<M>> search(K key, RedisGeoCommands.GeoReference<M> reference, Distance radius,
 			GeoSearchCommandArgs args) {
-		return search(key, reference, RedisGeoCommands.GeoShape.byRadius(radius), args);
+		return search(key, reference, GeoShape.byRadius(radius), args);
 	}
 
 	/**
-	 * Get the {@literal member}s using {@link org.springframework.data.redis.connection.RedisGeoCommands.GeoReference} as
-	 * center of the query within the boundaries of a given bounding box.
+	 * Get the {@literal member}s using {@link GeoReference} as center of the query within the boundaries of a given
+	 * bounding box.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param reference must not be {@literal null}.
@@ -523,8 +507,8 @@ public interface GeoOperations<K, M> {
 	}
 
 	/**
-	 * Get the {@literal member}s using {@link org.springframework.data.redis.connection.RedisGeoCommands.GeoReference} as
-	 * center of the query within the boundaries of a given bounding box applying {@link GeoRadiusCommandArgs}.
+	 * Get the {@literal member}s using {@link GeoReference} as center of the query within the boundaries of a given
+	 * bounding box applying {@link GeoRadiusCommandArgs}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param reference must not be {@literal null}.
@@ -537,14 +521,12 @@ public interface GeoOperations<K, M> {
 	@Nullable
 	default GeoResults<GeoLocation<M>> search(K key, RedisGeoCommands.GeoReference<M> reference, BoundingBox boundingBox,
 			GeoSearchCommandArgs args) {
-		return search(key, reference, RedisGeoCommands.GeoShape.byBox(boundingBox), args);
+		return search(key, reference, GeoShape.byBox(boundingBox), args);
 	}
 
 	/**
-	 * Get the {@literal member}s using {@link org.springframework.data.redis.connection.RedisGeoCommands.GeoReference} as
-	 * center of the query within the boundaries of a given
-	 * {@link org.springframework.data.redis.connection.RedisGeoCommands.GeoShape predicate} applying
-	 * {@link GeoRadiusCommandArgs}.
+	 * Get the {@literal member}s using {@link GeoReference} as center of the query within the boundaries of a given
+	 * {@link GeoShape predicate} applying {@link GeoRadiusCommandArgs}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param reference must not be {@literal null}.
@@ -556,6 +538,105 @@ public interface GeoOperations<K, M> {
 	 */
 	@Nullable
 	GeoResults<GeoLocation<M>> search(K key, RedisGeoCommands.GeoReference<M> reference,
-			RedisGeoCommands.GeoShape geoPredicate, GeoSearchCommandArgs args);
+			GeoShape geoPredicate, GeoSearchCommandArgs args);
+
+	/**
+	 * Get the {@literal member}s within the boundaries of a given {@link Circle} and store results at {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param within must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
+	 */
+	@Nullable
+	default Long searchAndStore(K key, K destKey, Circle within) {
+		return searchAndStore(key, destKey, GeoReference.fromCircle(within), GeoShape.byRadius(within.getRadius()),
+				GeoSearchStoreCommandArgs.newGeoSearchStoreArgs());
+	}
+
+	/**
+	 * Get the {@literal member}s using {@link GeoReference} as center of the query within the boundaries of a given
+	 * {@link Distance radius} and store results at {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
+	 * @param radius must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
+	 */
+	@Nullable
+	default Long searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<M> reference, Distance radius) {
+		return searchAndStore(key, destKey, reference, radius, GeoSearchStoreCommandArgs.newGeoSearchStoreArgs());
+	}
+
+	/**
+	 * Get the {@literal member}s using {@link GeoReference} as center of the query within the boundaries of a given
+	 * {@link Distance radius} applying {@link GeoRadiusCommandArgs} and store results at {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
+	 * @param radius must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
+	 */
+	@Nullable
+	default Long searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<M> reference, Distance radius,
+			GeoSearchStoreCommandArgs args) {
+		return searchAndStore(key, destKey, reference, GeoShape.byRadius(radius), args);
+	}
+
+	/**
+	 * Get the {@literal member}s using {@link GeoReference} as center of the query within the boundaries of a given
+	 * bounding box and store results at {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
+	 * @param boundingBox must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
+	 */
+	@Nullable
+	default Long searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<M> reference, BoundingBox boundingBox) {
+		return searchAndStore(key, destKey, reference, boundingBox, GeoSearchStoreCommandArgs.newGeoSearchStoreArgs());
+	}
+
+	/**
+	 * Get the {@literal member}s using {@link GeoReference} as center of the query within the boundaries of a given
+	 * bounding box applying {@link GeoRadiusCommandArgs} and store results at {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
+	 * @param boundingBox must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
+	 */
+	@Nullable
+	default Long searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<M> reference, BoundingBox boundingBox,
+			GeoSearchStoreCommandArgs args) {
+		return searchAndStore(key, destKey, reference, GeoShape.byBox(boundingBox), args);
+	}
+
+	/**
+	 * Get the {@literal member}s using {@link GeoReference} as center of the query within the boundaries of a given
+	 * {@link GeoShape predicate} applying {@link GeoRadiusCommandArgs} and store results at {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
+	 * @param geoPredicate must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return never {@literal null} unless used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
+	 */
+	@Nullable
+	Long searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<M> reference, GeoShape geoPredicate,
+			GeoSearchStoreCommandArgs args);
 
 }

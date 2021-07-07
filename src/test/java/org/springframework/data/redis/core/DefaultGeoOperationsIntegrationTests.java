@@ -449,7 +449,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		geoOperations.add(key, POINT_ARIGENTO, member3);
 
 		GeoResults<GeoLocation<M>> result = geoOperations.search(key,
-				new Circle(POINT_PALERMO, new Distance(150, KILOMETERS)),
+				RedisGeoCommands.GeoReference.fromCoordinate(POINT_PALERMO), new Distance(150, KILOMETERS),
 				newGeoSearchArgs().includeCoordinates().sortAscending());
 
 		assertThat(result.getContent()).hasSize(2);
@@ -556,5 +556,29 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getPoint().getY()).isCloseTo(POINT_ARIGENTO.getY(),
 				offset(0.05));
 		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member3);
+	}
+
+	@ParameterizedRedisTest // GH-2043
+	@EnabledOnCommand("GEOSEARCHSTORE")
+	void geoSearchAndStoreWithinShouldReturnMembers() {
+
+		assumeThat(redisTemplate.getRequiredConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+
+		K key = keyFactory.instance();
+		K destKey = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+		M member3 = valueFactory.instance();
+
+		geoOperations.add(key, POINT_PALERMO, member1);
+		geoOperations.add(key, POINT_CATANIA, member2);
+		geoOperations.add(key, POINT_ARIGENTO, member3);
+
+		Long result = geoOperations.searchAndStore(key, destKey,
+				RedisGeoCommands.GeoReference.fromCoordinate(POINT_PALERMO), new Distance(150, KILOMETERS),
+				RedisGeoCommands.GeoSearchStoreCommandArgs.newGeoSearchStoreArgs().sortAscending());
+
+		assertThat(result).isEqualTo(2);
+		assertThat(redisTemplate.boundZSetOps(destKey).size()).isEqualTo(2);
 	}
 }
