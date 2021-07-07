@@ -220,10 +220,10 @@ public interface RedisGeoCommands {
 
 	/**
 	 * Return the members of a geo set which are within the borders of the area specified by a given {@link GeoShape
-	 * shape}. The query's center point is provided by {@code member}.
+	 * shape}. The query's center point is provided by {@link GeoReference}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param member must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
 	 * @param predicate must not be {@literal null}.
 	 * @param args must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -231,29 +231,15 @@ public interface RedisGeoCommands {
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
 	@Nullable
-	GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, byte[] member, GeoShape predicate, GeoSearchCommandArgs args);
-
-	/**
-	 * Return the members of a geo set which are within the borders of the area specified by a given {@link GeoShape
-	 * shape}. The query's center point is provided by {@link Point lonLat}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param lonLat must not be {@literal null}.
-	 * @param predicate must not be {@literal null}.
-	 * @param args must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.6
-	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
-	 */
-	@Nullable
-	GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, Point lonLat, GeoShape predicate, GeoSearchCommandArgs args);
+	GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
+			GeoSearchCommandArgs args);
 
 	/**
 	 * Query the members of a geo set which are within the borders of the area specified by a given {@link GeoShape shape}
-	 * and store the result at {@code destKey}. The query's center point is provided by {@code member}.
+	 * and store the result at {@code destKey}. The query's center point is provided by {@link GeoReference}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param member must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
 	 * @param predicate must not be {@literal null}.
 	 * @param args must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -261,22 +247,8 @@ public interface RedisGeoCommands {
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
 	@Nullable
-	Long geoSearchStore(byte[] destKey, byte[] key, byte[] member, GeoShape predicate, GeoSearchStoreCommandArgs args);
-
-	/**
-	 * Query the members of a geo set which are within the borders of the area specified by a given {@link GeoShape shape}
-	 * and store the result at {@code destKey}. The query's center point is provided by {@link Point lonLat}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param lonLat must not be {@literal null}.
-	 * @param predicate must not be {@literal null}.
-	 * @param args must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.6
-	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
-	 */
-	@Nullable
-	Long geoSearchStore(byte[] destKey, byte[] key, Point lonLat, GeoShape predicate, GeoSearchStoreCommandArgs args);
+	Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
+			GeoSearchStoreCommandArgs args);
 
 	/**
 	 * Search predicate for {@code GEOSEARCH} and {@code GEOSEARCHSTORE} commands.
@@ -769,6 +741,193 @@ public interface RedisGeoCommands {
 			tmp.limit = this.limit;
 			tmp.sortDirection = this.sortDirection;
 			return tmp;
+		}
+	}
+
+	/**
+	 * Reference point for {@code GEOSEARCH} and {@code GEOSEARCHSTORE} commands. Provides factory methods to create
+	 * {@link GeoReference} from geo-set members or reference points.
+	 *
+	 * @param <T>
+	 * @since 2.6
+	 */
+	class GeoReference<T> {
+
+		/**
+		 * Creates a {@link GeoReference} from a geoset member.
+		 *
+		 * @param member must not be {@literal null}.
+		 * @param <T>
+		 * @return
+		 */
+		public static <T> GeoReference<T> fromMember(T member) {
+
+			Assert.notNull(member, "Geoset member must not be null");
+
+			return new GeoSearchMemberReference<>(member);
+		}
+
+		/**
+		 * Creates a {@link GeoReference} from a {@link GeoLocation geoset member}.
+		 *
+		 * @param member must not be {@literal null}.
+		 * @param <T>
+		 * @return
+		 */
+		public static <T> GeoReference<T> fromMember(GeoLocation<T> member) {
+
+			Assert.notNull(member, "GeoLocation must not be null");
+
+			return new GeoSearchMemberReference<>(member.getName());
+		}
+
+		/**
+		 * Creates a {@link GeoReference} from a {@link Circle#getCenter() circle center point} .
+		 *
+		 * @param within must not be {@literal null}.
+		 * @param <T>
+		 * @return
+		 */
+		public static <T> GeoReference<T> fromCircle(Circle within) {
+
+			Assert.notNull(within, "Circle must not be null");
+
+			return fromCoordinate(within.getCenter());
+		}
+
+		/**
+		 * Creates a {@link GeoReference} from a WGS84 longitude/latitude coordinate.
+		 *
+		 * @param longitude
+		 * @param latitude
+		 * @param <T>
+		 * @return
+		 */
+		public static <T> GeoReference<T> fromCoordinate(double longitude, double latitude) {
+			return new GeoSearchCoordinateReference<>(longitude, latitude);
+		}
+
+		/**
+		 * Creates a {@link GeoReference} from a WGS84 longitude/latitude coordinate.
+		 *
+		 * @param location must not be {@literal null}.
+		 * @param <T>
+		 * @return
+		 */
+		public static <T> GeoReference<T> fromCoordinate(GeoLocation<?> location) {
+
+			Assert.notNull(location, "GeoLocation must not be null");
+			Assert.notNull(location.getPoint(), "GeoLocation point must not be null");
+
+			return fromCoordinate(location.getPoint());
+		}
+
+		/**
+		 * Creates a {@link GeoReference} from a WGS84 longitude/latitude coordinate.
+		 *
+		 * @param point must not be {@literal null}.
+		 * @param <T>
+		 * @return
+		 */
+		public static <T> GeoReference<T> fromCoordinate(Point point) {
+
+			Assert.notNull(point, "Reference point must not be null");
+
+			return fromCoordinate(point.getX(), point.getY());
+		}
+
+		public static class GeoSearchMemberReference<T> extends GeoReference<T> {
+
+			private final T member;
+
+			public GeoSearchMemberReference(T member) {
+				this.member = member;
+			}
+
+			public T getMember() {
+				return member;
+			}
+
+			@Override
+			public boolean equals(Object o) {
+				if (this == o) {
+					return true;
+				}
+				if (!(o instanceof GeoSearchMemberReference)) {
+					return false;
+				}
+				GeoSearchMemberReference<?> that = (GeoSearchMemberReference<?>) o;
+				return ObjectUtils.nullSafeEquals(member, that.member);
+			}
+
+			@Override
+			public int hashCode() {
+				return ObjectUtils.nullSafeHashCode(member);
+			}
+
+			@Override
+			public String toString() {
+				final StringBuffer sb = new StringBuffer();
+				sb.append(getClass().getSimpleName());
+				sb.append(" [member=").append(member);
+				sb.append(']');
+				return sb.toString();
+			}
+		}
+
+		public static class GeoSearchCoordinateReference<T> extends GeoReference<T> {
+
+			private final double longitude;
+			private final double latitude;
+
+			public GeoSearchCoordinateReference(double longitude, double latitude) {
+				this.longitude = longitude;
+				this.latitude = latitude;
+			}
+
+			public double getLongitude() {
+				return longitude;
+			}
+
+			public double getLatitude() {
+				return latitude;
+			}
+
+			@Override
+			public boolean equals(Object o) {
+				if (this == o) {
+					return true;
+				}
+				if (!(o instanceof GeoSearchCoordinateReference)) {
+					return false;
+				}
+				GeoSearchCoordinateReference<?> that = (GeoSearchCoordinateReference<?>) o;
+				if (longitude != that.longitude) {
+					return false;
+				}
+				return latitude == that.latitude;
+			}
+
+			@Override
+			public int hashCode() {
+				int result;
+				long temp;
+				temp = Double.doubleToLongBits(longitude);
+				result = (int) (temp ^ (temp >>> 32));
+				temp = Double.doubleToLongBits(latitude);
+				result = 31 * result + (int) (temp ^ (temp >>> 32));
+				return result;
+			}
+
+			@Override
+			public String toString() {
+				final StringBuffer sb = new StringBuffer();
+				sb.append(getClass().getSimpleName());
+				sb.append(" [").append(longitude);
+				sb.append(",").append(latitude);
+				sb.append(']');
+				return sb.toString();
+			}
 		}
 	}
 

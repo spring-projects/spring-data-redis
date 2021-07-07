@@ -259,40 +259,20 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearch(byte[], byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearch(byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
 	 */
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, byte[] member, GeoShape predicate,
+	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchCommandArgs args) {
 		throw new UnsupportedOperationException("GEOSEARCH not supported through Jedis");
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearch(byte[], org.springframework.data.geo.Point, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearchStore(byte[], byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
 	 */
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, Point lonLat, GeoShape predicate,
-			GeoSearchCommandArgs args) {
-		throw new UnsupportedOperationException("GEOSEARCH not supported through Jedis");
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearchStore(byte[], byte[], byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
-	 */
-	@Override
-	public Long geoSearchStore(byte[] destKey, byte[] key, byte[] member, GeoShape predicate,
-			GeoSearchStoreCommandArgs args) {
-		throw new UnsupportedOperationException("GEOSEARCHSTORE not supported through Jedis");
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearchStore(byte[], byte[], org.springframework.data.geo.Point, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
-	 */
-	@Override
-	public Long geoSearchStore(byte[] destKey, byte[] key, Point lonLat, GeoShape predicate,
+	public Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchStoreCommandArgs args) {
 		throw new UnsupportedOperationException("GEOSEARCHSTORE not supported through Jedis");
 	}

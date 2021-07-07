@@ -2121,6 +2121,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@SuppressWarnings("unchecked")
+	private GeoReference<byte[]> serialize(GeoReference<String> data) {
+		return data instanceof GeoReference.GeoSearchMemberReference
+				? GeoReference
+						.fromMember(serializer.serialize(((GeoReference.GeoSearchMemberReference<String>) data).getMember()))
+				: (GeoReference) data;
+	}
+
+	@SuppressWarnings("unchecked")
 	private StreamOffset<byte[]>[] serialize(StreamOffset<String>[] offsets) {
 
 		return Arrays.stream(offsets).map(it -> StreamOffset.create(serialize(it.getKey()), it.getOffset()))
@@ -3891,19 +3899,9 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearch(byte[], byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
 	 */
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, byte[] member, GeoShape predicate,
+	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchCommandArgs args) {
-		return convertAndReturn(delegate.geoSearch(key, member, predicate, args), Converters.identityConverter());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearch(byte[], org.springframework.data.geo.Point, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
-	 */
-	@Override
-	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, Point lonLat, GeoShape predicate,
-			GeoSearchCommandArgs args) {
-		return convertAndReturn(delegate.geoSearch(key, lonLat, predicate, args), Converters.identityConverter());
+		return convertAndReturn(delegate.geoSearch(key, reference, predicate, args), Converters.identityConverter());
 	}
 
 	/*
@@ -3911,20 +3909,9 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearchStore(byte[], byte[], byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
 	 */
 	@Override
-	public Long geoSearchStore(byte[] destKey, byte[] key, byte[] member, GeoShape predicate,
+	public Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchStoreCommandArgs args) {
-		return convertAndReturn(delegate.geoSearchStore(destKey, key, member, predicate, args),
-				Converters.identityConverter());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearchStore(byte[], byte[], org.springframework.data.geo.Point, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
-	 */
-	@Override
-	public Long geoSearchStore(byte[] destKey, byte[] key, Point lonLat, GeoShape predicate,
-			GeoSearchStoreCommandArgs args) {
-		return convertAndReturn(delegate.geoSearchStore(destKey, key, lonLat, predicate, args),
+		return convertAndReturn(delegate.geoSearchStore(destKey, key, reference, predicate, args),
 				Converters.identityConverter());
 	}
 
@@ -3933,20 +3920,9 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoSearch(java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
 	 */
 	@Override
-	public GeoResults<GeoLocation<String>> geoSearch(String key, String member, GeoShape predicate,
+	public GeoResults<GeoLocation<String>> geoSearch(String key, GeoReference<String> reference, GeoShape predicate,
 			GeoSearchCommandArgs args) {
-		return convertAndReturn(delegate.geoSearch(serialize(key), serialize(member), predicate, args),
-				byteGeoResultsToStringGeoResults);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoSearch(java.lang.String, org.springframework.data.geo.Point, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
-	 */
-	@Override
-	public GeoResults<GeoLocation<String>> geoSearch(String key, Point lonLat, GeoShape predicate,
-			GeoSearchCommandArgs args) {
-		return convertAndReturn(delegate.geoSearch(serialize(key), lonLat, predicate, args),
+		return convertAndReturn(delegate.geoSearch(serialize(key), serialize(reference), predicate, args),
 				byteGeoResultsToStringGeoResults);
 	}
 
@@ -3955,21 +3931,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoSearchStore(java.lang.String, java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
 	 */
 	@Override
-	public Long geoSearchStore(String destKey, String key, String member, GeoShape predicate,
+	public Long geoSearchStore(String destKey, String key, GeoReference<String> reference, GeoShape predicate,
 			GeoSearchStoreCommandArgs args) {
 		return convertAndReturn(
-				delegate.geoSearchStore(serialize(destKey), serialize(key), serialize(member), predicate, args),
-				Converters.identityConverter());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoSearchStore(java.lang.String, java.lang.String, org.springframework.data.geo.Point, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
-	 */
-	@Override
-	public Long geoSearchStore(String destKey, String key, Point lonLat, GeoShape predicate,
-			GeoSearchStoreCommandArgs args) {
-		return convertAndReturn(delegate.geoSearchStore(serialize(destKey), serialize(key), lonLat, predicate, args),
+				delegate.geoSearchStore(serialize(destKey), serialize(key), serialize(reference), predicate, args),
 				Converters.identityConverter());
 	}
 

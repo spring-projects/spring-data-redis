@@ -178,42 +178,10 @@ class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> imple
 		return ops.remove(getKey(), members);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#search(org.springframework.data.geo.Circle, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
-	 */
 	@Override
-	public GeoResults<GeoLocation<M>> search(Circle within, RedisGeoCommands.GeoSearchCommandArgs args) {
-		return ops.search(getKey(), within, args);
-	}
-
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#search(java.lang.Object, org.springframework.data.geo.Distance, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
-	 */
-	@Override
-	public GeoResults<GeoLocation<M>> search(M member, Distance radius, RedisGeoCommands.GeoSearchCommandArgs args) {
-		return ops.search(getKey(), member, radius, args);
-	}
-
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#search(org.springframework.data.geo.Point, org.springframework.data.redis.connection.RedisGeoCommands.BoundingBox, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
-	 */
-	@Override
-	public GeoResults<GeoLocation<M>> search(Point point, RedisGeoCommands.BoundingBox boundingBox,
-			RedisGeoCommands.GeoSearchCommandArgs args) {
-		return ops.search(getKey(), point, boundingBox, args);
-	}
-
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundGeoOperations#search(java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.BoundingBox, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
-	 */
-	@Override
-	public GeoResults<GeoLocation<M>> search(M member, RedisGeoCommands.BoundingBox boundingBox,
-			RedisGeoCommands.GeoSearchCommandArgs args) {
-		return ops.search(getKey(), member, boundingBox, args);
+	public GeoResults<GeoLocation<M>> search(RedisGeoCommands.GeoReference<M> reference,
+			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
+		return ops.search(getKey(), reference, geoPredicate, args);
 	}
 
 	/*

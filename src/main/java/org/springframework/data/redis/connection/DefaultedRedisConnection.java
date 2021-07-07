@@ -1543,33 +1543,17 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */
 	@Override
 	@Deprecated
-	default GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, byte[] member, GeoShape predicate,
+	default GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchCommandArgs args) {
-		return geoCommands().geoSearch(key, member, predicate, args);
+		return geoCommands().geoSearch(key, reference, predicate, args);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */
 	@Override
 	@Deprecated
-	default GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, Point lonLat, GeoShape predicate,
-			GeoSearchCommandArgs args) {
-		return geoCommands().geoSearch(key, lonLat, predicate, args);
-	}
-
-	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */
-	@Override
-	@Deprecated
-	default Long geoSearchStore(byte[] destKey, byte[] key, byte[] member, GeoShape predicate,
+	default Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchStoreCommandArgs args) {
-		return geoCommands().geoSearchStore(destKey, key, member, predicate, args);
-	}
-
-	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */
-	@Override
-	@Deprecated
-	default Long geoSearchStore(byte[] destKey, byte[] key, Point lonLat, GeoShape predicate,
-			GeoSearchStoreCommandArgs args) {
-		return geoCommands().geoSearchStore(destKey, key, lonLat, predicate, args);
+		return geoCommands().geoSearchStore(destKey, key, reference, predicate, args);
 	}
 
 	// HLL COMMANDS

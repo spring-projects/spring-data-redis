@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.springframework.data.redis.connection.RedisGeoCommands.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoReference.*;
 
 import io.lettuce.core.*;
 import io.lettuce.core.cluster.models.partitions.Partitions;
@@ -1102,6 +1103,21 @@ public abstract class LettuceConverters extends Converters {
 		}
 
 		throw new IllegalArgumentException(String.format("Cannot convert %s to Lettuce GeoPredicate", predicate));
+	}
+
+	static GeoSearch.GeoRef<byte[]> toGeoRef(GeoReference<byte[]> reference) {
+
+		if (reference instanceof GeoSearchMemberReference) {
+			return GeoSearch.fromMember(((GeoSearchMemberReference<byte[]>) reference).getMember());
+		}
+
+		if (reference instanceof GeoSearchCoordinateReference) {
+
+			GeoSearchCoordinateReference<?> coordinates = (GeoSearchCoordinateReference<?>) reference;
+			return GeoSearch.fromCoordinates(coordinates.getLongitude(), coordinates.getLatitude());
+		}
+
+		throw new IllegalArgumentException(String.format("Cannot convert %s to Lettuce GeoRef", reference));
 	}
 
 	/**

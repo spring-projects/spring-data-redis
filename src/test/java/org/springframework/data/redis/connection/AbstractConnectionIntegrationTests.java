@@ -3292,7 +3292,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "geo-" + UUID.randomUUID();
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
-		actual.add(connection.geoSearch(key, PALERMO.getName(),
+		actual.add(connection.geoSearch(key, RedisGeoCommands.GeoReference.fromMember(PALERMO),
 				RedisGeoCommands.GeoShape.byRadius(new Distance(200, KILOMETERS)), newGeoSearchArgs().limit(2)));
 
 		List<Object> results = getResults();
@@ -3310,7 +3310,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "geo-" + UUID.randomUUID();
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
-		actual.add(connection.geoSearch(key, PALERMO.getPoint(),
+		actual.add(connection.geoSearch(key, RedisGeoCommands.GeoReference.fromCoordinate(PALERMO),
 				RedisGeoCommands.GeoShape.byRadius(new Distance(200, KILOMETERS)), newGeoSearchArgs().limit(2)));
 
 		List<Object> results = getResults();
@@ -3329,7 +3329,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
 		actual.add(
-				connection.geoSearch(key, PALERMO.getName(), RedisGeoCommands.GeoShape.byRadius(new Distance(200, KILOMETERS)),
+				connection.geoSearch(key, RedisGeoCommands.GeoReference.fromMember(PALERMO),
+						RedisGeoCommands.GeoShape.byRadius(new Distance(200, KILOMETERS)),
 						newGeoSearchArgs().limit(2).includeDistance().includeCoordinates()));
 
 		List<Object> results = getResults();
@@ -3347,7 +3348,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "geo-" + UUID.randomUUID();
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
-		actual.add(connection.geoSearchStore("georesults", key, PALERMO.getName(),
+		actual.add(connection.geoSearchStore("georesults", key, RedisGeoCommands.GeoReference.fromMember(PALERMO),
 				RedisGeoCommands.GeoShape.byRadius(new Distance(200, KILOMETERS)),
 				newGeoSearchStoreArgs().limit(2).storeDistance()));
 		actual.add(connection.zScore("georesults", PALERMO.getName()));
@@ -3367,7 +3368,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "geo-" + UUID.randomUUID();
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
-		actual.add(connection.geoSearchStore("georesults", key, PALERMO.getPoint(),
+		actual.add(connection.geoSearchStore("georesults", key, RedisGeoCommands.GeoReference.fromCoordinate(PALERMO),
 				RedisGeoCommands.GeoShape.byRadius(new Distance(200, KILOMETERS)),
 				newGeoSearchStoreArgs().limit(2).storeDistance()));
 		actual.add(connection.zScore("georesults", PALERMO.getName()));
