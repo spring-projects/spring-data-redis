@@ -16,7 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.springframework.data.redis.connection.RedisGeoCommands.*;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoReference.*;
+import static org.springframework.data.redis.domain.geo.GeoReference.*;
 
 import io.lettuce.core.*;
 import io.lettuce.core.cluster.models.partitions.Partitions;
@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
@@ -61,6 +60,11 @@ import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.domain.geo.BoundingBox;
+import org.springframework.data.redis.domain.geo.BoxShape;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
+import org.springframework.data.redis.domain.geo.RadiusShape;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -1147,13 +1151,13 @@ public abstract class LettuceConverters extends Converters {
 
 	static <T> GeoSearch.GeoRef<T> toGeoRef(GeoReference<T> reference) {
 
-		if (reference instanceof GeoSearchMemberReference) {
-			return GeoSearch.fromMember(((GeoSearchMemberReference<T>) reference).getMember());
+		if (reference instanceof GeoReference.GeoMemberReference) {
+			return GeoSearch.fromMember(((GeoMemberReference<T>) reference).getMember());
 		}
 
-		if (reference instanceof GeoSearchCoordinateReference) {
+		if (reference instanceof GeoReference.GeoCoordinateReference) {
 
-			GeoSearchCoordinateReference<?> coordinates = (GeoSearchCoordinateReference<?>) reference;
+			GeoCoordinateReference<?> coordinates = (GeoCoordinateReference<?>) reference;
 			return GeoSearch.fromCoordinates(coordinates.getLongitude(), coordinates.getLatitude());
 		}
 

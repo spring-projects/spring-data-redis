@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoReference.GeoMemberReference;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -35,6 +37,7 @@ import org.springframework.data.redis.connection.ReactiveGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.util.Assert;
 
@@ -340,12 +343,12 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#search(K, RedisGeoCommands.GeoReference, GeoShape, GeoSearchCommandArgs)
 	 */
 	@Override
-	public Flux<GeoResult<GeoLocation<V>>> search(K key, RedisGeoCommands.GeoReference<V> reference,
-			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
+	public Flux<GeoResult<GeoLocation<V>>> search(K key, GeoReference<V> reference,
+			GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(reference, "GeoReference must not be null!");
-		RedisGeoCommands.GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
+		GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
 
 		return template.createFlux(connection -> connection.geoCommands()
 				.geoSearch(rawKey(key), rawReference, geoPredicate, args).map(this::readGeoResult));
@@ -356,12 +359,12 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#searchAndStore(K, K, RedisGeoCommands.GeoReference, GeoShape, GeoSearchStoreCommandArgs)
 	 */
 	@Override
-	public Mono<Long> searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<V> reference,
-			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
+	public Mono<Long> searchAndStore(K key, K destKey, GeoReference<V> reference,
+			GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(reference, "GeoReference must not be null!");
-		RedisGeoCommands.GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
+		GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
 
 		return template.createMono(connection -> connection.geoCommands().geoSearchStore(rawKey(destKey), rawKey(key),
 				rawReference, geoPredicate, args));
@@ -382,11 +385,11 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	}
 
 	@SuppressWarnings("unchecked")
-	private RedisGeoCommands.GeoReference<ByteBuffer> getGeoReference(RedisGeoCommands.GeoReference<V> reference) {
-		return reference instanceof RedisGeoCommands.GeoReference.GeoSearchMemberReference
-				? RedisGeoCommands.GeoReference
-						.fromMember(rawValue(((RedisGeoCommands.GeoReference.GeoSearchMemberReference<V>) reference).getMember()))
-				: (RedisGeoCommands.GeoReference<ByteBuffer>) reference;
+	private GeoReference<ByteBuffer> getGeoReference(GeoReference<V> reference) {
+		return reference instanceof GeoReference.GeoMemberReference
+				? GeoReference
+						.fromMember(rawValue(((GeoMemberReference<V>) reference).getMember()))
+				: (GeoReference<ByteBuffer>) reference;
 	}
 
 	private ByteBuffer rawKey(K key) {

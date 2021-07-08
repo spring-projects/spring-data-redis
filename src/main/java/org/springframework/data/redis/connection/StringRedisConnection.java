@@ -47,6 +47,8 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
@@ -2428,7 +2430,7 @@ public interface StringRedisConnection extends RedisConnection {
 	/**
 	 * Return the members of a geo set which are within the borders of the area specified by a given {@link GeoShape
 	 * shape}. The query's center point is provided by
-	 * {@link org.springframework.data.redis.connection.RedisGeoCommands.GeoReference}.
+	 * {@link GeoReference}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param reference must not be {@literal null}.
@@ -2445,7 +2447,7 @@ public interface StringRedisConnection extends RedisConnection {
 	/**
 	 * Query the members of a geo set which are within the borders of the area specified by a given {@link GeoShape shape}
 	 * and store the result at {@code destKey}. The query's center point is provided by
-	 * {@link org.springframework.data.redis.connection.RedisGeoCommands.GeoReference}.
+	 * {@link GeoReference}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param reference must not be {@literal null}.

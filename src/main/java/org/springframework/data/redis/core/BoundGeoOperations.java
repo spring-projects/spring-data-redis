@@ -25,7 +25,9 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.redis.domain.geo.BoundingBox;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.lang.Nullable;
 
 /**
@@ -437,7 +439,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
 	@Nullable
-	default GeoResults<GeoLocation<M>> search(RedisGeoCommands.GeoReference<M> reference, Distance radius) {
+	default GeoResults<GeoLocation<M>> search(GeoReference<M> reference, Distance radius) {
 		return search(reference, radius, GeoSearchCommandArgs.newGeoSearchArgs());
 	}
 
@@ -453,7 +455,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
 	@Nullable
-	default GeoResults<GeoLocation<M>> search(RedisGeoCommands.GeoReference<M> reference, Distance radius,
+	default GeoResults<GeoLocation<M>> search(GeoReference<M> reference, Distance radius,
 			GeoSearchCommandArgs args) {
 		return search(reference, GeoShape.byRadius(radius), args);
 	}
@@ -469,7 +471,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
 	@Nullable
-	default GeoResults<GeoLocation<M>> search(RedisGeoCommands.GeoReference<M> reference, BoundingBox boundingBox) {
+	default GeoResults<GeoLocation<M>> search(GeoReference<M> reference, BoundingBox boundingBox) {
 		return search(reference, boundingBox, GeoSearchCommandArgs.newGeoSearchArgs());
 	}
 
@@ -485,7 +487,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
 	@Nullable
-	default GeoResults<GeoLocation<M>> search(RedisGeoCommands.GeoReference<M> reference, BoundingBox boundingBox,
+	default GeoResults<GeoLocation<M>> search(GeoReference<M> reference, BoundingBox boundingBox,
 			GeoSearchCommandArgs args) {
 		return search(reference, GeoShape.byBox(boundingBox), args);
 	}
@@ -502,7 +504,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
 	@Nullable
-	GeoResults<GeoLocation<M>> search(RedisGeoCommands.GeoReference<M> reference, GeoShape geoPredicate,
+	GeoResults<GeoLocation<M>> search(GeoReference<M> reference, GeoShape geoPredicate,
 			GeoSearchCommandArgs args);
 
 	/**
@@ -530,7 +532,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
 	@Nullable
-	default Long searchAndStore(K destKey, RedisGeoCommands.GeoReference<M> reference, Distance radius) {
+	default Long searchAndStore(K destKey, GeoReference<M> reference, Distance radius) {
 		return searchAndStore(destKey, reference, radius, GeoSearchStoreCommandArgs.newGeoSearchStoreArgs());
 	}
 
@@ -546,7 +548,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
 	@Nullable
-	default Long searchAndStore(K destKey, RedisGeoCommands.GeoReference<M> reference, Distance radius,
+	default Long searchAndStore(K destKey, GeoReference<M> reference, Distance radius,
 			GeoSearchStoreCommandArgs args) {
 		return searchAndStore(destKey, reference, GeoShape.byRadius(radius), args);
 	}
@@ -562,7 +564,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
 	@Nullable
-	default Long searchAndStore(K destKey, RedisGeoCommands.GeoReference<M> reference, BoundingBox boundingBox) {
+	default Long searchAndStore(K destKey, GeoReference<M> reference, BoundingBox boundingBox) {
 		return searchAndStore(destKey, reference, boundingBox, GeoSearchStoreCommandArgs.newGeoSearchStoreArgs());
 	}
 
@@ -578,7 +580,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
 	@Nullable
-	default Long searchAndStore(K destKey, RedisGeoCommands.GeoReference<M> reference, BoundingBox boundingBox,
+	default Long searchAndStore(K destKey, GeoReference<M> reference, BoundingBox boundingBox,
 			GeoSearchStoreCommandArgs args) {
 		return searchAndStore(destKey, reference, GeoShape.byBox(boundingBox), args);
 	}
@@ -595,7 +597,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
 	@Nullable
-	Long searchAndStore(K destKey, RedisGeoCommands.GeoReference<M> reference, GeoShape geoPredicate,
+	Long searchAndStore(K destKey, GeoReference<M> reference, GeoShape geoPredicate,
 			GeoSearchStoreCommandArgs args);
 
 }

@@ -25,13 +25,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.reactivestreams.Publisher;
-
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.redis.domain.geo.BoundingBox;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
 
 /**
  * Reactive Redis operations for geo commands.
@@ -256,7 +257,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	default Flux<GeoResult<GeoLocation<M>>> search(K key, RedisGeoCommands.GeoReference<M> reference, Distance radius) {
+	default Flux<GeoResult<GeoLocation<M>>> search(K key, GeoReference<M> reference, Distance radius) {
 		return search(key, reference, radius, GeoSearchCommandArgs.newGeoSearchArgs());
 	}
 
@@ -272,7 +273,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	default Flux<GeoResult<GeoLocation<M>>> search(K key, RedisGeoCommands.GeoReference<M> reference, Distance radius,
+	default Flux<GeoResult<GeoLocation<M>>> search(K key, GeoReference<M> reference, Distance radius,
 			GeoSearchCommandArgs args) {
 		return search(key, reference, GeoShape.byRadius(radius), args);
 	}
@@ -288,7 +289,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	default Flux<GeoResult<GeoLocation<M>>> search(K key, RedisGeoCommands.GeoReference<M> reference,
+	default Flux<GeoResult<GeoLocation<M>>> search(K key, GeoReference<M> reference,
 			BoundingBox boundingBox) {
 		return search(key, reference, boundingBox, GeoSearchCommandArgs.newGeoSearchArgs());
 	}
@@ -305,7 +306,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	default Flux<GeoResult<GeoLocation<M>>> search(K key, RedisGeoCommands.GeoReference<M> reference,
+	default Flux<GeoResult<GeoLocation<M>>> search(K key, GeoReference<M> reference,
 			BoundingBox boundingBox, GeoSearchCommandArgs args) {
 		return search(key, reference, GeoShape.byBox(boundingBox), args);
 	}
@@ -322,7 +323,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	Flux<GeoResult<GeoLocation<M>>> search(K key, RedisGeoCommands.GeoReference<M> reference, GeoShape geoPredicate,
+	Flux<GeoResult<GeoLocation<M>>> search(K key, GeoReference<M> reference, GeoShape geoPredicate,
 			GeoSearchCommandArgs args);
 
 	/**
@@ -350,7 +351,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
-	default Mono<Long> searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<M> reference, Distance radius) {
+	default Mono<Long> searchAndStore(K key, K destKey, GeoReference<M> reference, Distance radius) {
 		return searchAndStore(key, destKey, reference, radius, GeoSearchStoreCommandArgs.newGeoSearchStoreArgs());
 	}
 
@@ -366,7 +367,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
-	default Mono<Long> searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<M> reference, Distance radius,
+	default Mono<Long> searchAndStore(K key, K destKey, GeoReference<M> reference, Distance radius,
 			GeoSearchStoreCommandArgs args) {
 		return searchAndStore(key, destKey, reference, GeoShape.byRadius(radius), args);
 	}
@@ -382,7 +383,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
-	default Mono<Long> searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<M> reference,
+	default Mono<Long> searchAndStore(K key, K destKey, GeoReference<M> reference,
 			BoundingBox boundingBox) {
 		return searchAndStore(key, destKey, reference, boundingBox, GeoSearchStoreCommandArgs.newGeoSearchStoreArgs());
 	}
@@ -399,7 +400,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
-	default Mono<Long> searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<M> reference,
+	default Mono<Long> searchAndStore(K key, K destKey, GeoReference<M> reference,
 			BoundingBox boundingBox, GeoSearchStoreCommandArgs args) {
 		return searchAndStore(key, destKey, reference, GeoShape.byBox(boundingBox), args);
 	}
@@ -416,7 +417,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
-	Mono<Long> searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<M> reference, GeoShape geoPredicate,
+	Mono<Long> searchAndStore(K key, K destKey, GeoReference<M> reference, GeoShape geoPredicate,
 			GeoSearchStoreCommandArgs args);
 
 }

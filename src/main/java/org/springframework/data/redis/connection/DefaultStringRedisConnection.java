@@ -53,6 +53,9 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoReference.GeoMemberReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.lang.Nullable;
@@ -2122,9 +2125,9 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	@SuppressWarnings("unchecked")
 	private GeoReference<byte[]> serialize(GeoReference<String> data) {
-		return data instanceof GeoReference.GeoSearchMemberReference
+		return data instanceof GeoReference.GeoMemberReference
 				? GeoReference
-						.fromMember(serializer.serialize(((GeoReference.GeoSearchMemberReference<String>) data).getMember()))
+						.fromMember(serializer.serialize(((GeoMemberReference<String>) data).getMember()))
 				: (GeoReference) data;
 	}
 

@@ -21,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.geo.Circle;
@@ -28,10 +29,10 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
-import org.springframework.data.geo.Shape;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * Geo-specific Redis commands.
@@ -251,139 +252,84 @@ public interface RedisGeoCommands {
 			GeoSearchStoreCommandArgs args);
 
 	/**
-	 * Search predicate for {@code GEOSEARCH} and {@code GEOSEARCHSTORE} commands.
+	 * Arguments to be used with {@link RedisGeoCommands}.
 	 *
+	 * @author Christoph Strobl
 	 * @since 2.6
 	 */
-	interface GeoShape extends Shape {
-
-		/**
-		 * Create a shape used as predicate for geo queries from a {@link Distance radius} around the query center point.
-		 *
-		 * @param radius
-		 * @return
-		 */
-		static GeoShape byRadius(Distance radius) {
-			return new RadiusShape(radius);
-		}
-
-		/**
-		 * Create a shape used as predicate for geo queries from a bounding box with specified by {@code width} and
-		 * {@code height}.
-		 *
-		 * @param width must not be {@literal null}.
-		 * @param height must not be {@literal null}.
-		 * @param distanceUnit must not be {@literal null}.
-		 * @return
-		 */
-		static GeoShape byBox(double width, double height, DistanceUnit distanceUnit) {
-			return byBox(new BoundingBox(width, height, distanceUnit));
-		}
-
-		/**
-		 * Create a shape used as predicate for geo queries from a {@link BoundingBox}.
-		 *
-		 * @param boundingBox must not be {@literal null}.
-		 * @return
-		 */
-		static GeoShape byBox(BoundingBox boundingBox) {
-			return new BoxShape(boundingBox);
-		}
-
-		/**
-		 * The metric used for this geo predicate.
-		 *
-		 * @return
-		 */
-		Metric getMetric();
-	}
-
-	/**
-	 * Radius defined by {@link Distance}.
-	 *
-	 * @since 2.6
-	 */
-	class RadiusShape implements GeoShape {
-
-		private final Distance radius;
-
-		public RadiusShape(Distance radius) {
-
-			Assert.notNull(radius, "Distance must not be null");
-
-			this.radius = radius;
-		}
-
-		public Distance getRadius() {
-			return radius;
-		}
-
-		@Override
-		public Metric getMetric() {
-			return radius.getMetric();
-		}
-	}
-
-	/**
-	 * Bounding box defined by width and height.
-	 *
-	 * @since 2.6
-	 */
-	class BoxShape implements GeoShape {
-
-		private final BoundingBox boundingBox;
-
-		public BoxShape(BoundingBox boundingBox) {
-
-			Assert.notNull(boundingBox, "BoundingBox must not be null");
-
-			this.boundingBox = boundingBox;
-		}
-
-		public BoundingBox getBoundingBox() {
-			return boundingBox;
-		}
-
-		@Override
-		public Metric getMetric() {
-			return boundingBox.getHeight().getMetric();
-		}
-	}
-
 	interface GeoCommandArgs {
 
+		/**
+		 * @return can be {@literal null}.
+		 */
 		@Nullable
 		public Direction getSortDirection();
 
+		/**
+		 * @return can be {@literal null}.
+		 */
 		@Nullable
 		Long getLimit();
 
+		/**
+		 * @return never {@literal null}.
+		 */
 		Set<? extends GeoCommandFlag> getFlags();
 
+		/**
+		 * @return {@literal true} if {@literal limit} has been set.
+		 */
 		default boolean hasLimit() {
 			return getLimit() != null;
 		}
 
+		/**
+		 * @return {@literal true} if {@literal sort} has been set.
+		 */
 		default boolean hasSortDirection() {
 			return getSortDirection() != null;
 		}
 
+		/**
+		 * @return {@literal true} if {@literal flags} is not empty.
+		 */
 		default boolean hasFlags() {
 			return !getFlags().isEmpty();
 		}
 
-		public interface GeoCommandFlag {}
+		/**
+		 * A flag to be used.
+		 */
+		interface GeoCommandFlag {
+
+			static GeoCommandFlag any() {
+				return Flag.ANY;
+			}
+
+			static GeoCommandFlag withCord() {
+				return Flag.WITHCOORD;
+			}
+
+			static GeoCommandFlag withDist() {
+				return Flag.WITHDIST;
+			}
+
+			static GeoCommandFlag storeDist() {
+				return Flag.STOREDIST;
+			}
+		}
 	}
 
 	/**
 	 * Additional arguments (like count/sort/...) to be used with {@link RedisGeoCommands}.
 	 *
 	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 * @since 2.6
 	 */
 	class GeoSearchCommandArgs implements GeoCommandArgs, Cloneable {
 
-		protected final Set<Flag> flags = new LinkedHashSet<>(2, 1);
+		protected final Set<GeoCommandFlag> flags = new LinkedHashSet<>(2, 1);
 
 		@Nullable protected Long limit;
 
@@ -407,7 +353,7 @@ public interface RedisGeoCommands {
 		 */
 		public GeoSearchCommandArgs includeCoordinates() {
 
-			flags.add(Flag.WITHCOORD);
+			flags.add(GeoCommandFlag.withCord());
 			return this;
 		}
 
@@ -418,7 +364,7 @@ public interface RedisGeoCommands {
 		 */
 		public GeoSearchCommandArgs includeDistance() {
 
-			flags.add(Flag.WITHDIST);
+			flags.add(GeoCommandFlag.withDist());
 			return this;
 		}
 
@@ -475,7 +421,7 @@ public interface RedisGeoCommands {
 			Assert.isTrue(count > 0, "Count has to positive value.");
 			limit = count;
 			if (any) {
-				flags.add(Flag.ANY);
+				flags.add(GeoCommandFlag.any());
 			}
 			return this;
 		}
@@ -483,7 +429,7 @@ public interface RedisGeoCommands {
 		/**
 		 * @return never {@literal null}.
 		 */
-		public Set<Flag> getFlags() {
+		public Set<? extends GeoCommandFlag> getFlags() {
 			return flags;
 		}
 
@@ -504,7 +450,7 @@ public interface RedisGeoCommands {
 		}
 
 		public boolean hasAnyLimit() {
-			return hasLimit() && flags.contains(Flag.ANY);
+			return hasLimit() && flags.contains(GeoCommandFlag.any());
 		}
 
 		@Override
@@ -526,7 +472,7 @@ public interface RedisGeoCommands {
 	 */
 	class GeoSearchStoreCommandArgs implements GeoCommandArgs, Cloneable {
 
-		private final Set<Flag> flags = new LinkedHashSet<>(2, 1);
+		private final Set<GeoCommandFlag> flags = new LinkedHashSet<>(2, 1);
 
 		@Nullable private Long limit;
 
@@ -607,7 +553,7 @@ public interface RedisGeoCommands {
 			Assert.isTrue(count > 0, "Count has to positive value.");
 			this.limit = count;
 			if (any) {
-				flags.add(Flag.ANY);
+				flags.add(GeoCommandFlag.any());
 			}
 			return this;
 		}
@@ -615,7 +561,7 @@ public interface RedisGeoCommands {
 		/**
 		 * @return never {@literal null}.
 		 */
-		public Set<Flag> getFlags() {
+		public Set<GeoCommandFlag> getFlags() {
 			return flags;
 		}
 
@@ -636,11 +582,11 @@ public interface RedisGeoCommands {
 		}
 
 		public boolean isStoreDistance() {
-			return flags.contains(Flag.STOREDIST);
+			return flags.contains(GeoCommandFlag.storeDist());
 		}
 
 		public boolean hasAnyLimit() {
-			return hasLimit() && flags.contains(Flag.ANY);
+			return hasLimit() && flags.contains(GeoCommandFlag.any());
 		}
 
 		@Override
@@ -736,6 +682,10 @@ public interface RedisGeoCommands {
 			return this;
 		}
 
+		public Set<Flag> getFlags() {
+			return flags.stream().map(it -> (Flag) it).collect(Collectors.toSet());
+		}
+
 		public enum Flag implements GeoCommandFlag {
 			WITHCOORD, WITHDIST, ANY, STOREDIST
 		}
@@ -752,246 +702,16 @@ public interface RedisGeoCommands {
 	}
 
 	/**
-	 * Reference point for {@code GEOSEARCH} and {@code GEOSEARCHSTORE} commands. Provides factory methods to create
-	 * {@link GeoReference} from geo-set members or reference points.
-	 *
-	 * @param <T>
-	 * @since 2.6
-	 */
-	class GeoReference<T> {
-
-		/**
-		 * Creates a {@link GeoReference} from a geoset member.
-		 *
-		 * @param member must not be {@literal null}.
-		 * @param <T>
-		 * @return
-		 */
-		public static <T> GeoReference<T> fromMember(T member) {
-
-			Assert.notNull(member, "Geoset member must not be null");
-
-			return new GeoSearchMemberReference<>(member);
-		}
-
-		/**
-		 * Creates a {@link GeoReference} from a {@link GeoLocation geoset member}.
-		 *
-		 * @param member must not be {@literal null}.
-		 * @param <T>
-		 * @return
-		 */
-		public static <T> GeoReference<T> fromMember(GeoLocation<T> member) {
-
-			Assert.notNull(member, "GeoLocation must not be null");
-
-			return new GeoSearchMemberReference<>(member.getName());
-		}
-
-		/**
-		 * Creates a {@link GeoReference} from a {@link Circle#getCenter() circle center point} .
-		 *
-		 * @param within must not be {@literal null}.
-		 * @param <T>
-		 * @return
-		 */
-		public static <T> GeoReference<T> fromCircle(Circle within) {
-
-			Assert.notNull(within, "Circle must not be null");
-
-			return fromCoordinate(within.getCenter());
-		}
-
-		/**
-		 * Creates a {@link GeoReference} from a WGS84 longitude/latitude coordinate.
-		 *
-		 * @param longitude
-		 * @param latitude
-		 * @param <T>
-		 * @return
-		 */
-		public static <T> GeoReference<T> fromCoordinate(double longitude, double latitude) {
-			return new GeoSearchCoordinateReference<>(longitude, latitude);
-		}
-
-		/**
-		 * Creates a {@link GeoReference} from a WGS84 longitude/latitude coordinate.
-		 *
-		 * @param location must not be {@literal null}.
-		 * @param <T>
-		 * @return
-		 */
-		public static <T> GeoReference<T> fromCoordinate(GeoLocation<?> location) {
-
-			Assert.notNull(location, "GeoLocation must not be null");
-			Assert.notNull(location.getPoint(), "GeoLocation point must not be null");
-
-			return fromCoordinate(location.getPoint());
-		}
-
-		/**
-		 * Creates a {@link GeoReference} from a WGS84 longitude/latitude coordinate.
-		 *
-		 * @param point must not be {@literal null}.
-		 * @param <T>
-		 * @return
-		 */
-		public static <T> GeoReference<T> fromCoordinate(Point point) {
-
-			Assert.notNull(point, "Reference point must not be null");
-
-			return fromCoordinate(point.getX(), point.getY());
-		}
-
-		public static class GeoSearchMemberReference<T> extends GeoReference<T> {
-
-			private final T member;
-
-			public GeoSearchMemberReference(T member) {
-				this.member = member;
-			}
-
-			public T getMember() {
-				return member;
-			}
-
-			@Override
-			public boolean equals(Object o) {
-				if (this == o) {
-					return true;
-				}
-				if (!(o instanceof GeoSearchMemberReference)) {
-					return false;
-				}
-				GeoSearchMemberReference<?> that = (GeoSearchMemberReference<?>) o;
-				return ObjectUtils.nullSafeEquals(member, that.member);
-			}
-
-			@Override
-			public int hashCode() {
-				return ObjectUtils.nullSafeHashCode(member);
-			}
-
-			@Override
-			public String toString() {
-				final StringBuffer sb = new StringBuffer();
-				sb.append(getClass().getSimpleName());
-				sb.append(" [member=").append(member);
-				sb.append(']');
-				return sb.toString();
-			}
-		}
-
-		public static class GeoSearchCoordinateReference<T> extends GeoReference<T> {
-
-			private final double longitude;
-			private final double latitude;
-
-			public GeoSearchCoordinateReference(double longitude, double latitude) {
-				this.longitude = longitude;
-				this.latitude = latitude;
-			}
-
-			public double getLongitude() {
-				return longitude;
-			}
-
-			public double getLatitude() {
-				return latitude;
-			}
-
-			@Override
-			public boolean equals(Object o) {
-				if (this == o) {
-					return true;
-				}
-				if (!(o instanceof GeoSearchCoordinateReference)) {
-					return false;
-				}
-				GeoSearchCoordinateReference<?> that = (GeoSearchCoordinateReference<?>) o;
-				if (longitude != that.longitude) {
-					return false;
-				}
-				return latitude == that.latitude;
-			}
-
-			@Override
-			public int hashCode() {
-				int result;
-				long temp;
-				temp = Double.doubleToLongBits(longitude);
-				result = (int) (temp ^ (temp >>> 32));
-				temp = Double.doubleToLongBits(latitude);
-				result = 31 * result + (int) (temp ^ (temp >>> 32));
-				return result;
-			}
-
-			@Override
-			public String toString() {
-				final StringBuffer sb = new StringBuffer();
-				sb.append(getClass().getSimpleName());
-				sb.append(" [").append(longitude);
-				sb.append(",").append(latitude);
-				sb.append(']');
-				return sb.toString();
-			}
-		}
-	}
-
-	/**
 	 * {@link GeoLocation} representing a {@link Point} associated with a {@literal name}.
 	 *
 	 * @author Christoph Strobl
 	 * @param <T>
 	 * @since 1.8
 	 */
-	class GeoLocation<T> {
-
-		private final T name;
-		private final Point point;
+	class GeoLocation<T> extends org.springframework.data.redis.domain.geo.GeoLocation<T> {
 
 		public GeoLocation(T name, Point point) {
-			this.name = name;
-			this.point = point;
-		}
-
-		public T getName() {
-			return this.name;
-		}
-
-		public Point getPoint() {
-			return this.point;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-
-			if (this == o) {
-				return true;
-			}
-
-			if (!(o instanceof GeoLocation)) {
-				return false;
-			}
-
-			GeoLocation<?> that = (GeoLocation<?>) o;
-
-			if (!ObjectUtils.nullSafeEquals(name, that.name)) {
-				return false;
-			}
-
-			return ObjectUtils.nullSafeEquals(point, that.point);
-		}
-
-		@Override
-		public int hashCode() {
-			int result = ObjectUtils.nullSafeHashCode(name);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(point);
-			return result;
-		}
-
-		protected boolean canEqual(Object other) {
-			return other instanceof GeoLocation;
+			super(name, point);
 		}
 
 		public String toString() {
@@ -1040,100 +760,4 @@ public interface RedisGeoCommands {
 			return abbreviation;
 		}
 	}
-
-	/**
-	 * Represents a geospatial bounding box defined by width and height.
-	 *
-	 * @author Mark Paluch
-	 * @since 2.6
-	 */
-	class BoundingBox implements Shape {
-
-		private static final long serialVersionUID = 5215611530535947924L;
-
-		private final Distance width;
-		private final Distance height;
-
-		/**
-		 * Creates a new {@link BoundingBox} from the given width and height. Both distances must use the same
-		 * {@link Metric}.
-		 *
-		 * @param width must not be {@literal null}.
-		 * @param height must not be {@literal null}.
-		 */
-		public BoundingBox(Distance width, Distance height) {
-
-			Assert.notNull(width, "Width must not be null!");
-			Assert.notNull(height, "Height must not be null!");
-			Assert.isTrue(width.getMetric().equals(height.getMetric()), "Metric for width and height must be the same!");
-
-			this.width = width;
-			this.height = height;
-		}
-
-		/**
-		 * Creates a new {@link BoundingBox} from the given width, height and {@link Metric}.
-		 *
-		 * @param width
-		 * @param height
-		 * @param metric must not be {@literal null}.
-		 */
-		public BoundingBox(double width, double height, Metric metric) {
-			this(new Distance(width, metric), new Distance(height, metric));
-		}
-
-		/**
-		 * Returns the width of this bounding box.
-		 *
-		 * @return will never be {@literal null}.
-		 */
-		public Distance getWidth() {
-			return height;
-		}
-
-		/**
-		 * Returns the height of this bounding box.
-		 *
-		 * @return will never be {@literal null}.
-		 */
-		public Distance getHeight() {
-			return height;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		public int hashCode() {
-			int result = ObjectUtils.nullSafeHashCode(width);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(height);
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (!(o instanceof BoundingBox)) {
-				return false;
-			}
-			BoundingBox that = (BoundingBox) o;
-			if (!ObjectUtils.nullSafeEquals(width, that.width)) {
-				return false;
-			}
-			return ObjectUtils.nullSafeEquals(height, that.height);
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
-		@Override
-		public String toString() {
-			return String.format("Bounding box: [width=%s, height=%s]", width, height);
-		}
-	}
-
 }

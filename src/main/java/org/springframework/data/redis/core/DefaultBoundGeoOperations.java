@@ -27,6 +27,8 @@ import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
 
 /**
  * Default implementation of {@link BoundGeoOperations}.
@@ -183,8 +185,8 @@ class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> imple
 	 * @see org.springframework.data.redis.core.BoundGeoOperations#search(org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
 	 */
 	@Override
-	public GeoResults<GeoLocation<M>> search(RedisGeoCommands.GeoReference<M> reference,
-			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
+	public GeoResults<GeoLocation<M>> search(GeoReference<M> reference,
+			GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
 		return ops.search(getKey(), reference, geoPredicate, args);
 	}
 
@@ -193,8 +195,8 @@ class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> imple
 	 * @see org.springframework.data.redis.core.BoundGeoOperations#searchAndStore(java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
 	 */
 	@Override
-	public Long searchAndStore(K destKey, RedisGeoCommands.GeoReference<M> reference,
-			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
+	public Long searchAndStore(K destKey, GeoReference<M> reference,
+			GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
 		return ops.searchAndStore(getKey(), destKey, reference, geoPredicate, args);
 	}
 
