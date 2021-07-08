@@ -1105,10 +1105,10 @@ public abstract class LettuceConverters extends Converters {
 		throw new IllegalArgumentException(String.format("Cannot convert %s to Lettuce GeoPredicate", predicate));
 	}
 
-	static GeoSearch.GeoRef<byte[]> toGeoRef(GeoReference<byte[]> reference) {
+	static <T> GeoSearch.GeoRef<T> toGeoRef(GeoReference<T> reference) {
 
 		if (reference instanceof GeoSearchMemberReference) {
-			return GeoSearch.fromMember(((GeoSearchMemberReference<byte[]>) reference).getMember());
+			return GeoSearch.fromMember(((GeoSearchMemberReference<T>) reference).getMember());
 		}
 
 		if (reference instanceof GeoSearchCoordinateReference) {
