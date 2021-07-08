@@ -255,7 +255,7 @@ public interface RedisGeoCommands {
 	 *
 	 * @since 2.6
 	 */
-	interface GeoShape {
+	interface GeoShape extends Shape {
 
 		/**
 		 * Create a shape used as predicate for geo queries from a {@link Distance radius} around the query center point.
@@ -350,17 +350,44 @@ public interface RedisGeoCommands {
 		}
 	}
 
+	interface GeoCommandArgs {
+
+		@Nullable
+		public Direction getSortDirection();
+
+		@Nullable
+		Long getLimit();
+
+		Set<? extends GeoCommandFlag> getFlags();
+
+		default boolean hasLimit() {
+			return getLimit() != null;
+		}
+
+		default boolean hasSortDirection() {
+			return getSortDirection() != null;
+		}
+
+		default boolean hasFlags() {
+			return !getFlags().isEmpty();
+		}
+
+		public interface GeoCommandFlag {}
+	}
+
 	/**
 	 * Additional arguments (like count/sort/...) to be used with {@link RedisGeoCommands}.
 	 *
 	 * @author Mark Paluch
 	 * @since 2.6
 	 */
-	class GeoSearchCommandArgs implements Cloneable {
+	class GeoSearchCommandArgs implements GeoCommandArgs, Cloneable {
 
-		Set<Flag> flags = new LinkedHashSet<>(2, 1);
-		@Nullable Long limit;
-		@Nullable Direction sortDirection;
+		protected final Set<Flag> flags = new LinkedHashSet<>(2, 1);
+
+		@Nullable protected Long limit;
+
+		@Nullable protected Direction sortDirection;
 
 		private GeoSearchCommandArgs() {}
 
@@ -433,10 +460,7 @@ public interface RedisGeoCommands {
 		 * @return never {@literal null}.
 		 */
 		public GeoSearchCommandArgs limit(long count) {
-
-			Assert.isTrue(count > 0, "Count has to positive value.");
-			limit = count;
-			return this;
+			return limit(count, false);
 		}
 
 		/**
@@ -450,7 +474,9 @@ public interface RedisGeoCommands {
 
 			Assert.isTrue(count > 0, "Count has to positive value.");
 			limit = count;
-			flags.add(Flag.ANY);
+			if (any) {
+				flags.add(Flag.ANY);
+			}
 			return this;
 		}
 
@@ -477,18 +503,6 @@ public interface RedisGeoCommands {
 			return sortDirection;
 		}
 
-		public boolean hasFlags() {
-			return !flags.isEmpty();
-		}
-
-		public boolean hasSortDirection() {
-			return sortDirection != null;
-		}
-
-		public boolean hasLimit() {
-			return limit != null;
-		}
-
 		public boolean hasAnyLimit() {
 			return hasLimit() && flags.contains(Flag.ANY);
 		}
@@ -496,11 +510,11 @@ public interface RedisGeoCommands {
 		@Override
 		protected GeoSearchCommandArgs clone() {
 
-			GeoSearchCommandArgs tmp = new GeoSearchCommandArgs();
-			tmp.flags = this.flags != null ? new LinkedHashSet<>(this.flags) : new LinkedHashSet<>(2);
-			tmp.limit = this.limit;
-			tmp.sortDirection = this.sortDirection;
-			return tmp;
+			GeoSearchCommandArgs that = new GeoSearchCommandArgs();
+			that.flags.addAll(this.flags);
+			that.limit = this.limit;
+			that.sortDirection = this.sortDirection;
+			return that;
 		}
 	}
 
@@ -510,11 +524,13 @@ public interface RedisGeoCommands {
 	 * @author Mark Paluch
 	 * @since 2.6
 	 */
-	class GeoSearchStoreCommandArgs implements Cloneable {
+	class GeoSearchStoreCommandArgs implements GeoCommandArgs, Cloneable {
 
-		Set<Flag> flags = new LinkedHashSet<>(2, 1);
-		@Nullable Long limit;
-		@Nullable Direction sortDirection;
+		private final Set<Flag> flags = new LinkedHashSet<>(2, 1);
+
+		@Nullable private Long limit;
+
+		@Nullable private Direction sortDirection;
 
 		private GeoSearchStoreCommandArgs() {}
 
@@ -576,10 +592,7 @@ public interface RedisGeoCommands {
 		 * @return never {@literal null}.
 		 */
 		public GeoSearchStoreCommandArgs limit(long count) {
-
-			Assert.isTrue(count > 0, "Count has to positive value.");
-			limit = count;
-			return this;
+			return limit(count, false);
 		}
 
 		/**
@@ -592,8 +605,10 @@ public interface RedisGeoCommands {
 		public GeoSearchStoreCommandArgs limit(long count, boolean any) {
 
 			Assert.isTrue(count > 0, "Count has to positive value.");
-			limit = count;
-			flags.add(Flag.ANY);
+			this.limit = count;
+			if (any) {
+				flags.add(Flag.ANY);
+			}
 			return this;
 		}
 
@@ -624,14 +639,6 @@ public interface RedisGeoCommands {
 			return flags.contains(Flag.STOREDIST);
 		}
 
-		public boolean hasSortDirection() {
-			return sortDirection != null;
-		}
-
-		public boolean hasLimit() {
-			return limit != null;
-		}
-
 		public boolean hasAnyLimit() {
 			return hasLimit() && flags.contains(Flag.ANY);
 		}
@@ -639,11 +646,11 @@ public interface RedisGeoCommands {
 		@Override
 		protected GeoSearchStoreCommandArgs clone() {
 
-			GeoSearchStoreCommandArgs tmp = new GeoSearchStoreCommandArgs();
-			tmp.flags = this.flags != null ? new LinkedHashSet<>(this.flags) : new LinkedHashSet<>(2);
-			tmp.limit = this.limit;
-			tmp.sortDirection = this.sortDirection;
-			return tmp;
+			GeoSearchStoreCommandArgs that = new GeoSearchStoreCommandArgs();
+			that.flags.addAll(this.flags);
+			that.limit = this.limit;
+			that.sortDirection = this.sortDirection;
+			return that;
 		}
 	}
 
@@ -729,18 +736,18 @@ public interface RedisGeoCommands {
 			return this;
 		}
 
-		public enum Flag {
+		public enum Flag implements GeoCommandFlag {
 			WITHCOORD, WITHDIST, ANY, STOREDIST
 		}
 
 		@Override
 		protected GeoRadiusCommandArgs clone() {
 
-			GeoRadiusCommandArgs tmp = new GeoRadiusCommandArgs();
-			tmp.flags = this.flags != null ? new LinkedHashSet<>(this.flags) : new LinkedHashSet<>(2);
-			tmp.limit = this.limit;
-			tmp.sortDirection = this.sortDirection;
-			return tmp;
+			GeoRadiusCommandArgs that = new GeoRadiusCommandArgs();
+			that.flags.addAll(this.flags);
+			that.limit = this.limit;
+			that.sortDirection = this.sortDirection;
+			return that;
 		}
 	}
 
