@@ -25,13 +25,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.reactivestreams.Publisher;
-
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.redis.domain.geo.BoundingBox;
+import org.springframework.data.redis.domain.geo.GeoShape;
 
 /**
  * Reactive Redis operations for geo commands.

@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.springframework.data.redis.connection.RedisGeoCommands.*;
-
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +24,13 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
-import org.springframework.data.redis.connection.RedisGeoCommands.*;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoReference;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs;
+import org.springframework.data.redis.domain.geo.BoundingBox;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.lang.Nullable;
 
 /**

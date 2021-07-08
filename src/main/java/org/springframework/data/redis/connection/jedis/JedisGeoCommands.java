@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.domain.geo.GeoShape;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.GeoUnit;

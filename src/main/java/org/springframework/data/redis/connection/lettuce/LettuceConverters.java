@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
@@ -70,6 +69,10 @@ import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.domain.geo.BoundingBox;
+import org.springframework.data.redis.domain.geo.BoxShape;
+import org.springframework.data.redis.domain.geo.GeoShape;
+import org.springframework.data.redis.domain.geo.RadiusShape;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;

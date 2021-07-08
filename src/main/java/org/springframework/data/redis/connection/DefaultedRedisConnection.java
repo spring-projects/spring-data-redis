@@ -44,6 +44,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.lang.Nullable;
 
 /**

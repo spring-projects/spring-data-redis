@@ -47,6 +47,7 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;

@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
@@ -39,6 +38,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;

@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import static org.springframework.data.redis.connection.RedisGeoCommands.*;
 
+import org.springframework.data.redis.domain.geo.GeoShape;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

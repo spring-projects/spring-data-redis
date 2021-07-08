@@ -28,6 +28,7 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.data.redis.domain.geo.GeoShape;
 
 /**
  * Default implementation of {@link GeoOperations}.
@@ -249,7 +250,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 	 */
 	@Override
 	public GeoResults<GeoLocation<M>> search(K key, RedisGeoCommands.GeoReference<M> reference,
-			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
+			GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
 
 		byte[] rawKey = rawKey(key);
 		RedisGeoCommands.GeoReference<byte[]> rawMember = getGeoReference(reference);
@@ -266,7 +267,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 	 */
 	@Override
 	public Long searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<M> reference,
-			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
+			GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawDestKey = rawKey(destKey);

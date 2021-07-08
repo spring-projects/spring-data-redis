@@ -21,6 +21,7 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 
+import org.springframework.data.redis.domain.geo.GeoShape;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;

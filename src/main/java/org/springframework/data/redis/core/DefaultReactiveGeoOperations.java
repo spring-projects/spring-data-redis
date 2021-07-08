@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.ReactiveGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.util.Assert;
 
@@ -341,7 +342,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	 */
 	@Override
 	public Flux<GeoResult<GeoLocation<V>>> search(K key, RedisGeoCommands.GeoReference<V> reference,
-			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
+			GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(reference, "GeoReference must not be null!");
@@ -357,7 +358,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	 */
 	@Override
 	public Mono<Long> searchAndStore(K key, K destKey, RedisGeoCommands.GeoReference<V> reference,
-			RedisGeoCommands.GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
+			GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(reference, "GeoReference must not be null!");

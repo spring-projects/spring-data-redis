@@ -37,6 +37,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.domain.geo.BoundingBox;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
@@ -512,7 +513,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 
 		GeoResults<GeoLocation<M>> result = geoOperations.search(key,
 				RedisGeoCommands.GeoReference.fromCoordinate(POINT_PALERMO),
-				new RedisGeoCommands.BoundingBox(180, 180, KILOMETERS),
+				new BoundingBox(180, 180, KILOMETERS),
 				newGeoSearchArgs().includeCoordinates().sortAscending());
 
 		assertThat(result.getContent()).hasSize(2);
@@ -543,7 +544,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		geoOperations.add(key, POINT_ARIGENTO, member3);
 
 		GeoResults<GeoLocation<M>> result = geoOperations.search(key, RedisGeoCommands.GeoReference.fromMember(member1),
-				new RedisGeoCommands.BoundingBox(180, 180, KILOMETERS),
+				new BoundingBox(180, 180, KILOMETERS),
 				newGeoSearchArgs().includeCoordinates().sortAscending());
 
 		assertThat(result.getContent()).hasSize(2);
