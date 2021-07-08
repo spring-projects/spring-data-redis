@@ -672,7 +672,7 @@ public interface ReactiveGeoCommands {
 			Assert.notNull(flag, "Flag must not be null!");
 
 			GeoRadiusCommandArgs args = cloneArgs();
-			args.flags.add(flag);
+			args.getFlags().add(flag);
 
 			return new GeoRadiusCommand(getKey(), point, distance, args, store, storeDist);
 		}
@@ -735,7 +735,7 @@ public interface ReactiveGeoCommands {
 			Assert.notNull(direction, "Direction must not be null!");
 
 			GeoRadiusCommandArgs args = cloneArgs();
-			args.sortDirection = direction;
+			args.sort(direction);
 
 			return new GeoRadiusCommand(getKey(), point, distance, args, store, storeDist);
 		}
@@ -1007,7 +1007,7 @@ public interface ReactiveGeoCommands {
 			Assert.notNull(flag, "Flag must not be null!");
 
 			GeoRadiusCommandArgs args = cloneArgs();
-			args.flags.add(flag);
+			args.getFlags().add(flag);
 
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
 		}
@@ -1069,7 +1069,7 @@ public interface ReactiveGeoCommands {
 			Assert.notNull(direction, "Direction must not be null!");
 
 			GeoRadiusCommandArgs args = cloneArgs();
-			args.sortDirection = direction;
+			args.sort(direction);
 
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
 		}

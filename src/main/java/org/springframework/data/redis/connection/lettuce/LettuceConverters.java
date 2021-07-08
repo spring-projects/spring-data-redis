@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
@@ -800,29 +801,27 @@ public abstract class LettuceConverters extends Converters {
 	 * @since 1.8
 	 */
 	public static GeoArgs toGeoArgs(GeoRadiusCommandArgs args) {
-		return toGeoArgs((GeoSearchCommandArgs) args);
+		return toGeoArgs((GeoCommandArgs) args);
 	}
 
 	/**
-	 * Convert {@link GeoRadiusCommandArgs} into {@link GeoArgs}.
+	 * Convert {@link GeoCommandArgs} into {@link GeoArgs}.
 	 *
 	 * @param args
 	 * @return
 	 * @since 2.6
 	 */
-	public static GeoArgs toGeoArgs(GeoSearchCommandArgs args) {
+	public static GeoArgs toGeoArgs(GeoCommandArgs args) {
 
 		GeoArgs geoArgs = new GeoArgs();
 
 		if (args.hasFlags()) {
-			for (GeoRadiusCommandArgs.Flag flag : args.getFlags()) {
-				switch (flag) {
-					case WITHCOORD:
-						geoArgs.withCoordinates();
-						break;
-					case WITHDIST:
-						geoArgs.withDistance();
-						break;
+			for (GeoRadiusCommandArgs.GeoCommandFlag flag : args.getFlags()) {
+				if(flag.equals(GeoRadiusCommandArgs.Flag.WITHCOORD)) {
+					geoArgs.withCoordinates();
+				}
+				else if(flag.equals(GeoRadiusCommandArgs.Flag.WITHDIST)) {
+					geoArgs.withDistance();
 				}
 			}
 		}
@@ -839,36 +838,9 @@ public abstract class LettuceConverters extends Converters {
 		}
 
 		if (args.hasLimit()) {
-			geoArgs.withCount(args.getLimit(), args.hasAnyLimit());
-		}
-		return geoArgs;
-	}
-
-	/**
-	 * Convert {@link GeoRadiusCommandArgs} into {@link GeoArgs}.
-	 *
-	 * @param args
-	 * @return
-	 * @since 2.6
-	 */
-	static GeoArgs toGeoArgs(GeoSearchStoreCommandArgs args) {
-
-		GeoArgs geoArgs = new GeoArgs();
-
-		if (args.hasSortDirection()) {
-			switch (args.getSortDirection()) {
-				case ASC:
-					geoArgs.asc();
-					break;
-				case DESC:
-					geoArgs.desc();
-					break;
-			}
+			geoArgs.withCount(args.getLimit(), args.getFlags().contains(GeoRadiusCommandArgs.Flag.ANY));
 		}
 
-		if (args.hasLimit()) {
-			geoArgs.withCount(args.getLimit(), args.hasLimit());
-		}
 		return geoArgs;
 	}
 
