@@ -15,16 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import java.nio.ByteBuffer;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import static org.springframework.data.redis.connection.lettuce.LettuceConnection.*;
 
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
@@ -39,6 +30,18 @@ import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
+
+import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -49,36 +52,17 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.ClusterCommandExecutor;
-import org.springframework.data.redis.connection.ClusterTopologyProvider;
-import org.springframework.data.redis.connection.Pool;
-import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
-import org.springframework.data.redis.connection.RedisClusterConnection;
-import org.springframework.data.redis.connection.RedisConfiguration;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.DomainSocketConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisNode;
-import org.springframework.data.redis.connection.RedisPassword;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisSentinelConnection;
-import org.springframework.data.redis.connection.RedisSocketConfiguration;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-
-import static org.springframework.data.redis.connection.lettuce.LettuceConnection.CODEC;
-import static org.springframework.data.redis.connection.lettuce.LettuceConnection.LettucePoolConnectionProvider;
-import static org.springframework.data.redis.connection.lettuce.LettuceConnection.PipeliningFlushPolicy;
 
 /**
  * Connection factory creating <a href="https://github.com/mp911de/lettuce">Lettuce</a>-based connections.
@@ -298,7 +282,7 @@ public class LettuceConnectionFactory
 	}
 
 	/**
-	 * Converts a {@link RedisURI} into its corresponding {@link RedisConfiguration} according to the following:
+	 * Creates a {@link RedisConfiguration} based on a {@link RedisURI} according to the following:
 	 * <ul>
 	 * <li>If {@code redisURI} has sentinel info a {@link RedisSentinelConfiguration} is returned</li>
 	 * <li>If {@code redisURI} has socket info a {@link RedisSocketConfiguration} is returned</li>
@@ -308,7 +292,7 @@ public class LettuceConnectionFactory
 	 * @param redisURI the connection info in the format of a RedisURI
 	 * @return an appropriate {@link RedisConfiguration} instance representing the Redis URI.
 	 */
-	public static RedisConfiguration redisConfigurationFromRedisUri(RedisURI redisURI) {
+	public static RedisConfiguration createRedisConfiguration(RedisURI redisURI) {
 
 		Assert.notNull(redisURI, "RedisURI must not be null");
 
