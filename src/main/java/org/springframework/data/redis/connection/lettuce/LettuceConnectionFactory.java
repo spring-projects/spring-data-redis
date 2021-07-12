@@ -114,6 +114,7 @@ import static org.springframework.data.redis.connection.lettuce.LettuceConnectio
  * @author Ruben Cervilla
  * @author Luis De Bello
  * @author Andrea Como
+ * @author Chris Bono
  */
 public class LettuceConnectionFactory
 		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
