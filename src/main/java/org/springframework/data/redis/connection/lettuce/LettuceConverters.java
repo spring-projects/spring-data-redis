@@ -33,14 +33,12 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.BitFieldSubCommands;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldGet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
-import org.springframework.data.redis.connection.DefaultTuple;
-import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
@@ -48,17 +46,10 @@ import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
-import org.springframework.data.redis.connection.RedisPassword;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
-import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
@@ -83,6 +74,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Ninad Divadkar
  * @author dengliming
+ * @author Chris Bono
  */
 public abstract class LettuceConverters extends Converters {
 
@@ -530,6 +522,86 @@ public abstract class LettuceConverters extends Converters {
 		builder.withSentinelMasterId(sentinelConfiguration.getMaster().getName());
 
 		return builder.build();
+	}
+
+	/**
+	 * Converts a {@link RedisURI} to its corresponding {@link RedisSentinelConfiguration}.
+	 *
+	 * @param redisURI the uri containing the Redis Sentinel connection info
+	 * @return a {@link RedisSentinelConfiguration} representing the Redis Sentinel information in the Redis URI.
+	 * @since 2.6
+	 */
+	static RedisSentinelConfiguration redisUriToSentinelConfiguration(RedisURI redisURI) {
+
+		Assert.notNull(redisURI, "RedisURI is required");
+
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration();
+		if (!ObjectUtils.isEmpty(redisURI.getSentinelMasterId())) {
+			sentinelConfiguration.setMaster(redisURI.getSentinelMasterId());
+		}
+		sentinelConfiguration.setDatabase(redisURI.getDatabase());
+
+		for (RedisURI sentinelNodeRedisUri : redisURI.getSentinels()) {
+			RedisNode sentinelNode = new RedisNode(sentinelNodeRedisUri.getHost(), sentinelNodeRedisUri.getPort());
+			if (sentinelNodeRedisUri.getPassword() != null) {
+				sentinelConfiguration.setSentinelPassword(sentinelNodeRedisUri.getPassword());
+			}
+			sentinelConfiguration.addSentinel(sentinelNode);
+		}
+
+		applyAuthentication(redisURI, sentinelConfiguration);
+
+		return sentinelConfiguration;
+	}
+
+	/**
+	 * Converts a {@link RedisURI} to its corresponding {@link RedisSocketConfiguration}.
+	 *
+	 * @param redisURI the uri containing the Redis connection info using a local unix domain socket
+	 * @return a {@link RedisSocketConfiguration} representing the connection information in the Redis URI.
+	 * @since 2.6
+	 */
+	static RedisSocketConfiguration redisUriToSocketConfiguration(RedisURI redisURI) {
+
+		Assert.notNull(redisURI, "RedisURI is required");
+
+		RedisSocketConfiguration socketConfiguration = new RedisSocketConfiguration();
+		socketConfiguration.setSocket(redisURI.getSocket());
+		socketConfiguration.setDatabase(redisURI.getDatabase());
+
+		applyAuthentication(redisURI, socketConfiguration);
+
+		return socketConfiguration;
+	}
+
+	/**
+	 * Converts a {@link RedisURI} to its corresponding {@link RedisStandaloneConfiguration}.
+	 *
+	 * @param redisURI the uri containing the Redis connection info
+	 * @return a {@link RedisStandaloneConfiguration} representing the connection information in the Redis URI.
+	 * @since 2.6
+	 */
+	static RedisStandaloneConfiguration redisUriToStandaloneConfiguration(RedisURI redisURI) {
+
+		Assert.notNull(redisURI, "RedisURI is required");
+
+		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration();
+		standaloneConfiguration.setHostName(redisURI.getHost());
+		standaloneConfiguration.setPort(redisURI.getPort());
+		standaloneConfiguration.setDatabase(redisURI.getDatabase());
+
+		applyAuthentication(redisURI, standaloneConfiguration);
+
+		return standaloneConfiguration;
+	}
+
+	private static void applyAuthentication(RedisURI redisURI, RedisConfiguration.WithAuthentication redisConfiguration) {
+		if (StringUtils.hasText(redisURI.getUsername())) {
+			redisConfiguration.setUsername(redisURI.getUsername());
+		}
+		if (redisURI.getPassword() != null) {
+			redisConfiguration.setPassword(redisURI.getPassword());
+		}
 	}
 
 	public static byte[] toBytes(@Nullable String source) {

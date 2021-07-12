@@ -61,6 +61,7 @@ import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -97,6 +98,7 @@ import org.springframework.util.StringUtils;
  * @author Ruben Cervilla
  * @author Luis De Bello
  * @author Andrea Como
+ * @author Chris Bono
  */
 public class LettuceConnectionFactory
 		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
@@ -277,6 +279,32 @@ public class LettuceConnectionFactory
 		Assert.notNull(clusterConfiguration, "RedisClusterConfiguration must not be null!");
 
 		this.configuration = clusterConfiguration;
+	}
+
+	/**
+	 * Creates a {@link RedisConfiguration} based on a {@link RedisURI} according to the following:
+	 * <ul>
+	 * <li>If {@code redisURI} has sentinel info a {@link RedisSentinelConfiguration} is returned</li>
+	 * <li>If {@code redisURI} has socket info a {@link RedisSocketConfiguration} is returned</li>
+	 * <li>Otherwise a {@link RedisStandaloneConfiguration} is returned</li>
+	 * </ul>
+	 *
+	 * @param redisURI the connection info in the format of a RedisURI
+	 * @return an appropriate {@link RedisConfiguration} instance representing the Redis URI.
+	 */
+	public static RedisConfiguration createRedisConfiguration(RedisURI redisURI) {
+
+		Assert.notNull(redisURI, "RedisURI must not be null");
+
+		if (!ObjectUtils.isEmpty(redisURI.getSentinels())) {
+			return LettuceConverters.redisUriToSentinelConfiguration(redisURI);
+		}
+
+		if (!ObjectUtils.isEmpty(redisURI.getSocket())) {
+			return LettuceConverters.redisUriToSocketConfiguration(redisURI);
+		}
+
+		return LettuceConverters.redisUriToStandaloneConfiguration(redisURI);
 	}
 
 	/*
