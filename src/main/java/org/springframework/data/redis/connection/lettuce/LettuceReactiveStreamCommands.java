@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Tugdual Grall
  * @author Dengliming
+ * @author Mark John Moreno
  * @since 2.2
  */
 class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
@@ -110,6 +111,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 			if (command.hasMaxlen()) {
 				args.maxlen(command.getMaxlen());
 			}
+			args.nomkstream(command.isNoMkStream());
 
 			return cmd.xadd(command.getKey(), args, command.getBody())
 					.map(value -> new CommandResponse<>(command, RecordId.of(value)));
