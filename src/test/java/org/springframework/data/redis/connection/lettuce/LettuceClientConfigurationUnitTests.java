@@ -18,12 +18,13 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.RedisURI;
 import io.lettuce.core.TimeoutOptions;
 import io.lettuce.core.resource.ClientResources;
-import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 
@@ -104,5 +105,30 @@ class LettuceClientConfigurationUnitTests {
 	@Test // DATAREDIS-576
 	void clientConfigurationThrowsExceptionForEmptyClientName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> LettuceClientConfiguration.builder().clientName(" "));
+	}
+
+	@Test // GH-2116
+	void shouldApplySettingsFromRedisURI() {
+
+		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder() //
+				.apply(RedisURI.create("rediss://foo?verifyPeer=FULL&clientName=bar&timeout=10s")).build();
+
+		assertThat(configuration.isUseSsl()).isTrue();
+		assertThat(configuration.isVerifyPeer()).isTrue();
+		assertThat(configuration.isStartTls()).isFalse();
+		assertThat(configuration.getClientName()).contains("bar");
+		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(10));
+	}
+
+	@Test // GH-2116
+	void emptySettingsRetainClientConfiguration() {
+
+		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder() //
+				.clientName("hello") //
+				.commandTimeout(Duration.ofMillis(1)) //
+				.apply(RedisURI.create("rediss://foo")).build();
+
+		assertThat(configuration.getClientName()).contains("hello");
+		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofMillis(1));
 	}
 }

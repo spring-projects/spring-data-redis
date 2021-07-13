@@ -28,6 +28,7 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -287,6 +288,52 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	@Override
 	public RedisPassword getSentinelPassword() {
 		return sentinelPassword;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof RedisSentinelConfiguration)) {
+			return false;
+		}
+		RedisSentinelConfiguration that = (RedisSentinelConfiguration) o;
+		if (database != that.database) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(master, that.master)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(sentinels, that.sentinels)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(dataNodeUsername, that.dataNodeUsername)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(dataNodePassword, that.dataNodePassword)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(sentinelPassword, that.sentinelPassword);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int result = ObjectUtils.nullSafeHashCode(master);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(sentinels);
+		result = 31 * result + database;
+		result = 31 * result + ObjectUtils.nullSafeHashCode(dataNodeUsername);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(dataNodePassword);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(sentinelPassword);
+		return result;
 	}
 
 	private RedisNode readHostAndPortFromString(String hostAndPort) {

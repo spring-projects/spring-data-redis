@@ -525,15 +525,50 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	/**
+	 * Converts a {@link RedisURI} to its corresponding {@link RedisStandaloneConfiguration}.
+	 *
+	 * @param redisURI the uri containing the Redis connection info
+	 * @return a {@link RedisStandaloneConfiguration} representing the connection information in the Redis URI.
+	 * @since 2.5.3
+	 */
+	static RedisStandaloneConfiguration createRedisStandaloneConfiguration(RedisURI redisURI) {
+
+		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration();
+		standaloneConfiguration.setHostName(redisURI.getHost());
+		standaloneConfiguration.setPort(redisURI.getPort());
+		standaloneConfiguration.setDatabase(redisURI.getDatabase());
+
+		applyAuthentication(redisURI, standaloneConfiguration);
+
+		return standaloneConfiguration;
+	}
+
+	/**
+	 * Converts a {@link RedisURI} to its corresponding {@link RedisSocketConfiguration}.
+	 *
+	 * @param redisURI the uri containing the Redis connection info using a local unix domain socket
+	 * @return a {@link RedisSocketConfiguration} representing the connection information in the Redis URI.
+	 * @since 2.5.3
+	 */
+	static RedisSocketConfiguration createRedisSocketConfiguration(RedisURI redisURI) {
+
+		RedisSocketConfiguration socketConfiguration = new RedisSocketConfiguration();
+		socketConfiguration.setSocket(redisURI.getSocket());
+		socketConfiguration.setDatabase(redisURI.getDatabase());
+
+		applyAuthentication(redisURI, socketConfiguration);
+
+		return socketConfiguration;
+	}
+
+	/**
 	 * Converts a {@link RedisURI} to its corresponding {@link RedisSentinelConfiguration}.
 	 *
 	 * @param redisURI the uri containing the Redis Sentinel connection info
 	 * @return a {@link RedisSentinelConfiguration} representing the Redis Sentinel information in the Redis URI.
-	 * @since 2.6
+	 * @since 2.5.3
 	 */
-	static RedisSentinelConfiguration redisUriToSentinelConfiguration(RedisURI redisURI) {
-
-		Assert.notNull(redisURI, "RedisURI is required");
+	static RedisSentinelConfiguration createRedisSentinelConfiguration(RedisURI redisURI) {
 
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration();
 		if (!ObjectUtils.isEmpty(redisURI.getSentinelMasterId())) {
@@ -554,51 +589,12 @@ public abstract class LettuceConverters extends Converters {
 		return sentinelConfiguration;
 	}
 
-	/**
-	 * Converts a {@link RedisURI} to its corresponding {@link RedisSocketConfiguration}.
-	 *
-	 * @param redisURI the uri containing the Redis connection info using a local unix domain socket
-	 * @return a {@link RedisSocketConfiguration} representing the connection information in the Redis URI.
-	 * @since 2.6
-	 */
-	static RedisSocketConfiguration redisUriToSocketConfiguration(RedisURI redisURI) {
-
-		Assert.notNull(redisURI, "RedisURI is required");
-
-		RedisSocketConfiguration socketConfiguration = new RedisSocketConfiguration();
-		socketConfiguration.setSocket(redisURI.getSocket());
-		socketConfiguration.setDatabase(redisURI.getDatabase());
-
-		applyAuthentication(redisURI, socketConfiguration);
-
-		return socketConfiguration;
-	}
-
-	/**
-	 * Converts a {@link RedisURI} to its corresponding {@link RedisStandaloneConfiguration}.
-	 *
-	 * @param redisURI the uri containing the Redis connection info
-	 * @return a {@link RedisStandaloneConfiguration} representing the connection information in the Redis URI.
-	 * @since 2.6
-	 */
-	static RedisStandaloneConfiguration redisUriToStandaloneConfiguration(RedisURI redisURI) {
-
-		Assert.notNull(redisURI, "RedisURI is required");
-
-		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration();
-		standaloneConfiguration.setHostName(redisURI.getHost());
-		standaloneConfiguration.setPort(redisURI.getPort());
-		standaloneConfiguration.setDatabase(redisURI.getDatabase());
-
-		applyAuthentication(redisURI, standaloneConfiguration);
-
-		return standaloneConfiguration;
-	}
-
 	private static void applyAuthentication(RedisURI redisURI, RedisConfiguration.WithAuthentication redisConfiguration) {
+
 		if (StringUtils.hasText(redisURI.getUsername())) {
 			redisConfiguration.setUsername(redisURI.getUsername());
 		}
+
 		if (redisURI.getPassword() != null) {
 			redisConfiguration.setPassword(redisURI.getPassword());
 		}

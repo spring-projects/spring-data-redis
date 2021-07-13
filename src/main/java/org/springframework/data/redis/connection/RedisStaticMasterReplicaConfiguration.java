@@ -22,6 +22,7 @@ import java.util.List;
 import org.springframework.data.redis.connection.RedisConfiguration.StaticMasterReplicaConfiguration;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using the provided
@@ -180,5 +181,43 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 	@Override
 	public List<RedisStandaloneConfiguration> getNodes() {
 		return Collections.unmodifiableList(nodes);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof RedisStaticMasterReplicaConfiguration)) {
+			return false;
+		}
+		RedisStaticMasterReplicaConfiguration that = (RedisStaticMasterReplicaConfiguration) o;
+		if (database != that.database) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(nodes, that.nodes)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(username, that.username)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(password, that.password);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int result = ObjectUtils.nullSafeHashCode(nodes);
+		result = 31 * result + database;
+		result = 31 * result + ObjectUtils.nullSafeHashCode(username);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(password);
+		return result;
 	}
 }

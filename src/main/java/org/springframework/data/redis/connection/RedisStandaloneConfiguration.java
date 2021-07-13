@@ -20,6 +20,7 @@ import org.springframework.data.redis.connection.RedisConfiguration.WithHostAndP
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
@@ -165,5 +166,47 @@ public class RedisStandaloneConfiguration
 		Assert.notNull(password, "RedisPassword must not be null!");
 
 		this.password = password;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof RedisStandaloneConfiguration)) {
+			return false;
+		}
+		RedisStandaloneConfiguration that = (RedisStandaloneConfiguration) o;
+		if (port != that.port) {
+			return false;
+		}
+		if (database != that.database) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(hostName, that.hostName)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(username, that.username)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(password, that.password);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int result = ObjectUtils.nullSafeHashCode(hostName);
+		result = 31 * result + port;
+		result = 31 * result + database;
+		result = 31 * result + ObjectUtils.nullSafeHashCode(username);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(password);
+		return result;
 	}
 }
