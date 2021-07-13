@@ -31,6 +31,7 @@ import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfi
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -221,6 +222,44 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		Assert.notNull(password, "RedisPassword must not be null!");
 
 		this.password = password;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof RedisClusterConfiguration)) {
+			return false;
+		}
+		RedisClusterConfiguration that = (RedisClusterConfiguration) o;
+		if (!ObjectUtils.nullSafeEquals(clusterNodes, that.clusterNodes)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(maxRedirects, that.maxRedirects)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(username, that.username)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(password, that.password);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int result = ObjectUtils.nullSafeHashCode(clusterNodes);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(maxRedirects);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(username);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(password);
+		return result;
 	}
 
 	private RedisNode readHostAndPortFromString(String hostAndPort) {

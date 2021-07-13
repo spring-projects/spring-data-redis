@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import org.springframework.data.redis.connection.RedisConfiguration.DomainSocketConfiguration;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} connecting to
@@ -132,5 +133,43 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 		Assert.notNull(password, "RedisPassword must not be null!");
 
 		this.password = password;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof RedisSocketConfiguration)) {
+			return false;
+		}
+		RedisSocketConfiguration that = (RedisSocketConfiguration) o;
+		if (database != that.database) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(socket, that.socket)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(username, that.username)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(password, that.password);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int result = ObjectUtils.nullSafeHashCode(socket);
+		result = 31 * result + database;
+		result = 31 * result + ObjectUtils.nullSafeHashCode(username);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(password);
+		return result;
 	}
 }

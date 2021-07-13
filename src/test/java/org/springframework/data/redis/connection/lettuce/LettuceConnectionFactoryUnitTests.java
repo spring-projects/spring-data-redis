@@ -56,6 +56,7 @@ import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConfiguration;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSocketConfiguration;
@@ -72,6 +73,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Ruben Cervilla
  * @author Luis De Bello
  * @author Andrea Como
+ * @author Chris Bono
  */
 class LettuceConnectionFactoryUnitTests {
 
@@ -1024,6 +1026,110 @@ class LettuceConnectionFactoryUnitTests {
 		assertThatIllegalStateException().isThrownBy(connectionFactory::getSentinelConnection);
 		assertThatIllegalStateException().isThrownBy(connectionFactory::getReactiveConnection);
 		assertThatIllegalStateException().isThrownBy(connectionFactory::getReactiveClusterConnection);
+	}
+
+	@Test // GH-2116
+	void createRedisConfigurationRequiresRedisUri() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> LettuceConnectionFactory.createRedisConfiguration((RedisURI) null))
+				.withMessage("RedisURI must not be null");
+	}
+
+	@Test // GH-2116
+	void createMinimalRedisStandaloneConfiguration() {
+
+		RedisURI redisURI = RedisURI.create("redis://myserver");
+
+		RedisStandaloneConfiguration expected = new RedisStandaloneConfiguration();
+		expected.setHostName("myserver");
+
+		RedisConfiguration configuration = LettuceConnectionFactory.createRedisConfiguration(redisURI);
+
+		assertThat(configuration).isEqualTo(expected);
+	}
+
+	@Test // GH-2116
+	void createFullRedisStanaloneConfiguration() {
+
+		RedisURI redisURI = RedisURI.create("redis://fooUser:fooPass@myserver1:111/7");
+
+		RedisStandaloneConfiguration expected = new RedisStandaloneConfiguration();
+		expected.setHostName("myserver1");
+		expected.setPort(111);
+		expected.setDatabase(7);
+		expected.setUsername("fooUser");
+		expected.setPassword("fooPass");
+
+		RedisConfiguration configuration = LettuceConnectionFactory.createRedisConfiguration(redisURI);
+
+		assertThat(configuration).isEqualTo(expected);
+	}
+
+	@Test // GH-2116
+	void createMinimalRedisSocketConfiguration() {
+
+		RedisURI redisURI = RedisURI.Builder.socket("mysocket").build();
+
+		RedisSocketConfiguration expected = new RedisSocketConfiguration();
+		expected.setSocket("mysocket");
+
+		RedisConfiguration socketConfiguration = LettuceConnectionFactory.createRedisConfiguration(redisURI);
+
+		assertThat(socketConfiguration).isEqualTo(expected);
+	}
+
+	@Test // GH-2116
+	void createFullRedisSocketConfiguration() {
+
+		RedisURI redisURI = RedisURI.Builder.socket("mysocket").withAuthentication("fooUser", "fooPass".toCharArray())
+				.withDatabase(7).build();
+
+		RedisSocketConfiguration expected = new RedisSocketConfiguration();
+		expected.setSocket("mysocket");
+		expected.setUsername("fooUser");
+		expected.setPassword("fooPass");
+		expected.setDatabase(7);
+
+		RedisConfiguration socketConfiguration = LettuceConnectionFactory.createRedisConfiguration(redisURI);
+
+		assertThat(socketConfiguration).isEqualTo(expected);
+	}
+
+	@Test // GH-2116
+	void createMinimalRedisSentinelConfiguration() {
+
+		RedisURI redisURI = RedisURI.create("redis-sentinel://myserver?sentinelMasterId=5150");
+
+		RedisSentinelConfiguration expected = new RedisSentinelConfiguration();
+		expected.setMaster("5150");
+		expected.addSentinel(new RedisNode("myserver", 26379));
+
+		RedisConfiguration sentinelConfiguration = LettuceConnectionFactory.createRedisConfiguration(redisURI);
+
+		assertThat(sentinelConfiguration).isEqualTo(expected);
+	}
+
+	@Test // GH-2116
+	void createFullRedisSentinelConfiguration() {
+
+		RedisURI redisURI = RedisURI
+				.create("redis-sentinel://fooUser:fooPass@myserver1:111,myserver2:222/7?sentinelMasterId=5150");
+		// Set the passwords directly on the sentinels so that it gets picked up by converter
+		char[] sentinelPass = "changeme".toCharArray();
+		redisURI.getSentinels().forEach(sentinelRedisUri -> sentinelRedisUri.setPassword(sentinelPass));
+
+		RedisSentinelConfiguration expected = new RedisSentinelConfiguration();
+		expected.setMaster("5150");
+		expected.setDatabase(7);
+		expected.setUsername("fooUser");
+		expected.setPassword("fooPass");
+		expected.setSentinelPassword(sentinelPass);
+		expected.addSentinel(new RedisNode("myserver1", 111));
+		expected.addSentinel(new RedisNode("myserver2", 222));
+
+		RedisConfiguration configuration = LettuceConnectionFactory.createRedisConfiguration(redisURI);
+
+		assertThat(configuration).isEqualTo(expected);
 	}
 
 	@Data
