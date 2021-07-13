@@ -41,6 +41,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Tugdual Grall
  * @author Dengliming
+ * @author Mark John Moreno
  * @see <a href="https://redis.io/topics/streams-intro">Redis Documentation - Streams</a>
  * @since 2.2
  */
@@ -116,16 +117,19 @@ public interface RedisStreamCommands {
 	 * Additional options applicable for {@literal XADD} command.
 	 *
 	 * @author Christoph Strobl
+	 * @author Mark John Moreno
 	 * @since 2.3
 	 */
 	class XAddOptions {
 
-		private static final XAddOptions NONE = new XAddOptions(null);
+		private static final XAddOptions NONE = new XAddOptions(null, false);
 
 		private final @Nullable Long maxlen;
+		private final boolean nomkstream;
 
-		private XAddOptions(@Nullable Long maxlen) {
+		private XAddOptions(@Nullable Long maxlen, boolean nomkstream) {
 			this.maxlen = maxlen;
+			this.nomkstream = nomkstream;
 		}
 
 		/**
@@ -141,7 +145,28 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XAddOptions}.
 		 */
 		public static XAddOptions maxlen(long maxlen) {
-			return new XAddOptions(maxlen);
+			return new XAddOptions(maxlen, false);
+		}
+
+		/**
+		 * Disable creation of stream if it does not already exist.
+		 *
+		 * @return new instance of {@link XAddOptions}.
+		 * @since 2.6
+		 */
+		public static XAddOptions makeNoStream() {
+			return new XAddOptions(null, true);
+		}
+
+		/**
+		 * Disable creation of stream if it does not already exist.
+		 *
+		 * @param makeNoStream {@code true} to not create a stream if it does not already exist.
+		 * @return new instance of {@link XAddOptions}.
+		 * @since 2.6
+		 */
+		public static XAddOptions makeNoStream(boolean makeNoStream) {
+			return new XAddOptions(null, makeNoStream);
 		}
 
 		/**
@@ -161,6 +186,14 @@ public interface RedisStreamCommands {
 			return maxlen != null && maxlen > 0;
 		}
 
+		/**
+		 * @return {@literal true} if {@literal NOMKSTREAM} is set.
+		 * @since 2.6
+		 */
+		public boolean isNoMkStream() {
+			return nomkstream;
+		}
+
 		@Override
 		public boolean equals(Object o) {
 			if (this == o) {
@@ -169,14 +202,16 @@ public interface RedisStreamCommands {
 			if (o == null || getClass() != o.getClass()) {
 				return false;
 			}
-
 			XAddOptions that = (XAddOptions) o;
+			if (this.nomkstream != that.nomkstream) return false;
 			return ObjectUtils.nullSafeEquals(this.maxlen, that.maxlen);
 		}
 
 		@Override
 		public int hashCode() {
-			return ObjectUtils.nullSafeHashCode(this.maxlen);
+			int result = ObjectUtils.nullSafeHashCode(this.maxlen);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(this.nomkstream);
+			return result;
 		}
 	}
 
