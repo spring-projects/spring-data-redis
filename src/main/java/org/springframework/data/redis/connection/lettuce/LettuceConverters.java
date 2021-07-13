@@ -537,10 +537,11 @@ public abstract class LettuceConverters extends Converters {
 	static RedisSentinelConfiguration redisUriToSentinelConfiguration(RedisURI redisURI) {
 
 		Assert.notNull(redisURI, "RedisURI is required");
-		Assert.hasText(redisURI.getSentinelMasterId(), "RedisURI must have sentinelMasterId param set");
 
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration();
-		sentinelConfiguration.setMaster(redisURI.getSentinelMasterId());
+		if (!ObjectUtils.isEmpty(redisURI.getSentinelMasterId())) {
+			sentinelConfiguration.setMaster(redisURI.getSentinelMasterId());
+		}
 		sentinelConfiguration.setDatabase(redisURI.getDatabase());
 
 		for (RedisURI sentinelNodeRedisUri : redisURI.getSentinels()) {
@@ -566,7 +567,6 @@ public abstract class LettuceConverters extends Converters {
 	static RedisSocketConfiguration redisUriToSocketConfiguration(RedisURI redisURI) {
 
 		Assert.notNull(redisURI, "RedisURI is required");
-		Assert.hasText(redisURI.getSocket(), "RedisURI must have socket path set");
 
 		RedisSocketConfiguration socketConfiguration = new RedisSocketConfiguration();
 		socketConfiguration.setSocket(redisURI.getSocket());
