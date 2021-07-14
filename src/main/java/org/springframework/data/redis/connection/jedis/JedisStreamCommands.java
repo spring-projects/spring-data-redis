@@ -20,6 +20,7 @@ import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.StreamConsumersInfo;
 import redis.clients.jedis.StreamGroupInfo;
+import redis.clients.jedis.params.XAddParams;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,14 +79,18 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(record, "Record must not be null!");
 		Assert.notNull(record.getStream(), "Stream must not be null!");
 
-		byte[] id = JedisConverters.toBytes(record.getId().getValue());
-		long maxLength = Long.MAX_VALUE;
+		XAddParams xAddParams = new XAddParams();
+		xAddParams.id(record.getId().getValue());
 		if (options.hasMaxlen()) {
-			maxLength = options.getMaxlen();
+			xAddParams.maxLen(options.getMaxlen());
+		}
+		if (options.isNoMkStream()) {
+			xAddParams.noMkStream();
 		}
 
-		return connection.invoke().from(BinaryJedis::xadd, MultiKeyPipelineBase::xadd, record.getStream(), id,
-				record.getValue(), maxLength, false).get(it -> RecordId.of(JedisConverters.toString(it)));
+		return connection.invoke()
+				.from(BinaryJedis::xadd, MultiKeyPipelineBase::xadd, record.getStream(), record.getValue(), xAddParams)
+				.get(it -> RecordId.of(JedisConverters.toString(it)));
 	}
 
 	/*
