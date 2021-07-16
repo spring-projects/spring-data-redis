@@ -1,6 +1,15 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.5.3 (2021-07-16)
+-------------------------------------
+* #2122 - Upgrade to redis/jedis driver 3.6.2.
+* #2119 - Upgrade to Lettuce 6.1.4.
+* #2116 - Introduce factory methods to configure `LettuceConnectionFactory` from `RedisURI`.
+* #2103 - Cannot connect to Redis Sentinel using database greater 0 through Jedis.
+* #2088 - Add support for ZMSCORE and ZPOPMIN/ZPOPMAX commands.
+
+
 Changes in version 2.5.2 (2021-06-22)
 -------------------------------------
 * #2093 - Upgrade to Jedis 3.6.1.
@@ -2389,6 +2398,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
