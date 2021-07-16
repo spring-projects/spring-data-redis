@@ -1,6 +1,12 @@
 Spring Data Redis Changelog
 ===========================
 
+Changes in version 2.4.11 (2021-07-16)
+--------------------------------------
+* #2120 - Upgrade to Lettuce 6.0.7.
+* #2088 - Add support for ZMSCORE and ZPOPMIN/ZPOPMAX commands.
+
+
 Changes in version 2.5.2 (2021-06-22)
 -------------------------------------
 * #2093 - Upgrade to Jedis 3.6.1.
@@ -2389,6 +2395,7 @@ General
 * Various serialization strategies
 * Atomic counter support classes
 * JDK Collection implementations on top of Redis
+
 
 
 
