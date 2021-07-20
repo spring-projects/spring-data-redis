@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.core.TimeoutUtils;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.Protocol;
@@ -23,6 +24,7 @@ import redis.clients.jedis.params.LPosParams;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.lang.Nullable;
@@ -32,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author dengliming
+ * @author ihaohong
  * @since 2.0
  */
 class JedisListCommands implements RedisListCommands {
@@ -294,7 +297,24 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		return connection.invoke().just(BinaryJedis::blpop, MultiKeyPipelineBase::blpop, bXPopArgs(timeout, keys));
+		return connection.invoke().just(BinaryJedis::blpop, MultiKeyPipelineBase::blpop, bXPopArgs(timeout, TimeUnit.SECONDS, keys));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bLPop(int, java.util.concurrent.TimeUnit, byte[][])
+	 */
+	@Override
+	public List<byte[]> bLPop(int timeout, TimeUnit unit, byte[]... keys) {
+
+		Assert.notNull(keys, "Key must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
+		if (TimeUnit.MILLISECONDS == unit) {
+			return connection.invoke().just(BinaryJedis::blpop, MultiKeyPipelineBase::blpop, bXPopArgs(timeout, unit, keys));
+		}
+
+		return bLPop(timeout, keys);
 	}
 
 	/*
@@ -307,7 +327,20 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		return connection.invoke().just(BinaryJedis::brpop, MultiKeyPipelineBase::brpop, bXPopArgs(timeout, keys));
+		return connection.invoke().just(BinaryJedis::brpop, MultiKeyPipelineBase::brpop, bXPopArgs(timeout, TimeUnit.SECONDS, keys));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bRPop(int, java.util.concurrent.TimeUnit, byte[][])
+	 */
+	@Override
+	public List<byte[]> bRPop(int timeout, TimeUnit unit, byte[]... keys) {
+
+		Assert.notNull(keys, "Key must not be null!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
+		return connection.invoke().just(BinaryJedis::brpop, MultiKeyPipelineBase::brpop, bXPopArgs(timeout, unit, keys));
 	}
 
 	/*
@@ -336,12 +369,16 @@ class JedisListCommands implements RedisListCommands {
 		return connection.invoke().just(BinaryJedis::brpoplpush, MultiKeyPipelineBase::brpoplpush, srcKey, dstKey, timeout);
 	}
 
-	private static byte[][] bXPopArgs(int timeout, byte[]... keys) {
-
+	private static byte[][] bXPopArgs(int timeout, TimeUnit unit, byte[]... keys) {
 		byte[][] args = new byte[keys.length + 1][];
 		System.arraycopy(keys, 0, args, 0, keys.length);
 
-		args[args.length - 1] = Protocol.toByteArray(timeout);
+		if (TimeUnit.MILLISECONDS == unit) {
+			args[args.length - 1] = Protocol.toByteArray(TimeoutUtils.toDoubleSeconds(timeout, unit));
+		} else {
+			args[args.length - 1] = Protocol.toByteArray(timeout);
+		}
+
 		return args;
 	}
 

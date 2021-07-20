@@ -22,8 +22,10 @@ import io.lettuce.core.api.async.RedisListAsyncCommands;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisListCommands;
+import org.springframework.data.redis.core.TimeoutUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -31,6 +33,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author dengliming
+ * @author ihaohong
  * @since 2.0
  */
 class LettuceListCommands implements RedisListCommands {
@@ -290,9 +293,22 @@ class LettuceListCommands implements RedisListCommands {
 	 */
 	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
+		return bLPop(timeout, TimeUnit.SECONDS, keys);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bLPop(int, java.util.concurrent.TimeUnit, byte[][])
+	 */
+	@Override
+	public List<byte[]> bLPop(int timeout, TimeUnit unit, byte[]... keys) {
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
+		if (TimeUnit.MILLISECONDS == unit) {
+			return connection.invoke(connection.getAsyncDedicatedConnection())
+					.from(RedisListAsyncCommands::blpop, TimeoutUtils.toDoubleSeconds(timeout, unit), keys).get(LettuceListCommands::toBytesList);
+		}
 
 		return connection.invoke(connection.getAsyncDedicatedConnection())
 				.from(RedisListAsyncCommands::blpop, timeout, keys).get(LettuceListCommands::toBytesList);
@@ -304,9 +320,23 @@ class LettuceListCommands implements RedisListCommands {
 	 */
 	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
+		return bRPop(timeout, TimeUnit.SECONDS, keys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bRPop(int, java.util.concurrent.TimeUnit, byte[][])
+	 */
+	@Override
+	public List<byte[]> bRPop(int timeout, TimeUnit unit, byte[]... keys) {
 
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
+
+		if (TimeUnit.MILLISECONDS == unit) {
+			return connection.invoke(connection.getAsyncDedicatedConnection())
+					.from(RedisListAsyncCommands::brpop, TimeoutUtils.toDoubleSeconds(timeout, unit), keys).get(LettuceListCommands::toBytesList);
+		}
 
 		return connection.invoke(connection.getAsyncDedicatedConnection())
 				.from(RedisListAsyncCommands::brpop, timeout, keys).get(LettuceListCommands::toBytesList);

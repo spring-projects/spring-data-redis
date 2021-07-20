@@ -46,6 +46,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Michele Mancioppi
  * @author dengliming
+ * @author ihaohong
  * @since 2.0
  */
 class LettuceReactiveListCommands implements ReactiveListCommands {
@@ -351,7 +352,19 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 			Assert.notNull(command.getDirection(), "Direction must not be null!");
 
-			long timeout = command.getTimeout().get(ChronoUnit.SECONDS);
+
+			if (command.getTimeUnit() == TimeUnit.MILLISECONDS) {
+				double timeout = TimeoutUtils.toDoubleSeconds(command.getTimeout(), command.getTimeUnit());
+
+				Mono<PopResult> mappedMono = (ObjectUtils.nullSafeEquals(Direction.RIGHT, command.getDirection())
+						? cmd.brpop(timeout, command.getKeys().stream().toArray(ByteBuffer[]::new))
+						: cmd.blpop(timeout, command.getKeys().stream().toArray(ByteBuffer[]::new)))
+						.map(kv -> Arrays.asList(kv.getKey(), kv.getValue())).map(PopResult::new);
+
+				return mappedMono.map(value -> new PopResponse(command, value));
+			}
+
+			long timeout = command.getTimeUnit().toSeconds(command.getTimeout());
 
 			Mono<PopResult> mappedMono = (ObjectUtils.nullSafeEquals(Direction.RIGHT, command.getDirection())
 					? cmd.brpop(timeout, command.getKeys().stream().toArray(ByteBuffer[]::new))

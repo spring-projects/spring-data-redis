@@ -226,11 +226,29 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bLPop(int, java.util.concurrent.TimeUnit, byte[][])
+	 */
+	@Override
+	public List<byte[]> bLPop(int timeout, TimeUnit unit, byte[]... keys) {
+		return convertAndReturn(delegate.bLPop(timeout, unit, keys), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisListCommands#bRPop(int, byte[][])
 	 */
 	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 		return convertAndReturn(delegate.bRPop(timeout, keys), Converters.identityConverter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bRPop(int, java.util.concurrent.TimeUnit byte[][])
+	 */
+	@Override
+	public List<byte[]> bRPop(int timeout, TimeUnit unit, byte[]... keys) {
+		return convertAndReturn(delegate.bRPop(timeout, unit, keys), Converters.identityConverter());
 	}
 
 	/*

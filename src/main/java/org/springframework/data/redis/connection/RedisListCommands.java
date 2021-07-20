@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
@@ -27,6 +28,7 @@ import org.springframework.util.CollectionUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author dengliming
+ * @author ihaohong
  */
 public interface RedisListCommands {
 
@@ -315,6 +317,21 @@ public interface RedisListCommands {
 	List<byte[]> bLPop(int timeout, byte[]... keys);
 
 	/**
+	 * Removes and returns first element from lists stored at {@code keys}. <br>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout seconds to block.
+	 * @param unit time unit for timeout
+	 * @param keys must not be {@literal null}.
+	 * @return empty {@link List} when no element could be popped and the timeout was reached. {@literal null} when used
+	 *         in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
+	 * @see #lPop(byte[])
+	 */
+	@Nullable
+	List<byte[]> bLPop(int timeout, TimeUnit unit, byte[]... keys);
+
+	/**
 	 * Removes and returns last element from lists stored at {@code keys}. <br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
@@ -327,6 +344,21 @@ public interface RedisListCommands {
 	 */
 	@Nullable
 	List<byte[]> bRPop(int timeout, byte[]... keys);
+
+	/**
+	 * Removes and returns last element from lists stored at {@code keys}. <br>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout seconds to block.
+	 * @param unit time unit for timeout
+	 * @param keys must not be {@literal null}.
+	 * @return empty {@link List} when no element could be popped and the timeout was reached. {@literal null} when used
+	 *         in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
+	 * @see #rPop(byte[])
+	 */
+	@Nullable
+	List<byte[]> bRPop(int timeout, TimeUnit unit, byte[]... keys);
 
 	/**
 	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value.

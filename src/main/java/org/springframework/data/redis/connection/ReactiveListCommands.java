@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
@@ -43,6 +44,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author dengliming
+ * @author ihaohong
  * @since 2.0
  */
 public interface ReactiveListCommands {
@@ -1233,13 +1235,15 @@ public interface ReactiveListCommands {
 	class BPopCommand implements Command {
 
 		private final List<ByteBuffer> keys;
-		private final Duration timeout;
+		private final @Nullable Long timeout;
+		private final @Nullable TimeUnit timeUnit;
 		private final Direction direction;
 
-		private BPopCommand(List<ByteBuffer> keys, Duration timeout, Direction direction) {
+		private BPopCommand(List<ByteBuffer> keys, @Nullable Long timeout, @Nullable TimeUnit timeUnit, Direction direction) {
 
 			this.keys = keys;
 			this.timeout = timeout;
+			this.timeUnit = timeUnit;
 			this.direction = direction;
 		}
 
@@ -1249,7 +1253,7 @@ public interface ReactiveListCommands {
 		 * @return a new {@link BPopCommand} for right push ({@literal BRPOP}).
 		 */
 		public static BPopCommand right() {
-			return new BPopCommand(Collections.emptyList(), Duration.ZERO, Direction.RIGHT);
+			return new BPopCommand(Collections.emptyList(), null, null, Direction.RIGHT);
 		}
 
 		/**
@@ -1258,7 +1262,7 @@ public interface ReactiveListCommands {
 		 * @return a new {@link BPopCommand} for right push ({@literal BLPOP}).
 		 */
 		public static BPopCommand left() {
-			return new BPopCommand(Collections.emptyList(), Duration.ZERO, Direction.LEFT);
+			return new BPopCommand(Collections.emptyList(), null, null, Direction.LEFT);
 		}
 
 		/**
@@ -1271,7 +1275,7 @@ public interface ReactiveListCommands {
 
 			Assert.notNull(keys, "Keys must not be null!");
 
-			return new BPopCommand(new ArrayList<>(keys), Duration.ZERO, direction);
+			return new BPopCommand(new ArrayList<>(keys), null, null, direction);
 		}
 
 		/**
@@ -1284,7 +1288,20 @@ public interface ReactiveListCommands {
 
 			Assert.notNull(timeout, "Timeout must not be null!");
 
-			return new BPopCommand(keys, timeout, direction);
+			return blockingFor(timeout.toMillis(), TimeUnit.MICROSECONDS);
+		}
+
+		/**
+		 * Applies a {@link Duration timeout}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param timeout must not be {@literal null}.
+		 * @param timeUnit must node be {@literal null}.
+		 * @return a new {@link BPopCommand} with {@link Duration timeout} applied.
+		 */
+		public BPopCommand blockingFor(long timeout, TimeUnit timeUnit) {
+			Assert.notNull(timeUnit, "TimeUnit must not be null!");
+
+			return new BPopCommand(getKeys(), timeout, timeUnit, direction);
 		}
 
 		/* (non-Javadoc)
@@ -1305,8 +1322,15 @@ public interface ReactiveListCommands {
 		/**
 		 * @return
 		 */
-		public Duration getTimeout() {
+		public Long getTimeout() {
 			return timeout;
+		}
+
+		/**
+		 * @return
+		 */
+		public TimeUnit getTimeUnit() {
+			return timeUnit;
 		}
 
 		/**
